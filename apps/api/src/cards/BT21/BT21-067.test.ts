@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-067.js";
 
@@ -55,5 +57,64 @@ describe("BT21-067 Garurumon", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("adventure").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("adventure").instanceId)).toBe(false);
+  });
+
+  it("plays itself from security at end of battle without paying cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT21-067", as: "garurumon" }] } });
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("garurumon"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((card) => card.topCard.instanceId === s.inst("garurumon").instanceId),
+    );
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not return a non-ADVENTURE Digimon from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-067", as: "garurumon" }],
+          trash: [{ card: "BT1-009", as: "other" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("garurumon"));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
+  });
+
+  it("draws and trashes exactly once per turn from a realistic evolution stack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-075", as: "host", under: [{ card: "BT21-067", as: "source" }] }],
+          hand: [{ card: "BT1-009", as: "discard" }],
+          deck: [
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-011", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.inst("discard").instanceId);
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await settle(
+      () =>
+        s.state.players[0]!.deck.length === 1 &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("discard").instanceId),
+    );
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("first").instanceId)).toBe(true);
   });
 });

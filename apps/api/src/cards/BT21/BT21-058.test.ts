@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "./BT21-058.js";
+import { compiled } from "./BT21-058.js";
 import "./BT21-056.js";
+import "../index.js";
 
 // A3 for BT21-058 (Snatchmon) — [On Play] / [When Digivolving]:
 //   "Reveal the top 3 cards of your deck. Add 1 card with [Vemmon] in its text to your
@@ -31,6 +32,14 @@ function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string
 }
 
 describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () => {
+  it("preserves full coverage and identical On Play/When Digivolving action sequences", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual ?? []).toEqual([]);
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toEqual(
+      compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")?.actions,
+    );
+  });
+
   it("adds the Vemmon card to hand and trashes the non-Vemmon cards", async () => {
     // Put Snatchmon on the battle area so its OnPlay fires.
     // Deck: [Vemmon, plain, plain] (Vemmon is at top).
@@ -118,6 +127,46 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     }
 
     expect(p0?.hand.some((c) => c.instanceId === qualifyingId)).toBe(true);
+  });
+
+  it("places up to two Vemmon from trash under one chosen Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: SNATCHMON, as: "snatchmon" },
+            { card: "BT1-009", as: "host", under: [{ card: "BT1-010", as: "oldBottom" }] },
+          ],
+          trash: [
+            { card: "BT21-056", as: "vemmonA" },
+            { card: "BT11-061", as: "vemmonB" },
+            { card: PLAIN_CARD, as: "nonVemmon" },
+          ],
+          deck: [PLAIN_CARD, PLAIN_CARD, PLAIN_CARD],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("vemmonA").instanceId, s.inst("vemmonB").instanceId, s.perm("host").topCard.instanceId);
+    await s.ready();
+    const vemmonAId = s.inst("vemmonA").instanceId;
+    const vemmonBId = s.inst("vemmonB").instanceId;
+    const nonVemmonId = s.inst("nonVemmon").instanceId;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("snatchmon"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.stack.some((card) => card.instanceId === vemmonAId)),
+    );
+
+    const placedHost = s.state.players[0]!.battleArea.find((permanent) =>
+      permanent.stack.some((card) => card.instanceId === vemmonAId),
+    );
+    expect(placedHost).toBeDefined();
+    expect(new Set(placedHost!.stack.slice(0, 2).map((card) => card.instanceId))).toEqual(
+      new Set([vemmonAId, vemmonBId]),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === nonVemmonId)).toBe(true);
   });
 
   it("deletes only an opposing play-cost-4-or-less Digimon when this stack returns Vemmon", async () => {

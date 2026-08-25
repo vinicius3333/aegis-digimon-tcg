@@ -184,7 +184,7 @@ export async function runPlaceUnder(
         destination: "stackBottom",
       });
     }
-    await ctx.fx.placeUnder(hostId, chosen, { belowTop: true });
+    await ctx.fx.placeUnder(hostId, chosen, { belowTop: action.position !== "bottom" });
     ctx.lastPlacedUnderInstanceIds = chosen;
     ctx.lastEffectActed = chosen.length > 0;
     if (action.trackCount !== undefined) {

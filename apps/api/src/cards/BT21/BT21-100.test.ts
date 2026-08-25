@@ -4,6 +4,7 @@ import { compiled } from "./BT21-100.js";
 
 describe("BT21-100 The Digimon I Designed", () => {
   it("executes Main draw, hand trash, and battle-area placement when Takato waives the color requirement", async () => {
+    const preferred: string[] = [];
     const s = setup(
       {
         0: {
@@ -15,15 +16,19 @@ describe("BT21-100 The Digimon I Designed", () => {
           deck: [{ card: "BT1-010", as: "drawn" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("filler").instanceId);
     s.state.memory = 10;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
 
     expect(s.state.players[0]!.battleArea.length).toBe(2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("filler").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });

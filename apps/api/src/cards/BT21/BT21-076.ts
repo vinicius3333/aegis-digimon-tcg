@@ -110,15 +110,9 @@ export const compiled: CompiledCard = {
             ],
           },
           from: ["hand"],
+          payCost: true,
           optional: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          mode: "reduceCost",
-          amount: 1,
-          raw: "reduce this effect's digivolution cost by 1",
-          scaling: {
+          reduceCostScaling: {
             per: 10,
             filter: {
               zone: "trash",

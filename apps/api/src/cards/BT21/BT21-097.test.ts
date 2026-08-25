@@ -1,5 +1,9 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-097.js";
+import "../index.js";
 
 describe("BT21-097 App Link", () => {
   it("verifies the Appmon waiver, reveal-and-place Main, Delay Link, and Security placement", () => {
@@ -31,5 +35,58 @@ describe("BT21-097 App Link", () => {
     );
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+  });
+
+  it("reveals an Appmon/App Driver card, trashes the rest, and places itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-041", as: "color" }],
+          hand: [{ card: "BT21-097", as: "option" }],
+          deck: [
+            { card: "BT21-041", as: "appmon" },
+            { card: "BT1-009", as: "restA" },
+            { card: "BT1-010", as: "restB" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-097"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("appmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("restA").instanceId, s.inst("restB").instanceId]),
+    );
+  });
+
+  it("Q4734 waives color for an Appmon in breeding", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT21-041", as: "appmon" },
+        hand: [{ card: "BT21-097", as: "option" }],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+  });
+
+  it("Security places itself without changing memory", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT21-097", as: "option" }] } });
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("option").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 });

@@ -1,7 +1,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-written override for BT21-056 (GranKuwagamon).
+// Hand-written override for BT21-056 (Vemmon).
 // Fix: Return target must EXCLUDE DigiEgg (not include it).
 export const compiled: CompiledCard = {
   effects: [

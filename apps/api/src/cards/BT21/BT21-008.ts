@@ -51,6 +51,11 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "opponent" },
+          fireCondition: {
+            kind: "triggerRemovedSecuritySeat",
+            seat: "opponent",
+          },
           actions: [
             {
               kind: "GainMemory",

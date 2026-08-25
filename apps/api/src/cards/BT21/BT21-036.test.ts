@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-036.js";
+import "../index.js";
 
 describe("BT21-036 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -55,5 +58,97 @@ describe("BT21-036 compiled implementation", () => {
       { names: ["Veemon"], cost: 3, isAlternate: true },
       { level: 3, traits: ["Hero"], cost: 3, isAlternate: true },
     ]);
+  });
+
+  it.each([
+    { base: "BT21-032", route: "Veemon" },
+    { base: "BT21-011", route: "level-3 Hero" },
+  ])("evolves from $route for 3 reduced to 2 by the realistic source stack", async ({ base }) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: base, as: "base" }],
+        hand: [{ card: "BT21-036", as: "magnamon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("magnamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-036");
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([base]);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Armor Purge")).toBe(true);
+  });
+
+  it("unsuspends and gives one target -2000 DP per Armor Form card in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-032", as: "veemon", suspended: true }],
+          hand: [{ card: "BT21-036", as: "magnamon" }],
+          trash: ["BT21-035", "P-137", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target", dp: 10000 },
+            { card: "BT1-010", as: "other", dp: 9000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("magnamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("veemon").topCard.cardId === "BT21-036");
+
+    expect(s.perm("veemon").isSuspended).toBe(false);
+    expect(s.perm("target").currentDP).toBe(6000);
+    expect(s.perm("other").currentDP).toBe(9000);
+  });
+
+  it("does not reduce DP when no Armor Form card is in trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-032", as: "veemon", suspended: true }],
+          hand: [{ card: "BT21-036", as: "magnamon" }],
+          trash: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 9000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("magnamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("veemon").topCard.cardId === "BT21-036");
+
+    expect(s.perm("target").currentDP).toBe(9000);
+    expect(s.perm("veemon").isSuspended).toBe(false);
   });
 });

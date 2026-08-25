@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-040.js";
+import "../index.js";
 
 /**
  * BT21-040's alternate digivolution is gated on EITHER printed alternative:
@@ -88,5 +89,98 @@ describe("BT21-040 Agumon", () => {
       effectKey: EFFECT_KEY,
     });
     expect(result).toEqual({ ok: false, reason: "illegal-target" });
+  });
+
+  it("requires three distinct Hero Tamer names rather than three copies", () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-040", as: "agumon" },
+            { card: "BT21-080" },
+            { card: "BT21-080" },
+            { card: "BT21-080" },
+          ],
+          hand: [{ card: SHINEGREYMON, as: "shine" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("agumon").topCard.instanceId,
+        effectKey: EFFECT_KEY,
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+  });
+
+  it("may decline the qualified ShineGreymon evolution without paying memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-040", as: "agumon" }],
+          hand: [{ card: SHINEGREYMON, as: "shine" }],
+        },
+        1: { battleArea: [{ card: OPPONENT_LV6 }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("agumon").topCard.instanceId,
+        effectKey: EFFECT_KEY,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("agumon").topCard.cardId).toBe("BT21-040");
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("shine").instanceId);
+  });
+
+  it.each([
+    { base: "BT21-004", route: "Koromon" },
+    { base: "BT21-002", route: "level-2 Hero" },
+  ])("evolves from $route for 0", async ({ base }) => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: base, as: "base" },
+        hand: [{ card: "BT21-040", as: "agumon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("agumon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT21-040");
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([base]);
+  });
+
+  it("grants inherited +2000 DP only during its controller's turn", async () => {
+    for (const turnSeat of [0, 1] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT13-018", as: "host", under: ["BT21-040"] }] },
+      });
+      s.state.turnSeat = turnSeat;
+      await s.ready();
+
+      expect(s.perm("host").currentDP).toBe(turnSeat === 0 ? 14000 : 12000);
+    }
   });
 });

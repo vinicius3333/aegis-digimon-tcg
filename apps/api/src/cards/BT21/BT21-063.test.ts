@@ -1,5 +1,9 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-063.js";
+import "../index.js";
 
 describe("BT21-063 Gumdramon", () => {
   it("preserves both zero-cost alternate Digivolution requirements and inherited DP gain", () => {
@@ -36,16 +40,105 @@ describe("BT21-063 Gumdramon", () => {
         filter: {
           zone: "hand",
           controller: "mine",
-          keywords: ["Save"],
           nameOrTrait: [{ tokens: ["Hero"], match: "trait" }],
         },
+        orFilters: [{ zone: "hand", controller: "mine", keywords: ["Save"] }],
         count: 1,
       },
     });
-    expect(compiled.effects).toContainEqual({
-      trigger: "OnDeletion",
-      actions: [],
-      keywords: [{ keyword: "Save", raw: "＜Save＞" }],
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "OnDeletion",
+        actions: [
+          { kind: "PlaceUnder", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
+        ],
+        keywords: [{ keyword: "Save", raw: "＜Save＞" }],
+      }),
+    );
+  });
+
+  it.each([
+    ["Save-text", "BT21-011"],
+    ["Hero", "BT21-040"],
+  ])("pays with a %s card and draws exactly two", async (_label, costCard) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-063", as: "gumdramon" },
+            { card: costCard, as: "cost" },
+          ],
+          deck: [
+            { card: "BT1-009", as: "drawA" },
+            { card: "BT1-010", as: "drawB" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gumdramon").instanceId })).toEqual({
+      ok: true,
     });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawB").instanceId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it("does not draw or trash a nonmatching hand card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-063", as: "gumdramon" }],
+          hand: [{ card: "BT1-009", as: "nonmatching" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gumdramon"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonmatching").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("executes Save by placing itself under an own Tamer on deletion", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-063", as: "gumdramon" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const gumdramonId = s.perm("gumdramon").topCard.instanceId;
+    preferred.push(s.perm("tamer").permanentId);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("gumdramon").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === gumdramonId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === gumdramonId)).toBe(false);
+  });
+
+  it("gives its evolution host +2000 DP only during its controller's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-066", as: "host", under: [{ card: "BT21-063", as: "source" }] }] },
+    });
+    await s.ready();
+    const boosted = s.perm("host").currentDP;
+    expect(boosted).toBe(8000);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("host").currentDP).toBe(6000);
   });
 });

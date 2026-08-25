@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-045.js";
+import "../index.js";
 
 describe("BT21-045 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -111,5 +112,85 @@ describe("BT21-045 compiled implementation", () => {
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("shinegreymon").currentDP).toBe(baseDP + 3000);
     expect(observe(s.engine).hasKeyword(s.perm("shinegreymon"), "SecurityAttack")).toBe(true);
+  });
+
+  it("deletes at the 9000 DP boundary and shares the budget with When Attacking", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-045", as: "shine" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "atBoundary", dp: 9000 },
+            { card: "BT1-010", as: "second", dp: 8000 },
+            { card: "BT1-011", as: "tooLarge", dp: 10000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("atBoundary").topCard.instanceId, s.perm("second").topCard.instanceId);
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("shine"));
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("atBoundary").instanceId));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("shine"));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("second").permanentId,
+    );
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("tooLarge").permanentId,
+    );
+  });
+
+  it("does not pay the attack cost or grant bonuses without an eligible Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-045", as: "shine" },
+            { card: "BT8-087", as: "blueTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const baseDp = s.perm("shine").currentDP;
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("shine"));
+
+    expect(s.perm("blueTamer").isSuspended).toBe(false);
+    expect(s.perm("shine").currentDP).toBe(baseDp);
+    expect(observe(s.engine).hasKeyword(s.perm("shine"), "SecurityAttack")).toBe(false);
+  });
+
+  it("uses Raid to redirect a player attack to the opponent's highest-DP unsuspended Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-045", as: "shine" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "raidTarget", dp: 13000 }],
+          security: [{ card: "BT1-010", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("shine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("shine").instanceId));
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("raidTarget").permanentId),
+    ).toBe(true);
   });
 });
