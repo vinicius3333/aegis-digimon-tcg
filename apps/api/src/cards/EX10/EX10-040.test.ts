@@ -76,7 +76,7 @@ describe("EX10-040 DemiDevimon", () => {
       type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" },
     })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length === 1);
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("host"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.state.players[0]!.trash).toHaveLength(1);
     expect(s.state.players[1]!.trash).toHaveLength(2); // 1 milled + 1 security battle card
     expect(s.state.players[0]!.deck).toHaveLength(1);
