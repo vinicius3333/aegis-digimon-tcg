@@ -165,11 +165,16 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             assemblyTarget !== undefined &&
             typeof assemblyTarget.count === "number" &&
             selectedAssembly.length === assemblyTarget.count;
+          // A scaled reduction ("with the play cost reduced by the play cost of the returned
+          // Tamer" — LM-006) resolves against the live context, which already carries the
+          // receipts written while this action's own cost was paid.
+          const scaledReduction =
+            action.reduceCostByScaling === undefined ? action.reduceCostBy : scaleFactor(ctx, action.reduceCostByScaling);
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
-            ...(action.reduceCostBy !== undefined || assemblyComplete
-              ? { costDelta: (action.reduceCostBy ?? 0) + (assemblyComplete ? action.assembly!.reduceCostBy : 0) }
+            ...(scaledReduction !== undefined || assemblyComplete
+              ? { costDelta: (scaledReduction ?? 0) + (assemblyComplete ? action.assembly!.reduceCostBy : 0) }
               : {}),
             ...(assemblyComplete ? { assemblyMaterialInstanceIds: selectedAssembly } : {}),
             ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
@@ -181,10 +186,12 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // This is an effect-driven play, not a bare zone move. Route through the
           // generalized play seam so the card's [On Play] window and `whenPlayed`
           // watchers both fire (the same contract used by filtered plays).
+          const selfReduction =
+            action.reduceCostByScaling === undefined ? action.reduceCostBy : scaleFactor(ctx, action.reduceCostByScaling);
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
-            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+            ...(selfReduction !== undefined ? { costDelta: selfReduction } : {}),
             ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
