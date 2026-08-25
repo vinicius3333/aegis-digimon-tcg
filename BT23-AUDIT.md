@@ -56,6 +56,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks exact catalog/IR, routes one name match and one Royal Knight while leaving the fourth card unrevealed and bottoming the nonmatch, handles a zero-match reveal, proves the off-color CS evolution and rejects an off-color non-CS egg, proves one memory gain across two white plays, proves two Huckmon sources trigger independently, and rejects both a friendly non-white play and an opposing white play.
 - Verification: focused suite — 7 passed; `git diff --check` — passed.
 
+## BT23-007 — Musclemon — 10/10
+
+- Catalog evidence: Red level 3, play cost 3, 1000 DP, standard red-level-2 evolution for 0 plus alternate level-2 Appmon evolution for 0; forms `Stnd.` and `Appmon`, attribute `Life`, type `Muscle Training`; Security plays this card without cost at the end of its battle; Link onto Appmon costs 1, contributes 2000 DP, and grants Piercing.
+- Knowledge base: `node tools/kb/query.mjs card BT23-007` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Defects corrected: the generated IR omitted the complete Link clause and tried to play the Security card directly without retaining the post-battle trash source. The audited IR now declares the Appmon cost-1 link requirement, a linked static Piercing keyword, and the proven `whenSecurityBattleEnded` subtrigger that plays self from trash; registration remains exclusively `registerIrCard("BT23-007", compiled)` with full coverage and no residual clauses.
+- Primitive trace: alternate evolution unions the trait recipe with the standard color recipe; the player Link action validates the live host's Appmon trait, spends exactly the printed cost, moves Musclemon from hand into the host's linked zone, applies the catalog `linkDp` through the modifier ledger, and exposes the linked static keyword only from that zone; the Security lifecycle moves the revealed card through trash before the once-only battle-ended subtrigger resolves `PlayWithoutCost` without spending memory.
+- Behavioral proof: the focused suite checks every catalog field and the complete IR; executes a real security attack and verifies post-battle play, trash removal, and unchanged memory; proves off-color Appmon evolution for 0 and rejects an off-color non-Appmon; proves a valid Link costs exactly 1, contributes exactly 2000 DP, and grants Piercing; and proves an invalid host leaves hand, linked zone, and memory unchanged.
+- Verification: focused suite — 5 passed; Link/Security mechanism regressions (`BT23-052`, CR chapter 4, CR chapter 10) — 74 passed; API typecheck — passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-007 through BT23-102.
+BT23-008 through BT23-102.
