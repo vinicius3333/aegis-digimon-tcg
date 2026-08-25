@@ -1139,3 +1139,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-095.test.ts`).
+
+## BT20-096 — Black Sabbath
+
+- Catalog contract: purple LIBERATOR cost-2 Option; trash/Main at 4 or fewer hand cards may pay 6, bottom-deck itself, and delete one opposing unsuspended Digimon; ordinary Main trashes one hand card then deletes one opposing level-4-or-lower Digimon; Security deletes one opposing level-6-or-lower Digimon.
+- Knowledge base: Q4438 confines the first effect to trash.
+- Implementation evidence: the trash effect is explicitly trash-resident, gates at the inclusive hand boundary, pays memory before returning the source, aborts deletion if payment/return fails, and targets only opposing unsuspended Digimon. Ordinary Main preserves non-cost “then” sequencing, and Security has the distinct inclusive level-6 ceiling. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: the two deletion clauses deliberately differ—trash activation has no level cap but requires unsuspended, while ordinary/Security clauses use level caps without suspension filters.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-096.test.ts` — 2 passed.
+- Clause scores: stats/trash-zone Q4438 2/2; hand/memory/self-bottom activation cost 2/2; unsuspended deletion and failure gate 2/2; Main trash/Then level-4 deletion 2/2; Security level-6 deletion 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-096.test.ts`).
