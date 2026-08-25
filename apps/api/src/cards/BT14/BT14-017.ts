@@ -43,8 +43,9 @@ export const compiled: CompiledCard = {
             kind: "modifyDP",
             amount: 4000,
           },
-          while: {
+          condition: {
             kind: "memoryAtLeast",
+            controller: "opponent",
             value: 1,
             raw: "while your opponent has 1 or more memory",
           },
@@ -58,8 +59,9 @@ export const compiled: CompiledCard = {
           },
           mode: "play",
           duration: "permanent",
-          while: {
+          condition: {
             kind: "memoryAtLeast",
+            controller: "opponent",
             value: 1,
             raw: "while your opponent has 1 or more memory",
           },
