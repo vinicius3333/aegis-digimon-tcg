@@ -4,7 +4,10 @@ import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/car
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT21-013.js";
+import "../index.js";
 
 // BT21-013 (Agunimon, Red Hybrid) registers TWO alternate digivolution conditions in documented behavior
 //   1. base TopCard.IsTamer && CardColors.Contains(Red) → cost 2
@@ -201,5 +204,96 @@ describe("BT21-013 Agunimon — [When Digivolving] placement", () => {
 
     expect(offered[0]).toEqual(expect.arrayContaining(["self-p", "tamer-p"]));
     expect(placed).toHaveLength(1);
+  });
+});
+
+describe("BT21-013 Agunimon — observable game behavior", () => {
+  it("digivolves from BurningGreymon for 0 and bottoms a selected Hero card from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-013", as: "burningGreymon" }],
+          hand: [
+            { card: "BT21-013", as: "agunimon" },
+            { card: "BT21-016", as: "placedHero" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("burningGreymon").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("burningGreymon").topCard.cardId === "BT21-013");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("burningGreymon").stack[0]?.instanceId).toBe(s.inst("placedHero").instanceId);
+  });
+
+  it("when attacking, pays the matching red Hero evolution cost reduced by 1", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-013", as: "agunimon" }],
+          hand: [{ card: "AD1-003", as: "warGrowlmon" }],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("agunimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("agunimon").topCard.cardId === "AD1-003");
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not offer a non-Hybrid/non-Hero attack evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-013", as: "agunimon" }],
+          hand: [{ card: "BT1-020", as: "groundramon" }],
+        },
+        1: { security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("agunimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.perm("agunimon").topCard.cardId).toBe("BT21-013");
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("grants inherited +2000 DP only during its controller's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-021", as: "host", dp: 8000, under: ["BT21-013"] }] },
+    });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(10000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(8000);
   });
 });

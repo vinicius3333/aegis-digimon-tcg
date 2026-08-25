@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./BT21-083.js";
-import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import "../index.js";
 
 // A3 for BT21-083 (Taiki Kudo) â€” [Start of Your Main Phase]:
 //   "By placing 1 Digimon card with the [Xros Heart]/[Blue Flare]/[Hero] trait from your
@@ -36,7 +38,7 @@ describe("BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer â†
       {
         0: {
           // Taiki (Tamer) on the battle area.
-          battleArea: [{ card: TAIKI, dp: 0, as: "taiki" }],
+          battleArea: [{ card: TAIKI, dp: 0, as: "taiki", under: [{ card: "BT1-002", as: "existing" }] }],
           // Xros Heart Digimon in hand.
           hand: [{ card: XROS_HEART_DIGIMON, as: "xros" }],
           // Card in deck to draw.
@@ -58,6 +60,8 @@ describe("BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer â†
 
     // The Xros Heart card should now be under the Tamer (in its stack).
     expect(s.perm("taiki").stack.some((c) => c.instanceId === xrosId)).toBe(true);
+    expect(s.perm("taiki").stack[0]?.instanceId).toBe(xrosId);
+    expect(s.perm("taiki").stack.at(-1)?.instanceId).toBe(s.inst("existing").instanceId);
     // Hand changed: lost 1 (placed under Tamer) + gained 1 (draw) = net 0.
     expect(p0?.hand.length).toBe(handBefore - 1 + 1);
     // Memory gained by 1.
@@ -103,5 +107,97 @@ describe("BT21-083 module registration", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "Security")?.isSecurity).toBe(true);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+  });
+
+  it("suspends to make a newly played Xros Heart Digimon attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: TAIKI, as: "taiki" }], hand: [{ card: XROS_HEART_DIGIMON, as: "shoutmon" }] },
+        1: { security: ["BT1-085"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoutmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.perm("shoutmon").isSuspended).toBe(true);
+  });
+
+  it("does not suspend for a newly played nonmatching Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: TAIKI, as: "taiki" }], hand: [{ card: PLAIN_DIGIMON, as: "plain" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plain").instanceId })).toEqual({ ok: true });
+    expect(s.perm("taiki").isSuspended).toBe(false);
+  });
+
+  it("suspends to make a newly digivolved Hero attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: TAIKI, as: "taiki" },
+            { card: "BT21-063", as: "gumdramon" },
+          ],
+          hand: [{ card: "BT21-066", as: "arrester" }],
+        },
+        1: { security: ["BT1-085"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gumdramon").permanentId,
+        instanceId: s.inst("arrester").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(s.perm("gumdramon").isSuspended).toBe(true);
+  });
+
+  it("declining the watcher leaves Taiki and the arrived Digimon unsuspended", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: TAIKI, as: "taiki" }], hand: [{ card: XROS_HEART_DIGIMON, as: "shoutmon" }] },
+        1: { security: ["BT1-085"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoutmon").instanceId })).toEqual({
+      ok: true,
+    });
+    expect(s.perm("taiki").isSuspended).toBe(false);
+    expect(s.perm("shoutmon").isSuspended).toBe(false);
+  });
+
+  it("plays itself from security without paying cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: TAIKI, as: "taiki" }] } });
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("taiki"));
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(0);
   });
 });

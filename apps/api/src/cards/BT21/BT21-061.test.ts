@@ -1,6 +1,10 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-061.js";
+import "../index.js";
 
 describe("BT21-061 MetalGreymon", () => {
   it("preserves both alternate Digivolution requirements and inherited Alliance", () => {
@@ -61,7 +65,7 @@ describe("BT21-061 MetalGreymon", () => {
             { card: "BT1-086", as: "blueTamer" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }] },
+        1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -71,8 +75,85 @@ describe("BT21-061 MetalGreymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalgreymon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("opponent").stack.length === 1);
+    await settle(() => s.perm("opponent").topCard.cardId === "BT21-044");
 
     expect(s.perm("opponent").stack).toHaveLength(1);
+  });
+
+  it("Q4568 performs two separate De-Digivolve 1 processes for four Tamer colors", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-061", as: "metalgreymon" },
+            { card: "AD1-019", as: "dualTamerA" },
+            { card: "AD1-020", as: "tricolorTamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT21-045", as: "opponent", under: ["BT21-042", "BT21-044"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("metalgreymon"));
+    await settle(() => s.perm("opponent").topCard.cardId === "BT21-042");
+
+    expect(s.perm("opponent").stack).toHaveLength(0);
+  });
+
+  it("Q4565 grants Alliance mandatorily while Q4567 allows the attack to be declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-061", as: "metalgreymon" }],
+          hand: [{ card: "BT21-040", as: "adventure" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("adventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => observe(s.engine).hasKeyword(permanent, "Alliance")),
+    );
+
+    expect(s.state.players[0]!.battleArea.every((permanent) => !permanent.isSuspended)).toBe(true);
+  });
+
+  it("Q4731 still offers and resolves the attack after a non-ADVENTURE Digimon is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-061", as: "metalgreymon" }],
+          hand: [{ card: "BT1-009", as: "nonAdventure" }],
+        },
+        1: { security: [{ card: "BT1-010", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonAdventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => observe(s.engine).hasKeyword(permanent, "Alliance")),
+    ).toBe(false);
+  });
+
+  it("grants inherited Alliance to a realistic higher evolution", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-062", as: "host", under: [{ card: "BT21-061", as: "source" }] }] },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
   });
 });

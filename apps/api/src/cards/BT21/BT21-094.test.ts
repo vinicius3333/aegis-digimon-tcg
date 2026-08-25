@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import {
   makeInstance as instance,
   makeDigimon as digimon,
@@ -7,6 +8,7 @@ import {
   settle,
 } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-094.js";
+import "../index.js";
 
 // A3 for BT21-094 (Armor Digivolution) — [Main]/[Security]:
 //   Reveal the top 3 cards of your deck. Add 1 card with [Davis Motomiya] in its name and
@@ -79,5 +81,31 @@ describe("BT21-094 Delay watcher", () => {
     );
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+  });
+
+  it("Security activates the full Main reveal and places the option", async () => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT21-094", as: "option" }],
+          deck: [
+            { card: "BT3-093", as: "davis" },
+            { card: "BT17-077", as: "free" },
+            { card: "BT1-009", as: "rest" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-094"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("davis").instanceId, s.inst("free").instanceId]),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("rest").instanceId)).toBe(true);
   });
 });

@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-015.js";
+import "../index.js";
 
-describe("BT21-015 compiled implementation", () => {
+describe("BT21-015 Cyclonemon", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual ?? []).toEqual([]);
@@ -55,5 +59,82 @@ describe("BT21-015 compiled implementation", () => {
         ],
       }),
     ]);
+  });
+
+  it("plays for 5 and deletes exactly one opposing Digimon at the 4000 DP boundary", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-015", as: "cyclonemon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "atBoundary", dp: 4000 },
+            { card: "BT1-010", as: "above", dp: 5000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("atBoundary").permanentId);
+    s.state.memory = 8;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cyclonemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === preferred[0]));
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("deletes an eligible Digimon after a real digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-007", as: "agumon" }],
+          hand: [{ card: "BT21-015", as: "cyclonemon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 4000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agumon").permanentId,
+        instanceId: s.inst("cyclonemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.perm("agumon").topCard.cardId).toBe("BT21-015");
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("plays itself free from Security and resolves its On Play deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT21-015", as: "cyclonemon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 4000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("cyclonemon"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-015"));
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("grants inherited +2000 DP only during its controller's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-024", as: "host", dp: 6000, under: ["BT21-015"] }] },
+    });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(8000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(6000);
   });
 });

@@ -1,6 +1,9 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-098.js";
+import "../index.js";
 
 describe("BT21-098 Ragnarok Cannon", () => {
   it("deletes exactly one lowest-play-cost opposing Digimon and places itself in the battle area", async () => {
@@ -46,7 +49,10 @@ describe("BT21-098 Ragnarok Cannon", () => {
       event: "whenAttacking",
       sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Galacticmon"], match: "name" }] },
     });
-    const nested = (yourTurn?.actions[0] as any).actions;
+    const subTrigger = yourTurn?.actions[0];
+    expect(subTrigger?.kind).toBe("SubTrigger");
+    if (subTrigger?.kind !== "SubTrigger") throw new Error("expected attack subtrigger");
+    const nested = subTrigger.actions;
     expect(nested).toHaveLength(2);
     expect(nested[0]).toMatchObject({
       kind: "Delete",
@@ -68,5 +74,24 @@ describe("BT21-098 Ragnarok Cannon", () => {
       target: { filter: { playCostLte: 6 } },
     });
     expect(security?.actions[1]).toEqual({ kind: "AddToHandSelf" });
+  });
+
+  it("Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand", async () => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT21-098", as: "option" }],
+          trash: [{ card: "BT11-065", as: "vemmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("vemmon").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 });

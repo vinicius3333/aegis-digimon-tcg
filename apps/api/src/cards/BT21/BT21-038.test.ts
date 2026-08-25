@@ -1,5 +1,10 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-038.js";
+import "../index.js";
 
 describe("BT21-038 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -55,5 +60,90 @@ describe("BT21-038 compiled implementation", () => {
         ],
       }),
     );
+  });
+
+  it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
+    "optionally unsuspends exactly one WG Digimon at %s",
+    async (timing) => {
+      const preferInstanceIds: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT21-038", as: "deramon" },
+              { card: "BT21-034", as: "wg", suspended: true },
+              { card: "BT1-009", as: "nonWg", suspended: true },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+      );
+      preferInstanceIds.push(s.perm("wg").permanentId);
+      await s.ready();
+
+      await advance(s.engine).fire(timing, s.perm("deramon"));
+
+      expect(s.perm("wg").isSuspended).toBe(false);
+      expect(s.perm("nonWg").isSuspended).toBe(true);
+    },
+  );
+
+  it("may decline the unsuspend", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-038", as: "deramon" },
+            { card: "BT21-034", as: "wg", suspended: true },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("deramon"));
+
+    expect(s.perm("wg").isSuspended).toBe(true);
+  });
+
+  it("evolves from a level-3 WG Digimon for 2 and can unsuspend itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-033", as: "floramon", suspended: true }],
+          hand: [{ card: "BT21-038", as: "deramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("floramon").permanentId,
+        instanceId: s.inst("deramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("floramon").topCard.cardId === "BT21-038");
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("floramon").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("floramon"), "Evade")).toBe(true);
+  });
+
+  it("applies the inherited attack-target lock only on its controller's turn", async () => {
+    for (const turnSeat of [0, 1] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT21-039", as: "host", under: ["BT21-038"] }] },
+      });
+      s.state.turnSeat = turnSeat;
+      await s.ready();
+
+      expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(turnSeat === 0);
+    }
   });
 });

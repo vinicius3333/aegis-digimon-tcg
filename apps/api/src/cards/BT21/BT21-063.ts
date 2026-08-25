@@ -20,7 +20,6 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "hand",
                 controller: "mine",
-                keywords: ["Save"],
                 nameOrTrait: [
                   {
                     tokens: ["Hero"],
@@ -28,6 +27,13 @@ export const compiled: CompiledCard = {
                   },
                 ],
               },
+              orFilters: [
+                {
+                  zone: "hand",
+                  controller: "mine",
+                  keywords: ["Save"],
+                },
+              ],
               count: 1,
             },
             raw: "By trashing 1 card with ＜Save＞ in its text or the [Hero] trait from your hand",
@@ -39,7 +45,13 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "OnDeletion",
-      actions: [],
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          optional: true,
+        },
+      ],
       keywords: [
         {
           keyword: "Save",

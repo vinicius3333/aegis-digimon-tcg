@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-053.js";
+import "../index.js";
 
 describe("BT21-053 Watchmon", () => {
   it("preserves the Appmon evolution and link requirements", () => {
@@ -58,5 +59,93 @@ describe("BT21-053 Watchmon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
 
     expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(true);
+  });
+
+  it("blocks only player attacks while still allowing the affected Digimon to attack a Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-053", as: "watchmon" }],
+          battleArea: [{ card: "BT1-010", as: "defender", suspended: true }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("watchmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("links for 1, grants 2000 DP, and applies the same attack restriction", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [{ card: "BT21-053", as: "watchmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").topCard.instanceId);
+    s.state.memory = 2;
+    await s.ready();
+    const baseDp = s.perm("host").currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("watchmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").currentDP).toBe(baseDp + 2000);
+  });
+
+  it("zero-cost digivolves from a level-2 Appmon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-005", as: "appmonEgg" }],
+        hand: [{ card: "BT21-053", as: "watchmon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("appmonEgg").permanentId,
+        instanceId: s.inst("watchmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("appmonEgg").topCard.instanceId === s.inst("watchmon").instanceId);
+    expect(s.state.memory).toBe(1);
   });
 });

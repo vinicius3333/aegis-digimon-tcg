@@ -8,6 +8,18 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Attack",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          withoutSuspending: false,
+          optional: true,
+        },
+      ],
+    },
+    {
       trigger: "Static",
       actions: [],
       keywords: [
@@ -33,6 +45,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Attack",
@@ -60,6 +73,7 @@ export const compiled: CompiledCard = {
       cost: 0,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
 };
 
 registerIrCard("BT21-018", compiled);

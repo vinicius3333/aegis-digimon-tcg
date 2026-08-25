@@ -1,5 +1,10 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-035.js";
+import "../index.js";
 
 describe("BT21-035 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -41,6 +46,7 @@ describe("BT21-035 compiled implementation", () => {
       {
         kind: "SubTrigger",
         event: "whenAttackTargetSwitched",
+        sourceFilter: { isSelfRef: true },
         actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
       },
     ]);
@@ -48,5 +54,83 @@ describe("BT21-035 compiled implementation", () => {
 
   it("preserves the Veemon alternate Digivolution cost", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ names: ["Veemon"], cost: 2, isAlternate: true }]);
+  });
+
+  it("stacks Veemon's reduction and inherited DP with its own evolution bonus", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-032", as: "veemon", under: ["BT21-002"] }],
+        hand: [{ card: "BT21-035", as: "flamedramon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("flamedramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("veemon").topCard.cardId === "BT21-035");
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("veemon").currentDP).toBe(10000);
+    expect(s.perm("veemon").stack.map((card) => card.cardId)).toEqual(["BT21-002", "BT21-032"]);
+    expect(observe(s.engine).hasKeyword(s.perm("veemon"), "Armor Purge")).toBe(true);
+  });
+
+  it("unsuspends only for its own changed attack target and only once per turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT21-035", as: "flamedramon", suspended: true },
+          { card: "BT1-009", as: "other" },
+        ],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("other").permanentId,
+    });
+    expect(s.perm("flamedramon").isSuspended).toBe(true);
+
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("flamedramon").permanentId,
+    });
+    expect(s.perm("flamedramon").isSuspended).toBe(false);
+
+    s.perm("flamedramon").isSuspended = true;
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("flamedramon").permanentId,
+    });
+    expect(s.perm("flamedramon").isSuspended).toBe(true);
+  });
+
+  it("does not unsuspend from the target-switch trigger during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-035", as: "flamedramon", suspended: true }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("flamedramon").permanentId,
+    });
+
+    expect(s.perm("flamedramon").isSuspended).toBe(true);
+  });
+
+  it("applies its DP modifier only on the When Digivolving timing", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT21-035", as: "flamedramon" }] } });
+    await s.ready();
+    expect(s.perm("flamedramon").currentDP).toBe(6000);
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("flamedramon"));
+
+    expect(s.perm("flamedramon").currentDP).toBe(8000);
   });
 });

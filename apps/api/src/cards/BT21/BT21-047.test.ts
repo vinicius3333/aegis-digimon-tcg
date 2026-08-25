@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-047.js";
+import "../index.js";
 
 describe("BT21-047 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -61,8 +62,8 @@ describe("BT21-047 compiled implementation", () => {
         0: {
           hand: [{ card: "BT21-047", as: "navimon" }],
           deck: [
+            { card: "BT21-047", as: "appmon" },
             { card: "BT21-084", as: "appDriver" },
-            { card: "BT21-097", as: "appmon" },
             { card: "BT1-009", as: "rest" },
           ],
         },
@@ -76,6 +77,72 @@ describe("BT21-047 compiled implementation", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("appDriver").instanceId));
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("appDriver").instanceId)).toBe(true);
-    expect(s.state.players[0]!.deck.length + s.state.players[0]!.trash.length).toBe(2);
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("appmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("zero-cost digivolves from a level-2 Appmon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-005", as: "appmonEgg" }],
+        hand: [{ card: "BT21-047", as: "navimon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("appmonEgg").permanentId,
+        instanceId: s.inst("navimon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("appmonEgg").topCard.instanceId === s.inst("navimon").instanceId);
+
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("links for 1, grants 2000 DP, and gives its Appmon host observable Piercing", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [{ card: "BT21-047", as: "navimon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: 3000, suspended: true }],
+          security: [{ card: "BT1-010", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const baseDp = s.perm("host").currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("navimon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("navimon").instanceId));
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").currentDP).toBe(baseDp + 2000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

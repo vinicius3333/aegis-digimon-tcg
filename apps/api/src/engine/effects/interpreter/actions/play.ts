@@ -402,7 +402,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           : undefined;
       const chosen = await pickLoose(ctx, playCostAdjustedTarget, candidates, undefined, ctx.ask, visibleZoneIds);
       const costReduction =
-        action.reduceCostByScaling === undefined ? action.reduceCostBy : scaleFactor(ctx, action.reduceCostByScaling);
+        action.reduceCostByScaling === undefined
+          ? (action.reduceCostBy ?? action.costReduction)
+          : scaleFactor(ctx, action.reduceCostByScaling);
       if (chosen.length > 0) {
         // Options are USED, not played as permanents. `playInstances` intentionally rejects
         // Option definitions, so routing every PlayWithoutCost target through it silently
