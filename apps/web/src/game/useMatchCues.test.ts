@@ -392,6 +392,33 @@ describe("notices", () => {
     expect(result.current.notices).toHaveLength(1);
   });
 
+  const XROS_PLAY: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT10-066", permanentId: "perm-7" };
+
+  it("calls out a DigiXros the moment the played card lands", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([XROS_PLAY]);
+    await advance(0);
+    expect(result.current.notices[0]?.body).toEqual({ variant: "keyword", keyword: "digiXros", cardId: "BT10-066" });
+  });
+
+  it("stays quiet for an ordinary play", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([YOUR_PLAY]);
+    await advance(0);
+    expect(result.current.notices).toEqual([]);
+  });
+
+  it("calls out nothing for the history a reconnect replays", async () => {
+    const { result } = renderCues([XROS_PLAY, TURN_END]);
+    await advance(0);
+    expect(result.current.notices).toEqual([]);
+    expect(result.current.turnTransition).toBeNull();
+  });
+
   it("raises a rejection notice on demand", async () => {
     const { result } = renderCues();
     await advance(0);

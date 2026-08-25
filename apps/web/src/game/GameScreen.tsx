@@ -46,8 +46,17 @@ import {
   MemoryGauge,
   PermanentView,
   Pile,
+  TurnControl,
   type HandEntry,
 } from "./boardPieces";
+import {
+  DRAG_INTENT_LABEL_OFFSET_PX,
+  dragIntentFor,
+  dragIntentLabelKey,
+  type DragIntent,
+  type DropTarget,
+} from "./dragIntents";
+import { isBreedingWindow, turnControlState } from "./turnControl";
 import {
   bothSeated,
   activeBlockWindow,
@@ -175,6 +184,32 @@ const NARROW_RAIL_SLOT_WIDTH = 72;
  * and a drag (play / attack). `capture` is the element to capture onto once it does.
  */
 type DragOrigin = { deferred?: boolean; capture?: Element };
+
+/** A drop area under the pointer: the `data-drop` name it carries, and the id it names. */
+type DropZoneHit = { target: DropTarget; id?: string };
+
+/**
+ * The drop area under a point — the smallest one, so a permanent inside the
+ * battle row wins over the row itself. The same lookup answers "what would this
+ * drop do" while the card is still in the air and "what did it do" on release.
+ */
+function dropZoneAt(cx: number, cy: number): DropZoneHit | null {
+  let zone: Element | null = null;
+  let bestArea = Infinity;
+  document.querySelectorAll("[data-drop]").forEach((candidate) => {
+    const rect = candidate.getBoundingClientRect();
+    if (cx < rect.left || cx > rect.right || cy < rect.top || cy > rect.bottom) return;
+    const area = rect.width * rect.height;
+    if (area >= bestArea) return;
+    bestArea = area;
+    zone = candidate;
+  });
+  if (!zone) return null;
+  const element = zone as Element;
+  const target = element.getAttribute("data-drop");
+  if (!target) return null;
+  return { target: target as DropTarget, id: element.getAttribute("data-id") ?? undefined };
+}
 
 type DragState =
   | ({
@@ -333,6 +368,9 @@ export function GameScreen({
 
   const handleTapRef = useRef<((d: DragState) => void) | null>(null);
   const handleDropRef = useRef<((d: DragState, cx: number, cy: number) => void) | null>(null);
+  // The drop area the pointer is currently over, so the ghost can carry the name
+  // of the intent that release would send.
+  const [dragHover, setDragHover] = useState<DropZoneHit | null>(null);
 
   // Declared before `cues` because the cue hook reports rejections through it;
   // both bodies only run once the other binding exists.
@@ -481,6 +519,8 @@ export function GameScreen({
         d.capture?.setPointerCapture?.(e.pointerId);
       }
       setDrag({ ...d, x: e.clientX, y: e.clientY, started: true });
+      const hit = dropZoneAt(e.clientX, e.clientY);
+      setDragHover((current) => (current?.target === hit?.target && current?.id === hit?.id ? current : (hit ?? null)));
     };
     const up = (e: PointerEvent) => {
       const d = dragRef.current;
@@ -495,8 +535,12 @@ export function GameScreen({
         }
       }
       setDrag(null);
+      setDragHover(null);
     };
-    const cancel = () => setDrag(null);
+    const cancel = () => {
+      setDrag(null);
+      setDragHover(null);
+    };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
     window.addEventListener("pointercancel", cancel);
@@ -613,6 +657,7 @@ export function GameScreen({
   }
 
   const isMyTurn = state.turnSeat === viewerSeat;
+  const breedingWindow = isBreedingWindow({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat });
   const memory = displayMemory(state, viewerSeat);
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
   const youColor = identityColor;
@@ -867,6 +912,48 @@ export function GameScreen({
   const dragIsPlay = drag?.kind === "play" && drag.started;
   const dragIsAttack = drag?.kind === "attack" && drag.started;
 
+  /**
+   * What releasing here would do, or null where the drop would be refused. Every
+   * answer is the server's projection read back through `dragIntents.ts`; the
+   * board only paints it.
+   */
+  const dragIntentAt = (hit: DropZoneHit | null): DragIntent | null => {
+    if (!hit || !drag?.started) return null;
+    if (drag.kind === "attack") {
+      const attacker = you.battleArea.find((p) => p.permanentId === drag.permId);
+      return dragIntentFor({
+        drag: { kind: "attack" },
+        target: hit.target,
+        canAttackPlayer: attacker?.canAttackPlayer === true,
+        attackable: hit.id !== undefined && attacker?.attackablePermanentIds.includes(hit.id) === true,
+      });
+    }
+    const definition = getCardDefinition(drag.cardId);
+    const held = {
+      kind: "play" as const,
+      isOption: definition?.kinds.includes(CardKind.Option) ?? false,
+      isDigiEgg: definition?.kinds.includes(CardKind.DigiEgg) ?? false,
+    };
+    const base = hit.target === "perm-you" ? you.battleArea.find((p) => p.permanentId === hit.id) : undefined;
+    const route = base
+      ? handCardEvolutionRoute(drag.cardId, you.battleArea, digivolveTargetsOf(drag.instanceId).includes(hit.id ?? ""))
+      : undefined;
+    return dragIntentFor({
+      drag: held,
+      target: hit.target,
+      evolutionRoute: route?.kind,
+      digivolvable: !!you.breeding && digivolveTargetsOf(drag.instanceId).includes(you.breeding.permanentId),
+    });
+  };
+
+  /** The `data-drag-intent` an area wears while it would accept the card in the air. */
+  const dropIntentAttrs = (target: DropTarget, id?: string): Record<string, string> => {
+    const intent = dragIntentAt({ target, id });
+    return intent ? { "data-drag-intent": intent } : {};
+  };
+
+  const hoveredDragIntent = dragIntentAt(dragHover);
+
   // ----- drag plumbing -----
   const startHandDrag = (index: number, e: React.PointerEvent) => {
     const entry = handEntries[index];
@@ -945,22 +1032,9 @@ export function GameScreen({
   };
 
   const handleDrop = (d: DragState, cx: number, cy: number) => {
-    let zone: Element | null = null;
-    let bestArea = Infinity;
-    document.querySelectorAll("[data-drop]").forEach((z) => {
-      const r = z.getBoundingClientRect();
-      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
-        const area = r.width * r.height;
-        if (area < bestArea) {
-          bestArea = area;
-          zone = z;
-        }
-      }
-    });
+    const zone = dropZoneAt(cx, cy);
     if (!zone) return;
-    const el = zone as Element;
-    const target = el.getAttribute("data-drop");
-    const id = el.getAttribute("data-id") ?? undefined;
+    const { target, id } = zone;
 
     if (d.kind === "play") {
       const def = getCardDefinition(d.cardId);
@@ -1929,7 +2003,14 @@ export function GameScreen({
         ) : null}
 
         {/* field: left column / center / right column */}
-        <div className="game-field" style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden" }}>
+        <div
+          className="game-field"
+          style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
+        >
+          {/* The breeding step is about one slot: the field dims behind the dock,
+              which keeps the raising area, the hand that digivolves into it and
+              the turn control lit. Notices, panels and dialogs all sit above. */}
+          {breedingWindow ? <div className="game-breeding-mode" aria-hidden="true" /> : null}
           {/* left column: opp deck+trash (top) | your security (bottom) */}
           <aside
             className="game-pile-column game-pile-column--left"
@@ -2027,7 +2108,11 @@ export function GameScreen({
                     refCb={(el) => {
                       permRefs.current[p.permanentId] = el;
                     }}
-                    drop={{ "data-drop": "perm-opp", "data-id": p.permanentId }}
+                    drop={{
+                      "data-drop": "perm-opp",
+                      "data-id": p.permanentId,
+                      ...dropIntentAttrs("perm-opp", p.permanentId),
+                    }}
                     candidate={isCand}
                     highlight={decisionHighlightPermanentId === p.permanentId}
                     burst={permanentBursts.get(p.permanentId)}
@@ -2046,17 +2131,20 @@ export function GameScreen({
               })}
             </div>
             <div className="game-memory-band" style={{ flexShrink: 0, position: "relative" }}>
-              <MemoryGauge value={memory} compact={compactPiles} phaseLabel={t(`game.phase.${state.phase}` as const)} />
-              <button
-                className={`game-end-turn-orb${isMyTurn ? "" : " game-end-turn-orb--waiting"}`}
-                disabled={!isMyTurn}
-                onClick={() => room && intents.endPhase(room)}
-              >
-                {isMyTurn ? t("game.endPhase") : t("game.opponentsTurn")}
-              </button>
+              <MemoryGauge
+                value={memory}
+                compact={compactPiles}
+                phaseLabel={t(`game.phase.${state.phase}` as const)}
+                phaseSweeping={unsuspendSweep !== null}
+              />
+              <TurnControl
+                state={turnControlState({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat })}
+                onEndPhase={() => room && intents.endPhase(room)}
+              />
             </div>
             <div
               data-drop="battle-you"
+              {...dropIntentAttrs("battle-you")}
               className="game-battle-row game-battle-row--you"
               role="group"
               aria-label={t("game.yourBattleArea")}
@@ -2110,7 +2198,11 @@ export function GameScreen({
                     pending={pendingPermanentIds.has(p.permanentId)}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                     suspendDelayMs={unsuspendStagger(viewerSeat, index)}
-                    drop={{ "data-drop": "perm-you", "data-id": p.permanentId }}
+                    drop={{
+                      "data-drop": "perm-you",
+                      "data-id": p.permanentId,
+                      ...dropIntentAttrs("perm-you", p.permanentId),
+                    }}
                     onClick={draggable ? undefined : onYourPerm(p)}
                     onPointerDown={draggable ? (e) => startPermDrag(p, e) : undefined}
                     // Drag-only permanents still need a pointer-free path: Enter or
@@ -2161,7 +2253,7 @@ export function GameScreen({
                 refEl={(el) => {
                   oppSecRef.current = el;
                 }}
-                drop={{ "data-drop": "opp-security" }}
+                drop={{ "data-drop": "opp-security", ...dropIntentAttrs("opp-security") }}
                 glow={canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)}
                 onClick={
                   selPerm && canAttackSecurity
@@ -2243,7 +2335,8 @@ export function GameScreen({
                   (eligibleBase(you.breeding) ||
                     (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(you.breeding.permanentId)))
                 }
-                drop={{ "data-drop": "breeding-you" }}
+                focused={breedingWindow}
+                drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
                 onClick={you.breeding ? onYourPerm(you.breeding) : onBreeding}
               />
             </div>
@@ -2371,6 +2464,21 @@ export function GameScreen({
             >
               <CardFull cardId={dragCardId} width={124} />
             </div>,
+            document.body,
+          )
+        : null}
+
+      {/* The name of the intent the hovered area would send, floated clear of the
+          ghost and of the finger holding it. */}
+      {dragCardId && hoveredDragIntent
+        ? createPortal(
+            <span
+              className="game-drag-intent"
+              data-intent={hoveredDragIntent}
+              style={{ left: drag!.x, top: drag!.y - DRAG_INTENT_LABEL_OFFSET_PX }}
+            >
+              {t(dragIntentLabelKey(hoveredDragIntent))}
+            </span>,
             document.body,
           )
         : null}

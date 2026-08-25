@@ -5,7 +5,17 @@
 
 import type { ReactNode } from "react";
 import { CardInstance, Permanent, type DecisionRequest, type Seat } from "@aegis/shared";
-import { AttackArrow, BreedingSlot, Hand, MemoryGauge, PermanentView, Pile, type HandEntry } from "../game/boardPieces";
+import {
+  AttackArrow,
+  BreedingSlot,
+  Hand,
+  MemoryGauge,
+  PermanentView,
+  Pile,
+  TurnControl,
+  type HandEntry,
+} from "../game/boardPieces";
+import { dragIntentLabelKey } from "../game/dragIntents";
 import { BlockOverlay, DecisionOverlay, GameOverOverlay, MulliganOverlay } from "../game/overlays";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../game/BoardDecisionRail";
 import { CardBurst } from "../game/CardBurst";
@@ -16,7 +26,7 @@ import { NoticeStack } from "../game/NoticeStack";
 import { SidePanelStack } from "../game/SidePanelStack";
 import type { MatchNotice } from "../game/notices";
 import type { SidePanel } from "../game/sidePanels";
-import type { TranslationKey } from "../i18n";
+import { useTranslation, type TranslationKey } from "../i18n";
 import "../game/game.css";
 import "./boardShowcase.css";
 
@@ -307,6 +317,10 @@ const NOTICE_CASES: { label: string; notices: MatchNotice[] }[] = [
     ],
   },
   {
+    label: "DigiXros call-out (pink pill)",
+    notices: [showcaseNotice("keyword", { variant: "keyword", keyword: "digiXros", cardId: CARDS.mega })],
+  },
+  {
     label: "recovery and refusal",
     notices: [
       showcaseNotice("recovery", { variant: "recovery", amount: 2 }),
@@ -393,6 +407,7 @@ function Stage({ label, height, children }: { label: string; height: number; chi
 /* ---------------- page ---------------- */
 
 export function BoardShowcase() {
+  const { t } = useTranslation();
   return (
     <main className="game-layout board-showcase">
       <header className="board-showcase__intro">
@@ -422,6 +437,82 @@ export function BoardShowcase() {
         <Case label="compact (narrow viewport)">
           <div className="game-memory-band" style={{ position: "relative" }}>
             <MemoryGauge value={3} compact phaseLabel="Main" />
+          </div>
+        </Case>
+      </Section>
+
+      <Section
+        id="showcase-memory-arc"
+        title="memory jump"
+        note="A change of two chips or more traces a red arc from the chip memory left to the one it landed on, over the yellow glow that marks where memory sits now. A single step keeps the marker pop alone. Reduced motion drops the arc."
+        stacked
+      >
+        <Case label="spent 5 memory (+3 → −2)">
+          <div className="game-memory-band" style={{ position: "relative" }}>
+            <MemoryGauge value={-2} phaseLabel="Main" arc={{ from: 3, to: -2 }} />
+          </div>
+        </Case>
+        <Case label="gained 9 memory (−6 → +3)">
+          <div className="game-memory-band" style={{ position: "relative" }}>
+            <MemoryGauge value={3} phaseLabel="Main" arc={{ from: -6, to: 3 }} />
+          </div>
+        </Case>
+        <Case label="unsuspend sweep (phase pill pulses)">
+          <div className="game-memory-band" style={{ position: "relative" }}>
+            <MemoryGauge value={2} phaseLabel="Active" phaseSweeping />
+          </div>
+        </Case>
+      </Section>
+
+      <Section
+        id="showcase-turn-control"
+        title="turn control"
+        note="One round control rides the memory band through the whole turn: it ends the breeding step, then the turn, then waits out the opponent's. All three send the same endPhase intent the server advances on."
+      >
+        <Case label="end turn">
+          <TurnControl state="endTurn" onEndPhase={noop} />
+        </Case>
+        <Case label="end breeding">
+          <TurnControl state="endBreeding" onEndPhase={noop} />
+        </Case>
+        <Case label="opponent's turn (disabled)">
+          <TurnControl state="waiting" onEndPhase={noop} />
+        </Case>
+      </Section>
+
+      <Section
+        id="showcase-breeding-mode"
+        title="breeding step"
+        note="During the viewer's own breeding phase (server truth: phase Breeding on their turn) the field dims and the raising slot keeps the accent ring. The dim sits under the memory band and far under every notice, panel and dialog, so nothing readable is greyed out."
+        stacked
+      >
+        <Stage label="field dimmed, raising slot lit" height={260}>
+          <div className="game-breeding-mode" />
+          <div style={{ position: "absolute", right: 32, bottom: 28 }}>
+            <BreedingSlot
+              label="Breeding"
+              focused
+              perm={permanent({ permanentId: "p-breed-focus", cardId: CARDS.rookie, baseDP: 3000 })}
+            />
+          </div>
+        </Stage>
+      </Section>
+
+      <Section
+        id="showcase-drag-intents"
+        title="drag intents"
+        note="While a card is in the air, every area that would accept it wears the accent ring and the hovered one floats the name of what release would send. Legality is the server's projection, read through dragIntents.ts."
+      >
+        {(["play", "evolve", "breeding", "use", "attack"] as const).map((intent) => (
+          <Case key={intent} label={intent}>
+            <span className="game-drag-intent" data-intent={intent} style={{ position: "relative", translate: "none" }}>
+              {t(dragIntentLabelKey(intent))}
+            </span>
+          </Case>
+        ))}
+        <Case label="valid drop area (accent ring)">
+          <div data-drop="battle-you" data-drag-intent="play" style={{ padding: "18px 26px" }}>
+            <PermanentView perm={permanent({ permanentId: "p-drop", cardId: CARDS.champion, baseDP: 4000 })} />
           </div>
         </Case>
       </Section>
@@ -679,7 +770,8 @@ export function BoardShowcase() {
       <Section
         id="showcase-turn-banner"
         title="turn banner"
-        note="Held still here; in a match it wipes across and fades."
+        note="The translucent band opens from the middle and the words slide through it. Held still here; in a match it plays once at every turn change."
+        stacked
       >
         <Stage label="your turn" height={180}>
           <div className="game-turn-banner game-turn-banner--you" style={{ animation: "none" }}>

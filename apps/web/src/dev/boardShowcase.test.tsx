@@ -10,6 +10,10 @@ afterEach(() => cleanup());
 
 const SECTION_IDS = [
   "showcase-memory-gauge",
+  "showcase-memory-arc",
+  "showcase-turn-control",
+  "showcase-breeding-mode",
+  "showcase-drag-intents",
   "showcase-hand",
   "showcase-permanents",
   "showcase-breeding",

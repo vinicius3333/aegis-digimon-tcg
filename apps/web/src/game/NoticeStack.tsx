@@ -19,6 +19,7 @@ import {
   type MatchNotice,
   type NoticeAnchor,
   type NoticeHorizontal,
+  type NoticeKeyword,
 } from "./notices";
 
 const NOTICE_THUMB_WIDTH = 46;
@@ -53,6 +54,22 @@ function RecoveryNoticeBody({ amount, mine }: { amount: number; mine: boolean })
       <div className="match-notice__copy">
         <span className="match-notice__label">{t(mine ? "overlay.recoveryYou" : "overlay.recoveryOpp")}</span>
         <strong className="match-notice__title">{t("overlay.recovery", { count: amount })}</strong>
+      </div>
+    </>
+  );
+}
+
+/** The named-mechanic call-out: a pink pill saying what just happened, over the card that did it. */
+function KeywordNoticeBody({ keyword, cardId }: { keyword: NoticeKeyword; cardId: string }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <span className="match-notice__thumb" aria-hidden="true">
+        <CardMini cardId={cardId} width={NOTICE_THUMB_WIDTH} zoomOnHover={false} />
+      </span>
+      <div className="match-notice__copy">
+        <strong className="match-notice__keyword">{t(`notice.keyword.${keyword}` as const)}</strong>
+        <span className="match-notice__label">{getCardDefinition(cardId)?.nameEn ?? cardId}</span>
       </div>
     </>
   );
@@ -100,6 +117,8 @@ function NoticeView({
         <EffectNoticeBody cardId={body.cardId} timing={body.timing} description={body.description} />
       ) : body.variant === "recovery" ? (
         <RecoveryNoticeBody amount={body.amount} mine={notice.side === "you"} />
+      ) : body.variant === "keyword" ? (
+        <KeywordNoticeBody keyword={body.keyword} cardId={body.cardId} />
       ) : (
         <RejectionNoticeBody reason={body.reason} />
       )}

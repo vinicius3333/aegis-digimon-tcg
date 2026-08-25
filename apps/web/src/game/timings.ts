@@ -23,6 +23,10 @@ export const TIMINGS = {
   memoryMarkerPop: 300,
   /** Each chip the memory value travelled across lighting up. */
   memorySweep: 120,
+  /** The red arc tracing from the chip memory left to the one it landed on. */
+  memoryArc: 520,
+  /** One breath of the yellow glow under the chip memory currently sits on. */
+  memoryGlow: 1600,
   /** The attack arrow drawing itself from attacker to target. */
   attackArrow: 380,
   /** The attacker leaning at the security stack it declared on. */
@@ -133,6 +137,8 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-card-sparkle": TIMINGS.cardSparkle,
   "--t-memory-marker-pop": TIMINGS.memoryMarkerPop,
   "--t-memory-sweep": TIMINGS.memorySweep,
+  "--t-memory-arc": TIMINGS.memoryArc,
+  "--t-memory-glow": TIMINGS.memoryGlow,
   "--t-attack-arrow": TIMINGS.attackArrow,
   "--t-attack-lunge": TIMINGS.attackLunge,
   "--t-attack-announce-in": TIMINGS.attackAnnounceIn,

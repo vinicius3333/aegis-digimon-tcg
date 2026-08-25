@@ -11,6 +11,8 @@ import { useEnterAnimation } from "./animations";
 import { CardBurst } from "./CardBurst";
 import type { PermanentBurst } from "./showcases";
 import { linkCardSlots } from "./boardModel";
+import { memoryArcPath, memoryCellCenterFraction, shouldDrawMemoryArc } from "./memoryArc";
+import { turnControlLabelKey, type TurnControlState } from "./turnControl";
 import { formatKeyword } from "./keywordDisplay";
 import { useTranslation } from "../i18n";
 
@@ -571,6 +573,7 @@ export function BreedingSlot({
   perm,
   label,
   candidate,
+  focused,
   compact,
   burst,
   width,
@@ -580,6 +583,8 @@ export function BreedingSlot({
   perm?: Permanent;
   label: string;
   candidate?: boolean;
+  /** The breeding step is open: the slot is the one lit thing on a dimmed board. */
+  focused?: boolean;
   compact?: boolean;
   /**
    * The burst the slot is playing: a hatch opens white into blue behind a dark
@@ -595,7 +600,7 @@ export function BreedingSlot({
   const w = width ?? (compact ? 66 : 100);
   return (
     <div
-      className={`game-breeding-slot${burst ? " game-breeding-slot--lit" : ""}`}
+      className={`game-breeding-slot${burst ? " game-breeding-slot--lit" : ""}${focused ? " game-breeding-slot--focus" : ""}`}
       data-burst={burst?.variant}
       style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: compact ? 2 : 5 }}
     >
@@ -610,6 +615,7 @@ export function BreedingSlot({
               }
             : undefined
         }
+        className="game-breeding-slot__box"
         role={onClick ? "button" : undefined}
         tabIndex={onClick ? 0 : undefined}
         aria-label={onClick ? label : undefined}
@@ -678,15 +684,42 @@ function traversedChips(from: number, to: number): number[] {
   return to < from ? chips.reverse() : chips;
 }
 
+/**
+ * The red arc a memory jump leaves behind, drawn over the chips it crossed. The
+ * geometry is pure (`memoryArc.ts`); the box is stretched over the track, so the
+ * stroke is kept from stretching with it.
+ */
+export function MemoryArc({ from, to }: { from: number; to: number }) {
+  return (
+    <svg
+      className="game-memory-arc"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {/* Normalised length, so the draw-on dash array is the same 100 units whatever
+          the arc's real length turns out to be. */}
+      <path d={memoryArcPath(from, to)} pathLength={100} vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
 export function MemoryGauge({
   value,
   compact,
   phaseLabel,
+  phaseSweeping,
+  arc,
 }: {
   value: number;
   compact?: boolean;
   /** Current phase, printed as the pill at the gauge's left end (reference-client style). */
   phaseLabel?: string;
+  /** The unsuspend phase is sweeping the board, which the phase pill pulses along with. */
+  phaseSweeping?: boolean;
+  /** Forces the jump arc, for the showcase page — a match derives it from the value that changed. */
+  arc?: { from: number; to: number };
 }) {
   const { t } = useTranslation();
   const gaugeLabel = t("game.memoryGauge", { memory: value > 0 ? `+${value}` : `${value}` });
@@ -701,6 +734,9 @@ export function MemoryGauge({
   if (previous !== null && previous !== cv) sweepGeneration.current += 1;
   previousValue.current = cv;
   const swept = previous === null ? [] : traversedChips(previous, cv);
+  // A single step is already told by the marker pop, so only a real jump is traced.
+  const arcEnds =
+    arc ?? (previous !== null && shouldDrawMemoryArc(previous, cv) ? { from: previous, to: cv } : undefined);
   const sweepDelay = (chip: number) => {
     const index = swept.indexOf(chip);
     if (index < 0 || swept.length === 0) return undefined;
@@ -735,12 +771,53 @@ export function MemoryGauge({
       style={{ display: "flex", minWidth: 0, alignItems: "center", justifyContent: "center" }}
     >
       {phaseLabel ? (
-        <span className="game-memory-gauge__phase" aria-hidden>
+        <span
+          className={`game-memory-gauge__phase${phaseSweeping ? " game-memory-gauge__phase--sweeping" : ""}`}
+          aria-hidden
+        >
           {phaseLabel}
         </span>
       ) : null}
-      <div className="game-memory-gauge__track">{ticks.map(renderCoin)}</div>
+      <div className="game-memory-gauge__track">
+        {ticks.map(renderCoin)}
+        {/* The glow rides over the chip rather than inside it: a chip is clipped to
+            its hexagon, which would cut the halo off at its own edges. */}
+        <span
+          className="game-memory-glow"
+          // Placed over the row of chips rather than the padded track, which is the
+          // same box the arc is drawn in.
+          style={{
+            left: `calc(var(--memory-track-pad-x) + (100% - var(--memory-track-pad-x) * 2) * ${memoryCellCenterFraction(cv)})`,
+          }}
+          aria-hidden="true"
+        />
+        {arcEnds ? <MemoryArc key={sweepGeneration.current} from={arcEnds.from} to={arcEnds.to} /> : null}
+      </div>
     </div>
+  );
+}
+
+/**
+ * The one round control on the memory band. It rotates through the turn — ending
+ * the breeding step, then the turn, then waiting out the opponent's — and sends
+ * the same `endPhase` intent in both of its active states, because that is the
+ * only intent the server advances a phase on.
+ */
+export function TurnControl({ state, onEndPhase }: { state: TurnControlState; onEndPhase: () => void }) {
+  const { t } = useTranslation();
+  const waiting = state === "waiting";
+  return (
+    <button
+      type="button"
+      className={`game-end-turn-orb${waiting ? " game-end-turn-orb--waiting" : ""}${
+        state === "endBreeding" ? " game-end-turn-orb--breeding" : ""
+      }`}
+      data-state={state}
+      disabled={waiting}
+      onClick={onEndPhase}
+    >
+      {t(turnControlLabelKey(state))}
+    </button>
   );
 }
 

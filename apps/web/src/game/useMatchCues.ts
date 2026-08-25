@@ -42,6 +42,7 @@ import {
   dismissNotice,
   effectNoticeFromEvent,
   expireNotices,
+  keywordNoticeFromEvent,
   nextNoticeExpiry,
   pushNotice,
   recoveryNoticeFromEvent,
@@ -327,7 +328,8 @@ export function useMatchCues({
         const noticeId = `notice-${noticeSequenceRef.current}`;
         const notice =
           effectNoticeFromEvent(event, viewerSeat, noticeId, now, securityEffectPendingRef.current) ??
-          recoveryNoticeFromEvent(event, viewerSeat, noticeId, now);
+          recoveryNoticeFromEvent(event, viewerSeat, noticeId, now) ??
+          keywordNoticeFromEvent(event, viewerSeat, noticeId, now);
         if (notice) {
           if (notice.body.variant === "effect") securityEffectPendingRef.current = false;
           raised.push(notice);

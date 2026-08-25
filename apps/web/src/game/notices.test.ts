@@ -4,6 +4,7 @@ import {
   dismissNotice,
   effectNoticeFromEvent,
   expireNotices,
+  keywordNoticeFromEvent,
   MAX_VISIBLE_NOTICES,
   nextNoticeExpiry,
   noticeAnchor,
@@ -39,6 +40,29 @@ const resolved = (seat: Seat): ServerEvent => ({
   effectKey: "k",
   description: "Draw 1.",
   timing: "OnPlay",
+});
+
+describe("keywordNoticeFromEvent", () => {
+  const played = (cardId: string, seat: Seat = 0): ServerEvent => ({ kind: "cardPlayed", seat, cardId });
+
+  it("calls out a played card that could only have reached the field by DigiXros", () => {
+    expect(keywordNoticeFromEvent(played("BT10-066"), VIEWER, "k", 4)).toEqual({
+      id: "k",
+      side: "you",
+      fromSecurity: false,
+      body: { variant: "keyword", keyword: "digiXros", cardId: "BT10-066" },
+      createdAt: 4,
+    });
+    expect(keywordNoticeFromEvent(played("BT10-066", 1), VIEWER, "k", 0)?.side).toBe("opp");
+  });
+
+  it("stays quiet for a card with no DigiXros requirement", () => {
+    expect(keywordNoticeFromEvent(played("BT1-001"), VIEWER, "k", 0)).toBeNull();
+  });
+
+  it("ignores other events", () => {
+    expect(keywordNoticeFromEvent(resolved(0), VIEWER, "k", 0)).toBeNull();
+  });
 });
 
 describe("effectNoticeFromEvent", () => {

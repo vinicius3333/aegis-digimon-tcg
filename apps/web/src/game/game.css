@@ -767,7 +767,11 @@ button.opponent-action-feed__current:focus-visible {
   align-items: center;
   justify-content: center;
   gap: clamp(2px, 0.55vw, 6px);
-  padding: clamp(6px, 0.9vw, 12px) clamp(10px, 1.6vw, 22px);
+  /* Named, because the arc and the marker glow are placed over the row of chips
+     the padding leaves — the content box, not this padding box. */
+  --memory-track-pad-x: clamp(10px, 1.6vw, 22px);
+  --memory-track-pad-y: clamp(6px, 0.9vw, 12px);
+  padding: var(--memory-track-pad-y) var(--memory-track-pad-x);
   background: var(--ds-surface);
   border: 1px solid var(--ds-border);
   border-radius: 999px;
@@ -809,7 +813,8 @@ button.opponent-action-feed__current:focus-visible {
 .game-memory-gauge--compact .game-memory-gauge__track {
   flex: 1;
   gap: 2px;
-  padding: 4px 7px;
+  --memory-track-pad-x: 7px;
+  --memory-track-pad-y: 4px;
 }
 
 .game-memory-gauge--compact .game-memory-coin {
@@ -877,6 +882,8 @@ button.opponent-action-feed__current:focus-visible {
   --battle-memory-zero: #f4f6fa;
   --battle-memory-zero-ink: #23324d;
   --battle-marker: #8fc1ff;
+  /* The yellow the reference client keeps under the chip memory currently sits on. */
+  --battle-memory-glow: #ffd45e;
   --battle-cyan: #27d6e8;
   --battle-attack: #ff2d1f;
   --battle-attack-glow: rgb(255 64 32 / 35%);
@@ -884,6 +891,8 @@ button.opponent-action-feed__current:focus-visible {
   --battle-panel-border: #3b5c9e;
   /* The amber the reference client numbers ordered picks and offers "Use" in. */
   --battle-amber: #f08a24;
+  /* The pink the reference client calls named mechanics out in ("DigiXros!"). */
+  --battle-keyword: #e91e78;
   --battle-header-grad: linear-gradient(180deg, #2b57a8 0%, #16336e 55%, #102450 100%);
 }
 
@@ -1000,12 +1009,94 @@ button.opponent-action-feed__current:focus-visible {
 }
 
 .game-memory-gauge__track {
+  position: relative;
   gap: 0.14rem;
-  padding: 0.2rem 0.5rem;
+  --memory-track-pad-x: 0.5rem;
+  --memory-track-pad-y: 0.2rem;
+  padding: var(--memory-track-pad-y) var(--memory-track-pad-x);
   background: none;
   border: none;
   border-radius: 0;
   box-shadow: none;
+}
+
+/* The arc and the glow are laid over the chips rather than inside them: a chip is
+   clipped to its hexagon, which would cut both off at its own edges. Their
+   geometry is percentages of the track's content box (memoryArc.ts), so the
+   inset here must match the track's own padding. */
+/* Sized explicitly rather than by `inset`: an SVG is a replaced element, so with
+   `height: auto` it would take its intrinsic square ratio and paint far outside
+   the band. The box is the track's content box, which is the row of chips the
+   percentages in memoryArc.ts are measured against. */
+.game-memory-arc {
+  position: absolute;
+  top: var(--memory-track-pad-y);
+  left: var(--memory-track-pad-x);
+  z-index: 2;
+  width: calc(100% - var(--memory-track-pad-x) * 2);
+  height: calc(100% - var(--memory-track-pad-y) * 2);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.game-memory-arc path {
+  fill: none;
+  stroke: var(--battle-attack);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 5px var(--battle-attack-glow));
+  animation: battle-memory-arc var(--t-memory-arc, 520ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+/* Drawn on, then gone: the arc says where memory came from, not where it is. */
+@keyframes battle-memory-arc {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 1;
+  }
+  62% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+.game-memory-glow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 3rem;
+  height: 3rem;
+  pointer-events: none;
+  border-radius: 50%;
+  /* Screened over the chip rather than painted behind it, so the chip under the
+     marker brightens instead of the halo being hidden by it. */
+  mix-blend-mode: screen;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--battle-memory-glow) 85%, transparent) 0%,
+    color-mix(in srgb, var(--battle-memory-glow) 45%, transparent) 38%,
+    transparent 72%
+  );
+  translate: -50% -50%;
+  animation: battle-memory-glow var(--t-memory-glow, 1600ms) ease-in-out infinite;
+}
+
+@keyframes battle-memory-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+    scale: 0.86;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.08;
+  }
 }
 
 /* Hexagonal chips, numbered outward from zero on both sides. They share the
@@ -1092,6 +1183,24 @@ button.opponent-action-feed__current:focus-visible {
   font-size: 0.62rem;
 }
 
+/* The unsuspend step sweeps the board; the phase pill breathes with it rather
+   than inventing a second source for the same moment (the cue drives both). */
+.game-memory-gauge__phase--sweeping {
+  animation: battle-phase-sweep var(--t-memory-glow, 1600ms) ease-in-out infinite;
+}
+
+@keyframes battle-phase-sweep {
+  0%,
+  100% {
+    color: var(--battle-marker);
+    box-shadow: none;
+  }
+  50% {
+    color: #fff;
+    box-shadow: 0 0 14px color-mix(in srgb, var(--battle-marker) 65%, transparent);
+  }
+}
+
 .game-memory-gauge--compact .game-memory-gauge__phase {
   min-width: 3.6rem;
   font-size: 0.6rem;
@@ -1144,6 +1253,105 @@ button.opponent-action-feed__current:focus-visible {
     0 0 0 3px rgb(3 6 10 / 80%),
     0 0 10px rgb(120 135 165 / 30%),
     0 4px 14px rgb(0 0 0 / 55%);
+}
+
+/* The breeding face of the same control: amber, because ending the breeding step
+   is a different decision from ending the turn. */
+.game-end-turn-orb--breeding {
+  border-color: color-mix(in srgb, var(--battle-amber) 90%, transparent);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 20px color-mix(in srgb, var(--battle-amber) 55%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+}
+
+.game-end-turn-orb--breeding:hover:not(:disabled) {
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 28px color-mix(in srgb, var(--battle-amber) 80%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+}
+
+/* --- Breeding step ------------------------------------------------------- */
+
+/* The field dims behind the dock, so the only lit things are the raising slot,
+   the hand that digivolves into it and the turn control on the memory band.
+   It sits under the band (z 5) and far under every notice, panel and dialog. */
+.game-breeding-mode {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: rgb(4 9 18 / 62%);
+  animation: battle-breeding-dim var(--t-dialog-in, 180ms) ease-out both;
+}
+
+@keyframes battle-breeding-dim {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.game-breeding-slot--focus .game-breeding-slot__box {
+  outline: 2px solid var(--battle-amber);
+  outline-offset: 5px;
+  box-shadow:
+    0 0 0 4px rgb(240 138 36 / 16%),
+    0 0 22px color-mix(in srgb, var(--battle-amber) 55%, transparent);
+}
+
+/* --- Drag intents -------------------------------------------------------- */
+
+/* Every area that would accept the card in the air wears the same accent ring.
+   The ring is an outline rather than a border because these boxes set their
+   borders inline, and inline styles outrank a stylesheet. */
+[data-drop][data-drag-intent] {
+  border-radius: 12px;
+  outline: 2px solid var(--battle-amber);
+  outline-offset: 4px;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--battle-amber) 45%, transparent);
+}
+
+/* The name of what releasing would do, floated above the ghost and clear of the
+   finger holding it. */
+.game-drag-intent {
+  position: fixed;
+  z-index: 10000;
+  padding: 0.26rem 0.9rem;
+  font-family: var(--ds-font-sans);
+  font-size: 0.84rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--drag-intent-ink, #12a150);
+  white-space: nowrap;
+  pointer-events: none;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 45%);
+  translate: -50% -50%;
+}
+
+.game-drag-intent[data-intent="play"] {
+  --drag-intent-ink: #12a150;
+}
+
+.game-drag-intent[data-intent="evolve"] {
+  --drag-intent-ink: #e0562c;
+}
+
+.game-drag-intent[data-intent="breeding"] {
+  --drag-intent-ink: #2f6fe0;
+}
+
+.game-drag-intent[data-intent="use"] {
+  --drag-intent-ink: #b56410;
+}
+
+.game-drag-intent[data-intent="attack"] {
+  --drag-intent-ink: var(--battle-attack);
 }
 
 /* --- Security shields ---------------------------------------------------- */
@@ -2017,7 +2225,19 @@ button.opponent-action-feed__current:focus-visible {
   align-items: center;
   justify-content: center;
   padding: 1.1rem 0;
+  overflow: hidden;
   pointer-events: none;
+  /* A translucent band the board still reads through, opening from the middle,
+     with the words sliding through it. */
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--battle-banner-tint) 16%,
+    var(--battle-banner-tint) 84%,
+    transparent 100%
+  );
+  border-top: 1px solid rgb(255 255 255 / 30%);
+  border-bottom: 1px solid rgb(255 255 255 / 30%);
   /* The reference client's banner is ~620ms end to end (ShowTurnPlayerObject.cs: 300ms hold plus
      the in/out clips). 1s keeps it readable in a browser without stalling. */
   animation: battle-banner var(--t-turn-banner, 1000ms) ease-in-out both;
@@ -2026,33 +2246,54 @@ button.opponent-action-feed__current:focus-visible {
 .game-turn-banner span {
   font-size: clamp(2rem, 5vw, 3.4rem);
   font-weight: 900;
-  letter-spacing: 0.02em;
-  color: #0b0d10;
-  text-shadow: 0 1px 0 rgb(255 255 255 / 25%);
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-shadow:
+    0 2px 0 rgb(11 13 16 / 55%),
+    0 0 18px rgb(11 13 16 / 45%);
+  animation: battle-banner-text var(--t-turn-banner, 1000ms) cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* The reference client's two exact band colours (ShowTurnPlayerObject.cs:24, :31). */
+/* The reference client's two exact band colours (ShowTurnPlayerObject.cs:24, :31),
+   taken down to the translucency the band is read through. */
 .game-turn-banner--opp {
-  background: rgb(255 131 121 / 87%);
+  --battle-banner-tint: rgb(255 131 121 / 62%);
 }
 
 .game-turn-banner--you {
-  background: rgb(121 153 255 / 87%);
+  --battle-banner-tint: rgb(121 153 255 / 62%);
 }
 
 @keyframes battle-banner {
   0% {
     opacity: 0;
-    transform: translateX(4%);
+    clip-path: inset(0 46% 0 46%);
   }
-  16%,
-  84% {
+  18%,
+  82% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(0 46% 0 46%);
+  }
+}
+
+/* The words travel through the band rather than sitting in it. */
+@keyframes battle-banner-text {
+  0% {
+    opacity: 0;
+    transform: translateX(-16vw);
+  }
+  26%,
+  70% {
     opacity: 1;
     transform: translateX(0);
   }
   100% {
     opacity: 0;
-    transform: translateX(-3%);
+    transform: translateX(16vw);
   }
 }
 
@@ -2400,6 +2641,31 @@ button.opponent-action-feed__current:focus-visible {
   font-size: 0.72rem;
   line-height: 1.45;
   color: rgb(226 236 255 / 82%);
+}
+
+/* A named mechanic announces itself in the reference client's pink pill, next to
+   the card that did it. */
+.match-notice[data-variant="keyword"]::before,
+.match-notice[data-variant="keyword"]::after {
+  border-color: var(--battle-keyword);
+}
+
+.match-notice__keyword {
+  align-self: flex-start;
+  padding: 0.2rem 0.75rem;
+  font-family: var(--ds-font-display);
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff6fae 0%, var(--battle-keyword) 100%);
+  box-shadow: 0 4px 14px rgb(233 30 120 / 45%);
+}
+
+.match-notice[data-variant="keyword"] .match-notice__label {
+  color: #ffb4d5;
 }
 
 .match-notice__erode {
@@ -2824,7 +3090,9 @@ button.opponent-action-feed__current:focus-visible {
     display: none;
   }
   .game-memory-gauge__track {
-    padding: 10px 14px !important;
+    --memory-track-pad-x: 14px;
+    --memory-track-pad-y: 10px;
+    padding: var(--memory-track-pad-y) var(--memory-track-pad-x) !important;
   }
 }
 
@@ -3971,7 +4239,9 @@ button.opponent-action-feed__current:focus-visible {
   /* Every pixel the band gives up goes to the two battle rows, which have to
      hold a compact Digimon (106px) between them. */
   .game-memory-gauge__track {
-    padding: 5px 10px !important;
+    --memory-track-pad-x: 10px;
+    --memory-track-pad-y: 5px;
+    padding: var(--memory-track-pad-y) var(--memory-track-pad-x) !important;
   }
   .game-end-turn-orb {
     width: 2.6rem;
@@ -4240,6 +4510,10 @@ button.opponent-action-feed__current:focus-visible {
   .battle-clash,
   .battle-clash__art,
   .game-turn-banner,
+  .game-turn-banner span,
+  .game-memory-glow,
+  .game-memory-gauge__phase--sweeping,
+  .game-breeding-mode,
   .side-panel,
   .match-notice,
   .attack-announcement,
@@ -4304,6 +4578,12 @@ button.opponent-action-feed__current:focus-visible {
      still says "this Digimon cannot attack yet". */
   .game-summoning-ring i {
     animation: none;
+  }
+
+  /* The arc traces a move that has already happened; the marker says where memory
+     landed, so with no motion there is nothing for the trace to add. */
+  .game-memory-arc {
+    display: none;
   }
 
   /* Every burst is pure motion with nothing to read, so it is dropped rather

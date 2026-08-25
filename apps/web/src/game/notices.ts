@@ -11,7 +11,7 @@
    This module is the pure half: the model, the anchoring, and the stacking and
    expiry rules. Card text and translation belong to NoticeStack.tsx. */
 
-import type { Seat, ServerEvent } from "@aegis/shared";
+import { digiXrosRequirementFor, type Seat, type ServerEvent } from "@aegis/shared";
 import { TIMINGS } from "./timings";
 
 /** How long a notice stays readable on its own. */
@@ -34,7 +34,11 @@ export type NoticeAnchor = `${NoticeVertical}-${NoticeHorizontal}`;
 export type NoticeBody =
   | { variant: "effect"; cardId: string; timing?: string; description?: string }
   | { variant: "recovery"; amount: number }
-  | { variant: "rejection"; reason: string };
+  | { variant: "rejection"; reason: string }
+  | { variant: "keyword"; keyword: NoticeKeyword; cardId: string };
+
+/** The named mechanics the board calls out by name as they happen. */
+export type NoticeKeyword = "digiXros";
 
 export type NoticeVariant = NoticeBody["variant"];
 
@@ -82,6 +86,32 @@ export function recoveryNoticeFromEvent(
     side: sideOf(event.seat, viewerSeat),
     fromSecurity: false,
     body: { variant: "recovery", amount: event.amount },
+    createdAt: nowMs,
+  };
+}
+
+/**
+ * The call-out a named mechanic earns as it happens, for either seat.
+ *
+ * The mechanic has to be identifiable from the event alone: a played card whose
+ * definition carries a DigiXros requirement was DigiXrosed, because that is the
+ * only way the server lets such a card reach the field. Nothing else in the
+ * protocol names its mechanic, so nothing else is called out — a client that
+ * guessed would be inventing rules (ARCHITECTURE.md §4).
+ */
+export function keywordNoticeFromEvent(
+  event: ServerEvent,
+  viewerSeat: Seat,
+  id: string,
+  nowMs: number,
+): MatchNotice | null {
+  if (event.kind !== "cardPlayed") return null;
+  if ((digiXrosRequirementFor(event.cardId)?.length ?? 0) === 0) return null;
+  return {
+    id,
+    side: sideOf(event.seat, viewerSeat),
+    fromSecurity: false,
+    body: { variant: "keyword", keyword: "digiXros", cardId: event.cardId },
     createdAt: nowMs,
   };
 }

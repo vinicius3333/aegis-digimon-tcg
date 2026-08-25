@@ -130,3 +130,16 @@
 .board-showcase .game-security-shield__count {
   animation: none;
 }
+
+/* The memory arc draws itself and fades: held part-drawn here, since a match sees
+   it in flight rather than at rest. */
+.board-showcase .game-memory-arc path {
+  animation-delay: -300ms;
+  animation-play-state: paused;
+}
+
+/* The banner's words slide through and end off-screen, so the held frame needs the
+   text pinned as well as the band. */
+.board-showcase .game-turn-banner span {
+  animation: none;
+}
