@@ -743,3 +743,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-062.test.ts`).
+
+## BT20-063 — Ghostmon
+
+- Catalog contract: purple level 3 Data Ghost/LIBERATOR, play cost 3/1000 DP, purple level-2 evolution cost 0; On Play reveals 3, adds 1 Ghost-trait card and 1 LIBERATOR-trait card, then bottoms the rest; inherited On Deletion gains 1 memory.
+- Knowledge base: Q4285 says the inherited trigger lapses if the deleted host leaves trash before activation; Q4286 says moving Ghostmon itself out of the deleted stack does not invalidate the host-anchored pending effect. The shared timing resolver records every pending source's first permanent identity and one-way `departed` state, which implements that distinction.
+- Implementation evidence: RevealAdd uses two independent one-card trait groups and a deck-bottom remainder. The inherited memory action is collected only from Ghostmon beneath the deleted host; the engine's timing snapshot binds the pending inherited effect to the deleted permanent rather than the individual source card, matching Q4285/Q4286. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: a mixed reveal adds Ghost-only BT20-062 and LIBERATOR-only BT20-090 while bottoming Machine BT20-047. Deleting BT20-068 with Ghostmon underneath gains exactly 1 memory; deleting standalone Ghostmon gains none, proving the inherited boundary and stack identity used by the ruling seam.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-063.test.ts` — 5 passed.
+- Clause scores: stats/evolution route 2/2; reveal count/groups 2/2; independent trait boundaries/remainder 2/2; inherited stack/deletion/memory result 2/2; Q4285/Q4286 pending-source identity 2/2.
+- Score: 10/10.
+- Ambiguity: the rendered Q&A says “this card” without naming the other inherited source, but both answers unambiguously define the BT20-063 host-versus-source movement distinction.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-063.test.ts`).
