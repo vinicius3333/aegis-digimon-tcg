@@ -19,8 +19,8 @@ describe("EX9-021", () => {
   } as never;
   it("registers the DNA digivolving protection and highest-level deletion effect", () =>
     expect(getEffectModule("EX9-021")!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(1));
-  it("registers a once-per-turn end-of-attack effect", () =>
-    expect(getEffectModule("EX9-021")!.effectsForTiming(EffectTiming.OnEndAttack, source)[0]?.maxPerTurn).toBe(1));
+  it("does not impose an unprinted once-per-turn limit on the end-of-attack effect", () =>
+    expect(getEffectModule("EX9-021")!.effectsForTiming(EffectTiming.OnEndAttack, source)[0]?.maxPerTurn).toBe(-1));
 
   it("encodes the complete behavior as compiled IR", () => {
     expect(compiled.residual).toEqual([]);

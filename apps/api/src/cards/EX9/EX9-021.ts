@@ -28,7 +28,6 @@ const compiled: CompiledCard = {
     {
       trigger: "EndOfAttack",
       optional: true,
-      frequency: "OncePerTurn",
       actions: [
         {
           kind: "PlayWithoutCost",
