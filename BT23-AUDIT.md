@@ -686,6 +686,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; observes the exact security/deck instances exchange in printed order; with Blanc and a separate Huckmon present, fires Blanc's suspension, evolves the other stack into hand BaoHuckmon, and pays 1 instead of 2; then fires the same event for the other Digimon and proves no evolution or memory change occurs.
 - Verification: focused suite — 6 passed after refreshing shared runtime data; shared ordered security movement, Recovery, physical-source suspension filtering, other-recipient targeting, hand/trash evolution, destination union, optionality, legality, and reduced-cost payment mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-077 — Sistermon Ciel — 10/10
+
+- Catalog evidence: White level 4 Digimon, play cost 4, 4000 DP, no ordinary evolution; form `Champion`, attributes `Data` and `Virus`, types `Puppet` and `CS`; Blocker; On Play deletes one opposing play-cost-4-or-lower Digimon; All Turns when this Digimon suspends, De-Digivolve 1 one opposing Digimon.
+- Knowledge base: no card-specific rulings are recorded locally; the exact catalog text and general continuous-keyword, trigger-subject, deletion, and De-Digivolve rules therefore control.
+- Defect corrected: authoritative shared IR omitted the self-only subject filter on the suspension watcher, allowing any permanent's suspension to trigger Sistermon Ciel. The shared record now matches the direct module's `sourceFilter.isSelfRef`; registration remains exclusively `registerIrCard("BT23-077", compiled)` with full coverage/no residuals.
+- Primitive trace: Blocker projects continuously from the physical top card; On Play resolves one opposing Digimon at the inclusive printed play-cost boundary through ordinary effect deletion; the All Turns listener compares the suspension subject to Ciel's exact permanent and then removes exactly one top evolution card from one selected opposing stack without deleting the newly exposed base.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; observes Blocker live; deletes a cost-3 Digimon while preserving a cost-5 Digimon; suspends Ciel's subject and proves a realistic two-card opposing stack loses only its top card to trash; then suspends another friendly Digimon and proves the opposing stack remains intact.
+- Verification: focused suite — 6 passed after refreshing shared runtime data; shared Blocker, inclusive play-cost deletion, physical-source suspension filtering, opposing selection, and De-Digivolve mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-077 through BT23-102.
+BT23-078 through BT23-102.
