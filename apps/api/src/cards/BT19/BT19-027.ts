@@ -2,9 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// Hand-fixed IR: executable Decode plus the ordered return/bound-level sequence.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -77,6 +75,20 @@ const compiled: CompiledCard = {
           kind: "Return",
           target: {
             filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          to: "deckBottom",
+          storeAs: "returnedDigimonLevel",
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {
               controller: "opponent",
               kind: ["Digimon"],
               levelLte: "returnedDigimonLevel",
@@ -84,21 +96,6 @@ const compiled: CompiledCard = {
             count: 1,
           },
           to: "deckBottom",
-          cost: {
-            kind: "return",
-            target: {
-              filter: {
-                controller: "mine",
-                kind: ["Digimon"],
-              },
-              count: 1,
-            },
-            raw: "By returning 1 of your Digimon to the bottom of the deck",
-            to: "deckBottom",
-            storeAs: "returnedDigimonLevel",
-          },
-          optional: false,
-          abortOnDecline: false,
         },
       ],
       frequency: "OncePerTurn",
