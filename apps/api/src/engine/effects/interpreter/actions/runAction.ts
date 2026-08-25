@@ -60,7 +60,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   const gate =
     action.kind === "RawUnparsed" || action.kind === "ConditionalBranch"
       ? undefined
-      : action.condition ?? ("while" in action ? action.while : undefined);
+      : (action.condition ?? ("while" in action ? action.while : undefined));
   if (gate !== undefined) {
     ctx.lastActionConditionMatched = evaluateCondition(ctx, gate);
     if (!ctx.lastActionConditionMatched) return false;
@@ -204,6 +204,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.kind !== "WaiveColorRequirement" &&
     action.optional
   ) {
+    if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
+      return action.abortOnDecline === true;
+    }
     // An optional hatch is meaningful only when it can move the top Digi-Egg into
     // an empty breeding slot. Do this before opening the confirmation so the UI
     // never offers an action that the Hatch primitive would immediately no-op.
@@ -415,7 +418,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // ("for every Tamer this effect suspended", BT17-041) rather than re-counting the board.
   const paidCountScale =
     action.kind !== "RawUnparsed" && (action.scaling?.usePaidCount === true || costModifierPaidCount !== undefined)
-      ? Math.floor((costModifierPaidCount ?? costPayment.paidCount) / (action.scaling?.per && action.scaling.per > 0 ? action.scaling.per : 1))
+      ? Math.floor(
+          (costModifierPaidCount ?? costPayment.paidCount) /
+            (action.scaling?.per && action.scaling.per > 0 ? action.scaling.per : 1),
+        )
       : undefined;
   const scale =
     digiBurstScale !== undefined

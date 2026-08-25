@@ -458,7 +458,9 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
         : action.target.filter.zone !== undefined
           ? zoneList(action.target.filter.zone)
           : ["hand", "trash", "deck"];
-  if (candidateLooseInstances(ctx, action.target, zones).length === 0) return false;
+  const looseCandidates = candidateLooseInstances(ctx, action.target, zones);
+  const required = action.target.count === "all" ? looseCandidates.length : (action.target.count ?? 1);
+  if (required <= 0 || (action.target.upTo !== true && looseCandidates.length < required)) return false;
 
   if (action.destination !== undefined) {
     return (
