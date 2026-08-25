@@ -317,6 +317,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; proves the player-wide reduction deletes both an existing 6000-DP Digimon and a later-played 6000-DP Digimon; proves an empty security stack cannot pay the cost; observes Barrier through the live keyword seam; excludes opposing security removal; and verifies own removal grants Security Attack +1 and recovers the exact deck-top card. The modifier regression independently proves current/future application and turn-end expiry.
 - Verification: focused card plus modifier suite — 33 passed; API typecheck — passed; `git diff --check` — passed.
 
+## BT23-036 — BanchoLeomon — 10/10
+
+- Catalog evidence: Yellow/red level 6, play cost 12, 12000 DP, standard yellow- or red-level-5 evolution for 4 plus alternate level-5 Leomon-name or CS-trait evolution for 3; form `Mega`, attribute `Vaccine`, types `Beastkin`, `Boss`, and `CS`; its play cost is reduced by 5 at an opposing 10000-DP threshold; On Play/When Digivolving may evolve another friendly Digimon for free into a level-6-or-lower Leomon-name or CS-trait hand card; End of Your Turn once per turn gives a selected friendly Digimon Raid for the turn and then optionally attacks with it.
+- Knowledge base: Q5297 confirms the free-evolution destination is the inclusive OR of level-6-or-lower Leomon-name cards and level-6-or-lower CS-trait cards. Q5298 confirms the attack may be refused after Raid has already been granted.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-036", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, reducer-negative, independent Leomon/CS branch, and optional-attack-refusal evidence without changing execution.
+- Primitive trace: the pay-time replacement reads live opposing DP and subtracts exactly 5; both entry timings exclude the source, search hand only, enforce the inclusive level ceiling and name-or-trait predicate, and bypass evolution cost; the end-turn sequence binds the Raid recipient for the optional same-target attack, so declining the latter does not roll back the keyword grant.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; pays 7 at exactly 10000 opposing DP and the printed 12 below the threshold; separately evolves another Digimon for free into a Leomon-name-only result and a CS-trait result without changing memory; and proves refusing the follow-up attack leaves the selected Digimon unsuspended with Raid active.
+- Verification: focused suite — 9 passed; shared replacement, free-evolution, Raid, same-target, and attack mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-036 through BT23-102.
+BT23-037 through BT23-102.
