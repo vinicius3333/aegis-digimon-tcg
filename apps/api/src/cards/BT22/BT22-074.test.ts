@@ -10,23 +10,24 @@ describe("BT22-074 SkullMeramon", () => {
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
     expect(main).toMatchObject({ frequency: "OncePerTurn" });
     expect(main?.actions[0]).toMatchObject({
-      kind: "Delete",
+      kind: "CostGatedBlock",
       cost: { kind: "payMemory", memory: 3 },
-      target: {
-        filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
-        count: 1,
-      },
-    });
-    expect(main?.actions[1]).toMatchObject({
-      kind: "GainKeyword",
-      keyword: { keyword: "SecurityAttack", amount: 1 },
-      duration: "forTheTurn",
-      condition: { kind: "ifThisEffectDidNotDelete" },
-    });
-    expect(main?.actions[2]).toMatchObject({
-      kind: "Attack",
-      optional: true,
-      target: { filter: { isSelfRef: true }, isSelf: true },
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+            count: 1,
+          },
+        },
+        {
+          kind: "GainKeyword",
+          keyword: { keyword: "SecurityAttack", amount: 1 },
+          duration: "forTheTurn",
+          condition: { kind: "ifThisEffectDidNotDelete" },
+        },
+        { kind: "Attack", optional: true, target: { filter: { isSelfRef: true }, isSelf: true } },
+      ],
     });
   });
 
