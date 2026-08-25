@@ -91,8 +91,8 @@ export const compiled: CompiledCard = {
         {
           kind: "PlayWithoutCost",
           target: {
+            source: "thisDigimon",
             filter: {
-              isSelfRef: true,
               levelComparison: {
                 op: "lte",
                 value: 4,
@@ -100,7 +100,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Aqua", "Sea Animal"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },
