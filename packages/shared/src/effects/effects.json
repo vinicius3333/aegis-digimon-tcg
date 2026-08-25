@@ -47585,7 +47585,7 @@
           {
             "kind": "Suspend",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "scaling": { "per": 1, "filter": { "controller": "mine" }, "unit": "security" }
+            "scaling": { "per": 1, "filter": { "controller": "mine", "faceUp": true }, "unit": "security" }
           },
           {
             "kind": "Restrict",
@@ -47601,7 +47601,7 @@
           {
             "kind": "Suspend",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "scaling": { "per": 1, "filter": { "controller": "mine" }, "unit": "security" }
+            "scaling": { "per": 1, "filter": { "controller": "mine", "faceUp": true }, "unit": "security" }
           },
           {
             "kind": "Restrict",
@@ -47617,7 +47617,7 @@
           {
             "kind": "SubTrigger",
             "event": "onDeletionOf",
-            "sourceFilter": { "controllerDefault": "mine", "excludeSelf": true, "kind": ["Digimon"] },
+            "sourceFilter": { "controller": "any", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "Unsuspend",
@@ -56904,7 +56904,8 @@
             "cost": {
               "kind": "suspend",
               "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-              "optional": true
+              "optional": true,
+              "condition": { "kind": "triggerRemovalCause", "removalCause": "byBattle" }
             },
             "raw": "＜Digisorption -2＞"
           }
