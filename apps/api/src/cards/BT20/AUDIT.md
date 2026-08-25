@@ -587,3 +587,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-049.test.ts`).
+
+## BT20-050 — HoverEspimon
+
+- Catalog contract: black/blue level 4 Virus Cyborg/LIBERATOR, play cost 4/4000 DP, black or blue level-3 evolution cost 3 plus level-3 Cyborg/Machine alternate cost 2; When Digivolving flips the opponent's top face-down security face up; End of Attack once per turn draws 1; inherited all-turn +1000 DP.
+- Knowledge base: Q4370 requires skipping an already-face-up top security card and flipping the next face-down one; Q4371-Q4374 preserve revealed security behavior, Security effects, and reset all cards face down before a security shuffle.
+- Implementation evidence: `SecurityManipulation.flipFaceUp` delegates to the security primitive's from-top face-down scan. End of Attack uses the shared once-per-turn tracker around Draw 1, the alternate requirement is the Cyborg/Machine trait union at level 3, and the inherited permanent modifier is all-turn self-scoped. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: BT20-046 satisfies the Cyborg route for exactly 2; with the top opposing security already face up, evolution flips only the second and leaves the third face down. Two same-turn end-of-attack windows draw only the first of two deck cards. A 7000-DP BT20-052 host with HoverEspimon underneath remains 8000 DP on both turns.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-050.test.ts` — 5 passed.
+- Clause scores: stats/ordinary evolution routes 2/2; exact alternate trait route 2/2; Q4370 security face-state behavior 2/2; end-of-attack Draw 1/frequency 2/2; inherited all-turn +1000/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-050.test.ts`).
