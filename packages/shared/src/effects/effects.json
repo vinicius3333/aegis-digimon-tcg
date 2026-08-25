@@ -137450,8 +137450,17 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): All of your [ME] trait Digimon gain ＜Guard＞"
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["ME"], "match": "trait" }]
+              },
+              "count": "all"
+            },
+            "keyword": { "keyword": "Guard", "raw": "＜Guard＞" },
+            "duration": "permanent"
           }
         ],
         "isSecurity": true
@@ -137464,7 +137473,6 @@
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "controller": "mine",
-            "source": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "toTop": false,
             "faceUp": true
           }
@@ -137491,8 +137499,8 @@
         "isSecurity": true
       }
     ],
-    "coverage": "partial",
-    "residual": ["missing-primitive(unaudited): All of your [ME] trait Digimon gain ＜Guard＞"]
+    "coverage": "full",
+    "residual": []
   },
   "EX12-073": {
     "effects": [

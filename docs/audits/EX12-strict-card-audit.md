@@ -2288,3 +2288,32 @@ for the individual evidence below.
   activation — 2/2; interpreter — 171/171; capabilities — 290/290; shared build, API typecheck,
   focused formatting, focused lint, and `git diff --check` passed. No residual IR, unsupported
   behavior, ruling dependency, or unresolved limitation remains.
+
+## EX12-072 — Metal Empire — 10/10
+
+- **Printed contract:** Black cost-2 ME Option with an ME Use Requirement. While face up in
+  security, all allied ME Digimon gain Guard during all turns. Main returns the bottom security
+  card to hand and places Metal Empire face up at the bottom. Security may play one play-cost-5-
+  or-lower ME card from hand or trash for free.
+- **KB evidence:** Q6887 allows Main at zero security and resolves only the placement. Q6888-
+  Q6889 keep face-up cards revealed while otherwise treating them as ordinary security cards.
+  Q6890 activates their Security effect on a check. Q6891 turns every face-up card face down
+  before a security shuffle.
+- **Corrections:** the aggregate left the Guard grant as `RawUnparsed`, marked the card partial,
+  retained a residual, and supplied an invalid explicit source for transient Main placement. It
+  now exactly mirrors the direct executable global ME Guard grant, source-free face-up bottom
+  placement, full coverage, and empty residuals.
+- **Behavioral proof:** a red-only ME Digimon proves the black Option's Use Requirement waiver;
+  without an ME card, play is rejected. The face-up card grants Guard to every allied ME Digimon,
+  not an unrelated ally or opposing ME, and grants nothing face down. Main performs the exact
+  bottom exchange and still places itself from zero security for Q6887. Both hand and trash
+  Security plays enforce play cost 5. A real attack checks an already face-up Metal Empire,
+  activates its Security play for Q6890, then moves the checked Option to trash. Shared security
+  tests cover revealed checks and Q6891's face-down-before-shuffle rule.
+- **Identity and verification:** catalog identity, all filters/zones/costs, Guard scope, face-up
+  state, Security, full coverage, empty residuals, exclusive IR registration, and exact
+  direct/aggregate equality are asserted. `EX12-072.test.ts` — 10/10; continuous/static timing —
+  19/19; advanced keywords — 30/30; security checks — 11/11; primitives including security
+  shuffle — 126/126; security activation — 2/2; interpreter — 171/171; capabilities — 290/290;
+  shared build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, or unresolved ruling remains.
