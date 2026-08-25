@@ -1115,3 +1115,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-093.test.ts`).
+
+## BT20-094 — Emperor Dragon of Calamity
+
+- Catalog contract: red/purple cost-3 Option; Main may play a Free Digimon from trash with cost reduced by 5, then places itself in battle; whenever opposing security is removed, enables Delay to free-play Imperialdramon: Dragon Mode from any own Imperialdramon: Fighter Mode evolution cards; Security may free-play a level-3 Free Digimon from hand/trash, then adds itself to hand.
+- Knowledge base: Q4437 gives Security effects priority over simultaneously triggered security-removal effects, then turn-player ordering.
+- Implementation evidence: Main preserves reduced paid play and mandatory battle placement. The security-removal watcher arms the resident Delay action; its stack source and exact Dragon Mode name are direct. Security uses the exact level/trait/source filters, cost waiver, and self-to-hand tail. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: the Delay stack-source search is restricted by exact Dragon Mode name and the interpreter enumerates evolution cards under own Fighter Mode hosts; Free matching is semantic and the level-3 Security ceiling is exact.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-094.test.ts` — 2 passed.
+- Clause scores: stats/Main reduced Free play 2/2; mandatory battle placement 2/2; opponent-security removal/Delay Q4437 2/2; exact Fighter stack Dragon Mode free play 2/2; Security level/trait/zones/free play/self hand 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-094.test.ts`).
