@@ -329,9 +329,18 @@ export async function runPlaceUnder(
     hostId = self.permanentId;
   }
   if (hostId === undefined) return;
+  // Older compiled PlaceUnder records carry their printed quantity on the action rather
+  // than on `target`. Treat that quantity as "as many as possible, up to N": cards such as
+  // EX10-025 require 2 when 2 exist but still permit the single available card (Q5078-Q5079).
+  const placementTarget =
+    typeof action.count === "number"
+      ? { ...action.target, count: Math.min(action.count, candidates.length) }
+      : action.count === "all"
+        ? { ...action.target, count: candidates.length }
+        : action.target;
   let chosen = await pickLoose(
     ctx,
-    action.target,
+    placementTarget,
     candidates,
     undefined,
     ctx.ask,
