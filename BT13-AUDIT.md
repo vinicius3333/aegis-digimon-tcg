@@ -903,5 +903,7 @@ This ledger records a fresh, ascending-ID revalidation against the committed cat
 - Registration: all 112 executable modules register exclusively through `registerIrCard(cardId, compiled)`; no BT13 module contains `registerCard`.
 - Coverage: every card has `coverage: "full"`, an empty residual list, current catalog/KB evidence, direct primitive tracing, and an isolated focused suite recorded above.
 - Corrections found during revalidation: BT13-006 now honors Q2258 by allowing its discard cost without a deletion target; the shared play-cost seam now resolves top-card breeding-area reducers such as BT13-007; BT13-010 and BT13-104 isolated tests explicitly register the peer modules whose triggered behavior they assert.
-- Final collection, affected-seam, type, style, and diff gates are recorded in the completion commit.
+- Focused verification: all 112 card files passed in ascending order as separate Vitest processes; affected seams (`BT13-006`, `BT13-007`, and peer `EX6-006`) passed 10 tests.
+- Collection gate: `pnpm --filter @aegis/api exec vitest run src/cards/BT13` passed 112 files and 309 tests.
+- Workspace gates: `pnpm typecheck` passed; `pnpm lint` exited successfully with repository warnings only; `pnpm format:check` passed across 9,924 files; `git diff --check` passed.
 - Remaining queue: none.
