@@ -43,14 +43,32 @@ describe("BT10-002 Bebydomon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
-  it("does not draw when the opponent has fewer than 2 Digimon", async () => {
+  it("does not count an opposing Tamer toward the 2-Digimon threshold", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT10-024", as: "host", under: ["BT10-002"] }], deck: ["BT1-001"] },
-      1: { battleArea: ["BT10-020"] },
+      1: { battleArea: ["BT10-020", "BT10-087"] },
     });
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("tracks once-per-turn usage independently for two inherited sources", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-024", as: "first", under: ["BT10-002"] },
+          { card: "BT10-024", as: "second", under: ["BT10-002"] },
+        ],
+        deck: ["BT1-001", "BT1-002"],
+      },
+      1: { battleArea: ["BT10-020", "BT10-021"] },
+    });
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("first"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("second"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(2);
   });
 });

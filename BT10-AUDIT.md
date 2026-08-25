@@ -11,3 +11,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: the focused fixtures use DemiMeramon underneath realistic BT10 hosts, compare a blue source with both pure-red and red-multicolor sources, and confirm the inherited effect is absent during the opponent's turn. No peer uses this card-specific condition kind, so its direct interpreter branch and the Q1929 multicolor case are the relevant mechanism boundary.
 - Behavioral proof: the focused suite proves the positive +1000 DP path, the Q1929 red-multicolor negative, the all-red negative, and turn ownership through observable `currentDP` versus `baseDP` assertions.
 - Verification: focused suite — 3 passed; workspace typecheck — pending collection gate; `git diff --check` — passed.
+
+## BT10-002 — Bebydomon — 10/10
+
+- Catalog evidence: blue level 2 Digi-Egg; form `In-Training`, type `Baby Dragon`; inherited text is `[When Attacking] [Once Per Turn] If your opponent has 2 or more Digimon in play, <Draw 1>`; it has no main or Security effect and no evolution requirements.
+- Knowledge base: `node tools/kb/query.mjs card BT10-002` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: one inherited `WhenAttacking`, `OncePerTurn` effect draws exactly one for the source controller when `opponentHas` finds at least two battle-area Digimon. The module has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT10-002", compiled)`.
+- Primitive trace: registration maps `OncePerTurn` to `maxPerTurn: 1` keyed by the inherited source instance; `opponentHas` overrides controller ownership to the opposing seat, counts only permanents matching the battle-area and Digimon filters, and uses an inclusive `>= 2` threshold; `Draw` moves the requested top-deck card to the source controller's hand.
+- Cross-card and stack proof: realistic Bebydomon-under-level-6 stacks prove the inherited source is the effect owner; a mixed opposing Digimon/Tamer board proves the kind boundary, and two separate Bebydomon sources prove independent frequency identity.
+- Behavioral proof: the focused suite proves the exact two-Digimon positive, suppresses a repeated activation from the same source, rejects an opponent attack, rejects one Digimon plus one Tamer, and permits two distinct sources to draw once each.
+- Verification: focused suite — 4 passed; workspace typecheck — pending collection gate; `git diff --check` — passed.
