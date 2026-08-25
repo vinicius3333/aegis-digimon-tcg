@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ATTACK_ANNOUNCE_MS, INFO_PANEL_LIFETIME_MS, INFO_PANEL_MERGE_WINDOW_MS } from "./infoPanels";
+import { ATTACK_ANNOUNCE_MS, SIDE_PANEL_LIFETIME_MS, SIDE_PANEL_MERGE_WINDOW_MS } from "./sidePanels";
+import { NOTICE_CROWDED_LIFETIME_MS, NOTICE_LIFETIME_MS } from "./notices";
 import { SECURITY_CLASH_TIMINGS, SECURITY_CLASH_TOTAL_MS } from "./securityClash";
 import { BATTLE_TIMING_STYLE, BATTLE_TIMING_VARIABLES, CLASH_TOTAL_MS, TIMINGS } from "./timings";
 
@@ -35,9 +36,14 @@ describe("battle timings", () => {
     expect(CLASH_TOTAL_MS).toBe(150 + 233 + 1600 + 350 + 200);
   });
 
-  it("derives the info panel timings from the table", () => {
-    expect(INFO_PANEL_LIFETIME_MS).toBe(TIMINGS.infoPanelLifetime);
-    expect(INFO_PANEL_MERGE_WINDOW_MS).toBe(TIMINGS.infoPanelMergeWindow);
+  it("derives the side panel timings from the table", () => {
+    expect(SIDE_PANEL_LIFETIME_MS).toBe(TIMINGS.sidePanelLifetime);
+    expect(SIDE_PANEL_MERGE_WINDOW_MS).toBe(TIMINGS.sidePanelMergeWindow);
     expect(ATTACK_ANNOUNCE_MS).toBe(TIMINGS.attackAnnounce);
+  });
+
+  it("gives a crowded notice stack less time than a lone notice", () => {
+    expect(NOTICE_LIFETIME_MS).toBe(TIMINGS.noticeLifetime);
+    expect(NOTICE_CROWDED_LIFETIME_MS).toBeLessThan(NOTICE_LIFETIME_MS);
   });
 });

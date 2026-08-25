@@ -81,3 +81,12 @@
   border-radius: 0.75rem;
   background: var(--ds-game-surface, var(--ds-surface));
 }
+
+/* The eroding borders are held part-way through their sweep here: a live panel
+   finishes the ring exactly as it disappears, which would leave the showcase
+   with nothing to look at. */
+.board-showcase .side-panel__erode,
+.board-showcase .match-notice__erode {
+  animation-delay: -1200ms;
+  animation-play-state: paused;
+}

@@ -16,6 +16,8 @@ const SECTION_IDS = [
   "showcase-security",
   "showcase-turn-banner",
   "showcase-attack-arc",
+  "showcase-side-panels",
+  "showcase-notices",
   "showcase-dialogs",
 ];
 

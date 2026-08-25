@@ -66,7 +66,7 @@ describe("match cues", () => {
     expect(result.current.turnTransition).toBeNull();
     expect(result.current.attackLunge).toBeNull();
     expect(result.current.attackAnnouncement).toBeNull();
-    expect(result.current.infoPanels).toEqual([]);
+    expect(result.current.sidePanels).toEqual([]);
     expect(vi.getTimerCount()).toBe(0);
   });
 
@@ -133,5 +133,62 @@ describe("match cues", () => {
 
     expect(playSound).toHaveBeenCalledWith("turnChange");
     expect(onActionRejected).toHaveBeenCalledWith("notYourTurn");
+  });
+});
+
+describe("notices", () => {
+  const EFFECT: ServerEvent = {
+    kind: "effectResolved",
+    seat: 0,
+    sourceCardId: "BT1-010",
+    effectKey: "k",
+    description: "Draw 1.",
+    timing: "OnPlay",
+  };
+
+  it("opens nothing for the history a reconnect replays", async () => {
+    const { result } = renderCues([EFFECT, { kind: "securityRecovered", seat: 0, amount: 1 }]);
+    await advance(0);
+    expect(result.current.notices).toEqual([]);
+  });
+
+  it("holds a live notice for its full reading time", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([EFFECT]);
+    await advance(0);
+    expect(result.current.notices).toHaveLength(1);
+
+    await advance(TIMINGS.noticeLifetime - 1);
+    expect(result.current.notices).toHaveLength(1);
+    await advance(1);
+    expect(result.current.notices).toEqual([]);
+  });
+
+  it("mirrors an effect the security check raised", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([{ kind: "securityChecked", seat: 0, revealedCardId: "BT1-010", resolution: "effect" }, EFFECT]);
+    await advance(0);
+    expect(result.current.notices[0]?.fromSecurity).toBe(true);
+  });
+
+  it("raises a rejection notice on demand", async () => {
+    const { result } = renderCues();
+    await advance(0);
+
+    act(() => result.current.raiseRejection("Not enough memory."));
+    expect(result.current.notices[0]?.body).toEqual({ variant: "rejection", reason: "Not enough memory." });
+  });
+
+  it("opens the selection panel from the viewer's own answer", async () => {
+    const { result } = renderCues();
+    await advance(0);
+
+    act(() => result.current.showSelection(["BT1-001", "BT1-002"]));
+    expect(result.current.sidePanels[0]?.titleKey).toBe("panel.selectedCards");
+    expect(result.current.sidePanels[0]?.cards).toHaveLength(2);
   });
 });

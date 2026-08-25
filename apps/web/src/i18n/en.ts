@@ -561,6 +561,11 @@ export const en = {
   "feed.noHistory": "No actions yet",
 
   "panel.discardedCards": "Discarded cards",
+  "panel.cardsAddedToHand": "Cards added to hand",
+  "panel.selectedCards": "Selected Cards",
+  "panel.deckBottomCard": "Deck Bottom Card",
+  "panel.deckCards": "Cards moved to the deck",
+  "panel.digivolutionCards": "Digivolution Cards",
   "panel.deletedCards": "Deleted cards",
   "panel.trashedCards": "Cards put to trash",
   "panel.revealedCards": "Revealed Cards",
@@ -569,6 +574,8 @@ export const en = {
   "panel.yours": "Yours",
   "panel.opponents": "Opponent's",
   "panel.attacking": "{card} is attacking",
+  "notice.rejected": "Not allowed",
+  "notice.dismiss": "Dismiss notice",
 
   "reject.not-your-turn": "It's not your turn",
   "reject.wrong-phase": "Can't do that right now",

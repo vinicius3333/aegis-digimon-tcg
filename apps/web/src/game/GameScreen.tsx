@@ -93,11 +93,9 @@ import {
   CounterOverlay,
   DecisionOverlay,
   OpponentPermanentInspector,
-  RecoveryToast,
   DigiXrosMaterialOverlay,
   EvadeOverlay,
   EvoCostChoiceOverlay,
-  EffectClauseToast,
   GameOverOverlay,
   MulliganOverlay,
   StackViewerOverlay,
@@ -109,7 +107,8 @@ import {
 } from "./overlays";
 import { MatchHistorySheet, OpponentActionFeed } from "./OpponentActionFeedView";
 import { hasOpenCombatPrompt } from "./opponentActionFeed";
-import { AttackAnnouncementBanner, InfoPanelStack } from "./InfoPanelStack";
+import { AttackAnnouncementBanner, SidePanelStack } from "./SidePanelStack";
+import { NoticeStack } from "./NoticeStack";
 import { SecurityClash } from "./SecurityClashView";
 import { useMatchCues } from "./useMatchCues";
 import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
@@ -281,12 +280,10 @@ export function GameScreen({
   const [trashView, setTrashView] = useState<"you" | "opp" | null>(null); // which player's trash modal is open
   const [securityView, setSecurityView] = useState<"you" | "opp" | null>(null); // which player's security modal is open
   const [picks, setPicks] = useState<string[]>([]);
-  const [flash, setFlash] = useState<string | null>(null);
   const [oppInspector, setOppInspector] = useState<{ permanentId: string; x: number; y: number } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const inspectorTimerRef = useRef<number | undefined>(undefined);
-  const flashTimerRef = useRef<number | undefined>(undefined);
   const [evoCostChoice, setEvoCostChoice] = useState<{
     handInstanceId: string;
     permanentId: string;
@@ -330,11 +327,11 @@ export function GameScreen({
   const handleTapRef = useRef<((d: DragState) => void) | null>(null);
   const handleDropRef = useRef<((d: DragState, cx: number, cy: number) => void) | null>(null);
 
+  // Declared before `cues` because the cue hook reports rejections through it;
+  // both bodies only run once the other binding exists.
   const ping = (message: string) => {
     playSound("error");
-    setFlash(message);
-    if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
-    flashTimerRef.current = window.setTimeout(() => setFlash(null), TIMINGS.rejectionFlash);
+    cues.raiseRejection(message);
   };
 
   // Every cue the server provokes: sounds, panels, banners, the security clash,
@@ -354,17 +351,8 @@ export function GameScreen({
     },
     onActionRejected: (reason) => ping(rejectionMessage(reason, t)),
   });
-  const {
-    attackAnnouncement,
-    attackLunge,
-    drawFlights,
-    effectNotice,
-    infoPanels,
-    recoveryToast,
-    securityClash,
-    securityHitSeat,
-    turnTransition,
-  } = cues;
+  const { attackAnnouncement, attackLunge, drawFlights, securityClash, securityHitSeat, sidePanels, turnTransition } =
+    cues;
   const playGameCue = cues.playCue;
 
   const clearSel = () => {
@@ -399,7 +387,6 @@ export function GameScreen({
   useEffect(
     () => () => {
       if (inspectorTimerRef.current) window.clearTimeout(inspectorTimerRef.current);
-      if (flashTimerRef.current) window.clearTimeout(flashTimerRef.current);
     },
     [],
   );
@@ -687,6 +674,12 @@ export function GameScreen({
       playSound("confirm");
       if (room) intents.respondDecision(room, decision.decisionId, response);
       acknowledgeDecision?.(decision.decisionId);
+      // No server event narrates what the viewer picked, so the panel is raised
+      // from the answer itself, in the order the cards were chosen.
+      const revealed = new Map(decision.options?.visibleCards?.map((card) => [card.instanceId, card.cardId]));
+      cues.showSelection(
+        picks.flatMap((id) => [instanceIndex.get(id) ?? revealed.get(id)].filter((c) => c !== undefined)),
+      );
     }
     setPicks([]);
   };
@@ -1309,24 +1302,6 @@ export function GameScreen({
 
       {securityClash && !state.gameOver ? <SecurityClash key={securityClash.key} scene={securityClash} /> : null}
 
-      {recoveryToast && !state.gameOver ? (
-        <RecoveryToast
-          key={recoveryToast.key}
-          amount={recoveryToast.amount}
-          mine={recoveryToast.seat === viewerSeat}
-          anchor={recoveryToast.seat === viewerSeat ? yourSecRef.current : oppSecRef.current}
-        />
-      ) : null}
-
-      {effectNotice && !decision && !state.gameOver ? (
-        <EffectClauseToast
-          key={effectNotice.key}
-          cardId={effectNotice.cardId}
-          timing={effectNotice.timing}
-          description={effectNotice.description}
-        />
-      ) : null}
-
       {historyOpen ? <MatchHistorySheet log={log} onClose={() => setHistoryOpen(false)} /> : null}
 
       {bugReportOpen ? <BugReportDialog signedIn={signedIn} onClose={() => setBugReportOpen(false)} /> : null}
@@ -1737,7 +1712,9 @@ export function GameScreen({
           />
         ) : null}
 
-        {!state.gameOver ? <InfoPanelStack panels={infoPanels} onDismiss={cues.dismissPanel} /> : null}
+        {!state.gameOver ? <SidePanelStack panels={sidePanels} onDismiss={cues.dismissPanel} /> : null}
+
+        {!state.gameOver ? <NoticeStack notices={cues.notices} onDismiss={cues.dismissNotice} /> : null}
 
         {attackAnnouncement && !state.gameOver ? <AttackAnnouncementBanner announcement={attackAnnouncement} /> : null}
 
@@ -1762,31 +1739,6 @@ export function GameScreen({
               ))}
             </ol>
           </aside>
-        ) : null}
-
-        {flash ? (
-          <div
-            style={{
-              position: "absolute",
-              top: 64,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 70,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 7,
-              padding: "8px 16px",
-              borderRadius: 999,
-              background: "var(--ds-danger-light)",
-              color: "var(--ds-danger)",
-              fontSize: 13,
-              fontWeight: 600,
-              boxShadow: "var(--ds-shadow-md)",
-            }}
-          >
-            <Icons.CircleAlert size={15} />
-            {flash}
-          </div>
         ) : null}
 
         {turnTransition ? (

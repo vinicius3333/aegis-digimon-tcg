@@ -636,43 +636,6 @@ type _SupportedCombatPromptsComplete =
 const _supportedCombatPromptsComplete: _SupportedCombatPromptsComplete = true;
 void _supportedCombatPromptsComplete;
 
-export function RecoveryToast({
-  amount,
-  mine,
-  anchor,
-}: {
-  amount: number;
-  mine: boolean;
-  anchor?: HTMLElement | null;
-}) {
-  const { t } = useTranslation();
-  const rect = anchor?.getBoundingClientRect();
-  return createPortal(
-    <div
-      className={`recovery-toast recovery-toast--${mine ? "you" : "opp"}`}
-      role="status"
-      aria-live="polite"
-      style={
-        rect
-          ? {
-              left: mine ? rect.right + 8 : rect.left - 8,
-              top: rect.top + rect.height / 2,
-            }
-          : { left: "50%", top: 12, transform: "translateX(-50%)" }
-      }
-    >
-      <span>
-        <Icons.ShieldCheck size={19} />
-      </span>
-      <div>
-        <strong>{t("overlay.recovery", { count: amount })}</strong>
-        <small>{t(mine ? "overlay.recoveryYou" : "overlay.recoveryOpp")}</small>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
 /** Read-only public-information preview shown for opponent permanents on hover/focus. */
 export function OpponentPermanentInspector({
   cards,
@@ -747,8 +710,9 @@ export function OpponentPermanentInspector({
 }
 
 /* ---------------- EFFECT DECISION ---------------- */
+
 /** IR effect-trigger -> the printed bracket label it appears under on the card. */
-const TIMING_LABELS: Record<string, string> = {
+export const TIMING_LABELS: Record<string, string> = {
   OnPlay: "On Play",
   WhenDigivolving: "When Digivolving",
   WhenAttacking: "When Attacking",
@@ -901,94 +865,6 @@ export function playerFacingEffectClause({
   // main effect to an inherited decision. Prefer showing nothing over a wrong clause.
   if (timing === undefined) return undefined;
   return resolvedEffectClause(cardId, timing);
-}
-
-/**
- * Transient left-side overlay that names a triggered effect and shows the printed clause
- * that just resolved (e.g. the [On Play] body of a shared [On Play]/[When Digivolving]
- * clause). Auto-dismiss is the caller's concern; this renders the current toast only.
- */
-export function EffectClauseToast({
-  cardId,
-  timing,
-  description,
-}: {
-  cardId: string;
-  timing?: string;
-  description?: string;
-}) {
-  const { t } = useTranslation();
-  const clause = playerFacingEffectClause({ cardId, timing, description });
-  if (!clause) return null;
-  const sourceKey = colorKey(getCardDefinition(cardId)?.colors[0]);
-  const label = timing ? TIMING_LABELS[timing] : undefined;
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      style={{
-        position: "absolute",
-        left: 16,
-        top: "50%",
-        transform: "translateY(-50%)",
-        zIndex: 78,
-        width: 280,
-        maxWidth: "calc(100% - 32px)",
-        pointerEvents: "none",
-        background: "var(--ds-surface)",
-        border: `2px solid ${COLORS[sourceKey].base}`,
-        borderRadius: 16,
-        boxShadow: "0 18px 40px rgba(15,23,42,0.28)",
-        padding: 16,
-        animation: "aegis-rise 200ms ease-out",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            display: "grid",
-            placeItems: "center",
-            flexShrink: 0,
-            background: COLORS[sourceKey].soft,
-          }}
-        >
-          <Sigil cardId={cardId} color={sourceKey} size={24} />
-        </div>
-        <div>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: COLORS[sourceKey].base,
-            }}
-          >
-            {label ?? t("overlay.effect")}
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--ds-font-display)",
-              fontWeight: 700,
-              fontSize: 14,
-              color: "var(--ds-fg)",
-              marginTop: 1,
-            }}
-          >
-            {name(cardId)}
-          </div>
-        </div>
-      </div>
-      <div
-        style={{ fontSize: 12, color: "var(--ds-fg-secondary)", lineHeight: 1.5, maxHeight: 140, overflowY: "auto" }}
-      >
-        {clause}
-      </div>
-    </div>
-  );
 }
 
 /**

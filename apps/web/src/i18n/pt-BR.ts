@@ -567,6 +567,11 @@ export const ptBR: Record<keyof typeof en, string> = {
   "feed.noHistory": "Nenhuma ação ainda",
 
   "panel.discardedCards": "Cartas descartadas",
+  "panel.cardsAddedToHand": "Cartas adicionadas à mão",
+  "panel.selectedCards": "Cartas selecionadas",
+  "panel.deckBottomCard": "Carta no fundo do deck",
+  "panel.deckCards": "Cartas devolvidas ao deck",
+  "panel.digivolutionCards": "Cartas de digivolução",
   "panel.deletedCards": "Cartas deletadas",
   "panel.trashedCards": "Cartas enviadas ao lixo",
   "panel.revealedCards": "Cartas reveladas",
@@ -575,6 +580,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "panel.yours": "Suas",
   "panel.opponents": "Do oponente",
   "panel.attacking": "{card} está atacando",
+  "notice.rejected": "Não permitido",
+  "notice.dismiss": "Fechar aviso",
 
   "reject.not-your-turn": "Não é seu turno",
   "reject.wrong-phase": "Não dá para fazer isso agora",

@@ -7,6 +7,11 @@ import type { ReactNode } from "react";
 import { CardInstance, Permanent, type DecisionRequest, type Seat } from "@aegis/shared";
 import { AttackArrow, BreedingSlot, Hand, MemoryGauge, PermanentView, Pile, type HandEntry } from "../game/boardPieces";
 import { BlockOverlay, DecisionOverlay, GameOverOverlay, MulliganOverlay } from "../game/overlays";
+import { NoticeStack } from "../game/NoticeStack";
+import { SidePanelStack } from "../game/SidePanelStack";
+import type { MatchNotice } from "../game/notices";
+import type { SidePanel } from "../game/sidePanels";
+import type { TranslationKey } from "../i18n";
 import "../game/game.css";
 import "./boardShowcase.css";
 
@@ -115,6 +120,189 @@ const TARGET_DECISION: DecisionRequest = {
 };
 
 const noop = () => {};
+
+/* Panels and notices read their clocks from a `nowMs` the caller supplies, so
+   pinning it here freezes every eroding border mid-sweep for a screenshot. */
+const SHOWCASE_NOW = 1_000;
+
+function showcasePanel({
+  id,
+  titleKey,
+  side = "you",
+  cardIds,
+  ordered = false,
+  age = 0,
+}: {
+  id: string;
+  titleKey: TranslationKey;
+  side?: SidePanel["side"];
+  cardIds: readonly string[];
+  ordered?: boolean;
+  age?: number;
+}): SidePanel {
+  return {
+    id,
+    titleKey,
+    side,
+    cards: cardIds.map((cardId, index) => ({ cardId, badge: index + 1 })),
+    ordered,
+    createdAt: SHOWCASE_NOW - age,
+  };
+}
+
+const PANEL_CASES: { label: string; panels: SidePanel[] }[] = [
+  {
+    label: "Discarded cards (viewer)",
+    panels: [showcasePanel({ id: "discard", titleKey: "panel.discardedCards", cardIds: [CARDS.rookie, CARDS.option] })],
+  },
+  {
+    label: "Cards added to hand (viewer)",
+    panels: [showcasePanel({ id: "hand", titleKey: "panel.cardsAddedToHand", cardIds: [CARDS.champion] })],
+  },
+  {
+    label: "Selected Cards (viewer)",
+    panels: [
+      showcasePanel({
+        id: "selected",
+        titleKey: "panel.selectedCards",
+        cardIds: [CARDS.tamer, CARDS.mega],
+        ordered: true,
+      }),
+    ],
+  },
+  {
+    label: "Revealed Cards (opponent, numbered)",
+    panels: [
+      showcasePanel({
+        id: "revealed",
+        titleKey: "panel.revealedCards",
+        side: "opp",
+        cardIds: [CARDS.opponentChampion, CARDS.opponentUltimate, CARDS.egg],
+        ordered: true,
+      }),
+    ],
+  },
+  {
+    label: "Deleted cards (opponent)",
+    panels: [
+      showcasePanel({
+        id: "deleted",
+        titleKey: "panel.deletedCards",
+        side: "opp",
+        cardIds: [CARDS.opponentUltimate],
+      }),
+    ],
+  },
+  {
+    label: "Played Card (opponent)",
+    panels: [
+      showcasePanel({ id: "played", titleKey: "panel.playedCard", side: "opp", cardIds: [CARDS.opponentChampion] }),
+    ],
+  },
+  {
+    label: "Deck Bottom Card (viewer)",
+    panels: [showcasePanel({ id: "deck-bottom", titleKey: "panel.deckBottomCard", cardIds: [CARDS.ultimate] })],
+  },
+  {
+    label: "Digivolution Cards (opponent)",
+    panels: [
+      showcasePanel({
+        id: "digivolution",
+        titleKey: "panel.digivolutionCards",
+        side: "opp",
+        cardIds: [CARDS.egg, CARDS.rookie, CARDS.champion],
+        ordered: true,
+      }),
+    ],
+  },
+  {
+    label: "both columns, crowded (borders erode faster)",
+    panels: [
+      showcasePanel({ id: "crowd-1", titleKey: "panel.revealedCards", side: "opp", cardIds: [CARDS.opponentChampion] }),
+      showcasePanel({
+        id: "crowd-2",
+        titleKey: "panel.playedCard",
+        side: "opp",
+        cardIds: [CARDS.opponentUltimate],
+        age: 600,
+      }),
+      showcasePanel({ id: "crowd-3", titleKey: "panel.discardedCards", cardIds: [CARDS.rookie] }),
+      showcasePanel({ id: "crowd-4", titleKey: "panel.deletedCards", cardIds: [CARDS.champion], age: 900 }),
+    ],
+  },
+];
+
+function showcaseNotice(id: string, body: MatchNotice["body"], overrides: Partial<MatchNotice> = {}): MatchNotice {
+  return { id, side: "you", fromSecurity: false, body, createdAt: SHOWCASE_NOW, ...overrides };
+}
+
+const NOTICE_CASES: { label: string; notices: MatchNotice[] }[] = [
+  {
+    label: "viewer's effect (bottom-left)",
+    notices: [
+      showcaseNotice("effect-you", {
+        variant: "effect",
+        cardId: CARDS.option,
+        timing: "Main",
+        description: "Delete 1 of your opponent's Digimon with 5000 DP or less.",
+      }),
+    ],
+  },
+  {
+    label: "opponent's effect (top-left)",
+    notices: [
+      showcaseNotice(
+        "effect-opp",
+        {
+          variant: "effect",
+          cardId: CARDS.opponentUltimate,
+          timing: "WhenDigivolving",
+          description: "Draw 1 card.",
+        },
+        { side: "opp" },
+      ),
+    ],
+  },
+  {
+    label: "security effect (mirrored to the middle)",
+    notices: [
+      showcaseNotice(
+        "effect-security",
+        {
+          variant: "effect",
+          cardId: CARDS.mega,
+          timing: "Security",
+          description: "Play this card without paying its memory cost.",
+        },
+        { fromSecurity: true },
+      ),
+    ],
+  },
+  {
+    label: "recovery and refusal",
+    notices: [
+      showcaseNotice("recovery", { variant: "recovery", amount: 2 }),
+      showcaseNotice("rejection", { variant: "rejection", reason: "It is not your turn." }),
+    ],
+  },
+  {
+    label: "three stacked (disperse faster)",
+    notices: [
+      showcaseNotice("stack-1", {
+        variant: "effect",
+        cardId: CARDS.rookie,
+        timing: "OnPlay",
+        description: "Draw 1 card.",
+      }),
+      showcaseNotice("stack-2", { variant: "recovery", amount: 1 }),
+      showcaseNotice(
+        "stack-3",
+        { variant: "effect", cardId: CARDS.opponentChampion, timing: "OnDeletion", description: "Gain 1 memory." },
+        { side: "opp" },
+      ),
+    ],
+  },
+];
 
 /* ---------------- scaffolding ---------------- */
 
@@ -344,6 +532,32 @@ export function BoardShowcase() {
         <Stage label="long arc" height={220}>
           <AttackArrow from={{ x: 40, y: 200 }} to={{ x: 520, y: 30 }} />
         </Stage>
+      </Section>
+
+      <Section
+        id="showcase-side-panels"
+        title="timed side panels"
+        note="Opponent-origin panels stack down from the top-right, the viewer's up from the bottom-right. The cyan ring around each panel erodes clockwise over the time it has left, and a crowded column erodes faster."
+        stacked
+      >
+        {PANEL_CASES.map(({ label, panels }) => (
+          <Stage key={label} label={label} height={560}>
+            <SidePanelStack panels={panels} nowMs={SHOWCASE_NOW} onDismiss={noop} />
+          </Stage>
+        ))}
+      </Section>
+
+      <Section
+        id="showcase-notices"
+        title="notice stack"
+        note="Corner-framed notices: the viewer's moments anchor bottom-left, the opponent's top-left, and anything a security card raised mirrors to the middle of the half the panels do not occupy."
+        stacked
+      >
+        {NOTICE_CASES.map(({ label, notices }) => (
+          <Stage key={label} label={label} height={460}>
+            <NoticeStack notices={notices} nowMs={SHOWCASE_NOW} onDismiss={noop} />
+          </Stage>
+        ))}
       </Section>
 
       <Section

@@ -220,7 +220,7 @@ describe("nothing on the phone board is clipped by its neighbour", () => {
   });
 
   it("spans the reveal panel across the screen", () => {
-    expect(portraitRules).toMatch(/\.info-panel-stack \{[^}]*width:\s*auto/);
+    expect(portraitRules).toMatch(/\.side-panel-stack,\s*\.match-notice-stack \{[^}]*width:\s*auto/);
   });
 });
 

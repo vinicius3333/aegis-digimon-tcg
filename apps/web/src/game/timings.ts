@@ -45,18 +45,20 @@ export const TIMINGS = {
   clashExit: 200,
   /** The full-width turn banner. */
   turnBanner: 1000,
-  /** The security-recovery toast. */
-  recoveryToast: 2800,
-  /** The resolved-effect notice. */
-  effectNotice: 2800,
-  /** The toast a rejected action raises. */
-  rejectionFlash: 1800,
-  /** How long an info panel stays readable. */
-  infoPanelLifetime: 5000,
+  /** How long a framed notice stays readable on its own. */
+  noticeLifetime: 2800,
+  /** A crowded notice stack disperses on this shorter clock instead. */
+  noticeCrowdedLifetime: 1400,
+  /** A notice sliding in from its anchor. */
+  noticeIn: 200,
+  /** How long a side panel stays readable on its own. */
+  sidePanelLifetime: 5000,
+  /** A side panel sharing its column with another erodes on this clock instead. */
+  sidePanelCrowdedLifetime: 2600,
   /** Cards moved within this window join the panel already open. */
-  infoPanelMergeWindow: 1500,
-  /** An info panel opening. */
-  infoPanelIn: 230,
+  sidePanelMergeWindow: 1500,
+  /** A side panel opening. */
+  sidePanelIn: 230,
   /** A match dialog opening. */
   dialogIn: 180,
   /** Hover intent before an opponent permanent opens its inspector. */
@@ -94,7 +96,8 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-clash-outcome-at": CLASH_OUTCOME_AT_MS,
   "--t-clash-total": CLASH_TOTAL_MS,
   "--t-turn-banner": TIMINGS.turnBanner,
-  "--t-info-panel-in": TIMINGS.infoPanelIn,
+  "--t-side-panel-in": TIMINGS.sidePanelIn,
+  "--t-notice-in": TIMINGS.noticeIn,
   "--t-dialog-in": TIMINGS.dialogIn,
 };
 

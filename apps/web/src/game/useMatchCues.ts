@@ -28,14 +28,26 @@ import { shouldPlayCue, soundForEvent, type CueTimestamps } from "./soundEvents"
 import {
   attackAnnouncementFromEvent,
   buildInstanceSeatIndex,
-  dismissInfoPanel,
-  expireInfoPanels,
-  infoPanelFromEvent,
-  pushInfoPanel,
+  dismissSidePanel,
+  expireSidePanels,
+  nextSidePanelExpiry,
+  pushSidePanel,
+  selectionPanel,
+  sidePanelFromEvent,
   type AttackAnnouncement,
-  type InfoPanel,
-  type InfoPanelLookup,
-} from "./infoPanels";
+  type SidePanel,
+  type SidePanelLookup,
+} from "./sidePanels";
+import {
+  dismissNotice,
+  effectNoticeFromEvent,
+  expireNotices,
+  nextNoticeExpiry,
+  pushNotice,
+  recoveryNoticeFromEvent,
+  rejectionNotice,
+  type MatchNotice,
+} from "./notices";
 import { buildSecurityClashScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { createAnimationQueue, type AnimationQueueMode, type AnimationStep } from "./animationQueue";
 import { CLASH_TOTAL_MS, TIMINGS } from "./timings";
@@ -48,8 +60,6 @@ const DRAW_FLIGHT_WIDTH = 30;
 const DRAW_FLIGHT_HEIGHT = 42;
 
 export type AttackLunge = { permanentId: string; direction: "up" | "down" };
-export type RecoveryToastCue = { seat: number; amount: number; key: number };
-export type EffectNoticeCue = { cardId: string; timing?: string; description?: string; key: string };
 export type TurnTransitionCue = { endingSeat: number; nextSeat: number; turnCount: number };
 
 /** The board elements a draw flight is measured between. */
@@ -62,13 +72,17 @@ export interface MatchCueAnchors {
 }
 
 export interface MatchCues {
-  infoPanels: readonly InfoPanel[];
+  sidePanels: readonly SidePanel[];
   dismissPanel: (id: string) => void;
+  /** Opens the "Selected Cards" panel for a selection the viewer just confirmed. */
+  showSelection: (cardIds: readonly string[]) => void;
+  notices: readonly MatchNotice[];
+  dismissNotice: (id: string) => void;
+  /** Raises a notice for a refused action, which no server event narrates for the viewer. */
+  raiseRejection: (reason: string) => void;
   attackAnnouncement: AttackAnnouncement | null;
   turnTransition: TurnTransitionCue | null;
   securityClash: SecurityClashScene | null;
-  recoveryToast: RecoveryToastCue | null;
-  effectNotice: EffectNoticeCue | null;
   attackLunge: AttackLunge | null;
   securityHitSeat: number | null;
   drawFlights: readonly DrawFlight[];
@@ -117,12 +131,11 @@ export function useMatchCues({
     [],
   );
 
-  const [infoPanels, setInfoPanels] = useState<readonly InfoPanel[]>([]);
+  const [sidePanels, setSidePanels] = useState<readonly SidePanel[]>([]);
+  const [notices, setNotices] = useState<readonly MatchNotice[]>([]);
   const [attackAnnouncement, setAttackAnnouncement] = useState<AttackAnnouncement | null>(null);
   const [turnTransition, setTurnTransition] = useState<TurnTransitionCue | null>(null);
   const [securityClash, setSecurityClash] = useState<SecurityClashScene | null>(null);
-  const [recoveryToast, setRecoveryToast] = useState<RecoveryToastCue | null>(null);
-  const [effectNotice, setEffectNotice] = useState<EffectNoticeCue | null>(null);
   const [attackLunge, setAttackLunge] = useState<AttackLunge | null>(null);
   const [securityHitSeat, setSecurityHitSeat] = useState<number | null>(null);
   const [drawFlights, setDrawFlights] = useState<readonly DrawFlight[]>([]);
@@ -132,10 +145,14 @@ export function useMatchCues({
   const cuePlayedAtRef = useRef<CueTimestamps>({});
   const cueBaselineRef = useRef(false);
   const lastCueEventRef = useRef<ServerEvent | undefined>(undefined);
-  const infoPanelSequenceRef = useRef(0);
+  const noticeSequenceRef = useRef(0);
+  const sidePanelSequenceRef = useRef(0);
+  // A security card that resolves an effect moves its notice out of the panels'
+  // half of the screen; the flag is set by the check and spent by the effect.
+  const securityEffectPendingRef = useRef(false);
   // `cardsMoved` names only instance ids, so the panels need the board's current
   // identity and ownership index to name the cards that just moved.
-  const infoLookupRef = useRef<InfoPanelLookup>({ cardId: () => undefined, seat: () => undefined });
+  const sidePanelLookupRef = useRef<SidePanelLookup>({ cardId: () => undefined, seat: () => undefined });
   // The card the checked player is defending against. A security check carries no
   // attacker, so it is remembered from the attack that opened the check.
   const securityAttackerRef = useRef<SecurityClashAttacker | undefined>(undefined);
@@ -172,8 +189,12 @@ export function useMatchCues({
     if (!state) return;
     const cardIds = buildInstanceIndex(state, viewerSeat);
     const seats = buildInstanceSeatIndex(state);
-    infoLookupRef.current = { cardId: (id) => cardIds.get(id), seat: (id) => seats.get(id) };
+    sidePanelLookupRef.current = { cardId: (id) => cardIds.get(id), seat: (id) => seats.get(id) };
   });
+
+  function openNotice(notice: MatchNotice) {
+    setNotices((stack) => pushNotice(expireNotices(stack, notice.createdAt), notice));
+  }
 
   useEffect(() => {
     const previous = lastCueEventRef.current;
@@ -181,10 +202,6 @@ export function useMatchCues({
     lastCueEventRef.current = events.at(-1);
     const rejection = [...fresh].reverse().find((event) => event.kind === "actionRejected");
     const securityCheck = [...fresh].reverse().find((event) => event.kind === "securityChecked");
-    const recovery = [...fresh].reverse().find((event) => event.kind === "securityRecovered");
-    const resolvedEffect = [...fresh]
-      .reverse()
-      .find((event) => event.kind === "effectResolved" && event.seat === viewerSeat);
     const turnEnd = [...fresh].reverse().find((event) => event.kind === "turnEnded");
     const securityAttack = [...fresh]
       .reverse()
@@ -204,22 +221,36 @@ export function useMatchCues({
       }
       const now = Date.now();
       let announcement: AttackAnnouncement | null = null;
-      const opened: InfoPanel[] = [];
+      const opened: SidePanel[] = [];
+      const raised: MatchNotice[] = [];
       for (const event of fresh) {
-        infoPanelSequenceRef.current += 1;
-        const id = `info-panel-${infoPanelSequenceRef.current}`;
-        const panel = infoPanelFromEvent(event, viewerSeat, infoLookupRef.current, id, now);
+        sidePanelSequenceRef.current += 1;
+        const id = `side-panel-${sidePanelSequenceRef.current}`;
+        const panel = sidePanelFromEvent(event, viewerSeat, sidePanelLookupRef.current, id, now);
         if (panel) opened.push(panel);
         announcement = attackAnnouncementFromEvent(event, viewerSeat, id, now) ?? announcement;
+        // A security card that resolves an effect owns the next notice, which is
+        // why the flag is read here rather than derived from the event alone.
+        if (event.kind === "securityChecked") securityEffectPendingRef.current = event.resolution === "effect";
+        noticeSequenceRef.current += 1;
+        const noticeId = `notice-${noticeSequenceRef.current}`;
+        const notice =
+          effectNoticeFromEvent(event, viewerSeat, noticeId, now, securityEffectPendingRef.current) ??
+          recoveryNoticeFromEvent(event, viewerSeat, noticeId, now);
+        if (notice) {
+          if (notice.body.variant === "effect") securityEffectPendingRef.current = false;
+          raised.push(notice);
+        }
       }
       if (opened.length > 0) {
-        setInfoPanels((panels) =>
-          opened.reduce<readonly InfoPanel[]>(
-            (stack, panel) => pushInfoPanel(stack, panel),
-            expireInfoPanels(panels, now),
+        setSidePanels((panels) =>
+          opened.reduce<readonly SidePanel[]>(
+            (stack, panel) => pushSidePanel(stack, panel),
+            expireSidePanels(panels, now),
           ),
         );
       }
+      for (const notice of raised) openNotice(notice);
       if (announcement) {
         const shown = announcement;
         enqueue({
@@ -291,43 +322,9 @@ export function useMatchCues({
         },
       });
     }
-    if (recovery?.kind === "securityRecovered") {
-      const toast: RecoveryToastCue = { seat: recovery.seat, amount: recovery.amount, key: Date.now() };
-      enqueue({
-        id: `recovery-${toast.key}`,
-        track: "recoveryToast",
-        replace: true,
-        skippable: false,
-        async run(context) {
-          setRecoveryToast(toast);
-          await context.wait(TIMINGS.recoveryToast);
-          if (context.cancelled) return;
-          setRecoveryToast(null);
-        },
-      });
-    }
-    if (resolvedEffect?.kind === "effectResolved") {
-      const notice: EffectNoticeCue = {
-        cardId: resolvedEffect.sourceCardId,
-        timing: resolvedEffect.timing,
-        description: resolvedEffect.description,
-        key: `${resolvedEffect.effectKey}-${events.length}`,
-      };
-      enqueue({
-        id: `effect-notice-${notice.key}`,
-        track: "effectNotice",
-        replace: true,
-        skippable: false,
-        async run(context) {
-          setEffectNotice(notice);
-          await context.wait(TIMINGS.effectNotice);
-          if (context.cancelled) return;
-          setEffectNotice(null);
-        },
-      });
-    }
     if (turnEnd?.kind === "turnEnded") {
       securityAttackerRef.current = undefined;
+      securityEffectPendingRef.current = false;
       const transition: TurnTransitionCue = {
         endingSeat: turnEnd.endingSeat,
         nextSeat: turnEnd.nextSeat,
@@ -349,23 +346,42 @@ export function useMatchCues({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events]);
 
-  // One step for the whole stack, holding for the oldest panel's remaining lifetime.
+  // One step for the whole column, holding for the soonest expiry. A second panel
+  // joining shortens every remaining time, so the step is simply re-enqueued with
+  // the new figure rather than each panel owning a timer.
   useEffect(() => {
-    if (infoPanels.length === 0) return;
-    const oldest = Math.min(...infoPanels.map((panel) => panel.createdAt));
-    const remaining = Math.max(0, oldest + TIMINGS.infoPanelLifetime - Date.now());
+    if (sidePanels.length === 0) return;
+    const remaining = nextSidePanelExpiry(sidePanels, Date.now()) ?? 0;
     queue.enqueue({
-      id: `info-panel-expiry-${oldest}`,
+      id: `side-panel-expiry-${sidePanels.length}-${remaining}`,
       track: "infoPanelExpiry",
       replace: true,
       skippable: false,
       async run(context) {
         await context.wait(remaining);
         if (context.cancelled) return;
-        setInfoPanels((panels) => expireInfoPanels(panels, Date.now()));
+        setSidePanels((panels) => expireSidePanels(panels, Date.now()));
       },
     });
-  }, [infoPanels, queue]);
+  }, [sidePanels, queue]);
+
+  // The same shape for notices: a third one arriving shortens the whole stack.
+  useEffect(() => {
+    if (notices.length === 0) return;
+    const remaining = nextNoticeExpiry(notices, Date.now()) ?? 0;
+    queue.enqueue({
+      id: `notice-expiry-${notices.length}-${remaining}`,
+      track: "noticeExpiry",
+      replace: true,
+      // Notices carry text, so their time survives drain mode.
+      skippable: false,
+      async run(context) {
+        await context.wait(remaining);
+        if (context.cancelled) return;
+        setNotices((stack) => expireNotices(stack, Date.now()));
+      },
+    });
+  }, [notices, queue]);
 
   // A hand that grew was drawn into. The opening hand and a mulligan redeal are
   // not draws, so the first observed pair is only a baseline.
@@ -421,13 +437,23 @@ export function useMatchCues({
   }
 
   return {
-    infoPanels,
-    dismissPanel: (id: string) => setInfoPanels((panels) => dismissInfoPanel(panels, id)),
+    sidePanels,
+    dismissPanel: (id: string) => setSidePanels((panels) => dismissSidePanel(panels, id)),
+    showSelection: (cardIds: readonly string[]) => {
+      sidePanelSequenceRef.current += 1;
+      const panel = selectionPanel(cardIds, `side-panel-${sidePanelSequenceRef.current}`, Date.now());
+      if (!panel) return;
+      setSidePanels((panels) => pushSidePanel(expireSidePanels(panels, panel.createdAt), panel));
+    },
+    notices,
+    dismissNotice: (id: string) => setNotices((stack) => dismissNotice(stack, id)),
+    raiseRejection: (reason: string) => {
+      noticeSequenceRef.current += 1;
+      openNotice(rejectionNotice(reason, `notice-${noticeSequenceRef.current}`, Date.now()));
+    },
     attackAnnouncement,
     turnTransition,
     securityClash,
-    recoveryToast,
-    effectNotice,
     attackLunge,
     securityHitSeat,
     drawFlights,

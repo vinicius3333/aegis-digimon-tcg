@@ -1301,23 +1301,35 @@ button.opponent-action-feed__current:focus-visible {
   background: var(--battle-header-grad);
 }
 
-/* --- Transient card-information panels ------------------------------ */
+/* --- Timed side panels ---------------------------------------------- */
 
-/* A right-side stack below the opponent action feed. It sits above the board
-   chrome but under --ds-z-dialog, so a decision overlay always wins. */
-.info-panel-stack {
+/* Two columns at the board's right edge: the opponent's movements stack down
+   from the top, the viewer's up from the bottom, so a glance at the column says
+   whose cards moved. Both sit above the board chrome but under --ds-z-dialog,
+   so a decision overlay always wins. */
+.side-panel-stack {
   position: absolute;
   z-index: calc(var(--ds-z-dialog) - 5);
-  top: calc(13.5rem + env(safe-area-inset-top, 0px));
   right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
   display: flex;
   width: min(15rem, calc(100% - var(--ds-space-8)));
-  flex-direction: column;
   gap: var(--ds-space-2);
   pointer-events: none;
 }
 
-.info-panel {
+.side-panel-stack[data-side="opp"] {
+  top: calc(13.5rem + env(safe-area-inset-top, 0px));
+  flex-direction: column;
+}
+
+/* Grows upward from just above the hand dock, so a panel never covers the hand. */
+.side-panel-stack[data-side="you"] {
+  bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+  flex-direction: column-reverse;
+}
+
+.side-panel {
+  position: relative;
   overflow: hidden;
   border: 1px solid var(--battle-panel-border);
   border-radius: 0.5rem;
@@ -1325,10 +1337,30 @@ button.opponent-action-feed__current:focus-visible {
   box-shadow: 0 10px 28px rgb(4 14 31 / 55%);
   pointer-events: auto;
   /* The reference client's SelectCommandPanel open clip runs 0.233 s. */
-  animation: info-panel-in var(--t-info-panel-in, 230ms) ease-out;
+  animation: side-panel-in var(--t-side-panel-in, 230ms) ease-out;
 }
 
-.info-panel__header {
+/* The clock the player can see: a ring that erodes clockwise over whatever time
+   the panel has left, which is shorter when it shares its column. */
+.side-panel__erode,
+.match-notice__erode {
+  position: absolute;
+  z-index: 2;
+  padding: 2px;
+  border-radius: inherit;
+  inset: 0;
+  background: conic-gradient(from 0deg, var(--battle-cyan) var(--erode-angle), transparent 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: panel-erode linear forwards;
+}
+
+.side-panel__header {
+  position: relative;
+  z-index: 1;
   display: grid;
   padding: 0.3rem 0.35rem 0.3rem 0.6rem;
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -1337,7 +1369,7 @@ button.opponent-action-feed__current:focus-visible {
   background: var(--battle-header-grad);
 }
 
-.info-panel__title {
+.side-panel__title {
   overflow: hidden;
   margin: 0;
   font-size: 0.78rem;
@@ -1347,14 +1379,15 @@ button.opponent-action-feed__current:focus-visible {
   white-space: nowrap;
 }
 
-.info-panel__owner {
+.side-panel__owner {
   font-size: 0.62rem;
   color: rgb(255 255 255 / 62%);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.info-panel__close {
+.side-panel__close,
+.match-notice__close {
   display: grid;
   width: 1.35rem;
   height: 1.35rem;
@@ -1369,11 +1402,12 @@ button.opponent-action-feed__current:focus-visible {
   place-items: center;
 }
 
-.info-panel__close:hover {
+.side-panel__close:hover,
+.match-notice__close:hover {
   background: rgb(255 255 255 / 24%);
 }
 
-.info-panel__cards {
+.side-panel__cards {
   display: flex;
   padding: 0.45rem;
   margin: 0;
@@ -1382,13 +1416,13 @@ button.opponent-action-feed__current:focus-visible {
   list-style: none;
 }
 
-.info-panel__card {
+.side-panel__card {
   position: relative;
   line-height: 0;
 }
 
 /* The reference client numbers each card in the panel with a blue circle at its top-left. */
-.info-panel__badge {
+.side-panel__badge {
   position: absolute;
   top: -0.25rem;
   left: -0.25rem;
@@ -1403,6 +1437,150 @@ button.opponent-action-feed__current:focus-visible {
   border-radius: 50%;
   background: #2b57a8;
   place-items: center;
+}
+
+/* --- Framed notices -------------------------------------------------- */
+
+/* Anchored to the corner belonging to whoever caused the moment: the viewer's
+   effects bottom-left, the opponent's top-left, and anything a security card
+   raised in the middle of the half the side panels do not occupy. */
+.match-notice-stack {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 4);
+  display: flex;
+  width: min(19rem, calc(100% - var(--ds-space-8)));
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  pointer-events: none;
+}
+
+.match-notice-stack[data-anchor$="-left"] {
+  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
+}
+
+.match-notice-stack[data-anchor$="-right"] {
+  right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
+}
+
+.match-notice-stack[data-anchor^="top-"] {
+  top: calc(9.5rem + env(safe-area-inset-top, 0px));
+}
+
+.match-notice-stack[data-anchor^="middle-"] {
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.match-notice-stack[data-anchor^="bottom-"] {
+  bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+  flex-direction: column-reverse;
+}
+
+/* The reference client frames a notice with bracketed corners rather than a full
+   box, which is what keeps a large panel from reading as a dialog. */
+.match-notice {
+  position: relative;
+  display: grid;
+  padding: 0.55rem 2rem 0.55rem 0.55rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+  border-radius: 0.45rem;
+  background: linear-gradient(180deg, rgb(20 40 76 / 96%) 0%, rgb(10 20 40 / 96%) 100%);
+  box-shadow: 0 12px 30px rgb(4 14 31 / 55%);
+  pointer-events: auto;
+  animation: match-notice-in var(--t-notice-in, 200ms) ease-out;
+}
+
+.match-notice::before,
+.match-notice::after {
+  position: absolute;
+  width: 0.85rem;
+  height: 0.85rem;
+  content: "";
+  border: 2px solid var(--battle-marker);
+  pointer-events: none;
+}
+
+.match-notice::before {
+  top: 0;
+  left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 0.45rem 0 0;
+}
+
+.match-notice::after {
+  right: 0;
+  bottom: 0;
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0 0 0.45rem;
+}
+
+.match-notice[data-variant="rejection"]::before,
+.match-notice[data-variant="rejection"]::after {
+  border-color: var(--battle-attack);
+}
+
+.match-notice__icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  color: #fff;
+  background: rgb(255 255 255 / 10%);
+  place-items: center;
+}
+
+.match-notice[data-variant="rejection"] .match-notice__icon {
+  color: #ffd7d2;
+  background: rgb(255 45 31 / 22%);
+}
+
+.match-notice__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.match-notice__label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--battle-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.match-notice[data-variant="rejection"] .match-notice__label {
+  color: #ff9a90;
+}
+
+.match-notice__title {
+  font-family: var(--ds-font-display);
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+.match-notice__text {
+  overflow-y: auto;
+  max-height: 7rem;
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: rgb(226 236 255 / 82%);
+}
+
+.match-notice__erode {
+  padding: 1px;
+  opacity: 0.8;
+}
+
+.match-notice__close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
 }
 
 /* The attack call-out: a glance at the attacker while the arc and lunge play. */
@@ -1431,9 +1609,37 @@ button.opponent-action-feed__current:focus-visible {
   color: #fff;
 }
 
-@keyframes info-panel-in {
+/* Registered so the erosion angle interpolates; an unregistered custom property
+   would jump from full ring to empty with nothing in between. */
+@property --erode-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 360deg;
+}
+
+@keyframes panel-erode {
+  from {
+    --erode-angle: 360deg;
+  }
+  to {
+    --erode-angle: 0deg;
+  }
+}
+
+@keyframes side-panel-in {
   from {
     translate: 0.5rem 0;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+@keyframes match-notice-in {
+  from {
+    translate: -0.5rem 0;
     opacity: 0;
   }
   to {
@@ -1740,10 +1946,21 @@ button.opponent-action-feed__current:focus-visible {
 }
 
 @media (width <= 780px) {
-  .info-panel-stack {
-    top: calc(11.5rem + env(safe-area-inset-top, 0px));
+  .side-panel-stack {
     right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
     width: min(11rem, calc(100% - var(--ds-space-4)));
+  }
+  .side-panel-stack[data-side="opp"] {
+    top: calc(11.5rem + env(safe-area-inset-top, 0px));
+  }
+  .side-panel-stack[data-side="you"] {
+    bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
+  }
+  .match-notice-stack {
+    width: min(14rem, calc(100% - var(--ds-space-4)));
+  }
+  .match-notice-stack[data-anchor^="bottom-"] {
+    bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -2135,7 +2352,8 @@ button.opponent-action-feed__current:focus-visible {
   }
   /* The reveal panel is how a phone reads a flipped security card, and at 11rem
      its heading was cut to "Cart…". It spans the screen instead. */
-  .info-panel-stack {
+  .side-panel-stack,
+  .match-notice-stack {
     right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
     width: auto;
@@ -3056,11 +3274,24 @@ button.opponent-action-feed__current:focus-visible {
   .opponent-action-feed__trail {
     display: none;
   }
-  .info-panel-stack {
-    top: calc(3.75rem + env(safe-area-inset-top, 0px));
+  .side-panel-stack,
+  .match-notice-stack {
     right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
     left: auto;
     width: min(18rem, 40vw);
+  }
+  .side-panel-stack[data-side="opp"] {
+    top: calc(3.75rem + env(safe-area-inset-top, 0px));
+  }
+  .side-panel-stack[data-side="you"] {
+    bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+  }
+  .match-notice-stack[data-anchor$="-left"] {
+    right: auto;
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+  }
+  .match-notice-stack[data-anchor^="bottom-"] {
+    bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
   }
   /* Sheets and dialogs: a 390px-tall screen leaves no room for the phone
      portrait sizes, so the card shrinks and the panel scrolls. */
@@ -3159,10 +3390,20 @@ button.opponent-action-feed__current:focus-visible {
   .battle-clash,
   .battle-clash__art,
   .game-turn-banner,
-  .info-panel,
+  .side-panel,
+  .match-notice,
   .attack-announcement,
   .game-modal__panel {
     animation: none;
+  }
+
+  /* The eroding ring is the visible half of a clock the queue still runs in full:
+     the border simply shows spent rather than draining, and the panel stays for
+     its whole reading time. */
+  .side-panel__erode,
+  .match-notice__erode {
+    animation: none;
+    opacity: 0.45;
   }
 
   /* The stroke animation is what draws the arrow in; without it the dash must
