@@ -67,6 +67,7 @@ function turnEffect() {
 
 const compiled: CompiledCard = {
   effects: [
+    { trigger: "Static", actions: [], keywords: [{ keyword: "Alliance" }] },
     { ...turnEffect(), trigger: "WhenDigivolving" },
     { ...turnEffect(), trigger: "WhenAttacking" },
     {

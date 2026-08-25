@@ -9,25 +9,11 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
-      actions: [],
-      keywords: [
-        {
-          keyword: "Draw",
-          amount: 1,
-          raw: "＜Draw 1＞",
-        },
-      ],
+      actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
     },
     {
       trigger: "WhenDigivolving",
-      actions: [],
-      keywords: [
-        {
-          keyword: "Draw",
-          amount: 1,
-          raw: "＜Draw 1＞",
-        },
-      ],
+      actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
     },
     {
       trigger: "YourTurn",

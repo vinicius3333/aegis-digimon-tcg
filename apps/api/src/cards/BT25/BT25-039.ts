@@ -98,6 +98,27 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "OpponentsTurn",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "RedirectAttack",
+              target: {
+                filter: { controller: "mine", suspended: true, kind: ["Digimon"] },
+                count: 1,
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

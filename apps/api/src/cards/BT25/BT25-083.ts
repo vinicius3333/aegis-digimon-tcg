@@ -68,21 +68,27 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              kind: ["Option"],
-            },
-            count: 1,
+          kind: "UseOptionWithoutCost",
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            playCostLte: 99,
+            nameOrTrait: [
+              {
+                tokens: ["Three Musketeers"],
+                match: "trait",
+              },
+            ],
           },
           from: ["trash"],
           payCost: true,
           reduceCostBy: 3,
+          allowMultiColor: true,
           cost: {
             kind: "trash",
             target: {
               filter: {
-                isSelfRef: true,
+                controller: "mine",
                 zone: "digivolutionCards",
                 kind: ["Option"],
               },
@@ -101,21 +107,27 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              kind: ["Option"],
-            },
-            count: 1,
+          kind: "UseOptionWithoutCost",
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            playCostLte: 99,
+            nameOrTrait: [
+              {
+                tokens: ["Three Musketeers"],
+                match: "trait",
+              },
+            ],
           },
           from: ["trash"],
           payCost: true,
           reduceCostBy: 3,
+          allowMultiColor: true,
           cost: {
             kind: "trash",
             target: {
               filter: {
-                isSelfRef: true,
+                controller: "mine",
                 zone: "digivolutionCards",
                 kind: ["Option"],
               },

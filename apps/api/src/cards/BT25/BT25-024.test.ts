@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled as BT25_024 } from "./BT25-024.js";
 import "../index.js";
 
@@ -6,9 +9,19 @@ describe("BT25-024 Lekismon", () => {
   it("draws one on play and when digivolving", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const effect = BT25_024.effects?.find((entry) => entry.trigger === trigger);
-      expect(effect?.actions).toEqual([]);
-      expect(effect?.keywords).toEqual([{ keyword: "Draw", amount: 1, raw: "＜Draw 1＞" }]);
+      expect(effect?.actions).toEqual([{ kind: "Draw", controller: "mine", amount: 1 }]);
     }
+  });
+
+  it("draws the top deck card through its live On Play effect", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-024", as: "lekismon" }], deck: [{ card: "BT1-009", as: "drawn" }] },
+    });
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lekismon"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
   it("offers Crescemon from hand only for red own Digimon events", () => {
