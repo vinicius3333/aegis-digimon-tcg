@@ -26,6 +26,7 @@ describe("BT12-015 Aldamon", () => {
             { card: "BT12-012", as: "agunimon" },
             { card: "BT12-013", as: "burning" },
           ],
+          deck: ["BT1-009"],
         },
       },
       {
@@ -70,6 +71,7 @@ describe("BT12-015 Aldamon", () => {
     expect(s.perm("takuya").topCard.cardId).toBe("BT12-015");
     expect(s.perm("takuya").stack.map(({ instanceId }) => instanceId)).toEqual([...requestedOrder, takuyaInstanceId]);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === aldamon.instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.state.memory).toBe(0);
   });
 
@@ -98,6 +100,40 @@ describe("BT12-015 Aldamon", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("agunimon").instanceId);
     expect(s.perm("takuya").stack).toHaveLength(0);
     expect(s.state.memory).toBe(3);
+  });
+
+  it.each([
+    ["Agunimon is absent", [{ card: "BT12-013", as: "burning" }], "BT12-088", 3],
+    [
+      "the only Tamer is not Takuya",
+      [
+        { card: "BT12-012", as: "agunimon" },
+        { card: "BT12-013", as: "burning" },
+      ],
+      "BT12-089",
+      3,
+    ],
+    [
+      "the digivolution cost is unaffordable",
+      [
+        { card: "BT12-012", as: "agunimon" },
+        { card: "BT12-013", as: "burning" },
+      ],
+      "BT12-088",
+      -8,
+    ],
+  ])("does not surface the hand effect when %s", async (_case, trash, tamer, memory) => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT12-015", as: "aldamon" }],
+        battleArea: [{ card: tamer, as: "tamer" }],
+        trash,
+      },
+    });
+    s.state.memory = memory;
+    await s.ready();
+    expect(s.inst("aldamon").activatableEffectsJson).toBe("");
+    expect(s.perm("tamer").stack).toHaveLength(0);
   });
 
   it("returns Takuya from trash to hand on deletion", async () => {
