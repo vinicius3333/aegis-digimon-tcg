@@ -488,6 +488,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; draws the exact deck top, prevents an opponent-controlled hand return, then proves the owner can return the same protected Magnamon; observes Blocker and Armor Purge live; and accepts 3-cost evolution independently from Veemon and level-3 CS bases.
 - Verification: focused suite — 6 passed; shared Blocker, Armor Purge, Draw, opponent-only return restriction, duration, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-055 — Cyberdramon — 10/10
+
+- Catalog evidence: Black level 5, play cost 7, 7000 DP, standard black-level-4 evolution for 3 plus alternate level-4 CS evolution for 3; form `Ultimate`, attribute `Vaccine`, types `Cyborg`, `Hudie`, and `CS`; On Play/When Digivolving deletes one opposing play-cost-5-or-lower Digimon; All Turns once per turn trashes an effect-placed friendly Option in battle to prevent its own departure; inherited All Turns offers the same replacement when its carrier is Cyberdramon-name, Justimon-name, or CS-trait.
+- Knowledge base: Q5320 defines “Option card in the battle area” as an Option placed there by a placement effect, excluding ordinary Option resolution and malformed permanent stand-ins.
+- Implementation result: every printed clause was already present in the hand-authored compiled IR and registration is exclusively `registerIrCard("BT23-055", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, realistic inherited replacement, and alternate-evolution evidence without changing execution.
+- Primitive trace: both entry timings select one opponent at the inclusive printed play-cost ceiling; the own and inherited leave replacements filter effect-placed Option permanents, trash exactly one as the replacement cost, prevent only the current leave, and consume a physical-source once-per-turn use; the inherited source filter evaluates the live carrier's name/trait union.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; deletes a play-cost-5 target while preserving play-cost 6; places an Option through the real effect seam, trashes it to prevent Cyberdramon's first deletion, and proves the second deletion succeeds; repeats prevention through a realistic inherited CS carrier; and accepts off-color level-4 CS evolution while rejecting an off-color non-CS peer.
+- Verification: focused suite — 8 passed; shared play-cost filtering, placed-Option identity, leave replacement/cost, inherited carrier filter, frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-055 through BT23-102.
+BT23-056 through BT23-102.

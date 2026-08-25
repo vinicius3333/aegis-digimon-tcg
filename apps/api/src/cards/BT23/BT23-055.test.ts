@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -5,6 +6,25 @@ import "../index.js";
 import { compiled } from "./BT23-055.js";
 
 describe("BT23-055 Cyberdramon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-055")).toMatchObject({
+      cardId: "BT23-055",
+      nameEn: "Cyberdramon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [{ color: "Black", level: 4, memoryCost: 3 }],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Cyborg", "Hudie", "CS"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["CS"], cost: 3, isAlternate: true }]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("deletes at the printed play-cost boundary and leaves a cost-6 Digimon", async () => {
     const s = setupEngine(
       {
@@ -89,5 +109,44 @@ describe("BT23-055 Cyberdramon", () => {
         },
       ],
     });
+  });
+
+  it("applies the inherited replacement to a realistic CS carrier", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-057", as: "host", under: ["BT23-055"] }],
+          hand: [{ card: "BT23-100", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
+    const hostId = s.perm("host").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
+  });
+
+  it("digivolves for 3 from an off-color level-4 CS card and rejects a non-CS peer", () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT23-041", as: "base" }], hand: [{ card: "BT23-055", as: "cyber" }] },
+    });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("cyber").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const illegal = setupEngine({
+      0: { battleArea: [{ card: "BT1-037", as: "base" }], hand: [{ card: "BT23-055", as: "cyber" }] },
+    });
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("base").permanentId,
+        instanceId: illegal.inst("cyber").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
