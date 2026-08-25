@@ -2468,3 +2468,24 @@ for the individual evidence below.
   attack/Counter conformance including Q6900 — 23/23; activation stack — 31/31; simultaneous
   timing — 17/17; shared build, API typecheck, focused formatting, focused lint, and
   `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.
+
+## Collection closeout — 77/77 cards at 10/10
+
+- Every card from EX12-001 through EX12-077 has an independent printed-contract, local-KB,
+  executable-IR, behavioral, identity, registration, and verification record above. The ledger
+  contains exactly 77 scored card headings and no card remains below 10/10.
+- The final post-audit regression reran all 77 colocated card suites in ascending order, with
+  exactly one Vitest file per process and no file parallelism: 77/77 files and 720/720 tests
+  passed. `EX12.audit.test.ts` independently passed 3/3 structural collection checks.
+- All 77 executable modules register through `registerIrCard`; none uses `registerCard`.
+  Direct/aggregate equality is asserted by the focused suites, every aggregate parses as valid
+  JSON, and the shared package rebuild passed.
+- The offline source reconstruction selected 77 EX12 source records and 77 committed records.
+  Its remaining field differences are all explicitly documented in
+  `tools/import-taka-validate-allowlist.json`; the EX12-052 wording rationale is resolved by
+  official Q6836 rather than left as an open question.
+- Final repository gates passed: all-workspace typecheck, production build for shared/API/web,
+  EX12-wide Oxlint, EX12/ledger Oxfmt, and `git diff --check`. The unrelated workspace
+  `test:tools` aggregate still reports three pre-existing, out-of-scope BT26 importer deviations
+  (BT26-005, BT26-018, and BT26-020); the EX12-specific reconstruction and every EX12 gate are
+  green.
