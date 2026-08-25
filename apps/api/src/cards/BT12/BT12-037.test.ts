@@ -42,9 +42,29 @@ describe("BT12-037 Opossummon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.length === 2);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain("BT12-037");
-    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([sourceId, s.inst("peer").instanceId]),
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([sourceId, s.inst("peer").instanceId]);
+  });
+
+  it("declining optional Save still performs the mandatory Then placement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-037", as: "opossum" }, { card: "BT26-087", as: "tamer" }],
+          trash: [{ card: "BT12-008", as: "peer" }],
+        },
+        1: { hand: [{ card: "ST7-06", as: "removal" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
+    const sourceId = s.inst("opossum").instanceId;
+    const peerId = s.inst("peer").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").stack.length === 1);
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([peerId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([sourceId]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-087"]);
   });
 
   it("inherited attack effect requires Save on the host and resolves once", async () => {
