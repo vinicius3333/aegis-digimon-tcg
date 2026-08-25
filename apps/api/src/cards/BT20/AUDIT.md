@@ -947,3 +947,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-079.test.ts`).
+
+## BT20-080 — Fenriloogamon
+
+- Catalog contract: purple/red level 6 Virus Dark Animal/X-Antibody/SoC/SEEKERS, play cost 12/12000 DP, red or yellow level-5 evolution cost 4 and Soloogarmon or level-5 SEEKERS alternate cost 3; Scapegoat; evolution may free-play a level-4-or-lower SoC/SEEKERS Digimon from trash; adding a Tamer beneath it reactivates an evolution effect then may attack a player; inherited once per turn trashes opposing top security after an opposing deletion while hosted by Fenriloogamon.
+- Knowledge base: Q4404 confirms the attack following reactivation is optional.
+- Implementation evidence: audit found the Tamer predicate incorrectly encoded as an event-subject permanent filter, which cannot inspect a card newly placed beneath a stack. It now uses the dedicated added-digivolution-card filter while retaining the self-stack trigger gate. Reactivation, optional attack, trait union, inherited name condition, and top-security destination use their shared primitives; registration is exclusively `registerIrCard`.
+- Peer/stack evidence: the alternate route covers exact Soloogarmon and any level-5 SEEKERS source; the added-card watcher follows the same dedicated filter seam as BT24 peers and remains bound to this Digimon's stack.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-080.test.ts` — 3 passed.
+- Clause scores: stats/evolution routes 2/2; Scapegoat/free-play trait union and level boundary 2/2; Tamer-under self-stack trigger 2/2; reactivation/optional attack Q4404 2/2; inherited deletion/name/once/security behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-080.test.ts`).
