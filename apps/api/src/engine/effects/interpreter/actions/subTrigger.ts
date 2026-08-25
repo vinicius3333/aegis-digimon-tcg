@@ -661,6 +661,18 @@ export async function runSubTrigger(
           if (sourceFilter?.isSelfRef === true) {
             return subCtx.trigger?.trashedFromHandInstanceId === subCtx.source.instanceId;
           }
+          // "When a card with [X] in its text is trashed from your hand" (LM-004) narrows the
+          // watcher to a named card. The trashed card is loose, so the generic permanent-subject
+          // gate never sees it; match its DEFINITION against the printed name/trait clause here.
+          // Only `nameOrTrait` is applied: the other filter fields on existing hand-trash
+          // watchers describe the watching permanent, not the trashed card.
+          if (sourceFilter?.nameOrTrait !== undefined) {
+            const definition = getCardDefinition(cardId);
+            return (
+              definition !== undefined &&
+              definitionMatches({ nameOrTrait: sourceFilter.nameOrTrait }, definition as DefinitionFacts)
+            );
+          }
           return true;
         }
       : undefined;
