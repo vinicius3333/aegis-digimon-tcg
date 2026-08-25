@@ -515,3 +515,15 @@
 - Score: 10/10.
 - Ambiguity: Q4361 ordering is owned by the shared simultaneous trigger stack after DNA; the focused fixture proves the full DNA-then-attack chain.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-043.test.ts`).
+
+## BT20-044 — Breakdramon
+
+- Catalog contract: green/red level 6 Virus Machine Dragon, play cost 12/12000 DP, green or red level-5 evolution cost 4 plus Groundramon/Wingdramon alternate cost 3; Blocker; On Play/When Digivolving suspends two opposing Digimon/Tamers, then one ally may attack; once per turn, a surviving allied Dracomon/Examon-text Digimon's battle deletion deletes one opposing suspended Digimon/Tamer; the same watcher is inherited.
+- Knowledge base: Q4363/Q4365 define both resident and inherited trigger populations as any allied Digimon with Dracomon/Examon in its text; Q4364/Q4367 require that deleting Digimon to survive; Q4366 defines full printed text.
+- Implementation evidence: both entry timings use count 2 across opposing Digimon/Tamers before the optional attack. Resident and inherited watchers independently carry the allied full-text union, survival fire condition, suspended Digimon/Tamer target, and once-per-turn frequency. Blocker, alternate requirements, and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: On Play suspends exactly two of three eligible opposing cards and leaves the third ready while Blocker is live. With resident Breakdramon, a Coredramon-text ally wins a battle and the watcher deletes a second suspended Tamer; the same full production sequence succeeds when Breakdramon is instead underneath an Examon host.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-044.test.ts` — 5 passed.
+- Clause scores: stats/Blocker/alternate evolution 2/2; dual entry two-card suspension/optional attack 2/2; Q4363/Q4366 full-text allied trigger 2/2; suspended secondary target/survival/frequency 2/2; inherited duplicate ownership/behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-044.test.ts`).
