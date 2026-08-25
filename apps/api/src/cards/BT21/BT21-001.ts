@@ -13,6 +13,11 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "opponent" },
+          fireCondition: {
+            kind: "triggerRemovedSecuritySeat",
+            seat: "opponent",
+          },
           actions: [
             {
               kind: "Digivolve",
@@ -34,6 +39,7 @@ export const compiled: CompiledCard = {
                 ],
               },
               from: ["hand"],
+              payCost: true,
               reduceCost: 1,
               optional: true,
             },
