@@ -467,3 +467,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-039.test.ts`).
+
+## BT20-040 — Coredramon
+
+- Catalog contract: green/red level 4 Virus Dragon, play cost 5/5000 DP, green or red level-3 evolution cost 3 plus Dracomon-name alternate cost 2; Raid; on your turn, playing a blue Digimon with Dracomon/Examon anywhere in its text may evolve self into hand Groundramon with cost reduced by 2; inherited your-turn +2000 DP.
+- Knowledge base: Q4356 requires both blue color and the Dracomon/Examon text union; Q4357 defines “in its text” across the complete printed card.
+- Implementation evidence: the played-card watcher uses the exact allied blue Digimon and full-text union filter. The generated Digivolve action omitted payment and defaulted to the simultaneously applicable printed route; it now pays and explicitly selects Groundramon's Coredramon alternate requirement before applying -2. Raid, inherited DP, alternate requirement, and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: playing blue BT20-023, whose printed text contains the named terms, costs 5 and evolves Coredramon into BT20-042 Groundramon for exactly 1; blue BT20-024 does not trigger it. Raid redirects a declared player attack into an unsuspended opposing Digimon, and Coredramon underneath Groundramon grants +2000 DP only on its controller's turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-040.test.ts` — 3 passed.
+- Clause scores: stats/Raid/alternate evolution 2/2; blue played-Digimon gate 2/2; Q4357 full-text union 2/2; optional paid Groundramon alternate evolution/exact reduction 2/2; inherited DP/turn/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-040.test.ts`).
