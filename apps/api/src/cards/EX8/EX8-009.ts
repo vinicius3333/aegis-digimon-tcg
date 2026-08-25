@@ -93,6 +93,10 @@ export const compiled: CompiledCard = {
             controller: "opponent",
             kind: ["Digimon"],
           },
+          fireCondition: {
+            kind: "selfIsInBattleArea",
+            raw: "the Digimon with this inherited effect was not deleted at the same timing",
+          },
           actions: [
             {
               kind: "GainMemory",

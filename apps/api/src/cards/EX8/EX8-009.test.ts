@@ -53,16 +53,78 @@ describe("EX8-009", () => {
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("AD1-001");
   });
 
-  it("gains 1 memory when an opposing Digimon is deleted during your turn", async () => {
+  it("gains memory for only the first opposing deletion during its controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-009", as: "guilmon" }] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "opponent1" },
+          { card: "BT1-010", as: "opponent2" },
+        ],
+      },
     });
     await s.ready();
     s.state.turnSeat = 0;
     s.state.memory = 0;
-    await advance(s.engine).verb.deletePermanent([s.perm("opponent").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([s.perm("opponent1").permanentId], "byEffect");
     await settle(() => s.state.memory === 1);
     expect(s.state.memory).toBe(1);
+    await advance(s.engine).verb.deletePermanent([s.perm("opponent2").permanentId], "byEffect");
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("does not gain memory on the opponent's turn or when its host is deleted simultaneously (Q3874)", async () => {
+    const opponentTurn = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX8-009"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    await opponentTurn.ready();
+    opponentTurn.state.turnSeat = 1;
+    opponentTurn.state.memory = 0;
+    await advance(opponentTurn.engine).verb.deletePermanent([opponentTurn.perm("opponent").permanentId], "byEffect");
+    expect(opponentTurn.state.memory).toBe(0);
+
+    const simultaneous = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX8-009"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    await simultaneous.ready();
+    simultaneous.state.memory = 0;
+    await advance(simultaneous.engine).verb.deletePermanent(
+      [simultaneous.perm("host").permanentId, simultaneous.perm("opponent").permanentId],
+      "byEffect",
+    );
+    expect(simultaneous.state.memory).toBe(0);
+  });
+
+  it("uses the Gigimon alternate for 0 and resolves the reveal on digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT12-001", as: "gigimon" },
+          hand: [{ card: "EX8-009", as: "guilmon" }],
+          deck: ["BT1-009", "AD1-003", "BT10-016", "AD1-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gigimon").permanentId,
+        instanceId: s.inst("guilmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.cardId === "AD1-003") &&
+        s.state.players[0]!.hand.some((card) => card.cardId === "BT10-016"),
+    );
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("gigimon").topCard.cardId).toBe("EX8-009");
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("AD1-001");
   });
 });
