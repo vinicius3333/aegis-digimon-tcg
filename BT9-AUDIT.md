@@ -225,3 +225,33 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-008.
+
+## BT9-009 — Guilmon (X Antibody) — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red level-3 Digimon, play cost 4, 3000 DP, `Rookie`/`Virus`, complete `Dark Dragon`/`X Antibody` traits, standard red-level-2 evolution for 0, and all printed text were checked directly.
+2. **Printed deletion timing (1/1):** A public evolution intent fires the mandatory `[When Digivolving]` deletion and resolves the stack before assertions.
+3. **Printed numeric boundary (1/1):** The effect deletes an opposing Digimon at exactly 3000 DP while an otherwise eligible 4000-DP peer remains in play.
+4. **Standard evolution route (1/1):** A legal red Digi-Egg-to-Guilmon-X evolution spends the printed 0 memory and exposes the effect source on the resulting stack.
+5. **Alternate evolution route (1/1):** A complete legal Digi-Egg-to-Guilmon-to-Guilmon-X chain exercises the exact-name alternate requirement through its public intent at cost 0.
+6. **Inherited placement and timing (1/1):** A public breeding evolution, breeding-area move, and subsequent Champion evolution preserve Guilmon X as an inherited source on the live carrier during its controller's turn.
+7. **Q1799 fixed-ceiling ruling (1/1):** On that same legally constructed stack, Growlmon's printed 3000-DP deletion deletes a 4000-DP target, proving the inherited +1000 applies to a numeric maximum.
+8. **Q1800 relative-ceiling ruling (1/1):** On a legal Guilmon-X-to-Meramon stack, Meramon's source-relative 4000-DP deletion leaves a 5000-DP target in play, proving the modifier does not alter a nonnumeric threshold.
+9. **Direct IR and registration (1/1):** `BT9-009.ts` has full coverage, no residual clauses, both printed effects and the alternate recipe, and exactly one `registerIrCard("BT9-009", compiled)` registration with no legacy registration; the set index imports it.
+10. **Reproducible verification (1/1):** Focused proof passed 5/5; the shared deletion-DP mechanism suite, workspace typecheck, formatting check, and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-009
+rg -n 'Q1799|Q1800' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-009.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-009.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/engine/cards/deletionDpCluster.test.ts --reporter=dot
+pnpm typecheck
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-009.ts apps/api/src/cards/BT9/BT9-009.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-009.
