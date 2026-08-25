@@ -11,6 +11,7 @@ const compiled: CompiledCard = {
       trigger: "Counter",
       actions: [],
       isFromHand: true,
+      keywords: [{ keyword: "BlastDigivolve", raw: "＜Blast Digivolve＞" }],
     },
     {
       trigger: "OnPlay",
