@@ -314,3 +314,33 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-011.
+
+## BT9-012 — Greymon (X Antibody) — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red level-4 Digimon, play cost 5, 6000 DP, `Champion`/`Vaccine`, complete `Dinosaur`/`X Antibody` traits, standard red-level-3 evolution for 2, and all printed text were checked.
+2. **Inherited all-turn replacement (1/1):** The compiled inherited `AllTurns` watcher installs an optional `wouldLeavePlay` prevention rather than an immunity or post-removal recovery.
+3. **Name boundary (1/1):** A Greymon-name carrier can prevent leaving, while an otherwise identical non-Greymon/non-Omnimon carrier is removed.
+4. **Q1803 same-level cost (1/1):** Two level-4 sources pay the replacement cost; a level-4/level-3 pair cannot, proving the cards must share a level with each other rather than the carrier.
+5. **Q1804 self-payment (1/1):** The legal-stack Gaia Force scenario observably trashes Greymon X itself together with the other level-4 Greymon while its MetalGreymon carrier remains.
+6. **Covered destinations (1/1):** Effect-driven deletion, return to hand, and return to deck are each prevented after the same-level cost resolves.
+7. **Q1805 cause boundary (1/1):** Rule deletion removes the full stack without offering prevention, while an otherwise identical effect deletion can be prevented.
+8. **Optional refusal (1/1):** A public optional decision can be declined; the carrier then leaves and the two source cards remain unpaid until normal stack disposal.
+9. **Legal evolution, direct IR, and registration (1/1):** Public intents build Koromon-to-Agumon-X-to-Greymon-to-Greymon-X-to-MetalGreymon, including the 0-cost exact-name alternate route; the full/no-residual module registers once with `registerIrCard` and is imported by the set index.
+10. **Reproducible verification (1/1):** Focused proof passed 6/6; the shared leave-prevention suite, workspace typecheck, focused formatting, and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-012
+rg -n 'Q1803|Q1804|Q1805' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-012.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-012.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/engine/effects/leavePrevent.test.ts --reporter=dot
+pnpm typecheck
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-012.ts apps/api/src/cards/BT9/BT9-012.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-012.
