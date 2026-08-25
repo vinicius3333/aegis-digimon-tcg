@@ -55,7 +55,7 @@ describe("BT20-022 Crabmon (X Antibody)", () => {
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "digimon", permanentId: s.perm("protected").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("protected").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => false, 50);
