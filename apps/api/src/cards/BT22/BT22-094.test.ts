@@ -75,4 +75,25 @@ describe("BT22-094 Yuugo Kamishiro", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(false);
   });
+
+  it("returns itself to deck bottom and reduces an owned CS Digimon play by exactly 2", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-094", as: "yuugo" }],
+          hand: [{ card: "BT22-079", as: "eater" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("eater").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-079"));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT22-094")).toBe(true);
+  });
 });
