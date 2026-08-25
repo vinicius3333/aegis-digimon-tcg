@@ -11,6 +11,7 @@ const compiled: CompiledCard = {
       trigger: "Counter",
       actions: [],
       isFromHand: true,
+      keywords: [{ keyword: "BlastDigivolve", raw: "＜Blast Digivolve＞" }],
     },
     {
       trigger: "OnPlay",
@@ -69,6 +70,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "opponent",
                   kind: ["Digimon"],
+                  keywords: ["Blocker"],
                 },
                 count: 1,
               },

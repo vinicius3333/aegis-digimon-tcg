@@ -28389,7 +28389,12 @@
   },
   "BT15-014": {
     "effects": [
-      { "trigger": "Counter", "actions": [], "isFromHand": true },
+      {
+        "trigger": "Counter",
+        "actions": [],
+        "isFromHand": true,
+        "keywords": [{ "keyword": "BlastDigivolve", "raw": "＜Blast Digivolve＞" }]
+      },
       {
         "trigger": "OnPlay",
         "actions": [
@@ -28430,7 +28435,10 @@
             "actions": [
               {
                 "kind": "Delete",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
+                "target": {
+                  "filter": { "controller": "opponent", "kind": ["Digimon"], "keywords": ["Blocker"] },
+                  "count": 1
+                }
               }
             ]
           }
