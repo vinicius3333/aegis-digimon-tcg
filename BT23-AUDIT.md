@@ -596,6 +596,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; proves ordinary play deletes level 4 but cannot run the trash-origin tail; evolves Sangloupmon into Matadormon from trash, deletes level 4, plays cost-3 Dracmon for free, and pays the evolution cost; observes Scapegoat live; deletes a realistic LadyDevimon-over-Matadormon carrier to preserve another ally from opponent-effect deletion; and accepts off-color level-4 CS evolution while rejecting a non-CS peer.
 - Verification: focused suite — 9 passed; shared Scapegoat, level deletion, evolution-origin condition, free trash play, inherited leave replacement, self-deletion cost, frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-067 — LadyDevimon — 10/10
+
+- Catalog evidence: Purple level 5, play cost 7, 6000 DP, standard purple- or yellow-level-4 evolution for 3 plus alternate level-4 CS evolution for 3; form `Ultimate`, attribute `Virus`, types `Fallen Angel` and `CS`; when played from hand while Angewomon or Mirei Mikagura is present, costs 3 less; Blocker; On Play/When Digivolving deletes one opposing level-4-or-lower Digimon; inherited Scapegoat.
+- Knowledge base: `node tools/kb/query.mjs card BT23-067` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Defect corrected: the conditional self-reducer was faithful in compiled IR but BT23-067 was absent from the verified pay-time reducer registry, so it could not affect actual hand play. The audit registers the reducer and preserves exclusive `registerIrCard("BT23-067", compiled)` registration with full coverage and no residual clauses.
+- Primitive trace: pay-time play cost evaluation checks the live board for either exact enabler name and automatically subtracts 3 only for this hand instance; Blocker projects on the card directly and Scapegoat only from a real inherited source; both entry timings select one opponent at the inclusive level-4 ceiling.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; independently plays for 4 with Angewomon and with Mirei Mikagura, while the no-enabler branch pays the printed 7; deletes level 4 while preserving level 6; observes Blocker directly and Scapegoat from a realistic GranDracmon-over-LadyDevimon stack; and accepts off-color level-4 CS evolution while rejecting a non-CS peer.
+- Verification: focused suite — 7 passed; shared conditional pay-time reduction, exact-name board predicates, Blocker, inherited Scapegoat, level deletion, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-067 through BT23-102.
+BT23-068 through BT23-102.
