@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -5,6 +6,48 @@ import "../index.js";
 import { compiled } from "./BT23-032.js";
 
 describe("BT23-032 Shakkoumon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-032")).toMatchObject({
+      cardId: "BT23-032",
+      nameEn: "Shakkoumon",
+      colors: ["Yellow", "Black"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      evoCosts: [
+        { color: "Yellow", level: 4, memoryCost: 4 },
+        { color: "Black", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Free"],
+      types: ["Mutant", "Hudie", "CS", "Angel"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
+  it("plays an eligible source from Shakkoumon itself before it leaves by an opponent effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-032", as: "shakkoumon", under: [{ card: "BT23-027", as: "eligible" }, "BT1-009"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const sourceId = s.perm("shakkoumon").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([sourceId], "byEffect")).toBe(1);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("eligible").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourceId)).toBe(false);
+  });
   it("plays an eligible source from its carrier before the carrier leaves by an opponent effect", async () => {
     const s = setupEngine(
       {

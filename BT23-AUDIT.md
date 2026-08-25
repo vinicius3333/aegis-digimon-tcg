@@ -281,6 +281,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR; pays 4 with LadyDevimon and recovers from zero security; proves unreduced play costs the printed 7 without either enabler; at four security removes one then recovers back to four; at five removes one but leaves deck unchanged at the post-removal count of four; and observes inherited Alliance on a realistic carrier.
 - Verification: focused suite — 8 passed; `git diff --check` — passed.
 
+## BT23-032 — Shakkoumon — 10/10
+
+- Catalog evidence: Yellow/black level 5, play cost 8, 8000 DP, standard yellow- or black-level-4 evolution for 4; form `Ultimate`, attribute `Free`, types `Mutant`, `Hudie`, `CS`, and `Angel`; When Digivolving grants one opposing Digimon a Start of Your Main Phase forced attack through the opponent's turn end, then only on DNA De-Digivolves one opponent; both main and inherited All Turns once-per-turn leave reactions may play one level-4-or-lower yellow, black, or CS Digimon source without cost. The KB restriction record limits deck construction to one copy from 2026-04-04.
+- Knowledge base: Q5277 allows granting the forced-attack effect to an effect-immune Digimon but prevents its trigger while immunity remains; Q5278/Q5279 confirm yellow-or-black OR CS eligibility for both leave clauses; Q6250 allows Barrier and the leave reaction to be ordered either way, with Barrier lost if Angemon is played out of sources first.
+- Implementation result: every printed clause was already present in the hand-authored compiled IR and registration is exclusively `registerIrCard("BT23-032", compiled)` with full coverage and no residual clauses; the audit adds full catalog and direct-card leave-path evidence without changing execution.
+- Primitive trace: the granted aura is attached to the selected opponent and checked for effect immunity at its later trigger; the DNA condition reads the actual evolution method before De-Digivolve; both leave reactions preserve the original removal after optionally playing from the live stack, apply the inclusive level-4 yellow/black-or-CS filter, exclude controller-owned effects, and use physical-source once-per-turn identity.
+- Behavioral proof: the focused suite checks catalog and complete IR; plays an eligible Angemon from Shakkoumon's own sources before Shakkoumon leaves; separately proves the inherited reaction from a realistic carrier while excluding an ineligible source; and verifies the granted attack, DNA-only De-Digivolve, source zones, ownership exclusion, and OR filter structures.
+- Verification: focused suite — 6 passed; shared aura/immunity, DNA, Barrier, and leave-reaction mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-032 through BT23-102.
+BT23-033 through BT23-102.
