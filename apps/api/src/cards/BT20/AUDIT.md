@@ -755,3 +755,15 @@
 - Score: 10/10.
 - Ambiguity: the rendered Q&A says “this card” without naming the other inherited source, but both answers unambiguously define the BT20-063 host-versus-source movement distinction.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-063.test.ts`).
+
+## BT20-064 — Loogamon
+
+- Catalog contract: purple/red level 3 Virus Dark Animal/X Antibody/SoC/SEEKERS, play cost 3/1000 DP, red or yellow level-2 evolution cost 1 plus Bowmon or level-2 SEEKERS alternate cost 0; On Play reveals 3, adds 1 SoC/SEEKERS card and 1 Eiji Nagasumi, then bottoms the rest; inherited Your Turn +2000 DP.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: both alternate requirements are structured independently and share the exact zero cost, while printed red/yellow routes remain available. RevealAdd carries the complete trait union, exact Eiji name, two independent selection groups, and deck-bottom remainder. The inherited continuous modifier is self/stack scoped and owner-turn guarded. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: BT14-006 proves the Bowmon route and BT20-003 proves the level-2 SEEKERS route, both at cost 0 through explicit server-validated indexes. The mixed reveal adds BT20-070 by SoC/SEEKERS and BT14-087 Eiji while bottoming Machine BT20-047. Under BT20-070 the inherited source raises 6000 DP to 8000 only on its controller's turn; standalone Loogamon is unchanged.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-064.test.ts` — 5 passed.
+- Clause scores: stats/ordinary evolution 2/2; both alternate routes/costs 2/2; reveal count/independent additions 2/2; trait/name boundaries/remainder 2/2; inherited stack/turn DP scope 2/2.
+- Score: 10/10.
+- Ambiguity: catalog colors are purple/red while its printed ordinary evolution entries are red/yellow; tests treat those committed fields independently without inventing a purple route.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-064.test.ts`).
