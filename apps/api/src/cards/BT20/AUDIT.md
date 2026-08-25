@@ -827,3 +827,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-069.test.ts`).
+
+## BT20-070 — Loogarmon
+
+- Catalog contract: purple/red level 4 Virus Dark Animal/X Antibody/SoC/SEEKERS, play cost 6/6000 DP, red or yellow level-3 evolution cost 3 plus Loogamon or level-3 SEEKERS alternate cost 2; On Play/When Digivolving may trash 1 hand card to return 1 SoC/SEEKERS card from trash to hand; inherited Your Turn +2000 DP.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: both alternate requirements are independent, exact, and cost 2. Both entry timings use the shared optional paid Return action: one own-hand trash cost, one own-trash target through the SoC/SEEKERS union, and hand destination, with refusal aborting before either move. The inherited continuous modifier is stack- and owner-turn scoped. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: BT20-064 proves the Loogamon route and BT20-029 the level-3 SEEKERS route. Both hard play and evolution pay BT20-047, recover BT20-089 through the trait union, and leave a nonmatching Machine in trash; refusal preserves both cost and target. Under BT20-071, Loogarmon raises the host from 7000 to 9000 only on its controller's turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-070.test.ts` — 6 passed.
+- Clause scores: stats/ordinary evolution 2/2; both alternate routes/costs 2/2; dual entry timing/optional cost 2/2; trait union/source/destination/refusal 2/2; inherited stack/turn DP scope 2/2.
+- Score: 10/10.
+- Ambiguity: catalog colors are purple/red while printed ordinary evolution entries are red/yellow; the committed fields are kept distinct.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-070.test.ts`).
