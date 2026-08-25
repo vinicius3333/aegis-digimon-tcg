@@ -419,3 +419,15 @@
 - Score: 10/10.
 - Ambiguity: Q4344 is an engine-wide trigger-order rule; the focused test isolates the card's pending inherited response after that priority window.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-035.test.ts`).
+
+## BT20-036 — BanchoLeomon
+
+- Catalog contract: yellow/black level 6 Vaccine Beastkin/Boss/ACCEL, play cost 12/12000 DP, yellow or black level-5 evolution cost 4 plus level-5 ACCEL alternate cost 3; its own play costs 5 less while an allied ACCEL Digimon exists; On Play/When Digivolving De-Digivolve 2, then gives one opposing Digimon -5000 DP through its turn end; at own turn end it may DNA itself plus another Digimon into a hand Chaosmon and then attack; inherited opponent-turn once per turn may redirect an attack to the host.
+- Knowledge base: Q4345 makes the DNA evolution's When Digivolving and subsequent When Attacking effects simultaneous/controller-ordered; Q4346 forbids a second BanchoLeomon's follow-up attack while the first attack remains underway.
+- Implementation evidence: the conditional self-play reducer was valid IR but absent from the strict verified pay-time reducer registry, so it paid 12; BT20-036 is now admitted with its existing ACCEL board condition and exact -5 amount. Both entry timings preserve independent De-Digivolve and DP targets/duration. The end-turn action requires self among two own materials, filters hand Chaosmon, gates the optional attack on successful DNA action, and the inherited redirect is opponent-turn once per turn. Registration remains exclusively `registerIrCard`.
+- Peer/stack evidence: with Liollmon as the ACCEL resident, BanchoLeomon pays 7, removes two sources from a 10000-DP opposing stack, and leaves it at 5000 DP. BanchoLeomon plus Kazuchimon DNA into BT16-036 Chaosmon at turn end and the resulting stack deletes a suspended opponent in the follow-up attack. Its inherited redirect separately preserves security and its host.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-036.test.ts` — 4 passed; `pnpm --filter @aegis/api exec vitest run src/engine/effects/interpreter.test.ts` — 173 passed.
+- Clause scores: stats/alternate evolution 2/2; conditional self-play reduction 2/2; dual De-Digivolve/DP payload 2/2; end-turn DNA/self-material/attack 2/2; inherited redirect/turn/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: Q4345 ordering is controlled by the shared simultaneous trigger stack after the DNA action; the focused fixture proves the complete DNA-then-attack production chain.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-036.test.ts`).
