@@ -86,7 +86,10 @@ describe("BT20-057 Gankoomon", () => {
             { card: "BT20-016", as: "target" },
             { card: "BT20-084", as: "qualifier" },
           ],
-          hand: [{ card: "BT20-057", as: "gankoomon" }, { card: "BT20-017", as: "jesmon" }],
+          hand: [
+            { card: "BT20-057", as: "gankoomon" },
+            { card: "BT20-017", as: "jesmon" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -131,7 +134,10 @@ describe("BT20-057 Gankoomon", () => {
       {
         0: {
           battleArea: [{ card: "BT20-016", as: "target" }],
-          hand: [{ card: "BT20-057", as: "gankoomon" }, { card: "BT20-017", as: "jesmon" }],
+          hand: [
+            { card: "BT20-057", as: "gankoomon" },
+            { card: "BT20-017", as: "jesmon" },
+          ],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },

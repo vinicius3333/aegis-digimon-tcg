@@ -1159,7 +1159,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           const printed = requireCardDefinition(mat.topCard!.cardId);
           const effectiveLevel = continuous.dnaLevelFor(mat.permanentId, definition);
           const names = effectiveNames(continuous, mat, printed.nameEn ?? printed.cardId);
-          return { ...printed, ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }), nameEn: names.join(" | ") };
+          return {
+            ...printed,
+            ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
+            nameEn: names.join(" | "),
+          };
         }),
         ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
       ];
@@ -4264,7 +4268,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         const printed = requireCardDefinition(material.topCard!.cardId);
         const effectiveLevel = continuous.dnaLevelFor(material.permanentId, into);
         const names = effectiveNames(continuous, material, printed.nameEn ?? printed.cardId);
-        return { ...printed, ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }), nameEn: names.join(" | ") };
+        return {
+          ...printed,
+          ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
+          nameEn: names.join(" | "),
+        };
       }),
       ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
     ];

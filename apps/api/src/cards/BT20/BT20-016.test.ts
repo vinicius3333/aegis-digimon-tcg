@@ -61,7 +61,9 @@ describe("BT20-016 Paildramon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 8;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("paildramon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("paildramon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("ally").currentDP === 5000);
     const paildramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-016")!;
     expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(true);

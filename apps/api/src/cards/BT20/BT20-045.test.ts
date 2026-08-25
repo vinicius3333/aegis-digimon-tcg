@@ -90,7 +90,9 @@ describe("BT20-045 Examon ACE", () => {
         s.state.players[1]!.battleArea.length === 1,
     );
     expect(s.perm("low").topCard.cardId).toBe("BT20-012");
-    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-010", "BT20-011"]));
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-010", "BT20-011"]),
+    );
     expect(s.state.memory).toBe(0);
   });
 

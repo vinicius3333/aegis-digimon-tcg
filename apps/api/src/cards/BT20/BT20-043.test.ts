@@ -65,7 +65,9 @@ describe("BT20-043 Varodurumon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 12;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("varodurumon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("varodurumon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("first").isSuspended && s.perm("second").isSuspended);
     expect(s.perm("accel").currentDP).toBe(9000);
     expect(s.state.memory).toBe(5);

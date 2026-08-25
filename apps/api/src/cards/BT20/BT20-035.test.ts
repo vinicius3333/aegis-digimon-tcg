@@ -65,9 +65,7 @@ describe("BT20-035 Kazuchimon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("kazuchimon"), "Fortitude")).toBe(true);
     await advance(s.engine).verb.placeUnder(s.perm("kazuchimon").permanentId, [s.inst("tamer").instanceId]);
-    await settle(
-      () => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"),
-    );
+    await settle(() => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
   });
 
   it("recovers once when Fenriloogamon's security is removed", async () => {

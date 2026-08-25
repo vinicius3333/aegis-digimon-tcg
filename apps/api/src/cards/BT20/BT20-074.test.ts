@@ -90,14 +90,20 @@ describe("BT20-074 Dinobeemon", () => {
   });
 
   it("on play and evolution returns the Imperialdramon-name and Free-trait arms from trash", async () => {
-    for (const [mode, recovered] of [["play", "BT20-076"], ["digivolve", "BT20-066"]] as const) {
+    for (const [mode, recovered] of [
+      ["play", "BT20-076"],
+      ["digivolve", "BT20-066"],
+    ] as const) {
       const preferred: string[] = [];
       const s = setupEngine(
         {
           0: {
             ...(mode === "digivolve" ? { battleArea: [{ card: "BT20-067", as: "base" }] } : {}),
             hand: [{ card: "BT20-074", as: "dinobeemon" }],
-            trash: [{ card: recovered, as: "recovered" }, { card: "BT20-047", as: "nonmatch" }],
+            trash: [
+              { card: recovered, as: "recovered" },
+              { card: "BT20-047", as: "nonmatch" },
+            ],
             deck: ["BT20-047"],
           },
         },

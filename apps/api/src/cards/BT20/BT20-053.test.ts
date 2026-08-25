@@ -63,7 +63,10 @@ describe("BT20-053 Grademon", () => {
         {
           0: {
             ...(mode === "play" ? {} : { battleArea: [{ card: "BT20-051", as: "base" }] }),
-            hand: [{ card: "BT20-053", as: "grademon" }, { card: rookie, as: "rookie" }],
+            hand: [
+              { card: "BT20-053", as: "grademon" },
+              { card: rookie, as: "rookie" },
+            ],
           },
         },
         { autoAcceptOptional: true, autoSelectCards: true },

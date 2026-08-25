@@ -465,9 +465,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             ? ctx.game.opponentOf(ctx.source.ownerSeat)
             : ctx.source.ownerSeat;
         const n =
-          action.target.count === "all"
-            ? ctx.game.player(seat).security.length
-            : action.target.count * (scale ?? 1);
+          action.target.count === "all" ? ctx.game.player(seat).security.length : action.target.count * (scale ?? 1);
         if (n <= 0 || ctx.game.player(seat).security.length < n) return false;
         if (action.target.filter.position === undefined) {
           const candidates = candidateLooseInstances(ctx, action.target, ["security"]);

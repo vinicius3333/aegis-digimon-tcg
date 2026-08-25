@@ -35,7 +35,9 @@ describe("BT20-041 Crowmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crowmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crowmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.perm("crowmon").isSuspended).toBe(true);
     expect(s.perm("crowmon").currentDP).toBe(9000);

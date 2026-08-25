@@ -47,7 +47,9 @@ describe("BT20-036 BanchoLeomon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 12;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bancho").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bancho").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").stack.length === 0 && s.perm("target").currentDP === 5000);
     expect(s.state.memory).toBe(5);
   });

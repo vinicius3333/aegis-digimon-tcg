@@ -15,11 +15,7 @@ export const compiled: CompiledCard = {
           tokens: [
             {
               name: "Atho, René & Por",
-              keywords: [
-                { keyword: "Reboot" },
-                { keyword: "Blocker" },
-                { keyword: "Decoy", colors: ["Red", "Black"] },
-              ],
+              keywords: [{ keyword: "Reboot" }, { keyword: "Blocker" }, { keyword: "Decoy", colors: ["Red", "Black"] }],
             },
           ],
           count: 1,
@@ -36,11 +32,7 @@ export const compiled: CompiledCard = {
           tokens: [
             {
               name: "Atho, René & Por",
-              keywords: [
-                { keyword: "Reboot" },
-                { keyword: "Blocker" },
-                { keyword: "Decoy", colors: ["Red", "Black"] },
-              ],
+              keywords: [{ keyword: "Reboot" }, { keyword: "Blocker" }, { keyword: "Decoy", colors: ["Red", "Black"] }],
             },
           ],
           count: 1,

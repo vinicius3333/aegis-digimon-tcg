@@ -31,7 +31,10 @@ describe("BT20-042 Groundramon", () => {
           grant: "name",
           tokens: ["Breakdramon"],
         },
-        { kind: "GrantStatic", grant: { kind: "TreatAsLevel", level: 6, context: "DNADigivolution", intoNames: ["Examon"] } },
+        {
+          kind: "GrantStatic",
+          grant: { kind: "TreatAsLevel", level: 6, context: "DNADigivolution", intoNames: ["Examon"] },
+        },
       ],
     });
   });
@@ -60,10 +63,10 @@ describe("BT20-042 Groundramon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("groundramon").instanceId })).toEqual({ ok: true });
-    await settle(
-      () => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"),
-    );
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("groundramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
     expect(observe(s.engine).grantedNames(s.perm("groundramon"))).toContain("breakdramon");
     expect(observe(s.engine).grantedNames(s.perm("groundramon"))).not.toContain("examon");
   });

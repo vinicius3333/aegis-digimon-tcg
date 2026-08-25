@@ -38,9 +38,7 @@ describe("BT20-069 Punkmon", () => {
 
   it("publishes stats and the exact level-3 Evil alternate route", async () => {
     expect(getCardDefinition("BT20-069")).toMatchObject({ level: 4, playCost: 5, dp: 5000 });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 3, traits: ["Evil"], cost: 2, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["Evil"], cost: 2, isAlternate: true }]);
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT20-061", as: "evil" }],
@@ -70,7 +68,10 @@ describe("BT20-069 Punkmon", () => {
               { card: "BT20-061", as: "ally" },
               ...(mode === "digivolve" ? [{ card: "BT20-061", as: "base" }] : []),
             ],
-            hand: [{ card: "BT20-069", as: "punkmon" }, { card: "BT20-047", as: "fodder" }],
+            hand: [
+              { card: "BT20-069", as: "punkmon" },
+              { card: "BT20-047", as: "fodder" },
+            ],
             deck: ["BT20-047"],
           },
         },

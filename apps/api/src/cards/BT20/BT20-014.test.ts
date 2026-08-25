@@ -64,7 +64,9 @@ describe("BT20-014 SaviorHuckmon", () => {
     s.state.memory = 7;
     const lowId = s.perm("low").permanentId;
     const highId = s.perm("high").permanentId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("savior").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("savior").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
     const savior = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-014")!;

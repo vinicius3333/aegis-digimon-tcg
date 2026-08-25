@@ -42,7 +42,10 @@ describe("BT20-064 Loogamon", () => {
       { names: ["Bowmon"], cost: 0, isAlternate: true },
       { level: 2, traits: ["SEEKERS"], cost: 0, isAlternate: true },
     ]);
-    for (const [base, requirementIndex] of [["BT14-006", 0], ["BT20-003", 1]] as const) {
+    for (const [base, requirementIndex] of [
+      ["BT14-006", 0],
+      ["BT20-003", 1],
+    ] as const) {
       const s = setupEngine({
         0: {
           battleArea: [{ card: base, as: "base" }],

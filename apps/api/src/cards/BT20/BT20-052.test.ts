@@ -98,7 +98,12 @@ describe("BT20-052 Oblivimon", () => {
 
   it("grants the inherited target-change lock only on its controller's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT20-053", under: ["BT20-052"], as: "host" }, { card: "BT20-052", as: "top" }] },
+      0: {
+        battleArea: [
+          { card: "BT20-053", under: ["BT20-052"], as: "host" },
+          { card: "BT20-052", as: "top" },
+        ],
+      },
     });
     await s.ready();
     expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(true);

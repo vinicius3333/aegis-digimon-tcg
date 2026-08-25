@@ -56,7 +56,10 @@ describe("BT20-076 Imperialdramon: Dragon Mode", () => {
         {
           0: {
             ...(mode === "digivolve" ? { battleArea: [{ card: "BT20-074", as: "base" }] } : {}),
-            hand: [{ card: "BT20-076", as: "dragon" }, { card: "BT20-020", as: "fighter" }],
+            hand: [
+              { card: "BT20-076", as: "dragon" },
+              { card: "BT20-020", as: "fighter" },
+            ],
             deck: ["BT20-047"],
           },
           1: {
@@ -125,7 +128,10 @@ describe("BT20-076 Imperialdramon: Dragon Mode", () => {
   it("rejects Blast DNA when Paildramon is missing", () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT20-074", as: "dinobeemon" }, { card: "BT20-075", as: "wrong" }],
+        battleArea: [
+          { card: "BT20-074", as: "dinobeemon" },
+          { card: "BT20-075", as: "wrong" },
+        ],
         hand: [{ card: "BT20-076", as: "dragon" }],
       },
     });

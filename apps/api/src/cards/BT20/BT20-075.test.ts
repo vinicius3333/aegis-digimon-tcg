@@ -129,7 +129,9 @@ describe("BT20-075 Loudmon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 8;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("loudmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("loudmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("ally").currentDP === 5000);
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Raid")).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(true);

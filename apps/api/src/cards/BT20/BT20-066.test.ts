@@ -88,17 +88,21 @@ describe("BT20-066 Stingmon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-076"));
     const imperialdramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-076")!;
-    expect(imperialdramon.stack.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT20-074", "BT20-016"]),
-    );
+    expect(imperialdramon.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-074", "BT20-016"]));
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-059"]);
   });
 
   it("deletes level 3 on the opponent's turn but does not offer the DNA branch", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT20-061", as: "base" }, { card: "BT20-074", as: "material" }],
-        hand: [{ card: "BT20-066", as: "stingmon" }, { card: "BT20-076", as: "imperialdramon" }],
+        battleArea: [
+          { card: "BT20-061", as: "base" },
+          { card: "BT20-074", as: "material" },
+        ],
+        hand: [
+          { card: "BT20-066", as: "stingmon" },
+          { card: "BT20-076", as: "imperialdramon" },
+        ],
         deck: ["BT20-047"],
       },
       1: { battleArea: [{ card: "BT20-061", as: "level3" }] },

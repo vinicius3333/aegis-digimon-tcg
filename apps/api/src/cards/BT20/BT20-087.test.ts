@@ -6,7 +6,9 @@ describe("BT20-087 Kota Domoto & Yuji Musya", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "StartOfYourTurn")).toMatchObject({
       actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }],
     });
-    expect(compiled.effects.find((entry) => entry.trigger === "StartOfYourTurn")?.actions[0]).not.toHaveProperty("actions");
+    expect(compiled.effects.find((entry) => entry.trigger === "StartOfYourTurn")?.actions[0]).not.toHaveProperty(
+      "actions",
+    );
   });
 
   it("only offers the reduced Chronicle digivolution for a field Digimon", () => {

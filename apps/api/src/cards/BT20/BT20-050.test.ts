@@ -46,7 +46,10 @@ describe("BT20-050 HoverEspimon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT20-050", as: "hover" }],
-        deck: [{ card: "BT1-009", as: "first" }, { card: "BT1-010", as: "second" }],
+        deck: [
+          { card: "BT1-009", as: "first" },
+          { card: "BT1-010", as: "second" },
+        ],
       },
     });
     await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("hover"));

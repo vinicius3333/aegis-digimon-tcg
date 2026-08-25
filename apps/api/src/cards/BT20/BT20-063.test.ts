@@ -63,13 +63,14 @@ describe("BT20-063 Ghostmon", () => {
   });
 
   it("gains 1 memory only when Ghostmon is an inherited source of the deleted stack", async () => {
-    for (const [under, expected] of [[true, 1], [false, 0]] as const) {
+    for (const [under, expected] of [
+      [true, 1],
+      [false, 0],
+    ] as const) {
       const s = setupEngine({
         0: {
           battleArea: [
-            under
-              ? { card: "BT20-068", under: ["BT20-063"], as: "subject" }
-              : { card: "BT20-063", as: "subject" },
+            under ? { card: "BT20-068", under: ["BT20-063"], as: "subject" } : { card: "BT20-063", as: "subject" },
           ],
         },
       });

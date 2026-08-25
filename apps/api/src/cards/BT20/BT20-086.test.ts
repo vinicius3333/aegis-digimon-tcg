@@ -12,17 +12,21 @@ describe("BT20-086 Altea", () => {
     const effects = compiled.effects.filter((entry) => entry.trigger === "StartOfYourMainPhase");
     expect(effects).toHaveLength(1);
     expect(effects[0]).toMatchObject({
-      actions: [{
-        kind: "SecurityManipulation",
-        op: "flipFaceUp",
-        optional: true,
-        cost: {
-          kind: "place",
-          destination: "digivolutionStack",
-          position: "bottom",
-          host: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Cyborg", "Machine"] }] } },
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "flipFaceUp",
+          optional: true,
+          cost: {
+            kind: "place",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: {
+              filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Cyborg", "Machine"] }] },
+            },
+          },
         },
-      }],
+      ],
     });
   });
 });

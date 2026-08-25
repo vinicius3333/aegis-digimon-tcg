@@ -38,7 +38,9 @@ describe("BT20-009 Veemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("purple").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("purple").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("veemon").topCard.cardId === "BT20-011");
     expect(s.state.memory).toBe(1);
 
@@ -55,9 +57,11 @@ describe("BT20-009 Veemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     nonMatch.state.memory = 5;
-    expect(nonMatch.engine.applyIntent(0, { type: "playCard", instanceId: nonMatch.inst("black").instanceId })).toEqual({
-      ok: true,
-    });
+    expect(nonMatch.engine.applyIntent(0, { type: "playCard", instanceId: nonMatch.inst("black").instanceId })).toEqual(
+      {
+        ok: true,
+      },
+    );
     await settle(() => false, 20);
     expect(nonMatch.perm("veemon").topCard.cardId).toBe("BT20-009");
   });

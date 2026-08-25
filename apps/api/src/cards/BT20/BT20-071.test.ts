@@ -109,7 +109,10 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
       { names: ["Loogarmon"], cost: 3, isAlternate: true },
       { level: 4, traits: ["SEEKERS"], cost: 3, isAlternate: true },
     ]);
-    for (const [base, requirementIndex] of [["BT20-070", 0], ["BT20-032", 1]] as const) {
+    for (const [base, requirementIndex] of [
+      ["BT20-070", 0],
+      ["BT20-032", 1],
+    ] as const) {
       const s = setupEngine({
         0: {
           battleArea: [{ card: base, as: "base" }],
@@ -137,7 +140,10 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
       {
         0: {
           battleArea: [{ card: "BT20-071", as: "source" }],
-          hand: [{ card: "BT20-089", as: "tamer" }, { card: "BT20-047", as: "digimon" }],
+          hand: [
+            { card: "BT20-089", as: "tamer" },
+            { card: "BT20-047", as: "digimon" },
+          ],
         },
         1: {
           battleArea: [
@@ -157,7 +163,10 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
   });
 
   it("inherits Option Security suppression only for a SoC/SEEKERS host on its controller's turn", async () => {
-    for (const [host, expected] of [["BT20-080", true], ["BT20-059", false]] as const) {
+    for (const [host, expected] of [
+      ["BT20-080", true],
+      ["BT20-059", false],
+    ] as const) {
       const s = setupEngine({ 0: { battleArea: [{ card: host, under: ["BT20-071"], as: "host" }] } });
       s.state.turnSeat = 0;
       await s.ready();

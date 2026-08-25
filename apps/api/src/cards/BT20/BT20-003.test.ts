@@ -33,11 +33,7 @@ describe("BT20-003 Bibimon", () => {
     );
 
     await advance(eligible.engine).fire(EffectTiming.OnEndTurn, eligible.perm("host"));
-    expect(eligible.perm("host").stack.map((card) => card.cardId)).toEqual([
-      "BT20-089",
-      "BT20-003",
-      "BT20-004",
-    ]);
+    expect(eligible.perm("host").stack.map((card) => card.cardId)).toEqual(["BT20-089", "BT20-003", "BT20-004"]);
     expect(eligible.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-089")).toBe(
       false,
     );

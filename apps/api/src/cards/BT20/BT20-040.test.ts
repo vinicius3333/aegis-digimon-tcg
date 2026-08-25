@@ -56,7 +56,9 @@ describe("BT20-040 Coredramon", () => {
     );
     matching.state.memory = 10;
     await matching.ready();
-    expect(matching.engine.applyIntent(0, { type: "playCard", instanceId: matching.inst("played").instanceId })).toEqual({
+    expect(
+      matching.engine.applyIntent(0, { type: "playCard", instanceId: matching.inst("played").instanceId }),
+    ).toEqual({
       ok: true,
     });
     await settle(() => matching.perm("coredramon").topCard.cardId === "BT20-042");

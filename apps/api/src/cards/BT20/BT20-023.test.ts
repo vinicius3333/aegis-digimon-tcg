@@ -55,7 +55,9 @@ describe("BT20-023 Coredramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 7;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greenTextMatch").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greenTextMatch").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("coredramon").topCard.cardId === "BT20-025");
     expect(s.state.memory).toBe(0);
     expect(s.perm("coredramon").stack.map((card) => card.cardId)).toContain("BT20-023");

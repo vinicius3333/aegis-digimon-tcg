@@ -43,7 +43,10 @@ describe("BT20-070 Loogarmon", () => {
       { names: ["Loogamon"], cost: 2, isAlternate: true },
       { level: 3, traits: ["SEEKERS"], cost: 2, isAlternate: true },
     ]);
-    for (const [base, requirementIndex] of [["BT20-064", 0], ["BT20-029", 1]] as const) {
+    for (const [base, requirementIndex] of [
+      ["BT20-064", 0],
+      ["BT20-029", 1],
+    ] as const) {
       const s = setupEngine({
         0: {
           battleArea: [{ card: base, as: "base" }],
@@ -72,8 +75,14 @@ describe("BT20-070 Loogarmon", () => {
         {
           0: {
             ...(mode === "digivolve" ? { battleArea: [{ card: "BT20-064", as: "base" }] } : {}),
-            hand: [{ card: "BT20-070", as: "loogarmon" }, { card: "BT20-047", as: "cost" }],
-            trash: [{ card: "BT20-089", as: "soc" }, { card: "BT20-047", as: "nonmatch" }],
+            hand: [
+              { card: "BT20-070", as: "loogarmon" },
+              { card: "BT20-047", as: "cost" },
+            ],
+            trash: [
+              { card: "BT20-089", as: "soc" },
+              { card: "BT20-047", as: "nonmatch" },
+            ],
             deck: ["BT20-047"],
           },
         },
@@ -101,7 +110,10 @@ describe("BT20-070 Loogarmon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT20-070", as: "loogarmon" }, { card: "BT20-047", as: "cost" }],
+          hand: [
+            { card: "BT20-070", as: "loogarmon" },
+            { card: "BT20-047", as: "cost" },
+          ],
           trash: [{ card: "BT20-089", as: "soc" }],
         },
       },

@@ -57,7 +57,9 @@ describe("BT20-048 Dorumon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dorumon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("chronicleTamer").instanceId));
+    await settle(() =>
+      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("chronicleTamer").instanceId),
+    );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("xAntibody").instanceId, s.inst("chronicleTamer").instanceId]),
     );

@@ -55,7 +55,9 @@ describe("BT20-011 ExVeemon", () => {
     s.state.memory = 4;
     const lowId = s.perm("low").permanentId;
     const highId = s.perm("high").permanentId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("exVeemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("exVeemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-016"));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId)).toBe(false);

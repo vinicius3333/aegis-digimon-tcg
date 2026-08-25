@@ -39,11 +39,11 @@ describe("BT20-051 Raptordramon", () => {
       const s = setupEngine(
         {
           0: {
-            battleArea: [
-              { card: base, as: "base" },
-              ...tamers.map((card, index) => ({ card, as: `tamer${index}` })),
+            battleArea: [{ card: base, as: "base" }, ...tamers.map((card, index) => ({ card, as: `tamer${index}` }))],
+            hand: [
+              { card: "BT20-051", as: "raptor" },
+              { card: "BT20-087", as: "kota" },
             ],
-            hand: [{ card: "BT20-051", as: "raptor" }, { card: "BT20-087", as: "kota" }],
           },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
@@ -74,7 +74,10 @@ describe("BT20-051 Raptordramon", () => {
       {
         0: {
           battleArea: [{ card: "BT20-048", as: "base" }],
-          hand: [{ card: "BT20-051", as: "raptor" }, { card: "BT20-087", as: "kota" }],
+          hand: [
+            { card: "BT20-051", as: "raptor" },
+            { card: "BT20-087", as: "kota" },
+          ],
         },
       },
       { autoAcceptOptional: false, autoSelectCards: true },

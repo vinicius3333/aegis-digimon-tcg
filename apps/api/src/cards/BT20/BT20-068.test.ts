@@ -49,7 +49,10 @@ describe("BT20-068 Bakemon", () => {
               { card: "BT20-063", as: "base" },
               ...Array.from({ length: tamerCount }, (_, index) => ({ card: "BT20-085", as: `tamer${index}` })),
             ],
-            hand: [{ card: "BT20-068", as: "bakemon" }, { card: "BT20-088", as: "violet" }],
+            hand: [
+              { card: "BT20-068", as: "bakemon" },
+              { card: "BT20-088", as: "violet" },
+            ],
             deck: ["BT20-047"],
           },
         },
@@ -80,7 +83,10 @@ describe("BT20-068 Bakemon", () => {
       {
         0: {
           battleArea: [{ card: "BT20-063", as: "base" }],
-          hand: [{ card: "BT20-068", as: "bakemon" }, { card: "BT20-088", as: "violet" }],
+          hand: [
+            { card: "BT20-068", as: "bakemon" },
+            { card: "BT20-088", as: "violet" },
+          ],
           deck: ["BT20-047"],
         },
       },

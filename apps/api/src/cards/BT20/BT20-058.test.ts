@@ -120,7 +120,9 @@ describe("BT20-058 Raidenmon", () => {
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("raidenmon").permanentId], "byEffect");
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-058", "BT9-042"]));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-058", "BT9-042"]),
+    );
   });
 
   it("plays for 6 with all three exact DigiXros materials and stacks them", async () => {
@@ -151,6 +153,8 @@ describe("BT20-058 Raidenmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-058"));
     const raidenmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-058")!;
     expect(s.state.memory).toBe(6);
-    expect(raidenmon.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT9-042", "BT9-054", "BT9-029"]));
+    expect(raidenmon.stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT9-042", "BT9-054", "BT9-029"]),
+    );
   });
 });

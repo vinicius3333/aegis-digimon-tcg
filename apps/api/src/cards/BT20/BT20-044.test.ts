@@ -57,7 +57,9 @@ describe("BT20-044 Breakdramon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 12;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("breakdramon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("breakdramon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("first").isSuspended && s.perm("second").isSuspended);
     expect(s.perm("third").isSuspended).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("breakdramon"), "Blocker")).toBe(true);

@@ -73,7 +73,13 @@ import {
   dnaDigivolveCostFor,
   rootZoneOfLooseInstance,
 } from "./effects/primitives.js";
-import { ContinuousEffectLedger, effectiveColors, effectiveKinds, effectiveNames, effectiveTraits } from "./effects/continuous.js";
+import {
+  ContinuousEffectLedger,
+  effectiveColors,
+  effectiveKinds,
+  effectiveNames,
+  effectiveTraits,
+} from "./effects/continuous.js";
 import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription, type SubTriggerTurnLedger } from "./effects/subtriggers.js";
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
@@ -5647,7 +5653,11 @@ export class GameEngine {
           const printed = lookupDefinition(material.topCard!.cardId)!;
           const effectiveLevel = this.continuous.dnaLevelFor(material.permanentId, definition);
           const names = effectiveNames(this.continuous, material, printed.nameEn ?? printed.cardId);
-          return { ...printed, ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }), nameEn: names.join(" | ") };
+          return {
+            ...printed,
+            ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
+            nameEn: names.join(" | "),
+          };
         }),
       adjustedCost: (_state, materials, definition, printedCost) => {
         let cost = printedCost;

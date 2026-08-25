@@ -64,7 +64,7 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
           ? "beReturned"
           : action.restriction === "suspend"
             ? "beSuspended"
-          : action.restriction
+            : action.restriction
       ) as Restriction;
       // Card IR spells this immunity using the printed-action vocabulary, while the engine's
       // legality layer consumes the normalized `beReturned` restriction for both hand and deck.

@@ -76,13 +76,7 @@ describe("BT20-077 HeavyMetaldramon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [
-            { card: "BT20-077", as: "heavy" },
-            "BT20-047",
-            "BT20-047",
-            "BT20-047",
-            "BT20-047",
-          ],
+          hand: [{ card: "BT20-077", as: "heavy" }, "BT20-047", "BT20-047", "BT20-047", "BT20-047"],
           trash: [{ card: "BT20-074", as: "eight" }],
         },
       },
@@ -101,15 +95,12 @@ describe("BT20-077 HeavyMetaldramon", () => {
       {
         0: {
           battleArea: [{ card: "BT20-075", as: "base" }],
-          hand: [
-            { card: "BT20-077", as: "heavy" },
-            "BT20-047",
-            "BT20-047",
-            "BT20-047",
-            "BT20-047",
-          ],
+          hand: [{ card: "BT20-077", as: "heavy" }, "BT20-047", "BT20-047", "BT20-047", "BT20-047"],
           deck: ["BT20-047"],
-          trash: [{ card: "BT20-074", as: "eight" }, { card: "BT20-070", as: "six" }],
+          trash: [
+            { card: "BT20-074", as: "eight" },
+            { card: "BT20-070", as: "six" },
+          ],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },

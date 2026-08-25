@@ -56,8 +56,12 @@ describe("BT20-017 Jesmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 11;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jesmon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jesmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token"),
+    );
 
     const token = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token")!;
     expect(token.currentDP).toBe(6000);
@@ -89,12 +93,16 @@ describe("BT20-017 Jesmon", () => {
     s.state.memory = 10;
     await s.ready();
     const boundaryId = s.perm("boundary").permanentId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstPlay").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstPlay").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === boundaryId));
     expect(s.perm("jesmon").isSuspended).toBe(false);
     expect(s.perm("tooLarge")).toBeDefined();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondPlay").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondPlay").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => false, 50);
     expect(s.perm("secondEligible")).toBeDefined();
   });

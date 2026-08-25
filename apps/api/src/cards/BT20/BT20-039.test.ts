@@ -30,9 +30,11 @@ describe("BT20-039 Diatrymon", () => {
       { autoSelectCards: true },
     );
     played.state.memory = 10;
-    expect(played.engine.applyIntent(0, { type: "playCard", instanceId: played.inst("diatrymon").instanceId })).toEqual({
-      ok: true,
-    });
+    expect(played.engine.applyIntent(0, { type: "playCard", instanceId: played.inst("diatrymon").instanceId })).toEqual(
+      {
+        ok: true,
+      },
+    );
     await settle(() => played.perm("chosen").isSuspended);
     expect(played.perm("other").isSuspended).toBe(false);
 

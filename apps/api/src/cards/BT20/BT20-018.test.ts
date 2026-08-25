@@ -74,7 +74,10 @@ describe("BT20-018 Ouryumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("attacker").topCard.cardId === "BT20-018" && s.state.players[0]!.breeding?.topCard.cardId === "BT20-015");
+    await settle(
+      () =>
+        s.perm("attacker").topCard.cardId === "BT20-018" && s.state.players[0]!.breeding?.topCard.cardId === "BT20-015",
+    );
 
     expect(s.state.players[0]!.breeding?.stack.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT20-012", "BT20-010"]),
