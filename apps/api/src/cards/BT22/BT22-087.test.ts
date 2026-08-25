@@ -25,20 +25,18 @@ describe("BT22-087 Torajiro Asuka", () => {
       sourceFilter: { controller: "mine", kind: ["Digimon"] },
     });
     expect(trigger.actions[0]).toMatchObject({
-      kind: "ModifyDP",
-      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-      amount: -2000,
-      duration: "forTheTurn",
+      kind: "CostGatedBlock",
       cost: { kind: "suspend" },
-      optional: true,
-      abortOnDecline: true,
-    });
-    expect(trigger.actions[1]).toMatchObject({
-      kind: "AppFuse",
-      source: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-      into: { controllerDefault: "mine", kind: ["Digimon"] },
-      from: ["hand"],
-      optional: true,
+      actions: [
+        { kind: "ModifyDP", amount: -2000, duration: "forTheTurn" },
+        {
+          kind: "AppFuse",
+          source: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          into: { controllerDefault: "mine", kind: ["Digimon"] },
+          from: ["hand"],
+          optional: true,
+        },
+      ],
     });
     expect(effect).not.toHaveProperty("frequency");
   });
