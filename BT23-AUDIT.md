@@ -362,6 +362,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; moves the exact in-play Erika to stack bottom and evolves into hand Hudiemon for 2 less; proves Erika copies in hand and trash cannot pay the cost and leave Hudiemon unevolved; observes the inherited +1000 on a realistic carrier and friendly Hudie peer; and accepts off-color level-2 CS evolution for 0 while rejecting a non-CS peer.
 - Verification: focused suite — 7 passed; shared permanent-cost, stack placement, hand/trash evolution, reduced-cost, continuous-aura, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-041 — Kabuterimon — 10/10
+
+- Catalog evidence: Green/yellow level 4, play cost 5, 5000 DP, standard green- or yellow-level-3 evolution for 3 plus alternate level-3 CS evolution for 2; form `Champion`, attribute `Vaccine`, types `Insectoid`, `Hudie`, and `CS`; Alliance; All Turns once per turn, when this Digimon suspends, one friendly Digimon gains Piercing and +3000 DP for the turn.
+- Knowledge base: `node tools/kb/query.mjs card BT23-041` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-041", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live Alliance, source-event negative, frequency, and alternate-evolution evidence without changing execution.
+- Primitive trace: the static keyword is projected through the live keyword ledger; the physical-source suspension watcher rejects other subjects, binds one friendly target for both the Piercing grant and same-target +3000 modifier, and records its use once per turn so repeated suspension events cannot stack the pair.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; observes Alliance live; fires the source suspension to give exactly one selected Digimon both Piercing and +3000, then proves a second same-turn event adds nothing; proves another Digimon's suspension does not trigger; and accepts off-color level-3 CS evolution for 2 while rejecting a non-CS peer.
+- Verification: focused suite — 6 passed; shared Alliance, suspension event, same-target binding, Piercing, duration, frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-041 through BT23-102.
+BT23-042 through BT23-102.
