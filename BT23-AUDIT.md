@@ -236,6 +236,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR; activates the special path with Makiko Date and observes Antylamon enter Lopmon's stack for exactly 3; ignores the carrier's own suspension, applies -2000 for another friendly suspension, and rejects a second use in the same turn.
 - Verification: focused suite — 3 passed; `git diff --check` — passed.
 
+## BT23-027 — Angemon — 10/10
+
+- Catalog evidence: Yellow/blue level 4, play cost 5, 5000 DP, standard yellow- or black-level-3 evolution for 3 plus alternate Patamon-name or level-3 CS evolution for 2; form `Champion`, attribute `Vaccine`, types `Angel`, `Hudie`, and `CS`; Barrier; On Play/When Digivolving draws one, then only on its controller's turn may DNA digivolve two friendly Digimon into Shakkoumon from hand; inherited Barrier.
+- Knowledge base: Q5256 confirms a Digimon carrying Betamon's persistent no-digivolution restriction cannot be used as DNA material; Q5257 confirms the DNA result is unsuspended and can pay a later simultaneous Alliance while the first Alliance DP remains; Q6250 confirms Barrier and a simultaneous leave reaction may be ordered either way, and playing Angemon from sources first removes its inherited Barrier before it can prevent deletion.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-027", compiled)` with full coverage and no residual clauses; the audit strengthens observable catalog, timing, stack, and keyword evidence without changing execution.
+- Primitive trace: both timings draw before evaluating the owner-turn DNA option; DNA validation consults live digivolution restrictions on both materials, consumes the chosen pair into one unsuspended stack, and preserves already-applied attack modifiers; Barrier is collected independently from Angemon as top card or inherited source and participates in normal simultaneous replacement ordering.
+- Behavioral proof: the focused suite checks catalog and complete IR; draws then DNA digivolves Angemon plus a suspended peer into an unsuspended Shakkoumon containing both materials; proves the opponent-turn path draws but cannot DNA; and observes Barrier both directly and inherited from a realistic stack.
+- Verification: focused suite — 6 passed; Betamon's persistent digivolution-lock regression is covered by BT23-017; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-027 through BT23-102.
+BT23-028 through BT23-102.
