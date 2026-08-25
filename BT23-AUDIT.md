@@ -308,6 +308,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR; pays 6 with a Zaxon Tamer and proves the printed 11 without one; applies both riders to one target; places the deleted card face up behind existing security; and accepts an off-color level-5 CS evolution while rejecting an off-color level-5 non-CS base.
 - Verification: focused suite — 8 passed; shared timing-disable and face-up-security mechanisms have dedicated capability/peer regressions; `git diff --check` — passed.
 
+## BT23-035 — Dynasmon — 10/10
+
+- Catalog evidence: Yellow/red level 6, play cost 12, 12000 DP, standard yellow- or red-level-5 evolution for 4 plus alternate level-5 Witchelny-or-CS evolution for 3; form `Mega`, attribute `Data`, types `Holy Warrior`, `Royal Knight`, and `CS`; Barrier; On Play/When Digivolving trashes the top security card as a mandatory cost to give every current and future opposing Digimon -6000 DP for the turn; All Turns once per turn grants Security Attack +1 through the owner's turn end when own security is removed, then recovers from deck at three or fewer security.
+- Knowledge base: Q5293 requires the DP reduction to affect an opposing Digimon played later in the turn and delete a 6000-DP entrant before its On Play effect; Q5294 defines simultaneous security-removal trigger ordering; Q5295 permits a fresh once-per-turn activation on the next turn even while the prior until-your-turn-end grant remains; Q5296 permits Barrier paid during a security check to grant the additional check.
+- Defect corrected: both DP actions previously snapshotted only Digimon already present, violating Q5293. The audit adds an explicit player-wide ModifyDP scope backed by a duration ledger for current and future Digimon, preserves DP-reduction immunity, synchronizes the committed effects catalog, and keeps exclusive `registerIrCard("BT23-035", compiled)` registration with full coverage and no residual clauses.
+- Primitive trace: the paid action installs one seat-scoped DP modifier after the top-security cost succeeds; every current or newly created opposing Digimon reads that modifier during authoritative DP recomputation, the state-based action deletes zero-DP entrants before their On Play timing, and the turn-end duration sweep restores survivors. The security-removal watcher is controller-gated, physical-source once-per-turn, grants a duration-correct keyword, then evaluates recovery against the live post-removal count.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; proves the player-wide reduction deletes both an existing 6000-DP Digimon and a later-played 6000-DP Digimon; proves an empty security stack cannot pay the cost; observes Barrier through the live keyword seam; excludes opposing security removal; and verifies own removal grants Security Attack +1 and recovers the exact deck-top card. The modifier regression independently proves current/future application and turn-end expiry.
+- Verification: focused card plus modifier suite — 33 passed; API typecheck — passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-035 through BT23-102.
+BT23-036 through BT23-102.

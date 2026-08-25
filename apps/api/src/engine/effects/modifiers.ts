@@ -59,6 +59,13 @@ export interface DpModifier {
   continuous?: boolean;
 }
 
+/** A duration-bounded DP delta applied to every current and future Digimon of a player. */
+export interface PlayerDpModifier {
+  seat: Seat;
+  delta: number;
+  duration: EffectDuration;
+}
+
 /**
  * A duration-bounded ABSOLUTE base-DP override on one permanent (the "treated as
  * having N DP" / "change the original DP to N" family). Unlike a {@link DpModifier},
@@ -232,6 +239,7 @@ function clearsAt(
 
 export class ModifierLedger {
   private dpModifiers: DpModifier[] = [];
+  private playerDpModifiers: PlayerDpModifier[] = [];
   private baseDpOverrides: BaseDpOverride[] = [];
   private minDpFloors: MinDpFloor[] = [];
   private pierceGrants: PierceGrant[] = [];
@@ -272,6 +280,14 @@ export class ModifierLedger {
     return modifier;
   }
 
+  /** Record a player-wide DP delta and immediately refresh all current affected Digimon. */
+  addPlayerDpModifier(state: GameState, seat: Seat, delta: number, duration: EffectDuration): PlayerDpModifier {
+    const modifier = { seat, delta, duration };
+    this.playerDpModifiers.push(modifier);
+    for (const permanent of state.players[seat]!.battleArea) this.recomputeDP(state, permanent.permanentId);
+    return modifier;
+  }
+
   /** Active DP modifiers on a permanent (server-only; for tests/diagnostics). */
   dpModifiersOf(permanentId: string): readonly DpModifier[] {
     return this.dpModifiers.filter((m) => m.permanentId === permanentId);
@@ -282,6 +298,16 @@ export class ModifierLedger {
     let sum = 0;
     for (const m of this.dpModifiers) {
       if (m.permanentId === permanentId) sum += m.delta;
+    }
+    return sum;
+  }
+
+  private playerDpDeltaOf(permanent: Permanent): number {
+    let sum = 0;
+    for (const modifier of this.playerDpModifiers) {
+      if (modifier.seat !== permanent.controllerSeat) continue;
+      if (modifier.delta < 0 && this.continuous?.hasRestriction(permanent.permanentId, "dpImmune")) continue;
+      sum += modifier.delta;
     }
     return sum;
   }
@@ -405,7 +431,11 @@ export class ModifierLedger {
   recomputeDP(state: GameState, permanentId: string): void {
     const permanent = findPermanentInState(state, permanentId);
     if (permanent === undefined) return;
-    const next = this.baseDpOf(permanent) + this.linkDpOf(permanent) + this.dpDeltaOf(permanentId);
+    const next =
+      this.baseDpOf(permanent) +
+      this.linkDpOf(permanent) +
+      this.dpDeltaOf(permanentId) +
+      this.playerDpDeltaOf(permanent);
     permanent.currentDP = this.applyDpFloor(permanentId, next);
   }
 
@@ -432,7 +462,11 @@ export class ModifierLedger {
   rawDp(state: GameState, permanentId: string): number {
     const permanent = findPermanentInState(state, permanentId);
     if (permanent === undefined) return 0;
-    const computed = this.baseDpOf(permanent) + this.linkDpOf(permanent) + this.dpDeltaOf(permanentId);
+    const computed =
+      this.baseDpOf(permanent) +
+      this.linkDpOf(permanent) +
+      this.dpDeltaOf(permanentId) +
+      this.playerDpDeltaOf(permanent);
     const floor = this.minDpFloorOf(permanentId);
     return floor !== undefined && computed < floor ? floor : computed;
   }
@@ -635,6 +669,14 @@ export class ModifierLedger {
   sweep(state: GameState, boundary: DurationBoundary, sweepSeat: Seat): void {
     const touched = new Set<string>();
 
+    this.playerDpModifiers = this.playerDpModifiers.filter((modifier) => {
+      const expires = clearsAt(modifier.duration, boundary, modifier.seat, sweepSeat);
+      if (expires) {
+        for (const permanent of state.players[modifier.seat]!.battleArea) touched.add(permanent.permanentId);
+      }
+      return !expires;
+    });
+
     this.dpModifiers = this.dpModifiers.filter((m) => {
       const ownerSeat = ownerSeatOfPermanent(state, m.permanentId);
       const expires = clearsAt(m.duration, boundary, ownerSeat, sweepSeat);
@@ -718,6 +760,7 @@ export class ModifierLedger {
   /** Clear everything (e.g. a fresh match). */
   reset(): void {
     this.dpModifiers = [];
+    this.playerDpModifiers = [];
     this.baseDpOverrides = [];
     this.minDpFloors = [];
     this.pierceGrants = [];

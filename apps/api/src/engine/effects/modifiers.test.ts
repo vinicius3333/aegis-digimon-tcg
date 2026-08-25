@@ -1,9 +1,25 @@
 import { describe, it, expect } from "vitest";
-import { Permanent, EffectDuration, type Seat } from "@aegis/shared";
+import { EffectDuration, Permanent, type Seat } from "@aegis/shared";
 import { setupEngine } from "../testkit/harness.js";
 import { ModifierLedger } from "./modifiers.js";
 
 describe("ModifierLedger DP modifiers", () => {
+  it("applies player-wide deltas to current and future Digimon until the duration expires", () => {
+    const s = setupEngine({ 1: { battleArea: [{ card: "AD1-001", dp: 7000, as: "current" }] } });
+    const ledger = new ModifierLedger();
+    ledger.addPlayerDpModifier(s.state, 1, -6000, EffectDuration.UntilEachTurnEnd);
+    expect(s.perm("current").currentDP).toBe(1000);
+
+    const future = setupEngine({ 1: { battleArea: [{ card: "AD1-001", dp: 6000, as: "future" }] } }).perm("future");
+    s.state.players[1]!.battleArea.push(future);
+    ledger.recomputeDP(s.state, future.permanentId);
+    expect(future.currentDP).toBe(0);
+
+    ledger.sweep(s.state, "eachTurnEnd", 0);
+    expect(s.perm("current").currentDP).toBe(7000);
+    expect(future.currentDP).toBe(6000);
+  });
+
   it("recomputes currentDP from baseDP plus active deltas", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", dp: 3000, as: "p1" }] } });
     const permanent = s.perm("p1");

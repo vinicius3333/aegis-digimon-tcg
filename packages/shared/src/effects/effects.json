@@ -1533,6 +1533,7 @@
         "actions": [
           {
             "kind": "ModifyDP",
+            "playerWide": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -6000,
             "duration": "forTheTurn",
@@ -50035,11 +50036,9 @@
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine", "zone": "security" }, "count": 1 },
+              "target": { "filter": { "controller": "mine", "zone": "security", "position": "top" }, "count": 1 },
               "raw": "By trashing your top security card"
-            },
-            "optional": true,
-            "abortOnDecline": true
+            }
           },
           {
             "kind": "SecurityManipulation",
@@ -50866,6 +50865,7 @@
         "actions": [
           {
             "kind": "ModifyDP",
+            "playerWide": true,
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -1000,
             "duration": "forTheTurn",
@@ -51630,11 +51630,9 @@
             "amount": 1,
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine", "zone": "security" }, "count": 1 },
+              "target": { "filter": { "controller": "mine", "zone": "security", "position": "top" }, "count": 1 },
               "raw": "By trashing your top security card"
-            },
-            "optional": true,
-            "abortOnDecline": true
+            }
           }
         ]
       },
@@ -59249,6 +59247,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "sourceFilter": { "controller": "mine" },
             "actions": [
               {
                 "kind": "Delete",
@@ -78067,23 +78066,25 @@
                 "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" },
                 "duration": "untilYourTurnEnd"
+              },
+              {
+                "kind": "SecurityManipulation",
+                "op": "placeAsSecurity",
+                "controller": "mine",
+                "from": ["deck"],
+                "source": { "filter": { "controllerDefault": "mine" }, "count": 1 },
+                "toTop": true,
+                "amount": 1,
+                "condition": {
+                  "kind": "zoneCount",
+                  "seat": "mine",
+                  "zone": "security",
+                  "op": "lte",
+                  "value": 3,
+                  "raw": "you have 3 or fewer security cards"
+                }
               }
             ]
-          },
-          {
-            "kind": "SecurityManipulation",
-            "op": "addTop",
-            "controller": "mine",
-            "source": "deck",
-            "condition": {
-              "kind": "zoneCount",
-              "seat": "mine",
-              "zone": "security",
-              "op": "lte",
-              "value": 3,
-              "raw": "you have 3 or fewer security cards"
-            },
-            "amount": 1
           }
         ],
         "frequency": "OncePerTurn"

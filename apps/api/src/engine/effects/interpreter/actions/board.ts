@@ -145,6 +145,14 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       return false;
     }
     case "ModifyDP": {
+      if (action.playerWide === true) {
+        const controller = action.target.filter.controller;
+        if (controller !== "mine" && controller !== "opponent") return false;
+        const seat = controller === "mine" ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
+        const amount = scale === undefined ? action.amount : action.amount * scale;
+        if (amount !== 0) ctx.fx.modifyPlayerDP(seat, amount, toDuration(action.duration));
+        return false;
+      }
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const effectSourceBound = (action as Action & { effectSourceBound?: boolean }).effectSourceBound === true;
