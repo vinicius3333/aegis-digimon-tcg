@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -40,12 +41,15 @@ describe("EX8-053", () => {
     await settle(() => low.perm("bancho").currentDP === 11000);
     expect(low.perm("bancho").currentDP).toBe(11000);
   });
-  it("plays a revealed Mineral/Rock Digimon after deletion and trashes the misses", async () => {
+  it.each([
+    ["Mineral", "EX8-048"],
+    ["Rock", "EX8-050"],
+  ])("plays a revealed %s Digimon after deletion", async (_trait, eligibleCardId) => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX8-053", as: "bancho", suspended: true }],
-          deck: ["EX8-048", "BT1-009", "BT1-010"],
+          deck: [eligibleCardId, "BT1-009", "BT1-010"],
         },
         1: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 20000 }] },
       },
@@ -63,13 +67,130 @@ describe("EX8-053", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "EX8-048") &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === eligibleCardId) &&
         s.state.players[0]!.deck.length === 0 &&
         s.state.players[0]!.trash.filter((card) => ["BT1-009", "BT1-010"].includes(card.cardId)).length === 2,
     );
 
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "EX8-048")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === eligibleCardId)).toBe(true);
     expect(s.state.players[0]!.trash.filter((card) => ["BT1-009", "BT1-010"].includes(card.cardId))).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it("accepts the exact cost-8 ceiling and rejects a matching cost-9 fixture", async () => {
+    const overCeiling = getCardDefinition("BT4-073")!;
+    const printedCost = overCeiling.playCost;
+    overCeiling.playCost = 9;
+    try {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX8-053", as: "bancho", suspended: true }],
+            deck: ["BT4-072", "BT4-073", "BT1-010"],
+          },
+          1: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 20000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("bancho").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.deck.length === 0 && s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT4-072")).toBe(true);
+      expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+        expect.arrayContaining(["BT4-073", "BT1-010"]),
+      );
+    } finally {
+      overCeiling.playCost = printedCost;
+    }
+  });
+
+  it("may decline the deletion play and trashes all three revealed cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-053", as: "bancho", suspended: true }],
+        deck: ["EX8-048", "EX8-050", "BT1-010"],
+      },
+      1: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 20000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("bancho").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decline = s.state.pendingDecision!;
+    expect(JSON.parse(decline.payloadJson)).toMatchObject({ min: 0, max: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decline.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX8-053", "EX8-048", "EX8-050", "BT1-010"]),
+    );
+  });
+
+  it("redirects a player attack through Blocker", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-053", as: "bancho" }], security: ["BT1-010"] },
+      1: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 5000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("bancho").permanentId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("bancho").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("digivolves legally from a black level 5 for the standard cost 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-050", as: "level5" }],
+        hand: [{ card: "EX8-053", as: "bancho" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("level5").permanentId,
+        instanceId: s.inst("bancho").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("level5").topCard.cardId === "EX8-053");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("level5").stack.map((card) => card.cardId)).toContain("EX8-050");
   });
 });
