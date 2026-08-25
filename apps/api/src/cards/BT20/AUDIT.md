@@ -1211,3 +1211,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-101.test.ts`).
+
+## BT20-102 — Omnimon (X Antibody)
+
+- Catalog contract: blue/white/red level 7 Vaccine Holy Warrior/X-Antibody/Royal Knight/LIBERATOR, play cost 16/16000 DP, blue or red level-6 evolution cost 6 and alternate Omnimon cost 2; Raid, Piercing, Blocker; On Play/When Digivolving, with Omnimon/X Antibody beneath, chooses one Digimon across both players and deletes all others, then independently bottoms one opposing Digimon; end of own turn once per turn may give one own Digimon Rush for the turn and, as the same combined choice, make it attack without suspending.
+- Knowledge base: Q4417 requires the Rush recipient to attack if possible; Q4418 permits a suspended attacker; Q4419 bars a second declaration during the first attack. Q4725 makes the bottom-deck tail independent of the initial condition, Q4726 preserves Rush until the turn truly ends, Q5907 recognizes an inserted source card, and Q6018 finishes resolution after source removal.
+- Implementation evidence: audit moved optionality to the Rush head and made the same-target attack mandatory after acceptance, fixing the prior illegal “gain Rush, decline attack” path. Mass deletion uses an explicit one-survivor carve-out; the return tail has no condition. Alternate evolution, live keywords, no-suspend attack, frequency, and duration are direct. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: evolution over BT5-086 satisfies the alternate route and stack-name condition; the observable mass delete preserves the chosen permanent and deletes both controllers' others. Same-target binding and attack serialization cover Q4417-Q4419.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-102.test.ts` — 2 passed.
+- Clause scores: stats/evolution routes 2/2; three live keywords 2/2; conditional survivor/mass deletion 2/2; unconditional opponent bottom-deck tail/Q4725-Q6018 2/2; combined Rush/mandatory no-suspend attack/Q4417-Q4726 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-102.test.ts`).
