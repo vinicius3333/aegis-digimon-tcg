@@ -30,7 +30,10 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Trash",
-          target: { filter: { zone: "digivolutionCards", isSelfRef: true, position: "top" }, count: 1, isSelf: true },
+          target: {
+            filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true }, position: "top" },
+            count: 1,
+          },
         },
         {
           kind: "Trash",
