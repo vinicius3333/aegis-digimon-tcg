@@ -282,7 +282,7 @@ describe("BT15-026", () => {
       {
         0: {
           battleArea: [{ card: "BT15-026", as: "wereGarurumon" }],
-          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
           battleArea: [
@@ -301,7 +301,10 @@ describe("BT15-026", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
 
     expect(observe(s.engine).isRestricted(s.perm("secondTarget"), "suspend")).toBe(false);
-    advance(s.engine).ledgers.tracker.resetForNewTurn();
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
     await settle(() => observe(s.engine).isRestricted(s.perm("secondTarget"), "suspend"));
 
@@ -311,8 +314,8 @@ describe("BT15-026", () => {
   it("keeps the suspend lock through the opponent turn and expires at its exact end boundary", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT15-026", as: "wereGarurumon" }], deck: ["BT1-009"] },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        0: { battleArea: [{ card: "BT15-026", as: "wereGarurumon" }], deck: ["BT1-009", "BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -320,9 +323,17 @@ describe("BT15-026", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "suspend"));
 
-    advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 0);
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
     expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(true);
-    advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 1);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
     expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(false);
   });
 });
