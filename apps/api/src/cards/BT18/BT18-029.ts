@@ -88,21 +88,45 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "PlayWithoutCost",
-              target: {
-                filter: {
-                  levelComparison: {
-                    op: "lte",
-                    value: 4,
-                  },
-                  colors: ["Blue"],
-                  kind: ["Digimon"],
-                },
-                count: 1,
-              },
-              fromOwnDigivolutionStack: true,
-              payCost: false,
+              kind: "Modal",
+              choose: 1,
               optional: true,
+              options: [
+                [
+                  {
+                    kind: "Return",
+                    target: {
+                      filter: {
+                        controller: "mine",
+                        zone: "digivolutionCards",
+                        hostFilter: { isSelfRef: true },
+                        levelComparison: { op: "lte", value: 4 },
+                        colors: ["Blue"],
+                        kind: ["Digimon"],
+                      },
+                      count: 1,
+                    },
+                    to: "hand",
+                    optional: true,
+                  },
+                ],
+                [
+                  {
+                    kind: "PlayWithoutCost",
+                    target: {
+                      filter: {
+                        levelComparison: { op: "lte", value: 4 },
+                        colors: ["Blue"],
+                        kind: ["Digimon"],
+                      },
+                      count: 1,
+                    },
+                    fromOwnDigivolutionStack: true,
+                    payCost: false,
+                    optional: true,
+                  },
+                ],
+              ],
             },
           ],
         },
@@ -116,6 +140,9 @@ export const compiled: CompiledCard = {
       materials: [
         {
           names: ["Lanamon"],
+        },
+        {
+          names: ["Calmaramon"],
         },
       ],
       count: 2,
