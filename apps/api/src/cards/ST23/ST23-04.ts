@@ -30,21 +30,40 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Glowing Dawn"],
-                  match: "trait",
+          kind: "Modal",
+          choose: 1,
+          labels: ["Play a Glowing Dawn card", "Use a Glowing Dawn Option"],
+          options: [
+            [
+              {
+                kind: "PlayWithoutCost",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon", "Tamer"],
+                    nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
+                  },
+                  count: 1,
                 },
-              ],
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: true,
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 3,
+              },
+            ],
+            [
+              {
+                kind: "UseOptionWithoutCost",
+                filter: {
+                  controller: "mine",
+                  kind: ["Option"],
+                  nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
+                },
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 3,
+              },
+            ],
+          ],
           condition: {
             kind: "isYourTurn",
             raw: "it's your turn",
@@ -62,17 +81,6 @@ const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          mode: "reduceCost",
-          amount: 3,
-          raw: "play or use 1 [Glowing Dawn] trait card from your hand with the cost reduced by 3",
-          condition: {
-            kind: "isYourTurn",
-            raw: "it's your turn",
-          },
         },
       ],
     },
@@ -92,21 +100,40 @@ const compiled: CompiledCard = {
           duration: "forTheTurn",
         },
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Glowing Dawn"],
-                  match: "trait",
+          kind: "Modal",
+          choose: 1,
+          labels: ["Play a Glowing Dawn card", "Use a Glowing Dawn Option"],
+          options: [
+            [
+              {
+                kind: "PlayWithoutCost",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon", "Tamer"],
+                    nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
+                  },
+                  count: 1,
                 },
-              ],
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: true,
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 3,
+              },
+            ],
+            [
+              {
+                kind: "UseOptionWithoutCost",
+                filter: {
+                  controller: "mine",
+                  kind: ["Option"],
+                  nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
+                },
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 3,
+              },
+            ],
+          ],
           condition: {
             kind: "isYourTurn",
             raw: "it's your turn",
@@ -124,17 +151,6 @@ const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          mode: "reduceCost",
-          amount: 3,
-          raw: "play or use 1 [Glowing Dawn] trait card from your hand with the cost reduced by 3",
-          condition: {
-            kind: "isYourTurn",
-            raw: "it's your turn",
-          },
         },
       ],
     },
