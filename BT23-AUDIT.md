@@ -506,6 +506,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; plays WereGarurumon with a CS Tamer, proves no immediate attack, then fires the opponent's main phase and observes the bound Digimon attack; from a realistic inherited stack De-Digivolves exactly once across two target-change events; observes Blocker live; and accepts off-color level-4 CS evolution while rejecting an off-color non-CS peer.
 - Verification: focused suite — 7 passed; shared granted watcher, duration, effect immunity, forced attack, target-switch, De-Digivolve, Blocker, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-057 — Gankoomon — 10/10
+
+- Catalog evidence: Black level 6, play cost 11, 11000 DP, standard black- or red-level-5 evolution for 3 plus alternate level-5 CS evolution for 3; form `Mega`, attribute `Data`, types `Holy Warrior`, `Royal Knight`, and `CS`; hand play costs 5 less by returning exactly three Huckmon-, Sistermon-, or Jesmon-name cards from trash to deck top or bottom; On Play/When Digivolving may play one 6000-DP white Hinukamuy Token with Alliance, Reboot, and Blocker, then mandatorily deletes an opponent with base play-cost ceiling 6 plus 3 per other friendly Digimon.
+- Knowledge base: Q5322 forbids partial payment: returning only two of the required three matching trash cards cannot satisfy the “By” condition or earn the reduction.
+- Defect corrected: the exact-three return cost was faithful in compiled IR but BT23-057 was absent from the verified pay-time self-reducer registry, leaving the reduction unreachable. The audit registers the card's audited reducer, proves both exact success and partial refusal, and preserves exclusive `registerIrCard("BT23-057", compiled)` registration with full coverage and no residual clauses.
+- Primitive trace: the pay-time reducer requires three matching trash instances, makes the top-or-bottom choice, moves all three before subtracting exactly 5, and refuses with no partial move at two; entry timing optionally creates the fully specified token first, so that token and every other friendly Digimon each raise the mandatory deletion ceiling by 3 before target selection.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; returns exactly three distinct matching names and pays 6 instead of 11, while two matches remain untouched and pay the printed 11; creates the 6000-DP token with all three live keywords before counting other Digimon and deletes a play-cost-7 target; and verifies both entry timings' optional-token/mandatory-delete structure.
+- Verification: focused suite — 6 passed; API typecheck for the shared reducer registry was previously green in this audit segment; shared exact-count cost, deck top/bottom choice, token, scaling ceiling, and mandatory deletion mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-057 through BT23-102.
+BT23-058 through BT23-102.

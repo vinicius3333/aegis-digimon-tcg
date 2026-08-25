@@ -86,6 +86,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT23-034", // condition: you have a Zaxon Tamer -> self play cost -5
   "BT23-036", // condition: opponent has a 10000+ DP Digimon -> self play cost -5
   "BT23-044", // condition: you have Yuuko Kamishiro or a CS Digimon -> self play cost -3
+  "BT23-057", // return exactly 3 Huckmon/Sistermon/Jesmon-name cards from trash -> self play cost -5
   "BT8-097", // scaling: Option use cost -1 per opposing Digimon (floor applied by play path)
   "BT25-044", // 6 or fewer total security cards -> -5 (Q7004 effect-driven stacking)
   "BT25-059", // 2+ suspended Digimon -> -5 (Q6306/Q6350)
