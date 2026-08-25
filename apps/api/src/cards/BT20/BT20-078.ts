@@ -15,7 +15,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenAnyDigivolves",
-          sourceFilter: { controllerDefault: "opponent", kind: ["Digimon"] },
+          sourceFilter: { controllerDefault: "opponent", kind: ["Digimon"], byEffect: true },
           actions: [
             {
               kind: "DeDigivolve",

@@ -50,10 +50,14 @@ export function matchingSubjectPermanentIds(subCtx: EffectContext, filter: Filte
   if (filter.fromDigivolution === true && subCtx.trigger.playedFromZone !== "digivolutionCards") {
     return [];
   }
-  // `byEffect: true` gates a "when an EFFECT plays [X]" watcher (KB Q3665/Q6034) — a manual
-  // hand/board play never sets TriggerInfo.playedByEffect (see the whenPlayed fire seams in
-  // primitives.ts / GameEngine.ts), so it fails this check and the watcher does not fire.
-  if (filter.byEffect === true && subCtx.trigger.playedByEffect !== true) {
+  // `byEffect: true` gates events caused by effects. Play events carry `playedByEffect`, while
+  // effect-driven digivolutions carry `enteredByEffect`; their corresponding manual actions
+  // carry neither marker.
+  if (
+    filter.byEffect === true &&
+    subCtx.trigger.playedByEffect !== true &&
+    subCtx.trigger.enteredByEffect === undefined
+  ) {
     return [];
   }
   let effectiveFilter = filter;

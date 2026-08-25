@@ -923,3 +923,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-077.test.ts`).
+
+## BT20-078 — Reapermon
+
+- Catalog contract: purple/black level 6 Virus Cyborg/X-Antibody/Ghost, play cost 11/11000 DP and purple or black level-5 evolution cost 3; Collision; Blocker; all-turn once per turn, when an effect digivolves an opposing Digimon, de-digivolve 1 opposing Digimon by 1; On Deletion deletes an opposing Digimon or Tamer costing 4 or less.
+- Knowledge base: Q4401 establishes ordinary simultaneous-effect ordering; Q4402 restricts the watcher to effect-driven Digimon evolution and excludes ordinary evolution and a Tamer merely becoming a Digimon.
+- Implementation evidence: the resident keywords and On Deletion kind/cost union are direct. Audit found the digivolution watcher had no effect-cause gate, so ordinary evolution could satisfy it. The shared subject matcher now treats either the play marker or digivolution entry marker as effect causation, and this watcher explicitly requires it. Registration remains exclusively `registerIrCard`.
+- Peer/stack evidence: the watcher is opponent scoped, once per turn, and its action routes through the shared one-card de-digivolve primitive; the deletion boundary preserves higher-cost MetalGreymon while deleting cost-3 Agumon.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-078.test.ts` — 4 passed; `pnpm typecheck` — passed.
+- Clause scores: stats/evolution routes 2/2; live Collision/Blocker 2/2; effect-driven opponent trigger/Q4402 gate 2/2; once-per-turn De-Digivolve 1 2/2; On Deletion kind/cost boundary 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-078.test.ts`).

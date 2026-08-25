@@ -26,7 +26,7 @@ describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", 
     expect(allTurns?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenAnyDigivolves",
-      sourceFilter: { controllerDefault: "opponent", kind: ["Digimon"] },
+      sourceFilter: { controllerDefault: "opponent", kind: ["Digimon"], byEffect: true },
       actions: [
         {
           kind: "DeDigivolve",
