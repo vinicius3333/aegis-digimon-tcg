@@ -3,10 +3,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  digivolutionRequirement: [
-    { level: 4, cost: 4, colors: ["Purple", "Red"], isAlternate: true },
-    { level: 4, traits: ["Dark Dragon", "Evil Dragon"], cost: 3, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ level: 4, traits: ["Dark Dragon", "Evil Dragon"], cost: 3, isAlternate: true }],
   effects: [
     {
       trigger: "OnPlay",
