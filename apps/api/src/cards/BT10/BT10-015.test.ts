@@ -3,9 +3,23 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-015.js";
+import { compiled } from "./BT10-015.js";
 
 describe("BT10-015 Shoutmon X5B", () => {
+  it("encodes both keywords, the two-name DigiXros recipe, and matching On Play/evolution sequences", () => {
+    expect(compiled.effects[0]?.keywords).toEqual([
+      expect.objectContaining({ keyword: "Blocker" }),
+      expect.objectContaining({ keyword: "Armor Purge" }),
+    ]);
+    expect(compiled.digiXrosRequirement).toEqual([
+      { materials: [{ names: ["Shoutmon X5"] }, { names: ["Beelzemon"] }], count: 2 },
+    ]);
+    expect(compiled.effects.slice(1).map(({ trigger, actions }) => ({ trigger, actions }))).toEqual([
+      expect.objectContaining({ trigger: "OnPlay", actions: expect.any(Array) }),
+      expect.objectContaining({ trigger: "WhenDigivolving", actions: expect.any(Array) }),
+    ]);
+  });
+
   it("DigiXroses with Shoutmon X5 and Beelzemon, takes material from under Taiki, and plays a level 4 from trash", async () => {
     const s = setupEngine(
       {
@@ -176,6 +190,51 @@ describe("BT10-015 Shoutmon X5B", () => {
     );
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+  });
+
+  it("may decline placement and still play the level 4 recovery when Beelzemon was already a source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-015", as: "x5b", under: ["BT10-082"] }],
+          hand: [{ card: "BT10-034", as: "placementCandidate" }],
+          trash: [
+            { card: "BT10-049", as: "level4" },
+            { card: "BT10-013", as: "level5" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+
+    const resolution = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("x5b"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const placement = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placement.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== placement.decisionId,
+    );
+    const recovery = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: recovery.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
+
+    expect(s.perm("x5b").stack.map((card) => card.instanceId)).not.toContain(s.inst("placementCandidate").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("level4").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("level5").instanceId)).toBe(true);
   });
 
   it("does not treat Beelzemon: Blast Mode as the exact Beelzemon source", async () => {
