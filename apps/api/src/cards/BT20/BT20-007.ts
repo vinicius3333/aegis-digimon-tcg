@@ -31,6 +31,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card with [Dracomon]/[Examon] in its text in your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "GainMemory",

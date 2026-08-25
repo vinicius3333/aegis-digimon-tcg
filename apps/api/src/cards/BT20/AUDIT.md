@@ -71,3 +71,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-006.test.ts`).
+
+## BT20-007 — Dracomon
+
+- Catalog contract: red level 3 Dragon Digimon, play cost 3/1000 DP, normal red level-2 evolution cost 0 plus alternate Bebydomon cost 0; optional start-of-your-main-phase processing condition trashes 1 Dracomon/Examon-text card from hand to draw 1 and gain 1 memory; inherited your-turn +2000 DP.
+- Knowledge base: Q4290 confirms either Dracomon or Examon text is a valid trash payment; Q4291 defines the full “in its text” union across printed identity/effect/requirement fields.
+- Implementation evidence: the prior IR made the `By trashing` payment mandatory and allowed the trailing memory gain after refusal. The Draw cost is now optional with `abortOnDecline`, so refusing aborts the whole processing-conditioned effect; the existing text filter, Draw, GainMemory, inherited continuous DP modifier, alternate requirement, and exclusive `registerIrCard` registration remain intact.
+- Peer/stack evidence: the focused test accepts the effect to move a matching Dracomon from hand to trash, draw the deck top, and gain exactly 1 memory; a decline leaves all zones and memory unchanged. A Dracomon evolution source under Ginryumon gains +2000 DP on its controller's turn and loses it on the opposing turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-007.test.ts` — 3 passed.
+- Clause scores: evolution requirements/stats 2/2; optional matching-text trash cost 2/2; draw and memory results 2/2; inherited self +2000 DP 2/2; start-main/your-turn and stack observability 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-007.test.ts`).
