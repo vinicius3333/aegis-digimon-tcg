@@ -5,6 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { activated } from "../../engine/effects/builders.js";
 import { registerCard, unregisterCard } from "../../engine/effects/registry.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { compiled } from "./BT22-092.js";
 import "./index.js";
 
 // A3 for BT22-092 (Jimmy KEN):
@@ -21,6 +22,16 @@ import "./index.js";
 // effect (gain 2 memory) so the assertion is a simple, self-contained memory delta.
 const JIMMY = "BT22-092";
 const FLAME_DIGIMON = "BT15-009"; // Meramon — [Flame] trait
+
+it("registers exclusive compiled IR for play and digivolve reactivation", () => {
+  const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn");
+  expect(effect).toMatchObject({ timingOverride: "OnEnterFieldAnyone" });
+  expect((effect?.actions[0] as any).actions[0]).toMatchObject({
+    kind: "ReactivateEffect",
+    fromTrigger: "Main",
+    targetSource: "triggerSubject",
+  });
+});
 
 describe("BT22-092 [Start of Your Turn] set memory to 3 when at 2 or less", () => {
   it("sets memory to 3 when it starts at 2 or less", async () => {

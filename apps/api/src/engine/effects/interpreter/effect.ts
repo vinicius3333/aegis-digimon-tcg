@@ -44,6 +44,7 @@ import type { Action, CardEffect, Target } from "@aegis/shared";
  * contributes nothing at any timing for that effect — visible as "none" stub).
  */
 function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
+  if (effect.timingOverride === "OnEnterFieldAnyone") return EffectTiming.OnEnterFieldAnyone;
   // A compound `[Security][Your Turn]`/`[Security][All Turns]` effect is a persistent
   // watcher while the face-up card remains in security, not the one-shot `[Security]`
   // skill window. Keep pure security skills on SecuritySkill below, but let the
@@ -277,6 +278,7 @@ function isHandTrashWatcherHost(effect: CardEffect): boolean {
 
 /** Pick the timing builder that matches an IR trigger. */
 export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) => Effect {
+  if (effect.timingOverride === "OnEnterFieldAnyone") return turnTiming;
   if (
     effect.isSecurity &&
     (effect.trigger === "YourTurn" || effect.trigger === "OpponentsTurn" || effect.trigger === "AllTurns")
