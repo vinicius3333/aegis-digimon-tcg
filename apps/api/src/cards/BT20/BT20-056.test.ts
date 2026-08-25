@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./BT20-056.js";
 
@@ -36,6 +37,7 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
       condition: { kind: "duringAttack" },
       from: ["hand", "trash"],
       payCost: false,
+      target: { targetBreeding: true },
     });
     expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
       frequency: "OncePerTurn",
@@ -131,5 +133,81 @@ describe("BT20-056 Alphamon — On Play Recovery +1", () => {
 
     // DP should have dropped by 8000 (10000 -> 2000).
     expect(oppDigimon.currentDP).toBe(initialDP - 8000);
+  });
+
+  it("publishes Barrier at runtime", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: ALPHAMON, as: "alphamon" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("alphamon"), "Barrier")).toBe(true);
+  });
+
+  it("Q4389/Q4724 recovers, evolves breeding free during an attack, and suppresses its entry effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: ALPHAMON, as: "alphamon" },
+            { card: "BT20-047", dp: 2000, as: "ally" },
+          ],
+          breeding: { card: "BT20-051", as: "breeding" },
+          hand: [{ card: "BT20-053", as: "grademon" }],
+          deck: [{ card: AGUMON, as: "recovered" }],
+        },
+        1: { battleArea: [{ card: "BT20-047", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("alphamon"), {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard.cardId === "BT20-053");
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(s.inst("recovered").instanceId);
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT20-053");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("ally").currentDP).toBe(2000);
+  });
+
+  it("applies the security-removal DP penalty only once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: ALPHAMON, as: "alphamon" }] },
+        1: { battleArea: [{ card: "BT20-057", dp: 20000, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    expect(s.perm("target").currentDP).toBe(12000);
+  });
+
+  it("inherits paid leave prevention only for Alphamon: Ouryuken and not from your effects", async () => {
+    for (const [host, securityCount, effectSeat, survives] of [
+      ["BT20-060", 1, 1, true],
+      ["BT20-060", 1, 0, false],
+      ["BT20-060", 0, 1, false],
+      ["BT20-057", 1, 1, false],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: host, under: [ALPHAMON], as: "host" }],
+            security: Array.from({ length: securityCount }, () => AGUMON),
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const hostId = s.perm("host").permanentId;
+      advance(s.engine).verb.enterEffectResolution(effectSeat, ["Digimon"]);
+      try {
+        await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+      } finally {
+        advance(s.engine).verb.leaveEffectResolution();
+      }
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(survives);
+      expect(s.state.players[0]!.security).toHaveLength(survives ? 0 : securityCount);
+    }
   });
 });

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-046.js";
+import "./index.js";
 
 describe("BT20-046 Espimon", () => {
   it("reduces a battle-area Espimon's digivolution into a Cyborg or Machine by 1", () => {
@@ -28,5 +31,41 @@ describe("BT20-046 Espimon", () => {
         },
       ],
     });
+  });
+
+  it("reduces the Cyborg alternate evolution in battle but not in breeding", async () => {
+    for (const zone of ["battleArea", "breeding"] as const) {
+      const s = setupEngine({
+        0: {
+          ...(zone === "battleArea"
+            ? { battleArea: [{ card: "BT20-046", as: "espimon" }] }
+            : { breeding: { card: "BT20-046", as: "espimon" } }),
+          hand: [{ card: "BT20-050", as: "hover" }],
+        },
+      });
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("espimon").permanentId,
+          instanceId: s.inst("hover").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("espimon").topCard.cardId === "BT20-050");
+      expect(s.state.memory).toBe(zone === "battleArea" ? 2 : 1);
+    }
+  });
+
+  it("grants +1000 DP to its inherited host on both players' turns", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-050", dp: 4000, under: ["BT20-046"], as: "host" }] },
+    });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(5000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(5000);
   });
 });

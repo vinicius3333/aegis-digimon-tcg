@@ -135,7 +135,7 @@ export interface SecurityManipulationAction extends ActionBase {
   /** Maximum security size for recovery-like add operations. */
   maxSecurity?: number;
   /**
-   * For placeAsSecurity: detach only the source's current top card, promoting the top
+   * For security placement: detach only the source's current top card, promoting the top
    * digivolution card and leaving the permanent in play. BT9-044 uses it as a deletion-prevention
    * cost. Requires at least one digivolution card.
    */

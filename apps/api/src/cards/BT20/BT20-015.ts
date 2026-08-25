@@ -27,43 +27,26 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
+          breeding: true,
+          requiresEmpty: "breedingArea",
         },
         {
-          kind: "SubTrigger",
-          event: "whenAttacking",
-          sourceFilter: {
-            controllerDefault: "mine",
+          kind: "GainKeyword",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"] },
+            count: 1,
+            bindAs: "hisyaryumonBoostTarget",
           },
-          actions: [
-            {
-              kind: "GainKeyword",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-              },
-              keyword: {
-                keyword: "SecurityAttack",
-                amount: 1,
-                raw: "＜Security Attack +1＞",
-              },
-              duration: "untilOpponentTurnEnd",
-            },
-            {
-              kind: "ModifyDP",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-              },
-              amount: 5000,
-              duration: "untilOpponentTurnEnd",
-            },
-          ],
+          keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+          duration: "untilOpponentTurnEnd",
+          condition: { kind: "duringAttack", raw: "during an attack" },
+        },
+        {
+          kind: "ModifyDP",
+          target: { filter: {}, count: 1, fromSelectionRef: "hisyaryumonBoostTarget" },
+          amount: 5000,
+          duration: "untilOpponentTurnEnd",
+          condition: { kind: "duringAttack", raw: "during an attack" },
         },
       ],
     },
@@ -87,43 +70,26 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
+          breeding: true,
+          requiresEmpty: "breedingArea",
         },
         {
-          kind: "SubTrigger",
-          event: "whenAttacking",
-          sourceFilter: {
-            controllerDefault: "mine",
+          kind: "GainKeyword",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"] },
+            count: 1,
+            bindAs: "hisyaryumonBoostTarget",
           },
-          actions: [
-            {
-              kind: "GainKeyword",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-              },
-              keyword: {
-                keyword: "SecurityAttack",
-                amount: 1,
-                raw: "＜Security Attack +1＞",
-              },
-              duration: "untilOpponentTurnEnd",
-            },
-            {
-              kind: "ModifyDP",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-              },
-              amount: 5000,
-              duration: "untilOpponentTurnEnd",
-            },
-          ],
+          keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+          duration: "untilOpponentTurnEnd",
+          condition: { kind: "duringAttack", raw: "during an attack" },
+        },
+        {
+          kind: "ModifyDP",
+          target: { filter: {}, count: 1, fromSelectionRef: "hisyaryumonBoostTarget" },
+          amount: 5000,
+          duration: "untilOpponentTurnEnd",
+          condition: { kind: "duringAttack", raw: "during an attack" },
         },
       ],
     },

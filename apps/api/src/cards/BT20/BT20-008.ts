@@ -35,6 +35,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card with [Huckmon]/[Sistermon] in its name or the [Royal Knight] trait in your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "GainMemory",

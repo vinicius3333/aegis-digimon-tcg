@@ -51,7 +51,7 @@ import {
   partitionSpecOf,
 } from "../combat/keywords.js";
 import { ModifierLedger, type EvoCostMatch } from "./modifiers.js";
-import { ContinuousEffectLedger } from "./continuous.js";
+import { ContinuousEffectLedger, effectiveNames } from "./continuous.js";
 import { SubTriggerRegistry, type SubTriggerRootZone } from "./subtriggers.js";
 import type { EffectContext, Primitives, Restriction, SubTriggerInstall } from "./EffectContext.js";
 import { resolvePermanentBattle } from "../combat/resolve.js";
@@ -1000,6 +1000,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       virtualBase?: { level: number; colors: CardColor[] };
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
+      suppressWhenDigivolving?: boolean;
     },
   ): Promise<Permanent | undefined> => {
     const permanent = access.permanentById(targetPermanentId);
@@ -1137,9 +1138,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     await opts?.beforeWhenDigivolving?.();
     // The digivolved-into card's OWN [When Digivolving] fires (it was digivolved BY AN EFFECT),
     // with `enteredByEffect` set to its controller (the producer for the BT25-084 by-effect gate).
-    await engine.fireEnteredByEffect?.(EffectTiming.WhenDigivolving, instance.instanceId, seat, {
-      ...(sourceZone !== undefined ? { digivolvedFromZone: sourceZone } : {}),
-    });
+    if (opts?.suppressWhenDigivolving !== true) {
+      await engine.fireEnteredByEffect?.(EffectTiming.WhenDigivolving, instance.instanceId, seat, {
+        ...(sourceZone !== undefined ? { digivolvedFromZone: sourceZone } : {}),
+      });
+    }
     return permanent;
   };
 
@@ -1179,7 +1182,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         ...materials.map((mat) => {
           const printed = requireCardDefinition(mat.topCard!.cardId);
           const effectiveLevel = continuous.dnaLevelFor(mat.permanentId, definition);
-          return effectiveLevel === undefined ? printed : { ...printed, level: effectiveLevel };
+          const names = effectiveNames(continuous, mat, printed.nameEn ?? printed.cardId);
+          return {
+            ...printed,
+            ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
+            nameEn: names.join(" | "),
+          };
         }),
         ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
       ];
@@ -3408,6 +3416,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   ): Promise<CardInstance[]> => {
     instanceIds = filterLockedStackReturns(instanceIds, opts?.byEffectSeat ?? effectSeatStack.at(-1));
     instanceIds = await filterBouncePrevented(instanceIds);
+    // Bind each battle-area target to the permanent identity selected by the return effect.
+    // A would-be-returned reaction can replace that Digimon with a new permanent (BT20-074
+    // DNA digivolving one of the materials; Q4400). The original return must then lose its
+    // target rather than re-finding the same card instance underneath the new Digimon.
+    const targetedPermanentByInstance = new Map<string, string>();
     // Fire `wouldBeReturned` for each battle-area permanent whose top-card is about to land in
     // hand (CAP-C-11). Fires BEFORE the move so a watcher (BT20-074 DNA digivolve) can respond.
     if (engine.fireSubTrigger) {
@@ -3422,6 +3435,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           }
         }
         if (foundPermId !== undefined) {
+          targetedPermanentByInstance.set(instanceId, foundPermId);
           await engine.fireSubTrigger("wouldBeReturned", {
             subjectPermanentId: foundPermId,
             returnDestination: "hand",
@@ -3429,6 +3443,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
+    instanceIds = instanceIds.filter((instanceId) => {
+      const targetedPermanentId = targetedPermanentByInstance.get(instanceId);
+      if (targetedPermanentId === undefined) return true;
+      return access.permanentById(targetedPermanentId)?.topCard?.instanceId === instanceId;
+    });
     await fireWhenReturnedPermanentsLeave(instanceIds);
     // Record which of the requested instances start in TRASH before the move, for
     // whenCardReturnsFromTrashToHand (BT15-082/BT16-011: "a card returns from your trash to
@@ -4272,7 +4291,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       ...materials.map((material) => {
         const printed = requireCardDefinition(material.topCard!.cardId);
         const effectiveLevel = continuous.dnaLevelFor(material.permanentId, into);
-        return effectiveLevel === undefined ? printed : { ...printed, level: effectiveLevel };
+        const names = effectiveNames(continuous, material, printed.nameEn ?? printed.cardId);
+        return {
+          ...printed,
+          ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
+          nameEn: names.join(" | "),
+        };
       }),
       ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
     ];
@@ -5312,8 +5336,8 @@ function dnaMaterialSpecMatches(
   if (spec.color !== undefined && !material.colors.includes(spec.color as CardColor)) return false;
   if (spec.level !== undefined && material.level !== spec.level) return false;
   if (spec.names && spec.names.length > 0) {
-    const name = material.nameEn ?? material.cardId;
-    if (!spec.names.some((token) => name.includes(token))) return false;
+    const name = (material.nameEn ?? material.cardId).toLowerCase();
+    if (!spec.names.some((token) => name.includes(token.toLowerCase()))) return false;
   }
   if (spec.traits && spec.traits.length > 0) {
     if (!spec.traits.some((trait) => (material.types ?? []).includes(trait))) return false;

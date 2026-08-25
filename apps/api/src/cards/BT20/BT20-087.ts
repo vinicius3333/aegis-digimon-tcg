@@ -18,64 +18,6 @@ export const compiled: CompiledCard = {
             value: 2,
             controller: "mine",
           },
-          actions: [
-            {
-              kind: "Digivolve",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  zone: "battleArea",
-                },
-                count: 1,
-              },
-              into: {
-                controllerDefault: "mine",
-                kind: ["Digimon"],
-                levelComparison: {
-                  op: "lte",
-                  value: 6,
-                },
-                nameOrTrait: [
-                  {
-                    tokens: ["Chronicle"],
-                    match: "trait",
-                  },
-                ],
-              },
-              from: ["hand"],
-              reduceCost: 1,
-              optional: true,
-              cost: {
-                kind: "suspend",
-                target: {
-                  filter: {
-                    isSelfRef: true,
-                  },
-                  count: 1,
-                  isSelf: true,
-                },
-                raw: "by suspending this Tamer",
-              },
-              abortOnDecline: true,
-            },
-          ],
-        },
-      ],
-    },
-    {
-      trigger: "Security",
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          payCost: false,
         },
       ],
     },
@@ -103,6 +45,7 @@ export const compiled: CompiledCard = {
                   controller: "mine",
                   kind: ["Digimon"],
                 },
+                orFilters: [{ controller: "mine", kind: ["Digimon"], zone: "breeding" }],
                 count: 1,
               },
               into: {

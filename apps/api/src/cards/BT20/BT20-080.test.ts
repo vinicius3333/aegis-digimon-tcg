@@ -33,7 +33,7 @@ describe("BT20-080 Fenriloogamon", () => {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: { controllerDefault: "mine", kind: ["Tamer"] },
+          addedDigivolutionCardFilter: { kind: ["Tamer"] },
           triggerFilter: { isSelfRef: true },
           actions: [
             {

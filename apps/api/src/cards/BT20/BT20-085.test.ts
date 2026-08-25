@@ -14,6 +14,7 @@ describe("BT20-085 Shoto Kazama", () => {
       target: { filter: { levels: [3], nameOrTrait: [{ match: "trait", tokens: ["Avian", "Bird"] }] } },
       from: ["trash"],
     });
+    expect(effect?.actions).toHaveLength(2);
   });
 
   it("gates the Vortex Warriors DP effect on the suspend cost", () => {
@@ -24,5 +25,11 @@ describe("BT20-085 Shoto Kazama", () => {
         { kind: "ModifyDP", amount: 2000, duration: "untilOpponentTurnEnd" },
       ],
     });
+  });
+
+  it("registers exactly one security play effect", () => {
+    const security = compiled.effects.filter((entry) => entry.trigger === "Security");
+    expect(security).toHaveLength(1);
+    expect(security[0]).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] });
   });
 });

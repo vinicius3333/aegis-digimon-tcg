@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./index.js";
 import { compiled } from "./BT20-010.js";
 
 describe("BT20-010 Ryudamon", () => {
@@ -24,5 +27,52 @@ describe("BT20-010 Ryudamon", () => {
     expect(compiled.digivolutionRequirement).toEqual([
       { level: 2, colors: ["Black"], traits: ["X Antibody"], cost: 0, isAlternate: true },
     ]);
+  });
+
+  it("reduces a qualifying battle-area evolution by 1 but not the same breeding evolution", async () => {
+    const battle = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-010", as: "ryudamon" }],
+        hand: [{ card: "BT20-012", as: "ginryumon" }],
+      },
+    });
+    battle.state.memory = 5;
+    await battle.ready();
+    expect(
+      battle.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: battle.perm("ryudamon").permanentId,
+        instanceId: battle.inst("ginryumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => battle.perm("ryudamon").topCard.cardId === "BT20-012");
+    expect(battle.state.memory).toBe(3);
+
+    const breeding = setupEngine({
+      0: {
+        breeding: { card: "BT20-010", as: "ryudamon" },
+        hand: [{ card: "BT20-012", as: "ginryumon" }],
+      },
+    });
+    breeding.state.memory = 5;
+    await breeding.ready();
+    expect(
+      breeding.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: breeding.perm("ryudamon").permanentId,
+        instanceId: breeding.inst("ginryumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => breeding.perm("ryudamon").topCard.cardId === "BT20-012");
+    expect(breeding.state.memory).toBe(2);
+  });
+
+  it("observably grants its inherited host +2000 DP only during its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-012", dp: 4000, as: "host", under: ["BT20-010"] }] } });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(6000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(4000);
   });
 });

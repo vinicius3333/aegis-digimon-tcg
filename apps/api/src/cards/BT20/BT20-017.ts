@@ -12,7 +12,12 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayToken",
-          tokens: ["Atho, RenxE9 & Por"],
+          tokens: [
+            {
+              name: "Atho, René & Por",
+              keywords: [{ keyword: "Reboot" }, { keyword: "Blocker" }, { keyword: "Decoy", colors: ["Red", "Black"] }],
+            },
+          ],
           count: 1,
           payCost: false,
           optional: true,
@@ -24,7 +29,12 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayToken",
-          tokens: ["Atho, RenxE9 & Por"],
+          tokens: [
+            {
+              name: "Atho, René & Por",
+              keywords: [{ keyword: "Reboot" }, { keyword: "Blocker" }, { keyword: "Decoy", colors: ["Red", "Black"] }],
+            },
+          ],
           count: 1,
           payCost: false,
           optional: true,
@@ -57,19 +67,16 @@ export const compiled: CompiledCard = {
                 count: 1,
               },
             },
-          ],
-        },
-        {
-          kind: "Attack",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
+            {
+              kind: "Attack",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
+              withoutSuspending: false,
+              optional: true,
             },
-            count: 1,
-          },
-          withoutSuspending: false,
-          optional: true,
+          ],
         },
       ],
       frequency: "OncePerTurn",

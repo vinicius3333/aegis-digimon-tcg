@@ -1,5 +1,10 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-074.js";
+import "./index.js";
 
 describe("BT20-074 Dinobeemon", () => {
   it("may return one Imperialdramon-named or Free Digimon from trash on play and digivolving", () => {
@@ -70,5 +75,85 @@ describe("BT20-074 Dinobeemon", () => {
         },
       ],
     });
+  });
+
+  it("publishes the printed stats and purple/red evolution routes", () => {
+    expect(getCardDefinition("BT20-074")).toMatchObject({
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      evoCosts: [
+        { color: "Purple", level: 4, memoryCost: 4 },
+        { color: "Red", level: 4, memoryCost: 4 },
+      ],
+    });
+  });
+
+  it("on play and evolution returns the Imperialdramon-name and Free-trait arms from trash", async () => {
+    for (const [mode, recovered] of [
+      ["play", "BT20-076"],
+      ["digivolve", "BT20-066"],
+    ] as const) {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            ...(mode === "digivolve" ? { battleArea: [{ card: "BT20-067", as: "base" }] } : {}),
+            hand: [{ card: "BT20-074", as: "dinobeemon" }],
+            trash: [
+              { card: recovered, as: "recovered" },
+              { card: "BT20-047", as: "nonmatch" },
+            ],
+            deck: ["BT20-047"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.inst("recovered").instanceId);
+      s.state.memory = mode === "play" ? 8 : 4;
+      const result =
+        mode === "play"
+          ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dinobeemon").instanceId })
+          : s.engine.applyIntent(0, {
+              type: "digivolve",
+              permanentId: s.perm("base").permanentId,
+              instanceId: s.inst("dinobeemon").instanceId,
+            });
+      expect(result).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("recovered").instanceId));
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("nonmatch").instanceId);
+    }
+  });
+
+  it("Q4400 DNA digivolves a returning material and the new Imperialdramon remains in battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-074", as: "dinobeemon" },
+            { card: "BT20-016", as: "paildramon" },
+          ],
+          hand: [{ card: "BT20-076", as: "dragonMode" }],
+          deck: ["BT20-047"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.returnToHand([s.inst("dinobeemon").instanceId]);
+    const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-076");
+    expect(result).toBeDefined();
+    expect(result!.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-074", "BT20-016"]));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT20-074");
+  });
+
+  it("inherits Option Security suppression only on its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-076", under: ["BT20-074"], as: "host" }] } });
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT20-096")).toBe(true);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT20-096")).toBe(false);
   });
 });

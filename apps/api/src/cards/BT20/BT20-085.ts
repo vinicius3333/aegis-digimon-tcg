@@ -69,41 +69,6 @@ export const compiled: CompiledCard = {
           },
           optional: true,
         },
-        {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Vortex Warriors"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
-          },
-          amount: 2000,
-          duration: "untilOpponentTurnEnd",
-          condition: { kind: "ifThisEffectActed" },
-        },
-      ],
-    },
-    {
-      trigger: "Security",
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          payCost: false,
-        },
       ],
     },
     {

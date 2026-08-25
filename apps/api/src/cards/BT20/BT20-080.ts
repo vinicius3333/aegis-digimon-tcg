@@ -50,10 +50,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: {
-            controllerDefault: "mine",
-            kind: ["Tamer"],
-          },
+          addedDigivolutionCardFilter: { kind: ["Tamer"] },
           triggerFilter: {
             isSelfRef: true,
           },

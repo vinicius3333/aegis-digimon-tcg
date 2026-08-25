@@ -89,6 +89,7 @@ export const compiled: CompiledCard = {
           cost: {
             kind: "return",
             target: {
+              sourceRef: "triggerSubject",
               filter: {
                 controller: "mine",
                 zone: "digivolutionCards",

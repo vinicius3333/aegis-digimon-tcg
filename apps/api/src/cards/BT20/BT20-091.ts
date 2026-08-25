@@ -7,15 +7,25 @@ const royalKnight = {
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }],
 };
-const drawAndMemory = {
-  kind: "Suspend",
-  target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-};
-const drawOne = { kind: "Draw", controller: "mine", amount: 1 };
 const royalKnightOnYourTurn = {
   kind: "allOf",
   conditions: [{ kind: "isYourTurn" }, { kind: "triggerSubjectMatchesFilter", filter: royalKnight }],
 };
+const paidDrawAndMemory = [
+  {
+    kind: "Draw" as const,
+    controller: "mine" as const,
+    amount: 1,
+    condition: royalKnightOnYourTurn,
+    cost: {
+      kind: "suspend" as const,
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      raw: "by suspending this Tamer",
+    },
+    abortOnDecline: true,
+  },
+  { kind: "GainMemory" as const, amount: 1, condition: { kind: "ifThisEffectActed" as const } },
+];
 
 export const compiled: CompiledCard = {
   effects: [
@@ -25,25 +35,18 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          actions: [
-            { ...drawAndMemory, condition: royalKnightOnYourTurn },
-            { ...drawOne, condition: royalKnightOnYourTurn },
-            { kind: "GainMemory", amount: 1, condition: royalKnightOnYourTurn },
-          ],
+          actions: paidDrawAndMemory,
         },
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
-          actions: [
-            { ...drawAndMemory, condition: royalKnightOnYourTurn },
-            { ...drawOne, condition: royalKnightOnYourTurn },
-            { kind: "GainMemory", amount: 1, condition: royalKnightOnYourTurn },
-          ],
+          actions: paidDrawAndMemory,
         },
       ],
     },
     {
       trigger: "OpponentsTurn",
+      frequency: "OncePerTurn",
       actions: [
         {
           kind: "Replacement",

@@ -9,7 +9,11 @@ const recoveryAndBreedingDigivolve = {
     { kind: "Recover", amount: 1 },
     {
       kind: "Digivolve",
-      target: { filter: { zone: "breedingArea", controller: "mine", kind: ["Digimon"] }, count: 1 },
+      target: {
+        filter: { zone: "breedingArea", controller: "mine", kind: ["Digimon"] },
+        count: 1,
+        targetBreeding: true,
+      },
       into: {
         controllerDefault: "mine",
         kind: ["Digimon"],

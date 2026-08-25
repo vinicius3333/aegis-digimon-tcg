@@ -166,10 +166,10 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               zone: "security",
+              position: "top",
             },
             count: 1,
           },
-          fromTop: true,
           scaling: {
             per: 2,
             filter: {

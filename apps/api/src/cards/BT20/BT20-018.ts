@@ -40,38 +40,18 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
-          kind: "SubTrigger",
-          event: "whenAttacking",
-          actions: [
-            {
-              kind: "Digivolve",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-                targetBreeding: true,
-              },
-              into: {
-                controllerDefault: "mine",
-                kind: ["Digimon"],
-                levelComparison: {
-                  op: "lte",
-                  value: 6,
-                },
-                nameOrTrait: [
-                  {
-                    tokens: ["Chronicle"],
-                    match: "trait",
-                  },
-                ],
-              },
-              payCost: false,
-              from: ["hand", "trash"],
-              optional: true,
-            },
-          ],
+          kind: "Digivolve",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, targetBreeding: true },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levelComparison: { op: "lte", value: 6 },
+            nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }],
+          },
+          payCost: false,
+          from: ["hand", "trash"],
+          optional: true,
+          condition: { kind: "duringAttack", raw: "during an attack" },
         },
       ],
     },
@@ -90,38 +70,18 @@ export const compiled: CompiledCard = {
           amount: 2,
         },
         {
-          kind: "SubTrigger",
-          event: "whenAttacking",
-          actions: [
-            {
-              kind: "Digivolve",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-                targetBreeding: true,
-              },
-              into: {
-                controllerDefault: "mine",
-                kind: ["Digimon"],
-                levelComparison: {
-                  op: "lte",
-                  value: 6,
-                },
-                nameOrTrait: [
-                  {
-                    tokens: ["Chronicle"],
-                    match: "trait",
-                  },
-                ],
-              },
-              payCost: false,
-              from: ["hand", "trash"],
-              optional: true,
-            },
-          ],
+          kind: "Digivolve",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, targetBreeding: true },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levelComparison: { op: "lte", value: 6 },
+            nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }],
+          },
+          payCost: false,
+          from: ["hand", "trash"],
+          optional: true,
+          condition: { kind: "duringAttack", raw: "during an attack" },
         },
       ],
     },

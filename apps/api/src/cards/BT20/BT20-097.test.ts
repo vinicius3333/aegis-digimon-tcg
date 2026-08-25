@@ -24,7 +24,10 @@ describe("BT20-097 The Apostle of Doom Descends!", () => {
           abortOnDecline: true,
           cost: {
             kind: "return",
-            target: { filter: { zone: "digivolutionCards", nameOrTrait: [{ tokens: ["Dorumon"], match: "name" }] } },
+            target: {
+              sourceRef: "triggerSubject",
+              filter: { zone: "digivolutionCards", nameOrTrait: [{ tokens: ["Dorumon"], match: "name" }] },
+            },
           },
         },
       ],
