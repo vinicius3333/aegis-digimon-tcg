@@ -347,3 +347,15 @@
 - Score: 10/10.
 - Ambiguity: Q4324 is enforced by the production combat controller, which fires this timing only for the surviving attacker; the direct timing fixture isolates the card's routed effect and frequency.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-029.test.ts`).
+
+## BT20-030 — Liollmon
+
+- Catalog contract: yellow/black level 3 Vaccine Holy Beast/ACCEL, play cost 3/1000 DP, yellow or black level-2 evolution cost 1 plus Frimon or level-2 ACCEL alternate cost 0; On Play reveals three, independently adds one Chaosmon-name or ACCEL-trait Digimon and one ACCEL Option, and bottoms the rest; inherited Barrier.
+- Knowledge base: no card-specific rulings; the two independent add slots, union in the first slot, card-kind boundaries, remainder destination, and inherited keyword ownership are unambiguous.
+- Implementation evidence: the direct IR carries two ordered `RevealAdd.add` specifications with the exact Digimon name/trait union and ACCEL Option filter, followed by `deckBottom`. The inherited Static keyword is flagged `isInherited`, both alternate requirements are exact, and registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: revealing ACCEL Digimon BT20-031, ACCEL Option BT20-099, and nonmatching Digimon BT20-010 moves the first two to hand and only the control to the main-deck bottom. A Liollmon source grants Barrier to its host, while a top-card Liollmon does not receive its own inherited keyword.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-030.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; reveal count 2/2; Digimon union/add limit 2/2; ACCEL Option/remainder destination 2/2; inherited-only Barrier/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-030.test.ts`).
