@@ -31,6 +31,9 @@ export const compiled: CompiledCard = {
           totalCost: 12,
           filter: {
             controllerDefault: "mine",
+            hostFilter: {
+              isSelfRef: true,
+            },
             nameOrTrait: [
               {
                 tokens: ["DS"],
