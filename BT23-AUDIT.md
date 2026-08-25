@@ -326,6 +326,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; pays 7 at exactly 10000 opposing DP and the printed 12 below the threshold; separately evolves another Digimon for free into a Leomon-name-only result and a CS-trait result without changing memory; and proves refusing the follow-up attack leaves the selected Digimon unsuspended with Raid active.
 - Verification: focused suite — 9 passed; shared replacement, free-evolution, Raid, same-target, and attack mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-037 — Tentomon — 10/10
+
+- Catalog evidence: Green/yellow level 3, play cost 3, 1000 DP, standard green- or yellow-level-2 evolution for 1 plus alternate level-2 CS evolution for 0; form `Rookie`, attribute `Vaccine`, types `Insectoid`, `Hudie`, and `CS`; during Your Turn its battle-area self reduces a CS evolution by 1; its once-per-turn inherited When Attacking may play a cost-5-or-lower Hudie from hand for free, permanently prevents that result from evolving, and deletes it at the opponent's turn end.
+- Knowledge base: Q5299 excludes the breeding area from the self reducer. Q5300 lets a Hudie played by the inherited timing become a later Alliance suspension choice in the same attack. Q5565 confirms the delayed deletion and permanent evolution prohibition are independent, and Q5566 makes the opponent-turn-end deletion simultaneous with other end-turn processing under turn-player ordering.
+- Implementation result: every printed clause and binding was already present in compiled IR and registration is exclusively `registerIrCard("BT23-037", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live battle/breeding cost comparison, alternate-evolution, and rejection evidence without changing execution.
+- Primitive trace: the source-bound replacement activates only from battle area during its controller's turn and layers -1 onto a qualifying CS evolution; the inherited play binds only the resulting permanent, applies a permanent digivolution restriction to that identity, and schedules its opponent-turn-end deletion independently of whether the restriction later prevents deletion or the card changes state.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; charges 2 for Tentomon-to-Kabuterimon from battle area but the printed 3 from breeding; plays only the eligible cost-5 Hudie from a realistic inherited stack, observes its evolution lock, preserves it through the owner's end, and deletes it at the opponent's end; and accepts off-color level-2 CS evolution for 0 while rejecting a non-CS peer.
+- Verification: focused suite — 7 passed; shared replacement, binding, play, restriction, delayed-deletion, end-turn ordering, and inherited-frequency mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-037 through BT23-102.
+BT23-038 through BT23-102.
