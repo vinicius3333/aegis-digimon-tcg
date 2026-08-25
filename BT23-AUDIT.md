@@ -713,6 +713,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; proves guarded start-main memory; links one Digimon among two, suspends Eri, and boosts only that subject; declines suspension and observes neither suspension nor boost; and structurally proves the hand App Fuse remains nested behind the aborting cost.
 - Verification: focused suite — 7 passed after refreshing shared runtime data; shared link-subject binding, Tamer suspension cost, abort-on-decline, duration DP, nested App Fuse, start-main guard, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-080 — Yu Nogi — 10/10
+
+- Catalog evidence: Blue/yellow cost-4 Tamer, type `CS`; Start of Your Main Phase gains 1 memory if the opponent has a Digimon; All Turns when a friendly CS Digimon would be deleted, may return this Tamer to deck bottom to place one of those Digimon as the top security card; Security plays this card for free.
+- Knowledge base: Q5355 confirms the replacement prevents battle deletion, so an opposing attacker does not satisfy Piercing's battle-deletion trigger.
+- Defects corrected: authoritative shared IR selected an arbitrary friendly Digimon instead of the actual would-be-deleted subject and omitted the return cost's deck-bottom destination. It now binds `triggerSubject` and pays the exact printed destination, matching the executable module; registration remains exclusively `registerIrCard("BT23-080", compiled)` with full coverage/no residuals.
+- Primitive trace: the guarded start-main memory effect checks turn ownership and opponent board presence; the all-turns replacement filters the pending deletion subject by friendly CS, pays by moving Yu from battle to deck bottom, moves the complete triggering stack to top security, and reports the deletion prevented; Security self-play is free.
+- Behavioral proof: the focused suite checks catalog/coverage; proves guarded start-main memory; accepts an effect-deletion replacement and observes the exact CS card on top security plus Yu in deck; repeats for battle deletion and observes a zero deletion count, covering the Piercing ruling; declines and proves ordinary deletion proceeds while Yu remains; and structurally verifies the exact subject/cost binding.
+- Verification: focused suite — 6 passed after refreshing shared runtime data; shared would-be-deleted replacement, battle/effect causes, exact-subject binding, deck-bottom cost, stack-to-security movement, optional refusal, start-main guard, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-080 through BT23-102.
+BT23-081 through BT23-102.

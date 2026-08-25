@@ -80983,11 +80983,16 @@
                 "kind": "SecurityManipulation",
                 "op": "placeAsSecurity",
                 "controller": "mine",
-                "source": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "source": {
+                  "filter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+                  "count": 1,
+                  "sourceRef": "triggerSubject"
+                },
                 "toTop": true,
                 "cost": {
                   "kind": "return",
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                  "to": "deckBottom",
                   "raw": "by returning this Tamer to the bottom of the deck"
                 },
                 "optional": true,
