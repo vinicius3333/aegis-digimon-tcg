@@ -45228,9 +45228,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [
-      { "materials": [{ "names": ["Grumblemon"] }, { "names": ["Gigasmon"] }], "count": 2 }
-    ]
+    "digiXrosRequirement": [{ "materials": [{ "names": ["Grumblemon"] }, { "names": ["Gigasmon"] }], "count": 2 }]
   },
   "BT18-018": {
     "effects": [
@@ -45375,7 +45373,7 @@
         ]
       }
     ],
-    "digiXrosRequirement": [{ "materials": [{ "names": ["Kimeramon"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "names": ["Kimeramon"] }, { "names": ["Machinedramon"] }], "count": 2 }]
   },
   "BT18-020": {
     "effects": [
