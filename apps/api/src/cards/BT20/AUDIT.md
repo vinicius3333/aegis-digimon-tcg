@@ -623,3 +623,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-052.test.ts`).
+
+## BT20-053 — Grademon
+
+- Catalog contract: black/yellow level 5 Vaccine Warrior/X Antibody/Chronicle, play cost 7/7000 DP, black or yellow level-4 evolution cost 4 plus Raptordramon or level-4 Chronicle alternate cost 3; On Play/When Digivolving may free-play Dorumon/Ryudamon from hand to empty breeding, then during an attack grants 1 ally +5000 DP and opponent-Digimon-effect immunity through the opponent's turn; inherited opponent-turn once-per-turn optional redirect to host.
+- Knowledge base: Q4721 confirms an effect-driven evolution into Grademon during an opponent's attack satisfies the during-attack branch.
+- Implementation evidence: both entry effects share exact hand/name, empty-breeding, free, optional placement followed by independently condition-gated DP and immunity actions. Production effect-driven entry injects the current attacker ID into the timing payload consumed by `duringAttack`. The inherited watcher is opponent-turn, optional, self-targeted, and once tracked. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: hard play free-plays BT20-048 Dorumon and evolution over BT20-051 free-plays BT20-010 Ryudamon, proving both names and the cost-3 Raptordramon/Chronicle route. During a live opposing attack, Q4721's payload makes a 2000-DP ally 7000 and immune to opposing Digimon effects. A BT20-056 host redirects the first of two attacks, preserves security, then the exhausted watcher lets the second check security.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-053.test.ts` — 6 passed.
+- Clause scores: stats/ordinary and alternate evolution 2/2; dual entry/empty breeding/name union 2/2; optional free placement 2/2; Q4721 during-attack DP/immunity/duration 2/2; inherited opponent-turn redirect/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-053.test.ts`).
