@@ -45688,7 +45688,8 @@
               "count": 1
             },
             "restriction": "suspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           }
         ]
       },
@@ -45702,7 +45703,8 @@
               "count": 1
             },
             "restriction": "suspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           }
         ]
       },
@@ -45926,7 +45928,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "names": ["Kumamon"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "names": ["Kumamon"] }, { "names": ["Korikakumon"] }], "count": 2 }]
   },
   "BT18-029": {
     "effects": [
