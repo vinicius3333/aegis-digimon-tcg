@@ -1,7 +1,32 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-027.js";
+import { compiled } from "./BT10-027.js";
 describe("BT10-027 Regalecusmon", () => {
+  it("encodes bottom-two source trash and one mandatory level 3 plus one mandatory level 4 play", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "WhenDigivolving",
+        actions: [expect.objectContaining({ kind: "TrashDigivolution", amount: 2, fromTop: false })],
+      }),
+      expect.objectContaining({
+        trigger: "WhenAttacking",
+        optional: true,
+        actions: [
+          expect.objectContaining({
+            kind: "PlayWithoutCost",
+            target: expect.objectContaining({ filter: expect.objectContaining({ level: 3 }) }),
+          }),
+          expect.objectContaining({
+            kind: "PlayWithoutCost",
+            target: expect.objectContaining({ filter: expect.objectContaining({ level: 4 }) }),
+          }),
+        ],
+      }),
+    ]);
+  });
+
   it("trashes 2 bottom digivolution cards of an opposing Digimon", async () => {
     const s = setupEngine(
       {
@@ -126,5 +151,24 @@ describe("BT10-027 Regalecusmon", () => {
       s.inst("level4").instanceId,
     ]);
     expect(s.decisions.some(({ req }) => req.sourceCardId === "BT10-027")).toBe(false);
+  });
+
+  it("plays the sole available level when only a level 3 source exists (Q1951)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-027", as: "regalecusmon", under: [{ card: "BT9-021", as: "level3" }] }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "sourceLess" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("regalecusmon"));
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("level3").instanceId),
+    ).toBe(true);
+    expect(s.perm("regalecusmon").stack).toHaveLength(0);
   });
 });
