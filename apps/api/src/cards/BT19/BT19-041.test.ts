@@ -6,9 +6,11 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT19-041 Dynasmon", () => {
-  it.each(["BT19-037", "BT19-011"])("legally digivolves from a yellow or red level-5 stack (%s)", async (base) => {
+  it.each([["BT19-037", "BT19-035"], ["BT19-011", "BT19-009"]] as const)(
+    "legally digivolves from a yellow or red level-5 evolved stack (%s)", async (base, source) => {
     const s = setupEngine({ 0: {
-      battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT19-041", as: "dynas" }], deck: ["BT19-030"],
+      battleArea: [{ card: base, as: "base", under: [source] }],
+      hand: [{ card: "BT19-041", as: "dynas" }], deck: ["BT19-030"],
     } }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 5;
     await s.ready();
@@ -16,7 +18,10 @@ describe("BT19-041 Dynasmon", () => {
       type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("dynas").instanceId,
     })).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT19-041");
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([base]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([source, base]);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT19-041")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT19-030"]);
   });
 
   it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
@@ -56,6 +61,8 @@ describe("BT19-041 Dynasmon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dynas"));
     expect(s.perm("dynas").currentDP).toBe(11000);
     expect(observe(s.engine).hasKeyword(s.perm("dynas"), "Blocker")).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
   it("keeps +6000 DP and Blocker through the owner's turn, then expires at the opponent's turn end", async () => {
@@ -101,8 +108,35 @@ describe("BT19-041 Dynasmon", () => {
     driver.verb.leaveEffectResolution();
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(0);
-    expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.trash).toHaveLength(1);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT19-030", "BT19-032"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT19-031"]);
+  });
+
+  it("can order Tapirmon's simultaneous prevention before Dynasmon's Recovery (Q3095 reverse)", async () => {
+    const s = setupEngine({ 0: {
+      battleArea: [{ card: "BT19-041", as: "dynas", under: ["BT19-029"] }],
+      security: ["BT19-030", "BT19-032"], deck: ["BT19-031"],
+    } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false });
+    await s.ready();
+    const driver = advance(s.engine);
+    driver.verb.enterEffectResolution(1, ["Digimon"]);
+    const deleting = driver.verb.deletePermanent([s.perm("dynas").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const pending = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
+    const keys = request.options?.triggerKeys ?? [];
+    expect(keys).toHaveLength(2);
+    const tapirmonKey = keys.find((key) => key.includes("BT19-029"));
+    expect(tapirmonKey).toBeDefined();
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision", decisionId: pending.decisionId,
+      response: { kind: "orderTriggers", order: [tapirmonKey!] },
+    })).toEqual({ ok: true });
+    await deleting;
+    driver.verb.leaveEffectResolution();
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT19-031", "BT19-032"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT19-030"]);
   });
 
   it("uses the would-leave Recovery only once across a second leave event", async () => {

@@ -33,6 +33,9 @@ interface Harness {
   subTriggers: SubTriggerRegistry;
   /** Queue boolean answers for the prevent "you may pay?" prompt; default true. */
   optionalAnswers: boolean[];
+  replacementOrder: number[];
+  offeredReplacementIds: number[][];
+  replacementFiredKeys: Set<string>;
   /** Resolve the consult exactly as GameEngine does (delegates to the real function). */
   consult(
     permanentIds: string[],
@@ -63,6 +66,9 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
   let permanentSeq = 0;
   const reentryGuard = { active: false };
   const optionalAnswers: boolean[] = [];
+  const replacementOrder: number[] = [];
+  const offeredReplacementIds: number[][] = [];
+  const replacementFiredKeys = new Set<string>();
 
   const ask: SelectionPort = {
     selectInstances: async (_seat, candidates, _min, max) => candidates.slice(0, max),
@@ -121,6 +127,14 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
     permanentById,
     buildContext: (srcPerm, leavingId) => sourceContext(srcPerm, leavingId),
     turnSeat: state.turnSeat,
+    orderReplacements: async (replacements) => {
+      offeredReplacementIds.push(replacements.map(({ id }) => id));
+      if (replacementOrder.length === 0) return replacements;
+      const rank = new Map(replacementOrder.map((id, index) => [id, index]));
+      return [...replacements].sort((a, b) => (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER));
+    },
+    oncePerTurnFired: (key) => replacementFiredKeys.has(key),
+    markOncePerTurnFired: (key) => replacementFiredKeys.add(key),
   };
 
   const engine: PrimitivesEngine = {
@@ -144,6 +158,9 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
     events,
     subTriggers,
     optionalAnswers,
+    replacementOrder,
+    offeredReplacementIds,
+    replacementFiredKeys,
     consult: (ids, cause = "byEffect", resolvingSeat, o) =>
       consultLeavePrevention(host, ids, cause, resolvingSeat, { isBounce: o?.isBounce, reentryGuard }),
     installPrevent: async (sourcePermanent, compiled) => {
@@ -268,6 +285,107 @@ function filteredTrashPrevent(affectsAll: boolean): CompiledCard {
     residual: [],
   };
 }
+
+describe("leave-area simultaneous mixed-mode ordering", () => {
+  function installOrderedPair(h: Harness, source: Permanent, log: string[]): { insteadId: number; preventId: number } {
+    const insteadId = h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      mode: "instead",
+      description: "side effect",
+      appliesTo: () => true,
+      apply: async () => { log.push("instead"); },
+    });
+    const preventId = h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      mode: "prevent",
+      description: "prevention",
+      protects: () => true,
+      preventCheck: async () => { log.push("prevent"); return true; },
+    });
+    return { insteadId, preventId };
+  }
+
+  it("runs an ordered non-preventing reaction before prevention", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const log: string[] = [];
+    const ids = installOrderedPair(h, source, log);
+    h.replacementOrder.push(ids.insteadId, ids.preventId);
+    expect(await h.consult([source.permanentId])).toEqual(new Set([source.permanentId]));
+    expect(log).toEqual(["instead", "prevent"]);
+  });
+
+  it("runs prevention first but continues to a later non-preventing reaction", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const log: string[] = [];
+    const ids = installOrderedPair(h, source, log);
+    h.replacementOrder.push(ids.preventId, ids.insteadId);
+    expect(await h.consult([source.permanentId])).toEqual(new Set([source.permanentId]));
+    expect(log).toEqual(["prevent", "instead"]);
+  });
+
+  it("a successful prevent suppresses only later prevent candidates", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const log: string[] = [];
+    for (const name of ["first", "second"]) h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "prevent", description: name,
+      protects: () => true, preventCheck: async () => { log.push(name); return true; },
+    });
+    await h.consult([source.permanentId]);
+    expect(log).toEqual(["first"]);
+  });
+
+  it("a failed or declined prevent permits the next prevent candidate", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const log: string[] = [];
+    h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "prevent", description: "declined",
+      protects: () => true, preventCheck: async () => { log.push("declined"); return false; },
+    });
+    h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "prevent", description: "accepted",
+      protects: () => true, preventCheck: async () => { log.push("accepted"); return true; },
+    });
+    expect(await h.consult([source.permanentId])).toEqual(new Set([source.permanentId]));
+    expect(log).toEqual(["declined", "accepted"]);
+  });
+
+  it("does not offer inapplicable reactions for ordering", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "instead", description: "inapplicable",
+      appliesTo: () => false, apply: async () => undefined,
+    });
+    h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "prevent", description: "eligible",
+      protects: () => true, preventCheck: async () => true,
+    });
+    await h.consult([source.permanentId]);
+    expect(h.offeredReplacementIds).toEqual([]);
+  });
+
+  it("preserves affectsAll and once-per-turn accounting", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const peer = putPermanent(h.state, 0, "peer");
+    h.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay", sourcePermanentId: source.permanentId, mode: "prevent", description: "all",
+      affectsAll: true, oncePerTurnKey: "all/opt", protects: () => true, preventCheck: async () => true,
+    });
+    expect(await h.consult([source.permanentId, peer.permanentId])).toEqual(
+      new Set([source.permanentId, peer.permanentId]),
+    );
+    expect(h.replacementFiredKeys).toEqual(new Set(["all/opt"]));
+  });
+});
 
 describe("leave-area prevent: filtered protect, affectsAll vs choose-1", () => {
   it("affectsAll:true saves ALL simultaneously-leaving matches on ONE payment", async () => {

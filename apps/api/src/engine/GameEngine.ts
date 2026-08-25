@@ -1047,6 +1047,29 @@ export class GameEngine {
         // (reset at each turn start alongside every other Once-Per-Turn limit).
         oncePerTurnFired: (key) => this.tracker.count(key, "replacement") > 0,
         markOncePerTurnFired: (key) => this.tracker.register(key, "replacement"),
+        orderReplacements: async (replacements, seat) => {
+          const keyed = replacements.map((replacement) => {
+            const sourceInstance =
+              replacement.sourceInstanceId === undefined
+                ? undefined
+                : this.findLooseInstance(replacement.sourceInstanceId);
+            return {
+              replacement,
+              key: `replacement/${replacement.id}/${sourceInstance?.cardId ?? replacement.sourceInstanceId ?? replacement.sourcePermanentId ?? "source"}`,
+            };
+          });
+          const response = await this.decisions.request({
+            seat,
+            kind: "orderTriggers",
+            promptText: "Choose the order for simultaneous would-leave effects.",
+            options: { triggerKeys: keyed.map(({ key }) => key) },
+          });
+          if (response.kind !== "orderTriggers" || response.order.length === 0) return replacements;
+          const selected = keyed.find(({ key }) => key === response.order[0]);
+          return selected === undefined
+            ? replacements
+            : [selected.replacement, ...replacements.filter((replacement) => replacement.id !== selected.replacement.id)];
+        },
       },
       permanentIds,
       cause,
