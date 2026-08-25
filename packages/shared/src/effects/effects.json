@@ -4482,7 +4482,18 @@
   },
   "BT10-012": {
     "effects": [
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }] },
+      {
+        "trigger": "Static",
+        "actions": [
+          {
+            "kind": "GrantStatic",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "grant": "name",
+            "tokens": ["MetalGreymon", "Cyberdramon"]
+          }
+        ],
+        "keywords": [{ "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }]
+      },
       {
         "trigger": "OnPlay",
         "actions": [
@@ -9719,18 +9730,18 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Blue Flare"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Blue Flare"], "match": "trait" }],
+                "zone": ["hand", "underTamers"]
               },
-              "count": 1
+              "count": 1,
+              "from": ["hand", "underTamers"]
             },
-            "underFilter": { "controller": "mine", "kind": ["Digimon", "Tamer"] },
             "optional": true
           },
           {
             "kind": "Return",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] }, "count": 1 },
-            "to": "deckBottom",
-            "optional": true
+            "to": "deckBottom"
           },
           {
             "kind": "Return",
@@ -9760,18 +9771,18 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Blue Flare"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Blue Flare"], "match": "trait" }],
+                "zone": ["hand", "underTamers"]
               },
-              "count": 1
+              "count": 1,
+              "from": ["hand", "underTamers"]
             },
-            "underFilter": { "controller": "mine", "kind": ["Digimon", "Tamer"] },
             "optional": true
           },
           {
             "kind": "Return",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "levels": [3] }, "count": 1 },
-            "to": "deckBottom",
-            "optional": true
+            "to": "deckBottom"
           },
           {
             "kind": "Return",
@@ -9795,7 +9806,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "names": ["MetalGreymon"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "names": ["MetalGreymon"] }, { "names": ["Cyberdramon"] }], "count": 2 }]
   },
   "BT11-031": {
     "effects": [
