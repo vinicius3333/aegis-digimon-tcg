@@ -1,10 +1,32 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT23-068.js";
 
 describe("BT23-068 GranDracmon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-068")).toMatchObject({
+      cardId: "BT23-068",
+      nameEn: "GranDracmon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 5 }],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Dark Animal", "CS"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, traits: ["Undead", "CS"], cost: 4, isAlternate: true },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("plays a qualifying level-4-or-lower purple Digimon from trash and rejects a higher-level card", async () => {
     const s = setupEngine(
       {
@@ -74,9 +96,60 @@ describe("BT23-068 GranDracmon", () => {
     });
   });
 
+  it("on deletion evolves another Digimon into GranDracmon from trash for free, then the new GranDracmon deletes all lowest-level opponents", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-068", as: "source" },
+            { card: "BT23-066", as: "base" },
+          ],
+          trash: [{ card: "BT23-068", as: "into" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT23-061", as: "low1" },
+            { card: "BT23-062", as: "low2" },
+            { card: "BT23-063", as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("into").instanceId);
+    const memoryBefore = s.state.memory;
+    const highId = s.perm("high").permanentId;
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    expect(s.perm("base").topCard?.cardId).toBe("BT23-068");
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(highId);
+  });
+
   it("requires a level 5 Undead or CS Digimon for alternate evolution", () => {
     expect(compiled.digivolutionRequirement).toEqual([
       { level: 5, traits: ["Undead", "CS"], cost: 4, isAlternate: true },
     ]);
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT23-067", as: "base" }], hand: [{ card: "BT23-068", as: "gran" }] },
+    });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("gran").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const illegal = setupEngine({
+      0: { battleArea: [{ card: "BT1-039", as: "base" }], hand: [{ card: "BT23-068", as: "gran" }] },
+    });
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("base").permanentId,
+        instanceId: illegal.inst("gran").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

@@ -1,10 +1,32 @@
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-052.js";
 
 describe("BT23-052 Consulmon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-052")).toMatchObject({
+      cardId: "BT23-052",
+      nameEn: "Consulmon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [{ color: "Black", level: 3, memoryCost: 2 }],
+      forms: ["Sup.", "Appmon"],
+      attributes: ["Life"],
+      types: ["Saving"],
+      linkDp: 3000,
+    });
+    expect(compiled.linkRequirement).toEqual([{ cost: 2, traits: ["Appmon"] }]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("waits for its security battle to end, then plays itself without cost", async () => {
     const s = setupEngine(
       {
@@ -90,6 +112,37 @@ describe("BT23-052 Consulmon", () => {
         target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
       });
     }
+  });
+
+  it("prevents the selected opponent from attacking a player while preserving Digimon attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-052", as: "consul" },
+            { card: "BT1-009", as: "defender", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "attacker" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("consul"));
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
   });
 
   it("carries its Appmon link requirement and linked When Linking grants", () => {

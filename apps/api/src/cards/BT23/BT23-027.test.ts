@@ -1,7 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-027.js";
 
@@ -32,6 +33,21 @@ describe("BT23-027 Angemon", () => {
   });
 
   it("declares Barrier", () => {
+    expect(getCardDefinition("BT23-027")).toMatchObject({
+      cardId: "BT23-027",
+      nameEn: "Angemon",
+      colors: ["Yellow", "Blue"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [
+        { color: "Yellow", level: 3, memoryCost: 3 },
+        { color: "Black", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Angel", "Hudie", "CS"],
+    });
     const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static") as any;
     expect(staticEffect.keywords).toEqual([{ keyword: "Barrier", raw: "＜Barrier＞" }]);
   });
@@ -58,5 +74,37 @@ describe("BT23-027 Angemon", () => {
       isInherited: true,
       keywords: [{ keyword: "Barrier" }],
     });
+  });
+
+  it("exposes Barrier both directly and from a realistic evolution stack", async () => {
+    const direct = setupEngine({ 0: { battleArea: [{ card: "BT23-027", as: "angemon" }] } });
+    await direct.ready();
+    expect(observe(direct.engine).hasKeyword(direct.perm("angemon"), "Barrier")).toBe(true);
+
+    const inherited = setupEngine({ 0: { battleArea: [{ card: "BT23-032", as: "host", under: ["BT23-027"] }] } });
+    await inherited.ready();
+    expect(observe(inherited.engine).hasKeyword(inherited.perm("host"), "Barrier")).toBe(true);
+  });
+
+  it("draws but does not offer DNA digivolution on the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-027", as: "angemon" },
+            { card: "BT23-050", as: "other" },
+          ],
+          hand: [{ card: "BT23-032", as: "shakkoumon" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("angemon"));
+    await settle();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("shakkoumon").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
   });
 });

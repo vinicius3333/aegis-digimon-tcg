@@ -145,6 +145,14 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       return false;
     }
     case "ModifyDP": {
+      if (action.playerWide === true) {
+        const controller = action.target.filter.controller;
+        if (controller !== "mine" && controller !== "opponent") return false;
+        const seat = controller === "mine" ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
+        const amount = scale === undefined ? action.amount : action.amount * scale;
+        if (amount !== 0) ctx.fx.modifyPlayerDP(seat, amount, toDuration(action.duration));
+        return false;
+      }
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const effectSourceBound = (action as Action & { effectSourceBound?: boolean }).effectSourceBound === true;
@@ -366,6 +374,13 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       if (additionalEffect?.kind === "GrantStatic" && additionalEffect.modifier === "cannotBeDeletedInBattle") {
         const protectionDuration = toDuration(additionalEffect.duration ?? action.duration ?? "untilOpponentTurnEnd");
         for (const id of ids) ctx.fx.restrict(id, "beDeletedInBattle", protectionDuration);
+      }
+      // A following action may say "that Digimon" and resolve through fromSelectionRef.
+      // GainKeyword already owns the target choice, so preserve the chosen identity just as
+      // ModifyDP and the other target-selecting primitives do.
+      if (ids.length > 0 && action.target.bindAs !== undefined) {
+        ctx.selections ??= new Map();
+        ctx.selections.set(action.target.bindAs, ids[0]!);
       }
       return false;
     }

@@ -44,11 +44,13 @@ export const compiled: CompiledCard = {
           },
           into: {
             filter: {
-              isSelfRef: true,
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
           },
           from: ["hand"],
-          cost: 3,
+          source: "triggerSource",
+          costOverride: 3,
           ignoreRequirements: true,
           payCost: true,
         },

@@ -105,7 +105,9 @@ export async function runReplacement(
   const isCannotLeavePlayGrant = (grant: unknown): boolean =>
     typeof grant === "object" && grant !== null && (grant as { cannotLeavePlay?: boolean }).cannotLeavePlay === true;
   const nestedPrevent = (
-    action.actions as { kind?: string; cost?: Cost; condition?: Condition; grant?: unknown }[] | undefined
+    action.actions as
+      | { kind?: string; cost?: Cost; costOptions?: Cost[]; condition?: Condition; grant?: unknown }[]
+      | undefined
   )?.find((a) => a.kind === "Prevent" || (a.kind === "GrantStatic" && isCannotLeavePlayGrant(a.grant)));
   // When the prose compiler emits a Replacement with a cost but no explicit
   // mode (e.g. BT18-082 "by trashing the bottom card of your security stack,
@@ -224,6 +226,10 @@ export async function runReplacement(
       preventCheck: async (subCtx) => {
         // "You may [pay cost] to prevent" — the cost is the gate. Decline => not prevented.
         if (preventCost !== undefined && !canPayCost(subCtx, preventCost)) return false;
+        const availablePreventCosts = action.costOptions ?? nestedPrevent?.costOptions;
+        if (availablePreventCosts !== undefined && !availablePreventCosts.some((cost) => canPayCost(subCtx, cost))) {
+          return false;
+        }
         if (action.optional !== false) {
           const yes = await subCtx.ask.optional(subCtx, `Prevent leaving the battle area? (${action.raw})`);
           if (!yes) return false;
@@ -279,9 +285,9 @@ export async function runReplacement(
           if (source === undefined) return false;
           if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
           const trashed = await subCtx.fx.deletePermanent([source.permanentId]);
-          if (trashed <= 0) return false;
+          if (trashed <= 0 && subCtx.source.permanent() !== undefined) return false;
         }
-        const preventCosts = action.costOptions ?? (preventCost ? [preventCost] : []);
+        const preventCosts = action.costOptions ?? nestedPrevent?.costOptions ?? (preventCost ? [preventCost] : []);
         if (preventCosts.length > 0) {
           const paid = await payOneCostOption(subCtx, preventCosts);
           if (!paid) return false;

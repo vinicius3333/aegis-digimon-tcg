@@ -525,6 +525,7 @@ function makeContext(opts: {
     declareWinner: record("declareWinner"),
     setMemory: record("setMemory"),
     modifyDP: record("modifyDP"),
+    modifyPlayerDP: record("modifyPlayerDP"),
     setBaseDP: record("setBaseDP"),
     setOriginalCardInfo: record("setOriginalCardInfo"),
     playFromHand: async (...a) => {

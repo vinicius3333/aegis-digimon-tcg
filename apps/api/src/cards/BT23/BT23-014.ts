@@ -15,6 +15,24 @@ const compiled: CompiledCard = {
           duration: "untilOpponentTurnEnd",
           byEffectOnly: true,
         },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "RestrictPlay",
+          seat: "opponent",
+          filter: { kind: ["Digimon", "Tamer"], zone: "trash" },
+          mode: "play",
+          duration: "untilOpponentTurnEnd",
+          byEffectOnly: true,
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
         {
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
@@ -30,14 +48,6 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        {
-          kind: "RestrictPlay",
-          seat: "opponent",
-          filter: { kind: ["Digimon", "Tamer"], zone: "trash" },
-          mode: "play",
-          duration: "untilOpponentTurnEnd",
-          byEffectOnly: true,
-        },
         {
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },

@@ -171,6 +171,9 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       const match = {
         ...(action.filter.kind ? { kinds: action.filter.kind } : {}),
         ...(action.filter.dpAtMost !== undefined ? { dpAtMost: action.filter.dpAtMost } : {}),
+        ...(action.filter.zone !== undefined
+          ? { fromZones: Array.isArray(action.filter.zone) ? action.filter.zone : [action.filter.zone] }
+          : {}),
       };
       for (const seat of seats)
         ctx.fx.restrictPlay(seat, ctx.source.ownerSeat, match, action.mode, duration, action.byEffectOnly);

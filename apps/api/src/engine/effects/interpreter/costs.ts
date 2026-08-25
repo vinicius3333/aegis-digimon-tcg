@@ -13,6 +13,20 @@ import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 // Cost payment
 // ---------------------------------------------------------------------------
 
+function placeCostHostCandidates(ctx: EffectContext, host: Target): Permanent[] {
+  const zone = host.filter.zone as string | readonly string[] | undefined;
+  if (zone !== "breeding" && zone !== "breedingArea") {
+    return candidatePermanents(ctx, host);
+  }
+  const { zone: _zone, ...filter } = host.filter;
+  const candidates: Permanent[] = [];
+  for (const seat of seatsForController(ctx, host.filter)) {
+    const breeding = ctx.game.player(seat).breeding;
+    if (breeding !== undefined && permanentMatchesFilter(ctx, breeding, filter, ctx.source)) candidates.push(breeding);
+  }
+  return candidates;
+}
+
 /**
  * Conservative feasibility precheck for an action's cost, used to avoid prompting "you may…"
  * for an optional cost-bearing action the controller cannot actually perform, and (CR
@@ -139,6 +153,14 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return cost.target.upTo === true ? true : required > 0 && candidates.length >= required;
   }
+  if (cost.kind === "return" && cost.target?.filter.isSelfRef === true && ctx.source.permanent() === undefined) {
+    return ctx.game.player(ctx.source.ownerSeat).trash.some((card) => card.instanceId === ctx.source.instanceId);
+  }
+  if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === undefined) {
+    const candidates = candidatePermanents(ctx, cost.target);
+    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    return required > 0 && candidates.length >= required;
+  }
   if (
     cost.kind === "trash" &&
     (cost.target?.filter.zone === "digivolutionCards" ||
@@ -184,12 +206,24 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : cost.target.count;
     if (required <= 0) return false;
     if (cost.target.filter.sameHost !== true) return candidates.length >= required;
-    const counts = new Map<string, number>();
+    const byHost = new Map<string, LooseCandidate[]>();
     for (const candidate of candidates) {
       if (candidate.hostPermanentId === undefined) continue;
-      counts.set(candidate.hostPermanentId, (counts.get(candidate.hostPermanentId) ?? 0) + 1);
+      const group = byHost.get(candidate.hostPermanentId) ?? [];
+      group.push(candidate);
+      byHost.set(candidate.hostPermanentId, group);
     }
-    return [...counts.values()].some((count) => count >= required);
+    if (cost.target.filter.sameLevelPair !== true) {
+      return [...byHost.values()].some((group) => group.length >= required);
+    }
+    return [...byHost.values()].some((group) => {
+      const levels = new Map<number, number>();
+      for (const candidate of group) {
+        const level = getCardDefinition(candidate.cardId)?.level;
+        if (level !== undefined) levels.set(level, (levels.get(level) ?? 0) + 1);
+      }
+      return [...levels.values()].some((count) => count >= required);
+    });
   }
   if (cost.kind === "securityToHand") {
     return ctx.game.player(ctx.source.ownerSeat).security.length > 0;
@@ -236,7 +270,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       if (candidatePermanents(ctx, cost.target).length < required) return false;
       if (cost.destination === "security" || cost.destination === "battleArea") return true;
       if (cost.host !== null && typeof cost.host === "object") {
-        return candidatePermanents(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
+        return placeCostHostCandidates(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
       }
       return ctx.source.permanent() !== undefined;
     }
@@ -808,7 +842,16 @@ export async function payCost(
             group.push(candidate);
             byHost.set(candidate.hostPermanentId, group);
           }
-          const eligibleHosts = [...byHost.entries()].filter(([, group]) => group.length >= n);
+          const requiresSameLevelPair = cost.target.filter.sameLevelPair === true;
+          const eligibleHosts = [...byHost.entries()].filter(([, group]) => {
+            if (!requiresSameLevelPair) return group.length >= n;
+            const levels = new Map<number, number>();
+            for (const candidate of group) {
+              const level = getCardDefinition(candidate.cardId)?.level;
+              if (level !== undefined) levels.set(level, (levels.get(level) ?? 0) + 1);
+            }
+            return [...levels.values()].some((count) => count >= n);
+          });
           if (eligibleHosts.length === 0) return false;
           const hostId =
             eligibleHosts.length === 1
@@ -822,6 +865,17 @@ export async function payCost(
                 )[0];
           if (hostId === undefined) return false;
           candidates = byHost.get(hostId) ?? [];
+          if (requiresSameLevelPair) {
+            const levels = new Map<number, number>();
+            for (const candidate of candidates) {
+              const level = getCardDefinition(candidate.cardId)?.level;
+              if (level !== undefined) levels.set(level, (levels.get(level) ?? 0) + 1);
+            }
+            candidates = candidates.filter((candidate) => {
+              const level = getCardDefinition(candidate.cardId)?.level;
+              return level !== undefined && (levels.get(level) ?? 0) >= n;
+            });
+          }
           if (cost.bindHostAs !== undefined) {
             ctx.selections ??= new Map();
             ctx.selections.set(cost.bindHostAs, hostId);
@@ -829,6 +883,13 @@ export async function payCost(
         }
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
+        if (cost.target.filter.sameLevelPair === true) {
+          const selectedLevels = chosen.map((id) => {
+            const candidate = candidates.find((entry) => entry.instanceId === id);
+            return candidate === undefined ? undefined : getCardDefinition(candidate.cardId)?.level;
+          });
+          if (selectedLevels.some((level) => level === undefined) || new Set(selectedLevels).size !== 1) return false;
+        }
         const byHost = new Map<string, string[]>();
         const loose: string[] = [];
         for (const id of chosen) {
@@ -955,6 +1016,18 @@ export async function payCost(
         if (cost.to === "deckTop") return true;
         return /\bto the top\b/i.test(cost.raw ?? "");
       };
+      // Trash effects can pay "by returning this card" while the source is a loose card,
+      // not a battle-area permanent. Resolve that exact physical instance before the generic
+      // permanent-target branch (BT23-097).
+      if (cost.target.filter.isSelfRef === true && ctx.source.permanent() === undefined) {
+        const inTrash = ctx.game
+          .player(ctx.source.ownerSeat)
+          .trash.some((card) => card.instanceId === ctx.source.instanceId);
+        if (!inTrash || cost.to === "hand") return false;
+        await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: await returnToTop() });
+        if (out) out.paidCount = 1;
+        return true;
+      }
       if (cost.target.filter.zone === "hand") {
         const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
@@ -1367,11 +1440,11 @@ export async function payCost(
           }
           let hostPermId: string | undefined;
           if (cost.host !== null && typeof cost.host === "object") {
-            const destIds = await resolvePermanentTargets(ctx, {
+            const destIds = placeCostHostCandidates(ctx, {
               filter: cost.host.filter,
               count: cost.host.count,
               orFilters: cost.host.orFilters,
-            });
+            }).map((permanent) => permanent.permanentId);
             if (destIds.length === 0) return false;
             hostPermId =
               destIds.length === 1
@@ -1487,11 +1560,11 @@ export async function payCost(
         let hostPermId: string | undefined;
         if (cost.host !== null && typeof cost.host === "object") {
           // Object form: { filter, count } — player picks a destination Digimon (BT21-071).
-          const destIds = await resolvePermanentTargets(ctx, {
+          const destIds = placeCostHostCandidates(ctx, {
             filter: cost.host.filter,
             count: cost.host.count,
             orFilters: cost.host.orFilters,
-          });
+          }).map((permanent) => permanent.permanentId);
           if (destIds.length === 0) return false;
           hostPermId =
             destIds.length === 1

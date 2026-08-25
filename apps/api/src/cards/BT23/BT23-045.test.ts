@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -6,6 +6,32 @@ import "../index.js";
 import { compiled } from "./BT23-045.js";
 
 describe("BT23-045 TigerVespamon ACE", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-045")).toMatchObject({
+      cardId: "BT23-045",
+      nameEn: "TigerVespamon",
+      colors: ["Green", "Black"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 8,
+      dp: 12000,
+      evoCosts: [
+        { color: "Green", level: 5, memoryCost: 4 },
+        { color: "Black", level: 5, memoryCost: 4 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Cyborg", "X Antibody", "Royal Base", "Zaxon", "CS", "Insectoid"],
+      isAce: true,
+      overflowMemory: 4,
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, traits: ["Royal Base", "CS"], cost: 3, isAlternate: true },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("places a qualifying hand card face up at security bottom before returning an eligible Digimon", async () => {
     const s = setupEngine(
       {
@@ -45,6 +71,31 @@ describe("BT23-045 TigerVespamon ACE", () => {
 
     expect(s.perm("tiger").isSuspended).toBe(false);
     expect(s.state.players[0]!.security[0]).toMatchObject({ faceUp: false });
+  });
+
+  it("pays the placement from trash and cannot return a higher-DP opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-045", as: "tiger" }],
+          trash: [{ card: "BT23-043", as: "royalBase" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "eligible" },
+            { card: "BT23-045", as: "higher", dp: 13000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const higherId = s.perm("higher").permanentId;
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("tiger"));
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({
+      instanceId: s.inst("royalBase").instanceId,
+      faceUp: true,
+    });
+    expect(s.state.players[1]!.battleArea.some((card) => card.permanentId === higherId)).toBe(true);
   });
 
   it("declares Blast Digivolve from hand", () => {
@@ -108,5 +159,18 @@ describe("BT23-045 TigerVespamon ACE", () => {
       optional: true,
       abortOnDecline: true,
     });
+  });
+
+  it.each(["BT23-043", "BT23-044"])("digivolves for 3 from a level-5 Royal Base/CS card (%s)", (base) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT23-045", as: "tiger" }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("tiger").instanceId,
+      }),
+    ).toEqual({ ok: true });
   });
 });

@@ -6,6 +6,7 @@ import {
   type GameState,
   type Permanent,
   type Seat,
+  type ZoneRef,
 } from "@aegis/shared";
 import type { Restriction } from "./EffectContext.js";
 import type { DurationBoundary } from "./modifiers.js";
@@ -401,6 +402,8 @@ export interface PlayMatch {
   kinds?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
   /** Upper DP bound for the "Digimon with N DP or less" form (printed DP). */
   dpAtMost?: number;
+  /** Loose-card origin zones matched by the prohibition; undefined means every origin. */
+  fromZones?: ZoneRef[];
 }
 
 /** A timing window a `DisableTimingEffect` masks (mirrors the IR `DisableTiming`). */
@@ -790,13 +793,20 @@ export class ContinuousEffectLedger {
    * `byEffectOnly: true` are honored; when false/absent those prohibitions are skipped so
    * normal hand-play is unaffected (KB Q4665–Q4668, Q6245 BT20-020).
    */
-  isPlayBlocked(seat: Seat, cardDef: CardDefinition, requestedMode: "play" | "move", effectPlay?: boolean): boolean {
+  isPlayBlocked(
+    seat: Seat,
+    cardDef: CardDefinition,
+    requestedMode: "play" | "move",
+    effectPlay?: boolean,
+    fromZone?: ZoneRef,
+  ): boolean {
     if (cardDef.isToken === true) return false; // Q3834: token plays are exempt
     return this.playProhibitions.some(
       (p) =>
         p.seat === seat &&
         modeMatches(p.mode, requestedMode) &&
         playMatchesCard(p.match, cardDef) &&
+        (p.match.fromZones === undefined || (fromZone !== undefined && p.match.fromZones.includes(fromZone))) &&
         (effectPlay === true || !p.byEffectOnly),
     );
   }

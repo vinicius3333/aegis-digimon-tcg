@@ -45,6 +45,26 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "OnDeletion",
+      isInherited: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              or: [{ colors: ["Red"] }, { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] }],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

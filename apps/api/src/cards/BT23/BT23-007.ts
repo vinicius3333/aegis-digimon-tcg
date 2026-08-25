@@ -12,17 +12,31 @@ export const compiled: CompiledCard = {
       timing: "endOfBattle",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              from: ["trash"],
+              payCost: false,
             },
-            count: 1,
-            isSelf: true,
-          },
-          payCost: false,
+          ],
         },
       ],
+    },
+    {
+      trigger: "Static",
+      isLinked: true,
+      actions: [],
+      keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
     },
   ],
   coverage: "full",
@@ -35,6 +49,7 @@ export const compiled: CompiledCard = {
       isAlternate: true,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
 };
 
 registerIrCard("BT23-007", compiled);

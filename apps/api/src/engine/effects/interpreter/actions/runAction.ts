@@ -107,6 +107,17 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
     return action.abortOnDecline === true;
   }
+  // A breeding-area play with a printed activation cost is transactional: an occupied
+  // single-slot destination makes the action impossible before any optional prompt or cost
+  // payment. The play primitive retains the same guard for destination safety, while this
+  // preflight prevents BT23-084-style compound costs from being consumed by a guaranteed no-op.
+  if (
+    action.kind === "PlayWithoutCost" &&
+    (action.requiresEmpty === "breedingArea" || action.breeding === true) &&
+    ctx.game.player(ctx.source.ownerSeat).breeding !== undefined
+  ) {
+    return action.abortOnDecline === true;
+  }
   // Unless a ruling explicitly allows paying the processing condition by itself, a redirect's
   // activation cost is payable only when the attack can actually be redirected. Preflight
   // candidates before the optional prompt and generic cost path; otherwise a card such as

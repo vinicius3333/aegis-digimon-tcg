@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -7,6 +7,25 @@ import "../index.js";
 import { compiled } from "./BT23-046.js";
 
 describe("BT23-046 Rosemon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-046")).toMatchObject({
+      cardId: "BT23-046",
+      nameEn: "Rosemon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [{ color: "Green", level: 5, memoryCost: 3 }],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Fairy", "CS"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["CS"], cost: 3, isAlternate: true }]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("may suspend an opponent's Digimon as the cost and locks it from unsuspending", async () => {
     const s = setupEngine(
       {
@@ -49,7 +68,10 @@ describe("BT23-046 Rosemon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-046")).toBe(true);
   });
 
-  it("declares Fortitude", () => {
+  it("exposes Fortitude through the live keyword seam", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT23-046", as: "rose" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("rose"), "Fortitude")).toBe(true);
     expect((compiled.effects.find((entry) => entry.trigger === "Static") as any).keywords[0].keyword).toBe("Fortitude");
   });
 
@@ -93,5 +115,28 @@ describe("BT23-046 Rosemon", () => {
         },
       ],
     });
+  });
+
+  it("digivolves for 3 from an off-color level-5 CS card and rejects a non-CS peer", () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT23-044", as: "base" }], hand: [{ card: "BT23-046", as: "rose" }] },
+    });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("rose").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const illegal = setupEngine({
+      0: { battleArea: [{ card: "BT1-008", as: "base" }], hand: [{ card: "BT23-046", as: "rose" }] },
+    });
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("base").permanentId,
+        instanceId: illegal.inst("rose").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

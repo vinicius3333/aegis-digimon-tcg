@@ -85,6 +85,8 @@ export interface UnsuspendAction extends ActionBase {
 export interface ModifyDPAction extends ActionBase {
   kind: "ModifyDP";
   target: Target;
+  /** Apply to every current and future matching Digimon controlled by the target player. */
+  playerWide?: boolean;
   /** Signed. */
   amount: number;
   duration: EffectDurationRef;

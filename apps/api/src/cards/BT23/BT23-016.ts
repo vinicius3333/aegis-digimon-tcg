@@ -8,6 +8,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [{ kind: "Draw", amount: 1, controller: "mine" }],
+    },
+    {
       trigger: "YourTurn",
       actions: [
         {
@@ -53,6 +58,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
   digivolutionRequirement: [
     {
       level: 2,

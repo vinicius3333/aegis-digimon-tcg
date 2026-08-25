@@ -3354,31 +3354,6 @@ export class GameEngine {
     playTarget.inBreeding = false;
     playTarget.baseDP = source.definition.dp ?? 0;
     playTarget.currentDP = playTarget.baseDP;
-    const interactiveReduction = await this.subTriggers.activateInteractiveReductionsFor(
-      "wouldBePlayed",
-      source.ownerSeat,
-      playTarget,
-      source.definition,
-      undefined,
-      (sourcePermanentId, sourceInstanceId) => {
-        const resident = this.access.permanentById(sourcePermanentId);
-        return resident?.topCard === undefined
-          ? undefined
-          : this.buildEffectContext(
-              this.cardSourceOf(this.findInstance(sourceInstanceId ?? "")?.instance ?? resident.topCard),
-              {
-                wouldBePlayedInstanceId: instance.instanceId,
-                wouldBePlayedCardId: instance.cardId,
-                wouldBePlayedAsOption: useAsOption,
-              },
-            );
-      },
-      {
-        hasFired: (key) => this.tracker.count(key, "replacement") > 0,
-        markFired: (key) => this.tracker.register(key, "replacement"),
-      },
-    );
-    if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
     // Generic battle-area pay-time watchers. Unlike the card being played, their
     // EffectContext source is the physical resident carrying the effect; the imminent
     // card identity is carried in TriggerInfo. This lets independent copies resolve and
@@ -3425,6 +3400,34 @@ export class GameEngine {
         this.tracker.register(residentSource.instanceId, effect.effectKey);
       }
     }
+    // Resolve interactive would-be-played subscriptions only after resident effects have run:
+    // inherited [Breeding] reducers live in the breeding stack and install their subscription
+    // during this very pay-time pass, so consulting earlier would miss the current play entirely.
+    const interactiveReduction = await this.subTriggers.activateInteractiveReductionsFor(
+      "wouldBePlayed",
+      source.ownerSeat,
+      playTarget,
+      source.definition,
+      undefined,
+      (sourcePermanentId, sourceInstanceId) => {
+        const resident = this.access.permanentById(sourcePermanentId);
+        return resident?.topCard === undefined
+          ? undefined
+          : this.buildEffectContext(
+              this.cardSourceOf(this.findInstance(sourceInstanceId ?? "")?.instance ?? resident.topCard),
+              {
+                wouldBePlayedInstanceId: instance.instanceId,
+                wouldBePlayedCardId: instance.cardId,
+                wouldBePlayedAsOption: useAsOption,
+              },
+            );
+      },
+      {
+        hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+        markFired: (key) => this.tracker.register(key, "replacement"),
+      },
+    );
+    if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
     for (const reducer of selfReducers) {
       await applyWouldBePlayedSelfReducer(ctx, reducer);
     }

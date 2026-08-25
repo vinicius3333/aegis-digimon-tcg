@@ -15,8 +15,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   failureProcess (and the no-eligible-target else) end the attack; modeled as the EndAttack
 //   action gated on the Wave-1 (08-01) `ifThisEffectDidNotDelete` Condition, which reads the
 //   ctx delete-count bound by the preceding opponent Delete. The "by deleting this Digimon" cost
-//   is a `deleteOwn` cost that does NOT write the ctx delete-count (only the opponent Delete does),
-//   so the gate reflects the OPPONENT-delete outcome.
+//   is a separate optional self-Delete with abort-on-decline, followed by the mandatory opponent
+//   Delete; that second action overwrites the result binding with its own actual outcome, including
+//   zero when no eligible target exists, so the gate reflects only the OPPONENT-delete outcome.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -106,6 +107,19 @@ export const compiled: CompiledCard = {
               kind: "Delete",
               target: {
                 filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              optional: true,
+              abortOnDecline: true,
+              raw: "by deleting this Digimon",
+            },
+            {
+              kind: "Delete",
+              target: {
+                filter: {
                   controller: "opponent",
                   kind: ["Digimon"],
                   levelComparison: {
@@ -114,17 +128,6 @@ export const compiled: CompiledCard = {
                   },
                 },
                 count: 1,
-              },
-              cost: {
-                kind: "deleteOwn",
-                target: {
-                  filter: {
-                    isSelfRef: true,
-                  },
-                  count: 1,
-                  isSelf: true,
-                },
-                raw: "by deleting this Digimon",
               },
             },
             {
@@ -138,7 +141,6 @@ export const compiled: CompiledCard = {
           ],
           raw: "When another Digimon attacks, by deleting this Digimon, delete 1 of your opponent's level 6 or lower Digimon. If this effect didn't delete your opponent's Digimon, you may end that attack",
           sourceFilter: {
-            controllerDefault: "mine",
             excludeSelf: true,
             kind: ["Digimon"],
           },

@@ -11,7 +11,7 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "mine",
@@ -24,6 +24,13 @@ export const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            bindAs: "demimeramonGhost",
+          },
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            fromSelectionRef: "demimeramonGhost",
           },
           keyword: {
             keyword: "Blocker",
@@ -34,17 +41,7 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Ghost"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
+            fromSelectionRef: "demimeramonGhost",
           },
           keyword: {
             keyword: "Retaliation",

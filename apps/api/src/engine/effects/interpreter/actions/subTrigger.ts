@@ -980,7 +980,7 @@ export async function runSubTrigger(
         );
         if (!activate) return;
         const trashed = await subCtx.fx.deletePermanent([delaySource.permanentId]);
-        if (trashed <= 0) return;
+        if (trashed <= 0 && subCtx.source.permanent() !== undefined) return;
       } else {
         const activationCost = action.cost as Cost | undefined;
         const activationCostOptions = (action.costOptions ?? []) as Cost[];

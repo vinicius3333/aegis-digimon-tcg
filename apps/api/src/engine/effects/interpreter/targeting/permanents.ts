@@ -394,7 +394,10 @@ export async function resolvePermanentTargets(
       return result;
     }
     const id = ctx.trigger.subjectPermanentId ?? ctx.trigger.deletedPermanentId ?? ctx.trigger.attackerPermanentId;
-    if (id) return [id];
+    if (id) {
+      ctx.lastResolvedPermanentIds = [id];
+      return [id];
+    }
   }
   if (target.sourceRef === "triggerDefender") {
     const id = ctx.trigger.defenderPermanentId ?? ctx.trigger.targetPermanentId;

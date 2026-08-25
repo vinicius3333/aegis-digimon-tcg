@@ -34,9 +34,24 @@ export const compiled: CompiledCard = {
       ],
       frequency: "OncePerTurn",
     },
+    {
+      trigger: "EndOfYourTurn",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Attack",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          attackPlayer: true,
+          drainTimingWindowDuringAttack: true,
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
 };
 
 registerIrCard("BT23-009", compiled);

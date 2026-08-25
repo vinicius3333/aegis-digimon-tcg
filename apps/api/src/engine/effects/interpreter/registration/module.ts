@@ -246,7 +246,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
               const activate = await ctx.ask.optional(ctx, "Trash this card to activate its ＜Delay＞ effect?");
               if (!activate) return;
               const trashed = await ctx.fx.deletePermanent([self.permanentId]);
-              if (trashed <= 0) return;
+              if (trashed <= 0 && ctx.source.permanent() !== undefined) return;
               await runEffect(ctx, effect);
             },
           });

@@ -1,11 +1,37 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-054.js";
 
 describe("BT23-054 Magnamon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-054")).toMatchObject({
+      cardId: "BT23-054",
+      nameEn: "Magnamon",
+      colors: ["Black", "Blue"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [
+        { color: "Black", level: 3, memoryCost: 4 },
+        { color: "Blue", level: 3, memoryCost: 4 },
+      ],
+      forms: ["Armor Form"],
+      attributes: ["Free"],
+      types: ["Holy Warrior", "Royal Knight", "CS"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Veemon"], cost: 3, isAlternate: true },
+      { level: 3, traits: ["CS"], cost: 3, isAlternate: true },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("draws and prevents only an opponent effect from bouncing the protected Royal Knight", async () => {
     const s = setupEngine(
       {
@@ -32,7 +58,11 @@ describe("BT23-054 Magnamon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === magnaCardId)).toBe(true);
   });
 
-  it("declares Blocker and Armor Purge", () => {
+  it("exposes Blocker and Armor Purge through the live keyword seam", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT23-054", as: "magna" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("magna"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("magna"), "Armor Purge")).toBe(true);
     expect(
       compiled.effects
         .filter((entry) => entry.trigger === "Static")
@@ -59,5 +89,18 @@ describe("BT23-054 Magnamon", () => {
         },
       });
     }
+  });
+
+  it.each(["BT2-021", "BT23-037"])("digivolves for 3 from a Veemon/level-3 CS base (%s)", (base) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: "BT23-054", as: "magna" }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("magna").instanceId,
+      }),
+    ).toEqual({ ok: true });
   });
 });

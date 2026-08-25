@@ -565,7 +565,7 @@ export interface Primitives {
    * can't play <X>" effect blocks the opponent's effects (Q4676) but not the source player's
    * (Q4675). Token plays return false (exempt, Q3834). Optional on the port (test fakes skip).
    */
-  isPlayProhibited?(seat: Seat, cardId: string, mode: "play" | "move"): boolean;
+  isPlayProhibited?(seat: Seat, cardId: string, mode: "play" | "move", fromZone?: ZoneRef): boolean;
   /**
    * Record a security-effect disable on `attackerPermanentId` (the security half of the
    * source rule implementation split): while that permanent is the attacker, a flipped
@@ -595,6 +595,8 @@ export interface Primitives {
     duration: EffectDuration,
     opts?: { continuous?: boolean; sourceInstanceId?: string },
   ): void;
+  /** Modify every current and future Digimon controlled by `seat` for the duration. */
+  modifyPlayerDP(seat: Seat, delta: number, duration: EffectDuration): void;
   /** Restore DP already reduced before a newly gained reduction immunity takes effect (Q1990). */
   restoreDpReductions(permanentId: string): void;
   /**

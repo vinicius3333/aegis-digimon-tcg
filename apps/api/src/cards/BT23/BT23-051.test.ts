@@ -1,10 +1,34 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-051.js";
 
 describe("BT23-051 Golemon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-051")).toMatchObject({
+      cardId: "BT23-051",
+      nameEn: "Golemon",
+      colors: ["Black", "Red"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [
+        { color: "Black", level: 3, memoryCost: 3 },
+        { color: "Red", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Mineral", "Hudie", "CS"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["CS"], cost: 2, isAlternate: true }]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("deletes one 4000-DP opponent when suspended and respects its once-per-turn limit", async () => {
     const s = setupEngine(
       {
@@ -55,7 +79,11 @@ describe("BT23-051 Golemon", () => {
     ).toEqual({ ok: true });
   });
 
-  it("declares Alliance and Blocker", () => {
+  it("exposes Alliance and Blocker through the live keyword seam", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT23-051", as: "gole" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("gole"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("gole"), "Blocker")).toBe(true);
     expect(
       compiled.effects
         .filter((entry) => entry.trigger === "Static")
@@ -91,5 +119,28 @@ describe("BT23-051 Golemon", () => {
       duration: "permanent",
       target: { filter: { isSelfRef: true }, isSelf: true },
     });
+  });
+
+  it("digivolves for 2 from an off-color level-3 CS card and rejects a non-CS peer", () => {
+    const legal = setupEngine({
+      0: { battleArea: [{ card: "BT23-037", as: "base" }], hand: [{ card: "BT23-051", as: "gole" }] },
+    });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("gole").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const illegal = setupEngine({
+      0: { battleArea: [{ card: "BT1-029", as: "base" }], hand: [{ card: "BT23-051", as: "gole" }] },
+    });
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("base").permanentId,
+        instanceId: illegal.inst("gole").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

@@ -5,6 +5,18 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Restrict",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          restriction: "beDeletedInBattle",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
       trigger: "WhenDigivolving",
       actions: [
         {
@@ -36,6 +48,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Restrict",
@@ -51,6 +64,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
   appFusionRequirement: [{ names: ["Dokamon", "Perorimon", "Musclemon"], cost: 0 }],
 };
 
