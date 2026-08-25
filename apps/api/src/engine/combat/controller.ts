@@ -110,6 +110,8 @@ export interface CombatTrigger {
   deletedWasStackInstanceIds?: string[];
   /** Subset of deletedInstanceIds that were linked cards before deletion. */
   deletedWasLinkedInstanceIds?: string[];
+  /** Deleted host top-card instance keyed by each linked card that left with it. */
+  deletedLinkHostInstanceByLinkedInstanceId?: Record<string, string>;
   /** Top-card instance IDs that individually reached exactly 0 DP in this deletion window. */
   deletedByDpZeroInstanceIds?: string[];
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
@@ -1321,6 +1323,7 @@ export class CombatController {
     const deletedInstanceIds: string[] = [];
     const deletedWasStackInstanceIds: string[] = [];
     const deletedWasLinkedInstanceIds: string[] = [];
+    const deletedLinkHostInstanceByLinkedInstanceId: Record<string, string> = {};
     const battleOpponentPermanentIdByInstanceId: Record<string, string> = {};
     const deletedEffectiveColorsByInstanceId: Record<string, CardColor[]> = {};
     const tokenDeletionIds = postCardPreventionDeletedIds.flatMap((permanentId) => {
@@ -1346,6 +1349,7 @@ export class CombatController {
       }
       const stackIds = this.access.permanentById(permanentId)?.stack.map((c) => c.instanceId) ?? [];
       const linkedIds = this.access.permanentById(permanentId)?.linked.map((c) => c.instanceId) ?? [];
+      const hostInstanceId = this.access.permanentById(permanentId)?.topCard?.instanceId;
       const effectiveColors = this.hooks.effectiveColorsOf?.(permanentId) ?? [];
       const moved = this.access.deletePermanent(permanentId);
       const battleOpponentId = permanentId === attacker.permanentId ? defender.permanentId : attacker.permanentId;
@@ -1354,6 +1358,11 @@ export class CombatController {
       deletedInstanceIds.push(...moved);
       deletedWasStackInstanceIds.push(...stackIds);
       deletedWasLinkedInstanceIds.push(...linkedIds);
+      if (hostInstanceId !== undefined) {
+        for (const linkedInstanceId of linkedIds) {
+          deletedLinkHostInstanceByLinkedInstanceId[linkedInstanceId] = hostInstanceId;
+        }
+      }
       // Drop the leaving permanent's modifier/continuous/subTrigger ledgers as it leaves the
       // field; combat deletes through raw state access and so routes its own teardown.
       this.hooks.dropPermanentSubscriptions?.(permanentId);
@@ -1389,6 +1398,7 @@ export class CombatController {
         deletedInstanceIds,
         deletedWasStackInstanceIds,
         deletedWasLinkedInstanceIds,
+        deletedLinkHostInstanceByLinkedInstanceId,
         deletedEffectiveColorsByInstanceId,
         battleOpponentPermanentIdByInstanceId,
         removalCause: "byBattle" as const,

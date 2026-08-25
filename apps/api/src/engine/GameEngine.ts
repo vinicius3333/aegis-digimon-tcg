@@ -308,6 +308,10 @@ function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDele
       deletedWasStackInstanceIds: union("deletedWasStackInstanceIds"),
       deletedWasLinkedInstanceIds: union("deletedWasLinkedInstanceIds"),
       deletedByDpZeroInstanceIds: union("deletedByDpZeroInstanceIds"),
+      deletedLinkHostInstanceByLinkedInstanceId: {
+        ...trigger.deletedLinkHostInstanceByLinkedInstanceId,
+        ...into.deletedLinkHostInstanceByLinkedInstanceId,
+      },
       deletedByDpZero: into.deletedByDpZero === true || trigger.deletedByDpZero === true,
       deletedEffectiveColorsByInstanceId: {
         ...trigger.deletedEffectiveColorsByInstanceId,
@@ -661,6 +665,7 @@ export class GameEngine {
               deletedInstanceIds: trigger.deletedInstanceIds,
               deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
               deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
+              deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
               battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
             });
             return;
@@ -680,6 +685,7 @@ export class GameEngine {
           deletedInstanceIds: trigger.deletedInstanceIds,
           deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
           deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
+          deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
           battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
         });
       },

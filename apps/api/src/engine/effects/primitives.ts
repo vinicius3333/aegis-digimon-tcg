@@ -2872,6 +2872,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const allMoved: string[] = [];
     const allStackInstanceIds: string[] = [];
     const allLinkedInstanceIds: string[] = [];
+    const deletedLinkHostInstanceByLinkedInstanceId: Record<string, string> = {};
     const deletedByDpZero =
       cause === "byRule" && toDelete.some((permanentId) => access.permanentById(permanentId)?.currentDP === 0);
     const deletedByDpZeroInstanceIds = toDelete
@@ -2892,6 +2893,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     );
     const linkedIdsByPermanent = toDelete.map(
       (permanentId) => access.permanentById(permanentId)?.linked.map((c) => c.instanceId) ?? [],
+    );
+    const topInstanceIdsByPermanent = toDelete.map(
+      (permanentId) => access.permanentById(permanentId)?.topCard?.instanceId,
     );
     const topCardIdsByPermanent = toDelete.map((permanentId) => access.permanentById(permanentId)?.topCard?.cardId);
     const effectiveColorsByPermanent = toDelete.map((permanentId) => {
@@ -2985,6 +2989,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       deletedCount += 1;
       allStackInstanceIds.push(...stackIdsByPermanent[i]!);
       allLinkedInstanceIds.push(...linkedIdsByPermanent[i]!);
+      const hostInstanceId = topInstanceIdsByPermanent[i];
+      if (hostInstanceId !== undefined) {
+        for (const linkedInstanceId of linkedIdsByPermanent[i]!) {
+          deletedLinkHostInstanceByLinkedInstanceId[linkedInstanceId] = hostInstanceId;
+        }
+      }
       // Drop ALL three per-permanent ledgers on the way off the field, mirroring the
       // DNA-digivolve material teardown above. The SubTrigger bus is now live, so a stale
       // reduceCost/prevent replacement or onDeletionOf/whenAttacking watcher anchored to a
@@ -3028,6 +3038,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // a stack position) vs top-card effects after the permanent is gone.
         deletedWasStackInstanceIds: allStackInstanceIds,
         deletedWasLinkedInstanceIds: allLinkedInstanceIds,
+        deletedLinkHostInstanceByLinkedInstanceId,
         removalCause: cause,
       };
       if (engine.resolveDeletionReactions) {

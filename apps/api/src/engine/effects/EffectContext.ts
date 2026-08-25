@@ -193,6 +193,12 @@ export interface TriggerInfo {
   deletedWasStackInstanceIds?: string[];
   /** Subset of deletedInstanceIds that were linked cards before their host left play. */
   deletedWasLinkedInstanceIds?: string[];
+  /**
+   * Deleted host top-card instance keyed by each linked card that left with it. A linked
+   * [On Deletion] effect stays pending for the host card, not the link card (BT24-036 Q5615),
+   * so the host must still be in trash when that pending effect would activate.
+   */
+  deletedLinkHostInstanceByLinkedInstanceId?: Record<string, string>;
   /** Battle opponent for each card instance deleted in a battle. */
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
   /** Why the cards in this deletion window left play. */
