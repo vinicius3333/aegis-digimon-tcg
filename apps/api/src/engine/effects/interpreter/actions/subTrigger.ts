@@ -805,10 +805,14 @@ export async function runSubTrigger(
           return linkedIds === undefined || linkedIds.includes(subCtx.source.instanceId);
         }
       : undefined;
-  const sourceDeleteCause = (sourceFilter as (Filter & { deleteCause?: "dpReachedZero" }) | undefined)?.deleteCause;
+  const sourceDeleteCause = (sourceFilter as (Filter & { deleteCause?: string }) | undefined)?.deleteCause;
+  // "When an EFFECT deletes ..." (LM-016) narrows the same knob to effect-driven removals. The
+  // `onDeletionOf` payload carries the removal cause but no `byEffectSeat`, so the generic
+  // `requireByEffect` gate cannot see it — this is the gate that can.
   const deleteCauseGate =
-    event === "onDeletionOf" && sourceDeleteCause === "dpReachedZero"
-      ? (subCtx: EffectContext): boolean => subCtx.trigger.removalCause === "byRule"
+    event === "onDeletionOf" && (sourceDeleteCause === "dpReachedZero" || sourceDeleteCause === "byEffect")
+      ? (subCtx: EffectContext): boolean =>
+          subCtx.trigger.removalCause === (sourceDeleteCause === "byEffect" ? "byEffect" : "byRule")
       : undefined;
   const trashedDigivolutionTopGate =
     event === "whenDigivolutionTrashed" && action.requireTrashedDigivolutionCardWasTop === true
