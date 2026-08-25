@@ -734,10 +734,10 @@ export async function runSubTrigger(
   // ATTACKER, so the same subject-filter gate lets a watcher fire only when the attacker matches —
   // including relative gates like `digivolutionCardsCompareToSource` ("with as many or fewer
   // digivolution cards as this Digimon attacks", BT15-032 and AD1/BT16-family cards).
-  const ATTACK_TRIGGER_FILTER_EVENTS = new Set(["whenAttacking", "whenOpponentAttacks"]);
+  const SUBJECT_TRIGGER_FILTER_EVENTS = new Set(["whenAttacking", "whenOpponentAttacks", "whenLinked"]);
   const triggerFilterGate =
     action.triggerFilter !== undefined &&
-    (event === "onAddDigivolutionCards" || ATTACK_TRIGGER_FILTER_EVENTS.has(event))
+    (event === "onAddDigivolutionCards" || SUBJECT_TRIGGER_FILTER_EVENTS.has(event))
       ? (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, action.triggerFilter!)
       : undefined;
   const addedDigivolutionCardGate =
