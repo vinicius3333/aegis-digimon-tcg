@@ -235,3 +235,12 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Primitive trace: ordinary play validates the hand card, pays exactly 5, creates a 5000-DP permanent, and collects no card-effect timings; ordinary evolution validates a blue level-3 base, pays exactly 1, moves the former top into the evolution stack, and performs only the rules draw.
 - Behavioral proof: the focused suite checks every catalog field and absence of all effect-text fields, exact empty full-coverage IR and registry presence, performs the printed one-cost evolution while observing the retained base, and plays for exactly 5 while observing 5000 DP and no triggered side effects.
 - Verification: focused suite — 3 passed; workspace typecheck — passed; `git diff --check` — passed.
+
+## BT11-027 — Veedramon — 10/10
+
+- Catalog evidence: Blue level 4 Digimon, play cost 6, 6000 DP, evolves from blue level 3 for 2; form `Champion`, attribute `Vaccine`, type `Mythical Dragon`; Your Turn Once Per Turn draws 1 when the controller plays a blue Tamer; the inherited version gains 1 memory on the same event.
+- Knowledge base: `node tools/kb/query.mjs card BT11-027` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: top-card and inherited controller-turn watchers subscribe to controller-owned blue Tamer plays through the same exact filter; the former draws 1 and the latter gains 1 memory, each under its own source-keyed once-per-turn budget. Coverage is full, residuals are empty, and registration is exclusively `registerIrCard("BT11-027", compiled)`.
+- Primitive trace: evolution validates blue level 3, pays 2, retains the source, and draws; play publication supplies the entered permanent's controller, kind, and colors; the top-card subscription remains anchored to Veedramon in play while the inherited subscription is collected from its host's stack; controller-turn guards reject out-of-window events and stable use keys suppress subsequent qualifying plays that turn.
+- Behavioral proof: the focused suite checks every catalog field and both complete watcher clauses, performs the exact evolution, draws for a blue Tamer, rejects a red-only Tamer, gains 1 from a realistic inherited stack, and proves the top-card draw occurs only once across two qualifying blue Tamer plays while leaving the second deck card untouched.
+- Verification: focused suite — 6 passed; workspace typecheck — passed; `git diff --check` — passed.
