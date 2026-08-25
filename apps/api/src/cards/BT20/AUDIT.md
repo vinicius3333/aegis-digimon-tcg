@@ -191,3 +191,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-016.test.ts`).
+
+## BT20-017 — Jesmon
+
+- Catalog contract: red level 6 Data Holy Warrior/Royal Knight, play cost 11/11000 DP and red level-5 evolution cost 3; On Play/When Digivolving may create one white 6000-DP Atho, René & Por Digimon token with Reboot, Blocker, and Decoy (Red/Black); on your turn once per turn, playing another allied Digimon deletes one opposing Digimon at 8000 DP or less, then one allied Digimon may attack.
+- Knowledge base: no card-specific entries; the printed token descriptor, sequential “then,” other-Digimon trigger, optional actions, and once-per-turn scope are unambiguous.
+- Implementation evidence: the prior generated token name retained a mojibake escape that did not resolve the token registry and omitted all token keywords; its watcher also placed Attack outside the `whenPlayed` body, causing it to execute during continuous installation rather than after deletion. Both entry effects now use the canonical token descriptor with all keyword metadata, and Delete/optional Attack resolve sequentially inside the filtered watcher; registration remains exclusively `registerIrCard`.
+- Peer/stack evidence: the token path observes the canonical 6000-DP token and all three runtime keywords. A separate field Jesmon sees another Digimon played, deletes exactly the 8000-DP boundary while preserving a 9000-DP peer, permits declining the attack without suspension, and ignores a second qualifying play that turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-017.test.ts` — 3 passed.
+- Clause scores: stats/evolution 2/2; dual optional token timings 2/2; complete token identity/stats/keywords 2/2; other-Digimon trigger/delete boundary 2/2; sequential optional attack/once-per-turn scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-017.test.ts`).
