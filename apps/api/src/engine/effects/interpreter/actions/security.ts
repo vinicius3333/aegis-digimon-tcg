@@ -330,8 +330,25 @@ export async function runSecurityManipulation(
         unsupported(ctx, action, `SecurityManipulation placeAsSecurity source ${action.source} unsupported`);
         return;
       }
-      const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, action.source));
+      const resolvedPermanentIds = await resolvePermanentTargets(ctx, action.source);
+      const ids = topInstanceIds(ctx, resolvedPermanentIds);
       if (ids.length === 0) return;
+      // "on top of ITS OWNER's security stack" (LM-020): the destination follows each placed
+      // card, not the resolving player, so a chosen opposing Digimon lands in that player's
+      // stack. Without the flag the destination stays the single `seat` above.
+      if (action.ownerSecurity === true) {
+        for (const permanentId of resolvedPermanentIds) {
+          const permanent = ctx.game.permanentById(permanentId);
+          const top = permanent?.topCard;
+          if (permanent === undefined || top === undefined) continue;
+          await ctx.fx.addSecurity(top.ownerSeat, [top.instanceId], {
+            toTop: action.toTop ?? true,
+            faceUp: action.faceUp,
+            detachPermanentTop: action.detachPermanentTop,
+          });
+        }
+        return;
+      }
       await ctx.fx.addSecurity(seat, ids, {
         toTop: action.toTop ?? true,
         faceUp: action.faceUp,
