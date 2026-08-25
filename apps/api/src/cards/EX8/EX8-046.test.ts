@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./EX8-046.js";
 
@@ -13,6 +14,11 @@ describe("EX8-046", () => {
       optional: true,
       abortOnDecline: true,
       cost: { kind: "trash", target: { count: 1 } },
+    }));
+  it("inherits Blocker", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
+      keyword: "Blocker",
+      raw: "＜Blocker＞",
     }));
   it("trashes a Mineral/Rock card and draws two cards when deleted", async () => {
     const s = setupEngine(
@@ -57,5 +63,11 @@ describe("EX8-046", () => {
     await advance(s.engine).verb.deletePermanent([source.permanentId]);
     await settle(() => player.trash.some((card) => card.cardId === "EX8-046"));
     expect(player.hand.filter((card) => card.cardId === "AD1-001")).toHaveLength(0);
+  });
+
+  it("grants Blocker to the live evolution host", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-046"] }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
 });
