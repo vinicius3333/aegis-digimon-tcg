@@ -18,40 +18,8 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [
-        {
-          kind: "GrantStatic",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          grant: "name",
-          tokens: ["Also treated as [X Antibody]", "X Antibody"],
-        },
-      ],
-    },
-    {
-      trigger: "Static",
-      keywords: [],
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          keyword: {
-            keyword: "Blocker",
-          },
-          duration: "permanent",
-        },
-      ],
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
     {
       trigger: "OnPlay",

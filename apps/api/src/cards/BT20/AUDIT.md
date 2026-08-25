@@ -983,3 +983,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-082.test.ts`).
+
+## BT20-083 — Omekamon
+
+- Catalog contract: white level 4 Data Puppet/X-Antibody/LIBERATOR, play cost 5/5000 DP with no normal evolution cost; Blocker; at one or fewer security on play may ignore requirements/cost to evolve into hand Omnimon (X Antibody); On Deletion may place itself at the bottom of own breeding King Drasil_7D6's stack; inherited breeding/opponent-turn security-removal trigger suspends the host as cost to free-play an Omekamon from that stack.
+- Knowledge base: Q4409 restricts Breeding effects to that area, Q4410 defines security-first timing, and Q4411 confirms the inherited source may play this same Omekamon card after suspending its breeding host.
+- Implementation evidence: audit removed an unprinted alternate-name grant and expressed printed Blocker directly as a resident keyword. The security gate, free evolution, self-card placement, breeding-only watcher, owner-security predicate, suspension cost, and stack-source free play map directly to interpreter primitives. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: the deletion placement is self-bound and restricts the receiving exact-name permanent to own breeding area; the inherited effect is stack scoped and its source zone permits Q4411's same-card play.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-083.test.ts` — 4 passed; `pnpm typecheck` — passed.
+- Clause scores: stats/no ordinary evolution 2/2; live Blocker/no unprinted name 2/2; one-security Omnimon free evolution 2/2; deletion self-to-breeding King Drasil bottom 2/2; inherited breeding/security/suspend/free-play Q4409-Q4411 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-083.test.ts`).

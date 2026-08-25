@@ -2,6 +2,15 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT20-083.js";
 
 describe("BT20-083 Omekamon", () => {
+  it("has Blocker without granting an unprinted alternate name", () => {
+    expect(compiled.effects.find((entry) => entry.trigger === "Static")).toMatchObject({
+      keywords: [{ keyword: "Blocker" }],
+    });
+    expect(compiled.effects.flatMap((entry) => entry.actions)).not.toContainEqual(
+      expect.objectContaining({ kind: "GrantStatic", grant: "name" }),
+    );
+  });
+
   it("limits the On Play Omnimon (X Antibody) digivolution to one or fewer security cards", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "OnPlay");
     expect(effect?.actions[0]).toMatchObject({
