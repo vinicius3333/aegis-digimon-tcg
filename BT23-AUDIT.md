@@ -353,6 +353,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; adds both distinct reveal categories and bottoms only the remainder; links for exactly 1, contributes +2000 DP, and suspends a chosen opponent when accepted; separately refuses suspension while preserving the paid link and unsuspended opponent; and accepts off-color level-2 Appmon evolution for 0 while rejecting a non-Appmon peer.
 - Verification: focused suite — 7 passed; shared RevealAdd, Link, linked-watcher, optional-refusal, Suspend, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-040 — Wormmon — 10/10
+
+- Catalog evidence: Green level 3, play cost 4, 3000 DP, standard green-level-2 evolution for 1 plus alternate level-2 CS evolution for 0; form `Rookie`, attribute `Free`, types `Larva`, `Hudie`, and `CS`; at Start of Your Main Phase it may place one in-play Erika Mishima at this Digimon's stack bottom as a cost, then evolve into Hudiemon from hand or trash with cost reduced by 2; inherited All Turns gives every friendly Hudie Digimon +1000 DP.
+- Knowledge base: Q5302 explicitly limits the Erika Mishima cost to a Tamer in the battle area; copies in hand or trash cannot be placed by this effect.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-040", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, forbidden-zone cost negatives, and alternate-evolution evidence without changing execution.
+- Primitive trace: the start-main action first validates and moves a friendly Erika permanent from battle area to this source's stack bottom, aborts the evolution when that cost cannot be paid or is declined, searches only hand/trash for the exact Hudiemon name, and pays the applicable cost after a 2 reduction; the inherited continuous pass targets every current friendly Hudie while excluding other traits and the opponent.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; moves the exact in-play Erika to stack bottom and evolves into hand Hudiemon for 2 less; proves Erika copies in hand and trash cannot pay the cost and leave Hudiemon unevolved; observes the inherited +1000 on a realistic carrier and friendly Hudie peer; and accepts off-color level-2 CS evolution for 0 while rejecting a non-CS peer.
+- Verification: focused suite — 7 passed; shared permanent-cost, stack placement, hand/trash evolution, reduced-cost, continuous-aura, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-040 through BT23-102.
+BT23-041 through BT23-102.
