@@ -128,7 +128,7 @@ export function createGameAccess(
   effectiveColors?: (permanent: Permanent) => import("@aegis/shared").CardColor[],
   colorRequirementWaived?: (instanceId: string) => boolean,
   canDeclareAttack?: (permanent: Permanent) => boolean,
-  effectiveTraits?: (permanentId: string, printedTraits: readonly string[]) => string[],
+  effectiveTraitsResolver?: (permanentId: string, printedTraits: readonly string[]) => string[],
   effectiveKindsResolver?: (
     permanentId: string,
     printedKinds: readonly import("@aegis/shared").CardKind[],
@@ -172,7 +172,7 @@ export function createGameAccess(
         definition === undefined
           ? []
           : [...(definition.forms ?? []), ...(definition.attributes ?? []), ...(definition.types ?? [])];
-      return (effectiveTraits ?? ((_id, traits) => [...traits]))(permanentId, printed);
+      return (effectiveTraitsResolver ?? ((_id, traits) => [...traits]))(permanentId, printed);
     },
     effectiveKinds: (permanentId): import("@aegis/shared").CardKind[] => {
       const permanent = permanentById(permanentId);

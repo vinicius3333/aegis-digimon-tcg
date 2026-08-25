@@ -2,6 +2,7 @@ import { CARD_ID_VIEW_TAG, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT26-004.js";
 import "../index.js";
 
@@ -154,7 +155,7 @@ describe("BT26-004 Pagumon", () => {
   });
 
   it("is compiled as a face-down placement cost under a Glowing Dawn Tamer", () => {
-    const action = compiled.effects[0]!.actions[0]! as any;
+    const action = irNode(compiled.effects[0]!.actions[0]!);
     expect(compiled).toMatchObject({
       coverage: "full",
       effects: [{ trigger: "WhenAttacking", frequency: "OncePerTurn", isInherited: true }],

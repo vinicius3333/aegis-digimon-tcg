@@ -56,11 +56,11 @@ describe("BT26-018 reveal movement boundaries", () => {
       { instanceId: "plain", cardId: "PLAIN" },
     ];
     const cardSource = source();
-    const selectCards = vi.fn(async () => ["aqua"]);
-    const orderCards = vi.fn(async (_ctx: EffectContext, request: { candidates: string[] }) =>
-      [...request.candidates].reverse(),
+    const selectCards = vi.fn<() => Promise<string[]>>(async () => ["aqua"]);
+    const orderCards = vi.fn<(_ctx: EffectContext, request: { candidates: string[] }) => Promise<string[]>>(
+      async (_ctx, request) => [...request.candidates].reverse(),
     );
-    const returnToDeck = vi.fn();
+    const returnToDeck = vi.fn<(ids: string[], options: { toTop: boolean }) => void>();
     const ctx = {
       source: cardSource,
       game: {

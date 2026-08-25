@@ -4851,7 +4851,7 @@ describe("superlative narrowing — highestDP / lowestDP", () => {
 
     for (const e of effects) await e.resolve(ctx);
 
-    const delCall = recorder.calls.find((c) => c.verb === "deletePermanent");
+    const delCall = recorder.calls.find((call) => call.verb === "deletePermanent");
     expect(delCall).toBeDefined();
     expect(delCall!.args[0]).toEqual(["lo"]);
   });
@@ -4884,7 +4884,7 @@ describe("superlative narrowing — highestDP / lowestDP", () => {
 
     for (const e of effects) await e.resolve(ctx);
 
-    const delCall = recorder.calls.find((c) => c.verb === "deletePermanent");
+    const delCall = recorder.calls.find((call) => call.verb === "deletePermanent");
     expect(delCall).toBeDefined();
     const deleted = delCall!.args[0] as string[];
     expect(deleted).not.toContain("c");
