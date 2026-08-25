@@ -107,3 +107,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-009.test.ts`).
+
+## BT20-010 — Ryudamon
+
+- Catalog contract: red/black level 3 Vaccine Beast/X Antibody/Chronicle Digimon, play cost 3/1000 DP, red or black level-2 evolution cost 1 plus black X Antibody level-2 alternate cost 0; while in the battle area on your turn, its evolution into Ginryumon or Chronicle costs 1 less; inherited your-turn +2000 DP.
+- Knowledge base: Q4292 binds the reduction to the battle area and explicitly excludes the breeding area.
+- Implementation evidence: `BT20-010.ts` registers only through `registerIrCard`; its your-turn `wouldDigivolve` replacement is self-bound to `zone: "battleArea"`, filters the destination by Ginryumon name or Chronicle trait, and reduces cost by exactly 1. The alternate requirement and inherited continuous DP action map the remaining clauses.
+- Peer/stack evidence: identical Ryudamon-to-Ginryumon public evolution intents pay 2 memory in battle (normal cost 3 minus 1) and 3 in breeding, directly proving Q4292. A separate Chronicle evolution stack proves the inherited +2000 appears only on its controller's turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-010.test.ts` — 3 passed.
+- Clause scores: stats/normal evolution 2/2; alternate X Antibody evolution 2/2; battle-only destination-filtered reduction 2/2; Q4292 breeding negative 2/2; inherited your-turn DP/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-010.test.ts`).
