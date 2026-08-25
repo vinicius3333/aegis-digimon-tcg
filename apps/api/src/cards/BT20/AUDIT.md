@@ -383,3 +383,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-032.test.ts`).
+
+## BT20-033 — LoaderLeomon
+
+- Catalog contract: yellow/black level 5 Vaccine Machine/ACCEL, play cost 6/6000 DP, yellow or black level-4 evolution cost 4 plus level-4 ACCEL alternate cost 3; On Play/When Digivolving gives one opposing Digimon -3000 DP and prevents its When Digivolving effects through that opponent's turn end; inherited opponent-turn once per turn may redirect an opposing attack to the host.
+- Knowledge base: Q4326/Q4328/Q4329 suppress the entire When Digivolving activation, including externally activated effects and their costs; Q4327 preserves a combined When Digivolving/When Attacking effect at its attack timing; Q4330 says a suppressed timing does not spend once-per-turn usage.
+- Implementation evidence: both entry timings target one opposing Digimon with the dedicated `cannotActivateWhenDigivolving` restriction and -3000 modifier under the same cross-turn duration. The engine consumes that restriction only at the When Digivolving timing, preserving Q4327. The inherited opponent-attack watcher redirects optionally to self once per turn; alternate evolution and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: On Play makes a 6000-DP opposing Liollmon 3000 and observably installs the exact timing restriction. During the opponent's turn, LoaderLeomon beneath a 12000-DP host redirects a 1000-DP attack away from security; the attacker is deleted in battle, security is preserved, and the host survives.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-033.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; dual target/timing 2/2; -3000 amount/cross-turn duration 2/2; complete When Digivolving suppression/ruling boundary 2/2; inherited optional redirect/turn/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-033.test.ts`).
