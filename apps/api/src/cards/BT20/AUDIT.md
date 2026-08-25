@@ -647,3 +647,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-054.test.ts`).
+
+## BT20-055 — Invisimon
+
+- Catalog contract: black/blue level 6 Virus Cyborg/LIBERATOR, play cost 11/11000 DP, black or blue level-5 evolution cost 3; face-up Security End of Opponent's Turn free play; On Play/When Digivolving de-digivolve 2, flip the opponent's top face-down security, then delete 1 opposing Digimon with at most 1 evolution card; on your turn after an allied face-up security check, may place Invisimon's top card face-up at own security bottom.
+- Knowledge base: Q4382 requires the next face-down scan; Q4383-Q4387 define face-up security and trigger ordering; Q4388 says moving Invisimon exposes and still triggers the underlying Digimon's End of Attack; Q4722 preserves loss at zero security; Q4723 confirms exposing a Tamer removes the attacking Digimon.
+- Implementation evidence: delayed Security and both ordered entry sequences are direct. Audit found `fromDigivolutionTop` moved the card beneath Invisimon, contradicting Q4388/Q4723. The action now targets self with `detachPermanentTop`, moving Invisimon itself face up and promoting the underlying card; the optionality remains on the face-up-check watcher. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: both hard play and evolution over BT20-054 de-digivolve a three-source target by 2, then delete it at one source while flipping only the next face-down security card. Face-up Invisimon plays free at opponent end turn. On a face-up check, acceptance puts Invisimon at security bottom and promoted BT20-050 draws at End of Attack; refusal keeps Invisimon on top and adds no security.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-055.test.ts` — 6 passed.
+- Clause scores: stats/evolution routes 2/2; delayed Security free play 2/2; dual entry de-digivolve/flip ordering 2/2; post-de-digivolve deletion boundary 2/2; Q4388 optional top-card detach/promotion 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-055.test.ts`).
