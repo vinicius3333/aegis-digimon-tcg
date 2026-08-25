@@ -1163,3 +1163,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-097.test.ts`).
+
+## BT20-098 — Apparition Legion
+
+- Catalog contract: purple LIBERATOR cost-8 Option; Main returns exactly 9 total levels of opposing trash Digimon to deck bottom as cost, may free-play one own trash Ghost Digimon for each returned card at that card's level, then every Digimon played by the effect gains Rush and Blocker through the opponent's turn; Security may free-play a level-5-or-lower Ghost from trash.
+- Knowledge base: 2025-03-07 errata changes “up to 9” to exactly 9. Q4439 forbids partial totals; Q4440-Q4441 require one playable card per returned card, including repeated levels.
+- Implementation evidence: audit removed `upTo:true` from the return target so only an exact total of 9 can pay the cost. PlayPerLevel preserves each returned level including duplicates, binds every result, and both keyword grants target the full bound population with the correct duration. Security is exact. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: semantic Ghost filtering excludes nearby non-Ghost purple Digimon; a 3+6 return permits one level 3 and one level 6, while 3+3+3 permits three level-3 plays per Q4440-Q4441.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-098.test.ts` — 1 passed.
+- Clause scores: stats/exact errata cost 2/2; opponent trash/deck-bottom zones 2/2; per-card level multiplicity/free plays 2/2; all-result Rush/Blocker duration 2/2; Security Ghost/level/zone boundary 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-098.test.ts`).

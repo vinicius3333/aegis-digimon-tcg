@@ -11,8 +11,9 @@ describe("BT20-098 Apparition Legion", () => {
 
     expect(returnCost).toMatchObject({
       kind: "return",
-      target: { totalLevels: 9, upTo: true },
+      target: { totalLevels: 9 },
     });
+    expect(returnCost?.target.upTo).not.toBe(true);
     expect(keywordActions).toHaveLength(2);
     expect(keywordActions?.map((action) => action.kind)).toEqual(["GainKeyword", "GainKeyword"]);
     expect(keywordActions?.map((action) => irNode(action).keyword.keyword)).toEqual(["Rush", "Blocker"]);
