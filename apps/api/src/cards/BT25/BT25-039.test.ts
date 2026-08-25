@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_039 } from "./BT25-039.js";
 import "../index.js";
 
@@ -47,5 +49,94 @@ describe("BT25-039 Sirenmon", () => {
       nameOrTrait: [{ tokens: ["Shaman", "Iliad"], match: "trait" }],
     });
     expect(replacement.cost).toMatchObject({ kind: "deleteOwn" });
+  });
+
+  it("inherits the optional once-per-turn redirect to a suspended Digimon", () => {
+    expect(BT25_039.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "OpponentsTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "RedirectAttack",
+              optional: true,
+              target: { filter: { controller: "mine", suspended: true, kind: ["Digimon"] }, count: 1 },
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("redirects an opponent attack to a suspended Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-059", as: "host", under: [{ card: "BT25-039", as: "sirenmon" }] },
+            { card: "BT1-009", as: "redirect", suspended: true, dp: 12_000 },
+          ],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 7_000 }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("attacker").instanceId) &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("redirect").permanentId),
+    ).toBe(true);
+  });
+
+  it("may decline the redirect without changing the original player target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-059", as: "host", under: [{ card: "BT25-039" }] },
+            { card: "BT1-009", as: "redirect", suspended: true, dp: 12_000 },
+          ],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 7_000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("attacker").permanentId),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("redirect").permanentId),
+    ).toBe(true);
   });
 });
