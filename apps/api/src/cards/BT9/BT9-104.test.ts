@@ -97,11 +97,15 @@ describe("BT9-104 X Digivolution!", () => {
       return decision?.kind === "selectCards" && decision.sourceCardId === "BT9-064";
     });
 
-    // KB Q1911/Q5976: the bonus draw comes from the unrevealed deck, then both
-    // unchosen cards are already in trash before Grademon's When Digivolving opens.
+    // KB Q1911/Q5976: the bonus draw comes from the unrevealed deck, the
+    // non-X-Antibody remainder is trashed, and the unchosen X Antibody is
+    // placed under the evolved Digimon before Grademon's When Digivolving opens.
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([s.inst("incompatibleX").instanceId, s.inst("initialMiss").instanceId]),
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("initialMiss").instanceId,
+    );
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("incompatibleX").instanceId,
     );
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("evolution").instanceId);
   });
