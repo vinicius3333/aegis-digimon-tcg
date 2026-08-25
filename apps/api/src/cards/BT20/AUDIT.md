@@ -263,3 +263,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-022.test.ts`).
+
+## BT20-023 — Coredramon
+
+- Catalog contract: blue/red level 4 Vaccine Dragon, play cost 5/5000 DP, blue or red level-3 evolution cost 3 plus Dracomon-name level-3 alternate cost 2; Jamming; on your turn, playing a green Digimon with Dracomon/Examon anywhere in its text may evolve self into hand Wingdramon with cost reduced by 2; inherited your-turn +2000 DP.
+- Knowledge base: Q4312 requires both green color and the Dracomon/Examon text union; Q4313 defines “in its text” across names, traits, effects, inherited text, rules, and evolution/assembly requirements.
+- Implementation evidence: the watcher uses the canonical green Digimon plus full-text union predicate and self/hand/Wingdramon targets. The generated action had the reduction but omitted payment, waiving Wingdramon's entire cost; it now explicitly pays with the existing folded -2 delta. Jamming, inherited DP, alternate requirement, and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: playing green BT20-040, whose text contains the named terms, evolves Coredramon into Wingdramon for exactly 2 after its 5-cost play and preserves the source stack; otherwise similar blue/red BT20-023 fails the green gate. Separate direct and Wingdramon-host stacks prove Jamming ownership and inherited +2000 turn scope.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-023.test.ts` — 3 passed.
+- Clause scores: stats/Jamming/alternate evolution 2/2; green played-Digimon trigger 2/2; Q4313 text union 2/2; optional paid Wingdramon evolution/exact reduction 2/2; inherited DP/turn/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-023.test.ts`).
