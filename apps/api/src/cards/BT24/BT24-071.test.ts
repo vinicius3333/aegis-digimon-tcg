@@ -197,4 +197,29 @@ describe("BT24-071 Raidramon", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("appmon").instanceId),
     );
   });
+
+  it("cancels the linked revival when BT7-107 returns its deleted host first (Q5648)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-067", as: "host", linked: [{ card: "BT24-071", as: "raidramon" }] }],
+          hand: [{ card: "BT7-107", as: "calling" }],
+          trash: [{ card: "BT24-032", as: "appmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("calling").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("host").instanceId));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("appmon").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("appmon").instanceId),
+    ).toBe(false);
+  });
 });
