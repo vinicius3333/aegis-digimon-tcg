@@ -912,7 +912,10 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon", "Tamer"] },
+            "sourceFilter": {
+              "controller": "mine",
+              "or": [{ "kind": ["Digimon"], "isSelfRef": true }, { "kind": ["Tamer"] }]
+            },
             "actions": [
               {
                 "kind": "Digivolve",

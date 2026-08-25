@@ -256,7 +256,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // carry out a verb when gained — De-Digivolve, Digi-Burst, Recovery, ...) have
       // no continuous representation and remain loud gaps until their verb is wired.
       if (kw === "Piercing") {
-        for (const id of ids) ctx.fx.grantPierce(id, duration);
+        for (const id of ids) ctx.fx.grantPierce(id, duration, { continuous: ctx.activeTiming === "Static" });
         return false;
       }
       if (kw === "Link" || kw === "LinkMax") {

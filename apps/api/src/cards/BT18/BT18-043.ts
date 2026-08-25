@@ -15,7 +15,7 @@ const compiled: CompiledCard = {
           event: "wouldDigivolve",
           sourceFilter: {
             controller: "mine",
-            kind: ["Digimon", "Tamer"],
+            or: [{ kind: ["Digimon"], isSelfRef: true }, { kind: ["Tamer"] }],
           },
           into: {
             controllerDefault: "mine",
