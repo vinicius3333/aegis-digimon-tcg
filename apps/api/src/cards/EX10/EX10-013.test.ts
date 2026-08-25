@@ -89,10 +89,10 @@ describe("EX10-013 Lucemon compiled contract", () => {
           battleArea: [{ card: "EX10-013", as: "lucemon" }],
           trash: [
             { card: "EX10-004", as: "cost1" },
-            { card: "BT18-034", as: "cost2" },
-            { card: "BT4-115", as: "cost3" },
-            { card: "EX6-018", as: "cost4" },
-            { card: "BT19-043", as: "cost5" },
+            { card: "EX10-004", as: "cost2" },
+            { card: "EX10-004", as: "cost3" },
+            { card: "EX10-004", as: "cost4" },
+            { card: "EX10-004", as: "cost5" },
             { card: "EX10-052", as: "chaos" },
           ],
         },
@@ -111,6 +111,7 @@ describe("EX10-013 Lucemon compiled contract", () => {
         ...s.state.players[0]!.eggDeck,
         ...s.state.players[0]!.security,
         ...s.state.players[0]!.hand,
+        ...[...s.state.players[0]!.battleArea].flatMap(({ stack }) => [...stack]),
       ].map(({ instanceId }) => instanceId),
     ).toEqual(expect.arrayContaining(returnedIds));
     expect(s.state.players[0]!.eggDeck.map(({ instanceId }) => instanceId)).toContain(s.inst("cost1").instanceId);
