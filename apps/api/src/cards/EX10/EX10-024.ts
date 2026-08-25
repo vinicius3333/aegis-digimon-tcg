@@ -20,6 +20,8 @@ const compiled: CompiledCard = {
             target: { filter: { controller: "mine", zone: "linked", isSelfRef: true }, count: 1 },
             raw: "By trashing 1 of this Digimon's link cards",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
