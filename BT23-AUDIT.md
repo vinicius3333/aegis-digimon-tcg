@@ -11,6 +11,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks the exact catalog and IR contract, draws for a realistic Flickmon-under-Appmon stack, refuses the draw for a non-Appmon carrier, suppresses a second attack in the same turn, and permits two distinct Flickmon sources to draw independently.
 - Verification: focused suite — 4 passed; `condition.selfHasTrait` mechanism regression — 3 passed; workspace typecheck — passed; `git diff --check` — passed.
 
+## BT23-002 — Yokomon — 10/10
+
+- Catalog evidence: Green level 2 Digi-Egg; form `In-Training`, attribute `-`, types `Bulb` and `CS`; inherited text is `[When Attacking] [Once Per Turn] If this Digimon has the [CS] trait, <Draw 1>`; no main or Security text and no evolution requirements.
+- Knowledge base: `node tools/kb/query.mjs card BT23-002` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: `BT23-002.ts` contains one inherited `WhenAttacking`, `OncePerTurn` effect. Its conditional `Draw 1` uses `selfHasTrait(CS)` and the module registers exclusively through `registerIrCard("BT23-002", compiled)` with full coverage and no residual clauses.
+- Primitive trace: the same verified inherited-frequency and draw paths used by BT23-001 apply, while this card additionally proves an exact type-trait match (`CS`) rather than a form-trait match.
+- Behavioral proof: the focused suite checks the exact catalog and IR contract, draws for a realistic Yokomon-under-CS Digimon stack, refuses the draw for a non-CS carrier, suppresses a second attack in the same turn, and permits two distinct Yokomon sources to draw independently.
+- Verification: focused suite — 4 passed; shared `condition.selfHasTrait` mechanism regression was already green at this unchanged seam; workspace typecheck remained green after BT23-001 and no production seam changed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-002 through BT23-102.
+BT23-003 through BT23-102.
