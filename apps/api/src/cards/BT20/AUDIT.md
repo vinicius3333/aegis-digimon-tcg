@@ -839,3 +839,15 @@
 - Score: 10/10.
 - Ambiguity: catalog colors are purple/red while printed ordinary evolution entries are red/yellow; the committed fields are kept distinct.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-070.test.ts`).
+
+## BT20-071 — Soloogarmon
+
+- Catalog contract: purple/red level 5 Virus Dark Animal/X Antibody/SoC/SEEKERS, play cost 7/7000 DP, red or yellow level-4 evolution cost 4 plus Loogarmon or level-4 SEEKERS alternate cost 3; On Play/When Digivolving trashes 1 hand card to give the same own Digimon Raid and +3000 DP for the turn; all-turn, placing Tamer cards under this Digimon deletes 1 opponent at 6000 DP or less; inherited Your Turn suppresses checked Option Security effects when the host is SoC/SEEKERS.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: entry actions bind the DP target and reuse it for Raid. Audit found the placement watcher also applied its Tamer `sourceFilter` to the receiver permanent, making its self-host fail before the dedicated added-card filter ran. Removing that redundant field leaves `triggerFilter.isSelfRef` to identify the receiver and `addedDigivolutionCardFilter.kind:Tamer` to identify the placed card. Alternate routes and inherited suppression are direct; registration is exclusively `registerIrCard`.
+- Peer/stack evidence: BT20-070 proves the Loogarmon route and BT20-032 the level-4 SEEKERS route. Evolution trashes the chosen hand card and gives one target both +3000 DP and Raid. Placing BT20-089 under Soloogarmon deletes exactly 6000-DP BT20-070 while preserving 7000-DP BT20-071; placing Digimon BT20-047 does not retrigger. Under SoC/SEEKERS BT20-080 the inherited effect suppresses Option BT20-096 only on the controller's turn; nonmatching BT20-059 does not.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-071.test.ts` — 5 passed.
+- Clause scores: stats/ordinary and alternate evolution 2/2; dual entry cost/same-target Raid+DP 2/2; self-host Tamer placement trigger 2/2; 6000-DP boundary/non-Tamer negative 2/2; inherited trait/turn/Option Security scope 2/2.
+- Score: 10/10.
+- Ambiguity: catalog colors are purple/red while ordinary evolution entries are red/yellow; committed fields are kept distinct.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-071.test.ts`).

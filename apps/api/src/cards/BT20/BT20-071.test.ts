@@ -1,5 +1,8 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./BT20-071.js";
 
@@ -34,7 +37,6 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "onAddDigivolutionCards",
-      sourceFilter: { kind: ["Tamer"] },
       triggerFilter: { isSelfRef: true },
       addedDigivolutionCardFilter: { kind: ["Tamer"] },
     });
@@ -58,7 +60,7 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
             // Soloogarmon in hand to digivolve into.
             { card: SOLOOGARMON, as: "soloogarmonInst" },
             // A hand card to trash as cost (Agumon).
-            { card: AGUMON },
+            { card: AGUMON, as: "cost" },
           ],
         },
       },
@@ -96,5 +98,73 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
     // One of the two Digimon should have received the +3000 DP grant.
     const anyBoosted = bulkmonPerm.currentDP > initialBulkmonDP || koromonPerm.currentDP > initialKoromonDP;
     expect(anyBoosted).toBe(true);
+    const boosted = bulkmonPerm.currentDP > initialBulkmonDP ? bulkmonPerm : koromonPerm;
+    expect(observe(s.engine).hasKeyword(boosted, "Raid")).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+  });
+
+  it("publishes stats and both exact cost-3 alternate evolution routes", async () => {
+    expect(getCardDefinition("BT20-071")).toMatchObject({ level: 5, playCost: 7, dp: 7000 });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Loogarmon"], cost: 3, isAlternate: true },
+      { level: 4, traits: ["SEEKERS"], cost: 3, isAlternate: true },
+    ]);
+    for (const [base, requirementIndex] of [["BT20-070", 0], ["BT20-032", 1]] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: base, as: "base" }],
+          hand: [{ card: "BT20-071", as: "soloogarmon" }],
+          deck: ["BT20-047"],
+        },
+      });
+      s.state.memory = 3;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("soloogarmon").instanceId,
+          alternateRequirementIndex: requirementIndex,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "BT20-071");
+      expect(s.state.memory).toBe(0);
+    }
+  });
+
+  it("deletes only a 6000-DP-or-less opponent when a Tamer is placed under itself", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-071", as: "source" }],
+          hand: [{ card: "BT20-089", as: "tamer" }, { card: "BT20-047", as: "digimon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-070", dp: 6000, as: "six" },
+            { card: "BT20-071", dp: 7000, as: "seven" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("six").permanentId);
+    await s.ready();
+    await advance(s.engine).verb.placeUnder(s.perm("source").permanentId, [s.inst("tamer").instanceId]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-071"]);
+    await advance(s.engine).verb.placeUnder(s.perm("source").permanentId, [s.inst("digimon").instanceId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("inherits Option Security suppression only for a SoC/SEEKERS host on its controller's turn", async () => {
+    for (const [host, expected] of [["BT20-080", true], ["BT20-059", false]] as const) {
+      const s = setupEngine({ 0: { battleArea: [{ card: host, under: ["BT20-071"], as: "host" }] } });
+      s.state.turnSeat = 0;
+      await s.ready();
+      expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT20-096")).toBe(expected);
+      s.state.turnSeat = 1;
+      await advance(s.engine).recompute();
+      expect(observe(s.engine).suppressesSecurityEffect(s.perm("host"), "BT20-096")).toBe(false);
+    }
   });
 });
