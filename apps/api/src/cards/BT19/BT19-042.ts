@@ -36,19 +36,11 @@ const compiled: CompiledCard = {
           controller: "opponent",
           amount: 1,
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Dynasmon"],
-                  match: "name",
-                },
-                {
-                  tokens: ["X Antibody"],
-                  match: "trait",
-                },
-              ],
-            },
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [
+              { tokens: ["Dynasmon"], match: "name" },
+              { tokens: ["X Antibody"], match: "trait" },
+            ],
             raw: "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards",
           },
           cost: {
@@ -63,7 +55,8 @@ const compiled: CompiledCard = {
             },
             raw: "by trashing the top card of your security stack",
           },
-          optional: false,
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "ModifyDP",
@@ -90,19 +83,11 @@ const compiled: CompiledCard = {
           controller: "opponent",
           amount: 1,
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Dynasmon"],
-                  match: "name",
-                },
-                {
-                  tokens: ["X Antibody"],
-                  match: "trait",
-                },
-              ],
-            },
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [
+              { tokens: ["Dynasmon"], match: "name" },
+              { tokens: ["X Antibody"], match: "trait" },
+            ],
             raw: "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards",
           },
           cost: {
@@ -117,7 +102,8 @@ const compiled: CompiledCard = {
             },
             raw: "by trashing the top card of your security stack",
           },
-          optional: false,
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "ModifyDP",
@@ -140,8 +126,9 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "SecurityManipulation",
-          op: "recover",
+          op: "addTop",
           controller: "mine",
+          source: "deck",
           toTop: true,
           condition: {
             kind: "zoneCount",
