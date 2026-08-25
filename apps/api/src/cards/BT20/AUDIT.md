@@ -791,3 +791,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-066.test.ts`).
+
+## BT20-067 — Soulmon
+
+- Catalog contract: purple level 4 Virus Ghost, play cost 4/4000 DP, purple level-3 evolution cost 2; On Play/When Digivolving gives 1 own Digimon Retaliation through the opponent's turn; inherited On Deletion may trash 1 hand card to delete 1 opposing level-4-or-lower Digimon.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: both entry timings share the exact one-allied-Digimon keyword grant and `untilOpponentTurnEnd` duration. The inherited action is stack scoped, optional, aborts on refusal, pays exactly one own hand card, and uses the inclusive level-4 opponent boundary. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: hard play and evolution over BT20-063 each grant live Retaliation to BT20-061 through the production target selector. Under BT20-068, host deletion pays BT20-047 from hand and deletes level-4 BT20-066 while preserving level-5 BT20-071.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-067.test.ts` — 5 passed.
+- Clause scores: stats/evolution route 2/2; On Play Retaliation grant 2/2; When Digivolving grant/duration 2/2; inherited hand cost/stack scope 2/2; opponent level boundary/final zones 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-067.test.ts`).
