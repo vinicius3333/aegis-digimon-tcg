@@ -53,9 +53,16 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
 }
 
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
-  // Per-action gate.
-  if (action.kind !== "RawUnparsed" && action.kind !== "ConditionalBranch" && action.condition) {
-    ctx.lastActionConditionMatched = evaluateCondition(ctx, action.condition);
+  // Per-action gate. `while` is the continuously re-evaluated spelling used by persistent
+  // actions: the recompute pass clears the old contribution, and this gate decides whether
+  // the action contributes again. Individual handlers may additionally use `while` to mark
+  // dynamic grants, but every action kind needs the same truth test (not only Aura/Restrict).
+  const gate =
+    action.kind === "RawUnparsed" || action.kind === "ConditionalBranch"
+      ? undefined
+      : action.condition ?? ("while" in action ? action.while : undefined);
+  if (gate !== undefined) {
+    ctx.lastActionConditionMatched = evaluateCondition(ctx, gate);
     if (!ctx.lastActionConditionMatched) return false;
   } else {
     ctx.lastActionConditionMatched = true;

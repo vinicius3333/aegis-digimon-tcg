@@ -187,12 +187,18 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       return false;
     }
     case "GrantImmunity": {
-      // "not affected by opponent's effects while condition holds" (CAP-C-06, BT19-101).
-      // Stored as an unconditional beAffected restriction; the condition gate on the
-      // containing effect already prevents this from firing when the condition is false.
+      // Store blanket opponent-effect immunity as an unqualified restriction, but preserve
+      // the printed source-kind scope for clauses such as "opponent's Digimon effects".
+      // The shared action gate has already evaluated `condition` / `while` for this pass.
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
-      for (const id of ids) ctx.fx.restrict(id, "beAffected", duration);
+      const fromSourceKind = action.immuneFrom === "opponentDigimonEffects" ? ["Digimon"] : undefined;
+      for (const id of ids) {
+        ctx.fx.restrict(id, "beAffected", duration, {
+          ...(fromSourceKind === undefined ? {} : { fromSourceKind }),
+          byOpponentEffectsOnly: true,
+        });
+      }
       return false;
     }
     case "ArmSuspendRestriction": {
