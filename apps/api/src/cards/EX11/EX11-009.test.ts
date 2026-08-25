@@ -106,11 +106,7 @@ describe("EX11-009 Tyrannomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX11-008", as: "base" },
-            { card: "EX11-056" },
-            { card: "EX11-056" },
-          ],
+          battleArea: [{ card: "EX11-008", as: "base" }, { card: "EX11-056" }, { card: "EX11-056" }],
           hand: [
             { card: "EX11-009", as: "tyrannomon" },
             { card: "EX11-056", as: "ryutaro" },

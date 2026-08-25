@@ -54,14 +54,19 @@ describe("EX11-028 Galemon", () => {
       event: "whenSuspended",
       sourceFilter: { controller: "mine", kind: ["Digimon"] },
     });
-    expect(allTurns.actions[0]).toMatchObject({ actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Shoto Kazama"], match: "name" }] } } }] });
+    expect(allTurns.actions[0]).toMatchObject({
+      actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Shoto Kazama"], match: "name" }] } } }],
+    });
   });
 
   it("plays Shoto Kazama when an own Digimon suspends with at most one Tamer", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: cardId, as: "galemon" }, { card: "BT1-009", as: "ally" }],
+          battleArea: [
+            { card: cardId, as: "galemon" },
+            { card: "BT1-009", as: "ally" },
+          ],
           hand: [{ card: "EX11-062", as: "shoto" }],
         },
       },

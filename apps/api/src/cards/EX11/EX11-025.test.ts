@@ -88,7 +88,9 @@ describe("EX11-025 FunBeemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("source"));
-    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(expect.arrayContaining(["BT1-001", "BT1-009"]));
+    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-009"]),
+    );
     expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-002", "EX11-030"]);
     expect(s.state.players[0]!.security[1]).toMatchObject({ cardId: "EX11-030", faceUp: true });
     assertNoLoudGap(s);
@@ -107,7 +109,9 @@ describe("EX11-025 FunBeemon", () => {
     );
     await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("source"));
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(expect.arrayContaining(["BT1-001", "EX11-030"]));
+    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(
+      expect.arrayContaining(["BT1-001", "EX11-030"]),
+    );
     assertNoLoudGap(s);
   });
 

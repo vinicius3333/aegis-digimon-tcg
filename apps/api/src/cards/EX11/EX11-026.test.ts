@@ -112,7 +112,14 @@ describe("EX11-026 Pteromon", () => {
 
   it("may decline suspension and leaves every Digimon unchanged", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: cardId, as: "source" }, { card: "BT1-012", as: "bird", dp: 2000 }] } },
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source" },
+            { card: "BT1-012", as: "bird", dp: 2000 },
+          ],
+        },
+      },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.WhenMoving, s.perm("source"));

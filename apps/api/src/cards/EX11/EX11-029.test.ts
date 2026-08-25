@@ -54,7 +54,10 @@ describe("EX11-029 Turbomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: cardId, as: "source" }, { card: "BT1-009", as: "recipient", dp: 2000 }],
+          battleArea: [
+            { card: cardId, as: "source" },
+            { card: "BT1-009", as: "recipient", dp: 2000 },
+          ],
           hand: [{ card: "EX11-027", as: "maquinamon" }],
         },
       },
@@ -62,7 +65,9 @@ describe("EX11-029 Turbomon", () => {
     );
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some(({ linked }) => linked.some(({ cardId: id }) => id === "EX11-027"))).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(({ linked }) => linked.some(({ cardId: id }) => id === "EX11-027")),
+    ).toBe(true);
     assertNoLoudGap(s);
   });
 

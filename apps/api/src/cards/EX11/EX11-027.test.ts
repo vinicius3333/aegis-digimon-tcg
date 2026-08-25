@@ -91,7 +91,9 @@ describe("EX11-027 Maquinamon", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 1);
     expect(s.perm("ally").linked).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId)).toBe(true);

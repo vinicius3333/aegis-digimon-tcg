@@ -96,9 +96,9 @@ describe("EX11-024 Cendrillmon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT13-035");
-    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "TOKEN-Familiar-Token")).toHaveLength(
-      2,
-    );
+    expect(
+      s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "TOKEN-Familiar-Token"),
+    ).toHaveLength(2);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX11-022");
     assertNoLoudGap(s);
   });

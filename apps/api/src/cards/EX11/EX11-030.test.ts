@@ -24,7 +24,9 @@ describe("EX11-030 ForgeBeemon", () => {
     });
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["Royal Base"], cost: 2, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 3, traits: ["Royal Base"], cost: 2, isAlternate: true },
+    ]);
     expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
     expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "OpponentsTurn", isSecurity: true }));
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
@@ -68,13 +70,18 @@ describe("EX11-030 ForgeBeemon", () => {
             { card: "BT1-001", as: "faceUpTop", faceUp: true },
             { card: "BT1-002", as: "faceDown" },
           ],
-          hand: [{ card: "EX11-025", as: "royalBase" }, { card: "BT1-009", as: "plain" }],
+          hand: [
+            { card: "EX11-025", as: "royalBase" },
+            { card: "BT1-009", as: "plain" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(expect.arrayContaining(["BT1-002", "BT1-009"]));
+    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(
+      expect.arrayContaining(["BT1-002", "BT1-009"]),
+    );
     expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-001", "EX11-025"]);
     expect(s.state.players[0]!.security[1]).toMatchObject({ faceUp: true });
     assertNoLoudGap(s);
@@ -84,7 +91,10 @@ describe("EX11-030 ForgeBeemon", () => {
     const s = setupEngine({
       0: {
         security: [{ card: cardId, faceUp: true }],
-        battleArea: [{ card: "EX11-025", as: "royalBase" }, { card: "BT1-009", as: "plain" }],
+        battleArea: [
+          { card: "EX11-025", as: "royalBase" },
+          { card: "BT1-009", as: "plain" },
+        ],
       },
       1: { battleArea: [{ card: "EX11-025", as: "opposingRoyalBase" }] },
     });

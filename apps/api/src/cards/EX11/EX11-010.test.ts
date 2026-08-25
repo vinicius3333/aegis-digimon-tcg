@@ -9,9 +9,7 @@ describe("EX11-010 MasterTyrannomon", () => {
   it("encodes both timings, the live suspended-state gate, duration, keywords, inherited effect, and Dinosaur evolution", () => {
     const compiled = runtimeCompiledCard("EX11-010")!;
 
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 4, traits: ["Dinosaur"], cost: 3, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["Dinosaur"], cost: 3, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
         actions: [
@@ -112,10 +110,7 @@ describe("EX11-010 MasterTyrannomon", () => {
   });
 
   it("may decline the suspension on play and remains at printed DP while unsuspended", async () => {
-    const s = setupEngine(
-      { 0: { hand: [{ card: "EX11-010", as: "master" }] } },
-      { autoDeclineOptional: true },
-    );
+    const s = setupEngine({ 0: { hand: [{ card: "EX11-010", as: "master" }] } }, { autoDeclineOptional: true });
     s.state.memory = 8;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("master").instanceId })).toEqual({
