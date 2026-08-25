@@ -359,3 +359,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-030.test.ts`).
+
+## BT20-031 — Liamon
+
+- Catalog contract: yellow/black level 4 Vaccine Holy Beast/ACCEL, play cost 4/5000 DP, yellow or black level-3 evolution cost 3 plus level-3 ACCEL alternate cost 2; On Play and When Digivolving give one opposing Digimon -3000 DP for the turn; inherited Barrier.
+- Knowledge base: no card-specific rulings; target ownership/kind/count, modifier amount/duration, dual timing, alternate cost, and inherited ownership are unambiguous.
+- Implementation evidence: separate On Play and When Digivolving entries carry the same single opposing-Digimon target, -3000 amount, and `forTheTurn` duration. The inherited Static entry carries only Barrier, the ACCEL alternate requirement is explicit, and registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: playing Liamon and explicitly taking its ACCEL alternate evolution over Liollmon each reduce a 6000-DP opposing Ryudamon to 3000; the evolution pays exactly 2 despite the simultaneously applicable printed yellow cost of 3. A Liamon source grants Barrier to its host, while top-card Liamon does not receive its inherited keyword.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-031.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; On Play target/amount 2/2; When Digivolving target/amount 2/2; turn duration 2/2; inherited-only Barrier/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-031.test.ts`).
