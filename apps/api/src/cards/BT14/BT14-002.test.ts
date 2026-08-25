@@ -1,7 +1,7 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT14-002.js";
@@ -39,4 +39,52 @@ it("does not grant Jamming when an opposing Digimon has an equal source count", 
   await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("bukamon"));
 
   expect(observe(s.engine).hasKeyword(s.perm("bukamon"), "Jamming")).toBe(false);
+});
+
+it("keeps a legally evolved blue stack in play after losing a security battle with the errata condition met", async () => {
+  const s = setupEngine({
+    0: {
+      breeding: { card: "BT14-002", as: "bukamon" },
+      hand: [{ card: "BT14-019", as: "otamamon" }],
+      deck: ["BT1-001"],
+    },
+    1: {
+      battleArea: [{ card: "BT14-007", as: "fewerSources" }],
+      security: ["BT14-101"],
+    },
+  });
+  s.state.memory = 3;
+  s.state.turnSeat = 0;
+
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("bukamon").permanentId,
+      instanceId: s.inst("otamamon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("bukamon").topCard.cardId === "BT14-019");
+  expect(s.perm("bukamon").stack.map((card) => card.cardId)).toEqual(["BT14-002"]);
+
+  s.state.phase = Phase.Breeding;
+  expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("bukamon").permanentId })).toEqual({
+    ok: true,
+  });
+  await settle(() => !s.perm("bukamon").inBreeding);
+  s.state.phase = Phase.Main;
+  await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("bukamon"));
+  expect(observe(s.engine).hasKeyword(s.perm("bukamon"), "Jamming")).toBe(true);
+
+  const attackerId = s.perm("bukamon").permanentId;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: attackerId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+
+  expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
+  assertNoLoudGap(s);
 });
