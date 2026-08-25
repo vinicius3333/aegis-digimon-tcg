@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-017.js";
@@ -37,5 +38,80 @@ describe("BT18-017 AncientVolcanomon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea[0]!.topCard?.cardId).toBe("BT1-030");
     expect([lowA, lowB]).not.toContain(s.state.players[1]!.battleArea[0]!.permanentId);
+  });
+
+  it("deletes every opposing Digimon tied for the lowest DP when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-021", as: "base" }],
+          hand: [{ card: "BT18-017", as: "ancient" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-030", dp: 2000, as: "lowA" },
+            { card: "BT1-030", dp: 2000, as: "lowB" },
+            { card: "BT1-030", dp: 3000, as: "high" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ancient").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.perm("base").topCard.cardId).toBe("BT18-017");
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.perm("high").topCard.cardId).toBe("BT1-030");
+  });
+
+  it("may return a level 4 or lower red Digimon from its stack when it leaves", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT18-017", as: "ancient", under: ["BT18-011"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const materialId = s.perm("ancient").stack[0]!.instanceId;
+    s.perm("ancient").baseDP = 0;
+    s.perm("ancient").currentDP = 0;
+
+    await (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
+      EffectTiming.OnStartMainPhase,
+    );
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === materialId));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === materialId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("may play a level 4 or lower red Digimon from its stack without paying the cost when it leaves", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT18-017", as: "ancient", under: ["BT18-011"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    await s.ready();
+    const materialId = s.perm("ancient").stack[0]!.instanceId;
+    s.perm("ancient").baseDP = 0;
+    s.perm("ancient").currentDP = 0;
+
+    await (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
+      EffectTiming.OnStartMainPhase,
+    );
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === materialId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === materialId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === materialId)).toBe(false);
   });
 });
