@@ -29,6 +29,7 @@ export const compiled: CompiledCard = {
           target: { filter: xrosHeartDigimon, count: 1 },
           fromSelectedPermanentDigivolutionCards: true,
           underFilter: { controller: "mine", kind: ["Tamer"] },
+          position: "bottom",
           order: "any",
           trackCount: "placedXrosSources",
         },
