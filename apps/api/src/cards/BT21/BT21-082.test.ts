@@ -1,5 +1,9 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-082.js";
+import "../index.js";
 
 describe("BT21-082 Takuya Kanbara", () => {
   it("plays from security, enables paid Hybrid/Hero digivolution, and gates the inherited trigger to opponent security", () => {
@@ -25,5 +29,100 @@ describe("BT21-082 Takuya Kanbara", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+  });
+
+  it("Q4595 counts itself and evolves into a Hybrid for 1 less", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-082", as: "takuya" }],
+          hand: [{ card: "BT21-013", as: "agunimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("takuya"));
+    await settle(() => s.perm("takuya").topCard.instanceId === s.inst("agunimon").instanceId);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("counts different red Tamer names once each", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-082", as: "takuya" },
+            { card: "BT21-082", as: "duplicate" },
+            { card: "BT1-085", as: "tai" },
+          ],
+          hand: [{ card: "BT21-013", as: "agunimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("takuya").permanentId);
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("takuya"));
+    await settle(() => s.perm("takuya").topCard.instanceId === s.inst("agunimon").instanceId);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("does not evolve into a non-Hybrid non-Hero card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-082", as: "takuya" }], hand: [{ card: "BT1-009", as: "other" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("takuya"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
+  });
+
+  it("inherited watcher plays one red Tamer only for opponent security removal", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-013", as: "host", under: [{ card: "BT21-082", as: "source" }] }],
+          hand: [
+            { card: "BT1-085", as: "first" },
+            { card: "BT10-087", as: "second" },
+          ],
+          security: ["BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.inst("first").instanceId);
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("first").instanceId)).toBe(true);
+
+    await advance(s.engine).verb.trashFromSecurity(1, 1);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((card) => card.topCard.instanceId === s.inst("first").instanceId),
+    );
+    await advance(s.engine).verb.trashFromSecurity(1, 1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
+  });
+
+  it("plays itself from security without paying cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT21-082", as: "takuya" }] } });
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("takuya"));
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(0);
   });
 });
