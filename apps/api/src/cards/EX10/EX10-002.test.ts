@@ -7,7 +7,7 @@ describe("EX10-002 Koromon inherited attack-target switch", () => {
   it("draws once when an attack target changes, then observes once-per-turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", linked: [{ card: "EX10-002", as: "koromon" }] }],
+        battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX10-002", as: "koromon" }] }],
         deck: ["BT1-009", "BT1-009"],
       },
     });
