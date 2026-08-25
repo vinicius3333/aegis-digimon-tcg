@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "./BT22-019.js";
 import { compiled } from "./BT22-022.js";
 
 describe("BT22-022 Veedramon", () => {
@@ -60,7 +61,9 @@ describe("BT22-022 Veedramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("veemon").topCard?.cardId === "BT22-022");
 
-    expect(s.state.memory).toBe(1);
+    // BT22-019's resident Your Turn effect reduces Veedramon-name evolution by 1,
+    // composing with BT22-022's printed CS route (2 -> 1).
+    expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-112")).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("invalidTamer").instanceId]);
   });

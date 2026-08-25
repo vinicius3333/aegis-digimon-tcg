@@ -93,9 +93,9 @@ describe("BT22-036 Chaperomon", () => {
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source)[0]!.effectKey;
     s.state.memory = 5;
 
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
     await settle(() => s.perm("shoemon").topCard?.cardId === "BT22-036");
 
     // Q4882: EX7-024 reduces this effect's fixed cost from 3 to 2.

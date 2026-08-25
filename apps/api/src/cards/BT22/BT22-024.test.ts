@@ -75,9 +75,9 @@ describe("BT22-024 MarineBullmon", () => {
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source)[0]!.effectKey;
     s.state.memory = 5;
 
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
     await settle(() => s.perm("sangomon").topCard?.cardId === "BT22-024");
 
     expect(s.state.memory).toBe(2);
@@ -98,7 +98,9 @@ describe("BT22-024 MarineBullmon", () => {
     const source = (
       s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
     ).cardSourceOf(s.inst("marineBullmon"));
-    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) => entry.effectKey.startsWith("BT22-024/"));
+    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+      entry.effectKey.startsWith("BT22-024/"),
+    );
 
     expect(effect).toBeDefined();
     expect(

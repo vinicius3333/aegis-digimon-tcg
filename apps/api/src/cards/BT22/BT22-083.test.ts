@@ -13,21 +13,26 @@ describe("BT22-083 Yuuko Kamishiro", () => {
   });
 
   it("binds immunity and DP to the same paid target", () => {
-    const actions = (compiled.effects.find((entry) => !entry.isInherited && entry.trigger === "AllTurns")?.actions[0] as any)
-      .actions;
-    expect(actions[0]).toMatchObject({
-      kind: "GrantImmunity",
-      target: { bindAs: "yuukoProtectedDigimon" },
+    const block = (
+      compiled.effects.find((entry) => !entry.isInherited && entry.trigger === "AllTurns")?.actions[0] as any
+    ).actions[0];
+    expect(block).toMatchObject({
+      kind: "CostGatedBlock",
       cost: { kind: "suspend", target: { filter: { isSelfRef: true } } },
       optional: true,
       abortOnDecline: true,
     });
-    expect(actions[1]).toMatchObject({
+    expect(block.actions[0]).toMatchObject({ kind: "SelectBind", target: { bindAs: "yuukoProtectedDigimon" } });
+    expect(block.actions[1]).toMatchObject({
+      kind: "GrantImmunity",
+      target: { fromSelectionRef: "yuukoProtectedDigimon" },
+    });
+    expect(block.actions[2]).toMatchObject({
       kind: "ModifyDP",
       target: { fromSelectionRef: "yuukoProtectedDigimon" },
       amount: 3000,
     });
-    expect(actions[1].optional).toBeUndefined();
+    expect(block.actions[2].optional).toBeUndefined();
   });
 
   it("uses an executable Eater Eve name condition for the inherited attack-target-change DP", () => {

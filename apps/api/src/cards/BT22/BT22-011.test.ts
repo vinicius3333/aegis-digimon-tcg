@@ -67,9 +67,9 @@ describe("BT22-011 BlueMeramon", () => {
     )!.effectKey;
     s.state.memory = 5;
 
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-010"));
 
     expect(s.state.memory).toBe(2);

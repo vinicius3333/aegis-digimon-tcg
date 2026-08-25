@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT22-079.js";
 import { compiled } from "./BT22-094.js";
 
 describe("BT22-094 Yuugo Kamishiro", () => {
@@ -94,6 +95,9 @@ describe("BT22-094 Yuugo Kamishiro", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-079"));
 
     expect(s.state.memory).toBe(2);
-    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT22-094")).toBe(true);
+    // Yuugo is returned to the otherwise-empty deck first, then BT22-079's registered
+    // On Play Draw 1 immediately draws that same physical card.
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-094")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-094")).toBe(true);
   });
 });

@@ -48,27 +48,7 @@ export const compiled: CompiledCard = {
           event: "whenAttackTargetSwitched",
           actions: [
             {
-              kind: "GrantImmunity",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [
-                    {
-                      tokens: ["Greymon"],
-                      match: "name",
-                    },
-                    {
-                      tokens: ["CS"],
-                      match: "trait",
-                    },
-                  ],
-                },
-                count: 1,
-                bindAs: "yuukoProtectedDigimon",
-              },
-              immuneFrom: "opponentEffects",
-              duration: "forTheTurn",
+              kind: "CostGatedBlock",
               cost: {
                 kind: "suspend",
                 target: {
@@ -82,15 +62,35 @@ export const compiled: CompiledCard = {
               },
               optional: true,
               abortOnDecline: true,
-            },
-            {
-              kind: "ModifyDP",
-              target: {
-                fromSelectionRef: "yuukoProtectedDigimon",
-                count: 1,
-              },
-              amount: 3000,
-              duration: "forTheTurn",
+              actions: [
+                {
+                  kind: "SelectBind",
+                  target: {
+                    filter: {
+                      controller: "mine",
+                      kind: ["Digimon"],
+                      nameOrTrait: [
+                        { tokens: ["Greymon"], match: "name" },
+                        { tokens: ["CS"], match: "trait" },
+                      ],
+                    },
+                    count: 1,
+                    bindAs: "yuukoProtectedDigimon",
+                  },
+                },
+                {
+                  kind: "GrantImmunity",
+                  target: { fromSelectionRef: "yuukoProtectedDigimon", count: 1 },
+                  immuneFrom: "opponentEffects",
+                  duration: "forTheTurn",
+                },
+                {
+                  kind: "ModifyDP",
+                  target: { fromSelectionRef: "yuukoProtectedDigimon", count: 1 },
+                  amount: 3000,
+                  duration: "forTheTurn",
+                },
+              ],
             },
           ],
         },

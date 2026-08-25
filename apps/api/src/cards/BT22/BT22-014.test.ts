@@ -65,7 +65,10 @@ describe("BT22-014 Gaiomon", () => {
       });
     }
     await settle(
-      () => s.decisions.some((decision) => decision.req.kind === "optional" && decision.req.decisionId !== prompt?.req.decisionId),
+      () =>
+        s.decisions.some(
+          (decision) => decision.req.kind === "optional" && decision.req.decisionId !== prompt?.req.decisionId,
+        ),
       60,
     );
     prompt = s.decisions.find(

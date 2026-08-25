@@ -11,9 +11,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
-      actions: [
-        { kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2, controller: "mine" } },
-      ],
+      actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2, controller: "mine" } }],
     },
     {
       trigger: "YourTurn",
@@ -21,10 +19,7 @@ export const compiled: CompiledCard = {
       optional: true,
       condition: {
         kind: "allOf",
-        conditions: [
-          { kind: "isYourTurn" },
-          { kind: "triggerSubjectMatchesFilter", filter: flameOrCs },
-        ],
+        conditions: [{ kind: "isYourTurn" }, { kind: "triggerSubjectMatchesFilter", filter: flameOrCs }],
       },
       actions: [
         {

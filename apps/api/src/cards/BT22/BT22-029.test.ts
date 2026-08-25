@@ -54,9 +54,7 @@ describe("BT22-029 Shoemon", () => {
       await settle();
 
       expect(
-        [s.perm("shoemon"), s.perm("puppet")].filter((permanent) =>
-          observe(s.engine).hasKeyword(permanent, "Blocker"),
-        ),
+        [s.perm("shoemon"), s.perm("puppet")].filter((permanent) => observe(s.engine).hasKeyword(permanent, "Blocker")),
       ).toHaveLength(1);
       expect(observe(s.engine).hasKeyword(s.perm("nonPuppet"), "Blocker")).toBe(false);
     }

@@ -56,7 +56,9 @@ describe("BT22-032 ShoeShoemon", () => {
     await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("shoeShoemon"));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST19-03"));
 
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "ST19-03")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "ST19-03")).toHaveLength(
+      1,
+    );
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
       s.inst("wrongLevel").instanceId,
       s.inst("wrongTrait").instanceId,

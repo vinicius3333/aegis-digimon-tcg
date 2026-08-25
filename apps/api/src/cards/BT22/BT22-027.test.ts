@@ -75,7 +75,9 @@ describe("BT22-027 Ryugumon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("invalidLevel6").instanceId]);
     expect(observe(s.engine).isRestricted(tamerId, "suspend")).toBe(true);
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT22-023");
-    expect(s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT22-023")).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT22-023")).toHaveLength(
+      1,
+    );
   });
 
   it("does nothing when no level-5-or-lower Aqua or Sea Animal hand card can pay the cost", async () => {

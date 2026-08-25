@@ -70,7 +70,9 @@ describe("BT22-030 Musimon", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("musimon").linked.some((card) => card.cardId === "BT21-009")).toBe(true);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT22-087")).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT22-087")).toHaveLength(
+      1,
+    );
   });
 
   it("does not play Torajiro above the Tamer boundary and allows refusal", async () => {

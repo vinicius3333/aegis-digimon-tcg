@@ -59,9 +59,9 @@ describe("BT22-013 WarGreymon", () => {
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source)[0]!.effectKey;
     s.state.memory = 10;
 
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
     await settle(() => s.perm("agumon").topCard?.cardId === "BT22-013");
 
     expect(s.perm("agumon").topCard?.cardId).toBe("BT22-013");
@@ -94,7 +94,12 @@ describe("BT22-013 WarGreymon", () => {
   it("trashes the opponent's top security once when inherited by Omnimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT22-015", under: ["BT22-013"], as: "omnimon" }] },
-      1: { security: [{ card: "BT1-001", as: "top" }, { card: "BT1-002", as: "bottom" }] },
+      1: {
+        security: [
+          { card: "BT1-001", as: "top" },
+          { card: "BT1-002", as: "bottom" },
+        ],
+      },
     });
     await s.ready();
 

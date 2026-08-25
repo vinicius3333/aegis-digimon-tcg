@@ -87,9 +87,9 @@ describe("BT22-026 MetalGarurumon", () => {
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source)[0]!.effectKey;
     s.state.memory = 8;
 
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
     await settle(() => s.perm("gabumon").topCard?.cardId === "BT22-026");
 
     expect(s.state.memory).toBe(2);

@@ -66,9 +66,12 @@ describe("BT22-028 Ariemon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ariemon"));
     await settle(() => s.state.players[0]!.battleArea.length === 4);
 
-    expect(
-      s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort(),
-    ).toEqual(["BT22-018", "BT22-021", "BT22-024", "BT22-028"]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual([
+      "BT22-018",
+      "BT22-021",
+      "BT22-024",
+      "BT22-028",
+    ]);
     expect(s.perm("ariemon").stack.map((card) => card.cardId)).toEqual(["BT22-027"]);
   });
 

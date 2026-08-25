@@ -56,7 +56,9 @@ describe("BT22-034 Reppamon", () => {
     const reppamonId = s.inst("reppamon").instanceId;
 
     await advance(s.engine).verb.trash([reppamonId]);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === reppamonId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === reppamonId),
+    );
 
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === reppamonId)).toBe(false);

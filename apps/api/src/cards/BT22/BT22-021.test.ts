@@ -60,7 +60,6 @@ describe("BT22-021 Shellmon", () => {
 
     expect(s.perm("host").stack.at(-1)?.instanceId).toBe(s.inst("aquatic").instanceId);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooHigh").instanceId)).toBe(true);
-
   });
 
   it("grants inherited Jamming from an evolution stack", async () => {

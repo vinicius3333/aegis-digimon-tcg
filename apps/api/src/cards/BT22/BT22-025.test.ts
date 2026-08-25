@@ -102,10 +102,7 @@ describe("BT22-025 UlforceVeedramon", () => {
   });
 
   it("unsuspends itself when attacking only once per turn", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT22-025", as: "ulforce" }] } },
-      { autoAcceptOptional: true },
-    );
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-025", as: "ulforce" }] } }, { autoAcceptOptional: true });
     await s.ready();
 
     expect(

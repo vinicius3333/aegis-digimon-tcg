@@ -77,7 +77,9 @@ describe("BT22-031 GoldNumemon", () => {
             battleArea: [{ card: "BT22-031", under: ["BT22-031"], as: "goldNumemon" }],
             hand: [{ card: platinum, as: "platinum" }],
           },
-          1: { battleArea: [{ card: "BT22-024", as: "opponent" }] },
+          // An inert 12000-DP target survives BT22-065's registered -8000 DP effect,
+          // leaving the Security Attack modifier observable in the full collection run.
+          1: { battleArea: [{ card: "BT1-080", as: "opponent" }] },
         },
         { autoAcceptOptional: true, autoSelectCards: true },
       );
