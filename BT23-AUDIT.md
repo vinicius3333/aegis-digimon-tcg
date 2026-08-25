@@ -470,6 +470,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; performs a real security battle and observes delayed free play from trash; links for exactly 2 with +3000 DP and both live keyword grants; and proves the selected opponent cannot attack a player while retaining a legal attack against a suspended Digimon.
 - Verification: focused suite — 7 passed; shared security battle-end, self play, attack-player restriction, Link, Reboot, Blocker, and duration mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-053 — Strikedramon — 10/10
+
+- Catalog evidence: Black level 4, play cost 5, 5000 DP, standard black-level-3 evolution for 2 plus alternate level-3 CS evolution for 2; form `Champion`, attribute `Vaccine`, types `Dragonkin` and `CS`; during Your Turn, when one of its controller's Options enters battle area, it may evolve from hand into Cyberdramon-name or CS-trait Digimon with cost reduced by 2; inherited All Turns gives its carrier +1000 DP.
+- Knowledge base: `node tools/kb/query.mjs card BT23-053` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: the hand-authored IR already restores the complete Option-placement watcher and registration is exclusively `registerIrCard("BT23-053", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, opponent-event negative, live inherited DP, and alternate-evolution evidence without changing execution.
+- Primitive trace: the turn-gated watcher accepts only an Option placed by its controller, binds the source itself, searches hand for the Cyberdramon-name/CS-trait union, subtracts 2 from the legal evolution cost, and preserves optional refusal; the inherited continuous modifier remains attached only to its real carrier.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; places a friendly Option, evolves Strikedramon into Cyberdramon for 1 instead of 3, preserves a non-CS hand card, and retains Strikedramon in the stack; proves an opponent's placed Option does not trigger; observes inherited +1000 on a realistic carrier; and accepts off-color level-3 CS evolution while rejecting an off-color non-CS peer.
+- Verification: focused suite — 6 passed; shared placed-Option event, ownership/turn gates, reduced evolution, inherited-continuous, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-053 through BT23-102.
+BT23-054 through BT23-102.
