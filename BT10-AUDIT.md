@@ -431,3 +431,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: real green level-2 Bosamon proves the catalog evolution transition, while a second physical Mushroomon proves direct play independently in the same fixture.
 - Behavioral proof: the focused suite asserts complete catalog identity, exact empty IR, zero-cost legal evolution, printed-cost play, final memory and zones, and absence of an effect decision.
 - Verification: focused suite — 2 passed; generic play/evolution mechanisms — exercised through focused production flows; focused lint/format and `git diff --check` — passed.
+
+## BT10-044 — Angoramon — 10/10
+
+- Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Vaccine`, type `Beast`. Its Your Turn once-per-turn main effect draws one when its controller plays a green Tamer; its Your Turn once-per-turn inherited effect draws one when an opposing Digimon becomes suspended.
+- Knowledge base: `node tools/kb/query.mjs card BT10-044` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: two owner-turn source-instance once-per-turn watchers use distinct `whenPlayed` and `whenSuspended` events. The main watcher requires a controller-owned green Tamer; the inherited watcher requires an opponent-controlled Digimon. Each resolves exactly Draw 1. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-044", compiled)`.
+- Primitive trace: play completion emits the committed card identity and controller after its play resolves; the live Angoramon watcher filters Tamer kind, green color, ownership, and owner turn before consuming frequency. Suspension emits the affected permanent identity; the inherited source binds its frequency to its physical card under the host and accepts only an opposing Digimon during its owner's turn.
+- Cross-card and stack proof: two real green Tamer plays prove the main frequency while a red Tamer and opponent-owned green Tamer prove both filter boundaries. Angoramon under a legal green host observes two distinct opposing suspensions but draws only for the first, and an opponent-turn fixture proves the owner-turn boundary.
+- Behavioral proof: four focused cases prove catalog and structural fidelity, exact green-Tamer ownership filters, main once-per-turn, legal inherited stack activation, opposing-Digimon filtering, inherited once-per-turn, and both owner-turn negatives.
+- Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
