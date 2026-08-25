@@ -88,4 +88,26 @@ describe("BT22-051 Okuwamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash).toHaveLength(2);
   });
+
+  it("implements Q4904 by not trashing security when the inherited source is also deleted", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT22-051"], dp: 12000 }] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "defender", suspended: true, dp: 12000 }],
+        security: ["BT1-010", "BT1-011"],
+      },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
 });
