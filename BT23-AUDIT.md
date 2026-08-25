@@ -758,6 +758,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; atomically pays both costs and places Lopmon only in empty breeding; with occupied breeding proves neither cost is paid and the hand target remains; proves positive/negative start-main CS possession; observes inherited Alliance live on a realistic Hudiemon stack and absent from a nonmatching carrier; and structurally checks every cost/filter/destination clause.
 - Verification: focused suite — 8 passed after refreshing shared runtime data; shared compound costs, transactional breeding preflight, breeding play/On Play suppression, level/trait filtering, inherited effective-name aura, Alliance, start-main gate, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-085 — Ryuji Mishima — 10/10
+
+- Catalog evidence: Black cost-4 Tamer, types `Hudie` and `CS`; Start of Your Main Phase gains 1 memory while controlling a CS Digimon; On Play gives one friendly Hudie immunity to opponent DP reduction plus Reboot and Blocker through the opponent's turn end; All Turns when a friendly Hudie suspends, may suspend this Tamer to use one single-color CS Option from hand for free; Security plays this card for free.
+- Knowledge base: no card-specific rulings are recorded locally; the exact catalog text and general same-target, opponent-effect provenance, duration, suspension cost, Option color/trait, and free-use rules therefore control.
+- Defects corrected: authoritative shared IR omitted DP-reduction immunity and same-target binding, and modeled Option use as trashing a loosely described card instead of executing its effect, with the suspension cost attached to the wrong level. It now mirrors the direct Restrict/grants and paid listener using `UseOptionWithoutCost`; registration remains exclusively `registerIrCard("BT23-085", compiled)` with full coverage/no residuals.
+- Primitive trace: start-main checks friendly CS; On Play selects one Hudie once, records opponent-only DP immunity and reuses that exact identity for Reboot/Blocker through opponent turn end; the all-turns listener filters the suspension subject by friendly Hudie, suspends Ryuji, selects only single-color CS Options from hand, and resolves one without memory payment; Security self-play is free.
+- Behavioral proof: the focused suite checks catalog/coverage; proves positive/negative start-main possession; fires On Play and observes all three live protections on the same Hudiemon; suspends a Hudie, pays by suspending Ryuji, uses the real single-color Hudie Net Cafe Option for free, places it, and observes its Draw effect; and structurally verifies every filter/cost/duration clause.
+- Verification: focused suite — 7 passed after refreshing shared runtime data; shared opponent-provenance DP immunity, same-target binding, duration keywords, Hudie suspension listener, paid single-color CS Option use, Option resolution, start-main gate, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-085 through BT23-102.
+BT23-086 through BT23-102.

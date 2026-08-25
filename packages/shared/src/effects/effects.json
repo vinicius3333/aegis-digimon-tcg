@@ -81379,7 +81379,7 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "GainKeyword",
+            "kind": "Restrict",
             "target": {
               "filter": {
                 "controller": "mine",
@@ -81387,6 +81387,21 @@
                 "nameOrTrait": [{ "tokens": ["Hudie"], "match": "trait" }]
               },
               "count": 1
+            },
+            "restriction": "dpImmune",
+            "byOpponentEffectsOnly": true,
+            "duration": "untilOpponentTurnEnd"
+          },
+          {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Hudie"], "match": "trait" }]
+              },
+              "count": 1,
+              "sameTarget": true
             },
             "keyword": { "keyword": "Reboot", "raw": "＜Reboot＞" },
             "duration": "untilOpponentTurnEnd"
@@ -81399,7 +81414,8 @@
                 "kind": ["Digimon"],
                 "nameOrTrait": [{ "tokens": ["Hudie"], "match": "trait" }]
               },
-              "count": 1
+              "count": 1,
+              "sameTarget": true
             },
             "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
             "duration": "untilOpponentTurnEnd"
@@ -81419,26 +81435,23 @@
             },
             "actions": [
               {
-                "kind": "Trash",
-                "target": {
-                  "filter": {
-                    "kind": ["Option"],
-                    "nameOrTrait": "single-color [CS] trait",
-                    "controller": "mine",
-                    "zone": "hand"
-                  },
-                  "count": 1
+                "kind": "UseOptionWithoutCost",
+                "filter": {
+                  "controller": "mine",
+                  "kind": ["Option"],
+                  "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }],
+                  "singleColor": true
                 },
-                "activate": true,
-                "cost": {
-                  "kind": "suspend",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by suspending this Tamer"
-                },
-                "optional": true,
-                "abortOnDecline": true
+                "payCost": false,
+                "from": ["hand"],
+                "optional": true
               }
-            ]
+            ],
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            }
           }
         ]
       },
