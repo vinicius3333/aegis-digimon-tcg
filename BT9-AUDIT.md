@@ -197,3 +197,31 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-007.
+
+## BT9-008 — Agumon (X Antibody) — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red level-3, play cost 3, 2000 DP, `Rookie`/`Vaccine`, complete `Dinosaur`/`X Antibody` traits, standard red-level-2 evolution for 0, and all printed text were checked.
+2. **On Play timing and payment (1/1):** A public play intent spends exactly 3 memory and resolves the reveal contract.
+3. **When Digivolving timing (1/1):** A public evolution intent into Agumon X resolves the same reveal contract and preserves the source stack.
+4. **Greymon and Omnimon name union (1/1):** Comparative single-bucket cases separately add Greymon and Omnimon while bottoming both misses.
+5. **X Antibody bucket (1/1):** A comparative single-bucket case adds the exact `X Antibody`-named card and bottoms both misses.
+6. **Q1797 partial availability (1/1):** Each of the three sole-available branches resolves independently instead of requiring both add buckets.
+7. **Q1798 mandatory maximum (1/1):** When a Greymon and X Antibody are both revealed, both cards enter hand and only the nonmatch remains on deck bottom.
+8. **Evolution recipes (1/1):** The alternate exact Agumon evolution, standard red Digi-Egg evolution, and wrong-color blue Digi-Egg rejection are all exercised at cost 0.
+9. **Direct IR and registration (1/1):** Both timings carry identical capped `RevealAdd` buckets, full coverage, no residual clauses, and exactly one `registerIrCard("BT9-008", compiled)` registration with no legacy registration.
+10. **Reproducible verification (1/1):** Focused proof passed 5/5 (including three Q1797 comparative subcases); workspace and API typechecks and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-008
+rg -n 'Q1797|Q1798' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-008.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-008.test.ts --reporter=dot
+pnpm typecheck
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-008.
