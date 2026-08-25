@@ -314,6 +314,21 @@ describe("applyPlayCard - Option resolve then trash", () => {
     expect(state.players[0]!.trash.length).toBe(1);
   });
 
+  it("reports the card-level adjusted use cost to whenOptionUsed (BT10-032 Q1956)", async () => {
+    const state = makeState([OPTION_COST]); // printed 3, card-level adjusted to 1
+    const id = firstInstanceId(state, 0);
+    let eventCost: number | undefined;
+    const { deps } = makeDeps({
+      adjustedPlayCost: () => 1,
+      fireOptionUsed: async (_instanceId, usedOptionCost) => {
+        eventCost = usedOptionCost;
+      },
+    });
+
+    expect((await applyPlayCard(state, 0, playIntent(id), deps)).ok).toBe(true);
+    expect(eventCost).toBe(1);
+  });
+
   it("holds the option on resolvingOption (not trash) during fireTiming, per §9-1-4", async () => {
     const state = makeState([OPTION_FREE]);
     const id = firstInstanceId(state, 0);
@@ -425,6 +440,23 @@ describe("applyPlayCard - BeforePayCost finalizePlayCost hook (pay-time interact
 
     expect((await applyPlayCard(state, 0, playIntent(id), deps)).ok).toBe(true);
     expect(finalizedMode).toBe("option");
+  });
+
+  it("preserves use cost when only the amount paid is finalized lower (BT10-032 Q1957)", async () => {
+    const state = makeState([OPTION_COST]); // use cost 3, payment reduced to 1
+    state.memory = 3;
+    const id = firstInstanceId(state, 0);
+    let eventCost: number | undefined;
+    const { deps } = makeDeps({
+      finalizePlayCost: async () => 1,
+      fireOptionUsed: async (_instanceId, usedOptionCost) => {
+        eventCost = usedOptionCost;
+      },
+    });
+
+    expect((await applyPlayCard(state, 0, playIntent(id), deps)).ok).toBe(true);
+    expect(state.memory).toBe(2);
+    expect(eventCost).toBe(3);
   });
 
   it("pays the passive cost unchanged when no finalizePlayCost dep is supplied (standalone default)", async () => {

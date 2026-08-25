@@ -359,10 +359,8 @@ export interface TriggerInfo {
    */
   digivolvedFromZone?: ZoneRef;
   /**
-   * The ORIGINAL use cost of the Option whose use fired this event (whenOptionUsed). A watcher
-   * gated on "an Option card with a cost of 2 or more" (BT19-040) reads this. KB Q5471-Q5473: the
-   * gate reads the card's cost itself (not a paid/reduced cost), so the producer carries the
-   * Option's printed use cost, never a post-reduction value.
+   * The rules-relevant use cost of the Option whose use fired this event: after card-level
+   * changes, but before payment-only reductions (BT10-032 Q1956/Q1957).
    */
   usedOptionCost?: number;
   /**
@@ -862,7 +860,7 @@ export interface Primitives {
    * watcher). The use-option-without-cost verb lands in 08-06 and calls this at its produce site;
    * the event member + this fire-hook seam are defined in 08-01 so the watcher substrate exists.
    * `usedInstanceId` (the Option whose effect was used) is carried as the subject; `usedOptionCost`
-   * (the Option's ORIGINAL use cost) lets a watcher gate on "a cost of 2 or more" (BT19-040).
+   * (the rules-relevant use cost) lets a watcher gate on "a cost of 2 or more".
    */
   fireOptionUsed(usedInstanceId: string, usedOptionCost?: number): Promise<void>;
   /**
@@ -882,8 +880,8 @@ export interface Primitives {
    * card's [Main]/`OnUseOption` effect (via `resolveCardEffect`) under the CALLING card's
    * control, then trashes the Option (Options resolve then go to trash — they are not
    * permanents) and fires the `whenOptionUsed` SubTrigger (BT19-040 token watcher). Returns
-   * the trashed instances. `usedOptionCost` (the Option's ORIGINAL use cost) is carried into
-   * the fire payload.
+   * the trashed instances. `usedOptionCost` carries the use cost before any payment-only
+   * reduction; free-use and reduced-payment effects therefore preserve it.
    */
   useOptionFromHand(
     ctx: EffectContext,

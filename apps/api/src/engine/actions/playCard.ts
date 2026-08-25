@@ -105,7 +105,13 @@ export interface PlayCardDeps {
    * absent the printed cost is used unchanged. The engine binds this to the
    * ModifierLedger's `playCostFor`.
    */
-  adjustedPlayCost?(state: GameState, seat: Seat, definition: CardDefinition, base: number): number;
+  adjustedPlayCost?(
+    state: GameState,
+    seat: Seat,
+    definition: CardDefinition,
+    base: number,
+    instance?: CardInstance,
+  ): number;
   /**
    * Whether a seat-level play prohibition (RestrictPlay: "your opponent can't play <X>")
    * forbids `seat` from playing `definition` right now. Optional: when absent no play is
@@ -278,7 +284,9 @@ export function validatePlayCard(
   // 5. Affordability: the play cost (after any continuous cost modifiers) must be
   //    payable (documented behavior MaxMemoryCost >= cost).
   const printed = normalizeCost(definition.playCost);
-  const cost = deps.adjustedPlayCost ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed)) : printed;
+  const cost = deps.adjustedPlayCost
+    ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed, found.instance))
+    : printed;
   // A self/cross-card reducer may only be finalized at BeforePayCost because its
   // condition, scaling, or optional payment is evaluated against the live board.
   // Let that narrow class enter the async finalization path; applyPlayCard performs
@@ -484,7 +492,10 @@ export async function applyPlayCard(
   // [Main] effect has finished and the card has completed its post-use routing.  Firing
   // from inside the resolvingOption window made watchers observe a card in no area and
   // allowed their effects to resolve before the Option reached trash/delay/battle.
-  await deps.fireOptionUsed?.(instance.instanceId, definition.playCost);
+  // Carry the rules-relevant use cost: continuous/card-level modifiers have
+  // already produced `passiveCost`, while BeforePayCost changes only payment.
+  // This distinction implements BT10-032 Q1956/Q1957.
+  await deps.fireOptionUsed?.(instance.instanceId, passiveCost);
 
   return {
     ok: true,

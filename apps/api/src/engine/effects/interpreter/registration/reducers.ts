@@ -280,6 +280,19 @@ export function wouldBePlayedSelfReducersFor(cardId: string): WouldBePlayedSelfR
   return WOULD_BE_PLAYED_SELF_REDUCERS.get(cardId) ?? [];
 }
 
+/** Automatic self reducers change the card's use/play cost itself; payable reducers only change payment. */
+export function automaticWouldBePlayedSelfReduction(
+  ctx: EffectContext,
+  reducers: readonly WouldBePlayedSelfReducer[],
+): number {
+  return reducers.reduce((total, reducer) => {
+    if (reducer.pay !== undefined || reducer.cost !== undefined || reducer.costActions !== undefined) return total;
+    if (reducer.condition !== undefined && !evaluateCondition(ctx, reducer.condition)) return total;
+    const scale = reducer.scaling === undefined ? 1 : scaleFactor(ctx, reducer.scaling);
+    return total + Math.max(0, reducer.amount * scale);
+  }, 0);
+}
+
 export interface WouldDigivolveSelfReducer {
   cost?: Cost;
   scaling?: Scaling;
