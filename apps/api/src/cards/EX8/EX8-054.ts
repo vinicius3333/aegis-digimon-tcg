@@ -44,7 +44,9 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ level: 6, names: ["Justimon"], cost: 1, isAlternate: true }],
+  digivolutionRequirement: [
+    { level: 6, names: ["Justimon"], excludeTraits: ["X Antibody"], cost: 1, isAlternate: true },
+  ],
 };
 
 registerIrCard("EX8-054", compiled);
