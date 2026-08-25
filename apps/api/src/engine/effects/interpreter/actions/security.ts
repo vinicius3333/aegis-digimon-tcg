@@ -244,6 +244,13 @@ export async function runSecurityManipulation(
           if (card !== undefined) ctx.fx.revealCard(seat, card.cardId, ctx.source.cardId);
         }
         moved = await ctx.fx.securityToHand(seat, amount, { instanceIds: chosen });
+      } else if (action.faceDownOnly) {
+        const security = ctx.game.player(seat).security;
+        const ordered = action.toTop === false ? [...security].reverse() : security;
+        const chosen = ordered.filter((card) => card.faceUp !== true).slice(0, amount);
+        moved = await ctx.fx.securityToHand(seat, amount, {
+          instanceIds: chosen.map((card) => card.instanceId),
+        });
       } else {
         moved = await ctx.fx.securityToHand(seat, amount, { fromTop: action.toTop ?? true });
       }

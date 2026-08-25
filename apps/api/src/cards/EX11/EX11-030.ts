@@ -6,12 +6,6 @@ const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 3,
-      cost: 3,
-      colors: ["Green", "Black"],
-      isAlternate: true,
-    },
-    {
-      level: 3,
       traits: ["Royal Base"],
       cost: 2,
       isAlternate: true,
