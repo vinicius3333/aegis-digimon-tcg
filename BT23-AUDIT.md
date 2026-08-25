@@ -923,3 +923,11 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 ## Remaining queue
 
 None. All 102 BT23 cards have card-level 10/10 evidence; collection-wide recalculation and gates follow below.
+
+## Collection-wide recalculation — 102/102 (100%) at 10/10
+
+- Registration: all 102 BT23 executable modules register exclusively through `registerIrCard(cardId, compiled)`; the collection gate reports no duplicate legacy `registerCard` path.
+- Coverage: every card has `coverage: "full"`, an empty residual list, exact catalog/KB evidence, a direct primitive trace, and focused observable behavioral proof recorded above.
+- Collection gate: `vitest run src/cards/BT23 src/engine/deckCardAuditBT23.test.ts` — 103 files and 835 tests passed.
+- Workspace gates: `pnpm typecheck` passed for shared, API, and web; `pnpm lint` exited successfully with repository warnings only; `pnpm format:check` passed across 9,919 files; `git diff --check` passed.
+- Remaining queue: none.
