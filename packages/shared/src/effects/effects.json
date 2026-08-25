@@ -46058,8 +46058,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "colors": ["Yellow"],
-                  "nameOrTrait": [{ "tokens": ["Data"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Witchelny"], "match": "trait" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -46067,7 +46066,8 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Witchelny"], "match": "trait" }]
+                  "colors": ["Yellow"],
+                  "nameOrTrait": [{ "tokens": ["Data"], "match": "trait" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -46083,6 +46083,7 @@
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
+            "leaveCause": "byOpponentEffect",
             "sourceFilter": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
@@ -46095,7 +46096,7 @@
                 "mode": "leavePlay",
                 "cost": {
                   "kind": "trash",
-                  "target": { "filter": { "controller": "mine", "zone": "security" }, "count": 1 },
+                  "target": { "filter": { "controller": "mine", "zone": "security", "position": "top" }, "count": 1 },
                   "raw": "by trashing your top security card"
                 },
                 "optional": true,
