@@ -371,3 +371,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: a real yellow level 4 Shortmon base proves the catalog evolution transition, while a second physical Weddinmon proves direct play independently in the same fixture.
 - Behavioral proof: the focused suite asserts complete catalog identity, exact empty IR, printed-cost evolution, printed-cost play, final memory and zones, and absence of an effect decision.
 - Verification: focused suite — 2 passed; generic play/evolution mechanisms — exercised through focused production flows; workspace typecheck — unchanged green seam; focused lint/format and `git diff --check` — passed.
+
+## BT10-038 — Sanzomon — 10/10
+
+- Catalog evidence: yellow level 5 Digimon, play cost 7, 7000 DP; evolves from yellow level 4 for 3; form `Ultimate`, attribute `Vaccine`, type `Monk`. When Digivolving gives exactly one opposing Digimon Security Attack -1 through the end of the opponent's turn; its inherited When Attacking does the same once per turn.
+- Knowledge base: `node tools/kb/query.mjs card BT10-038` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: both clauses use the same exact opponent-only one-target `GainKeyword` amount -1 and `untilOpponentTurnEnd` duration; only the inherited attack clause is inherited and once per turn. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-038", compiled)`.
+- Primitive trace: normal evolution collects the top-card timing after the yellow level-4 transition; target resolution offers opposing Digimon only and attaches a duration-ledger keyword modifier to the chosen permanent. Inherited attack collection binds frequency to Sanzomon's physical source, and opponent-turn-end cleanup removes both clause shapes at the exact boundary.
+- Cross-card and stack proof: the evolution path uses a real yellow level-4 base and distinguishes one chosen target from a same-card peer. The inherited path places Sanzomon beneath level-6 yellow Venusmon, attacks twice after a controlled unsuspend, and proves only the first attack applies the debuff; the two-turn regression proves persistence and expiry.
+- Behavioral proof: four focused cases prove structural timing/inheritance/frequency/target/amount/duration, real evolution, exact one-target choice, legal inherited stack activation, once-per-turn suppression, survival through the owner's end, and expiry at the opponent's end.
+- Verification: focused suite — 4 passed; keyword-duration and inherited-frequency mechanisms — exercised through production evolution/attack/turn flows; focused style and `git diff --check` — passed.
