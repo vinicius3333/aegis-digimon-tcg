@@ -8,7 +8,7 @@ import { swapMainDeckCard } from "./scenarioHarness/decks";
 import { scenario } from "./scenarioHarness/scenario";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
-import { resolveNextTriggerThroughUi } from "./scenarioHarness/decisions";
+import { decisionCandidates, findDecisionSurface, resolveNextTriggerThroughUi } from "./scenarioHarness/decisions";
 
 // EX11-069 "Yuuki" (Purple/Red Tamer, playCost 4): accepting its "gain 1 memory"
 // optional (see optionalDecision.scenario.test.tsx) pays a mandatory "trash 1 card
@@ -74,36 +74,36 @@ scenario("card-selection", () => {
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
     // Yuuki's OnPlay opens the "optional" decision; accept it.
-    const optionalDialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
-    fireEvent.click(within(optionalDialog).getByRole("button", { name: /yes, activate/i }));
+    const optionalDialog = await findDecisionSurface();
+    fireEvent.click(within(optionalDialog).getByRole("button", { name: /yes, activate|^use$/i }));
 
-    // Accepting cascades into the real "selectCards" decision — its own heading
-    // text ("Select 1 target") and its candidate cards (rendered as selectable
-    // CardFull thumbnails, aria-pressed distinguishing them from Confirm/None)
-    // prove this is genuinely the card-selection overlay, not the optional one.
-    // The overlay div is reused (same component, new props), so wait for its
-    // content to actually flip rather than just for "a dialog" to be present —
-    // that would still match the stale "optional" one mid-transition.
+    // Accepting cascades into the real "selectCards" decision. Its candidates are
+    // all in hand, so it is answered on the board: the rail's "Hand selection"
+    // eyebrow and the pickable hand cards prove this is genuinely the
+    // card-selection prompt, not the optional one. The rail is reused (same
+    // component, new props), so wait for its content to actually flip rather than
+    // just for "a prompt" to be present — that would still match the stale
+    // optional one mid-transition.
     const selectDialog = await vi.waitFor(
       () => {
-        const dialog = screen.getByRole("dialog");
-        expect(dialog.textContent).toMatch(/select 1 target/i);
+        const dialog = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
+        expect(dialog.textContent).toMatch(/hand selection/i);
         return dialog;
       },
       { timeout: 10_000 },
     );
-    const [candidate] = within(selectDialog).getAllByRole("button", { pressed: false });
-    const candidateName = candidate!.getAttribute("aria-label") ?? "";
+    const [candidate] = decisionCandidates(selectDialog);
+    const candidateLabel = candidate!.getAttribute("aria-label") ?? "";
+    // The hand labels a pickable card "Pick {name}"; the trash below lists the
+    // card by its bare name, so keep both forms.
+    const candidateName = candidateLabel.replace(/^Pick /, "");
     expect(candidateName.length).toBeGreaterThan(0);
 
     fireEvent.click(candidate!);
-    // Clicking marks it selected — the overlay appends ", selected" to the
-    // aria-label (overlays.tsx's DecisionOverlay) and flips aria-pressed.
-    expect(
-      within(selectDialog).getByRole("button", { name: `${candidateName}, selected`, pressed: true }),
-    ).toBeTruthy();
+    // Clicking marks it picked — the label gains ", selected" and aria-pressed flips.
+    expect(screen.getByRole("button", { name: `${candidateLabel}, selected`, pressed: true })).toBeTruthy();
     const selectionDecisionId = opponent.room.state.pendingDecision?.decisionId;
-    fireEvent.click(within(selectDialog).getByRole("button", { name: /confirm target/i }));
+    fireEvent.click(within(selectDialog).getByRole("button", { name: /confirm target|^end selection$/i }));
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(selectionDecisionId), {
       timeout: 10_000,
     });
@@ -119,13 +119,13 @@ scenario("card-selection", () => {
         continue;
       }
       const decisionId = opponent.room.state.pendingDecision.decisionId;
-      const dialog = screen.getByRole("dialog");
-      fireEvent.click(within(dialog).getByRole("button", { name: /no, decline/i }));
+      const dialog = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
+      fireEvent.click(within(dialog).getByRole("button", { name: /no, decline|^not use$/i }));
       await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionId), {
         timeout: 10_000,
       });
     }
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt")).toBeNull();
 
     // The exact card selected through the UI — not just "some" card — is now
     // visible after opening the public trash pile, proving the chosen selection

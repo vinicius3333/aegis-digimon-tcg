@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { CardInstance, Permanent, type DecisionRequest, type Seat } from "@aegis/shared";
 import { AttackArrow, BreedingSlot, Hand, MemoryGauge, PermanentView, Pile, type HandEntry } from "../game/boardPieces";
 import { BlockOverlay, DecisionOverlay, GameOverOverlay, MulliganOverlay } from "../game/overlays";
+import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../game/BoardDecisionRail";
 import { NoticeStack } from "../game/NoticeStack";
 import { SidePanelStack } from "../game/SidePanelStack";
 import type { MatchNotice } from "../game/notices";
@@ -117,6 +118,26 @@ const TARGET_DECISION: DecisionRequest = {
     timing: "Main",
     effectText: "[Main] Delete 1 of your opponent's Digimon with 5000 DP or less.",
   },
+};
+
+const TRIGGER_DECISION: DecisionRequest = {
+  decisionId: "showcase-triggers",
+  seat: 0,
+  kind: "orderTriggers",
+  promptText: "Choose one effect to activate",
+  options: {
+    triggerKeys: [`p-you-1-top::${CARDS.champion}/ir-0-0`, `p-you-2-top::${CARDS.ultimate}/ir-1-0`],
+    triggerCardIds: [CARDS.champion, CARDS.ultimate],
+    timing: "OnPlay",
+  },
+};
+
+const HAND_SELECTION_DECISION: DecisionRequest = {
+  decisionId: "showcase-hand-selection",
+  seat: 0,
+  kind: "selectCards",
+  promptText: "Select 2 cards to trash.",
+  options: { candidateInstanceIds: ["hand-0", "hand-1", "hand-2"], min: 0, max: 2 },
 };
 
 const noop = () => {};
@@ -561,6 +582,49 @@ export function BoardShowcase() {
       </Section>
 
       <Section
+        id="showcase-board-decisions"
+        title="board-mode decisions"
+        note="Decisions the board can answer without a dialog: a hand-only selection picks its cards in place beside the left rail, an optional effect asks Use / Not use next to the field it changes, and the pill says the opponent has a decision of their own open."
+        stacked
+      >
+        <Stage label="hand selection rail (cards picked in place)" height={420}>
+          <BoardSelectionRail
+            prompt={HAND_SELECTION_DECISION.promptText}
+            min={0}
+            max={2}
+            pickCount={1}
+            canConfirm
+            onConfirm={noop}
+            onNoSelection={noop}
+            onOpenDialog={noop}
+          />
+          <div style={{ position: "absolute", right: 24, bottom: 40, width: 460 }}>
+            <Hand
+              cards={MIXED_HAND}
+              startDrag={noop}
+              selection={{
+                selectableInstanceIds: HAND_SELECTION_DECISION.options?.candidateInstanceIds ?? [],
+                pickedInstanceIds: ["hand-1"],
+                onToggle: noop,
+              }}
+            />
+          </div>
+        </Stage>
+        <Stage label="Use / Not use rail" height={420}>
+          <BoardOptionalPrompt
+            sourceCardId={CARDS.mega}
+            clause="Delete 1 of your opponent's Digimon with 5000 DP or less."
+            onUse={noop}
+            onDecline={noop}
+            onOpenDialog={noop}
+          />
+        </Stage>
+        <Stage label="opponent is selecting cards" height={280}>
+          <OpponentSelectingPill />
+        </Stage>
+      </Section>
+
+      <Section
         id="showcase-dialogs"
         title="dialogs"
         note="Mulligan, block window, target decision and game over, each on its own framed stage."
@@ -569,6 +633,7 @@ export function BoardShowcase() {
         <Stage label="mulligan" height={560}>
           <MulliganOverlay
             handCardIds={[CARDS.rookie, CARDS.champion, CARDS.tamer, CARDS.option, CARDS.ultimate]}
+            turnOrder="second"
             onKeep={noop}
             onMulligan={noop}
           />
@@ -586,7 +651,7 @@ export function BoardShowcase() {
             />
           </div>
         </Stage>
-        <Stage label="target decision" height={560}>
+        <Stage label="target decision" height={760}>
           <div className="game-modal" style={{ position: "absolute", inset: 0 }}>
             <DecisionOverlay
               request={TARGET_DECISION}
@@ -602,6 +667,21 @@ export function BoardShowcase() {
                 },
               ]}
               picks={["opp-1"]}
+              onTogglePick={noop}
+              onRespond={noop}
+            />
+          </div>
+        </Stage>
+        <Stage label="trigger chooser (multiple effects)" height={700}>
+          <div className="game-modal" style={{ position: "absolute", inset: 0 }}>
+            <DecisionOverlay
+              request={TRIGGER_DECISION}
+              candidates={[]}
+              picks={[]}
+              triggerDetails={[
+                { sourceLabel: "Field:1", summary: "Draw 1 card, then trash 1 card in your hand." },
+                { sourceLabel: "Field:2", summary: "Delete 1 of your opponent's Digimon with 5000 DP or…" },
+              ]}
               onTogglePick={noop}
               onRespond={noop}
             />

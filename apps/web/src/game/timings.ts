@@ -61,6 +61,8 @@ export const TIMINGS = {
   sidePanelIn: 230,
   /** A match dialog opening. */
   dialogIn: 180,
+  /** The board-mode decision rail sliding in from the left edge. */
+  boardPromptIn: 200,
   /** Hover intent before an opponent permanent opens its inspector. */
   inspectorOpen: 320,
   /** Grace period before the inspector closes again. */
@@ -99,6 +101,7 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-side-panel-in": TIMINGS.sidePanelIn,
   "--t-notice-in": TIMINGS.noticeIn,
   "--t-dialog-in": TIMINGS.dialogIn,
+  "--t-board-prompt-in": TIMINGS.boardPromptIn,
 };
 
 /**

@@ -113,6 +113,17 @@ describe("mobile portrait match layout", () => {
     );
     expect(portraitRules).toMatch(/\.decision-board-return > button \{[^}]*min-height:\s*44px/);
   });
+
+  it("shrinks the board-mode decision rail so the phone board stays readable", () => {
+    // The rail is the only way to answer a board-mode decision, so its actions must
+    // never be pushed off: it takes a fraction of the width and lets only the
+    // printed clause scroll.
+    expect(portraitRules).toMatch(/\.board-prompt \{[^}]*width:\s*min\(15rem, 46vw\)/);
+    expect(portraitRules).toMatch(/\.board-prompt__clause \{[^}]*max-height:\s*4\.5rem/);
+    expect(gameCss).toMatch(/\.board-prompt__clause \{[^}]*overflow-y:\s*auto/);
+    // The opponent pill clears the phone opponent bar instead of painting over it.
+    expect(portraitRules).toMatch(/\.board-opponent-pill \{[^}]*top:\s*3\.5rem/);
+  });
 });
 
 describe("choice rows lead with the affirmative action", () => {

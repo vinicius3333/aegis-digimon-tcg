@@ -140,7 +140,7 @@ scenario("trigger-order", () => {
     // Turn]" effects fire at once — the real
     // "orderTriggers" decision opens before the turn's own Breeding window (it
     // gates the whole turn's timing resolution).
-    await screen.findByText(/select the card whose effect resolves next/i, {}, { timeout: 10_000 });
+    await screen.findByText(/multiple effects are triggered/i, {}, { timeout: 10_000 });
     const dialog = screen.getByRole("dialog");
 
     const taiButton = within(dialog).getByRole("button", { name: /tai kamiya/i });

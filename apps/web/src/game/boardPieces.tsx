@@ -707,12 +707,25 @@ function useElementWidth(element: HTMLElement | null): number {
   return width;
 }
 
+/**
+ * A board-mode `selectCards` decision answered out of this hand. While it is set
+ * the hand stops being a play surface: cards are picked in place, in order, and
+ * dragging is off so a pick cannot become an accidental play.
+ */
+export interface HandSelection {
+  selectableInstanceIds: readonly string[];
+  /** Picked instance ids, in the order they were chosen — the badge is the position. */
+  pickedInstanceIds: readonly string[];
+  onToggle: (instanceId: string) => void;
+}
+
 export function Hand({
   cards,
   selectedInstanceId,
   startDrag,
   selectCard,
   draggingInstanceId,
+  selection,
   cardWidth = HAND_CARD_WIDTH,
   minExposure = HAND_MIN_EXPOSURE,
 }: {
@@ -721,6 +734,7 @@ export function Hand({
   startDrag: (index: number, e: React.PointerEvent) => void;
   selectCard?: (index: number) => void;
   draggingInstanceId?: string;
+  selection?: HandSelection;
   cardWidth?: number;
   /** How much of a buried card stays tappable. */
   minExposure?: number;
@@ -731,6 +745,20 @@ export function Hand({
   const [rowEl, setRowEl] = useState<HTMLDivElement | null>(null);
   const rowWidth = useElementWidth(rowEl);
   const drawn = useEnterAnimation(cards.map((entry) => entry.instanceId));
+  // Two copies of one card look identical in the fan, so a selection labels each
+  // one by its position among the copies the way the dialog's grid does.
+  const copyLabels = new Map<string, string>();
+  if (selection) {
+    const totals = new Map<string, number>();
+    for (const entry of cards) totals.set(entry.cardId, (totals.get(entry.cardId) ?? 0) + 1);
+    const seen = new Map<string, number>();
+    for (const entry of cards) {
+      const total = totals.get(entry.cardId) ?? 0;
+      const index = (seen.get(entry.cardId) ?? 0) + 1;
+      seen.set(entry.cardId, index);
+      if (total > 1) copyLabels.set(entry.instanceId, t("overlay.cardCopy", { index, total }));
+    }
+  }
   // The hand tightens its own fan until it fits the dock. Without this a big hand
   // simply grew past the board and painted over the sidebar.
   const overlap = handOverlap(n, rowWidth, cardWidth, minExposure);
@@ -756,10 +784,13 @@ export function Hand({
         // The arc always spends the same room, however many cards are fanned, so
         // the outermost card never drops below the dock and out of the window.
         const fan = mid > 0 ? (Math.abs(off) / mid) * HAND_MAX_FAN : 0;
-        const sel = selectedInstanceId === entry.instanceId;
+        const pickPosition = selection ? selection.pickedInstanceIds.indexOf(entry.instanceId) : -1;
+        const picked = pickPosition !== -1;
+        const pickable = selection?.selectableInstanceIds.includes(entry.instanceId) ?? false;
+        const sel = selection ? picked : selectedInstanceId === entry.instanceId;
         const dragging = draggingInstanceId === entry.instanceId;
         const hov = hoveredIndex === i;
-        const playable = entry.playableFromHand || entry.digivolveTargetPermanentIds.length > 0;
+        const playable = selection ? pickable : entry.playableFromHand || entry.digivolveTargetPermanentIds.length > 0;
         const style: CSSProperties = {
           marginLeft: i === 0 ? 0 : -overlap,
           cursor: "grab",
@@ -778,13 +809,21 @@ export function Hand({
         return (
           <div
             key={entry.instanceId}
-            onPointerDown={(e) => startDrag(i, e)}
+            onPointerDown={selection ? undefined : (e) => startDrag(i, e)}
             onKeyDown={(event) => {
               if (event.key !== "Enter" && event.key !== " ") return;
               event.preventDefault();
+              if (selection) {
+                if (pickable) selection.onToggle(entry.instanceId);
+                return;
+              }
               selectCard?.(i);
             }}
             onClick={(event) => {
+              if (selection) {
+                if (pickable) selection.onToggle(entry.instanceId);
+                return;
+              }
               // Pointer taps are resolved by GameScreen's drag/tap recognizer.
               // A zero-detail click is keyboard/assistive activation and needs a
               // direct deterministic selection path without toggling twice.
@@ -794,18 +833,35 @@ export function Hand({
             onMouseLeave={() => setHoveredIndex(null)}
             role="button"
             tabIndex={0}
-            aria-label={t("game.selectCard", { card: getCardDefinition(entry.cardId)?.nameEn ?? entry.cardId })}
+            aria-label={
+              t(selection ? "game.pickCard" : "game.selectCard", {
+                card: getCardDefinition(entry.cardId)?.nameEn ?? entry.cardId,
+              }) +
+              (copyLabels.has(entry.instanceId) ? `, ${copyLabels.get(entry.instanceId)}` : "") +
+              (picked ? t("overlay.selected") : "")
+            }
+            aria-disabled={selection && !pickable ? true : undefined}
             aria-pressed={sel}
             className={[
               "game-hand-card",
               playable ? "game-hand-card--playable" : "",
               drawn.has(entry.instanceId) ? "game-hand-card--drawn" : "",
+              selection && !pickable && !picked ? "game-hand-card--unpickable" : "",
+              picked ? "game-hand-card--picked" : "",
             ]
               .filter(Boolean)
               .join(" ")}
-            style={style}
+            style={selection ? { ...style, cursor: pickable ? "pointer" : "default" } : style}
           >
             <CardFull cardId={entry.cardId} width={cardWidth} selected={sel} />
+            {picked ? (
+              <span
+                className="game-hand-card__pick-badge"
+                aria-label={t("game.pickPosition", { position: pickPosition + 1 })}
+              >
+                {pickPosition + 1}
+              </span>
+            ) : null}
           </div>
         );
       })}

@@ -44,13 +44,12 @@ describe("CardEffectsDemo", () => {
     );
 
     expect(screen.getByRole("button", { name: "Examon" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Select Slayerdramon" })).toBeTruthy();
-    expect(screen.getByRole("dialog", { name: /Examon · effect/i })).toBeTruthy();
-    const slayerdramon = screen.getByRole("button", { name: "Slayerdramon" });
+    expect(screen.getByRole("region", { name: "Hand selection" })).toBeTruthy();
+    const slayerdramon = screen.getByRole("button", { name: "Pick Slayerdramon" });
     fireEvent.click(slayerdramon);
-    expect(screen.getByRole("button", { name: "Slayerdramon, selected" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Confirm targets" }));
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByRole("button", { name: "Pick Slayerdramon, selected" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "End Selection" }));
+    expect(screen.queryByRole("region", { name: "Hand selection" })).toBeNull();
   });
 
   it("opens Fighter Mode on the real board with Dragon Mode selected from its stack", () => {
@@ -278,10 +277,10 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByRole("dialog", { name: /Trial of the Four Great Dragons · effect/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Azulongmon" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Magnadramon" })).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Agumon" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole("region", { name: "Hand selection" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pick Azulongmon" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pick Magnadramon" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pick Agumon" }).getAttribute("aria-disabled")).toBe("true");
     expect(screen.getByText(/can't digivolve to level 7/i)).toBeTruthy();
     expect(screen.getByText(/at the next end of your opponent's turn, delete that Digimon/i)).toBeTruthy();
   });
@@ -552,11 +551,11 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByRole("dialog", { name: /Hina Kurihara · effect/i })).toBeTruthy();
+    expect(screen.getByRole("region", { name: /Hina Kurihara · effect/i })).toBeTruthy();
     expect(screen.getByText("Activate Hina Kurihara's effect?")).toBeTruthy();
     expect(screen.getByText(/one of your Digimon digivolves into a Digimon with \[Rock Dragon\]/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Yes, activate" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Not use" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Use" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Volcanicdramon" })).toBeTruthy();
   });
 
@@ -649,8 +648,8 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-064" />
       </I18nProvider>,
     );
-    expect(screen.getByRole("button", { name: "Select Trial of the Four Great Dragons" })).toBeTruthy();
-    expect((screen.getByRole("button", { name: "Agumon" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole("button", { name: "Pick Trial of the Four Great Dragons" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Pick Agumon" }).getAttribute("aria-disabled")).toBe("true");
   });
 
   it("shows Trial placed without activating its Main draw", () => {
@@ -695,8 +694,8 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.getByText("Digivolve into Imperialdramon: Fighter Mode?")).toBeTruthy();
     expect(screen.getByText(/gets \+2000 DP for the turn/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Yes, activate" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Not use" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Use" })).toBeTruthy();
   });
 
   it("shows every hand card while only Fighter Modes are selectable", () => {
@@ -708,13 +707,13 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Imperialdramon: Dragon Mode · effect/i });
+    const dialog = screen.getByTestId("hand");
     expect(
       within(dialog).getAllByRole("button", { name: /Imperialdramon: Fighter Mode, copy [12] of 2/ }),
     ).toHaveLength(2);
     expect(
-      (within(dialog).getByRole("button", { name: "Imperialdramon: Dragon Mode" }) as HTMLButtonElement).disabled,
-    ).toBe(true);
+      within(dialog).getByRole("button", { name: "Pick Imperialdramon: Dragon Mode" }).getAttribute("aria-disabled"),
+    ).toBe("true");
     expect(screen.getByText("DP 2K")).toBeTruthy();
   });
 
@@ -729,8 +728,8 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.getByText("Play 1 Guilmon or Takato Matsuki for free?")).toBeTruthy();
     expect(screen.getByText(/Trash the top 3 cards of both players' decks/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Yes, activate" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Not use" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Use" })).toBeTruthy();
     expect(screen.getByText(/6 cards moved: deck → trash/i)).toBeTruthy();
   });
 
@@ -777,8 +776,8 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.getByText("Play 1 Paildramon from your trash for free?")).toBeTruthy();
     expect(screen.getByText(/When DNA digivolving/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Yes, activate" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Not use" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Use" })).toBeTruthy();
   });
 
   it("shows the full trash while only Paildramon cards are selectable", () => {
@@ -940,11 +939,11 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Shadramon · effect/i });
-    expect((within(dialog).getByRole("button", { name: "Dinobeemon" }) as HTMLButtonElement).disabled).toBe(false);
+    const dialog = screen.getByTestId("hand");
+    expect(within(dialog).getByRole("button", { name: "Pick Dinobeemon" }).getAttribute("aria-disabled")).toBe(null);
     expect(
-      (within(dialog).getByRole("button", { name: "Imperialdramon: Dragon Mode" }) as HTMLButtonElement).disabled,
-    ).toBe(true);
+      within(dialog).getByRole("button", { name: "Pick Imperialdramon: Dragon Mode" }).getAttribute("aria-disabled"),
+    ).toBe("true");
   });
 
   it("shows all Flamedramon DNA partners and disables those that complete no printed recipe", () => {
@@ -981,9 +980,9 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Flamedramon · effect/i });
+    const dialog = screen.getByTestId("hand");
     expect(within(dialog).getAllByRole("button", { name: /Paildramon, copy [12] of 2/ })).toHaveLength(2);
-    expect((within(dialog).getByRole("button", { name: "Breakdramon" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(within(dialog).getByRole("button", { name: "Pick Breakdramon" }).getAttribute("aria-disabled")).toBe("true");
   });
 
   it("keeps normal evolutions visible but disabled in Flamedramon's DNA result choice", () => {
@@ -995,9 +994,9 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Flamedramon · effect/i });
+    const dialog = screen.getByTestId("hand");
     expect(within(dialog).getAllByRole("button", { name: /Paildramon, copy [12] of 2/ })).toHaveLength(2);
-    expect((within(dialog).getByRole("button", { name: "Breakdramon" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(within(dialog).getByRole("button", { name: "Pick Breakdramon" }).getAttribute("aria-disabled")).toBe("true");
   });
 
   it("offers Shadramon's inherited end-of-turn DNA as one clear optional action", () => {
@@ -1550,12 +1549,12 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Parasaurmon · effect/i });
+    const dialog = screen.getByRole("region", { name: /Parasaurmon · effect/i });
     expect(
       within(dialog).getByText(/Suspender Parasaurmon para reduzir em 1 o custo deste Digimon verde/i),
     ).toBeTruthy();
     expect(within(dialog).getByText(/by suspending this Digimon, reduce the cost by 1/i)).toBeTruthy();
-    fireEvent.click(within(dialog).getByRole("button", { name: "Yes, activate" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Use" }));
     expect(screen.queryByRole("dialog")).toBeNull();
 
     cleanup();
@@ -1564,7 +1563,7 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-040" />
       </I18nProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "No, decline" }));
+    fireEvent.click(screen.getByRole("button", { name: "Not use" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -1577,11 +1576,11 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Parasaurmon · effect/i });
+    const dialog = screen.getByRole("region", { name: /Parasaurmon · effect/i });
     expect(within(dialog).getByText(/Suspender o segundo Parasaurmon.*em mais 1/i)).toBeTruthy();
-    expect(within(dialog).getByRole("button", { name: "Yes, activate" })).toBeTruthy();
-    expect(within(dialog).getByRole("button", { name: "No, decline" })).toBeTruthy();
-    fireEvent.click(within(dialog).getByRole("button", { name: "Yes, activate" }));
+    expect(within(dialog).getByRole("button", { name: "Use" })).toBeTruthy();
+    expect(within(dialog).getByRole("button", { name: "Not use" })).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Use" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -1680,8 +1679,8 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.getByText("DNA digievoluir Groundramon no fim do seu turno?")).toBeTruthy();
     expect(screen.getByText(/This Digimon and 1 of your other Digimon with \[Dramon\]/)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Yes, activate" }));
+    expect(screen.getByRole("button", { name: "Not use" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Use" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -1717,16 +1716,16 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Groundramon · effect/i });
+    const dialog = screen.getByTestId("hand");
     const examon = within(dialog).getAllByRole("button", { name: /Examon, copy [12] of 2/ });
     expect(examon).toHaveLength(2);
-    expect(examon.every((button) => !(button as HTMLButtonElement).disabled)).toBe(true);
+    expect(examon.every((button) => button.getAttribute("aria-disabled") === null)).toBe(true);
     expect(
-      (within(dialog).getByRole("button", { name: "Imperialdramon: Dragon Mode" }) as HTMLButtonElement).disabled,
-    ).toBe(true);
-    expect((within(dialog).getByRole("button", { name: "Breakdramon" }) as HTMLButtonElement).disabled).toBe(true);
+      within(dialog).getByRole("button", { name: "Pick Imperialdramon: Dragon Mode" }).getAttribute("aria-disabled"),
+    ).toBe("true");
+    expect(within(dialog).getByRole("button", { name: "Pick Breakdramon" }).getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(examon[1]!);
-    expect(within(dialog).getByRole("button", { name: "Examon, copy 2 of 2, selected" })).toBeTruthy();
+    expect(within(dialog).getByRole("button", { name: "Pick Examon, copy 2 of 2, selected" })).toBeTruthy();
   });
 
   it("shows the resolved Examon stack assembled from both DNA materials", () => {
@@ -1789,7 +1788,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("img", { name: "Wingdramon" })).toBeTruthy();
   });
 
-  it.each(["No, decline", "Yes, activate"])("offers Slayerdramon's Start of Opponent Main activation: %s", (action) => {
+  it.each(["Not use", "Use"])("offers Slayerdramon's Start of Opponent Main activation: %s", (action) => {
     mockDesktop();
     window.history.replaceState({}, "", "/dev/card-effects/EX3-024");
     render(
@@ -1797,7 +1796,7 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-024" />
       </I18nProvider>,
     );
-    const dialog = screen.getByRole("dialog", { name: /Slayerdramon · effect/i });
+    const dialog = screen.getByRole("region", { name: /Slayerdramon · effect/i });
     expect(within(dialog).getByText(/Suspender 1.*Dramon ou Examon.*forçar um ataque/i)).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: action }));
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -1927,12 +1926,12 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-025" />
       </I18nProvider>,
     );
-    const dialog = screen.getByRole("dialog", { name: /Azulongmon · effect/i });
+    const dialog = screen.getByTestId("hand");
     expect(within(dialog).getByRole("button", { name: /Trial of the Four Great Dragons, copy 1 of 2/i })).toBeTruthy();
     const second = within(dialog).getByRole("button", { name: /Trial of the Four Great Dragons, copy 2 of 2/i });
-    expect((within(dialog).getByRole("button", { name: "Agumon" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(within(dialog).getByRole("button", { name: "Pick Agumon" }).getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(second);
-    fireEvent.click(within(dialog).getByRole("button", { name: "Confirm targets" }));
+    fireEvent.click(screen.getByRole("button", { name: "End Selection" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -1968,7 +1967,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByText(log)).toBeTruthy();
   });
 
-  it.each(["No, decline", "Yes, activate"])("offers Aegisdramon's friendly When Digivolving optional: %s", (action) => {
+  it.each(["Not use", "Use"])("offers Aegisdramon's friendly When Digivolving optional: %s", (action) => {
     mockDesktop();
     window.history.replaceState({}, "", "/dev/card-effects/EX3-026");
     render(
@@ -1976,7 +1975,7 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-026" />
       </I18nProvider>,
     );
-    const dialog = screen.getByRole("dialog", { name: /Aegisdramon · effect/i });
+    const dialog = screen.getByRole("region", { name: /Aegisdramon · effect/i });
     expect(within(dialog).getByText(/Jogar 1 carta elegível.*fontes.*Digimon azuis.*sem pagar/i)).toBeTruthy();
     expect(within(dialog).getByText(/Aqua.*Sea Animal/i)).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: action }));
@@ -2035,7 +2034,7 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-026" />
       </I18nProvider>,
     );
-    const dialog = screen.getByRole("dialog", { name: /Aegisdramon · effect/i });
+    const dialog = screen.getByRole("region", { name: /Aegisdramon · effect/i });
     expect(within(dialog).getByText(prompt)).toBeTruthy();
     expect(within(dialog).getByText(text)).toBeTruthy();
   });
@@ -2077,7 +2076,7 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-026" />
       </I18nProvider>,
     );
-    expect(screen.getByRole("dialog", { name: /Aegisdramon · effect/i })).toBeTruthy();
+    expect(screen.getByRole("region", { name: /Aegisdramon · effect/i })).toBeTruthy();
     expect(screen.getByText(/turno mudou.*nova jogada do oponente/i)).toBeTruthy();
   });
 
@@ -2181,11 +2180,11 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByRole("dialog", { name: /Entmon · effect/i })).toBeTruthy();
+    expect(screen.getByRole("region", { name: /Entmon · effect/i })).toBeTruthy();
     expect(screen.getByText(/Usar Digisorption -3 de Entmon/i)).toBeTruthy();
     expect(screen.getByText(/you may suspend 1 of your Digimon to reduce the digivolution cost by 3/i)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Yes, activate" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Not use" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Use" })).toBeTruthy();
   });
 
   it("shows only active own Digimon as Entmon's mandatory Digisorption payment", () => {
@@ -2314,11 +2313,11 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByRole("dialog", { name: /Hydramon · effect/i })).toBeTruthy();
+    expect(screen.getByRole("region", { name: /Hydramon · effect/i })).toBeTruthy();
     expect(screen.getByText(/Ativar o efeito de Hydramon para suspender 1 Digimon/i)).toBeTruthy();
     expect(screen.getByText("[When Digivolving] You may suspend 1 Digimon.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Yes, activate" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Not use" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Use" })).toBeTruthy();
   });
 
   it("lets Hydramon suspend any active Digimon and disables an already suspended target", () => {
@@ -2461,11 +2460,11 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByRole("dialog", { name: /Jazarichmon · effect/i })).toBeTruthy();
+    expect(screen.getByRole("region", { name: /Jazarichmon · effect/i })).toBeTruthy();
     expect(screen.getByText(/Jogar Hina Kurihara da sua mão sem pagar o custo/i)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Select Hina Kurihara" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "No, decline" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Yes, activate" }));
+    expect(screen.getByRole("button", { name: "Not use" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Use" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -2926,20 +2925,20 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Magnadramon · effect/i });
+    const dialog = screen.getByTestId("hand");
     const firstTrial = within(dialog).getByRole("button", {
-      name: "Trial of the Four Great Dragons, copy 1 of 2",
+      name: "Pick Trial of the Four Great Dragons, copy 1 of 2",
     });
     const secondTrial = within(dialog).getByRole("button", {
-      name: "Trial of the Four Great Dragons, copy 2 of 2",
+      name: "Pick Trial of the Four Great Dragons, copy 2 of 2",
     });
-    expect((within(dialog).getByRole("button", { name: "Agumon" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(within(dialog).getByRole("button", { name: "Pick Agumon" }).getAttribute("aria-disabled")).toBe("true");
     expect(firstTrial).toBeTruthy();
     fireEvent.click(secondTrial);
     expect(
       within(dialog).getByRole("button", { name: /Trial of the Four Great Dragons, copy 2 of 2, selected/i }),
     ).toBeTruthy();
-    fireEvent.click(within(dialog).getByRole("button", { name: "Confirm targets" }));
+    fireEvent.click(screen.getByRole("button", { name: "End Selection" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -3711,7 +3710,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByText(`Turn ${effect === "active" ? 8 : 9} · memory 0`)).toBeTruthy();
   });
 
-  it.each(["No, decline", "Yes, activate"])("offers AeroVeedramon's friendly errata action: %s", (action) => {
+  it.each(["Not use", "Use"])("offers AeroVeedramon's friendly errata action: %s", (action) => {
     mockDesktop();
     window.history.replaceState({}, "", "/dev/card-effects/EX3-033");
     render(
@@ -3720,7 +3719,7 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /AeroVeedramon · effect/i });
+    const dialog = screen.getByRole("region", { name: /AeroVeedramon · effect/i });
     expect(within(dialog).getByText(/Colocar 1 Trial of the Four Great Dragons.*área de batalha/i)).toBeTruthy();
     expect(within(dialog).getByText(/If you don't have.*you may place 1 \[Trial/i)).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: action }));
@@ -3736,13 +3735,15 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /AeroVeedramon · effect/i });
-    expect(within(dialog).getByRole("button", { name: "Trial of the Four Great Dragons, copy 1 of 2" })).toBeTruthy();
-    const second = within(dialog).getByRole("button", { name: "Trial of the Four Great Dragons, copy 2 of 2" });
-    expect((within(dialog).getByRole("button", { name: "Agumon" }) as HTMLButtonElement).disabled).toBe(true);
+    const dialog = screen.getByTestId("hand");
+    expect(
+      within(dialog).getByRole("button", { name: "Pick Trial of the Four Great Dragons, copy 1 of 2" }),
+    ).toBeTruthy();
+    const second = within(dialog).getByRole("button", { name: "Pick Trial of the Four Great Dragons, copy 2 of 2" });
+    expect(within(dialog).getByRole("button", { name: "Pick Agumon" }).getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(second);
     expect(within(dialog).getByRole("button", { name: /copy 2 of 2, selected/i })).toBeTruthy();
-    fireEvent.click(within(dialog).getByRole("button", { name: "Confirm targets" }));
+    fireEvent.click(screen.getByRole("button", { name: "End Selection" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -3854,7 +3855,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it.each(["No, decline", "Yes, activate"])("offers Angewomon's friendly errata action: %s", (action) => {
+  it.each(["Not use", "Use"])("offers Angewomon's friendly errata action: %s", (action) => {
     mockDesktop();
     window.history.replaceState({}, "", "/dev/card-effects/EX3-034");
     render(
@@ -3863,7 +3864,7 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Angewomon · effect/i });
+    const dialog = screen.getByRole("region", { name: /Angewomon · effect/i });
     expect(within(dialog).getByText(/Colocar 1 Trial of the Four Great Dragons.*área de batalha/i)).toBeTruthy();
     expect(within(dialog).getByText(/If you don't have.*you may place 1 \[Trial/i)).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: action }));
@@ -3879,15 +3880,17 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Angewomon · effect/i });
-    expect(within(dialog).getByRole("button", { name: "Trial of the Four Great Dragons, copy 1 of 2" })).toBeTruthy();
+    const dialog = screen.getByTestId("hand");
+    expect(
+      within(dialog).getByRole("button", { name: "Pick Trial of the Four Great Dragons, copy 1 of 2" }),
+    ).toBeTruthy();
     const second = within(dialog).getByRole("button", {
-      name: "Trial of the Four Great Dragons, copy 2 of 2",
+      name: "Pick Trial of the Four Great Dragons, copy 2 of 2",
     });
-    expect((within(dialog).getByRole("button", { name: "Agumon" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(within(dialog).getByRole("button", { name: "Pick Agumon" }).getAttribute("aria-disabled")).toBe("true");
     fireEvent.click(second);
     expect(within(dialog).getByRole("button", { name: /copy 2 of 2, selected/i })).toBeTruthy();
-    fireEvent.click(within(dialog).getByRole("button", { name: "Confirm targets" }));
+    fireEvent.click(screen.getByRole("button", { name: "End Selection" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -3985,7 +3988,7 @@ describe("CardEffectsDemo", () => {
     ).toBeTruthy();
   });
 
-  it.each(["No, decline", "Yes, activate"])("offers Goldramon's friendly optional return: %s", (action) => {
+  it.each(["Not use", "Use"])("offers Goldramon's friendly optional return: %s", (action) => {
     mockDesktop();
     window.history.replaceState({}, "", "/dev/card-effects/EX3-035");
     render(
@@ -3994,7 +3997,7 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
 
-    const dialog = screen.getByRole("dialog", { name: /Goldramon · effect/i });
+    const dialog = screen.getByRole("region", { name: /Goldramon · effect/i });
     expect(within(dialog).getByText(/Devolver 1 carta Four Great Dragons.*lixo.*mão/i)).toBeTruthy();
     expect(within(dialog).getByText(/\[When Digivolving\].*You may return 1 card/i)).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: action }));
@@ -4117,10 +4120,10 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-023" />
       </I18nProvider>,
     );
-    const dialog = screen.getByRole("dialog", { name: /Plesiomon · effect/i });
+    const dialog = screen.getByRole("region", { name: /Plesiomon · effect/i });
     expect(within(dialog).getByText(prompt)).toBeTruthy();
     expect(within(dialog).getByText(/\[When Digivolving\].*blue level 3.*Aqua.*Sea Animal/i)).toBeTruthy();
-    fireEvent.click(within(dialog).getByRole("button", { name: "No, decline" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Not use" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -4152,11 +4155,15 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-023" />
       </I18nProvider>,
     );
-    const dialog = screen.getByRole("dialog", { name: /Plesiomon · effect/i });
+    const dialog = screen.getByTestId("hand");
     expect(within(dialog).getAllByRole("button", { name: /Gomamon/i }).length).toBeGreaterThan(0);
-    expect((within(dialog).getByRole("button", { name: /Monodramon/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      within(dialog)
+        .getByRole("button", { name: /Monodramon/i })
+        .getAttribute("aria-disabled"),
+    ).toBe("true");
     fireEvent.click(within(dialog).getAllByRole("button", { name: /Gomamon/i })[0]!);
-    fireEvent.click(within(dialog).getByRole("button", { name: "Confirm targets" }));
+    fireEvent.click(screen.getByRole("button", { name: "End Selection" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -4213,7 +4220,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByText(/\[All Turns\]\[Once Per Turn\].*same level/i)).toBeTruthy();
   });
 
-  it.each(["No, decline", "Yes, activate"])("shows MegaSeadramon's public attack optional: %s", (action) => {
+  it.each(["Not use", "Use"])("shows MegaSeadramon's public attack optional: %s", (action) => {
     mockDesktop();
     window.history.replaceState({}, "", "/dev/card-effects/EX3-022?effect=attack");
     render(
@@ -4222,7 +4229,7 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("button", { name: "MegaSeadramon (Suspended)" })).toBeTruthy();
-    const dialog = screen.getByRole("dialog", { name: /MegaSeadramon · effect/i });
+    const dialog = screen.getByRole("region", { name: /MegaSeadramon · effect/i });
     expect(within(dialog).getByText(/MegaSeadramon atacou.*nível 3.*fontes/i)).toBeTruthy();
     expect(within(dialog).getByText(/\[When Attacking\].*blue level 3/i)).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: action }));
@@ -4430,7 +4437,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByText(log)).toBeTruthy();
   });
 
-  it.each(["No, decline", "Yes, activate"])("offers Wingdramon's friendly end-turn DNA action: %s", (action) => {
+  it.each(["Not use", "Use"])("offers Wingdramon's friendly end-turn DNA action: %s", (action) => {
     mockDesktop();
     window.history.replaceState({}, "", "/dev/card-effects/EX3-020");
     render(
@@ -4438,7 +4445,7 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-020" />
       </I18nProvider>,
     );
-    const dialog = screen.getByRole("dialog", { name: /Wingdramon · effect/i });
+    const dialog = screen.getByRole("region", { name: /Wingdramon · effect/i });
     expect(within(dialog).getByText(/DNA digievoluir Wingdramon.*outro Dramon.*fim do seu turno/i)).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: action }));
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -4469,15 +4476,15 @@ describe("CardEffectsDemo", () => {
         <CardEffectsDemo cardId="EX3-020" />
       </I18nProvider>,
     );
-    const dialog = screen.getByRole("dialog", { name: /Wingdramon · effect/i });
+    const dialog = screen.getByTestId("hand");
     const cards = within(dialog)
       .getAllByRole("button")
       .filter((button) => button.hasAttribute("aria-pressed"));
     expect(cards).toHaveLength(4);
-    expect(cards.filter((button) => !(button as HTMLButtonElement).disabled)).toHaveLength(2);
-    expect(cards.filter((button) => (button as HTMLButtonElement).disabled)).toHaveLength(2);
-    fireEvent.click(cards.find((button) => !(button as HTMLButtonElement).disabled)!);
-    fireEvent.click(within(dialog).getByRole("button", { name: "Confirm targets" }));
+    expect(cards.filter((button) => button.getAttribute("aria-disabled") === null)).toHaveLength(2);
+    expect(cards.filter((button) => button.getAttribute("aria-disabled") === "true")).toHaveLength(2);
+    fireEvent.click(cards.find((button) => button.getAttribute("aria-disabled") === null)!);
+    fireEvent.click(screen.getByRole("button", { name: "End Selection" }));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 

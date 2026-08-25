@@ -22,6 +22,7 @@ import { triggerCardId, triggerLabels } from "./boardModel";
 import { formatKeyword } from "./keywordDisplay";
 import { useTranslation, type Translate } from "../i18n";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
+import { useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
 
 const name = (cardId: string) => getCardDefinition(cardId)?.nameEn ?? cardId;
 
@@ -91,16 +92,44 @@ export function WaitingOverlay({
 }
 
 /* ---------------- MULLIGAN ---------------- */
+
+/**
+ * Turn order is server truth, not a guess: `matchStarted.firstSeat` names the
+ * player who takes turn 1, and the mulligan window opens before any turn has
+ * passed. `undefined` simply omits the accent line rather than picking a side.
+ */
+export type TurnOrder = "first" | "second";
+
 export function MulliganOverlay({
   handCardIds,
+  turnOrder,
   onKeep,
   onMulligan,
 }: {
   handCardIds: string[];
+  turnOrder?: TurnOrder;
   onKeep: () => void;
   onMulligan: () => void;
 }) {
   const { t } = useTranslation();
+  const [isViewingBoard, setIsViewingBoard] = useState(false);
+
+  // The board is behind this overlay, so peeking hides the sheet entirely and
+  // leaves only the way back — the same shape DecisionOverlay's board view uses.
+  if (isViewingBoard) {
+    const returnControl = (
+      <div className="decision-board-return mulligan-return">
+        <span className="decision-board-return__status" aria-live="polite">
+          {t("overlay.awaitingMulligan")}
+        </span>
+        <Button icon={Icons.ArrowLeft} onClick={() => setIsViewingBoard(false)}>
+          {t("overlay.returnToMulligan")}
+        </Button>
+      </div>
+    );
+    return typeof document === "undefined" ? returnControl : createPortal(returnControl, document.body);
+  }
+
   return (
     <Scrim className="mulligan-scrim">
       <section className="mulligan-sheet" aria-labelledby="mulligan-title" onClick={(e) => e.stopPropagation()}>
@@ -111,11 +140,16 @@ export function MulliganOverlay({
         <h2 id="mulligan-title" className="mulligan-title">
           {t("overlay.keepHand")}
         </h2>
+        {turnOrder ? (
+          <p className="mulligan-turn-order">
+            {t(turnOrder === "first" ? "overlay.turnOrderFirst" : "overlay.turnOrderSecond")}
+          </p>
+        ) : null}
         <p className="mulligan-detail">{t("overlay.mulliganDetail", { count: handCardIds.length })}</p>
         <div className="mulligan-cards" aria-label={t("overlay.openingHand")}>
           {handCardIds.map((id, i) => (
             <div className="mulligan-card" key={`${id}-${i}`} style={{ animationDelay: `${i * 70}ms` }}>
-              <CardFull cardId={id} width={150} />
+              <CardFull cardId={id} width={190} />
             </div>
           ))}
         </div>
@@ -125,6 +159,9 @@ export function MulliganOverlay({
           </Button>
           <Button size="lg" variant="secondary" icon={Icons.Dices} onClick={onMulligan}>
             {t("overlay.mulligan")}
+          </Button>
+          <Button size="lg" variant="ghost" icon={Icons.Map} onClick={() => setIsViewingBoard(true)}>
+            {t("overlay.checkPlayArea")}
           </Button>
         </div>
       </section>
@@ -888,11 +925,18 @@ type _SupportedDecisionKindsComplete =
 const _supportedDecisionKindsComplete: _SupportedDecisionKindsComplete = true;
 void _supportedDecisionKindsComplete;
 
+/** Per-trigger chrome the board supplies for the chooser: where it fires from, and its clause in one line. */
+export interface TriggerDetail {
+  sourceLabel?: string;
+  summary?: string;
+}
+
 export function DecisionOverlay({
   request,
   sourceCardId,
   candidates,
   picks,
+  triggerDetails = [],
   onTogglePick,
   onRespond,
 }: {
@@ -907,10 +951,13 @@ export function DecisionOverlay({
     isSuspended?: boolean;
   }[];
   picks: string[];
+  /** Aligned to `request.options.triggerKeys`; empty means the chooser shows names only. */
+  triggerDetails?: readonly TriggerDetail[];
   onTogglePick: (instanceId: string) => void;
   onRespond: (response: DecisionResponse) => void;
 }) {
   const { t } = useTranslation();
+  const wideDialog = useMediaQuery(WIDE_DIALOG_QUERY);
   const min = request.options?.min ?? 1;
   const max = request.options?.max ?? 1;
   const choices = request.options?.choices ?? [];
@@ -942,6 +989,10 @@ export function DecisionOverlay({
     cardIdSeen.set(candidate.cardId, index);
     if (total > 1) cardCopyLabels.set(candidate.instanceId, t("overlay.cardCopy", { index, total }));
   }
+  const candidateCardWidth = wideDialog ? 154 : 110;
+  // Past this many the grid would wrap into rows taller than the sheet, so it
+  // becomes one scrolling row with a visible track instead (reference #110).
+  const scrollCandidates = candidates.length > 6;
   const sourceKey = colorKey(getCardDefinition(sourceCardId ?? "")?.colors[0]);
   const abstractTargetLabel = (instanceId: string): string | undefined => {
     if (instanceId === "mine") return t("overlay.yourSecurity");
@@ -1062,7 +1113,7 @@ export function DecisionOverlay({
       role="dialog"
       aria-modal="true"
       aria-labelledby="aegis-decision-title"
-      className="game-modal__panel game-modal__panel--bare"
+      className={`game-modal__panel game-modal__panel--bare decision-overlay${wideDialog ? " decision-overlay--wide" : ""}`}
       onKeyDown={containDialogFocus}
       style={{
         position: "absolute",
@@ -1070,7 +1121,7 @@ export function DecisionOverlay({
         top: 96,
         transform: "translateX(-50%)",
         zIndex: 80,
-        width: 600,
+        width: wideDialog ? 1000 : 600,
         maxWidth: "calc(100% - 32px)",
         maxHeight: "calc(100% - 112px)",
         overflowY: "auto",
@@ -1170,6 +1221,11 @@ export function DecisionOverlay({
               {t("overlay.chosen", { count: picks.length })}
             </span>
           </div>
+          <p className="decision-overlay__subtitle">
+            {min === max
+              ? t("overlay.selectCardsSubtitle", { count: max })
+              : t("overlay.selectCardsRangeSubtitle", { range: `${min}–${max}` })}
+          </p>
           {maxTotalPlayCost !== undefined ? (
             <div
               style={{
@@ -1182,7 +1238,7 @@ export function DecisionOverlay({
               {t("overlay.playCostBudget", { selected: selectedPlayCost, max: maxTotalPlayCost })}
             </div>
           ) : null}
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <div className={`decision-overlay__grid${scrollCandidates ? " decision-overlay__grid--scroll" : ""}`}>
             {candidates.map((cand) => {
               const selectable = cand.selectable !== false;
               const on = picks.includes(cand.instanceId);
@@ -1222,8 +1278,8 @@ export function DecisionOverlay({
                   {abstractLabel ? (
                     <span
                       style={{
-                        width: 110,
-                        minHeight: 154,
+                        width: candidateCardWidth,
+                        minHeight: candidateCardWidth * 1.4,
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
@@ -1243,8 +1299,13 @@ export function DecisionOverlay({
                       {abstractLabel}
                     </span>
                   ) : (
-                    <CardFull cardId={cand.cardId ?? ""} width={110} selected={on} />
+                    <CardFull cardId={cand.cardId ?? ""} width={candidateCardWidth} selected={on} />
                   )}
+                  {on && max > 1 ? (
+                    <span className="decision-overlay__order-badge" aria-hidden="true">
+                      {picks.indexOf(cand.instanceId) + 1}
+                    </span>
+                  ) : null}
                   {liveLabel ? (
                     <span
                       style={{
@@ -1308,12 +1369,16 @@ export function DecisionOverlay({
                 : "overlay.orderCardsHint",
             )}
           </div>
+          {request.options?.orderDestination === "deckBottom" ? (
+            <p className="decision-overlay__subtitle">{t("overlay.orderDeckBottomHint")}</p>
+          ) : null}
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {cardOrder.map((instanceId, index) => {
               const card = candidates.find((candidate) => candidate.instanceId === instanceId);
               return (
                 <div
                   key={instanceId}
+                  className="decision-overlay__order-row"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -1324,8 +1389,12 @@ export function DecisionOverlay({
                     animation: "aegis-rise 160ms ease-out",
                   }}
                 >
-                  <strong style={{ width: 24, textAlign: "center" }}>{index + 1}</strong>
-                  <CardFull cardId={card?.cardId ?? ""} width={62} />
+                  <div className="decision-overlay__order-card">
+                    <CardFull cardId={card?.cardId ?? ""} width={wideDialog ? 86 : 62} />
+                    <span className="decision-overlay__order-badge" aria-hidden="true">
+                      {index + 1}
+                    </span>
+                  </div>
                   <span style={{ flex: 1, fontWeight: 600 }}>
                     {card?.cardId ? name(card.cardId) : t("overlay.card")}
                   </span>
@@ -1411,34 +1480,28 @@ export function DecisionOverlay({
           >
             {t(triggerKeys.length === 1 ? "overlay.confirmPendingEffect" : "overlay.chooseNextEffect")}
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+          <div className="trigger-chooser">
             {triggerKeys.map((key, i) => {
-              const position = selectedTriggerKeys.indexOf(key);
-              const chosen = position !== -1;
+              const chosen = selectedTriggerKeys.includes(key);
               const cardId = triggerCardIds[i] ?? triggerCardId(key);
+              const detail = triggerDetails[i];
+              const summary = detail?.summary;
               return (
                 <button
                   type="button"
                   key={key}
-                  aria-label={triggerKeyLabels[i]}
+                  className={`trigger-chooser__option${chosen ? " trigger-chooser__option--chosen" : ""}`}
+                  aria-label={[triggerKeyLabels[i], detail?.sourceLabel, summary].filter(Boolean).join(", ")}
                   aria-pressed={chosen}
                   onClick={() => toggleTrigger(key)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "9px 12px",
-                    borderRadius: 12,
-                    cursor: "pointer",
-                    textAlign: "left",
-                    background: chosen ? "var(--ds-accent-surface)" : "var(--ds-surface-muted)",
-                    border: `1.5px solid ${chosen ? "var(--ds-accent)" : "var(--ds-border)"}`,
-                    transition: "background 120ms, border-color 120ms",
-                  }}
                 >
-                  <CardFull cardId={cardId} width={58} selected={chosen} />
-                  <span style={{ fontSize: 13, color: "var(--ds-fg)", fontWeight: chosen ? 600 : 400 }}>
-                    {triggerKeyLabels[i]}
+                  <span className="trigger-chooser__card">
+                    <CardFull cardId={cardId} width={wideDialog ? 128 : 96} selected={chosen} />
+                    {summary ? <span className="trigger-chooser__summary">{summary}</span> : null}
+                  </span>
+                  <span className="trigger-chooser__meta">
+                    {detail?.sourceLabel ? <span className="trigger-chooser__source">{detail.sourceLabel}</span> : null}
+                    <span className="trigger-chooser__name">{triggerKeyLabels[i]}</span>
                   </span>
                 </button>
               );

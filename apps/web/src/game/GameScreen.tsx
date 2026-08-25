@@ -11,6 +11,7 @@ import {
   digiXrosRequirementFor,
   digiXrosZoneExpanderFor,
   getCardDefinition,
+  parseTriggerKey,
   type AttackTarget,
   type DecisionResponse,
   type DigiXrosRequirement,
@@ -75,6 +76,7 @@ import {
   permCardId,
   playButtonLabel,
   playerColorKey,
+  triggerCardId,
   viewerSeatOf,
   type EvoCostOption,
   type LogLine,
@@ -98,6 +100,8 @@ import {
   EvoCostChoiceOverlay,
   GameOverOverlay,
   MulliganOverlay,
+  playerFacingEffectClause,
+  playerFacingPromptText,
   StackViewerOverlay,
   TrashViewerOverlay,
   WaitingOverlay,
@@ -115,24 +119,17 @@ import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
 import { pressGesture, swallowNextClick } from "./pressGesture";
 import { useOpponentActionFeed } from "./useOpponentActionFeed";
+import { useMediaQuery } from "../design/useMediaQuery";
+import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
+import {
+  decisionPresentation,
+  fieldSlots,
+  sourcePermanentIdOf,
+  triggerClauseSummary,
+  triggerSource,
+} from "./decisionPresentation";
 
 const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End];
-
-function useMediaQuery(mediaQuery: string): boolean {
-  const [matches, setMatches] = useState(
-    () =>
-      typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(mediaQuery).matches,
-  );
-  useEffect(() => {
-    if (typeof window.matchMedia !== "function") return;
-    const query = window.matchMedia(mediaQuery);
-    const update = () => setMatches(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, [mediaQuery]);
-  return matches;
-}
 
 /**
  * Phone layout: touch sheets, compact everything. Mirrors the CSS blocks of the
@@ -280,6 +277,9 @@ export function GameScreen({
   const [trashView, setTrashView] = useState<"you" | "opp" | null>(null); // which player's trash modal is open
   const [securityView, setSecurityView] = useState<"you" | "opp" | null>(null); // which player's security modal is open
   const [picks, setPicks] = useState<string[]>([]);
+  // A board-mode decision the viewer asked to see in the dialog instead (Escape
+  // or the rail's back arrow). Reset with every new decision.
+  const [decisionAsDialog, setDecisionAsDialog] = useState(false);
   const [oppInspector, setOppInspector] = useState<{ permanentId: string; x: number; y: number } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
@@ -401,6 +401,7 @@ export function GameScreen({
     setSecurityView(null);
     setDigiXrosPick(null);
     setOppInspector(null);
+    setDecisionAsDialog(false);
   }, [decision?.decisionId, state?.turnSeat]);
 
   // Attack arrow: from the selected attacker to the opponent's security pile.
@@ -1121,6 +1122,14 @@ export function GameScreen({
     return state.winnerSeat === viewerSeat ? "win" : "loss";
   })();
 
+  // Turn order is server truth: `matchStarted` names the seat that takes turn 1.
+  // Nothing is shown until that event has arrived rather than inferring a side.
+  const viewerTurnOrder = (() => {
+    const started = events.find((event) => event.kind === "matchStarted");
+    if (started?.kind !== "matchStarted") return undefined;
+    return started.firstSeat === viewerSeat ? ("first" as const) : ("second" as const);
+  })();
+
   const attackerPerm = selPerm ? you.battleArea.find((p) => p.permanentId === selPerm) : undefined;
   const draggedAttackerPerm =
     drag?.kind === "attack" ? you.battleArea.find((p) => p.permanentId === drag.permId) : undefined;
@@ -1129,6 +1138,76 @@ export function GameScreen({
   const attackTargets = attackTargetsOf(attackerPerm, opp.battleArea, vortexMode);
   const canAttackSecurity = canAttackPlayerWith(attackerPerm, vortexMode);
 
+  // ----- the open decision, and where it is answered -----
+  // Everything below reads the server's decision payload; the client adds no
+  // legality of its own, it only decides which surface the payload renders on.
+  const viewerDecision = decision && decision.seat === viewerSeat ? decision : undefined;
+  const allPermanents = [...you.battleArea, ...opp.battleArea];
+  const handInstanceIds = handEntries.map((entry) => entry.instanceId);
+  const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;
+  const decisionSourcePermanentId =
+    viewerDecision?.kind === "optional" ? sourcePermanentIdOf(decisionSourceCardId, allPermanents) : undefined;
+  const boardPresentation = viewerDecision
+    ? decisionPresentation({
+        decision: viewerDecision,
+        handInstanceIds,
+        sourcePermanentId: decisionSourcePermanentId,
+      })
+    : "dialog";
+  const answerOnBoard = boardPresentation === "board" && !decisionAsDialog;
+  const decisionHighlightPermanentId = answerOnBoard ? decisionSourcePermanentId : undefined;
+
+  const decisionSelectable = new Set(viewerDecision?.options?.candidateInstanceIds ?? []);
+  const decisionVisible = viewerDecision ? decisionVisibleCards(viewerDecision.options, instanceIndex) : [];
+  const decisionVisibleCardIds = new Map(decisionVisible.map((card) => [card.instanceId, card.cardId]));
+  const decisionInstanceColors = decisionCardColors(decisionVisible);
+  const decisionDifferentColors = viewerDecision?.options?.differentColors === true;
+  const decisionDistinctCardIds = viewerDecision?.options?.distinctCardIds === true;
+  // CR 4-24-2: a multicolor card only needs one color no other pick uses, so the
+  // picks stay legal as long as a distinct color can still be assigned to each.
+  const decisionAllowsPick = (instanceId: string) =>
+    decisionSelectable.has(instanceId) &&
+    differentColorsAllowCandidate(instanceId, picks, decisionInstanceColors, decisionDifferentColors) &&
+    distinctCardIdsAllow(instanceId, picks, decisionVisibleCardIds, decisionDistinctCardIds);
+  const toggleDecisionPick = (instanceId: string) => {
+    if (!decisionAllowsPick(instanceId)) return;
+    setPicks((current) => {
+      if (current.includes(instanceId)) return current.filter((id) => id !== instanceId);
+      const max = viewerDecision?.options?.max ?? 1;
+      const keep = max > 1 ? current.slice(-(max - 1)) : [];
+      return [...keep, instanceId];
+    });
+  };
+  const decisionMin = viewerDecision?.options?.min ?? 1;
+  const decisionMax = viewerDecision?.options?.max ?? 1;
+
+  const triggerDetails =
+    viewerDecision?.kind === "orderTriggers"
+      ? (viewerDecision.options?.triggerKeys ?? []).map((key, index) => {
+          const slots = fieldSlots(allPermanents);
+          const source = triggerSource(parseTriggerKey(key).instanceId, {
+            fieldSlots: slots,
+            handInstanceIds,
+          });
+          const cardId = viewerDecision.options?.triggerCardIds?.[index] ?? triggerCardId(key);
+          const clause =
+            playerFacingEffectClause({
+              cardId,
+              timing: viewerDecision.options?.timing,
+              description: undefined,
+            }) ?? getCardDefinition(cardId)?.effectText;
+          return {
+            sourceLabel:
+              source.zone === "field"
+                ? t("overlay.triggerSourceField", { position: source.position })
+                : source.zone === "hand"
+                  ? t("overlay.triggerSourceHand")
+                  : undefined,
+            summary: triggerClauseSummary(clause),
+          };
+        })
+      : [];
+
   // ----- overlays -----
   const stageEl = typeof document !== "undefined" ? document.getElementById("aegis-stage") : null;
   const overlays = (
@@ -1136,6 +1215,7 @@ export function GameScreen({
       {decision && decision.seat === viewerSeat && decision.kind === "mulligan" ? (
         <MulliganOverlay
           handCardIds={handEntries.map((h) => h.cardId)}
+          turnOrder={viewerTurnOrder}
           onKeep={() => respondMulligan(true)}
           onMulligan={() => respondMulligan(false)}
         />
@@ -1164,65 +1244,86 @@ export function GameScreen({
         />
       ) : null}
 
-      {decision &&
-      decision.seat === viewerSeat &&
-      (decision.kind === "optional" ||
-        decision.kind === "chooseTargets" ||
-        decision.kind === "selectCards" ||
-        decision.kind === "orderCards" ||
-        decision.kind === "chooseOption" ||
-        decision.kind === "orderTriggers")
+      {viewerDecision && viewerDecision.kind !== "mulligan" && !answerOnBoard
         ? (() => {
-            const selectable = new Set(decision.options?.candidateInstanceIds ?? []);
-            const visibleCards = decisionVisibleCards(decision.options, instanceIndex);
-            const visible = visibleCards.map((card) => card.instanceId);
-            const visibleCardIds = new Map(visibleCards.map((card) => [card.instanceId, card.cardId]));
-            const sourceCounts = decisionSourceCounts([...you.battleArea, ...opp.battleArea]);
-            const permanentDetails = decisionPermanentDetails([...you.battleArea, ...opp.battleArea]);
-            const opts = decision.options;
-            const diffColors = opts?.differentColors === true;
-            const distinctCardIds = opts?.distinctCardIds === true;
-            const instanceColors = decisionCardColors(visibleCards);
-            // CR 4-24-2: a multicolor card only needs one color no other pick uses, so the
-            // picks stay legal as long as a distinct color can still be assigned to each.
-            const distinctColorsAllow = (iid: string) =>
-              differentColorsAllowCandidate(iid, picks, instanceColors, diffColors);
+            const sourceCounts = decisionSourceCounts(allPermanents);
+            const permanentDetails = decisionPermanentDetails(allPermanents);
             return (
               <DecisionOverlay
-                key={decision.decisionId}
-                request={decision}
-                sourceCardId={decisionEffectSource(decision, events)}
-                candidates={visible.map((iid) => {
-                  const details = permanentDetails.get(iid);
+                key={viewerDecision.decisionId}
+                request={viewerDecision}
+                sourceCardId={decisionSourceCardId}
+                candidates={decisionVisible.map((card) => {
+                  const details = permanentDetails.get(card.instanceId);
                   return {
-                    instanceId: iid,
-                    cardId: visibleCardIds.get(iid),
-                    selectable:
-                      selectable.has(iid) &&
-                      distinctColorsAllow(iid) &&
-                      distinctCardIdsAllow(iid, picks, visibleCardIds, distinctCardIds),
-                    sourceCount: sourceCounts.get(iid),
+                    instanceId: card.instanceId,
+                    cardId: card.cardId,
+                    selectable: decisionAllowsPick(card.instanceId),
+                    sourceCount: sourceCounts.get(card.instanceId),
                     currentDP: details?.currentDP,
                     isSuspended: details?.isSuspended,
                   };
                 })}
                 picks={picks}
-                onTogglePick={(iid) => {
-                  if (!selectable.has(iid)) return;
-                  if (!distinctColorsAllow(iid)) return;
-                  if (!distinctCardIdsAllow(iid, picks, visibleCardIds, distinctCardIds)) return;
-                  setPicks((p) => {
-                    if (p.includes(iid)) return p.filter((x) => x !== iid);
-                    const max = decision.options?.max ?? 1;
-                    const keep = max > 1 ? p.slice(-(max - 1)) : [];
-                    return [...keep, iid];
-                  });
-                }}
+                triggerDetails={triggerDetails}
+                onTogglePick={toggleDecisionPick}
                 onRespond={respondDecision}
               />
             );
           })()
         : null}
+
+      {viewerDecision && answerOnBoard && viewerDecision.kind === "selectCards" ? (
+        <BoardSelectionRail
+          key={viewerDecision.decisionId}
+          prompt={
+            playerFacingPromptText(viewerDecision.promptText, viewerDecision.kind) ??
+            (decisionMin === decisionMax
+              ? t("overlay.selectCardsSubtitle", { count: decisionMax })
+              : t("overlay.selectCardsRangeSubtitle", { range: `${decisionMin}–${decisionMax}` }))
+          }
+          clause={
+            decisionSourceCardId
+              ? playerFacingEffectClause({
+                  cardId: decisionSourceCardId,
+                  timing: viewerDecision.options?.timing,
+                  description: viewerDecision.options?.effectText,
+                })
+              : viewerDecision.options?.effectText
+          }
+          min={decisionMin}
+          max={decisionMax}
+          pickCount={picks.length}
+          canConfirm={picks.length >= decisionMin && picks.length <= decisionMax}
+          onConfirm={() => respondDecision({ kind: "selectCards", instanceIds: picks })}
+          onNoSelection={() => respondDecision({ kind: "selectCards", instanceIds: [] })}
+          onOpenDialog={() => setDecisionAsDialog(true)}
+        />
+      ) : null}
+
+      {viewerDecision && answerOnBoard && viewerDecision.kind === "optional" ? (
+        <BoardOptionalPrompt
+          key={viewerDecision.decisionId}
+          sourceCardId={decisionSourceCardId}
+          prompt={playerFacingPromptText(viewerDecision.promptText, viewerDecision.kind)}
+          clause={
+            decisionSourceCardId
+              ? playerFacingEffectClause({
+                  cardId: decisionSourceCardId,
+                  timing: viewerDecision.options?.timing,
+                  description: viewerDecision.options?.effectText,
+                })
+              : viewerDecision.options?.effectText
+          }
+          onUse={() => respondDecision({ kind: "optional", accept: true })}
+          onDecline={() => respondDecision({ kind: "optional", accept: false })}
+          onOpenDialog={() => setDecisionAsDialog(true)}
+        />
+      ) : null}
+
+      {state.pendingDecision && state.pendingDecision.seat !== viewerSeat && !state.gameOver ? (
+        <OpponentSelectingPill />
+      ) : null}
 
       {state.phase === Phase.Breeding && isMyTurn && !decision && !securityClash
         ? (() => {
@@ -1850,6 +1951,7 @@ export function GameScreen({
                     }}
                     drop={{ "data-drop": "perm-opp", "data-id": p.permanentId }}
                     candidate={isCand}
+                    highlight={decisionHighlightPermanentId === p.permanentId}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                     onClick={onOppPerm(p)}
                     onInspectStart={
@@ -1920,7 +2022,9 @@ export function GameScreen({
                       permRefs.current[p.permanentId] = el;
                     }}
                     candidate={isBase}
-                    highlight={selPerm === p.permanentId}
+                    // A board-mode optional prompt points at the permanent whose
+                    // effect is asking, so the rail and the field read as one.
+                    highlight={selPerm === p.permanentId || decisionHighlightPermanentId === p.permanentId}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                     drop={{ "data-drop": "perm-you", "data-id": p.permanentId }}
                     onClick={draggable ? undefined : onYourPerm(p)}
@@ -2086,6 +2190,15 @@ export function GameScreen({
               minExposure={compactPiles ? HAND_MIN_EXPOSURE_TOUCH : undefined}
               cards={handEntries}
               selectedInstanceId={handSel ?? undefined}
+              selection={
+                answerOnBoard && viewerDecision?.kind === "selectCards"
+                  ? {
+                      selectableInstanceIds: viewerDecision.options?.candidateInstanceIds ?? [],
+                      pickedInstanceIds: picks,
+                      onToggle: toggleDecisionPick,
+                    }
+                  : undefined
+              }
               startDrag={startHandDrag}
               selectCard={(index) => {
                 const entry = handEntries[index];

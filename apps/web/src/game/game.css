@@ -291,6 +291,281 @@ button.opponent-action-feed__current:focus-visible {
   font-size: var(--ds-text-xs);
   font-weight: 700;
 }
+
+/* --- Mulligan parity ------------------------------------------------------ */
+
+.mulligan-turn-order {
+  margin: 0 0 var(--ds-space-2);
+  color: var(--battle-cyan);
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-sm);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* --- Decision dialog: desktop sizing -------------------------------------- */
+
+.decision-overlay__subtitle {
+  margin: 0 0 var(--ds-space-3);
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+
+.decision-overlay__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Past six options the grid would grow taller than the sheet. One row that
+   scrolls sideways keeps every card the same size, and the track stays visible
+   so it is obvious there is more to the right. */
+.decision-overlay__grid--scroll {
+  flex-wrap: nowrap;
+  padding-bottom: var(--ds-space-3);
+  overflow-x: auto;
+  scrollbar-color: var(--ds-accent) var(--ds-surface-muted);
+  scrollbar-width: thin;
+}
+.decision-overlay__grid--scroll > * {
+  flex: none;
+}
+.decision-overlay__grid--scroll::-webkit-scrollbar {
+  height: 10px;
+}
+.decision-overlay__grid--scroll::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+}
+.decision-overlay__grid--scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--ds-accent);
+}
+
+.decision-overlay__order-card {
+  position: relative;
+  flex: none;
+}
+.decision-overlay__order-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  display: grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.35rem;
+  color: var(--ds-brand-on-ink);
+  border: 2px solid var(--ds-surface);
+  border-radius: 999px;
+  background: var(--battle-amber);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+  box-shadow: var(--ds-shadow-sm);
+}
+.decision-overlay__order-row {
+  outline: 2px solid var(--battle-amber);
+  outline-offset: -2px;
+}
+
+/* --- Trigger chooser ------------------------------------------------------ */
+
+.trigger-chooser {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-4);
+}
+.trigger-chooser__option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2);
+  color: var(--ds-fg);
+  border: 1.5px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-muted);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 120ms,
+    border-color 120ms;
+}
+.trigger-chooser__option--chosen {
+  border-color: var(--ds-accent);
+  background: var(--ds-accent-surface);
+}
+.trigger-chooser__card {
+  position: relative;
+  display: block;
+}
+/* The clause rides the bottom of its own card, the way the reference client
+   labels each pending effect, so the card and its text read as one choice. */
+.trigger-chooser__summary {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 0.3rem 0.4rem;
+  color: var(--ds-brand-on-ink);
+  border-radius: 0 0 0.5rem 0.5rem;
+  background: rgb(15 23 42 / 82%);
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.trigger-chooser__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 14rem;
+}
+.trigger-chooser__source {
+  color: var(--battle-cyan);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.trigger-chooser__name {
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+
+/* --- Board-mode decision prompts ------------------------------------------ */
+
+/* The rail sits on the left half, clear of the notice column that anchors to the
+   bottom-left corner, and of the side panels on the right. */
+.board-prompt {
+  position: absolute;
+  top: 50%;
+  left: var(--ds-space-4);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  width: min(19rem, 42vw);
+  max-height: min(28rem, 82%);
+  padding: var(--ds-space-4);
+  color: var(--ds-fg);
+  border: 2px solid var(--ds-accent);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-lg);
+  translate: 0 -50%;
+  animation: battle-board-prompt-in var(--t-board-prompt-in, 200ms) ease-out both;
+}
+@keyframes battle-board-prompt-in {
+  from {
+    opacity: 0;
+    translate: -16px -50%;
+  }
+  to {
+    opacity: 1;
+    translate: 0 -50%;
+  }
+}
+.board-prompt__back {
+  align-self: flex-start;
+}
+.board-prompt__eyebrow {
+  margin: 0;
+  color: var(--ds-accent);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.board-prompt__text {
+  margin: 0;
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-base);
+  font-weight: 700;
+  line-height: 1.35;
+}
+/* Only the printed clause scrolls: the prompt and its actions must never be
+   pushed out of the rail, because they are the decision's only exit. */
+.board-prompt__clause {
+  margin: 0;
+  max-height: 7rem;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  overflow-y: auto;
+  color: var(--ds-fg-secondary);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-muted);
+  font-size: var(--ds-text-xs);
+  line-height: 1.5;
+}
+.board-prompt__detail {
+  margin: 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+}
+.board-prompt__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-2);
+}
+/* The affirmative is amber and the refusal blue, matching the reference client's
+   Use / Not use pair, which players read by color before they read the words. */
+.board-prompt__use.aegis-button {
+  color: var(--ds-brand-ink);
+  border-color: var(--battle-amber);
+  background: var(--battle-amber);
+}
+.board-prompt__decline.aegis-button {
+  color: var(--battle-cyan);
+  border-color: var(--battle-cyan);
+}
+
+.board-opponent-pill {
+  position: absolute;
+  top: 5.5rem;
+  left: 50%;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  color: var(--ds-brand-on-ink);
+  border-radius: 999px;
+  background: rgb(15 23 42 / 88%);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  box-shadow: var(--ds-shadow-lg);
+  translate: -50% 0;
+  animation: battle-board-prompt-in var(--t-board-prompt-in, 200ms) ease-out both;
+}
+.board-opponent-pill__dots {
+  display: flex;
+  gap: 3px;
+}
+.board-opponent-pill__dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--battle-cyan);
+  animation: aegis-pill-dot 1s ease-in-out infinite;
+}
+.board-opponent-pill__dots i:nth-child(2) {
+  animation-delay: 160ms;
+}
+.board-opponent-pill__dots i:nth-child(3) {
+  animation-delay: 320ms;
+}
+@keyframes aegis-pill-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
 .waiting-dialog {
   width: min(100%, 460px);
   padding: 36px;
@@ -607,6 +882,8 @@ button.opponent-action-feed__current:focus-visible {
   --battle-attack-glow: rgb(255 64 32 / 35%);
   --battle-panel: #101b30;
   --battle-panel-border: #3b5c9e;
+  /* The amber the reference client numbers ordered picks and offers "Use" in. */
+  --battle-amber: #f08a24;
   --battle-header-grad: linear-gradient(180deg, #2b57a8 0%, #16336e 55%, #102450 100%);
 }
 
@@ -924,6 +1201,7 @@ button.opponent-action-feed__current:focus-visible {
 }
 
 .game-hand-card {
+  position: relative;
   border-radius: 0.7rem;
 }
 
@@ -931,6 +1209,39 @@ button.opponent-action-feed__current:focus-visible {
   box-shadow:
     0 0 0 2.5px var(--battle-cyan),
     0 0 14px rgb(39 214 232 / 65%);
+}
+
+/* --- Board-mode hand selection -------------------------------------------- */
+
+/* A card that cannot be picked stays readable but visibly out of the running,
+   so the cyan glow above reads as "this one counts". */
+.game-hand-card--unpickable {
+  opacity: 0.45;
+  filter: grayscale(0.7);
+}
+.game-hand-card--picked {
+  box-shadow:
+    0 0 0 3px var(--battle-amber),
+    0 0 18px rgb(240 138 36 / 55%);
+}
+.game-hand-card__pick-badge {
+  position: absolute;
+  top: -0.4rem;
+  right: -0.4rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.35rem;
+  color: var(--ds-brand-on-ink);
+  border: 2px solid var(--ds-surface);
+  border-radius: 999px;
+  background: var(--battle-amber);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+  box-shadow: var(--ds-shadow-sm);
 }
 
 .game-hand-card--drawn {
@@ -2180,6 +2491,26 @@ button.opponent-action-feed__current:focus-visible {
    landscape block further down re-lays the board for the short viewport and
    only needs these touch surfaces — sheets, zoom, confirmations — to exist. */
 @media (width < 600px), (height < 520px) and (orientation: landscape) {
+  /* The board is the whole screen here, so the rail takes only what the prompt
+     and its actions need; the printed clause keeps its own short scroll. */
+  .board-prompt {
+    width: min(15rem, 46vw);
+    max-height: 92%;
+    padding: var(--ds-space-3);
+    gap: var(--ds-space-1);
+  }
+  .board-prompt__text {
+    font-size: var(--ds-text-sm);
+  }
+  .board-prompt__clause {
+    max-height: 4.5rem;
+  }
+  .board-opponent-pill {
+    top: 3.5rem;
+    padding: var(--ds-space-1) var(--ds-space-3);
+    font-size: var(--ds-text-xs);
+  }
+
   .battle-clash__art > div {
     width: 78px !important;
     height: auto !important;
@@ -3393,8 +3724,17 @@ button.opponent-action-feed__current:focus-visible {
   .side-panel,
   .match-notice,
   .attack-announcement,
+  .board-prompt,
+  .board-opponent-pill,
   .game-modal__panel {
     animation: none;
+  }
+
+  /* The prompt is the only route to answering the decision, so it appears at
+     once and stays for its whole life; only the pulsing dots are decoration. */
+  .board-opponent-pill__dots i {
+    animation: none;
+    opacity: 1;
   }
 
   /* The eroding ring is the visible half of a clock the queue still runs in full:
