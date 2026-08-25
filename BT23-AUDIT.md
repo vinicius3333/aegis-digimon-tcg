@@ -272,6 +272,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR; pays exactly 1, excludes an over-cost peer, plays an eligible card, and grants both keywords to exactly one Digimon; then separately declines the play, proves memory was still paid and the card stayed in hand, and observes both mandatory keywords.
 - Verification: focused suite — 6 passed; shared package build — passed; `git diff --check` — passed.
 
+## BT23-031 — Angewomon — 10/10
+
+- Catalog evidence: Yellow level 5, play cost 7, 6000 DP, standard yellow- or purple-level-4 evolution for 3 plus alternate level-4 CS evolution for 3; form `Ultimate`, attribute `Vaccine`, types `Archangel` and `CS`; hand play cost is reduced by 3 while LadyDevimon or Mirei Mikagura is present; On Play/When Digivolving moves security top to hand, then recovers deck top if three or fewer security remain; inherited Alliance.
+- Knowledge base: Q5276 allows the On Play/When Digivolving effect with zero security: the impossible first action is skipped and Recovery +1 still resolves because the post-action count is at most three; there are no local errata, restrictions, or unresolved ambiguities.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-031", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, reducer-negative, and exact post-removal security-boundary evidence without changing execution.
+- Primitive trace: the pay-time self reducer checks a live friendly LadyDevimon/Mirei name before affordability and subtracts exactly 3 only for Angewomon played from hand; security-to-hand reads the actual top and permits an empty stack; the following condition evaluates the updated security count, then deck recovery adds one at top; inherited Alliance is collected only from the evolution source.
+- Behavioral proof: the focused suite checks catalog and complete IR; pays 4 with LadyDevimon and recovers from zero security; proves unreduced play costs the printed 7 without either enabler; at four security removes one then recovers back to four; at five removes one but leaves deck unchanged at the post-removal count of four; and observes inherited Alliance on a realistic carrier.
+- Verification: focused suite — 8 passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-031 through BT23-102.
+BT23-032 through BT23-102.
