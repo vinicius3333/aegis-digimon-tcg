@@ -1,105 +1,110 @@
-import { describe, it, expect } from "vitest";
-import type { PlayerState } from "@aegis/shared";
-import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "../index.js";
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT11-003.js";
 
-// A3 for BT11-003 (Tokomon) — inherited [Your Turn][Once Per Turn] trigger:
-//   "When you play a Digimon with [Angel], [Archangel], or [Fallen Angel] in its
-//    traits, <Draw 1>." (documented behavior: OnEnterFieldAnyone, isInherited=true)
-//
-// FAILS-WHEN-REVERTED: with BT11-003 in the digivolution stack, firing
-// OnEnterFieldAnyone with an Angel-trait Digimon as the subject causes <Draw 1>.
-// Without the hand-written override the generated fallback was inert and the draw never fired.
-// Two proofs:
-//   1. Positive — Angel Digimon subject → card drawn from deck to hand.
-//   2. Negative — non-Angel Digimon subject → no draw.
+const HOST_CARD = "BT1-009";
 
-// BT1-053 (Darcmon) has type "Angel" in cards.json. BT1-009 (Monodramon) does not.
-const ANGEL_CARD = "BT1-053"; // trait: Angel
-const NON_ANGEL_CARD = "BT1-009"; // trait: Mini Dragon
-const HOST_CARD = "BT1-009"; // the Digimon hosting BT11-003 in its stack
-
-/**
- * Expose the internal fireTiming method (tests drive it directly to isolate the
- * OnEnterFieldAnyone window — same pattern as EX6-061.test.ts).
- */
-describe("BT11-003 [Your Turn][OPT] when you play an Angel-trait Digimon, <Draw 1>", () => {
-  it("draws 1 card when an Angel-trait Digimon enters the controller's battle area", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] }],
-          hand: [{ card: ANGEL_CARD, as: "angel" }],
-          deck: [{ card: "BT1-001", faceUp: false }],
+describe("BT11-003 Tokomon", () => {
+  it("matches the catalog and carries the complete inherited contract", () => {
+    expect(getCardDefinition("BT11-003")).toMatchObject({
+      cardId: "BT11-003",
+      nameEn: "Tokomon",
+      colors: ["Yellow"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      forms: ["In-Training"],
+      types: ["Lesser"],
+      inheritedEffectText:
+        "[Your Turn][Once Per Turn] When you play a Digimon with [Angel], [Archangel], or [Fallen Angel] in its traits, ＜Draw 1＞. (Draw 1 card from your deck.)",
+    });
+    expect(compiled).toEqual({
+      effects: [
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenPlayed",
+              sourceFilter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Angel", "Archangel", "Fallen Angel", "FallenAngel"], match: "trait" }],
+              },
+              actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+            },
+          ],
+          isInherited: true,
+          frequency: "OncePerTurn",
         },
-      },
-      { autoAcceptOptional: true },
-    );
-    s.state.memory = 5;
-    await s.ready();
-    const p0 = s.state.players[0] as PlayerState;
-
-    const handBefore = p0.hand.length;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("angel").instanceId })).toEqual({ ok: true });
-    await settle(() => p0.hand.length > handBefore);
-
-    // <Draw 1>: one card moved from the deck to the hand.
-    expect(p0.hand.length).toBe(handBefore);
-    expect(p0.deck.length).toBe(0);
+      ],
+      coverage: "full",
+      residual: [],
+    });
   });
 
-  it("does NOT draw when the played Digimon has no Angel trait (negative control)", async () => {
-    const s = setupEngine(
-      {
+  for (const [trait, cardId] of [
+    ["Angel", "BT1-053"],
+    ["Archangel", "BT1-060"],
+    ["Fallen Angel", "BT11-080"],
+  ] as const) {
+    it(`draws for an exact ${trait} trait Digimon`, async () => {
+      const s = setupEngine({
         0: {
-          battleArea: [{ card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] }],
-          hand: [{ card: NON_ANGEL_CARD, as: "nonAngel" }],
-          deck: [{ card: "BT1-001", faceUp: false }],
+          battleArea: [{ card: HOST_CARD, as: "host", under: ["BT11-003"] }],
+          hand: [{ card: cardId, as: "played" }],
+          deck: ["BT1-001"],
         },
-      },
-      { autoAcceptOptional: true },
-    );
-    s.state.memory = 5;
-    await s.ready();
-    const p0 = s.state.players[0] as PlayerState;
+      });
+      s.state.memory = 20;
 
-    const handBefore = p0.hand.length;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.deck.length === 0);
+
+      expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(["BT1-001"]);
+    });
+  }
+
+  it("draws only once when two matching Digimon are played in the turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: HOST_CARD, as: "host", under: ["BT11-003"] }],
+        hand: [
+          { card: "BT1-053", as: "angel" },
+          { card: "BT1-060", as: "archangel" },
+        ],
+        deck: ["BT1-001", "BT1-002"],
+      },
+    });
+    s.state.memory = 20;
+
+    for (const card of ["angel", "archangel"] as const) {
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(card).instanceId })).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+    }
+
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
+
+  it("rejects a near-trait nonmatch", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: HOST_CARD, as: "host", under: ["BT11-003"] }],
+        hand: [{ card: "BT1-009", as: "nonAngel" }],
+        deck: ["BT1-001"],
+      },
+    });
+    s.state.memory = 20;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonAngel").instanceId })).toEqual({
       ok: true,
     });
-    // Allow time for any spurious resolve.
-    await settle(() => false, 20);
+    await settle(() => s.state.pendingDecision === undefined);
 
-    expect(p0.hand.length).toBe(handBefore - 1); // play consumed the non-matching card; no draw
-    expect(p0.deck.length).toBe(1); // deck untouched
-  });
-
-  it("does NOT draw when it is the opponent's turn (Your Turn guard)", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] }],
-          hand: [{ card: ANGEL_CARD, as: "angel" }],
-          deck: [{ card: "BT1-001", faceUp: false }],
-        },
-      },
-      { autoAcceptOptional: true },
-    );
-    s.state.memory = 5;
-    await s.ready();
-    s.state.turnSeat = 1; // opponent's turn — [Your Turn] gate fails for seat 0
-    const p0 = s.state.players[0] as PlayerState;
-
-    const handBefore = p0.hand.length;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("angel").instanceId })).toEqual({
-      ok: false,
-      reason: expect.any(String),
-    });
-    await settle(() => false, 20);
-
-    expect(p0.hand.length).toBe(handBefore); // no draw off-turn
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });
