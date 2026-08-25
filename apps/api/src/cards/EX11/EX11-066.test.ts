@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./EX11-066.js";
+import { compiled } from "./EX11-066.js";
 import "../BT11/BT11-070.js";
 import "../P/P-094.js";
 
@@ -215,4 +215,45 @@ describe("EX11-066 Xeno", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.perm("vemmon").stack).toHaveLength(0);
   });
+
+  it("publishes full exclusive IR with Q5932 text matching and exact reveal dispositions", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    for (const trigger of ["StartOfYourMainPhase", "OnPlay"]) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions).toMatchObject([
+        {
+          kind: "Draw",
+          cost: { kind: "trash", target: { filter: { zone: "hand", nameOrTrait: vemmonTextMatcher() } } },
+        },
+        { kind: "GainMemory", amount: 1 },
+      ]);
+    }
+    const watchers = compiled.effects.find((effect) => effect.trigger === "AllTurns")!.actions;
+    expect(watchers).toHaveLength(2);
+    for (const watcher of watchers) {
+      expect(watcher).toMatchObject({
+        kind: "SubTrigger",
+        sourceFilter: { nameOrTrait: vemmonTextMatcher() },
+        actions: [
+          {
+            kind: "RevealAdd",
+            revealCount: 2,
+            add: [
+              {
+                filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
+                count: "all",
+                to: "placeUnder",
+                underFilter: { isTriggerSource: true },
+              },
+            ],
+            rest: "trash",
+            cost: { kind: "suspend" },
+          },
+        ],
+      });
+    }
+  });
 });
+
+function vemmonTextMatcher() {
+  return [{ tokens: ["Vemmon"], match: "text" }];
+}

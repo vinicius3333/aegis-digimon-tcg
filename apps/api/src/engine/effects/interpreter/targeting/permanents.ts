@@ -97,8 +97,13 @@ export function candidatePermanents(
   const relevantSourceKinds =
     ctx.fx.isBeAffectedBySourceKind !== undefined ? sourceKinds.filter((k) => k === "Option" || k === "Digimon") : [];
   const result: Permanent[] = [];
-  const isBreedingFilter = (filter: Filter): boolean => filter.zone === "breeding";
-  const isBattleAreaFilter = (filter: Filter): boolean => filter.zone === undefined || filter.zone === "battleArea";
+  const allowsZone = (filter: Filter, zone: "battleArea" | "breeding"): boolean => {
+    if (filter.zone !== undefined) return filter.zone === zone;
+    if (filter.or !== undefined && filter.or.length > 0) return filter.or.some((branch) => allowsZone(branch, zone));
+    return zone === "battleArea";
+  };
+  const isBreedingFilter = (filter: Filter): boolean => allowsZone(filter, "breeding");
+  const isBattleAreaFilter = (filter: Filter): boolean => allowsZone(filter, "battleArea");
   for (const seat of seatSet) {
     const p = ctx.game.player(seat);
     if (allFilters.some(isBreedingFilter) && p.breeding !== undefined) {

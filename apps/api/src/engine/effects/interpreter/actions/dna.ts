@@ -156,7 +156,7 @@ export async function runDnaDigivolve(
     return;
   }
   const candidates = resultPool.filter(
-    (candidate) => ctx.fx.canDnaDigivolve?.(materialIds, candidate.instanceId) !== false,
+    (candidate) => ctx.fx.canDnaDigivolve?.(materialIds, candidate.instanceId, looseMaterialIds) !== false,
   );
   if (candidates.length === 0) return;
   const chosen = await pickLoose(

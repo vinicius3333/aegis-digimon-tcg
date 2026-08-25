@@ -1178,7 +1178,7 @@ export async function payCost(
         ctx.boundPlayed ??= new Map();
         ctx.boundPlayed.set(cost.bindResultAs, new Set(permanentIds));
       }
-      const deleted = await ctx.fx.deletePermanent(permanentIds);
+      const deleted = await ctx.fx.deletePermanent(permanentIds, "byEffect", { mechanic: cost.mechanic });
       // A cost is paid only when every declared permanent actually leaves play. A
       // leave-play replacement (or another deletion prevention) may reject one of
       // the selected permanents; treating that attempt as paid would let the parent

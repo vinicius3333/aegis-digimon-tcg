@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fixes:
 //   - SubTrigger actions were empty; Draw 1 and trash-from-hand must be inside.
 //   - Digivolve belongs inside SubTrigger; target = the attacking Ghost Digimon (sourceFilter).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
@@ -72,6 +72,7 @@ const compiled: CompiledCard = {
             {
               kind: "Digivolve",
               target: {
+                sourceRef: "triggerSubject",
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
@@ -95,6 +96,7 @@ const compiled: CompiledCard = {
                 ],
               },
               from: ["hand"],
+              payCost: true,
               reduceCost: 2,
               optional: true,
               condition: {

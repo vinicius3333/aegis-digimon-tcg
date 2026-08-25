@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // SubTrigger.digivolveIntoFilter: lv.5+ and (Tyrannomon name OR Dinosaur trait).
 // Hatch is "you may" (optional), with suspend as its cost. If declined (no suspend), abort.
 // Digivolve target: must be in breeding area.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
@@ -49,6 +49,7 @@ const compiled: CompiledCard = {
               {
                 tokens: ["Dinosaur"],
                 match: "trait",
+                orPrevious: true,
               },
             ],
           },
@@ -75,8 +76,7 @@ const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
-                  kind: ["Digimon"],
-                  zone: "breedingArea",
+                  zone: "breeding",
                 },
                 count: 1,
               },
@@ -91,6 +91,7 @@ const compiled: CompiledCard = {
                   {
                     tokens: ["Reptile", "Dinosaur"],
                     match: "trait",
+                    orPrevious: true,
                   },
                 ],
               },

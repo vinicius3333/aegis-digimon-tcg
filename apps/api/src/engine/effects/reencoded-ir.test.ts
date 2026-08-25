@@ -229,6 +229,7 @@ interface BoardCard {
   seat: 0 | 1;
   def: Partial<Facts>;
   currentDP?: number;
+  zone?: "battleArea" | "breeding";
 }
 
 function board(cards: BoardCard[], opts?: { selfPermanentId?: string; mySecurity?: number }) {
@@ -240,17 +241,18 @@ function board(cards: BoardCard[], opts?: { selfPermanentId?: string; mySecurity
     currentDP: c.currentDP ?? 5000,
     isSuspended: false,
     linked: [],
+    inBreeding: c.zone === "breeding",
   }));
   const byId = new Map(permanents.map((p) => [p.permanentId, p]));
   const defById = new Map(cards.map((c) => [c.permanentId, facts({ ...c.def }) as unknown as Facts]));
   const players = [0, 1].map((seat) => ({
     seat,
-    battleArea: permanents.filter((p) => p.ownerSeat === seat),
+    battleArea: permanents.filter((p) => p.ownerSeat === seat && !p.inBreeding),
     security: Array.from({ length: seat === 0 ? (opts?.mySecurity ?? 0) : 0 }, () => ({ faceUp: false })),
     hand: [],
     deck: [],
     trash: [],
-    breeding: undefined,
+    breeding: permanents.find((p) => p.ownerSeat === seat && p.inBreeding),
   }));
   const self = opts?.selfPermanentId !== undefined ? byId.get(opts.selfPermanentId) : undefined;
   const source = {
@@ -300,6 +302,23 @@ describe("isOpponents/isLowestDP -> controller + superlative (BT20-018)", () => 
     // REVERT-CONFIRM-RED: with `isOpponents`/`isLowestDP` (both unread) the pool was every
     // permanent on the board, including the controller's own 1000-DP Digimon.
     expect(poolFor(filter, b)).toEqual(["OPP_LOW"]);
+  });
+});
+
+describe("field-wide target unions", () => {
+  it("offers matching permanents from both the battle and breeding areas", () => {
+    const b = board([
+      { permanentId: "BATTLE", seat: 0, def: { nameEn: "King Drasil_7D6" } },
+      { permanentId: "BREEDING", seat: 0, zone: "breeding", def: { nameEn: "King Drasil_7D6" } },
+      { permanentId: "OTHER", seat: 0, def: { nameEn: "Mother Eater" } },
+    ]);
+    const fieldFilter: Filter = {
+      controller: "mine",
+      nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "name" }],
+      or: [{ zone: "battleArea" }, { zone: "breeding" }],
+    };
+
+    expect(poolFor(fieldFilter, b)).toEqual(["BREEDING", "BATTLE"]);
   });
 });
 

@@ -1,222 +1,87 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { matchNameOrTrait } from "../../engine/effects/interpreter/matching/definition.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX11-066";
+const vemmonInText = [{ tokens: ["Vemmon"], match: "text" as const }];
 
-function hasVemmonInText(def: CardDefinition): boolean {
-  return matchNameOrTrait(def, { tokens: ["Vemmon"], match: "text" });
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartMainPhase) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-main-trash-draw-gain`,
-          description:
-            "[Start of Your Main Phase] By trashing 1 card with [Vemmon] in its text from " +
-            "your hand, <Draw 1>. Then, gain 1 memory.",
-          optional: true,
-          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const vemmonCards = Array.from(owner.hand).filter((c) => hasVemmonInText(ctx.game.definitionOf(c)));
-            if (vemmonCards.length === 0) return;
-            const chosen = await ctx.ask.selectCards(ctx, {
-              candidates: vemmonCards.map((c) => c.instanceId),
-              min: 0,
-              max: 1,
-            });
-            if (chosen.length > 0) {
-              await ctx.fx.trash(chosen);
-              ctx.fx.draw(source.ownerSeat, 1);
-              ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
-            }
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnEnterFieldAnyone) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-trash-draw-gain`,
-          description:
-            "[On Play] By trashing 1 card with [Vemmon] in its text from your hand, <Draw 1>. " +
-            "Then, gain 1 memory.",
-          optional: true,
-          canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const vemmonCards = Array.from(owner.hand).filter((c) => hasVemmonInText(ctx.game.definitionOf(c)));
-            if (vemmonCards.length === 0) return;
-            const chosen = await ctx.ask.selectCards(ctx, {
-              candidates: vemmonCards.map((c) => c.instanceId),
-              min: 0,
-              max: 1,
-            });
-            if (chosen.length > 0) {
-              await ctx.fx.trash(chosen);
-              ctx.fx.draw(source.ownerSeat, 1);
-              ctx.fx.gainMemory(1);
-            }
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/played-sub`,
-          description:
-            "[All Turns] When your Digimon with [Vemmon] in its text is played, by suspending " +
-            "this Tamer, reveal top 2 of deck. Place all [Vemmon] cards among them as the " +
-            "bottom digivolution cards of that Digimon. Trash the rest.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenPlayed",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              // "by suspending this Tamer" is unpayable while it is already suspended, so this
-              // copy must not join the ordering prompt when both Xenos watch the same event.
-              canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true,
-              description: `${cardId}: When Vemmon Digimon played, suspend + reveal + place under.`,
-              matches: (subCtx) => {
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined || subject.topCard === undefined) return false;
-                if (subject.controllerSeat !== source.ownerSeat) return false;
-                const def = subCtx.game.definitionOf(subject.topCard);
-                return isDigimon(def) && hasVemmonInText(def);
-              },
-              run: async (subCtx) => {
-                const selfPerm = subCtx.source.permanent();
-                if (selfPerm === undefined || selfPerm.isSuspended) return;
-                // "by suspending this Tamer" is a cost, and paying a cost is the controller's
-                // choice: ask before suspending, and leave the Tamer untouched on a decline.
-                const willSuspend = await subCtx.ask.optional(
-                  subCtx,
-                  "Suspend Xeno to reveal the top 2 cards of your deck?",
-                );
-                if (!willSuspend) return;
-                const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
-                if (!paid) return;
-                const owner = subCtx.game.player(source.ownerSeat);
-                const top2 = Array.from(owner.deck).slice(0, 2);
-                if (top2.length === 0) return;
-                const vemmonCards = top2.filter((c) => hasVemmonInText(subCtx.game.definitionOf(c)));
-                const nonVemmon = top2.filter((c) => !hasVemmonInText(subCtx.game.definitionOf(c)));
-                if (vemmonCards.length > 0) {
-                  const subjectId = subCtx.trigger?.subjectPermanentId;
-                  if (subjectId !== undefined) {
-                    await subCtx.fx.placeUnder(
-                      subjectId,
-                      vemmonCards.map((c) => c.instanceId),
-                    );
-                  }
-                }
-                if (nonVemmon.length > 0) {
-                  await subCtx.fx.trash(nonVemmon.map((c) => c.instanceId));
-                }
-              },
-            });
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/digivolve-sub`,
-          description:
-            "[All Turns] When your Digimon with [Vemmon] in its text digivolves, by suspending " +
-            "this Tamer, reveal top 2 of deck. Place all [Vemmon] cards among them as the " +
-            "bottom digivolution cards of that Digimon. Trash the rest.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenOneOfYoursDigivolves",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              // "by suspending this Tamer" is unpayable while it is already suspended, so this
-              // copy must not join the ordering prompt when both Xenos watch the same event.
-              canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true,
-              description: `${cardId}: When Vemmon Digimon digivolves, suspend + reveal + place under.`,
-              matches: (subCtx) => {
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined || subject.topCard === undefined) return false;
-                if (subject.controllerSeat !== source.ownerSeat) return false;
-                const def = subCtx.game.definitionOf(subject.topCard);
-                return isDigimon(def) && hasVemmonInText(def);
-              },
-              run: async (subCtx) => {
-                const selfPerm = subCtx.source.permanent();
-                if (selfPerm === undefined || selfPerm.isSuspended) return;
-                // "by suspending this Tamer" is a cost, and paying a cost is the controller's
-                // choice: ask before suspending, and leave the Tamer untouched on a decline.
-                const willSuspend = await subCtx.ask.optional(
-                  subCtx,
-                  "Suspend Xeno to reveal the top 2 cards of your deck?",
-                );
-                if (!willSuspend) return;
-                const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
-                if (!paid) return;
-                const owner = subCtx.game.player(source.ownerSeat);
-                const top2 = Array.from(owner.deck).slice(0, 2);
-                if (top2.length === 0) return;
-                const vemmonCards = top2.filter((c) => hasVemmonInText(subCtx.game.definitionOf(c)));
-                const nonVemmon = top2.filter((c) => !hasVemmonInText(subCtx.game.definitionOf(c)));
-                if (vemmonCards.length > 0) {
-                  const subjectId = subCtx.trigger?.subjectPermanentId;
-                  if (subjectId !== undefined) {
-                    await subCtx.fx.placeUnder(
-                      subjectId,
-                      vemmonCards.map((c) => c.instanceId),
-                    );
-                  }
-                }
-                if (nonVemmon.length > 0) {
-                  await subCtx.fx.trash(nonVemmon.map((c) => c.instanceId));
-                }
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card without paying its memory cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
-          },
-        }),
-      ];
-    }
-
-    return [];
+const trashDrawGain = [
+  {
+    kind: "Draw" as const,
+    controller: "mine" as const,
+    amount: 1,
+    cost: {
+      kind: "trash" as const,
+      target: {
+        filter: { zone: "hand" as const, controller: "mine" as const, nameOrTrait: vemmonInText },
+        count: 1,
+      },
+      raw: "By trashing 1 card with [Vemmon] in its text from your hand",
+    },
+    optional: true,
+    abortOnDecline: true,
   },
+  { kind: "GainMemory" as const, amount: 1 },
+];
+
+const revealForTriggeredDigimon = {
+  kind: "RevealAdd" as const,
+  revealCount: 2,
+  add: [
+    {
+      filter: {
+        controllerDefault: "mine" as const,
+        nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" as const }],
+      },
+      count: "all" as const,
+      to: "placeUnder" as const,
+      underFilter: { isTriggerSource: true },
+    },
+  ],
+  rest: "trash" as const,
+  cost: {
+    kind: "suspend" as const,
+    target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+    raw: "by suspending this Tamer",
+  },
+  optional: true,
+  abortOnDecline: true,
 };
 
-registerCard(module);
-export default module;
+export const compiled: CompiledCard = {
+  effects: [
+    { trigger: "StartOfYourMainPhase", actions: trashDrawGain },
+    { trigger: "OnPlay", actions: trashDrawGain },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: vemmonInText },
+          actions: [revealForTriggeredDigimon],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: vemmonInText },
+          actions: [revealForTriggeredDigimon],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("EX11-066", compiled);

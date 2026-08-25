@@ -2585,6 +2585,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const deletePermanent = async (
     permanentIds: string[],
     cause: import("./EffectContext.js").RemovalCause = "byEffect",
+    opts?: { mechanic?: "Overclock" },
   ): Promise<number> => {
     // "Can't be deleted" (Comprehensive Rules §15-1-3: a prohibiting effect takes precedence).
     // Filtered FIRST: an outright prohibition means the deletion never approaches, so neither
@@ -2858,6 +2859,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           deletedControllerSeat: deleted.controllerSeat,
           deletedTopCardId: deleted.topCard?.cardId,
           removalCause: cause,
+          removalMechanic: opts?.mechanic,
           deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
         });
         // whenLeavesPlay is the superset event (delete + bounce); deletion is one path.
@@ -2974,6 +2976,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.fireTiming(EffectTiming.OnDestroyedAnyone, {
         deletedInstanceIds: tokenDeletionIds,
         removalCause: cause,
+        removalMechanic: opts?.mechanic,
       });
     }
     const movedByPermanent = access.deletePermanentsBatched(toDelete);
@@ -3029,6 +3032,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         deletedWasStackInstanceIds: allStackInstanceIds,
         deletedWasLinkedInstanceIds: allLinkedInstanceIds,
         removalCause: cause,
+        removalMechanic: opts?.mechanic,
       };
       if (engine.resolveDeletionReactions) {
         await engine.resolveDeletionReactions(
@@ -3138,6 +3142,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       subjectPermanentId: firstPermanentId,
       ...(permanentIds.length > 1 ? { subjectPermanentIds: permanentIds } : {}),
       suspendedPermanentId: firstPermanentId,
+      ...(opts?.byEffectSeat !== undefined ? { effectSuspendSeat: opts.byEffectSeat } : {}),
     };
     // One action that suspends multiple permanents creates one simultaneous timing, not one
     // timing per card (BT2-041 Q1015 / BT4-084 Q1230). Carry every subject so filtered watchers
@@ -3146,10 +3151,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       suspendedPermanentId: firstPermanentId,
       ...(permanentIds.length > 1 ? { subjectPermanentId: firstPermanentId, subjectPermanentIds: permanentIds } : {}),
     });
-    await engine.fireSubTrigger?.(
-      "whenSuspended",
-      permanentIds.length > 1 ? simultaneousTrigger : { suspendedPermanentId: firstPermanentId },
-    );
+    await engine.fireSubTrigger?.("whenSuspended", simultaneousTrigger);
     if (opts?.suppressWhenEffectSuspends !== true) {
       await engine.fireSubTrigger?.("whenEffectSuspends", {
         ...simultaneousTrigger,
@@ -4185,6 +4187,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const canDnaDigivolve: NonNullable<Primitives["canDnaDigivolve"]> = (
     materialPermanentIds,
     resultInstanceId,
+    extraMaterialInstanceIds = [],
   ): boolean => {
     const result = peekLooseInstance(state, resultInstanceId);
     if (result === undefined) return false;
@@ -4192,18 +4195,29 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const materials = materialPermanentIds
       .map((id) => access.permanentById(id))
       .filter((permanent): permanent is Permanent => permanent?.topCard !== undefined);
-    if (materials.length !== materialPermanentIds.length || materials.length < 2) return false;
+    const extraMaterials = extraMaterialInstanceIds
+      .map((id) => peekLooseInstance(state, id))
+      .filter((card): card is CardInstance => card !== undefined);
+    if (
+      materials.length !== materialPermanentIds.length ||
+      extraMaterials.length !== extraMaterialInstanceIds.length ||
+      materials.length + extraMaterials.length < 2
+    )
+      return false;
     if (
       into.level === 7 &&
       materials.some((material) => continuous.hasRestriction(material.permanentId, "digivolveToLevel7"))
     ) {
       return false;
     }
-    const definitions = materials.map((material) => {
-      const printed = requireCardDefinition(material.topCard!.cardId);
-      const effectiveLevel = continuous.dnaLevelFor(material.permanentId, into);
-      return effectiveLevel === undefined ? printed : { ...printed, level: effectiveLevel };
-    });
+    const definitions = [
+      ...materials.map((material) => {
+        const printed = requireCardDefinition(material.topCard!.cardId);
+        const effectiveLevel = continuous.dnaLevelFor(material.permanentId, into);
+        return effectiveLevel === undefined ? printed : { ...printed, level: effectiveLevel };
+      }),
+      ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
+    ];
     return dnaDigivolveCostFor(into, definitions) !== undefined;
   };
 

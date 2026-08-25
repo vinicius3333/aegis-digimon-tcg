@@ -3,9 +3,15 @@ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 
 const root = process.cwd();
-const set = "AD1";
-const expectedCount = 25;
-const resultsPath = process.argv[2] ?? resolve(root, `docs/audits/${set}-focused-results.tsv`);
+const setFlag = process.argv.indexOf("--set");
+const countFlag = process.argv.indexOf("--expected-count");
+const set = setFlag === -1 ? "AD1" : process.argv[setFlag + 1];
+const expectedCount = countFlag === -1 ? 25 : Number(process.argv[countFlag + 1]);
+const positionalResult = process.argv.slice(2).find((arg, index, args) => {
+  const previous = args[index - 1];
+  return !arg.startsWith("--") && previous !== "--set" && previous !== "--expected-count";
+});
+const resultsPath = positionalResult ?? resolve(root, `docs/audits/${set}-focused-results.tsv`);
 const output = resolve(root, `docs/audits/${set}-card-audit.md`);
 const cards = JSON.parse(readFileSync(resolve(root, "packages/shared/src/cards/data/cards.json"), "utf8"));
 const collection = cards.filter((card) => card.set === set).sort((a, b) => a.cardId.localeCompare(b.cardId));

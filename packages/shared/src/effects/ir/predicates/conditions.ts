@@ -96,6 +96,7 @@ export interface Condition {
     | "triggerRemovedSecuritySeat"
     | "triggerSecurityRemovedByEffect"
     | "triggerHandTrashedSeat"
+    | "triggeredByEffect" // whenSuspended was produced by an effect, not attack/block rules (EX11-062)
     | "triggerRemovalCause"
     | "triggerDeletedByDpZero"
     | "triggerIsFirstDeletedPermanent"
@@ -197,6 +198,8 @@ export interface Condition {
   keyword?: string;
   /** For `triggerRemovalCause`. */
   removalCause?: "byEffect" | "byBattle" | "byRule";
+  /** Optional named deletion procedure paired with `triggerRemovalCause`. */
+  removalMechanic?: "Overclock";
   raw?: string;
   matchPredicate?: string;
 }
