@@ -20,6 +20,10 @@ export type SecurityClashSide = "you" | "opp";
 export interface SecurityClashAttacker {
   seat: Seat;
   cardId: string;
+  /** The attacker's board identity, so a deletion naming it can be recognized. */
+  permanentId?: string;
+  /** Its top card's instance id: an effect deletion names instances, not permanents. */
+  topInstanceId?: string;
 }
 
 export interface SecurityClashFighter {
@@ -36,6 +40,15 @@ export interface SecurityClashScene {
   revealed: SecurityClashFighter;
   /** Absent for effect-driven checks, which have no attacker to face. */
   attacker?: SecurityClashFighter;
+  /**
+   * The attacker was deleted by this check — the server named it in a deletion
+   * alongside the check, which is the one side of a security battle the protocol
+   * identifies. The other direction has no event: a checked Security Digimon is a
+   * loose card that goes to the trash whether it won or lost (CR 13-1-8-4), so
+   * "the security card lost" is deliberately not inferred. Nothing here compares
+   * DP: the figures on the cards are the printed ones, not the live values.
+   */
+  attackerDeleted?: boolean;
 }
 
 /**
@@ -154,6 +167,7 @@ export function buildSecurityClashScene({
   defenderSeat,
   viewerSeat,
   attacker,
+  attackerDeleted = false,
 }: {
   key: number;
   revealedCardId: string;
@@ -162,6 +176,8 @@ export function buildSecurityClashScene({
   defenderSeat: Seat;
   viewerSeat: Seat;
   attacker?: SecurityClashAttacker;
+  /** The check's own event batch named the attacker in a deletion. */
+  attackerDeleted?: boolean;
 }): SecurityClashScene {
   const defenderSide: SecurityClashSide = defenderSeat === viewerSeat ? "you" : "opp";
   const attackerSide: SecurityClashSide = defenderSide === "you" ? "opp" : "you";
@@ -173,6 +189,7 @@ export function buildSecurityClashScene({
     resolution: normalizeSecurityClashResolution(resolution),
     revealed: { cardId: revealedCardId, side: defenderSide, dp: comparableDp(revealedCardId) },
     ...(facing ? { attacker: { cardId: facing.cardId, side: attackerSide, dp: comparableDp(facing.cardId) } } : {}),
+    ...(facing && attackerDeleted ? { attackerDeleted: true } : {}),
   };
 }
 

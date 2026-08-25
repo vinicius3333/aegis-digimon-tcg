@@ -21,6 +21,7 @@ import {
 import { turnControlLabelKey, type TurnControlState } from "./turnControl";
 import { formatKeyword } from "./keywordDisplay";
 import { hasBlocker, sourceCountBadge } from "./fieldBadges";
+import { deckLayerCount } from "./deckChrome";
 import type { PendingFateBadge } from "./pendingFate";
 import type { DpPulse } from "./dpPulse";
 import { TIMINGS } from "./timings";
@@ -63,6 +64,10 @@ export function Pile({
   shield,
   armed,
   breaking,
+  faceUp,
+  attackLabel,
+  riffling,
+  landing,
   refEl,
   onClick,
   drop,
@@ -81,6 +86,14 @@ export function Pile({
   armed?: boolean;
   /** The pane is shattering on a security check. */
   breaking?: boolean;
+  /** The stack holds a card the opponent has already seen. */
+  faceUp?: boolean;
+  /** What attacking this stack would be, while it is a legal target being aimed at. */
+  attackLabel?: string;
+  /** The pile is being shuffled: it riffles once. */
+  riffling?: boolean;
+  /** A card is flying back onto the stack. */
+  landing?: boolean;
   refEl?: (el: HTMLDivElement | null) => void;
   onClick?: () => void;
   drop?: DropAttrs;
@@ -88,9 +101,18 @@ export function Pile({
 }) {
   const w = compact ? 42 : 62;
   if (shield) {
-    return (
+    const pane = (
       <div
-        className={`game-security-shield game-security-shield--${shield}${glow ? " game-security-shield--glow" : ""}${armed ? " game-security-shield--armed" : ""}${className ? ` ${className}` : ""}`}
+        className={[
+          "game-security-shield",
+          `game-security-shield--${shield}`,
+          glow ? "game-security-shield--glow" : "",
+          armed ? "game-security-shield--armed" : "",
+          landing ? "game-security-shield--landing" : "",
+          className ?? "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         ref={refEl}
         onClick={onClick}
         onKeyDown={
@@ -129,6 +151,11 @@ export function Pile({
             ))}
           </span>
         ) : null}
+        {faceUp ? (
+          <span className="game-security-shield__face-up" aria-hidden>
+            ◉
+          </span>
+        ) : null}
         {/* Re-keyed on the value so the pop restarts every time security moves. */}
         <span key={count} className="game-security-shield__count" aria-hidden>
           {count}
@@ -138,7 +165,18 @@ export function Pile({
         </span>
       </div>
     );
+    // The shield is clipped to its own polygon, so the label has to sit outside it.
+    if (!attackLabel) return pane;
+    return (
+      <span className="game-security-shield-wrap">
+        {pane}
+        <span className="game-security-shield__attack-label" aria-hidden>
+          {attackLabel}
+        </span>
+      </span>
+    );
   }
+  const layers = deckLayerCount(count);
   return (
     <div
       className={className}
@@ -165,49 +203,48 @@ export function Pile({
         cursor: onClick ? "pointer" : "default",
       }}
     >
-      <div aria-hidden style={{ position: "relative", width: w, height: w * 1.4 }}>
-        {count > 1 ? (
+      {/* The pile is as thick as it is deep, and gone entirely once it empties —
+          the reference client's own deck-out warning. */}
+      <div
+        aria-hidden
+        className={`game-pile${riffling ? " game-pile--riffling" : ""}`}
+        style={{ position: "relative", width: w, height: w * 1.4 }}
+      >
+        {Array.from({ length: layers }, (_, index) => (
           <div
+            key={index}
+            className="game-pile__layer"
             style={{
               position: "absolute",
               inset: 0,
-              transform: "translate(3px,3px)",
+              transform: `translate(${(index + 1) * 2.6}px,${(index + 1) * 2.6}px)`,
               borderRadius: 8,
               background: "var(--ds-surface-muted)",
               border: "1px solid var(--ds-border)",
             }}
           />
-        ) : null}
-        {count > 2 ? (
+        ))}
+        {layers === 0 ? null : (
           <div
+            className="game-pile__top"
             style={{
               position: "absolute",
               inset: 0,
-              transform: "translate(6px,6px)",
               borderRadius: 8,
-              background: "var(--ds-surface-muted)",
-              border: "1px solid var(--ds-border)",
+              overflow: "hidden",
+              boxShadow: glow ? "0 0 0 3px var(--ds-warning), 0 0 18px rgba(217,154,43,0.55)" : "none",
+              transition: "box-shadow 200ms",
+              opacity: dim ? 0.5 : 1,
             }}
-          />
-        ) : null}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: 8,
-            overflow: "hidden",
-            boxShadow: glow ? "0 0 0 3px var(--ds-warning), 0 0 18px rgba(217,154,43,0.55)" : "none",
-            transition: "box-shadow 200ms",
-            opacity: dim ? 0.5 : 1,
-          }}
-        >
-          {topCardId ? (
-            <CardMini cardId={topCardId} width={w} />
-          ) : (
-            <CardBack width={w} label={count} useSelectedSleeve={useSelectedSleeve} />
-          )}
-        </div>
-        {topCardId ? (
+          >
+            {topCardId ? (
+              <CardMini cardId={topCardId} width={w} />
+            ) : (
+              <CardBack width={w} label={count} useSelectedSleeve={useSelectedSleeve} />
+            )}
+          </div>
+        )}
+        {topCardId && layers > 0 ? (
           <span
             style={{
               position: "absolute",
@@ -311,6 +348,7 @@ export function PermanentView({
   shake,
   claw,
   dpPulse,
+  effectSource,
   suspendDelayMs,
   width,
   refCb,
@@ -336,6 +374,8 @@ export function PermanentView({
   claw?: boolean;
   /** The DP change this permanent is currently pulsing over. */
   dpPulse?: DpPulse;
+  /** This permanent's own effect is activating: it glows and throws a small particle. */
+  effectSource?: boolean;
   /** The colour-keyed burst this permanent is playing, behind the card. */
   burst?: PermanentBurst;
   /** Held back while the card is still being announced centre-screen. */
@@ -414,7 +454,11 @@ export function PermanentView({
       }
       aria-describedby={onInspectStart ? "opponent-permanent-inspector" : undefined}
       className={
-        [lunge ? `game-permanent-lunge--${lunge}` : "", shake ? "game-permanent-shake" : ""]
+        [
+          lunge ? `game-permanent-lunge--${lunge}` : "",
+          shake ? "game-permanent-shake" : "",
+          effectSource ? "game-permanent--effect-source" : "",
+        ]
           .filter(Boolean)
           .join(" ") || undefined
       }
@@ -505,10 +549,14 @@ export function PermanentView({
           and again on every digivolution. */}
       <div
         key={`${perm.permanentId}:${perm.stack.length}`}
-        className="game-card-enter"
+        className={`game-card-enter${burst ? " game-card-landing" : ""}`}
         style={{ position: "relative", zIndex: 1 }}
       >
         {burst ? <CardBurst key={burst.key} variant={burst.variant} color={burst.color} /> : null}
+        {/* The reference client drops a landing card onto an OutBounce and kicks up
+            dust where it hits; the dust is what sells the drop as weight. */}
+        {burst ? <span key={`dust-${burst.key}`} className="game-card-dust" aria-hidden="true" /> : null}
+        {effectSource ? <span className="game-effect-source-spark" aria-hidden="true" /> : null}
         <CardMini
           cardId={topId}
           width={permanentWidth}
@@ -1071,6 +1119,7 @@ export function Hand({
   draggingInstanceId,
   selection,
   shakeInstanceId,
+  effectSourceInstanceId,
   onHoverChange,
   cardWidth = HAND_CARD_WIDTH,
   minExposure = HAND_MIN_EXPOSURE,
@@ -1083,6 +1132,8 @@ export function Hand({
   selection?: HandSelection;
   /** The card a refused action was sent from: it shakes where it sits. */
   shakeInstanceId?: string;
+  /** An Option activating out of the hand: it rises out of the fan with an orange outline. */
+  effectSourceInstanceId?: string;
   /** Which card the pointer is over, so the memory gauge can predict its play. */
   onHoverChange?: (instanceId: string | undefined) => void;
   cardWidth?: number;
@@ -1141,6 +1192,9 @@ export function Hand({
         const dragging = draggingInstanceId === entry.instanceId;
         const hov = hoveredIndex === i;
         const playable = selection ? pickable : entry.playableFromHand || entry.digivolveTargetPermanentIds.length > 0;
+        // Hover raises a buried card out of the fan so its face can be read; it
+        // never grows it. A card is inspected by clicking it, which opens the same
+        // focused overlay the touch layout uses.
         const style: CSSProperties = {
           marginLeft: i === 0 ? 0 : -overlap,
           cursor: "grab",
@@ -1205,12 +1259,13 @@ export function Hand({
               selection && !pickable && !picked ? "game-hand-card--unpickable" : "",
               picked ? "game-hand-card--picked" : "",
               shakeInstanceId === entry.instanceId ? "game-hand-card--shake" : "",
+              effectSourceInstanceId === entry.instanceId ? "game-hand-card--effect-source" : "",
             ]
               .filter(Boolean)
               .join(" ")}
             style={selection ? { ...style, cursor: pickable ? "pointer" : "default" } : style}
           >
-            <CardFull cardId={entry.cardId} width={cardWidth} selected={sel} />
+            <CardFull cardId={entry.cardId} width={cardWidth} selected={sel} zoomOnHover={false} />
             {picked ? (
               <span
                 className="game-hand-card__pick-badge"
@@ -1226,38 +1281,78 @@ export function Hand({
   );
 }
 
-export function AttackArrow({ from, to }: { from: { x: number; y: number }; to: { x: number; y: number } }) {
+interface ArrowPoint {
+  x: number;
+  y: number;
+}
+
+function arcBetween(from: ArrowPoint, to: ArrowPoint): string {
   const midX = (from.x + to.x) / 2;
-  const arc = `M ${from.x} ${from.y} Q ${midX} ${(from.y + to.y) / 2 - 90} ${to.x} ${to.y}`;
+  return `M ${from.x} ${from.y} Q ${midX} ${(from.y + to.y) / 2 - 90} ${to.x} ${to.y}`;
+}
+
+/**
+ * The target arrow (`TargetArrow.cs`). One tail, one arc per target, drawn from
+ * board coordinates the caller re-measures as the cards move — which is what keeps
+ * a declared attack pointing at its target while the board shifts under it.
+ *
+ * `tracking` is the reference client's persistent arrow: it extends with two quick
+ * flashes and then stays up until the thing it is about is over. Without it the
+ * arc draws itself once, which is what a hovering drag preview wants.
+ */
+export function AttackArrow({
+  from,
+  to,
+  kind = "attack",
+  tracking = false,
+}: {
+  from: ArrowPoint;
+  /** One target or several; an effect can be aimed at more than one card at a time. */
+  to: ArrowPoint | readonly ArrowPoint[];
+  kind?: "attack" | "effect";
+  tracking?: boolean;
+}) {
+  const targets = Array.isArray(to) ? (to as readonly ArrowPoint[]) : [to as ArrowPoint];
+  const headId = `aegis-arrowhead-${kind}`;
   return (
-    <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 60, pointerEvents: "none" }}>
+    <svg
+      className={`game-attack-arrow game-attack-arrow--${kind}${tracking ? " game-attack-arrow--tracking" : ""}`}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 60, pointerEvents: "none" }}
+    >
       <defs>
-        <marker id="aegis-arrowhead" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
-          <path className="game-attack-arrow__head" d="M0,0 L6,3 L0,6 Z" fill="var(--battle-attack)" />
+        <marker id={headId} markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+          <path className="game-attack-arrow__head" d="M0,0 L6,3 L0,6 Z" fill={`var(--battle-arrow-${kind})`} />
         </marker>
       </defs>
-      {/* Soft glow pass under the arc, the way the reference client draws attacks. */}
-      <path
-        className="game-attack-arrow__stroke"
-        d={arc}
-        pathLength={100}
-        strokeDasharray={100}
-        fill="none"
-        stroke="var(--battle-attack-glow)"
-        strokeWidth={10}
-        strokeLinecap="round"
-      />
-      <path
-        className="game-attack-arrow__stroke"
-        d={arc}
-        pathLength={100}
-        strokeDasharray={100}
-        fill="none"
-        stroke="var(--battle-attack)"
-        strokeWidth={4.5}
-        strokeLinecap="round"
-        markerEnd="url(#aegis-arrowhead)"
-      />
+      {targets.map((target, index) => {
+        const arc = arcBetween(from, target);
+        return (
+          <g key={index}>
+            {/* Soft glow pass under the arc, the way the reference client draws attacks. */}
+            <path
+              className="game-attack-arrow__stroke"
+              d={arc}
+              pathLength={100}
+              strokeDasharray={100}
+              fill="none"
+              stroke={`var(--battle-arrow-${kind}-glow)`}
+              strokeWidth={10}
+              strokeLinecap="round"
+            />
+            <path
+              className="game-attack-arrow__stroke"
+              d={arc}
+              pathLength={100}
+              strokeDasharray={100}
+              fill="none"
+              stroke={`var(--battle-arrow-${kind})`}
+              strokeWidth={4.5}
+              strokeLinecap="round"
+              markerEnd={`url(#${headId})`}
+            />
+          </g>
+        );
+      })}
     </svg>
   );
 }

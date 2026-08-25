@@ -141,70 +141,145 @@ button.opponent-action-feed__current:focus-visible {
   display: none;
 }
 
-.match-history-sheet {
-  width: min(34rem, calc(100% - var(--ds-space-6)));
-  max-height: min(42rem, calc(100dvh - var(--ds-space-8)));
+/* The play log drawer (`PlayLog.cs` inside `SideBar.cs`): it slides out of the
+   board's right edge and back into it, rather than opening as a centred sheet. */
+.play-log {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  display: flex;
+  flex-direction: column;
+  width: min(24rem, calc(100% - var(--ds-space-6)));
+  max-height: 100dvh;
   padding: var(--ds-space-5);
   overflow: hidden;
+  border-radius: 18px 0 0 18px;
+  transform: none;
+  animation: battle-log-slide-in var(--t-log-sidebar, 160ms) cubic-bezier(0.33, 1, 0.68, 1) both;
 }
-.match-history-sheet__header {
+
+@keyframes battle-log-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.play-log__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-3);
 }
-.match-history-sheet__header span {
+.play-log__header span {
   color: var(--ds-fg-muted);
   font-size: var(--ds-text-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.match-history-sheet__header h2 {
+.play-log__header h2 {
   margin: 2px 0 0;
   color: var(--ds-fg);
   font: 800 var(--ds-text-xl) var(--ds-font-display);
 }
-.match-history-sheet__list {
+.play-log__list {
   display: grid;
   gap: var(--ds-space-2);
+  align-content: start;
   margin-top: var(--ds-space-4);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.match-history-sheet__list > p {
+.play-log__empty {
   color: var(--ds-fg-muted);
   font-size: var(--ds-text-sm);
 }
-.match-history-sheet__line {
+.play-log__line {
   display: grid;
   grid-template-columns: 6px minmax(0, 1fr);
   gap: var(--ds-space-2);
   align-items: start;
 }
-.match-history-sheet__line > span {
+.play-log__line > span {
   width: 6px;
   height: 6px;
   margin-top: 0.45rem;
   border-radius: 50%;
   background: var(--ds-fg-disabled);
 }
-.match-history-sheet__line[data-kind="you"] > span {
+.play-log__line[data-kind="you"] > span {
   background: var(--ds-accent);
 }
-.match-history-sheet__line[data-kind="opp"] > span {
+.play-log__line[data-kind="opp"] > span {
   background: var(--ds-danger);
 }
-.match-history-sheet__line p {
+.play-log__line p {
   margin: 0;
   color: var(--ds-fg-secondary);
   font-size: var(--ds-text-sm);
   line-height: 1.4;
 }
 
-.card-action-sheet,
-.card-zoom {
+/* A named card is a link into its own art, so a player can check what just hit
+   them without leaving the board. */
+.play-log__card {
+  padding: 0;
+  color: var(--ds-accent);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.play-log__card:hover,
+.play-log__card:focus-visible {
+  color: var(--ds-fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-log {
+    animation: none;
+  }
+}
+
+.card-action-sheet {
   display: none;
+}
+
+/* The card blow-up is reachable from the play log on every layout, so its base
+   styling lives here rather than only inside the touch layer below. It grows into
+   place on the reference client's own 0.12s magnify. */
+.card-zoom {
+  position: fixed;
+  z-index: calc(var(--ds-z-dialog) + 1);
+  inset: 0;
+  display: grid;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-6);
+  grid-template-rows: minmax(0, 1fr) auto;
+  place-items: center;
+  background: rgb(4 14 31 / 88%);
+  backdrop-filter: blur(8px);
+  animation: battle-card-magnify var(--t-card-magnify, 120ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-card-magnify {
+  from {
+    opacity: 0;
+    scale: 0.88;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
 }
 
 .mulligan-sheet {
@@ -900,6 +975,12 @@ button.opponent-action-feed__current:focus-visible {
   --battle-cyan: #27d6e8;
   --battle-attack: #ff2d1f;
   --battle-attack-glow: rgb(255 64 32 / 35%);
+  /* The target arrow is drawn in one of two vocabularies: red for a declared
+     attack, amber for an effect picking what it will reach. */
+  --battle-arrow-attack: var(--battle-attack);
+  --battle-arrow-attack-glow: var(--battle-attack-glow);
+  --battle-arrow-effect: #f08a24;
+  --battle-arrow-effect-glow: rgb(240 138 36 / 35%);
   --battle-panel: #101b30;
   --battle-panel-border: #3b5c9e;
   /* The amber the reference client numbers ordered picks and offers "Use" in. */
@@ -2796,7 +2877,7 @@ button.opponent-action-feed__current:focus-visible {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  animation: battle-clash-scene var(--t-clash-total, 2533ms) linear both;
+  animation: battle-clash-scene var(--t-clash-total, 2803ms) linear both;
 }
 
 .battle-clash__badge {
@@ -2853,13 +2934,13 @@ button.opponent-action-feed__current:focus-visible {
 .battle-clash[data-resolution="effect"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
     battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-glow var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+    battle-clash-glow var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
 }
 
 .battle-clash[data-resolution="trashed"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
     battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-fall var(--t-clash-outcome, 350ms) cubic-bezier(0.32, 0, 0.67, 0) var(--t-clash-outcome-at, 1983ms)
+    battle-clash-fall var(--t-clash-outcome, 620ms) cubic-bezier(0.32, 0, 0.67, 0) var(--t-clash-outcome-at, 1983ms)
       both;
 }
 
@@ -2868,19 +2949,19 @@ button.opponent-action-feed__current:focus-visible {
 .battle-clash[data-resolution="battle"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
     battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+    battle-clash-impact var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
 }
 
 .battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
   animation:
     battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
-    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+    battle-clash-impact var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
 }
 
 .battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="opp"] .battle-clash__art {
   animation:
     battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
-    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+    battle-clash-impact var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
 }
 
 .battle-clash__caption {
@@ -2934,7 +3015,7 @@ button.opponent-action-feed__current:focus-visible {
   inset: -0.6rem;
   border-radius: 50%;
   background: radial-gradient(circle, rgb(255 255 255 / 90%) 0%, var(--battle-attack) 45%, transparent 70%);
-  animation: battle-clash-burst var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+  animation: battle-clash-burst var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
 }
 
 .battle-clash__outcome {
@@ -5400,4 +5481,647 @@ button.opponent-action-feed__current:focus-visible {
   right: 0.35rem;
   bottom: 2rem;
   left: auto;
+}
+
+/* ============================================================================
+   Slice 9 — readability polish ported from the reference client: the cut-in,
+   the permanent inspector's computed state, per-zone effect activations, the
+   persistent target arrow, security-stack chrome, deck thickness and riffle,
+   the deletion shatter and the landing bounce.
+   ========================================================================= */
+
+/* --- Digivolution cut-in (`EvolutionEffectObject.cs`) --------------------- */
+
+.game-cut-in {
+  position: fixed;
+  z-index: calc(var(--ds-z-dialog) + 2);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: rgb(3 8 20 / 72%);
+  pointer-events: none;
+  animation: battle-cut-in var(--t-cut-in, 1450ms) linear both;
+}
+
+.game-cut-in--digiXros {
+  animation:
+    battle-cut-in var(--t-cut-in-xros, 2000ms) linear both,
+    battle-cut-in-shake var(--t-cut-in-wipe, 180ms) ease-in-out 6;
+}
+
+@keyframes battle-cut-in {
+  0% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes battle-cut-in-shake {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: -7px 3px;
+  }
+  75% {
+    translate: 7px -3px;
+  }
+}
+
+/* The colour band sweeping behind the card, one strip per index. */
+.game-cut-in__bands {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.game-cut-in__bands i {
+  position: absolute;
+  left: -30%;
+  width: 160%;
+  height: calc(11% + var(--cut-in-band) * 3%);
+  top: calc(22% + var(--cut-in-band) * 15%);
+  background: linear-gradient(90deg, transparent, var(--cut-in-base), var(--cut-in-edge), transparent);
+  opacity: 0.72;
+  animation: battle-cut-in-band var(--t-cut-in, 1450ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--cut-in-band) * 60ms);
+}
+
+@keyframes battle-cut-in-band {
+  0% {
+    transform: translateX(-70%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(70%) skewX(-18deg);
+  }
+}
+
+.game-cut-in__card {
+  position: relative;
+  filter: drop-shadow(0 22px 46px rgb(0 0 0 / 60%));
+  animation: battle-cut-in-card var(--t-cut-in-wipe, 180ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes battle-cut-in-card {
+  from {
+    opacity: 0;
+    scale: 0.7;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.game-cut-in__word {
+  position: absolute;
+  bottom: 16%;
+  color: var(--ds-brand-on-ink, #fff);
+  font: 900 clamp(1.8rem, 7vw, 4rem) / 1 var(--ds-font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 22px var(--cut-in-edge),
+    0 6px 18px rgb(0 0 0 / 70%);
+  animation: battle-cut-in-word var(--t-cut-in-wipe, 180ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--t-cut-in-wipe, 180ms);
+}
+
+@keyframes battle-cut-in-word {
+  from {
+    opacity: 0;
+    letter-spacing: 0.4em;
+  }
+  to {
+    opacity: 1;
+    letter-spacing: 0.12em;
+  }
+}
+
+/* --- Per-zone effect activation (`Effects.cs:204-460`) -------------------- */
+
+/* A permanent's own effect: it glows where it stands and throws one spark. */
+.game-permanent--effect-source {
+  animation: battle-effect-source-glow var(--t-effect-source-hold, 480ms) ease-out both;
+}
+
+@keyframes battle-effect-source-glow {
+  0%,
+  100% {
+    filter: none;
+  }
+  40% {
+    filter: drop-shadow(0 0 14px var(--battle-arrow-effect)) brightness(1.25);
+  }
+}
+
+.game-effect-source-spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff, var(--battle-arrow-effect) 60%, transparent 70%);
+  pointer-events: none;
+  animation: battle-effect-source-spark var(--t-effect-source-hold, 480ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-effect-source-spark {
+  0% {
+    opacity: 0;
+    scale: 0.2;
+  }
+  35% {
+    opacity: 1;
+    scale: 1.6;
+  }
+  100% {
+    opacity: 0;
+    scale: 2.6;
+    translate: 0 -26px;
+  }
+}
+
+/* The trash throws its top card up with an orange outline and a punch. */
+.game-pile--effect-source .game-pile__top {
+  outline: 2px solid var(--battle-arrow-effect);
+  outline-offset: 2px;
+  border-radius: 8px;
+  animation: battle-effect-trash-rise var(--t-effect-trash-rise, 320ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes battle-effect-trash-rise {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  55% {
+    transform: translateY(-26px) scale(1.35);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* An Option rises out of the hand fan instead. */
+.game-hand-card--effect-source {
+  z-index: 60;
+  outline: 2px solid var(--battle-arrow-effect);
+  outline-offset: 2px;
+  border-radius: 10px;
+  animation: battle-effect-hand-rise var(--t-effect-hand-rise, 260ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes battle-effect-hand-rise {
+  0% {
+    translate: 0 0;
+    scale: 1;
+  }
+  60% {
+    translate: 0 -38px;
+    scale: 1.3;
+  }
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+/* --- Persistent target arrow (`TargetArrow.cs`) --------------------------- */
+
+/* Two quick flashes as it extends, then it simply stays up while the caller
+   re-solves its endpoints frame by frame. */
+.game-attack-arrow--tracking .game-attack-arrow__stroke {
+  stroke-dashoffset: 0;
+  animation: battle-arrow-flash var(--t-arrow-flash, 85ms) steps(1, end) 4;
+}
+
+.game-attack-arrow--tracking .game-attack-arrow__head {
+  animation: battle-arrow-flash var(--t-arrow-flash, 85ms) steps(1, end) 4;
+}
+
+@keyframes battle-arrow-flash {
+  0%,
+  49% {
+    opacity: 0.15;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* --- Security-stack chrome (`SecurityObject.cs`) -------------------------- */
+
+.game-security-shield__face-up {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  color: var(--battle-memory-glow);
+  font-size: 11px;
+  line-height: 1;
+  text-shadow: 0 0 6px rgb(0 0 0 / 70%);
+}
+
+.game-security-shield-wrap {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.game-security-shield__attack-label {
+  position: absolute;
+  bottom: -0.9rem;
+  left: 50%;
+  padding: 1px 7px;
+  color: var(--ds-brand-on-ink, #fff);
+  font: 800 9px/1.5 var(--ds-font-mono);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: var(--battle-attack);
+  translate: -50% 0;
+  animation: battle-arrow-flash var(--t-arrow-flash, 85ms) steps(1, end) 2;
+}
+
+.game-security-shield--landing {
+  animation: battle-security-flight var(--t-security-flight, 200ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes battle-security-flight {
+  0% {
+    rotate: -220deg;
+    scale: 0.4;
+  }
+  100% {
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+
+/* --- Deck thickness and riffle (`Player.cs:406-458, 295-325`) ------------- */
+
+.game-pile--riffling .game-pile__layer {
+  animation: battle-deck-riffle var(--t-deck-riffle, 180ms) ease-in-out both;
+}
+
+.game-pile--riffling .game-pile__layer:nth-child(even) {
+  animation-direction: reverse;
+}
+
+@keyframes battle-deck-riffle {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  50% {
+    translate: -4px -2px;
+    rotate: -3deg;
+  }
+}
+
+/* --- Deletion shatter (`Effects.cs:1693-1788`) ---------------------------- */
+
+.game-card-shatter {
+  position: relative;
+  display: block;
+}
+
+.game-card-shatter__shard {
+  position: absolute;
+  inset: 0;
+  display: block;
+  animation: battle-card-shatter var(--t-card-shatter, 520ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation-delay: var(--shard-delay, 0ms);
+}
+
+@keyframes battle-card-shatter {
+  0% {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: var(--shard-x, 0) var(--shard-y, 0);
+    rotate: var(--shard-spin, 90deg);
+    scale: 0.7;
+  }
+}
+
+.game-card-shatter__burst {
+  position: absolute;
+  inset: -20%;
+}
+
+/* --- Landing bounce and dust (`Effects.cs:533-608`) ----------------------- */
+
+.game-card-landing {
+  animation: battle-card-landing var(--t-landing-bounce, 100ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes battle-card-landing {
+  0% {
+    translate: 0 -14px;
+    scale: 1.06;
+  }
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+.game-card-dust {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 78%;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgb(255 255 255 / 55%), transparent 70%);
+  pointer-events: none;
+  translate: -50% 0;
+  animation: battle-card-dust var(--t-landing-dust, 420ms) ease-out both;
+  animation-delay: var(--t-landing-bounce, 100ms);
+}
+
+@keyframes battle-card-dust {
+  0% {
+    opacity: 0.85;
+    scale: 0.5 0.7;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.6 1.1;
+  }
+}
+
+/* --- Permanent inspector's computed state (`PermanentDetail.cs`) ---------- */
+
+.opponent-permanent-inspector header span em {
+  margin-left: 0.4rem;
+  font-style: normal;
+  font-weight: 800;
+}
+.opponent-permanent-inspector header span em[data-direction="up"] {
+  color: var(--ds-success, #2f9e63);
+}
+.opponent-permanent-inspector header span em[data-direction="down"] {
+  color: var(--ds-danger, #d33);
+}
+.opponent-permanent-inspector__base {
+  margin: 0.15rem 0 0;
+  color: var(--ds-fg-muted);
+  font-family: var(--ds-font-mono);
+  font-size: 10.5px;
+}
+.opponent-permanent-inspector__keywords {
+  margin-top: 0.5rem;
+}
+.opponent-permanent-inspector__keywords > span {
+  color: var(--ds-fg-muted);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.opponent-permanent-inspector__keywords ul,
+.stack-viewer-state__keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.opponent-permanent-inspector__keywords li,
+.stack-viewer-state__keywords li {
+  padding: 1px 7px;
+  color: var(--ds-fg-secondary);
+  font-size: 10.5px;
+  font-weight: 700;
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+}
+/* A keyword an effect granted is marked apart from one printed on the card. */
+.opponent-permanent-inspector__keywords li[data-granted],
+.stack-viewer-state__keywords li[data-granted] {
+  color: var(--battle-arrow-effect);
+  border-color: var(--battle-arrow-effect);
+}
+.opponent-permanent-inspector__keywords li[data-empty],
+.stack-viewer-state__keywords li[data-empty] {
+  color: var(--ds-fg-disabled);
+  border-style: dashed;
+}
+.opponent-permanent-inspector__fate,
+.stack-viewer-state__fate {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin: 0.5rem 0 0;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 999px;
+  width: fit-content;
+}
+.opponent-permanent-inspector__fate[data-tone="danger"],
+.stack-viewer-state__fate[data-tone="danger"] {
+  color: #fff;
+  background: var(--battle-keyword);
+}
+.opponent-permanent-inspector__fate[data-tone="neutral"],
+.stack-viewer-state__fate[data-tone="neutral"] {
+  color: #fff;
+  background: var(--battle-memory-you);
+}
+.opponent-permanent-inspector__fate[data-tone="good"],
+.stack-viewer-state__fate[data-tone="good"] {
+  color: var(--ds-fg);
+  background: var(--battle-memory-zero);
+}
+
+.stack-viewer-state {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--ds-border);
+}
+.stack-viewer-state__dp {
+  margin: 0;
+  color: var(--ds-fg);
+  font-family: var(--ds-font-mono);
+  font-size: 11px;
+}
+.stack-viewer-state__dp strong {
+  font-size: 15px;
+}
+.stack-viewer-state__dp em {
+  margin-left: 0.35rem;
+  font-style: normal;
+  font-weight: 800;
+}
+.stack-viewer-state__dp em[data-direction="up"] {
+  color: var(--ds-success, #2f9e63);
+}
+.stack-viewer-state__dp em[data-direction="down"] {
+  color: var(--ds-danger, #d33);
+}
+.stack-viewer-state__base {
+  margin: 0.1rem 0 0;
+  color: var(--ds-fg-muted);
+  font-family: var(--ds-font-mono);
+  font-size: 10px;
+}
+
+/* --- Reduced motion ------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  /* The cut-in is spectacle with nothing to read: it never plays at all. */
+  .game-cut-in {
+    display: none;
+  }
+
+  /* Everything else here appears at rest rather than animating into place. */
+  .game-permanent--effect-source,
+  .game-pile--effect-source .game-pile__top,
+  .game-hand-card--effect-source,
+  .game-security-shield--landing,
+  .game-pile--riffling .game-pile__layer,
+  .game-card-landing,
+  .game-attack-arrow--tracking .game-attack-arrow__stroke,
+  .game-attack-arrow--tracking .game-attack-arrow__head,
+  .game-security-shield__attack-label,
+  .card-zoom {
+    animation: none;
+  }
+
+  .game-effect-source-spark,
+  .game-card-dust,
+  .game-card-shatter__shard {
+    display: none;
+  }
+}
+
+/* --- Security battle outcome (`Effects.cs:1942-2030, 2033-2164`) ---------- */
+
+/* The checked card is spent whatever the battle decided, so it breaks apart into
+   its own art where it stood; the claw rakes only the side the server named. */
+/* The card, its shards and its claw share one positioned box. */
+.battle-clash__frame {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.battle-clash__shatter {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+  /* Held invisible until the outcome beat, so the shards do not sit over the card
+     while the two of them are still being read. `forwards` rather than `both`: the
+     backwards fill would light them up through the whole delay. */
+  opacity: 0;
+  animation: battle-clash-shatter-in var(--t-clash-outcome, 620ms) steps(1, end) var(--t-clash-outcome-at, 1983ms)
+    forwards;
+}
+
+@keyframes battle-clash-shatter-in {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The card underneath goes as its shards leave. The whole chain is restated because
+   the revealed card already carries its entrance and its impact on this element, and
+   an `animation` shorthand replaces rather than adds to them. */
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-fate="spent"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-impact var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both,
+    battle-clash-spent var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+}
+
+@keyframes battle-clash-spent {
+  0% {
+    opacity: 1;
+  }
+  18% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The beaten side dims behind its claw; the side that stands is lit for a beat. */
+.battle-clash__card[data-fate="beaten"] {
+  animation: battle-clash-beaten var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+}
+
+@keyframes battle-clash-beaten {
+  0% {
+    filter: none;
+  }
+  40% {
+    filter: brightness(0.6) saturate(0.5);
+  }
+  100% {
+    filter: brightness(0.45) saturate(0.35);
+  }
+}
+
+.battle-clash__card[data-fate="stands"] {
+  animation: battle-clash-stands var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+}
+
+@keyframes battle-clash-stands {
+  0%,
+  100% {
+    filter: none;
+    scale: 1;
+  }
+  45% {
+    filter: brightness(1.25) drop-shadow(0 0 16px var(--battle-cyan));
+    scale: 1.08;
+  }
+}
+
+/* The claw waits for the outcome beat. Its own per-tine stagger is kept, so the
+   three gashes still land one behind the other. */
+.battle-clash__card[data-fate="beaten"] .game-claw__tine {
+  animation-delay: calc(var(--t-clash-outcome-at, 1983ms) + var(--claw-index) * 24ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The outcome label already says how the check resolved, so the beat is dropped
+     rather than flashed past. */
+  .battle-clash__shatter,
+  .battle-clash__card[data-fate="beaten"] .game-claw {
+    display: none;
+  }
+
+  .battle-clash[data-resolution="battle"] .battle-clash__card[data-fate="spent"] .battle-clash__art,
+  .battle-clash__card[data-fate="beaten"],
+  .battle-clash__card[data-fate="stands"] {
+    animation: none;
+  }
 }

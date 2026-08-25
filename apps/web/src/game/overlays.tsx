@@ -21,7 +21,8 @@ import { Icons } from "../design/icons";
 import { triggerCardId, triggerLabels } from "./boardModel";
 import { formatKeyword } from "./keywordDisplay";
 import { gameOverSplash, type GameOverOutcome } from "./gameOverSplash";
-import { pendingFateBadge } from "./pendingFate";
+import { pendingFateBadge, type PendingFateBadge } from "./pendingFate";
+import { inspectorPlacement, type PermanentDetail } from "./permanentDetail";
 import { useTranslation, type Translate } from "../i18n";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
 import { useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
@@ -675,52 +676,111 @@ type _SupportedCombatPromptsComplete =
 const _supportedCombatPromptsComplete: _SupportedCombatPromptsComplete = true;
 void _supportedCombatPromptsComplete;
 
-/** Read-only public-information preview shown for opponent permanents on hover/focus. */
-export function OpponentPermanentInspector({
-  cards,
-  title,
-  x,
-  y,
+/** How wide and tall the inspector is allowed to get, so it can be placed before it renders. */
+const INSPECTOR_WIDTH = 420;
+const INSPECTOR_HEIGHT = 480;
+
+/**
+ * The permanent inspector (`PermanentDetail.cs`): the position as it stands right
+ * now — its live DP against the printed figure, the keywords the server resolved,
+ * the whole stack, and the fate an open effect has already pinned to it.
+ *
+ * It opens on the opposite side of the card that was clicked, so the card the
+ * reader is asking about stays visible beside its own detail.
+ */
+export function PermanentDetailInspector({
+  detail,
+  fate,
+  anchorX,
+  anchorY,
+  inline,
   onInteractStart,
   onInteractEnd,
 }: {
-  cards: StackCard[];
-  title: string;
-  x: number;
-  y: number;
+  detail: PermanentDetail;
+  /** The badge an open effect has already pinned to this permanent, if any. */
+  fate?: PendingFateBadge;
+  /** Right edge and top of the card that was clicked, in viewport coordinates. */
+  anchorX: number;
+  anchorY: number;
+  /** Render in place rather than portalling, so a fixture stage can hold the panel. */
+  inline?: boolean;
   onInteractStart?: () => void;
   onInteractEnd?: () => void;
 }) {
   const { t } = useTranslation();
-  const top = cards.find((card) => card.role === "top");
-  const topDef = top ? getCardDefinition(top.cardId) : undefined;
-  const supporting = cards.filter((card) => card.role !== "top");
-  const viewportWidth = typeof window === "undefined" ? 1280 : window.innerWidth;
-  const viewportHeight = typeof window === "undefined" ? 800 : window.innerHeight;
-  const left = Math.max(12, Math.min(x + 14, viewportWidth - 434));
-  const topPosition = Math.max(12, Math.min(y - 24, viewportHeight - 500));
+  const topDef = getCardDefinition(detail.cardId);
+  const supporting = detail.cards.filter((card) => card.role !== "top");
+  const granted = new Set(detail.grantedKeywords);
+  const placement = inspectorPlacement({
+    anchorX,
+    anchorY,
+    viewportWidth: typeof window === "undefined" ? 1280 : window.innerWidth,
+    viewportHeight: typeof window === "undefined" ? 800 : window.innerHeight,
+    panelWidth: INSPECTOR_WIDTH,
+    panelHeight: INSPECTOR_HEIGHT,
+  });
 
-  return createPortal(
+  const panel = (
     <aside
       id="opponent-permanent-inspector"
       className="opponent-permanent-inspector"
+      data-side={placement.side}
       role="tooltip"
       tabIndex={0}
       onMouseEnter={onInteractStart}
       onMouseLeave={onInteractEnd}
       onFocus={onInteractStart}
       onBlur={onInteractEnd}
-      style={{ left, top: topPosition }}
+      style={{ left: placement.left, top: placement.top, width: INSPECTOR_WIDTH }}
     >
       <header>
         <div>
-          <strong>{title}</strong>
-          <span>{topDef?.dp ? `${topDef.dp.toLocaleString()} DP` : top?.cardId}</span>
+          <strong>{detail.name}</strong>
+          {/* The live figure is what the position actually has; the printed one sits
+              beside it only when something has moved it. */}
+          <span>
+            {detail.currentDP.toLocaleString()} DP
+            {detail.dpDelta === 0 ? null : (
+              <em data-direction={detail.dpDelta > 0 ? "up" : "down"}>
+                {detail.dpDelta > 0 ? "+" : "−"}
+                {Math.abs(detail.dpDelta).toLocaleString()}
+              </em>
+            )}
+          </span>
         </div>
         <Badge>
-          {t("game.stack")} · {cards.length}
+          {t("game.stack")} · {detail.cards.length}
         </Badge>
       </header>
+      {detail.dpDelta === 0 ? null : (
+        <p className="opponent-permanent-inspector__base">
+          {t("overlay.baseDp")}: {detail.baseDP.toLocaleString()}
+        </p>
+      )}
+      <section className="opponent-permanent-inspector__keywords" aria-label={t("overlay.keywords")}>
+        <span>{t("overlay.keywords")}</span>
+        {detail.keywords.length === 0 ? (
+          <p>{t("overlay.noKeywords")}</p>
+        ) : (
+          <ul>
+            {detail.keywords.map((keyword) => (
+              <li key={keyword} data-granted={granted.has(keyword) || undefined}>
+                {formatKeyword(keyword)}
+                {keyword === "SecurityAttack" && detail.securityAttackPrinted !== undefined
+                  ? ` ${detail.securityAttackPrinted > 0 ? "+" : ""}${detail.securityAttackPrinted}`
+                  : ""}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      {fate ? (
+        <p className="opponent-permanent-inspector__fate" data-tone={fate.tone}>
+          <span aria-hidden="true">{fate.glyph}</span>
+          {t(fate.labelKey)}
+        </p>
+      ) : null}
       <section className="opponent-permanent-inspector__effect">
         <span>{t("overlay.printedEffect")}</span>
         <p>{topDef?.effectText || t("overlay.noPrintedEffect")}</p>
@@ -743,9 +803,9 @@ export function OpponentPermanentInspector({
           })}
         </section>
       ) : null}
-    </aside>,
-    document.body,
+    </aside>
   );
+  return inline ? panel : createPortal(panel, document.body);
 }
 
 /* ---------------- EFFECT DECISION ---------------- */
@@ -2141,7 +2201,16 @@ export interface StackCard {
 }
 
 /** Full-screen blow-up of a single card; tap anywhere (or Escape) to dismiss. */
-export function CardZoomOverlay({ cardId, onClose }: { cardId: string; onClose: () => void }) {
+export function CardZoomOverlay({
+  cardId,
+  onClose,
+  inline,
+}: {
+  cardId: string;
+  onClose: () => void;
+  /** Render in place rather than portalling, so a fixture stage can hold the overlay. */
+  inline?: boolean;
+}) {
   const { t } = useTranslation();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -2150,7 +2219,7 @@ export function CardZoomOverlay({ cardId, onClose }: { cardId: string; onClose: 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-  return createPortal(
+  const panel = (
     <div
       className="card-zoom"
       role="dialog"
@@ -2162,9 +2231,9 @@ export function CardZoomOverlay({ cardId, onClose }: { cardId: string; onClose: 
       <button type="button" onClick={onClose} autoFocus>
         {t("common.close")}
       </button>
-    </div>,
-    document.body,
+    </div>
   );
+  return inline ? panel : createPortal(panel, document.body);
 }
 
 /**
@@ -2212,6 +2281,47 @@ function CardArt({ cardId, width }: { cardId: string; width: number }) {
   );
 }
 
+/** The computed half of the stack viewer: the figures and keywords the server resolved. */
+function StackViewerState({ detail, fate }: { detail: PermanentDetail; fate?: PendingFateBadge }) {
+  const { t } = useTranslation();
+  const granted = new Set(detail.grantedKeywords);
+  return (
+    <div className="stack-viewer-state">
+      <p className="stack-viewer-state__dp">
+        <strong>{detail.currentDP.toLocaleString()}</strong> {t("overlay.liveDp")}
+        {detail.dpDelta === 0 ? null : (
+          <em data-direction={detail.dpDelta > 0 ? "up" : "down"}>
+            {detail.dpDelta > 0 ? "+" : "−"}
+            {Math.abs(detail.dpDelta).toLocaleString()}
+          </em>
+        )}
+      </p>
+      {detail.dpDelta === 0 ? null : (
+        <p className="stack-viewer-state__base">
+          {t("overlay.baseDp")}: {detail.baseDP.toLocaleString()}
+        </p>
+      )}
+      <ul className="stack-viewer-state__keywords" aria-label={t("overlay.keywords")}>
+        {detail.keywords.length === 0 ? <li data-empty="true">{t("overlay.noKeywords")}</li> : null}
+        {detail.keywords.map((keyword) => (
+          <li key={keyword} data-granted={granted.has(keyword) || undefined}>
+            {formatKeyword(keyword)}
+            {keyword === "SecurityAttack" && detail.securityAttackPrinted !== undefined
+              ? ` ${detail.securityAttackPrinted > 0 ? "+" : ""}${detail.securityAttackPrinted}`
+              : ""}
+          </li>
+        ))}
+      </ul>
+      {fate ? (
+        <p className="stack-viewer-state__fate" data-tone={fate.tone}>
+          <span aria-hidden="true">{fate.glyph}</span>
+          {t(fate.labelKey)}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * Modal that lays out the cards making up a field permanent: thumbnails on the
  * left (active card, its digivolution stack, then linked cards), and a large
@@ -2221,6 +2331,8 @@ function CardArt({ cardId, width }: { cardId: string; width: number }) {
 export function StackViewerOverlay({
   cards,
   title,
+  detail,
+  fate,
   canAttack,
   canVortex,
   onAttack,
@@ -2229,6 +2341,10 @@ export function StackViewerOverlay({
 }: {
   cards: StackCard[];
   title: string;
+  /** The position's computed state: live DP against the printed figure and the resolved keywords. */
+  detail?: PermanentDetail;
+  /** The badge an open effect has already pinned to this permanent, if any. */
+  fate?: PendingFateBadge;
   canAttack: boolean;
   canVortex?: boolean;
   onAttack: () => void;
@@ -2271,6 +2387,7 @@ export function StackViewerOverlay({
           <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ds-fg)", fontFamily: "var(--ds-font-display)" }}>
             {title}
           </div>
+          {detail ? <StackViewerState detail={detail} fate={fate} /> : null}
           {(["top", "stack", "linked"] as const).map((role) => {
             const group = cards.map((c, index) => ({ c, index })).filter(({ c }) => c.role === role);
             if (group.length === 0) return null;

@@ -4,7 +4,7 @@
    id that tools/ui-review.mjs screenshots one by one. */
 
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { CardInstance, Permanent, type DecisionRequest, type Seat } from "@aegis/shared";
+import { CardInstance, getCardDefinition, Permanent, type DecisionRequest, type Seat } from "@aegis/shared";
 import {
   AttackArrow,
   BreedingSlot,
@@ -18,12 +18,25 @@ import {
 import { TargetingSpotlight } from "../game/TargetingSpotlight";
 import type { SpotlightSubject } from "../game/spotlight";
 import { pendingFateBadge } from "../game/pendingFate";
+import { buildPermanentDetail } from "../game/permanentDetail";
+import { DigivolutionCutInView } from "../game/DigivolutionCutInView";
+import { CardShatter } from "../game/CardShatterView";
+import { PlayLogSidebar } from "../game/OpponentActionFeedView";
+import type { LogLine } from "../game/boardModel";
 import { TARGET_FATES, Phase } from "@aegis/shared";
 import { dragIntentLabelKey } from "../game/dragIntents";
-import { BlockOverlay, DecisionOverlay, GameOverOverlay, MulliganOverlay } from "../game/overlays";
+import {
+  BlockOverlay,
+  DecisionOverlay,
+  GameOverOverlay,
+  MulliganOverlay,
+  CardZoomOverlay,
+  PermanentDetailInspector,
+} from "../game/overlays";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "../game/BoardDecisionRail";
 import { CardBurst } from "../game/CardBurst";
-import { SecurityBranch, SecurityEdgeFlash } from "../game/SecurityClashView";
+import { SecurityBranch, SecurityClash, SecurityEdgeFlash } from "../game/SecurityClashView";
+import type { SecurityClashScene } from "../game/securityClash";
 import { ZoneShowcase } from "../game/ZoneShowcase";
 import type { PermanentBurst, ZoneShowcase as ZoneShowcaseModel } from "../game/showcases";
 import { NoticeStack } from "../game/NoticeStack";
@@ -171,6 +184,51 @@ const HAND_SELECTION_DECISION: DecisionRequest = {
 const DUAL_COLOR_CARD = "AD1-004";
 
 const noop = () => {};
+
+/* Fixtures for the slice-9 sections: one field position with a DP modifier and a
+   resolved keyword list, and a handful of log lines that name real cards. */
+const PERMANENTS = {
+  champion: permanent({
+    permanentId: "p-you-1",
+    cardId: CARDS.champion,
+    baseDP: 4000,
+    currentDP: 6000,
+    stackCardIds: [CARDS.egg, CARDS.rookie],
+    keywords: ["Blocker", "SecurityAttack"],
+    grantedKeywords: ["Blocker"],
+  }),
+};
+
+const INSPECTED_PERMANENT = permanent({
+  permanentId: "p-opp-1",
+  cardId: CARDS.opponentUltimate,
+  baseDP: 7000,
+  currentDP: 5000,
+  seat: 1,
+  stackCardIds: [CARDS.egg, CARDS.rookie, CARDS.opponentChampion],
+  keywords: ["Blocker", "Piercing"],
+  grantedKeywords: ["Piercing"],
+});
+
+const showcaseCardName = (cardId: string) => getCardDefinition(cardId)?.nameEn ?? cardId;
+
+const BATTLE_CLASH: SecurityClashScene = {
+  key: 1,
+  resolution: "battle",
+  revealed: { cardId: CARDS.opponentChampion, side: "opp", dp: 4000 },
+  attacker: { cardId: CARDS.champion, side: "you", dp: 6000 },
+};
+
+const SHOWCASE_LOG: LogLine[] = [
+  { text: `You played ${showcaseCardName(CARDS.champion)}.`, kind: "you", cardIds: [CARDS.champion] },
+  {
+    text: `Opponent digivolved into ${showcaseCardName(CARDS.opponentUltimate)}.`,
+    kind: "opp",
+    cardIds: [CARDS.opponentUltimate],
+  },
+  { text: "Memory moved from -2 to +4.", kind: "sys" },
+  { text: `Security check revealed ${showcaseCardName(CARDS.rookie)}.`, kind: "sys", cardIds: [CARDS.rookie] },
+];
 
 /* Panels and notices read their clocks from a `nowMs` the caller supplies, so
    pinning it here freezes every eroding border mid-sweep for a screenshot. */
@@ -1083,6 +1141,178 @@ export function BoardShowcase() {
             <TurnControl state="waiting" onEndPhase={noop} />
           </div>
         </Case>
+      </Section>
+
+      <Section
+        id="showcase-cut-in"
+        title="digivolution cut-in"
+        note="Behind a setting, off by default. The card lands centre-screen over a sweeping colour band; the DigiXros tier holds longer and shakes."
+        stacked
+      >
+        {[
+          { tier: "base" as const, cardId: CARDS.mega, label: "base tier (1.45s)" },
+          { tier: "digiXros" as const, cardId: CARDS.mega, label: "DigiXros tier (2.0s + shake)" },
+        ].map((sample) => (
+          <Stage key={sample.tier} label={sample.label} height={420}>
+            <DigivolutionCutInView
+              cutIn={{ key: 1, cardId: sample.cardId, seat: 0, tier: sample.tier, color: "Red" }}
+            />
+          </Stage>
+        ))}
+      </Section>
+
+      <Section
+        id="showcase-permanent-inspector"
+        title="permanent inspector"
+        note="The position as it stands: live DP against the printed figure, the keywords the server resolved (a granted one marked apart), the stack, and any pending fate."
+        stacked
+      >
+        <Stage label="inspector, opposite side of the card" height={520}>
+          <PermanentDetailInspector
+            detail={buildPermanentDetail(INSPECTED_PERMANENT)}
+            fate={pendingFateBadge("delete")}
+            anchorX={120}
+            anchorY={220}
+            inline
+          />
+        </Stage>
+      </Section>
+
+      <Section
+        id="showcase-effect-sources"
+        title="effect activation, per source zone"
+        note="Where the effect came from decides the moment: a permanent glows in place, the trash throws its top card up, an Option rises out of the hand fan."
+      >
+        <Case label="field permanent (glow + spark)">
+          <PermanentView perm={PERMANENTS.champion} effectSource compact />
+        </Case>
+        <Case label="trash (fly-out, orange outline)">
+          <Pile className="game-pile--effect-source" count={5} label="Trash" topCardId={CARDS.option} />
+        </Case>
+        <Case label="hand Option (rise out of the fan)">
+          <div style={{ width: 320 }}>
+            <Hand
+              cards={[handEntry({ index: 0, cardId: CARDS.option, playable: true })]}
+              effectSourceInstanceId="hand-0"
+              startDrag={noop}
+              cardWidth={104}
+            />
+          </div>
+        </Case>
+      </Section>
+
+      <Section
+        id="showcase-tracking-arrow"
+        title="tracking target arrow"
+        note="It flashes twice as it extends and then stays up, re-solving both ends as the cards move. Red for a declared attack, amber for an effect picking its targets."
+        stacked
+      >
+        <Stage label="attack, one target" height={260}>
+          <AttackArrow from={{ x: 60, y: 210 }} to={{ x: 300, y: 40 }} tracking />
+        </Stage>
+        <Stage label="effect, two targets" height={260}>
+          <AttackArrow
+            from={{ x: 60, y: 210 }}
+            to={[
+              { x: 250, y: 40 },
+              { x: 340, y: 120 },
+            ]}
+            kind="effect"
+            tracking
+          />
+        </Stage>
+      </Section>
+
+      <Section
+        id="showcase-security-chrome"
+        title="security stack chrome"
+        note="A face-up card in the stack is badged; while the stack is a legal target the label says which kind of attack it would be."
+      >
+        <Stage label="face-up card in the stack" height={160}>
+          <Pile count={4} label="Security" shield="opp" faceUp />
+        </Stage>
+        <Stage label="security attack (cards left)" height={160}>
+          <Pile count={3} label="Security" shield="opp" attackLabel="Security Attack" />
+        </Stage>
+        <Stage label="direct attack (stack empty)" height={160}>
+          <Pile count={0} label="Security" shield="opp" attackLabel="Direct Attack" />
+        </Stage>
+      </Section>
+
+      <Section
+        id="showcase-deck-chrome"
+        title="deck thickness and riffle"
+        note="A pile is as thick as it is deep (a layer per 8 cards) and gone entirely at zero — the reference client's own deck-out warning. A shuffle riffles it."
+      >
+        {[40, 24, 8, 1, 0].map((count) => (
+          <Case key={count} label={`${count} cards`}>
+            <Pile count={count} label="Deck" />
+          </Case>
+        ))}
+        <Case label="riffling">
+          <Pile count={40} label="Deck" riffling />
+        </Case>
+      </Section>
+
+      <Section
+        id="showcase-shatter"
+        title="deletion shatter and landing bounce"
+        note="A deleted card breaks into its own art over a colour-matched burst; a card that lands drops on an OutBounce and kicks up dust."
+        stacked
+      >
+        <Stage label="shatter" height={220}>
+          <span style={{ position: "absolute", left: 40, top: 30 }}>
+            <CardShatter cardId={CARDS.opponentUltimate} width={80} color="Blue" />
+          </span>
+        </Stage>
+        <Case label="landing bounce + dust">
+          <PermanentView
+            perm={PERMANENTS.champion}
+            burst={{ key: 1, permanentId: "p-you-1", variant: "play", color: "Red", inBreeding: false }}
+            compact
+          />
+        </Case>
+      </Section>
+
+      <Section
+        id="showcase-card-inspect"
+        title="card inspection"
+        note="A hand card no longer grows under the cursor: hover only lifts it clear of the fan. The first click arms the card as before; clicking the armed card opens the focused overlay the touch layout reaches through its card sheet. Other zones keep their own hover behavior."
+        stacked
+      >
+        <Case label="hand card: hover lifts, never magnifies">
+          <div style={{ width: 420 }}>
+            <Hand cards={MIXED_HAND} startDrag={noop} cardWidth={104} />
+          </div>
+        </Case>
+        <Stage label="clicking the armed card again opens this" height={520}>
+          <CardZoomOverlay cardId={CARDS.mega} onClose={noop} inline />
+        </Stage>
+      </Section>
+
+      <Section
+        id="showcase-security-outcome"
+        title="security battle outcome"
+        note="The checked card is spent whatever the battle decided, so it breaks into its own art. The attacker takes the claw only when the check's own events named it deleted; otherwise it stands, lit for a beat."
+        stacked
+      >
+        <Stage label="attacker deleted (claw on the attacker)" height={420}>
+          <SecurityClash scene={{ ...BATTLE_CLASH, attackerDeleted: true }} />
+        </Stage>
+        <Stage label="attacker survived (attacker stands)" height={420}>
+          <SecurityClash scene={BATTLE_CLASH} />
+        </Stage>
+      </Section>
+
+      <Section
+        id="showcase-play-log"
+        title="play log"
+        note="The match's whole narration in a drawer that slides out of the right edge; every card name is a link that opens the card."
+        stacked
+      >
+        <Stage label="play log drawer" height={520}>
+          <PlayLogSidebar log={SHOWCASE_LOG} onClose={noop} onOpenCard={noop} />
+        </Stage>
       </Section>
 
       <Section

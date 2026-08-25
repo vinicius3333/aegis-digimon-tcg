@@ -26,6 +26,16 @@ const SECTION_IDS = [
   "showcase-side-panels",
   "showcase-notices",
   "showcase-dialogs",
+  "showcase-cut-in",
+  "showcase-permanent-inspector",
+  "showcase-effect-sources",
+  "showcase-tracking-arrow",
+  "showcase-security-chrome",
+  "showcase-deck-chrome",
+  "showcase-shatter",
+  "showcase-card-inspect",
+  "showcase-security-outcome",
+  "showcase-play-log",
 ];
 
 describe("BoardShowcase", () => {

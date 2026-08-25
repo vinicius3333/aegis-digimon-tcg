@@ -65,8 +65,8 @@ export const TIMINGS = {
   clashReveal: 233,
   /** How long the two cards stay readable before they resolve. */
   clashHold: 1600,
-  /** The outcome beat: impact, glow or fall. */
-  clashOutcome: 350,
+  /** The outcome beat: the claw and shake on the loser, then its card breaking apart. */
+  clashOutcome: 620,
   /** The scene fading back out. */
   clashExit: 200,
   /** The centre-screen card growing in on a zone change. */
@@ -133,6 +133,34 @@ export const TIMINGS = {
   turnControlCover: 1500,
   /** The WIN / LOSE word scaling and glowing into place. */
   resultSplashIn: 520,
+  /** The full-screen digivolution cut-in, base tier (the reference client's 1.45 s). */
+  cutIn: 1450,
+  /** The DigiXros tier, which holds longer and shakes (2.0 s). */
+  cutInXros: 2000,
+  /** The cut-in's card and band wiping in, and back out again. */
+  cutInWipe: 180,
+  /** The play log sliding out of, and back into, the right edge. */
+  logSidebar: 160,
+  /** One riffle of a deck pile being shuffled. */
+  deckRiffle: 180,
+  /** A card that just landed settling on its OutBounce drop. */
+  landingBounce: 100,
+  /** The dust kicked up where a card landed. */
+  landingDust: 420,
+  /** A recovered card spinning back onto the security stack. */
+  securityFlight: 200,
+  /** One of the target arrow's two opening flashes. */
+  arrowFlash: 85,
+  /** A card growing to its inspected size. */
+  cardMagnify: 120,
+  /** The glow a field permanent holds while its effect activates. */
+  effectSourceHold: 480,
+  /** A card flying up out of the trash pile as its effect activates. */
+  effectTrashRise: 320,
+  /** An Option rising out of the hand fan as it activates. */
+  effectHandRise: 260,
+  /** The card's own art breaking into shards where it was deleted. */
+  cardShatter: 520,
 } as const;
 
 export type TimingName = keyof typeof TIMINGS;
@@ -164,6 +192,17 @@ export const CARD_SHAKE_TOTAL_MS = TIMINGS.cardShake + TIMINGS.cardShakeHold;
 
 /** The claw and the shake run together, so the impact ends when the held beat does. */
 export const COMBAT_IMPACT_TOTAL_MS = Math.max(TIMINGS.clawSlash, TIMINGS.cardShake) + TIMINGS.cardShakeHold;
+
+/** Two opening flashes before the target arrow settles into its persistent draw. */
+export const ARROW_FLASH_COUNT = 2;
+
+/** How long the arrow spends flashing before it stays extended. */
+export const ARROW_FLASH_TOTAL_MS = TIMINGS.arrowFlash * ARROW_FLASH_COUNT * 2;
+
+/** A cut-in, end to end, for the tier it is playing. */
+export function cutInTotalMs(tier: "base" | "digiXros"): number {
+  return tier === "digiXros" ? TIMINGS.cutInXros : TIMINGS.cutIn;
+}
 
 /** A DP pulse, end to end: the particles plus the beat the new figure is held on. */
 export function dpPulseTotalMs(fatal: boolean): number {
@@ -215,6 +254,20 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-phase-banner": TIMINGS.phaseBanner,
   "--t-turn-control-pulse": TIMINGS.turnControlPulse,
   "--t-result-splash-in": TIMINGS.resultSplashIn,
+  "--t-cut-in": TIMINGS.cutIn,
+  "--t-cut-in-xros": TIMINGS.cutInXros,
+  "--t-cut-in-wipe": TIMINGS.cutInWipe,
+  "--t-log-sidebar": TIMINGS.logSidebar,
+  "--t-deck-riffle": TIMINGS.deckRiffle,
+  "--t-landing-bounce": TIMINGS.landingBounce,
+  "--t-landing-dust": TIMINGS.landingDust,
+  "--t-security-flight": TIMINGS.securityFlight,
+  "--t-arrow-flash": TIMINGS.arrowFlash,
+  "--t-card-magnify": TIMINGS.cardMagnify,
+  "--t-effect-source-hold": TIMINGS.effectSourceHold,
+  "--t-effect-trash-rise": TIMINGS.effectTrashRise,
+  "--t-effect-hand-rise": TIMINGS.effectHandRise,
+  "--t-card-shatter": TIMINGS.cardShatter,
 };
 
 /**

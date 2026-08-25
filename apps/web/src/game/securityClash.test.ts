@@ -143,3 +143,45 @@ describe("shield break and the security-effect branch", () => {
     expect(SECURITY_BRANCH_TIMINGS.holdMs).toBeGreaterThan(SECURITY_BRANCH_TIMINGS.inMs);
   });
 });
+
+describe("security battle outcome", () => {
+  const attacker = { seat: 0 as const, cardId: DIGIMON_CARD_ID, permanentId: "att", topInstanceId: "att-top" };
+
+  it("marks the attacker beaten when the check named it in a deletion", () => {
+    const scene = buildSecurityClashScene({
+      key: 1,
+      revealedCardId: DIGIMON_CARD_ID,
+      resolution: "battle",
+      defenderSeat: 1,
+      viewerSeat: 0,
+      attacker,
+      attackerDeleted: true,
+    });
+    expect(scene.attackerDeleted).toBe(true);
+  });
+
+  it("leaves the outcome unmarked when no deletion named the attacker", () => {
+    const scene = buildSecurityClashScene({
+      key: 1,
+      revealedCardId: DIGIMON_CARD_ID,
+      resolution: "battle",
+      defenderSeat: 1,
+      viewerSeat: 0,
+      attacker,
+    });
+    expect(scene.attackerDeleted).toBeUndefined();
+  });
+
+  it("never marks an outcome for a check with no attacker facing it", () => {
+    const scene = buildSecurityClashScene({
+      key: 1,
+      revealedCardId: DIGIMON_CARD_ID,
+      resolution: "battle",
+      defenderSeat: 1,
+      viewerSeat: 0,
+      attackerDeleted: true,
+    });
+    expect(scene.attacker).toBeUndefined();
+    expect(scene.attackerDeleted).toBeUndefined();
+  });
+});

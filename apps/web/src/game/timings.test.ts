@@ -33,7 +33,7 @@ describe("battle timings", () => {
   it("derives the security clash timeline from the table", () => {
     expect(SECURITY_CLASH_TIMINGS.attackerEnterMs).toBe(TIMINGS.clashAttackerEnter);
     expect(SECURITY_CLASH_TOTAL_MS).toBe(CLASH_TOTAL_MS);
-    expect(CLASH_TOTAL_MS).toBe(150 + 233 + 1600 + 350 + 200);
+    expect(CLASH_TOTAL_MS).toBe(150 + 233 + 1600 + 620 + 200);
   });
 
   it("derives the side panel timings from the table", () => {

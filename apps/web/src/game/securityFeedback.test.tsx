@@ -6,7 +6,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { NoticeStack } from "./NoticeStack";
 import { I18nProvider } from "../i18n";
 import { PermanentView } from "./boardPieces";
-import { OpponentPermanentInspector, StackViewerOverlay } from "./overlays";
+import { PermanentDetailInspector, StackViewerOverlay } from "./overlays";
+import { buildPermanentDetail } from "./permanentDetail";
 import { SecurityClash } from "./SecurityClashView";
 import { buildSecurityClashScene } from "./securityClash";
 
@@ -165,15 +166,7 @@ describe("opponent permanent inspection", () => {
   it("shows the top effect and inherited effects in stack order", () => {
     render(
       <I18nProvider>
-        <OpponentPermanentInspector
-          title="Agumon"
-          cards={[
-            { cardId: "BT1-010", role: "top" },
-            { cardId: "AD1-001", role: "stack" },
-          ]}
-          x={100}
-          y={100}
-        />
+        <PermanentDetailInspector detail={buildPermanentDetail(permanent())} anchorX={100} anchorY={100} />
       </I18nProvider>,
     );
 

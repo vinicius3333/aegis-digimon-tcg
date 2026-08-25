@@ -61,6 +61,7 @@ import {
   type SecurityClashScene,
 } from "./securityClash";
 import {
+  burstColorFor,
   deletionAnchorIdsFromEvent,
   hasTurnStartDraw,
   permanentBurstFromEvent,
@@ -69,9 +70,26 @@ import {
   type ZoneShowcase,
 } from "./showcases";
 import { createAnimationQueue, type AnimationQueueMode, type AnimationStep } from "./animationQueue";
+import { cutInFromEvent, type DigivolutionCutIn } from "./cutIn";
+import { areCutInsEnabled } from "../design/cutIn";
+import {
+  effectActivationFromEvent,
+  effectActivationTrack,
+  type EffectActivation,
+  type EffectSourceLookup,
+} from "./effectSource";
+import { deckRiffleFromEvent, type DeckRiffle } from "./deckChrome";
 import { phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
 import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
-import { CLASH_TOTAL_MS, COMBAT_IMPACT_TOTAL_MS, dpPulseTotalMs, SHOWCASE_TOTAL_MS, TIMINGS } from "./timings";
+import {
+  CLASH_TOTAL_MS,
+  COMBAT_IMPACT_TOTAL_MS,
+  cutInTotalMs,
+  dpPulseTotalMs,
+  SHOWCASE_TOTAL_MS,
+  TIMINGS,
+} from "./timings";
+import type { ColorName } from "../design/theme";
 
 /** Card back sent from a deck pile to the hand that just grew, in board coordinates. */
 export type DrawFlight = { key: number; x: number; y: number; dx: number; dy: number };
@@ -89,7 +107,14 @@ export type AttackLunge = { permanentId: string; direction: "up" | "down" };
 export type SecurityBreakCue = SecurityBreakScene & { phase: "arm" | "break" };
 
 /** The green-and-orange burst left where a deleted permanent stood, in board coordinates. */
-export type DeleteBurst = { key: number; x: number; y: number };
+export type DeleteBurst = {
+  key: number;
+  x: number;
+  y: number;
+  /** The card that was there, so its own art can be the thing that shatters. */
+  cardId?: string;
+  color?: ColorName;
+};
 
 /** The unsuspend phase sweeping one player's board, ordered by slot. */
 export type UnsuspendSweep = { seat: Seat; key: number };
@@ -123,6 +148,8 @@ export interface MatchCueAnchors {
    * permanent, so the caller keeps the last measurement rather than the element.
    */
   permanentCenter?: (permanentId: string) => { x: number; y: number } | undefined;
+  /** The card that was on top of a permanent, kept the same way and for the same reason. */
+  permanentCardId?: (permanentId: string) => string | undefined;
   yourDeck: RefObject<HTMLDivElement | null>;
   oppDeck: RefObject<HTMLDivElement | null>;
   yourHandDock: RefObject<HTMLDivElement | null>;
@@ -158,6 +185,14 @@ export interface MatchCues {
   attackLunge: AttackLunge | null;
   /** "Breeding Phase" / "Main Phase", announced as the phase opens. */
   phaseBanner: PhaseBanner | null;
+  /** The full-screen cut-in currently playing, when the setting is on. */
+  cutIn: DigivolutionCutIn | null;
+  /** The zone-specific moment each activating effect source is currently playing. */
+  effectSources: readonly EffectActivation[];
+  /** The deck piles currently riffling, as `${seat}:${pile}`. */
+  deckRiffles: ReadonlySet<string>;
+  /** The seats whose security stack a recovered card is currently flying back onto. */
+  securityFlights: ReadonlySet<number>;
   /** Permanents currently taking the claw and the shake for a battle they lost. */
   combatImpactIds: ReadonlySet<string>;
   /** The DP change each permanent is currently pulsing over, by permanent id. */
@@ -191,6 +226,61 @@ function documentHidden(): boolean {
 
 function liveMode(): AnimationQueueMode {
   return prefersReducedMotion() || documentHidden() ? "drain" : "live";
+}
+
+/**
+ * Where every card the viewer can see currently sits: which permanent, trash or
+ * hand holds it, and which seat owns each visible instance. A pure read of the
+ * synchronized state — the client learns nothing here it was not already sent.
+ */
+function buildCardSiteIndex(state: GameState): {
+  locate: EffectSourceLookup;
+  seatOf: (instanceId: string) => Seat | undefined;
+  topInstanceOf: (permanentId: string) => string | undefined;
+} {
+  const sites = new Map<string, ReturnType<EffectSourceLookup>>();
+  const seats = new Map<string, Seat>();
+  const tops = new Map<string, string>();
+  state.players.forEach((player, playerSeat) => {
+    const seat = playerSeat as Seat;
+    const key = (cardId: string) => `${seat}:${cardId}`;
+    const permanents = [...player.battleArea, ...(player.breeding ? [player.breeding] : [])];
+    for (const permanent of permanents) {
+      const cardId = permanent.topCard?.cardId;
+      if (cardId && !sites.has(key(cardId)))
+        sites.set(key(cardId), { zone: "field", permanentId: permanent.permanentId });
+      if (permanent.topCard?.instanceId) tops.set(permanent.permanentId, permanent.topCard.instanceId);
+    }
+    for (const card of player.trash) {
+      if (card?.cardId && !sites.has(key(card.cardId)))
+        sites.set(key(card.cardId), { zone: "trash", instanceId: card.instanceId });
+    }
+    for (const card of player.hand ?? []) {
+      if (card?.cardId && !sites.has(key(card.cardId)))
+        sites.set(key(card.cardId), { zone: "hand", instanceId: card.instanceId });
+      if (card?.instanceId) seats.set(card.instanceId, seat);
+    }
+    for (const card of [...(player.deck ?? []), ...(player.eggDeck ?? [])]) {
+      if (card?.instanceId) seats.set(card.instanceId, seat);
+    }
+  });
+  return {
+    locate: (cardId, seat) => sites.get(`${seat}:${cardId}`),
+    seatOf: (instanceId) => seats.get(instanceId),
+    topInstanceOf: (permanentId) => tops.get(permanentId),
+  };
+}
+
+/**
+ * Whether this batch of events names the attacker in a deletion — the one side of a
+ * security battle the protocol identifies. A combat resolution names the permanent
+ * and an effect deletion names the card instance, so both handles are checked.
+ */
+function attackerDeletedIn(events: readonly ServerEvent[], attacker: SecurityClashAttacker | undefined): boolean {
+  if (!attacker) return false;
+  const handles = new Set([attacker.permanentId, attacker.topInstanceId].filter((id) => id !== undefined));
+  if (handles.size === 0) return false;
+  return events.some((event) => deletionAnchorIdsFromEvent(event).some((anchorId) => handles.has(anchorId)));
 }
 
 export function useMatchCues({
@@ -236,6 +326,10 @@ export function useMatchCues({
   const [phaseBanner, setPhaseBanner] = useState<PhaseBanner | null>(null);
   const [combatImpactIds, setCombatImpactIds] = useState<ReadonlySet<string>>(new Set());
   const [dpPulses, setDpPulses] = useState<ReadonlyMap<string, DpPulse>>(new Map());
+  const [cutIn, setCutIn] = useState<DigivolutionCutIn | null>(null);
+  const [effectSources, setEffectSources] = useState<readonly EffectActivation[]>([]);
+  const [deckRiffles, setDeckRiffles] = useState<ReadonlySet<string>>(new Set());
+  const [securityFlights, setSecurityFlights] = useState<ReadonlySet<number>>(new Set());
 
   // Cues are observed twice for your own actions (the intent handler fires one
   // immediately, the server echo arrives later), so repeats are suppressed.
@@ -260,6 +354,20 @@ export function useMatchCues({
   const showcaseKeyRef = useRef(0);
   const phaseBannerKeyRef = useRef(0);
   const dpPulseKeyRef = useRef(0);
+  const cutInKeyRef = useRef(0);
+  const effectSourceKeyRef = useRef(0);
+  const deckRiffleKeyRef = useRef(0);
+  // Where every card the viewer can see currently sits, so an activation can be
+  // played at its source and a reshuffle at the pile it landed in.
+  const cardSiteRef = useRef<{
+    locate: EffectSourceLookup;
+    seatOf: (instanceId: string) => Seat | undefined;
+    topInstanceOf: (permanentId: string) => string | undefined;
+  }>({
+    locate: () => undefined,
+    seatOf: () => undefined,
+    topInstanceOf: () => undefined,
+  });
   // Last read of every permanent's live DP, so the next commit can tell which
   // figures actually moved. The first read is only a baseline.
   const dpByPermanentRef = useRef<Map<string, number> | null>(null);
@@ -298,6 +406,7 @@ export function useMatchCues({
     const cardIds = buildInstanceIndex(state, viewerSeat);
     const seats = buildInstanceSeatIndex(state);
     sidePanelLookupRef.current = { cardId: (id) => cardIds.get(id), seat: (id) => seats.get(id) };
+    cardSiteRef.current = buildCardSiteIndex(state);
   });
 
   function openNotice(notice: MatchNotice) {
@@ -351,6 +460,29 @@ export function useMatchCues({
           raised.push(notice);
         }
       }
+      // The cut-in owns the centre of the screen ahead of the showcase, so the
+      // announcement lands on a screen the player is already looking at. Pure
+      // spectacle behind a setting: skippable, and dropped outright under reduced
+      // motion or a hidden tab.
+      for (const event of fresh) {
+        cutInKeyRef.current += 1;
+        const announced = cutInFromEvent(event, cutInKeyRef.current, areCutInsEnabled());
+        if (!announced) continue;
+        enqueue({
+          id: `cut-in-${announced.key}`,
+          track: CENTER_STAGE_TRACK,
+          replace: true,
+          async run(context) {
+            if (context.mode !== "live") return;
+            try {
+              setCutIn(announced);
+              await context.wait(cutInTotalMs(announced.tier));
+            } finally {
+              setCutIn((current) => (current?.key === announced.key ? null : current));
+            }
+          },
+        });
+      }
       // Zone changes own the centre of the screen: the opponent's card is held
       // up, the destination stays hidden behind it, and only then does the
       // permanent reveal on its burst. The viewer's own moves keep the burst and
@@ -364,6 +496,60 @@ export function useMatchCues({
         if (!showcase && !burst) continue;
         showcased ||= showcase !== null;
         enqueue(zoneChangeStep(key, showcase, burst));
+      }
+      // The activation moment plays where the effect came from: a permanent glows
+      // in place, a card in the trash flies out of the pile, an Option rises out
+      // of the hand fan.
+      for (const event of fresh) {
+        effectSourceKeyRef.current += 1;
+        const activation = effectActivationFromEvent(event, effectSourceKeyRef.current, cardSiteRef.current.locate);
+        if (!activation) continue;
+        enqueue({
+          id: `effect-source-${activation.key}`,
+          track: effectActivationTrack(activation),
+          replace: true,
+          async run(context) {
+            if (context.mode !== "live") return;
+            try {
+              setEffectSources((sources) => [...sources, activation]);
+              await context.wait(TIMINGS.effectSourceHold);
+            } finally {
+              setEffectSources((sources) => sources.filter((candidate) => candidate.key !== activation.key));
+            }
+          },
+        });
+      }
+      // Cards going back into a deck are the one movement that always ends in a
+      // shuffle, which is the moment the reference client riffles the pile.
+      for (const event of fresh) {
+        deckRiffleKeyRef.current += 1;
+        const riffle = deckRiffleFromEvent(event, deckRiffleKeyRef.current, cardSiteRef.current.seatOf);
+        if (!riffle) continue;
+        enqueue(deckRiffleStep(riffle));
+      }
+      // A recovered card flies back onto the stack it joined.
+      for (const event of fresh) {
+        if (event.kind !== "securityRecovered") continue;
+        const seat = event.seat;
+        enqueue({
+          id: `security-flight-${seat}-${event.amount}`,
+          track: `securityFlight-${seat}`,
+          replace: true,
+          async run(context) {
+            if (context.mode !== "live") return;
+            try {
+              setSecurityFlights((seats) => new Set(seats).add(seat));
+              await context.wait(TIMINGS.securityFlight);
+            } finally {
+              setSecurityFlights((seats) => {
+                if (!seats.has(seat)) return seats;
+                const next = new Set(seats);
+                next.delete(seat);
+                return next;
+              });
+            }
+          },
+        });
       }
       if (hasTurnStartDraw(fresh, viewerSeat)) turnStartDrawRef.current.you = true;
       if (hasTurnStartDraw(fresh, otherSeat(viewerSeat))) turnStartDrawRef.current.opp = true;
@@ -423,7 +609,14 @@ export function useMatchCues({
           setAttackLunge(null);
         },
       });
-      securityAttackerRef.current = { seat: securityAttack.seat, cardId: securityAttack.attackerCardId };
+      securityAttackerRef.current = {
+        seat: securityAttack.seat,
+        cardId: securityAttack.attackerCardId,
+        permanentId: securityAttack.attackerPermanentId,
+        // Captured while the attacker is still on the field: an effect deletion names
+        // the card instance rather than the permanent, so both ways in are kept.
+        topInstanceId: cardSiteRef.current.topInstanceOf(securityAttack.attackerPermanentId),
+      };
     }
     if (securityCheck?.kind === "securityChecked") {
       securityClashKeyRef.current += 1;
@@ -435,6 +628,7 @@ export function useMatchCues({
         defenderSeat: securityCheck.seat,
         viewerSeat,
         attacker: securityAttackerRef.current,
+        attackerDeleted: attackerDeletedIn(fresh, securityAttackerRef.current),
       });
       const breakScene = buildSecurityBreakScene({ key, defenderSeat: securityCheck.seat, viewerSeat });
       const branch = buildSecurityBranchScene({
@@ -727,7 +921,15 @@ export function useMatchCues({
     const center = anchors.permanentCenter?.(anchorId);
     if (!center) return null;
     const key = (deleteBurstKeyRef.current += 1);
-    const burst: DeleteBurst = { key, x: center.x - DELETE_BURST_SIZE / 2, y: center.y - DELETE_BURST_SIZE / 2 };
+    // The reference client shatters the card's own art rather than swapping it for
+    // a generic puff, so the burst carries whichever card was standing there.
+    const cardId = anchors.permanentCardId?.(anchorId);
+    const burst: DeleteBurst = {
+      key,
+      x: center.x - DELETE_BURST_SIZE / 2,
+      y: center.y - DELETE_BURST_SIZE / 2,
+      ...(cardId ? { cardId, color: burstColorFor(cardId) } : {}),
+    };
     return {
       id: `delete-burst-${key}`,
       // Several permanents can be deleted by one resolution, so each burst runs on its
@@ -740,9 +942,32 @@ export function useMatchCues({
         if (context.cancelled) return;
         try {
           setDeleteBursts((bursts) => [...bursts, burst]);
-          await context.wait(TIMINGS.cardBurst);
+          await context.wait(Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter));
         } finally {
           setDeleteBursts((bursts) => bursts.filter((candidate) => candidate.key !== key));
+        }
+      },
+    };
+  }
+
+  /**
+   * One riffle of a deck pile. Motion with nothing to read — the panel narrating
+   * the cards going back already says what happened — so it is skipped outright
+   * unless the queue is live.
+   */
+  function deckRiffleStep(riffle: DeckRiffle): AnimationStep {
+    const id = `${riffle.seat}:${riffle.pile}`;
+    return {
+      id: `deck-riffle-${riffle.key}`,
+      track: `deckRiffle-${id}`,
+      replace: true,
+      async run(context) {
+        if (context.mode !== "live") return;
+        try {
+          setDeckRiffles((piles) => new Set(piles).add(id));
+          await context.wait(TIMINGS.deckRiffle);
+        } finally {
+          setDeckRiffles((piles) => remove(piles, id));
         }
       },
     };
@@ -869,6 +1094,10 @@ export function useMatchCues({
     permanentBursts,
     pendingPermanentIds,
     attackLunge,
+    cutIn,
+    effectSources,
+    deckRiffles,
+    securityFlights,
     phaseBanner,
     combatImpactIds,
     dpPulses,

@@ -183,3 +183,88 @@
 #showcase-fate-badges .board-showcase__row {
   padding-top: 1.6rem;
 }
+
+/* Slice 9: the same freeze trick for the pieces that end on an empty frame in a
+   match — the cut-in fades out, the shatter throws its shards away, the
+   activation glows and settles, the arrow's flashes finish lit, the riffle and
+   the landing bounce both return to rest. */
+.board-showcase .game-cut-in,
+.board-showcase .game-cut-in__bands i,
+.board-showcase .game-cut-in__card,
+.board-showcase .game-cut-in__word {
+  animation-delay: -300ms;
+  animation-play-state: paused;
+}
+
+.board-showcase .game-cut-in {
+  position: absolute;
+}
+
+.board-showcase .game-card-shatter__shard {
+  animation-delay: -260ms;
+  animation-play-state: paused;
+}
+
+.board-showcase .game-permanent--effect-source,
+.board-showcase .game-effect-source-spark,
+.board-showcase .game-pile--effect-source .game-pile__top,
+.board-showcase .game-hand-card--effect-source,
+.board-showcase .game-pile--riffling .game-pile__layer,
+.board-showcase .game-card-landing,
+.board-showcase .game-card-dust,
+.board-showcase .game-security-shield--landing {
+  animation-delay: -140ms;
+  animation-play-state: paused;
+}
+
+/* The arrow's opening flashes end lit, which is the state worth screenshotting. */
+.board-showcase .game-attack-arrow--tracking .game-attack-arrow__stroke,
+.board-showcase .game-attack-arrow--tracking .game-attack-arrow__head,
+.board-showcase .game-security-shield__attack-label {
+  animation: none;
+}
+
+/* The attack label hangs below and to either side of the shield's point, which
+   the stage would otherwise clip. */
+#showcase-security-chrome .board-showcase__stage {
+  overflow: visible;
+}
+
+.board-showcase .game-security-shield-wrap {
+  margin-bottom: 1rem;
+}
+
+/* The log drawer is fixed to the viewport in a match; here it sits in its stage. */
+.board-showcase .play-log,
+.board-showcase .opponent-permanent-inspector {
+  position: absolute;
+  animation: none;
+}
+
+/* The security-battle outcome ends on an empty frame in a match: the shards are
+   gone and the loser has faded, so the beat is held part-way through. */
+.board-showcase .battle-clash__shatter,
+.board-showcase .battle-clash__card[data-fate="spent"] .battle-clash__art,
+.board-showcase .battle-clash__card[data-fate="beaten"],
+.board-showcase .battle-clash__card[data-fate="stands"] {
+  animation-delay: -2100ms;
+  animation-play-state: paused;
+}
+
+/* The claw is only a quarter of a second long, so it is held mid-slash rather than
+   at the same point in the scene as the fades around it. */
+.board-showcase .battle-clash__card[data-fate="beaten"] .game-claw__tine {
+  animation-delay: -125ms;
+  animation-play-state: paused;
+}
+
+/* The clash scene itself fades out at the end of its own timeline. */
+.board-showcase .battle-clash {
+  animation: none;
+}
+
+/* The card blow-up is fixed to the viewport in a match; here it sits in its stage. */
+.board-showcase .card-zoom {
+  position: absolute;
+  animation: none;
+}

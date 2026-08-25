@@ -104,7 +104,7 @@ import {
   CardZoomOverlay,
   CounterOverlay,
   DecisionOverlay,
-  OpponentPermanentInspector,
+  PermanentDetailInspector,
   DigiXrosMaterialOverlay,
   EvadeOverlay,
   EvoCostChoiceOverlay,
@@ -119,13 +119,15 @@ import {
   type DigiXrosEligibleExpander,
   type StackCard,
 } from "./overlays";
-import { MatchHistorySheet, OpponentActionFeed } from "./OpponentActionFeedView";
+import { OpponentActionFeed, PlayLogSidebar } from "./OpponentActionFeedView";
 import { hasOpenCombatPrompt } from "./opponentActionFeed";
 import { AttackAnnouncementBanner, SidePanelStack } from "./SidePanelStack";
 import { NoticeStack } from "./NoticeStack";
 import { SecurityBranch, SecurityClash, SecurityEdgeFlash } from "./SecurityClashView";
 import { ZoneShowcase } from "./ZoneShowcase";
 import { CardBurst } from "./CardBurst";
+import { CardShatter } from "./CardShatterView";
+import { DigivolutionCutInView } from "./DigivolutionCutInView";
 import { useMatchCues } from "./useMatchCues";
 import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
@@ -135,6 +137,9 @@ import { COARSE_POINTER_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { TargetingSpotlight } from "./TargetingSpotlight";
 import type { SpotlightSubject } from "./spotlight";
 import { pendingFateBadges } from "./pendingFate";
+import { buildPermanentDetail } from "./permanentDetail";
+import { hasFaceUpSecurity, securityAttackLabelKey } from "./securityChrome";
+import { activeAttackArrow, effectTargetArrow, type ArrowEndpoint, type TrackingArrow } from "./trackingArrow";
 import { predictedMemory } from "./memoryArc";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
 import {
@@ -153,6 +158,14 @@ const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, P
  * short viewport as well, or a landscape phone would fall into the pointer
  * layout and lose the action strip along with every touch sheet.
  */
+/** A solved target arrow: the ids resolved to real positions in board coordinates. */
+interface TrackingArrowGeometry {
+  key: string;
+  kind: TrackingArrow["kind"];
+  from: { x: number; y: number };
+  to: { x: number; y: number }[];
+}
+
 const NARROW_LAYOUT_QUERY = "(width < 600px), (height < 520px) and (orientation: landscape)";
 /**
  * Tablet and split-screen widths. The board keeps its pointer interactions but the
@@ -325,6 +338,8 @@ export function GameScreen({
   const [decisionAsDialog, setDecisionAsDialog] = useState(false);
   const [oppInspector, setOppInspector] = useState<{ permanentId: string; x: number; y: number } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  // A card name clicked in the play log opens the card itself, without closing the log.
+  const [zoomCardId, setZoomCardId] = useState<string | null>(null);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const inspectorTimerRef = useRef<number | undefined>(undefined);
   const [evoCostChoice, setEvoCostChoice] = useState<{
@@ -363,6 +378,9 @@ export function GameScreen({
   // the board has already dropped the permanent, so the burst needs the last measurement
   // rather than the (gone) element.
   const permCentersRef = useRef<Record<string, { x: number; y: number }>>({});
+  // The card that was standing at each position, kept for the same reason: the
+  // shatter is drawn from the deleted card's own art, after the board dropped it.
+  const permCardIdsRef = useRef<Record<string, string>>({});
   const yourSecRef = useRef<HTMLDivElement | null>(null);
   const oppSecRef = useRef<HTMLDivElement | null>(null);
   const yourDeckRef = useRef<HTMLDivElement | null>(null);
@@ -415,6 +433,7 @@ export function GameScreen({
     anchors: {
       board: boardRef,
       permanentCenter: (permanentId) => permCentersRef.current[permanentId],
+      permanentCardId: (permanentId) => permCardIdsRef.current[permanentId],
       yourDeck: yourDeckRef,
       oppDeck: oppDeckRef,
       yourHandDock: yourHandDockRef,
@@ -426,6 +445,10 @@ export function GameScreen({
     attackAnnouncement,
     attackLunge,
     combatImpactIds,
+    cutIn,
+    deckRiffles,
+    effectSources,
+    securityFlights,
     dpPulses,
     phaseBanner,
     deleteBursts,
@@ -500,6 +523,94 @@ export function GameScreen({
     setOppInspector(null);
     setDecisionAsDialog(false);
   }, [decision?.decisionId, state?.turnSeat]);
+
+  /* The live target arrow (`TargetArrow.cs`). What it points at is protocol truth —
+     the declared attack still open, or the targets the viewer has picked for the
+     effect currently asking. Where those cards *are* changes constantly (a card
+     suspends, the board reflows, the hand grows), so the endpoints are re-solved
+     every frame while the arrow is up rather than measured once at declaration. */
+  const attackerCardIds = new Map(
+    [...(state?.players ?? [])].flatMap((player) =>
+      [...player.battleArea, ...(player.breeding ? [player.breeding] : [])].flatMap((permanent) =>
+        permanent.topCard?.cardId ? [[permanent.topCard.cardId, permanent.permanentId] as const] : [],
+      ),
+    ),
+  );
+  const trackingArrowRequest =
+    activeAttackArrow(events) ??
+    effectTargetArrow({
+      decision,
+      picks,
+      viewerSeat,
+      sourcePermanentId: decision?.sourceCardId ? attackerCardIds.get(decision.sourceCardId) : undefined,
+    });
+  const [trackingArrow, setTrackingArrow] = useState<TrackingArrowGeometry | null>(null);
+  const trackingArrowRef = useRef<TrackingArrow | null>(null);
+  trackingArrowRef.current = trackingArrowRequest;
+  const trackingArrowActive = trackingArrowRequest !== null;
+  useEffect(() => {
+    if (!trackingArrowActive) {
+      setTrackingArrow(null);
+      return;
+    }
+    let frame = 0;
+    let applied = "";
+    const endpoint = (end: ArrowEndpoint, board: DOMRect): { x: number; y: number } | undefined => {
+      const element =
+        end.kind === "permanent"
+          ? permRefs.current[end.permanentId]
+          : end.seat === viewerSeat
+            ? yourSecRef.current
+            : oppSecRef.current;
+      if (!element?.isConnected) return undefined;
+      const rect = element.getBoundingClientRect();
+      if (!rect.width) return undefined;
+      return { x: rect.left + rect.width / 2 - board.left, y: rect.top + rect.height / 2 - board.top };
+    };
+    const solve = () => {
+      frame = window.requestAnimationFrame(solve);
+      const request = trackingArrowRef.current;
+      const board = boardRef.current;
+      if (!request || !board) return;
+      const boardRect = board.getBoundingClientRect();
+      const from = endpoint(request.from, boardRect);
+      const to = request.to.flatMap((end) => {
+        const point = endpoint(end, boardRect);
+        return point ? [point] : [];
+      });
+      if (!from || to.length === 0) {
+        if (applied !== "") {
+          applied = "";
+          setTrackingArrow(null);
+        }
+        return;
+      }
+      const signature = `${request.key}|${Math.round(from.x)},${Math.round(from.y)}|${to
+        .map((point) => `${Math.round(point.x)},${Math.round(point.y)}`)
+        .join(";")}`;
+      if (signature === applied) return;
+      applied = signature;
+      setTrackingArrow({ key: request.key, kind: request.kind, from, to });
+    };
+    frame = window.requestAnimationFrame(solve);
+    return () => window.cancelAnimationFrame(frame);
+  }, [trackingArrowActive, viewerSeat]);
+
+  /* The activation moment for an effect fired from a zone rather than a card on
+     the field: the trash pile throws its top card up, the hand raises the Option.
+     Which zone the source is in comes from the board (`effectSource.ts`), not from
+     the event, which names only the card. */
+  const effectSourceSeats = new Map(effectSources.map((activation) => [activation.key, activation]));
+  const trashEffectSource = (seat: Seat): string | undefined =>
+    [...effectSourceSeats.values()].some((activation) => activation.seat === seat && activation.site.zone === "trash")
+      ? "game-pile--effect-source"
+      : undefined;
+  const handEffectSourceInstanceId = effectSources.find(
+    (activation) => activation.seat === viewerSeat && activation.site.zone === "hand",
+  )?.site;
+  const effectSourcePermanentIds = new Set(
+    effectSources.flatMap((activation) => (activation.site.zone === "field" ? [activation.site.permanentId] : [])),
+  );
 
   // Attack arrow: from the selected attacker to the opponent's security pile.
   useEffect(() => {
@@ -594,6 +705,11 @@ export function GameScreen({
       perm.topCard?.instanceId ? [[perm.permanentId, perm.topCard.instanceId] as const] : [],
     ),
   );
+  const permCardIds = new Map(
+    [...(you?.battleArea ?? []), ...(opp?.battleArea ?? [])].flatMap((perm) =>
+      perm.topCard?.cardId ? [[perm.permanentId, perm.topCard.cardId] as const] : [],
+    ),
+  );
   useEffect(() => {
     const board = boardRef.current;
     if (!board) return;
@@ -611,6 +727,11 @@ export function GameScreen({
       // top card is remembered as a second way in to the same position.
       const topInstanceId = permInstanceIds.get(permanentId);
       if (topInstanceId) permCentersRef.current[topInstanceId] = center;
+      const topCardId = permCardIds.get(permanentId);
+      if (topCardId) {
+        permCardIdsRef.current[permanentId] = topCardId;
+        if (topInstanceId) permCardIdsRef.current[topInstanceId] = topCardId;
+      }
     }
   }, [battleAreaSignature]);
 
@@ -1091,11 +1212,18 @@ export function GameScreen({
       setSelPerm(null);
       return;
     }
-    setHandSel((selected) => {
-      const next = selected === entry.instanceId ? null : entry.instanceId;
-      if (next) playSound("select");
-      return next;
-    });
+    // Desktop: the first click arms the card, exactly as before — that meaning wins.
+    // The second click on the card already armed is the one that carried nothing, so
+    // it is the one that opens the focused overlay the touch layout reaches through
+    // its card sheet. Nothing grows under the cursor any more, so this is how a hand
+    // card is read here. The selection survives the overlay; every other path that
+    // cleared it (playing, cancelling, a new decision, the turn flipping) still does.
+    if (handSel === entry.instanceId) {
+      setZoomCardId(entry.cardId);
+      return;
+    }
+    playSound("select");
+    setHandSel(entry.instanceId);
     setSelPerm(null);
   };
 
@@ -1661,7 +1789,13 @@ export function GameScreen({
         <ZoneShowcase key={zoneShowcase.key} showcase={zoneShowcase} />
       ) : null}
 
-      {historyOpen ? <MatchHistorySheet log={log} onClose={() => setHistoryOpen(false)} /> : null}
+      {historyOpen ? (
+        <PlayLogSidebar log={log} onClose={() => setHistoryOpen(false)} onOpenCard={setZoomCardId} />
+      ) : null}
+
+      {cutIn && !state.gameOver ? <DigivolutionCutInView key={cutIn.key} cutIn={cutIn} /> : null}
+
+      {zoomCardId ? <CardZoomOverlay cardId={zoomCardId} onClose={() => setZoomCardId(null)} /> : null}
 
       {bugReportOpen ? <BugReportDialog signedIn={signedIn} onClose={() => setBugReportOpen(false)} /> : null}
 
@@ -1848,6 +1982,8 @@ export function GameScreen({
               <StackViewerOverlay
                 title={getCardDefinition(perm.topCard?.cardId ?? "")?.nameEn ?? t("game.stack")}
                 cards={stackCardsOf(perm)}
+                detail={buildPermanentDetail(perm)}
+                fate={fateBadges.get(perm.permanentId)}
                 canAttack={mine && canAttackWith(perm)}
                 canVortex={mine && canVortexAttackWith(perm)}
                 onAttack={() => beginAttack(perm.permanentId)}
@@ -1863,11 +1999,11 @@ export function GameScreen({
             const perm = findPermanent(oppInspector.permanentId);
             if (!perm) return null;
             return (
-              <OpponentPermanentInspector
-                title={getCardDefinition(perm.topCard?.cardId ?? "")?.nameEn ?? t("game.stack")}
-                cards={stackCardsOf(perm)}
-                x={oppInspector.x}
-                y={oppInspector.y}
+              <PermanentDetailInspector
+                detail={buildPermanentDetail(perm)}
+                fate={fateBadges.get(perm.permanentId)}
+                anchorX={oppInspector.x}
+                anchorY={oppInspector.y}
                 onInteractStart={keepOpponentInspector}
                 onInteractEnd={hideOpponentInspector}
               />
@@ -2160,10 +2296,12 @@ export function GameScreen({
                   compact={compactPiles}
                   count={opp.deckCount}
                   label={t("game.pile.deck")}
+                  riffling={deckRiffles.has(`${otherSeat(viewerSeat)}:deck`)}
                   useSelectedSleeve={false}
                 />
               </div>
               <Pile
+                className={trashEffectSource(otherSeat(viewerSeat))}
                 compact={compactPiles}
                 count={opp.trash.length}
                 label={t("game.pile.trash")}
@@ -2180,6 +2318,8 @@ export function GameScreen({
               shield="you"
               armed={securityBreak?.seat === viewerSeat && securityBreak.phase === "arm"}
               breaking={securityBreak?.seat === viewerSeat && securityBreak.phase === "break"}
+              faceUp={hasFaceUpSecurity(you.security)}
+              landing={securityFlights.has(viewerSeat)}
               label={t("game.yourSecurityPile")}
               refEl={(el) => {
                 yourSecRef.current = el;
@@ -2237,6 +2377,7 @@ export function GameScreen({
                       ...dropIntentAttrs("perm-opp", p.permanentId),
                     }}
                     candidate={isCand}
+                    effectSource={effectSourcePermanentIds.has(p.permanentId)}
                     highlight={decisionHighlightPermanentId === p.permanentId}
                     burst={permanentBursts.get(p.permanentId)}
                     pending={pendingPermanentIds.has(p.permanentId)}
@@ -2319,6 +2460,7 @@ export function GameScreen({
                       permRefs.current[p.permanentId] = el;
                     }}
                     candidate={isBase}
+                    effectSource={effectSourcePermanentIds.has(p.permanentId)}
                     // A board-mode optional prompt points at the permanent whose
                     // effect is asking, so the rail and the field read as one.
                     highlight={selPerm === p.permanentId || decisionHighlightPermanentId === p.permanentId}
@@ -2380,6 +2522,13 @@ export function GameScreen({
                 shield="opp"
                 armed={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "arm"}
                 breaking={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "break"}
+                faceUp={hasFaceUpSecurity(opp.security)}
+                landing={securityFlights.has(otherSeat(viewerSeat))}
+                attackLabel={
+                  canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)
+                    ? t(securityAttackLabelKey(opp.securityCount))
+                    : undefined
+                }
                 label={t("game.opponentSecurity")}
                 useSelectedSleeve={false}
                 refEl={(el) => {
@@ -2402,11 +2551,13 @@ export function GameScreen({
                 compact={compactPiles}
                 count={you.deckCount}
                 label={t("game.pile.deck")}
+                riffling={deckRiffles.has(`${viewerSeat}:deck`)}
                 refEl={(el) => {
                   yourDeckRef.current = el;
                 }}
               />
               <Pile
+                className={trashEffectSource(viewerSeat)}
                 compact={compactPiles}
                 count={you.trash.length}
                 label={t("game.pile.trash")}
@@ -2453,7 +2604,12 @@ export function GameScreen({
               {t("game.breedingArea")}
             </div>
             <div style={{ flex: 1, display: "flex", gap: 8, alignItems: "center" }}>
-              <Pile compact={compactPiles} count={you.eggDeckCount} label={t("game.pile.eggs")} />
+              <Pile
+                compact={compactPiles}
+                count={you.eggDeckCount}
+                label={t("game.pile.eggs")}
+                riffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
+              />
               <BreedingSlot
                 perm={you.breeding}
                 label={t("game.pile.raising")}
@@ -2503,6 +2659,9 @@ export function GameScreen({
               minExposure={compactPiles ? HAND_MIN_EXPOSURE_TOUCH : undefined}
               cards={handEntries}
               selectedInstanceId={handSel ?? undefined}
+              effectSourceInstanceId={
+                handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined
+              }
               selection={
                 answerOnBoard && viewerDecision?.kind === "selectCards"
                   ? {
@@ -2526,6 +2685,18 @@ export function GameScreen({
 
         {arrow ? <AttackArrow from={arrow.from} to={arrow.to} /> : null}
 
+        {/* The persistent arrow: it flashes twice as it extends and then stays up,
+            following its endpoints until the attack or the effect is over. */}
+        {trackingArrow ? (
+          <AttackArrow
+            key={trackingArrow.key}
+            from={trackingArrow.from}
+            to={trackingArrow.to}
+            kind={trackingArrow.kind}
+            tracking
+          />
+        ) : null}
+
         {deleteBursts.map((burst) => (
           <span
             key={burst.key}
@@ -2533,7 +2704,13 @@ export function GameScreen({
             className="game-delete-burst"
             style={{ left: burst.x, top: burst.y }}
           >
-            <CardBurst variant="delete" />
+            {/* The card's own art breaking apart where it stood, when the board still
+                remembers which card that was; a plain burst otherwise. */}
+            {burst.cardId ? (
+              <CardShatter cardId={burst.cardId} width={72} color={burst.color ?? "Neutral"} />
+            ) : (
+              <CardBurst variant="delete" />
+            )}
           </span>
         ))}
 

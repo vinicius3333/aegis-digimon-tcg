@@ -5,12 +5,11 @@ const gameScreenSource = readFileSync(new URL("./GameScreen.tsx", import.meta.ur
 
 describe("opponent hidden-card backs", () => {
   it("does not apply the local sleeve to opponent-owned piles", () => {
-    expect(gameScreenSource).toMatch(
-      /<Pile\s+compact=\{compactPiles\}\s+count=\{opp\.deckCount\}\s+label=\{t\("game\.pile\.deck"\)\}\s+useSelectedSleeve=\{false\}\s+\/>/,
-    );
-    expect(gameScreenSource).toMatch(
-      /<Pile\s+compact=\{compactPiles\}\s+count=\{opp\.trash\.length\}\s+label=\{t\("game\.pile\.trash"\)\}\s+topCardId=\{opp\.trash\[opp\.trash\.length - 1\]\?\.cardId\}\s+onClick=\{opp\.trash\.length \? \(\) => setTrashView\("opp"\) : undefined\}\s+useSelectedSleeve=\{false\}\s+\/>/,
-    );
+    // Each opponent pile is matched from its own `count` prop up to the closing
+    // tag, so a decorative prop added between them cannot make the assertion pass
+    // by accident — nor break it for being in the wrong place.
+    expect(gameScreenSource).toMatch(/count=\{opp\.deckCount\}(?:(?!\/>)[\s\S])*?useSelectedSleeve=\{false\}/);
+    expect(gameScreenSource).toMatch(/count=\{opp\.trash\.length\}(?:(?!\/>)[\s\S])*?useSelectedSleeve=\{false\}/);
     expect(gameScreenSource).toMatch(/count=\{opp\.securityCount\}[\s\S]*?useSelectedSleeve=\{false\}/);
   });
 });

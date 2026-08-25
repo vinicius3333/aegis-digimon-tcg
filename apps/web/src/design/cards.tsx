@@ -216,6 +216,7 @@ export function CardFull({
   dim = false,
   onClick,
   count,
+  zoomOnHover = true,
 }: {
   cardId: string;
   width?: number;
@@ -223,6 +224,11 @@ export function CardFull({
   dim?: boolean;
   onClick?: () => void;
   count?: number;
+  /**
+   * Show the floating preview under the pointer. Off on the match screen, where a
+   * card is inspected by clicking it rather than by growing under the cursor.
+   */
+  zoomOnHover?: boolean;
 }) {
   const def = getCardDefinition(cardId);
   const urls = cardImageUrls(def?.imageId ?? cardId);
@@ -237,8 +243,8 @@ export function CardFull({
   return (
     <div
       onClick={onClick}
-      onMouseMove={zoomEnabled ? (e) => setMousePos({ x: e.clientX, y: e.clientY }) : undefined}
-      onMouseLeave={zoomEnabled ? () => setMousePos(null) : undefined}
+      onMouseMove={zoomEnabled && zoomOnHover ? (e) => setMousePos({ x: e.clientX, y: e.clientY }) : undefined}
+      onMouseLeave={zoomEnabled && zoomOnHover ? () => setMousePos(null) : undefined}
       style={{
         position: "relative",
         width,
@@ -286,7 +292,7 @@ export function CardFull({
         </div>
       ) : null}
 
-      {zoomEnabled && mousePos ? (
+      {zoomEnabled && zoomOnHover && mousePos ? (
         <CardZoomPreview cardId={cardId} x={mousePos.x} y={mousePos.y} fallbackIndex={urlIndex} />
       ) : null}
     </div>
