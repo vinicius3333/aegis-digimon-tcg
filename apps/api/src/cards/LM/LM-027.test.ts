@@ -1,5 +1,6 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-027.js";
@@ -105,5 +106,59 @@ describe("LM-027 Red Scramble", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "LM-027"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-011")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "LM-027")).toBe(true);
+  });
+
+  it("activates Delay with no red Digimon in the trash, per Q4036", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "LM-027", as: "option" }], trash: [] },
+        1: { battleArea: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    s.state.players[0]!.battleArea[0]!.placedByEffect = true;
+    s.state.isFirstPlayersFirstTurn = true;
+    const { turn } = await openAfterStartOfTurn(s);
+
+    // Nothing to return, and no Digimon to play from an empty trash — but the clause still ran.
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    await closeTurn(s, turn);
+  });
+
+  it("reduces the digivolution cost by 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-010", as: "host" }],
+          hand: [{ card: "LM-027", as: "option" }, "BT1-015"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    // 2 to use the Option, then 0 for the reduced Greymon digivolution (printed cost 3).
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-015"), 2000);
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT1-015")).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("matches committed metadata and publishes fully covered compiled IR", () => {
+    const definition = getCardDefinition("LM-027");
+    const compiled = runtimeCompiledCard("LM-027");
+    expect(definition?.nameEn).toBe("Red Scramble");
+    expect(definition?.kinds).toEqual(["Option"]);
+    expect(definition?.playCost).toBe(2);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled?.effects.find((effect) => effect.trigger === "StartOfYourTurn")).toMatchObject({
+      keywords: [{ keyword: "Delay" }],
+      condition: { kind: "opponentHas" },
+    });
   });
 });
