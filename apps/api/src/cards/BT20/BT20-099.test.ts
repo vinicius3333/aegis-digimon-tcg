@@ -11,6 +11,7 @@ describe("BT20-099 Singularity of Chaos", () => {
       ],
     });
     expect(main?.actions.some((action) => action.kind === "Replacement")).toBe(false);
+    expect(main?.actions[1]?.optional).not.toBe(true);
   });
 
   it("keeps the color waiver scoped to Chaosmon or ACCEL", () => {
@@ -29,6 +30,13 @@ describe("BT20-099 Singularity of Chaos", () => {
           },
         },
       ],
+    });
+  });
+
+  it("marks the printed Security memory-and-hand effect as Security-resident", () => {
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "GainMemory", amount: 1 }, { kind: "AddToHandSelf" }],
     });
   });
 });

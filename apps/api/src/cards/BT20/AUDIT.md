@@ -1175,3 +1175,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-098.test.ts`).
+
+## BT20-099 — Singularity of Chaos
+
+- Catalog contract: white ACCEL cost-2 Option; color requirements may be ignored while controlling Chaosmon-named or ACCEL Digimon; Security gains 1 memory and adds itself to hand; Main may play a hand ACCEL Digimon at cost reduced by 4, then mandatorily places itself beneath any own Digimon at stack bottom; inherited end of opponent's turn, if host is Chaosmon-named, trashes opposing top security and gives the host -30000 DP for the turn.
+- Knowledge base: Q4605 confirms a host deleted by the -30000 DP rule check is deleted by rules and can trigger Partition.
+- Implementation evidence: audit marked the printed Security effect as Security-resident and removed erroneous optionality from the mandatory post-play stack placement. Color waiver, reduced paid play, self-card placement, inherited name gate, security trash, and DP modifier are direct. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: Chaosmon name and ACCEL trait form an OR waiver condition; after placement beneath BT20-037, the inherited effect reads the top host name and shared DP rule processing produces Q4605's deletion/Partition timing.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-099.test.ts` — 3 passed.
+- Clause scores: stats/color waiver union 2/2; Security memory/self hand 2/2; reduced ACCEL play 2/2; mandatory any-own-Digimon bottom placement 2/2; inherited Chaosmon security/-30000/Q4605 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-099.test.ts`).

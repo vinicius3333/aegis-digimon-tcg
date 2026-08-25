@@ -42,6 +42,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
+      isSecurity: true,
       actions: [
         {
           kind: "GainMemory",
@@ -89,7 +90,6 @@ export const compiled: CompiledCard = {
             kind: ["Digimon"],
           },
           position: "bottom",
-          optional: true,
         },
       ],
     },
