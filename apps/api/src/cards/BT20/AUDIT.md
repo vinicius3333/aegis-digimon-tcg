@@ -443,3 +443,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-037.test.ts`).
+
+## BT20-038 — Falcomon
+
+- Catalog contract: green/yellow level 3 Vaccine Avian/ACCEL, play cost 3/1000 DP, green or yellow level-2 evolution cost 1 plus Pinamon or level-2 ACCEL alternate cost 0; on your turn, its battle-area evolution into an ACCEL Digimon costs 1 less; inherited Piercing.
+- Knowledge base: Q4355 explicitly says the evolution reducer does not trigger in the breeding area because it lacks the Breeding icon.
+- Implementation evidence: the resident replacement is self-referenced, battle-area scoped, destination-gated to ACCEL, and reduces exactly 1. The inherited Static keyword is Piercing, both alternate requirements are exact, and registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: BT20-039's ACCEL alternate path normally costs 2; over a battle-area Falcomon it costs 1, while the identical breeding evolution costs the full 2. A Diatrymon host carrying Falcomon deletes a suspended opposing Digimon in battle and Pierces through the remaining security.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-038.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; ACCEL destination gate 2/2; exact -1 reduction 2/2; Q4355 battle-area scope 2/2; inherited Piercing/observable battle-security flow 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-038.test.ts`).
