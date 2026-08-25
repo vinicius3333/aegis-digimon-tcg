@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Your Turn]: SubTrigger whenPlayed (another Digimon), then this Digimon may attack
 //   — text says "may attack" (normal attack with suspending). Q5223 confirms attack IS
 //   declared normally.
-// digivolutionRequirement: SaviorHuckmon level 5 or CS trait level 5, cost 3.
+// digivolutionRequirement: SaviorHuckmon by name or a level 5 CS card, cost 3.
 //   Also: Huckmon cost 5 but only while opponent has ≥10000 DP Digimon (conditional reqs).
 export const compiled: CompiledCard = {
   effects: [
@@ -44,6 +44,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Modal",
           optional: true,
+          choose: 1,
           options: [
             [
               {
@@ -97,6 +98,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Modal",
           optional: true,
+          choose: 1,
           options: [
             [
               {
@@ -173,6 +175,11 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       names: ["SaviorHuckmon"],
+      level: 5,
+      cost: 3,
+      isAlternate: true,
+    },
+    {
       traits: ["CS"],
       level: 5,
       cost: 3,
@@ -182,18 +189,7 @@ export const compiled: CompiledCard = {
       names: ["Huckmon"],
       cost: 5,
       isAlternate: true,
-      condition: {
-        kind: "opponentHas",
-        filter: {
-          controllerDefault: "opponent",
-          kind: ["Digimon"],
-          dp: {
-            op: "gte",
-            value: 10000,
-          },
-        },
-        raw: "while opponent has a 10000 DP or higher Digimon",
-      },
+      opponentDigimonDpMin: 10000,
     },
   ],
 };

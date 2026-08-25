@@ -92,6 +92,12 @@ export interface DigivolutionRequirement {
    * only while its controller has this many cards in trash. No trash cards are consumed.
    */
   controllerTrashCountMin?: number;
+  /**
+   * Availability gate: the opponent must control a battle-area Digimon whose current DP is at
+   * least this value (BT23-013). Continuous DP modifiers therefore affect whether the path is
+   * available; printed base DP alone is not sufficient.
+   */
+  opponentDigimonDpMin?: number;
   /** This alternate hand-evolution path is unavailable from the breeding area. */
   battleAreaOnly?: boolean;
   /**

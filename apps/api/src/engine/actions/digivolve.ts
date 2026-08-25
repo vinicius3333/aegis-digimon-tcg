@@ -332,6 +332,24 @@ function alternateRequirementAvailable(
   permanent: Permanent,
   requirement: DigivolutionRequirement,
 ): boolean {
+  const opponentDigimonDpMin = requirement.opponentDigimonDpMin;
+  if (opponentDigimonDpMin !== undefined) {
+    const opponentSeat = seat === 0 ? 1 : 0;
+    const opponent = playerAt(state, opponentSeat);
+    if (
+      opponent === undefined ||
+      !opponent.battleArea.some((candidate) => {
+        const top = candidate.topCard;
+        return (
+          top !== undefined &&
+          isDigimon(definitionOf(top.cardId)) &&
+          candidate.currentDP >= opponentDigimonDpMin
+        );
+      })
+    ) {
+      return false;
+    }
+  }
   if (requirement.minNameStackCount !== undefined) {
     const requiredNames = requirement.minNameStackNames ?? [];
     const matching = permanent.stack.filter((card) => {
