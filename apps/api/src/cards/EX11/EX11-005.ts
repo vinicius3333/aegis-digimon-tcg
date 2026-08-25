@@ -31,6 +31,7 @@ const compiled: CompiledCard = {
           },
           from: ["trash"],
           reduceCost: 1,
+          payCost: true,
           optional: true,
         },
         {
