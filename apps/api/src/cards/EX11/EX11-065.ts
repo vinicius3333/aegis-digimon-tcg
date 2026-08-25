@@ -1,167 +1,85 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX11-065";
+const mineralOrRock = [{ tokens: ["Mineral", "Rock"], match: "trait" as const }];
 
-function hasMineralOrRock(def: CardDefinition): boolean {
-  return (def.types ?? []).some((t) => t === "Mineral" || t === "Rock");
-}
-
-async function placeUnderFromHandOrTrash(
-  ctx: Parameters<NonNullable<Parameters<typeof turnTiming>[0]["resolve"]>>[0],
-  source: CardSource,
-  subjectPermanentId: string,
-): Promise<void> {
-  const selfPerm = source.permanent();
-  if (selfPerm === undefined || selfPerm.isSuspended) return;
-  // "by suspending this Tamer" is a cost, and paying a cost is the controller's
-  // choice: ask before suspending, and leave the Tamer untouched on a decline.
-  const willSuspend = await ctx.ask.optional(
-    ctx,
-    "Suspend Close to place 1 [Mineral] or [Rock] trait card as a bottom digivolution card?",
-  );
-  if (!willSuspend) return;
-  const paid = ctx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
-  if (!paid) return;
-  const owner = ctx.game.player(source.ownerSeat);
-  const fromHand = Array.from(owner.hand).filter((c) => hasMineralOrRock(ctx.game.definitionOf(c)));
-  const fromTrash = Array.from(owner.trash).filter((c) => hasMineralOrRock(ctx.game.definitionOf(c)));
-  const allCandidates = [...fromHand, ...fromTrash];
-  if (allCandidates.length === 0) return;
-  const chosen = await ctx.ask.selectCards(ctx, {
-    candidates: allCandidates.map((c) => c.instanceId),
-    min: 0,
-    max: 1,
-  });
-  if (chosen.length > 0) {
-    await ctx.fx.placeUnder(subjectPermanentId, chosen);
-  }
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartMainPhase) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-main-trash-for-memory`,
-          description:
-            "[Start of Your Main Phase] By trashing 1 [Mineral] or [Rock] trait card from " +
-            "your hand or your Digimon's digivolution cards, gain 1 memory.",
-          optional: true,
-          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const mineralCards = Array.from(owner.hand).filter((c) => hasMineralOrRock(ctx.game.definitionOf(c)));
-            if (mineralCards.length > 0) {
-              const chosen = await ctx.ask.selectCards(ctx, {
-                candidates: mineralCards.map((c) => c.instanceId),
-                min: 0,
-                max: 1,
-              });
-              if (chosen.length > 0) {
-                await ctx.fx.trash(chosen);
-                ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
-              }
-            }
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/played-sub`,
-          description:
-            "[All Turns] When your Digimon is played, by suspending this Tamer, you may place " +
-            "1 [Mineral]/[Rock] trait card from your hand or trash as the bottom digivolution " +
-            "card of that Digimon.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenPlayed",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              // A self-suspend cost is unpayable while this card is already suspended, so this watcher
-              // must not pad the prompt when several watchers order off one event.
-              canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true,
-              description: `${cardId}: When Digimon played, suspend + place under.`,
-              matches: (subCtx) => {
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined || subject.topCard === undefined) return false;
-                if (subject.controllerSeat !== source.ownerSeat) return false;
-                return isDigimon(subCtx.game.definitionOf(subject.topCard));
-              },
-              run: async (subCtx) => {
-                await placeUnderFromHandOrTrash(subCtx, source, subCtx.trigger!.subjectPermanentId!);
-              },
-            });
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/digivolve-sub`,
-          description:
-            "[All Turns] When your Digimon digivolves, by suspending this Tamer, you may place " +
-            "1 [Mineral]/[Rock] trait card from your hand or trash as the bottom digivolution " +
-            "card of that Digimon.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenOneOfYoursDigivolves",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              // A self-suspend cost is unpayable while this card is already suspended, so this watcher
-              // must not pad the prompt when several watchers order off one event.
-              canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true,
-              description: `${cardId}: When Digimon digivolves, suspend + place under.`,
-              matches: (subCtx) => {
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined || subject.topCard === undefined) return false;
-                if (subject.controllerSeat !== source.ownerSeat) return false;
-                return isDigimon(subCtx.game.definitionOf(subject.topCard));
-              },
-              run: async (subCtx) => {
-                await placeUnderFromHandOrTrash(subCtx, source, subCtx.trigger!.subjectPermanentId!);
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card without paying its memory cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
-          },
-        }),
-      ];
-    }
-
-    return [];
+const placeUnderTriggeredDigimon = {
+  kind: "PlaceUnder" as const,
+  target: {
+    filter: {
+      controller: "mine" as const,
+      kind: ["Digimon" as const],
+      nameOrTrait: mineralOrRock,
+    },
+    count: 1,
+    from: ["hand" as const, "trash" as const],
   },
+  from: ["hand" as const, "trash" as const],
+  underFilter: { isTriggerSource: true },
+  position: "bottom",
+  cost: {
+    kind: "suspend" as const,
+    target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+    raw: "by suspending this Tamer",
+  },
+  optional: true,
+  abortOnDecline: true,
 };
 
-registerCard(module);
-export default module;
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: mineralOrRock },
+              count: 1,
+              from: ["hand", "digivolutionCards"],
+            },
+            raw: "By trashing 1 [Mineral] or [Rock] trait card from your hand or your Digimon's digivolution cards",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: mineralOrRock },
+          actions: [placeUnderTriggeredDigimon],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: mineralOrRock },
+          actions: [placeUnderTriggeredDigimon],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("EX11-065", compiled);
