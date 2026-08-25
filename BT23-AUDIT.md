@@ -461,6 +461,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; suspends Golemon to delete exactly one 4000-DP target, preserves a second low target and a 5000-DP negative, then proves a second same-turn suspension does nothing; rejects an opposing-Digimon attack while accepting a player attack; observes Alliance and Blocker live; and accepts off-color level-3 CS evolution for 2 while rejecting an off-color non-CS peer.
 - Verification: focused suite — 7 passed; shared Alliance, Blocker, suspension event, DP ceiling, frequency, attack-target restriction, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-052 — Consulmon — 10/10
+
+- Catalog evidence: Black level 4, play cost 4, 4000 DP, standard black-level-3 evolution for 2; forms `Sup.` and `Appmon`, attribute `Life`, type `Saving`; Security plays itself for free at battle end; On Play/When Digivolving prevents one opponent from attacking players through their turn end; Link onto Appmon costs 2, contributes 3000 DP, and grants the host Reboot and Blocker through the opponent's turn end when linked.
+- Knowledge base: `node tools/kb/query.mjs card BT23-052` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-052", compiled)` with full coverage and no residual clauses; the audit adds complete catalog and observable attack-target boundary evidence without changing execution.
+- Primitive trace: the Security effect installs a one-shot battle-end watcher bound to the checked card's trash identity and plays it without cost only after battle; both entry timings bind one opposing Digimon to the duration attack-player restriction; Link validates Appmon, pays 2, contributes +3000 DP, and its newly linked source grants Reboot and Blocker to the host through the printed duration.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; performs a real security battle and observes delayed free play from trash; links for exactly 2 with +3000 DP and both live keyword grants; and proves the selected opponent cannot attack a player while retaining a legal attack against a suspended Digimon.
+- Verification: focused suite — 7 passed; shared security battle-end, self play, attack-player restriction, Link, Reboot, Blocker, and duration mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-052 through BT23-102.
+BT23-053 through BT23-102.
