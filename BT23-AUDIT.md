@@ -803,6 +803,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; proves guarded start-main memory; pays with two level-3 sources under one CS host, suspends Takumi, trashes exactly those sources, and preserves the host; supplies different-level sources and proves departure with neither cost paid; and declines an otherwise payable replacement with the same result.
 - Verification: focused suite — 6 passed after refreshing shared runtime data; shared would-leave replacement, compound atomic cost, same-host/same-level loose preflight and hostile-selection validation, optional refusal, start-main guard, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-090 — Keisuke Amasawa — 10/10
+
+- Catalog evidence: White cost-4 Tamer, types `Hudie` and `CS`; Start of Your Turn sets memory to 3 at 2 or less; End of Your Turn may suspend Keisuke and return one friendly Hudie Digimon to hand as a compound cost to play one CS Tamer from hand for free; All Turns gives every friendly Hudie Digimon +1000 DP; Security plays this card for free.
+- Knowledge base: Q5363 makes suspension and Hudie return inseparable parts of the “by” condition; the effect cannot be paid with only suspension.
+- Defects corrected: authoritative shared IR omitted the Hudie return half of the compound cost. The audit synchronizes it and fixes generic compound preflight by making battle-area return costs verify enough matching permanents before earlier components can mutate state; registration remains exclusively `registerIrCard("BT23-090", compiled)` with full coverage/no residuals.
+- Primitive trace: start-turn sets memory at the inclusive boundary; end-turn preflights an unsuspended Keisuke, matching Hudie, and hand CS Tamer before atomically suspending/returning and free-playing the Tamer; the continuous all-turns modifier reevaluates every friendly Hudie and adds +1000 DP only while Keisuke remains; Security self-play is free.
+- Behavioral proof: the focused suite checks catalog/coverage; proves memory 2 becomes 3 while 4 remains 4; atomically suspends Keisuke, returns Hudiemon, and plays Chitose for free; with no Hudie proves neither suspension nor play occurs; and observes Hudiemon at base +1000 while a non-Hudie remains at base DP.
+- Verification: focused suite — 7 passed after refreshing shared runtime data; shared memory setting, compound transactional preflight/payment, battle-area return, CS Tamer free play, continuous all-target Hudie DP, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-090 through BT23-102.
+BT23-091 through BT23-102.

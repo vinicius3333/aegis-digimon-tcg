@@ -81789,8 +81789,25 @@
             "from": ["hand"],
             "payCost": false,
             "cost": {
-              "kind": "suspend",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "kind": "compound",
+              "costs": [
+                {
+                  "kind": "suspend",
+                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
+                },
+                {
+                  "kind": "return",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "kind": ["Digimon"],
+                      "nameOrTrait": [{ "tokens": ["Hudie"], "match": "trait" }]
+                    },
+                    "count": 1
+                  },
+                  "to": "hand"
+                }
+              ],
               "raw": "By suspending this Tamer and returning 1 of your Digimon with the [Hudie] trait to the hand"
             },
             "optional": true,
