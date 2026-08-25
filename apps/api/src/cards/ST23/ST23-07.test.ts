@@ -39,4 +39,35 @@ describe("ST23-07 Armalizamon", () => {
     expect(playedTamer?.controllerSeat).toBe(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(false);
   });
+
+  it("does not play a Tamer when its controller already has two Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST23-13", as: "firstTamer" },
+            { card: "ST23-14", as: "secondTamer" },
+          ],
+          hand: [
+            { card: "ST23-07", as: "armalizamon" },
+            { card: "ST23-13", as: "candidate" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const candidateId = s.inst("candidate").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("armalizamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 5);
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === candidateId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "ST23-13")).toHaveLength(
+      1,
+    );
+  });
 });
