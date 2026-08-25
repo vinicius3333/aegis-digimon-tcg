@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PlayerState } from "@aegis/shared";
+import { digivolutionRequirementsFor, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
@@ -16,6 +16,13 @@ describe("EX8-056", () => {
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
       actions: [{ kind: "Delete", target: { filter: { controller: "opponent", levels: [3] } } }],
+    }));
+  it("exposes the zero-cost DS level-2 evolution route", () =>
+    expect(digivolutionRequirementsFor("EX8-056")).toContainEqual({
+      level: 2,
+      traits: ["DS"],
+      cost: 0,
+      isAlternate: true,
     }));
   it("draws then trashes exactly one hand card when deleted", async () => {
     const s = setupEngine(
@@ -39,7 +46,12 @@ describe("EX8-056", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-056"] }] },
-        1: { battleArea: [{ card: "BT1-016", as: "victim", suspended: true }] },
+        1: {
+          battleArea: [
+            { card: "BT1-016", as: "victim", suspended: true },
+            { card: "AD1-001", as: "level4" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -53,9 +65,33 @@ describe("EX8-056", () => {
         target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.topCard.cardId !== "BT1-016"));
 
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["AD1-001"]);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-016")).toBe(true);
+  });
+
+  it("digivolves for 0 from an off-color level-2 DS stack", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "EX8-002", as: "bukamon" },
+        hand: [{ card: "EX8-056", as: "syakomon" }],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("bukamon").permanentId,
+        instanceId: s.inst("syakomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("bukamon").topCard.cardId === "EX8-056");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("bukamon").stack.map((card) => card.cardId)).toEqual(["EX8-002"]);
   });
 });
