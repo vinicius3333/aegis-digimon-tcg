@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-054.js";
 
 describe("EX11-054 Owen Dreadnought", () => {
+  it("preserves the printed Tamer and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-054")).toMatchObject({
+      nameEn: "Owen Dreadnought",
+      colors: ["Red"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["LIBERATOR"],
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("suspends to draw and boosts only a Progress Digimon when a Reptile is played", async () => {
     const s = setupEngine(
       {
@@ -28,6 +40,7 @@ describe("EX11-054 Owen Dreadnought", () => {
 
     expect(s.perm("owen").isSuspended).toBe(true);
     expect(s.perm("progress").currentDP).toBe(10000);
+    assertNoLoudGap(s);
   });
 
   it("leaves Owen unsuspended and draws nothing when the suspend cost is declined", async () => {
@@ -56,6 +69,7 @@ describe("EX11-054 Owen Dreadnought", () => {
     expect(s.perm("owen").isSuspended).toBe(false);
     // The Reptile left the hand, and no <Draw 1> replaced it.
     expect(s.state.players[0]!.hand.length).toBe(handBefore - 1);
+    assertNoLoudGap(s);
   });
 
   it("sets memory to 3 at the start of its owner's turn when memory is 2 or less", async () => {
@@ -65,6 +79,7 @@ describe("EX11-054 Owen Dreadnought", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnStartTurn, s.perm("owen"));
 
     expect(s.state.memory).toBe(3);
+    assertNoLoudGap(s);
   });
 
   it("plays itself from security without paying the cost", async () => {
@@ -74,6 +89,7 @@ describe("EX11-054 Owen Dreadnought", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX11-054"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX11-054")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("publishes exact Reptile/Dragonkin watchers and full compiled coverage", () => {
