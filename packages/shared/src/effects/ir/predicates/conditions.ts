@@ -87,6 +87,7 @@ export interface Condition {
     | "triggerSubjectHasColor" // evaluated POST-digivolve (BT25-026; KB Q6290/Q6291)
     | "triggerSubjectMatchesFilter" // non-color subject gates; later "then" branches still run (BT21-061)
     | "triggerDigivolvedSameLevel" // BT9-092
+    | "triggerSubjectStackHasSameLevel" // BT22-093: any source shares the current top's level
     | "triggerDeletedLevelAtLeast"
     | "triggerDeletedStackMatchesFilter"
     | "triggerAttackerIsSelf"
