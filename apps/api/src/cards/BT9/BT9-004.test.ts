@@ -1,6 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-004.js";
 
 describe("BT9-004 Motimon", () => {
@@ -68,5 +68,24 @@ describe("BT9-004 Motimon", () => {
 
       expect(s.perm("host").currentDP).toBe(turnSeat === 0 ? 3000 : 2000);
     }
+  });
+
+  it("preserves Motimon through a legal green breeding evolution", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT9-004", as: "motimon" },
+        hand: [{ card: "BT9-045", as: "elecmon" }],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("motimon").permanentId,
+        instanceId: s.inst("elecmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("motimon").topCard.instanceId === s.inst("elecmon").instanceId);
+    expect(s.perm("motimon").stack.map((card) => card.cardId)).toContain("BT9-004");
+    expect(s.state.memory).toBe(0);
   });
 });
