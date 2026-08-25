@@ -188,7 +188,9 @@ export function validateDigiXros(
     player.battleArea.every((permanent) => {
       if (permanent.topCard === undefined) return true;
       const materialDefinition = definitionOf(permanent.topCard.cardId);
-      return !materialDefinition.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(materialDefinition.nameEn);
+      return (
+        !materialDefinition.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(materialDefinition.nameEn)
+      );
     });
   let trashMax = allowsDigiXrosMaterialsFromTrash(instance.cardId) || intrinsicTrashAllowed ? Infinity : 0;
   if (allowsExtraDigiXrosMaterials(instance.cardId)) trashMax = 1;
