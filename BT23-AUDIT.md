@@ -425,6 +425,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; suspends exactly five of six opposing permanents while locking all opposing Digimon; trashes the first effect-placed Option and deletes the first suspended target, then proves a second event does nothing; proves own security removal does not trigger; and observes Piercing, Security Attack +1, and Partition live.
 - Verification: focused suite — 7 passed; shared Partition, keyword, security priority, placed-Option, mass suspension, next-unsuspend restriction, optional attack, and frequency mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-048 — Gotsumon — 10/10
+
+- Catalog evidence: Black/red level 3, play cost 3, 1000 DP, standard black- or red-level-2 evolution for 1 plus alternate level-2 CS evolution for 0; form `Rookie`, attribute `Data`, types `Rock`, `Hudie`, and `CS`; On Play reveals three, adds one Hudie card and one CS Tamer/Option, then bottoms the rest; inherited When Attacking once per turn may play a cost-5-or-lower Hudie Digimon from hand for free, permanently prevents that result from evolving, and deletes it at the opponent's turn end.
+- Knowledge base: Q5316 permits a Hudie played by the inherited timing to become a later Alliance suspension choice in the same attack. Q5567 confirms delayed deletion and the permanent evolution prohibition are independent. Q5568 makes the opponent-turn-end deletion simultaneous with other end-turn processing under turn-player ordering.
+- Implementation result: every printed clause and result binding was already present in compiled IR and registration is exclusively `registerIrCard("BT23-048", compiled)` with full coverage and no residual clauses; the audit adds complete catalog and alternate-evolution evidence without changing execution.
+- Primitive trace: RevealAdd partitions one shared reveal pool through Hudie and CS Tamer/Option filters before bottoming every remainder; the inherited play binds only its newly created permanent, applies the permanent digivolution restriction to that identity, schedules opponent-turn-end deletion independently, and uses one physical-source attack-turn budget.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; adds one Hudie plus one CS Tamer and bottoms the exact remainder; from a realistic inherited stack plays only the eligible cost-5 Hudie, leaves a cost-6 peer in hand, observes the bound evolution lock, preserves the result through owner turn end, and deletes it at opponent turn end; and accepts off-color level-2 CS evolution for 0 while rejecting an off-color non-CS peer.
+- Verification: focused suite — 6 passed; shared RevealAdd, binding, play, restriction, delayed-deletion, end-turn ordering, inherited-frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-048 through BT23-102.
+BT23-049 through BT23-102.
