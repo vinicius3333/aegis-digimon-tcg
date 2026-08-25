@@ -47,3 +47,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-004.test.ts`).
+
+## BT20-005 — Kapurimon
+
+- Catalog contract: black level 2 Lesser/LIBERATOR Digi-Egg; inherited `[Your Turn]` effect grants this Digimon Jamming for the turn when it checks a security card that was already face up.
+- Knowledge base: Q4284 establishes security-effect priority when the face-up-check trigger is simultaneous with other security/removal triggers; this effect's event timing remains pending after immediate Security effects.
+- Implementation evidence: `BT20-005.ts` registers only through `registerIrCard`; its inherited your-turn watcher subscribes to `whenCheckedFaceUpSecurity` and grants Jamming to self for the turn. The security-check primitive snapshots `faceUp` before revealing, fires this event only for an already-face-up card, and includes the attacker identity; the subscription preserves your-turn scope.
+- Peer/stack evidence: the focused test attacks with Kapurimon in a realistic evolution stack against identical security cards in face-up and face-down states. Only the pre-existing face-up check produces an observable Jamming grant.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-005.test.ts` — 2 passed.
+- Clause scores: inherited/your-turn scope 2/2; face-up-before-check boundary 2/2; checking Digimon identity/self target 2/2; Jamming keyword 2/2; for-the-turn observable grant and negative path 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-005.test.ts`).
