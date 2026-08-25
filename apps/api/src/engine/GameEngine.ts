@@ -613,6 +613,14 @@ export class GameEngine {
         }
       }
       return undefined;
+    },
+    undefined,
+    (permanentId) => {
+      for (const player of this.state.players) {
+        const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
+        if (permanent !== undefined) return permanent.controllerSeat;
+      }
+      return undefined;
     });
     this.memory = new MemoryGauge(this.state, this.hooks.emit, (seat, opts) => {
       const kinds = opts.isTamerEffect ? [CardKind.Tamer] : [CardKind.Digimon];

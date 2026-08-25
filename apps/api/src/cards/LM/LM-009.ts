@@ -4,6 +4,12 @@
 // Digimon, then reduce the cost by 2 only for an Angoramon-text card.  The
 // previous generated module installed only the suspension watcher and never
 // reduced either play or digivolution costs.
+// Audit fixes (LM audit):
+//   - the play half reads "a card with [Angoramon] in its text", so it is not limited to
+//     Digimon cards
+//   - the digivolve half reads "one of your Digimon would digivolve INTO such a card": Q3998
+//     puts the Angoramon-text requirement on the destination alone, never on the base
+//   - the <Rush> grant is printed without "you may", so it is mandatory
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -27,7 +33,6 @@ const compiled: CompiledCard = {
           event: "wouldBePlayed",
           sourceFilter: {
             controller: "mine",
-            kind: ["Digimon"],
             ...angoramonText,
           },
           actions: [
@@ -49,7 +54,6 @@ const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            ...angoramonText,
           },
           into: { controllerDefault: "mine", kind: ["Digimon"], ...angoramonText },
           actions: [
@@ -87,7 +91,6 @@ const compiled: CompiledCard = {
               },
               keyword: { keyword: "Rush" },
               duration: "forTheTurn",
-              optional: true,
             },
           ],
         },

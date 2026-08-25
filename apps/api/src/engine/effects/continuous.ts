@@ -566,7 +566,11 @@ export class ContinuousEffectLedger {
       return sourceKind !== undefined && r.fromSourceKind.includes(sourceKind);
     });
     if (individuallyRestricted) return true;
-    const controllerSeat = this.controllerSeatOf?.(permanentId);
+    // A player-scoped restriction can name ANY permanent kind ("none of your opponent's Tamers
+    // can unsuspend" — LM-010), so it resolves the controller through the kind-agnostic lookup.
+    // `controllerSeatOf` deliberately answers only for Digimon (it also drives the
+    // Digimon-only player KEYWORD grants) and would silently drop every Tamer here.
+    const controllerSeat = this.anyControllerSeatOf?.(permanentId) ?? this.controllerSeatOf?.(permanentId);
     return this.playerRestrictions.some(
       (entry) => entry.seat === controllerSeat && entry.restriction === restriction && entry.matches(permanentId),
     );
@@ -986,6 +990,7 @@ export class ContinuousEffectLedger {
   constructor(
     private readonly controllerSeatOf?: (permanentId: string) => Seat | undefined,
     private readonly printedKeywordsOfPermanent?: (permanentId: string) => readonly string[],
+    private readonly anyControllerSeatOf?: (permanentId: string) => Seat | undefined,
   ) {}
 
   /** Grant a keyword to every current and future Digimon permanent controlled by `seat`. */
