@@ -77,4 +77,16 @@ describe("EX8-051", () => {
     await settle(() => s.perm("target").stack.length === 1);
     expect(s.perm("target").stack).toHaveLength(1);
   });
+
+  it("does not de-digivolve when trashed from a non-Mineral/Rock host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "host", under: [{ card: "EX8-051", as: "discarded" }] }] },
+      1: { battleArea: [{ card: "BT1-016", as: "target", under: ["BT1-009", "BT1-010"] }] },
+    });
+    await s.ready();
+    await primitivesOf(s).trashDigivolutionCards(s.perm("host").permanentId, [s.inst("discarded").instanceId], {
+      byEffectSeat: 0,
+    });
+    expect(s.perm("target").stack).toHaveLength(2);
+  });
 });
