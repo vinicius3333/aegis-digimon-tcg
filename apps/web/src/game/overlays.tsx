@@ -2712,6 +2712,7 @@ export function DigiXrosMaterialOverlay({
   candidates,
   lockedCandidates,
   eligibleExpanders,
+  intrinsicTrashMax = 0,
   onConfirm,
   onSkip,
   onCancel,
@@ -2726,6 +2727,8 @@ export function DigiXrosMaterialOverlay({
   lockedCandidates: DigiXrosCandidate[];
   /** Unsuspended expander Tamers that can be suspended for this DigiXros play. */
   eligibleExpanders: DigiXrosEligibleExpander[];
+  /** Trash capacity granted by the played card itself, without suspending a Tamer. */
+  intrinsicTrashMax?: number;
   /** Confirm with the chosen materials and expander Tamers to suspend. */
   onConfirm: (materialInstanceIds: string[], expanderPermanentIds: string[]) => void;
   /** Play the card normally without DigiXros (full cost, no materials). */
@@ -2749,7 +2752,7 @@ export function DigiXrosMaterialOverlay({
   const slotLabels = req.materials.map((material) => materialSlotLabel(material, t));
   const chosenExpanders = eligibleExpanders.filter((e) => chosenExpanderPermanentIds.includes(e.permanentId));
   const underTamerMax = chosenExpanders.reduce((max, e) => Math.max(max, e.underTamerMax), 0);
-  const trashMax = chosenExpanders.reduce((max, e) => Math.max(max, e.trashMax), 0);
+  const trashMax = chosenExpanders.reduce((max, e) => Math.max(max, e.trashMax), intrinsicTrashMax);
   const trashCandidates = lockedCandidates.filter((c) => c.zone === "trash");
   const underTamerCandidates = lockedCandidates.filter((c) => c.zone === "underTamer");
   const availableCandidates = [
@@ -2914,7 +2917,7 @@ export function DigiXrosMaterialOverlay({
               fontSize: 12.5,
             }}
           >
-            {t("overlay.xrosUnlockHint")}
+            {eligibleExpanders.length > 0 ? t("overlay.xrosUnlockHint") : t("overlay.xrosZoneLocked")}
           </div>
         )}
       </div>

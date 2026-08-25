@@ -11,6 +11,7 @@ import {
   type CardDefinition,
   type DigiXrosMaterial,
   type DigiXrosRequirement,
+  digiXrosTrashNameAllowanceFor,
   type GameState,
   type PlayerState,
   type Seat,
@@ -171,7 +172,15 @@ export function validateDigiXros(
   // AllowDigiXrosMaterialsFromTrash (CAP-C-14, BT21-030): the played card's own IR declares that
   // trash is a valid material source, so trash is unrestricted regardless of expander Tamers.
   let underTamerMax = allowsExtraDigiXrosMaterials(instance.cardId) ? 1 : 0;
-  let trashMax = allowsDigiXrosMaterialsFromTrash(instance.cardId) ? Infinity : 0;
+  const intrinsicTrashNames = digiXrosTrashNameAllowanceFor(instance.cardId);
+  const intrinsicTrashAllowed =
+    intrinsicTrashNames !== undefined &&
+    player.battleArea.every((permanent) => {
+      if (permanent.topCard === undefined) return true;
+      const materialDefinition = definitionOf(permanent.topCard.cardId);
+      return !materialDefinition.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(materialDefinition.nameEn);
+    });
+  let trashMax = allowsDigiXrosMaterialsFromTrash(instance.cardId) || intrinsicTrashAllowed ? Infinity : 0;
   if (allowsExtraDigiXrosMaterials(instance.cardId)) trashMax = 1;
   const expanderPermanentIds = intent.digiXros.expanderPermanentIds ?? [];
   for (const permanentId of expanderPermanentIds) {

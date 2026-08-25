@@ -1090,6 +1090,9 @@ export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] 
  * + cost) and CLIENT (material highlighting) read ONE source of truth.
  */
 export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[]> = {
+  // BT18-065: [DigiXros -1] 4 [Vemmon]. The generated parser consumed the inherited
+  // [All Turns][Once Per Turn] header as extra material metadata.
+  "BT18-065": [{ materials: [{ names: ["Vemmon"] }], count: 1, maxMaterials: 4 }],
   // AD1-006: DigiXros -2 requires all six distinct named slots. The generated aggregate retained
   // only OmniShoutmon, which made the server accept an incomplete recipe.
   "AD1-006": [
@@ -1236,6 +1239,19 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
     },
   ],
 };
+
+/**
+ * Intrinsic conditional trash-source allowances printed on DigiXros cards.
+ * The value lists every Digimon name the controller may have while the allowance
+ * remains active; an empty battle area also satisfies the condition (Q6014).
+ */
+export const DIGIXROS_TRASH_NAME_ALLOWANCES: Readonly<Record<string, readonly string[]>> = {
+  "BT18-065": ["Vemmon"],
+};
+
+export function digiXrosTrashNameAllowanceFor(cardId: string): readonly string[] | undefined {
+  return DIGIXROS_TRASH_NAME_ALLOWANCES[cardId];
+}
 
 /**
  * The DigiXros requirement(s) for a played card: the hand-authored override when one exists,

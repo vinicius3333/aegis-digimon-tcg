@@ -9,6 +9,7 @@ import {
   CardKind,
   Phase,
   digiXrosRequirementFor,
+  digiXrosTrashNameAllowanceFor,
   digiXrosZoneExpanderFor,
   getCardDefinition,
   parseTriggerKey,
@@ -356,6 +357,7 @@ export function GameScreen({
     candidates: DigiXrosCandidate[];
     lockedCandidates: DigiXrosCandidate[];
     eligibleExpanders: DigiXrosEligibleExpander[];
+    intrinsicTrashMax: number;
   } | null>(null);
   const [actionConfirm, setActionConfirm] = useState<
     | { kind: "play"; instanceId: string; cardId: string }
@@ -939,6 +941,16 @@ export function GameScreen({
               })
               .flat()
           : [];
+        const intrinsicTrashNames = digiXrosTrashNameAllowanceFor(entry.cardId);
+        const intrinsicTrashMax =
+          intrinsicTrashNames !== undefined &&
+          you.battleArea.every((permanent) => {
+            if (!permanent.topCard) return true;
+            const definition = getCardDefinition(permanent.topCard.cardId);
+            return !definition?.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(definition.nameEn);
+          })
+            ? reqs[0]?.maxMaterials ?? 0
+            : 0;
         setDigiXrosPick({
           instanceId,
           cardId: entry.cardId,
@@ -946,6 +958,7 @@ export function GameScreen({
           candidates,
           lockedCandidates,
           eligibleExpanders,
+          intrinsicTrashMax,
         });
         return;
       }
@@ -1906,6 +1919,7 @@ export function GameScreen({
           candidates={digiXrosPick.candidates}
           lockedCandidates={digiXrosPick.lockedCandidates}
           eligibleExpanders={digiXrosPick.eligibleExpanders}
+          intrinsicTrashMax={digiXrosPick.intrinsicTrashMax}
           onConfirm={(materialInstanceIds, expanderPermanentIds) => {
             if (room)
               intents.playCard(room, digiXrosPick.instanceId, undefined, { materialInstanceIds, expanderPermanentIds });
