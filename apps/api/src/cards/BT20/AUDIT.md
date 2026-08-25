@@ -1103,3 +1103,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-092.test.ts`).
+
+## BT20-093 — Unleash the Dragon Gene
+
+- Catalog contract: red cost-2 Option; Main may play a hand Digimon with Dracomon/Examon in its text at cost reduced by 3, then places itself in battle; when an own qualifying Digimon would leave other than battle, enables Delay to DNA evolve two own Digimon into hand Examon; Security may free-play a Dracomon-named Digimon from hand/trash, then places itself in battle.
+- Knowledge base: Q4433-Q4435 establish the OR text-search surface for Main and the leave watcher. Q4436 establishes that DNA evolution using the would-leave Digimon creates a different Digimon that does not leave.
+- Implementation evidence: Main uses paid play with reduction rather than a cost waiver and always performs self placement after the optional head. The effect-cause watcher excludes battle and arms the resident Delay path without itself preventing departure; Delay selects two distinct own materials and exact hand Examon. Security uses the narrower Dracomon name filter and correct two source zones. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: text matching includes names, effects, traits, and evolution declarations per Q4435, while Security deliberately uses name matching only; the shared DNA primitive replaces both material stacks with the new Examon identity for Q4436.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-093.test.ts` — 2 passed.
+- Clause scores: stats/Main reduced play union 2/2; mandatory battle placement 2/2; qualifying nonbattle leave/Delay timing 2/2; two-material hand Examon DNA/Q4436 2/2; Security name/zones/free play/placement 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-093.test.ts`).
