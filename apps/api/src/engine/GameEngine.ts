@@ -91,7 +91,6 @@ import { tamerOntoDigivolveLevel } from "./cards/tamerOntoDigivolve.js";
 import { UseTracker, canActivate, canTrigger } from "./effects/kernel.js";
 import { runTiming, type EffectEnvironment, type ResolutionDeps } from "./effects/index.js";
 import { collectConferredEffects, collectGrantedCustomEffects, effectsOf } from "./effects/collect.js";
-import { automaticWouldBePlayedSelfReduction } from "./effects/interpreter/registration/reducers.js";
 import {
   applyWouldBePlayedSelfReducer,
   applyWouldDigivolveSelfReducer,
@@ -3437,12 +3436,7 @@ export class GameEngine {
       },
     );
     if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
-    for (const reducer of selfReducers) {
-      // Automatic self reducers are already part of adjustedPlayCost/passiveCost;
-      // this pay-time window is reserved for reductions earned by paying a cost.
-      if (reducer.pay === undefined && reducer.cost === undefined && reducer.costActions === undefined) continue;
-      await applyWouldBePlayedSelfReducer(ctx, reducer);
-    }
+    for (const reducer of selfReducers) await applyWouldBePlayedSelfReducer(ctx, reducer);
     // A self-reducer's cost body may have selected a permanent (BT12-112's chosen [Shoutmon]) to
     // relocate under the played card's own permanent — which does not exist yet at this point. Stash
     // it for `placePendingDigivolution` to relocate once it does (see `pendingSelfReducerRelocations`).
@@ -4473,16 +4467,8 @@ export class GameEngine {
       // Apply active continuous play-cost modifiers (CostModifier play/use forms) to the
       // printed cost. The recompute runs before each fired timing, so the store is
       // current when a play is validated. `controllerSeat` is the seat paying.
-      adjustedPlayCost: (_state, seat, definition, base, instance) => {
-        const continuousCost = this.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base);
-        if (instance === undefined) return continuousCost;
-        const source = this.cardSourceOf(instance);
-        const automaticReduction = automaticWouldBePlayedSelfReduction(
-          this.buildEffectContext(source, {}),
-          wouldBePlayedSelfReducersFor(instance.cardId),
-        );
-        return Math.max(0, continuousCost - automaticReduction);
-      },
+      adjustedPlayCost: (_state, seat, definition, base) =>
+        this.modifiers.playCostFor({ def: definition, controllerSeat: seat }, base),
       // Seat-level "your opponent can't play <X>" prohibition (RestrictPlay). A manual play
       // is the playing seat's own action, so the prohibition on that seat applies.
       playProhibited: (_state, seat, definition) => this.continuous.isPlayBlocked(seat, definition, "play"),

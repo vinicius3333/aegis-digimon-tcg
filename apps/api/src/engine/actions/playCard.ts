@@ -105,13 +105,7 @@ export interface PlayCardDeps {
    * absent the printed cost is used unchanged. The engine binds this to the
    * ModifierLedger's `playCostFor`.
    */
-  adjustedPlayCost?(
-    state: GameState,
-    seat: Seat,
-    definition: CardDefinition,
-    base: number,
-    instance?: CardInstance,
-  ): number;
+  adjustedPlayCost?(state: GameState, seat: Seat, definition: CardDefinition, base: number): number;
   /**
    * Whether a seat-level play prohibition (RestrictPlay: "your opponent can't play <X>")
    * forbids `seat` from playing `definition` right now. Optional: when absent no play is
@@ -284,9 +278,7 @@ export function validatePlayCard(
   // 5. Affordability: the play cost (after any continuous cost modifiers) must be
   //    payable (documented behavior MaxMemoryCost >= cost).
   const printed = normalizeCost(definition.playCost);
-  const cost = deps.adjustedPlayCost
-    ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed, found.instance))
-    : printed;
+  const cost = deps.adjustedPlayCost ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed)) : printed;
   // A self/cross-card reducer may only be finalized at BeforePayCost because its
   // condition, scaling, or optional payment is evaluated against the live board.
   // Let that narrow class enter the async finalization path; applyPlayCard performs

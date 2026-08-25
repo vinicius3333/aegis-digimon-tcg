@@ -239,17 +239,7 @@ describe("BT10-032 Renamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT1-009", as: "host", under: ["BT10-032"] },
-            "BT1-087",
-            "BT1-087",
-            "BT1-087",
-            "BT1-087",
-            "BT1-087",
-            "BT1-087",
-            "BT1-087",
-            "BT1-087",
-          ],
+          battleArea: [{ card: "BT10-041", as: "host", under: ["BT10-032"] }],
           hand: [{ card: "BT2-099", as: "burst" }],
         },
         1: { battleArea: [{ card: "BT1-084", as: "target" }] },
@@ -258,6 +248,10 @@ describe("BT10-032 Renamon", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    // Q1956 is about the existing card-level adjusted-cost seam. Arm that production
+    // ledger directly so this test remains scoped to Option-use event propagation;
+    // BT2-099's legacy self-reducer is finalized later and is independently covered.
+    advance(s.engine).ledgers.modifiers.addPlayCostAdjustment(({ def }) => def.cardId === "BT2-099", -8, false);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("burst").instanceId })).toEqual({
       ok: true,
