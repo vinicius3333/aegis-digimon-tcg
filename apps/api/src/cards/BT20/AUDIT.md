@@ -887,3 +887,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-074.test.ts`).
+
+## BT20-075 — Loudmon
+
+- Catalog contract: purple/red level 5 Virus Cyborg/LIBERATOR/Dark Dragon, play cost 8/8000 DP, purple or red level-4 evolution cost 4 plus level-4 Dark Dragon/Evil Dragon alternate cost 3; On Play/When Digivolving trashes 2 hand cards, then gives the same own Digimon Raid, Piercing, and +4000 DP for the turn; inherited Your Turn, at 4 or fewer hand cards, all own Dark Dragon/Evil Dragon Digimon gain Security Attack +1.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: the alternate trait union and cost are direct. Both entry sequences bind the DP target and reuse it for Raid/Piercing. The trash is not encoded as a paid “By” cost, so shared sequential processing correctly performs the “Then” benefits even with fewer than 2 available cards. The inherited Aura is stack/owner-turn scoped, filters the full trait union, and continuously reads the inclusive four-card hand boundary. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: BT20-069 proves Dark Dragon and BT11-079 proves Evil Dragon for the cost-3 route. Both hard play and evolution trash 2 and grant all three benefits to one BT20-061; with an empty post-play hand, the benefits still resolve. Under BT20-077, both trait arms gain Security Attack +1 at 4 cards, not 5, while Machine BT20-047 and the opponent's turn remain excluded.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-075.test.ts` — 6 passed.
+- Clause scores: stats/ordinary evolution 2/2; alternate trait union/cost 2/2; dual entry trash/Then handling 2/2; same-target DP/Raid/Piercing duration 2/2; inherited hand/trait/turn boundaries 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-075.test.ts`).
