@@ -48,6 +48,8 @@ export async function runReplacement(
           amount?: number;
           condition?: Condition;
           cost?: Cost;
+          additionalCost?: Cost;
+          additionalCosts?: Cost[];
           sourceFilter?: Filter;
           optional?: boolean;
           scaling?: Extract<Action, { kind: "Replacement" }>["scaling"];
@@ -318,6 +320,16 @@ export async function runReplacement(
     // when hoisting that inner reducer; otherwise the reducer is installed as a free reduction
     // and the printed payment (for example, suspending ST20-12) is silently lost.
     const interactiveCost = action.cost ?? nestedCostModifier?.cost;
+    const interactiveAdditionalCosts = [
+      ...((action.additionalCosts ?? nestedCostModifier?.additionalCosts ?? []) as Cost[]),
+      ...((action.additionalCost ?? nestedCostModifier?.additionalCost) !== undefined
+        ? [(action.additionalCost ?? nestedCostModifier?.additionalCost) as Cost]
+        : []),
+    ];
+    const interactiveCosts = [
+      ...(interactiveCost !== undefined ? [interactiveCost] : []),
+      ...interactiveAdditionalCosts,
+    ];
     const interactiveOptional =
       action.optional === true || nestedCostModifiers?.some((modifier) => modifier.optional) === true;
     const ownerSeat = ctx.source.ownerSeat;
@@ -356,7 +368,7 @@ export async function runReplacement(
                 permanentMatchesFilter(ctx, target, replacementSourceFilter, ctx.source),
             }
           : {}),
-      ...(interactiveCost !== undefined || interactiveOptional
+      ...(interactiveCosts.length > 0 || interactiveOptional
         ? {
             controllerSeat: ownerSeat,
             ...(self === undefined ? { activationContext: ctx } : {}),
@@ -366,8 +378,9 @@ export async function runReplacement(
               (target.permanentId.startsWith("pending-play-") && target.topCard !== undefined
                 ? definitionMatches(replacementSourceFilter ?? {}, ctx.game.definitionOf(target.topCard))
                 : permanentMatchesFilter(ctx, target, replacementSourceFilter ?? {}, ctx.source)),
-            activate: async (runtimeCtx: EffectContext) => {
-              if (interactiveCost !== undefined && !canPayCost(runtimeCtx, interactiveCost)) return false;
+            activate: async (runtimeCtx: EffectContext, target: Permanent) => {
+              runtimeCtx.trigger.subjectPermanentId = target.permanentId;
+              if (interactiveCosts.some((cost) => !canPayCost(runtimeCtx, cost))) return false;
               if (
                 interactiveCost?.kind === "suspend" &&
                 (interactiveCost.target?.isSelf === true || interactiveCost.target?.filter.isSelfRef === true) &&
@@ -382,19 +395,24 @@ export async function runReplacement(
                 );
                 if (!accepted) return false;
               }
-              if (interactiveCost === undefined) return true;
-              if (
-                interactiveCost.kind === "suspend" &&
-                (interactiveCost.target?.isSelf === true || interactiveCost.target?.filter.isSelfRef === true)
-              ) {
-                return self !== undefined && runtimeCtx.fx.payActivationCost?.(self.permanentId, "suspend") === true;
-              }
               if (action.amountFromPaidCost === true) {
+                if (interactiveCost === undefined) return false;
                 const paid = { paidCount: 0 };
                 const succeeded = await payCost(runtimeCtx, interactiveCost, paid);
+                if (!succeeded) return false;
+                for (const additionalCost of interactiveAdditionalCosts) {
+                  if (!(await payCost(runtimeCtx, additionalCost))) return false;
+                }
                 return succeeded ? paid.paidCount : false;
               }
-              return payCost(runtimeCtx, interactiveCost);
+              for (const cost of interactiveCosts) {
+                const paid =
+                  cost.kind === "suspend" && (cost.target?.isSelf === true || cost.target?.filter.isSelfRef === true)
+                    ? self !== undefined && runtimeCtx.fx.payActivationCost?.(self.permanentId, "suspend") === true
+                    : await payCost(runtimeCtx, cost);
+                if (!paid) return false;
+              }
+              return true;
             },
             consumeOnActivate: true,
           }
