@@ -14,10 +14,10 @@ export const compiled: CompiledCard = {
           kind: "Restrict",
           target: {
             filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
+              isSelfRef: true,
             },
             count: 1,
+            isSelf: true,
           },
           restriction: "attackTargetChange",
           duration: "forTheTurn",
