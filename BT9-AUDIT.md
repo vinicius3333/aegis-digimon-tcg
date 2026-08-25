@@ -58,3 +58,32 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-002.
+
+## BT9-003 — Tokomon (X Antibody) — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Yellow level-2 Digi-Egg with `In-Training` form and the complete `Lesser`/`X Antibody` trait set; no evolution, main, or Security clauses are present.
+2. **Turn timing (1/1):** The inherited `YourTurn` watcher is absent during the opponent's turn, directly covering the printed turn restriction.
+3. **Security-add trigger (1/1):** `whenAddSecurity` is exercised through the real `addSecurity` primitive, not by manually firing the watcher event.
+4. **Q1796 net-security ruling (1/1):** A card first moves from security to hand and recovery then restores the stack to the same count; the recovery addition still triggers the DP reduction.
+5. **Controller boundary (1/1):** `triggerSecurityIsYours` accepts additions to the source controller's security and rejects an otherwise identical addition to the opponent's security.
+6. **Target boundary (1/1):** With two opposing Digimon, exactly one preferred target receives the reduction and the unchosen peer remains at printed DP.
+7. **Amount and duration (1/1):** The selected target changes from 3000 DP to 2000 DP through `ModifyDP: -1000` with `forTheTurn` duration.
+8. **Once-per-turn identity (1/1):** Two separate security additions in the same turn produce only one -1000 DP grant from the buried Tokomon source.
+9. **Direct IR and registration (1/1):** `BT9-003.ts` has full compiled coverage, no residual clauses, and exactly one `registerIrCard("BT9-003", compiled)` registration with no legacy `registerCard` call.
+10. **Reproducible verification (1/1):** Focused proof passed 5/5; the shared `whenAddSecurity` mechanism suite passed 3/3; workspace typecheck and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-003
+rg -n 'Q1796' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-003.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-003.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/engine/whenAddSecurity.test.ts --reporter=dot
+pnpm typecheck
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-003.
