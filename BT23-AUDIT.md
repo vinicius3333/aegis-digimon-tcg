@@ -182,6 +182,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and IR, observes Alliance on Seadramon while proving it is not inherited, ignores another friendly Digimon's suspension, draws exactly once when Seadramon suspends, and rejects a second trigger in the same turn.
 - Verification: focused suite — 4 passed; `git diff --check` — passed.
 
+## BT23-021 — Dosukomon — 10/10
+
+- Catalog evidence: Blue/green level 4, play cost 6, 6000 DP, standard blue- or green-level-3 evolution for 3; forms `Sup.` and `Appmon`, attribute `Game`, type `Fighting`; zero-cost App Fusion from distinct pairs among Dokamon, Perorimon, and Musclemon; shared once-per-turn When Digivolving/When Attacking may link one level-3 Digimon with Link from hand or its sources for free; Your Turn once per turn grants battle-deletion immunity through the opponent's turn end when linked; Link onto Appmon costs 2, contributes 3000 DP, and grants the same battle immunity When Linking.
+- Knowledge base: Q5240 enumerates all six ordered distinct App Fusion pairs; Q5241 excludes cards without Link from the free link effect; Q5242 defines the restriction as preventing deletion after losing battle against either a Digimon or Security Digimon.
+- Defects corrected: the direct IR omitted the complete Link recipe and When Linking effect, and its linked watcher lacked the self-source filter. The audited IR restores those clauses and filter; registration remains exclusively `registerIrCard("BT23-021", compiled)` with full coverage and no residual clauses.
+- Primitive trace: `appFusionCostFor` requires distinct names and accepts any ordered pair from the three-name recipe; effect Link searches hand and the source stack, then server-authoritatively filters to cards with printed Link; the player Link action checks the Appmon recipient and pays exactly 2; both immunity paths install `beDeletedInBattle` through the source controller's opponent-turn end.
+- Behavioral proof: the focused suite checks catalog and complete IR, proves all six App Fusion combinations plus duplicate rejection, links Dosukomon onto an Appmon for exactly 2 with +3000 DP and observable immunity, rejects a non-Appmon recipient without mutation, links a valid level-3 card for free When Digivolving, and excludes a level-3 card without Link.
+- Verification: focused suite — 6 passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-021 through BT23-102.
+BT23-022 through BT23-102.
