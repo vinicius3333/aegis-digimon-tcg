@@ -659,6 +659,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; deletes level 3 while preserving a higher level; pays the first replacement branch by deleting Eater Bit and preserves another Hudie; independently chooses the second branch, preserves that Hudie, and moves the exact Eater Bit beneath breeding Mother Eater; and plays an Eater for 2 instead of 3 through a realistic inherited breeding stack.
 - Verification: focused suite — 8 passed; shared exact-level deletion, alternative prevention costs, breeding-host relocation, leave-cause/trait gates, physical-source frequency, breeding-only inherited collection, interactive play reduction, and pay-time ordering mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-074 — Eater Legion — 10/10
+
+- Catalog evidence: White level-less Digimon, play cost 8, 8000 DP, no ordinary evolution, plus a cost-3 Erika Mishima evolution path; form `Eater`, attribute `-`, types `Hudie` and `CS`; Alliance and Reboot; On Play and When Digivolving, while Mother Eater is in breeding, may play up to 6 total play cost of Eater-trait Digimon from hand for free.
+- Knowledge base: Q5351 preserves summoning sickness when evolving from a Tamer played that turn. Q6703 treats Tamer evolution as evolution from a Tamer rather than a Digimon, while Q6704 still awards the evolution draw; Q6705-Q6707 establish that the Tamer becomes a normal digivolution card, contributes inherited effects, and does not contribute Security effects.
+- Defect corrected: the authoritative shared IR omitted the breeding-area zone restriction from both Mother Eater conditions, allowing a battle-area Mother Eater to satisfy the printed gate outside direct module execution. The audit restores the exact zone in shared data; registration remains exclusively `registerIrCard("BT23-074", compiled)` with full coverage and no residual clauses.
+- Primitive trace: both entry timings share the same breeding-only condition, offer a zero-through-all selection from eligible hand Digimon, enforce the aggregate printed play-cost budget of 6, and delegate the chosen instances to free play; Alliance and Reboot project through the live continuous keyword ledger; the alternate requirement remains a cost-3 Erika Mishima name path.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; with breeding Mother Eater plays two cost-3 Eater Digimon while preserving a non-Eater hand card; fires the evolution window without Mother Eater and proves the eligible Eater remains in hand; verifies both timing clauses structurally include the optional total-cost and breeding gates; and observes Alliance and Reboot live on Eater Legion.
+- Verification: focused suite — 5 passed after refreshing shared runtime data; shared aggregate free-play budgeting, breeding-only conditions, optional selection, alternate Tamer evolution, Alliance, and Reboot mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-074 through BT23-102.
+BT23-075 through BT23-102.

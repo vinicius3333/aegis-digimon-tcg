@@ -80573,6 +80573,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": "breeding",
                 "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "name" }]
               },
               "raw": "you have [Mother Eater] in the breeding area"
@@ -80598,6 +80599,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": "breeding",
                 "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "name" }]
               },
               "raw": "you have [Mother Eater] in the breeding area"
