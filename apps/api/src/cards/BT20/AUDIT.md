@@ -1007,3 +1007,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-084.test.ts`).
+
+## BT20-085 — Shoto Kazama
+
+- Catalog contract: green LIBERATOR Tamer, play cost 3; start of own main phase may bottom-deck itself as cost to free-play a hand Shoto Kazama, then only after paying that cost and if controlling no Digimon may free-play a level-3 Avian/Bird Digimon from trash; end of own turn suspends itself as cost to suspend an opposing Digimon and give one own Vortex Warriors Digimon +2000 DP through the opponent's turn; Security free-plays itself.
+- Knowledge base: Q5553 makes the “then” clause contingent on paying the return cost; Q5554 prevents the newly played Shoto from retrospectively triggering at the already-passed start-of-main timing.
+- Implementation evidence: audit removed an unprinted Vortex Warriors DP action from the start-of-main sequence and removed a duplicate non-Security registration of the Security effect. The actual follow-up remains gated on the prior action and no-Digimon condition. End-turn suspend cost, opponent target, trait DP target/duration, and the single Security play are direct. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: the Avian/Bird filter is a trait union at exact level 3; the Vortex Warriors filter applies only to the own DP recipient rather than the opposing suspension target.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-085.test.ts` — 3 passed; `pnpm typecheck` — passed.
+- Clause scores: stats/Security 2/2; self-bottom return and replacement Shoto play 2/2; Q5553 gated no-Digimon Avian/Bird play 2/2; end-turn paid opposing suspend 2/2; Vortex Warriors DP target/duration/no duplicate effects 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-085.test.ts`).
