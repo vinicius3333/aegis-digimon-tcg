@@ -4829,7 +4829,7 @@ button.opponent-action-feed__current:focus-visible {
 }
 
 /* ==========================================================================
-   DCGO feedback port — pending fate, prediction, spotlight, impact, result
+   the reference client feedback port — pending fate, prediction, spotlight, impact, result
    ========================================================================== */
 
 /* --- Pending-fate badge -------------------------------------------------- */
