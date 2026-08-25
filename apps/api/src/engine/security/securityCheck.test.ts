@@ -150,21 +150,79 @@ describe("runSecurityCheck", () => {
       seat: 1,
       revealedCardId: "SEC-EFFECT",
       resolution: "battle",
+      battle: { attackerDeleted: false, securityDigimonDeleted: true },
     });
   });
 
   it("security Digimon with lower DP => attacker survives, security trashed", async () => {
     const card = makeSecurityCard(1, 0, "DIGI-WEAK");
+    const emitted: ServerEvent[] = [];
     const h = harness([card], {
       isDigimon: () => true,
       dpOf: () => 6000,
       securityCardDp: () => 3000,
     });
-    await runSecurityCheck(h.state, () => {}, h.win, h.deps, 1, attacker);
+    await runSecurityCheck(h.state, (e) => emitted.push(e), h.win, h.deps, 1, attacker);
 
     expect(h.deleted).toHaveLength(0); // attacker not deleted
     expect(h.state.players[1]?.trash.map((c) => c.instanceId)).toContain(card.instanceId);
     expect(h.state.players[0]?.battleArea).toHaveLength(1); // attacker still in play
+    expect(emitted).toContainEqual({
+      kind: "securityChecked",
+      seat: 1,
+      revealedCardId: "DIGI-WEAK",
+      resolution: "battle",
+      battle: { attackerDeleted: false, securityDigimonDeleted: true },
+    });
+  });
+
+  it("publishes the compare on the event in the other direction too", async () => {
+    const card = makeSecurityCard(1, 0, "DIGI-STRONG");
+    const emitted: ServerEvent[] = [];
+    const h = harness([card], {
+      isDigimon: () => true,
+      dpOf: () => 2000,
+      securityCardDp: () => 9000,
+    });
+    await runSecurityCheck(h.state, (e) => emitted.push(e), h.win, h.deps, 1, attacker);
+
+    expect(emitted).toContainEqual({
+      kind: "securityChecked",
+      seat: 1,
+      revealedCardId: "DIGI-STRONG",
+      resolution: "battle",
+      battle: { attackerDeleted: true, securityDigimonDeleted: false },
+    });
+  });
+
+  it("publishes both sides as losing on a tie (CR 13-1-8-3)", async () => {
+    const card = makeSecurityCard(1, 0, "DIGI-EVEN");
+    const emitted: ServerEvent[] = [];
+    const h = harness([card], {
+      isDigimon: () => true,
+      dpOf: () => 4000,
+      securityCardDp: () => 4000,
+    });
+    await runSecurityCheck(h.state, (e) => emitted.push(e), h.win, h.deps, 1, attacker);
+
+    expect(emitted).toContainEqual({
+      kind: "securityChecked",
+      seat: 1,
+      revealedCardId: "DIGI-EVEN",
+      resolution: "battle",
+      battle: { attackerDeleted: true, securityDigimonDeleted: true },
+    });
+  });
+
+  it("publishes no compare for a check that never battled", async () => {
+    const card = makeSecurityCard(1, 0, "OPTION-Y");
+    const emitted: ServerEvent[] = [];
+    const h = harness([card]);
+    await runSecurityCheck(h.state, (e) => emitted.push(e), h.win, h.deps, 1, attacker);
+
+    const checked = emitted.find((event) => event.kind === "securityChecked");
+    expect(checked).toBeDefined();
+    expect(checked && "battle" in checked ? checked.battle : undefined).toBeUndefined();
   });
 
   it("security Digimon with higher DP => attacker is deleted, security trashed", async () => {

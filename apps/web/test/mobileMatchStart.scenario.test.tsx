@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
@@ -61,8 +62,7 @@ mobileScenario("match-start", () => {
     expect(screen.getAllByRole("img").length).toBeGreaterThanOrEqual(5);
     expect(screen.getAllByText(/sec/i).length).toBeGreaterThanOrEqual(2);
 
-    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     await screen.findAllByText(/no digimon in play/i, {}, { timeout: 10_000 });
 
     const battleArea = document.querySelector('[data-drop="battle-you"]') as HTMLElement;

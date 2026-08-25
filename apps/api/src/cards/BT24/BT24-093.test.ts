@@ -82,15 +82,11 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
 
     await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("temple"));
     await settle(() =>
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("target").instanceId,
-      ),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("target").instanceId),
     );
 
     expect(
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard.instanceId === s.inst("target").instanceId,
-      ),
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("target").instanceId),
     ).toBe(true);
   });
 

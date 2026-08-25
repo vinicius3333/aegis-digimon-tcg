@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { hatchDigiEgg, moveFromBreedingArea } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -66,12 +67,9 @@ scenario("breeding", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
-    // The first player's Breeding window opens automatically (the egg deck is
-    // non-empty). Wait for the overlay's own heading — the board also has a
-    // persistent (always-rendered) "Breeding area" panel label sharing the same
-    // text, so a plain text query would resolve too early.
-    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /hatch digi-egg/i }));
+    // The first player's breeding step opens automatically (the egg deck is
+    // non-empty), and the egg deck itself is the hatch action.
+    await hatchDigiEgg();
 
     // "Hatch a Digi-Egg" is the turn player's one breeding action (Comprehensive
     // Rules §6-4-1), so it closes the breeding window itself — no separate "End
@@ -109,11 +107,10 @@ scenario("breeding", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /^end phase$/i }));
 
-    // Back on the protagonist's second turn, the Breeding window reopens — now
-    // offering "Move to battle area" (canMove) instead of "Hatch Digi-Egg", since
-    // the raised Biyomon is already level 3.
-    const secondBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /move to battle area/i }));
+    // Back on the protagonist's second turn, the breeding step reopens — the
+    // raising slot now moves out instead of hatching, since the raised Biyomon is
+    // already level 3.
+    await moveFromBreedingArea();
 
     // The Biyomon now renders in the battle area and the breeding slot is empty.
     await screen.findAllByRole("img", { name: /biyomon/i }, { timeout: 10_000 });
@@ -145,8 +142,7 @@ scenario("breeding", () => {
     opponent.ready();
 
     fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
-    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /hatch digi-egg/i }));
+    await hatchDigiEgg();
 
     const yourBreedingSlot = () => document.querySelector('[data-drop="breeding-you"]') as HTMLElement;
     await vi.waitFor(
@@ -161,8 +157,7 @@ scenario("breeding", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: /^end phase$/i }));
 
-    const secondBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /move to battle area/i }));
+    await moveFromBreedingArea();
 
     await vi.waitFor(() => expect(within(yourBreedingSlot()).queryByRole("img")).toBeNull(), { timeout: 10_000 });
     expect(screen.getByRole("img", { name: /mother d-reaper/i })).toBeTruthy();

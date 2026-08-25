@@ -20,8 +20,12 @@ import { COLORS, colorKey } from "../design/theme";
 import { Icons } from "../design/icons";
 import { triggerCardId, triggerLabels } from "./boardModel";
 import { formatKeyword } from "./keywordDisplay";
+import { gameOverSplash, type GameOverOutcome } from "./gameOverSplash";
+import { pendingFateBadge, type PendingFateBadge } from "./pendingFate";
+import { inspectorPlacement, type PermanentDetail } from "./permanentDetail";
 import { useTranslation, type Translate } from "../i18n";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
+import { useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
 
 const name = (cardId: string) => getCardDefinition(cardId)?.nameEn ?? cardId;
 
@@ -91,16 +95,44 @@ export function WaitingOverlay({
 }
 
 /* ---------------- MULLIGAN ---------------- */
+
+/**
+ * Turn order is server truth, not a guess: `matchStarted.firstSeat` names the
+ * player who takes turn 1, and the mulligan window opens before any turn has
+ * passed. `undefined` simply omits the accent line rather than picking a side.
+ */
+export type TurnOrder = "first" | "second";
+
 export function MulliganOverlay({
   handCardIds,
+  turnOrder,
   onKeep,
   onMulligan,
 }: {
   handCardIds: string[];
+  turnOrder?: TurnOrder;
   onKeep: () => void;
   onMulligan: () => void;
 }) {
   const { t } = useTranslation();
+  const [isViewingBoard, setIsViewingBoard] = useState(false);
+
+  // The board is behind this overlay, so peeking hides the sheet entirely and
+  // leaves only the way back — the same shape DecisionOverlay's board view uses.
+  if (isViewingBoard) {
+    const returnControl = (
+      <div className="decision-board-return mulligan-return">
+        <span className="decision-board-return__status" aria-live="polite">
+          {t("overlay.awaitingMulligan")}
+        </span>
+        <Button icon={Icons.ArrowLeft} onClick={() => setIsViewingBoard(false)}>
+          {t("overlay.returnToMulligan")}
+        </Button>
+      </div>
+    );
+    return typeof document === "undefined" ? returnControl : createPortal(returnControl, document.body);
+  }
+
   return (
     <Scrim className="mulligan-scrim">
       <section className="mulligan-sheet" aria-labelledby="mulligan-title" onClick={(e) => e.stopPropagation()}>
@@ -111,11 +143,16 @@ export function MulliganOverlay({
         <h2 id="mulligan-title" className="mulligan-title">
           {t("overlay.keepHand")}
         </h2>
+        {turnOrder ? (
+          <p className="mulligan-turn-order">
+            {t(turnOrder === "first" ? "overlay.turnOrderFirst" : "overlay.turnOrderSecond")}
+          </p>
+        ) : null}
         <p className="mulligan-detail">{t("overlay.mulliganDetail", { count: handCardIds.length })}</p>
         <div className="mulligan-cards" aria-label={t("overlay.openingHand")}>
           {handCardIds.map((id, i) => (
             <div className="mulligan-card" key={`${id}-${i}`} style={{ animationDelay: `${i * 70}ms` }}>
-              <CardFull cardId={id} width={150} />
+              <CardFull cardId={id} width={190} />
             </div>
           ))}
         </div>
@@ -125,6 +162,9 @@ export function MulliganOverlay({
           </Button>
           <Button size="lg" variant="secondary" icon={Icons.Dices} onClick={onMulligan}>
             {t("overlay.mulligan")}
+          </Button>
+          <Button size="lg" variant="ghost" icon={Icons.Map} onClick={() => setIsViewingBoard(true)}>
+            {t("overlay.checkPlayArea")}
           </Button>
         </div>
       </section>
@@ -636,89 +676,113 @@ type _SupportedCombatPromptsComplete =
 const _supportedCombatPromptsComplete: _SupportedCombatPromptsComplete = true;
 void _supportedCombatPromptsComplete;
 
-export function RecoveryToast({
-  amount,
-  mine,
-  anchor,
-}: {
-  amount: number;
-  mine: boolean;
-  anchor?: HTMLElement | null;
-}) {
-  const { t } = useTranslation();
-  const rect = anchor?.getBoundingClientRect();
-  return createPortal(
-    <div
-      className={`recovery-toast recovery-toast--${mine ? "you" : "opp"}`}
-      role="status"
-      aria-live="polite"
-      style={
-        rect
-          ? {
-              left: mine ? rect.right + 8 : rect.left - 8,
-              top: rect.top + rect.height / 2,
-            }
-          : { left: "50%", top: 12, transform: "translateX(-50%)" }
-      }
-    >
-      <span>
-        <Icons.ShieldCheck size={19} />
-      </span>
-      <div>
-        <strong>{t("overlay.recovery", { count: amount })}</strong>
-        <small>{t(mine ? "overlay.recoveryYou" : "overlay.recoveryOpp")}</small>
-      </div>
-    </div>,
-    document.body,
-  );
-}
+/** How wide and tall the inspector is allowed to get, so it can be placed before it renders. */
+const INSPECTOR_WIDTH = 420;
+const INSPECTOR_HEIGHT = 480;
 
-/** Read-only public-information preview shown for opponent permanents on hover/focus. */
-export function OpponentPermanentInspector({
-  cards,
-  title,
-  x,
-  y,
+/**
+ * The permanent inspector (`PermanentDetail.cs`): the position as it stands right
+ * now — its live DP against the printed figure, the keywords the server resolved,
+ * the whole stack, and the fate an open effect has already pinned to it.
+ *
+ * It opens on the opposite side of the card that was clicked, so the card the
+ * reader is asking about stays visible beside its own detail.
+ */
+export function PermanentDetailInspector({
+  detail,
+  fate,
+  anchorX,
+  anchorY,
+  inline,
   onInteractStart,
   onInteractEnd,
 }: {
-  cards: StackCard[];
-  title: string;
-  x: number;
-  y: number;
+  detail: PermanentDetail;
+  /** The badge an open effect has already pinned to this permanent, if any. */
+  fate?: PendingFateBadge;
+  /** Right edge and top of the card that was clicked, in viewport coordinates. */
+  anchorX: number;
+  anchorY: number;
+  /** Render in place rather than portalling, so a fixture stage can hold the panel. */
+  inline?: boolean;
   onInteractStart?: () => void;
   onInteractEnd?: () => void;
 }) {
   const { t } = useTranslation();
-  const top = cards.find((card) => card.role === "top");
-  const topDef = top ? getCardDefinition(top.cardId) : undefined;
-  const supporting = cards.filter((card) => card.role !== "top");
-  const viewportWidth = typeof window === "undefined" ? 1280 : window.innerWidth;
-  const viewportHeight = typeof window === "undefined" ? 800 : window.innerHeight;
-  const left = Math.max(12, Math.min(x + 14, viewportWidth - 434));
-  const topPosition = Math.max(12, Math.min(y - 24, viewportHeight - 500));
+  const topDef = getCardDefinition(detail.cardId);
+  const supporting = detail.cards.filter((card) => card.role !== "top");
+  const granted = new Set(detail.grantedKeywords);
+  const placement = inspectorPlacement({
+    anchorX,
+    anchorY,
+    viewportWidth: typeof window === "undefined" ? 1280 : window.innerWidth,
+    viewportHeight: typeof window === "undefined" ? 800 : window.innerHeight,
+    panelWidth: INSPECTOR_WIDTH,
+    panelHeight: INSPECTOR_HEIGHT,
+  });
 
-  return createPortal(
+  const panel = (
     <aside
       id="opponent-permanent-inspector"
       className="opponent-permanent-inspector"
+      data-side={placement.side}
       role="tooltip"
       tabIndex={0}
       onMouseEnter={onInteractStart}
       onMouseLeave={onInteractEnd}
       onFocus={onInteractStart}
       onBlur={onInteractEnd}
-      style={{ left, top: topPosition }}
+      style={{ left: placement.left, top: placement.top, width: INSPECTOR_WIDTH }}
     >
       <header>
         <div>
-          <strong>{title}</strong>
-          <span>{topDef?.dp ? `${topDef.dp.toLocaleString()} DP` : top?.cardId}</span>
+          <strong>{detail.name}</strong>
+          {/* The live figure is what the position actually has; the printed one sits
+              beside it only when something has moved it. */}
+          <span>
+            {detail.currentDP.toLocaleString()} DP
+            {detail.dpDelta === 0 ? null : (
+              <em data-direction={detail.dpDelta > 0 ? "up" : "down"}>
+                {detail.dpDelta > 0 ? "+" : "−"}
+                {Math.abs(detail.dpDelta).toLocaleString()}
+              </em>
+            )}
+          </span>
         </div>
         <Badge>
-          {t("game.stack")} · {cards.length}
+          {t("game.stack")} · {detail.cards.length}
         </Badge>
       </header>
+      {detail.dpDelta === 0 ? null : (
+        <p className="opponent-permanent-inspector__base">
+          {t("overlay.baseDp")}: {detail.baseDP.toLocaleString()}
+        </p>
+      )}
+      <section className="opponent-permanent-inspector__keywords" aria-label={t("overlay.keywords")}>
+        <span>{t("overlay.keywords")}</span>
+        {detail.keywords.length === 0 ? (
+          <p>{t("overlay.noKeywords")}</p>
+        ) : (
+          <ul>
+            {detail.keywords.map((keyword) => (
+              <li key={keyword} data-granted={granted.has(keyword) || undefined}>
+                {formatKeyword(keyword)}
+                {/* The server's resolved count, not the printed parameter: a granted or
+                    inverted modifier is already folded into it. */}
+                {keyword === "SecurityAttack" && detail.securityAttack !== undefined
+                  ? ` \u00d7${detail.securityAttack}`
+                  : ""}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      {fate ? (
+        <p className="opponent-permanent-inspector__fate" data-tone={fate.tone}>
+          <span aria-hidden="true">{fate.glyph}</span>
+          {t(fate.labelKey)}
+        </p>
+      ) : null}
       <section className="opponent-permanent-inspector__effect">
         <span>{t("overlay.printedEffect")}</span>
         <p>{topDef?.effectText || t("overlay.noPrintedEffect")}</p>
@@ -741,14 +805,15 @@ export function OpponentPermanentInspector({
           })}
         </section>
       ) : null}
-    </aside>,
-    document.body,
+    </aside>
   );
+  return inline ? panel : createPortal(panel, document.body);
 }
 
 /* ---------------- EFFECT DECISION ---------------- */
+
 /** IR effect-trigger -> the printed bracket label it appears under on the card. */
-const TIMING_LABELS: Record<string, string> = {
+export const TIMING_LABELS: Record<string, string> = {
   OnPlay: "On Play",
   WhenDigivolving: "When Digivolving",
   WhenAttacking: "When Attacking",
@@ -904,94 +969,6 @@ export function playerFacingEffectClause({
 }
 
 /**
- * Transient left-side overlay that names a triggered effect and shows the printed clause
- * that just resolved (e.g. the [On Play] body of a shared [On Play]/[When Digivolving]
- * clause). Auto-dismiss is the caller's concern; this renders the current toast only.
- */
-export function EffectClauseToast({
-  cardId,
-  timing,
-  description,
-}: {
-  cardId: string;
-  timing?: string;
-  description?: string;
-}) {
-  const { t } = useTranslation();
-  const clause = playerFacingEffectClause({ cardId, timing, description });
-  if (!clause) return null;
-  const sourceKey = colorKey(getCardDefinition(cardId)?.colors[0]);
-  const label = timing ? TIMING_LABELS[timing] : undefined;
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      style={{
-        position: "absolute",
-        left: 16,
-        top: "50%",
-        transform: "translateY(-50%)",
-        zIndex: 78,
-        width: 280,
-        maxWidth: "calc(100% - 32px)",
-        pointerEvents: "none",
-        background: "var(--ds-surface)",
-        border: `2px solid ${COLORS[sourceKey].base}`,
-        borderRadius: 16,
-        boxShadow: "0 18px 40px rgba(15,23,42,0.28)",
-        padding: 16,
-        animation: "aegis-rise 200ms ease-out",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            display: "grid",
-            placeItems: "center",
-            flexShrink: 0,
-            background: COLORS[sourceKey].soft,
-          }}
-        >
-          <Sigil cardId={cardId} color={sourceKey} size={24} />
-        </div>
-        <div>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: COLORS[sourceKey].base,
-            }}
-          >
-            {label ?? t("overlay.effect")}
-          </div>
-          <div
-            style={{
-              fontFamily: "var(--ds-font-display)",
-              fontWeight: 700,
-              fontSize: 14,
-              color: "var(--ds-fg)",
-              marginTop: 1,
-            }}
-          >
-            {name(cardId)}
-          </div>
-        </div>
-      </div>
-      <div
-        style={{ fontSize: 12, color: "var(--ds-fg-secondary)", lineHeight: 1.5, maxHeight: 140, overflowY: "auto" }}
-      >
-        {clause}
-      </div>
-    </div>
-  );
-}
-
-/**
  * DecisionOverlay below branches on request.kind via isOptional/isChoose/
  * isSelect/isOrderTriggers (mulligan is handled separately by
  * MulliganOverlay). This pins that coverage against DECISION_KINDS so a new
@@ -1012,11 +989,18 @@ type _SupportedDecisionKindsComplete =
 const _supportedDecisionKindsComplete: _SupportedDecisionKindsComplete = true;
 void _supportedDecisionKindsComplete;
 
+/** Per-trigger chrome the board supplies for the chooser: where it fires from, and its clause in one line. */
+export interface TriggerDetail {
+  sourceLabel?: string;
+  summary?: string;
+}
+
 export function DecisionOverlay({
   request,
   sourceCardId,
   candidates,
   picks,
+  triggerDetails = [],
   onTogglePick,
   onRespond,
 }: {
@@ -1031,10 +1015,13 @@ export function DecisionOverlay({
     isSuspended?: boolean;
   }[];
   picks: string[];
+  /** Aligned to `request.options.triggerKeys`; empty means the chooser shows names only. */
+  triggerDetails?: readonly TriggerDetail[];
   onTogglePick: (instanceId: string) => void;
   onRespond: (response: DecisionResponse) => void;
 }) {
   const { t } = useTranslation();
+  const wideDialog = useMediaQuery(WIDE_DIALOG_QUERY);
   const min = request.options?.min ?? 1;
   const max = request.options?.max ?? 1;
   const choices = request.options?.choices ?? [];
@@ -1066,6 +1053,13 @@ export function DecisionOverlay({
     cardIdSeen.set(candidate.cardId, index);
     if (total > 1) cardCopyLabels.set(candidate.instanceId, t("overlay.cardCopy", { index, total }));
   }
+  const candidateCardWidth = wideDialog ? 154 : 110;
+  // The fate every picked target meets, or nothing when the engine did not
+  // project one for the action that raised this prompt.
+  const fateBadge = request.options?.targetFate ? pendingFateBadge(request.options.targetFate) : undefined;
+  // Past this many the grid would wrap into rows taller than the sheet, so it
+  // becomes one scrolling row with a visible track instead (reference #110).
+  const scrollCandidates = candidates.length > 6;
   const sourceKey = colorKey(getCardDefinition(sourceCardId ?? "")?.colors[0]);
   const abstractTargetLabel = (instanceId: string): string | undefined => {
     if (instanceId === "mine") return t("overlay.yourSecurity");
@@ -1186,7 +1180,7 @@ export function DecisionOverlay({
       role="dialog"
       aria-modal="true"
       aria-labelledby="aegis-decision-title"
-      className="game-modal__panel game-modal__panel--bare"
+      className={`game-modal__panel game-modal__panel--bare decision-overlay${wideDialog ? " decision-overlay--wide" : ""}`}
       onKeyDown={containDialogFocus}
       style={{
         position: "absolute",
@@ -1194,7 +1188,7 @@ export function DecisionOverlay({
         top: 96,
         transform: "translateX(-50%)",
         zIndex: 80,
-        width: 600,
+        width: wideDialog ? 1000 : 600,
         maxWidth: "calc(100% - 32px)",
         maxHeight: "calc(100% - 112px)",
         overflowY: "auto",
@@ -1294,6 +1288,11 @@ export function DecisionOverlay({
               {t("overlay.chosen", { count: picks.length })}
             </span>
           </div>
+          <p className="decision-overlay__subtitle">
+            {min === max
+              ? t("overlay.selectCardsSubtitle", { count: max })
+              : t("overlay.selectCardsRangeSubtitle", { range: `${min}–${max}` })}
+          </p>
           {maxTotalPlayCost !== undefined ? (
             <div
               style={{
@@ -1306,7 +1305,7 @@ export function DecisionOverlay({
               {t("overlay.playCostBudget", { selected: selectedPlayCost, max: maxTotalPlayCost })}
             </div>
           ) : null}
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <div className={`decision-overlay__grid${scrollCandidates ? " decision-overlay__grid--scroll" : ""}`}>
             {candidates.map((cand) => {
               const selectable = cand.selectable !== false;
               const on = picks.includes(cand.instanceId);
@@ -1346,8 +1345,8 @@ export function DecisionOverlay({
                   {abstractLabel ? (
                     <span
                       style={{
-                        width: 110,
-                        minHeight: 154,
+                        width: candidateCardWidth,
+                        minHeight: candidateCardWidth * 1.4,
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
@@ -1367,8 +1366,29 @@ export function DecisionOverlay({
                       {abstractLabel}
                     </span>
                   ) : (
-                    <CardFull cardId={cand.cardId ?? ""} width={110} selected={on} />
+                    <CardFull cardId={cand.cardId ?? ""} width={candidateCardWidth} selected={on} />
                   )}
+                  {on && max > 1 ? (
+                    <span className="decision-overlay__order-badge" aria-hidden="true">
+                      {picks.indexOf(cand.instanceId) + 1}
+                    </span>
+                  ) : null}
+                  {/* What the effect will do to this card, once it has been
+                      chosen. Server truth: `options.targetFate` is projected from
+                      the IR action that raised the prompt, so the badge never
+                      guesses an outcome out of the prompt's English. */}
+                  {on && fateBadge ? (
+                    <span
+                      className={`game-fate-badge game-fate-badge--${fateBadge.tone} decision-overlay__fate`}
+                      data-fate={fateBadge.fate}
+                      // The prompt above already reads the effect out in full, so
+                      // the pill must not also rewrite this tile's own name.
+                      aria-hidden="true"
+                    >
+                      <i aria-hidden="true">{fateBadge.glyph}</i>
+                      {t(fateBadge.labelKey)}
+                    </span>
+                  ) : null}
                   {liveLabel ? (
                     <span
                       style={{
@@ -1432,12 +1452,16 @@ export function DecisionOverlay({
                 : "overlay.orderCardsHint",
             )}
           </div>
+          {request.options?.orderDestination === "deckBottom" ? (
+            <p className="decision-overlay__subtitle">{t("overlay.orderDeckBottomHint")}</p>
+          ) : null}
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {cardOrder.map((instanceId, index) => {
               const card = candidates.find((candidate) => candidate.instanceId === instanceId);
               return (
                 <div
                   key={instanceId}
+                  className="decision-overlay__order-row"
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -1448,8 +1472,12 @@ export function DecisionOverlay({
                     animation: "aegis-rise 160ms ease-out",
                   }}
                 >
-                  <strong style={{ width: 24, textAlign: "center" }}>{index + 1}</strong>
-                  <CardFull cardId={card?.cardId ?? ""} width={62} />
+                  <div className="decision-overlay__order-card">
+                    <CardFull cardId={card?.cardId ?? ""} width={wideDialog ? 86 : 62} />
+                    <span className="decision-overlay__order-badge" aria-hidden="true">
+                      {index + 1}
+                    </span>
+                  </div>
                   <span style={{ flex: 1, fontWeight: 600 }}>
                     {card?.cardId ? name(card.cardId) : t("overlay.card")}
                   </span>
@@ -1535,34 +1563,28 @@ export function DecisionOverlay({
           >
             {t(triggerKeys.length === 1 ? "overlay.confirmPendingEffect" : "overlay.chooseNextEffect")}
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+          <div className="trigger-chooser">
             {triggerKeys.map((key, i) => {
-              const position = selectedTriggerKeys.indexOf(key);
-              const chosen = position !== -1;
+              const chosen = selectedTriggerKeys.includes(key);
               const cardId = triggerCardIds[i] ?? triggerCardId(key);
+              const detail = triggerDetails[i];
+              const summary = detail?.summary;
               return (
                 <button
                   type="button"
                   key={key}
-                  aria-label={triggerKeyLabels[i]}
+                  className={`trigger-chooser__option${chosen ? " trigger-chooser__option--chosen" : ""}`}
+                  aria-label={[triggerKeyLabels[i], detail?.sourceLabel, summary].filter(Boolean).join(", ")}
                   aria-pressed={chosen}
                   onClick={() => toggleTrigger(key)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "9px 12px",
-                    borderRadius: 12,
-                    cursor: "pointer",
-                    textAlign: "left",
-                    background: chosen ? "var(--ds-accent-surface)" : "var(--ds-surface-muted)",
-                    border: `1.5px solid ${chosen ? "var(--ds-accent)" : "var(--ds-border)"}`,
-                    transition: "background 120ms, border-color 120ms",
-                  }}
                 >
-                  <CardFull cardId={cardId} width={58} selected={chosen} />
-                  <span style={{ fontSize: 13, color: "var(--ds-fg)", fontWeight: chosen ? 600 : 400 }}>
-                    {triggerKeyLabels[i]}
+                  <span className="trigger-chooser__card">
+                    <CardFull cardId={cardId} width={wideDialog ? 128 : 96} selected={chosen} />
+                    {summary ? <span className="trigger-chooser__summary">{summary}</span> : null}
+                  </span>
+                  <span className="trigger-chooser__meta">
+                    {detail?.sourceLabel ? <span className="trigger-chooser__source">{detail.sourceLabel}</span> : null}
+                    <span className="trigger-chooser__name">{triggerKeyLabels[i]}</span>
                   </span>
                 </button>
               );
@@ -1587,75 +1609,23 @@ export function DecisionOverlay({
   );
 }
 
-/* ---------------- BREEDING PHASE ---------------- */
-export function BreedingOverlay({
-  canHatch,
-  canMove,
-  onHatch,
-  onMove,
-  onSkip,
-}: {
-  canHatch: boolean;
-  canMove: boolean;
-  onHatch: () => void;
-  onMove: () => void;
-  onSkip: () => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <Scrim className="game-modal">
-      <div
-        className="game-modal__panel"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          textAlign: "center",
-          maxWidth: 420,
-          padding: 32,
-          background: "var(--ds-surface)",
-          borderRadius: 24,
-          border: "1px solid var(--ds-border)",
-          boxShadow: "var(--ds-shadow-summary)",
-        }}
-      >
-        <Badge tone="primary" style={{ marginBottom: 14 }}>
-          <Icons.Hexagon size={13} />
-          {t("overlay.breedingPhase")}
-        </Badge>
-        <h2
-          style={{
-            fontFamily: "var(--ds-font-display)",
-            fontWeight: 800,
-            fontSize: 26,
-            color: "var(--ds-fg)",
-            margin: "0 0 8px",
-          }}
-        >
-          {t("overlay.breedingArea")}
-        </h2>
-        <p style={{ color: "var(--ds-fg-secondary)", fontSize: 14, margin: "0 0 26px", lineHeight: 1.5 }}>
-          {canHatch ? t("overlay.hatchHint") : canMove ? t("overlay.moveHint") : t("overlay.noBreedingActions")}
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {canHatch ? (
-            <Button size="lg" full icon={Icons.Dices} onClick={onHatch}>
-              {t("overlay.hatchDigiEgg")}
-            </Button>
-          ) : null}
-          {canMove ? (
-            <Button size="lg" full icon={Icons.ChevronRight} onClick={onMove}>
-              {t("overlay.moveToBattleArea")}
-            </Button>
-          ) : null}
-          <Button size="lg" full variant="secondary" icon={Icons.ChevronRight} onClick={onSkip}>
-            {t("overlay.endPhase")}
-          </Button>
-        </div>
-      </div>
-    </Scrim>
-  );
-}
+/* The breeding step has no dialog of its own: hatching, moving out and ending the
+   step are all answered on the board — the egg deck, the raising slot and the
+   turn control — with a hint beside them instead of a modal. See GameScreen. */
 
 /* ---------------- GAME OVER ---------------- */
+
+/**
+ * The match's last moment. The reference client gives the ending the whole
+ * screen — a black field, one enormous WIN or LOSE, the reason under it and a
+ * single way out — rather than a dialog on top of a board nobody is playing any
+ * more, so this does the same: the board is hidden behind it, the word scales and
+ * lights up once, and then everything settles and stops moving.
+ *
+ * Both halves of the ending are server truth. `gameOver` carries a discriminated
+ * `result` and one of four `reason` codes; `gameOverSplash` only turns that pair
+ * into words (game/gameOverSplash.ts).
+ */
 export function GameOverOverlay({
   result,
   reason,
@@ -1663,80 +1633,33 @@ export function GameOverOverlay({
   onMenu,
   onRematch,
 }: {
-  result: "win" | "loss" | "draw";
+  result: GameOverOutcome;
   reason: string;
   stats: { value: number | string; label: string }[];
   onMenu: () => void;
   onRematch: () => void;
 }) {
   const { t } = useTranslation();
-  const won = result === "win";
-  const isDraw = result === "draw";
-  const accent = won ? "var(--ds-success)" : isDraw ? "var(--ds-fg-muted)" : "var(--ds-danger)";
-  const accentLight = won
-    ? "var(--ds-success-surface)"
-    : isDraw
-      ? "var(--ds-surface-muted)"
-      : "var(--ds-danger-surface)";
-  const title = won ? t("overlay.victory") : isDraw ? t("overlay.draw") : t("overlay.defeat");
+  const splash = gameOverSplash(result, reason);
   return (
-    <Scrim className="game-modal">
-      <Dialog className="game-over-dialog game-modal__panel" labelledBy="aegis-game-over-title">
-        <div
-          style={{
-            width: 84,
-            height: 84,
-            borderRadius: "50%",
-            margin: "0 auto 20px",
-            display: "grid",
-            placeItems: "center",
-            background: accentLight,
-            color: accent,
-          }}
-        >
-          {won ? <Icons.ShieldCheck size={44} /> : <Icons.Shield size={44} />}
-        </div>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            color: "var(--ds-fg-muted)",
-            marginBottom: 8,
-          }}
-        >
-          {t("overlay.matchComplete")}
-        </div>
-        <h1
-          id="aegis-game-over-title"
-          style={{
-            fontFamily: "var(--ds-font-display)",
-            fontWeight: 800,
-            fontSize: 44,
-            margin: "0 0 8px",
-            color: won ? "var(--ds-success)" : "var(--ds-fg)",
-          }}
-        >
-          {title}
+    <div
+      className={`game-result game-result--${splash.tone}`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="aegis-game-over-title"
+    >
+      <div className="game-result__rays" aria-hidden="true" />
+      <div className="game-result__panel">
+        <p className="game-result__eyebrow">{t("overlay.matchComplete")}</p>
+        <h1 id="aegis-game-over-title" className="game-result__title">
+          {t(splash.titleKey)}
         </h1>
-        <p style={{ color: "var(--ds-fg-secondary)", fontSize: 14.5, margin: "0 0 24px" }}>
-          {won
-            ? t("overlay.wonBy", { reason })
-            : isDraw
-              ? t("overlay.drawBy", { reason })
-              : t("overlay.lostBy", { reason })}
-        </p>
-        <div style={{ display: "flex", gap: 10, marginBottom: 26 }}>
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              style={{ flex: 1, padding: "12px 8px", borderRadius: 14, background: "var(--ds-surface-muted)" }}
-            >
-              <div style={{ fontFamily: "var(--ds-font-mono)", fontWeight: 600, fontSize: 22, color: "var(--ds-fg)" }}>
-                {s.value}
-              </div>
-              <div style={{ fontSize: 11, color: "var(--ds-fg-muted)", marginTop: 3 }}>{s.label}</div>
+        <p className="game-result__reason">{t(splash.reasonKey)}</p>
+        <div className="game-result__stats">
+          {stats.map((entry) => (
+            <div key={entry.label} className="game-result__stat">
+              <span className="game-result__stat-value">{entry.value}</span>
+              <span className="game-result__stat-label">{entry.label}</span>
             </div>
           ))}
         </div>
@@ -1748,8 +1671,8 @@ export function GameOverOverlay({
             {t("overlay.mainMenu")}
           </Button>
         </div>
-      </Dialog>
-    </Scrim>
+      </div>
+    </div>
   );
 }
 
@@ -2216,7 +2139,16 @@ export interface StackCard {
 }
 
 /** Full-screen blow-up of a single card; tap anywhere (or Escape) to dismiss. */
-export function CardZoomOverlay({ cardId, onClose }: { cardId: string; onClose: () => void }) {
+export function CardZoomOverlay({
+  cardId,
+  onClose,
+  inline,
+}: {
+  cardId: string;
+  onClose: () => void;
+  /** Render in place rather than portalling, so a fixture stage can hold the overlay. */
+  inline?: boolean;
+}) {
   const { t } = useTranslation();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -2225,7 +2157,7 @@ export function CardZoomOverlay({ cardId, onClose }: { cardId: string; onClose: 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
-  return createPortal(
+  const panel = (
     <div
       className="card-zoom"
       role="dialog"
@@ -2237,9 +2169,9 @@ export function CardZoomOverlay({ cardId, onClose }: { cardId: string; onClose: 
       <button type="button" onClick={onClose} autoFocus>
         {t("common.close")}
       </button>
-    </div>,
-    document.body,
+    </div>
   );
+  return inline ? panel : createPortal(panel, document.body);
 }
 
 /**
@@ -2287,6 +2219,47 @@ function CardArt({ cardId, width }: { cardId: string; width: number }) {
   );
 }
 
+/** The computed half of the stack viewer: the figures and keywords the server resolved. */
+function StackViewerState({ detail, fate }: { detail: PermanentDetail; fate?: PendingFateBadge }) {
+  const { t } = useTranslation();
+  const granted = new Set(detail.grantedKeywords);
+  return (
+    <div className="stack-viewer-state">
+      <p className="stack-viewer-state__dp">
+        <strong>{detail.currentDP.toLocaleString()}</strong> {t("overlay.liveDp")}
+        {detail.dpDelta === 0 ? null : (
+          <em data-direction={detail.dpDelta > 0 ? "up" : "down"}>
+            {detail.dpDelta > 0 ? "+" : "−"}
+            {Math.abs(detail.dpDelta).toLocaleString()}
+          </em>
+        )}
+      </p>
+      {detail.dpDelta === 0 ? null : (
+        <p className="stack-viewer-state__base">
+          {t("overlay.baseDp")}: {detail.baseDP.toLocaleString()}
+        </p>
+      )}
+      <ul className="stack-viewer-state__keywords" aria-label={t("overlay.keywords")}>
+        {detail.keywords.length === 0 ? <li data-empty="true">{t("overlay.noKeywords")}</li> : null}
+        {detail.keywords.map((keyword) => (
+          <li key={keyword} data-granted={granted.has(keyword) || undefined}>
+            {formatKeyword(keyword)}
+            {keyword === "SecurityAttack" && detail.securityAttack !== undefined
+              ? ` \u00d7${detail.securityAttack}`
+              : ""}
+          </li>
+        ))}
+      </ul>
+      {fate ? (
+        <p className="stack-viewer-state__fate" data-tone={fate.tone}>
+          <span aria-hidden="true">{fate.glyph}</span>
+          {t(fate.labelKey)}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * Modal that lays out the cards making up a field permanent: thumbnails on the
  * left (active card, its digivolution stack, then linked cards), and a large
@@ -2296,6 +2269,8 @@ function CardArt({ cardId, width }: { cardId: string; width: number }) {
 export function StackViewerOverlay({
   cards,
   title,
+  detail,
+  fate,
   canAttack,
   canVortex,
   onAttack,
@@ -2304,6 +2279,10 @@ export function StackViewerOverlay({
 }: {
   cards: StackCard[];
   title: string;
+  /** The position's computed state: live DP against the printed figure and the resolved keywords. */
+  detail?: PermanentDetail;
+  /** The badge an open effect has already pinned to this permanent, if any. */
+  fate?: PendingFateBadge;
   canAttack: boolean;
   canVortex?: boolean;
   onAttack: () => void;
@@ -2346,6 +2325,7 @@ export function StackViewerOverlay({
           <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ds-fg)", fontFamily: "var(--ds-font-display)" }}>
             {title}
           </div>
+          {detail ? <StackViewerState detail={detail} fate={fate} /> : null}
           {(["top", "stack", "linked"] as const).map((role) => {
             const group = cards.map((c, index) => ({ c, index })).filter(({ c }) => c.role === role);
             if (group.length === 0) return null;
@@ -2668,6 +2648,7 @@ export function DigiXrosMaterialOverlay({
   candidates,
   lockedCandidates,
   eligibleExpanders,
+  intrinsicTrashMax = 0,
   onConfirm,
   onSkip,
   onCancel,
@@ -2682,6 +2663,8 @@ export function DigiXrosMaterialOverlay({
   lockedCandidates: DigiXrosCandidate[];
   /** Unsuspended expander Tamers that can be suspended for this DigiXros play. */
   eligibleExpanders: DigiXrosEligibleExpander[];
+  /** Trash capacity granted by the played card itself, without suspending a Tamer. */
+  intrinsicTrashMax?: number;
   /** Confirm with the chosen materials and expander Tamers to suspend. */
   onConfirm: (materialInstanceIds: string[], expanderPermanentIds: string[]) => void;
   /** Play the card normally without DigiXros (full cost, no materials). */
@@ -2705,7 +2688,7 @@ export function DigiXrosMaterialOverlay({
   const slotLabels = req.materials.map((material) => materialSlotLabel(material, t));
   const chosenExpanders = eligibleExpanders.filter((e) => chosenExpanderPermanentIds.includes(e.permanentId));
   const underTamerMax = chosenExpanders.reduce((max, e) => Math.max(max, e.underTamerMax), 0);
-  const trashMax = chosenExpanders.reduce((max, e) => Math.max(max, e.trashMax), 0);
+  const trashMax = chosenExpanders.reduce((max, e) => Math.max(max, e.trashMax), intrinsicTrashMax);
   const trashCandidates = lockedCandidates.filter((c) => c.zone === "trash");
   const underTamerCandidates = lockedCandidates.filter((c) => c.zone === "underTamer");
   const availableCandidates = [
@@ -2870,7 +2853,7 @@ export function DigiXrosMaterialOverlay({
               fontSize: 12.5,
             }}
           >
-            {t("overlay.xrosUnlockHint")}
+            {eligibleExpanders.length > 0 ? t("overlay.xrosUnlockHint") : t("overlay.xrosZoneLocked")}
           </div>
         )}
       </div>

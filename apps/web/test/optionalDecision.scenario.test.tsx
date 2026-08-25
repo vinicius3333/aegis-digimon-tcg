@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -8,7 +9,7 @@ import { swapMainDeckCard } from "./scenarioHarness/decks";
 import { scenario } from "./scenarioHarness/scenario";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
-import { resolveNextTriggerThroughUi } from "./scenarioHarness/decisions";
+import { decisionCandidates, findDecisionSurface, resolveNextTriggerThroughUi } from "./scenarioHarness/decisions";
 
 // EX11-069 "Yuuki" (Purple/Red Tamer, playCost 4): printed "[Start of Your Main
 // Phase][On Play] By trashing 1 card in your hand, gain 1 memory" — compiled as TWO
@@ -66,8 +67,7 @@ scenario("optional-decision", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
-    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
 
     const yuukiImg = await screen.findByRole("img", { name: /yuuki/i }, { timeout: 10_000 });
     tap(yuukiImg);
@@ -88,17 +88,16 @@ scenario("optional-decision", () => {
         await resolveNextTriggerThroughUi(opponent);
         continue;
       }
-      const dialog = screen.queryByRole("dialog");
+      const dialog = screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt");
       if (dialog === null) return;
       const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
-      const acceptBtn = within(dialog).queryByRole("button", { name: /yes, activate/i });
-      const declineBtn = within(dialog).queryByRole("button", { name: /no, decline/i });
+      const acceptBtn = within(dialog).queryByRole("button", { name: /yes, activate|^use$/i });
+      const declineBtn = within(dialog).queryByRole("button", { name: /no, decline|^not use$/i });
       if (acceptBtn && declineBtn) {
         fireEvent.click(mode === "accept" ? acceptBtn : declineBtn);
       } else {
-        const candidates = within(dialog).getAllByRole("button", { pressed: false });
-        fireEvent.click(candidates[0]!);
-        fireEvent.click(within(dialog).getByRole("button", { name: /confirm target/i }));
+        fireEvent.click(decisionCandidates(dialog)[0]!);
+        fireEvent.click(within(dialog).getByRole("button", { name: /confirm target|^end selection$/i }));
       }
       await vi.waitFor(
         () => {
@@ -112,8 +111,9 @@ scenario("optional-decision", () => {
   it("declining the optional effect leaves the memory gauge at just the play cost", async () => {
     const opponent = await playYuuki();
 
-    // Yuuki's OnPlay opens the real "optional" decision overlay.
-    const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
+    // Yuuki's OnPlay opens the real "optional" decision, on the board rail
+    // beside the Tamer it is about to change.
+    const dialog = await findDecisionSurface();
     expect(within(dialog).getByText(/yuuki/i)).toBeTruthy();
 
     await resolveAllDecisions(opponent, "decline");
@@ -122,7 +122,7 @@ scenario("optional-decision", () => {
     // renders in the battle area (it was already placed before OnPlay fired), and
     // only its printed play cost (4) — not any optional memory gain — shows on the
     // memory gauge.
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt")).toBeNull();
     await screen.findByText(/memory -4/i, {}, { timeout: 10_000 });
     expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
 
@@ -132,14 +132,14 @@ scenario("optional-decision", () => {
   it("accepting the optional effect trashes cards and gains memory", async () => {
     const opponent = await playYuuki();
 
-    await screen.findByRole("dialog", {}, { timeout: 10_000 });
+    await findDecisionSurface();
     await resolveAllDecisions(opponent, "accept");
 
     // Every accepted prompt paid its trash cost and applied its memory gain: the
     // gauge is strictly better than the decline case's -4, and Yuuki is still on
     // the field — both proven on the protagonist's own rendered DOM through real
     // intent round trips (accept -> pay cost -> gain memory), not injected state.
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt")).toBeNull();
     // The sidebar's "Turn N · memory <value>" line is the gauge; the game log
     // below it also mentions "memory" in its transition entries (e.g. "Memory 0
     // -> -4 (playCard)"), so scope to the turn/memory line specifically.

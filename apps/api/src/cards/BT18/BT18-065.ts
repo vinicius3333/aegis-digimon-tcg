@@ -1,7 +1,6 @@
 // @ts-nocheck
 // HAND-FIXED IR for BT18-065 — do not regenerate.
-// WhenDigivolving PlaceUnder: added from:["hand","trash"], underFilter:{mine Digimon},
-// position:bottom, controller:mine to target filter.
+// WhenDigivolving PlaceUnder: takes up to 2 Vemmon from trash under this Digimon at the bottom.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
@@ -21,7 +20,7 @@ const compiled: CompiledCard = {
           grant: "digixrosFromTrash",
           tokens: [],
           condition: {
-            kind: "youHave",
+            kind: "youHaveNone",
             filter: {
               excludeNames: ["Vemmon"],
               controllerDefault: "mine",
@@ -47,14 +46,11 @@ const compiled: CompiledCard = {
                 },
               ],
             },
-            from: ["hand", "trash"],
+            from: ["trash"],
             count: 2,
             upTo: true,
           },
-          underFilter: {
-            controller: "mine",
-            kind: ["Digimon"],
-          },
+          underFilter: { isSelfRef: true },
           position: "bottom",
           optional: true,
         },
@@ -119,6 +115,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digiXrosRequirement: [{ materials: [{ names: ["Vemmon"] }], count: 1, maxMaterials: 4 }],
 };
 
 registerIrCard("BT18-065", compiled);

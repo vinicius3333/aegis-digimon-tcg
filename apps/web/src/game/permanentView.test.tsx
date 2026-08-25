@@ -191,7 +191,7 @@ describe("PermanentView resolved keywords", () => {
     expect(screen.getByRole("button", { name: /ExTyrannomon.*Suspended/i })).toBeTruthy();
     const card = screen.getByTitle("ExTyrannomon");
     expect(card.dataset.state).toBe("suspended");
-    expect(card.style.transform).toBe("rotate(90deg)");
+    expect(card.style.rotate).toBe("90deg");
     expect(screen.getByText("Blocker")).toBeTruthy();
   });
 
@@ -260,8 +260,45 @@ describe("PermanentView activatable effects", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByText("5")).toBeTruthy();
+    expect(screen.getByText("×5")).toBeTruthy();
     expect(screen.getByText("13K")).toBeTruthy();
     expect(screen.getByText((_, element) => element?.textContent === "↑DP 1K")).toBeTruthy();
+  });
+});
+
+describe("summoning sickness ring", () => {
+  function freshlyPlayed(summoningSick: boolean): Permanent {
+    const permanent = new Permanent();
+    permanent.permanentId = "fresh";
+    permanent.controllerSeat = 0;
+    permanent.topCard = Object.assign(new CardInstance(), { instanceId: "fresh-top", cardId: "BT1-043" });
+    permanent.baseDP = 16_000;
+    permanent.currentDP = 16_000;
+    permanent.summoningSick = summoningSick;
+    return permanent;
+  }
+
+  it("orbits stars over a permanent the server says cannot attack yet", () => {
+    const { container } = render(
+      <I18nProvider>
+        <PermanentView perm={freshlyPlayed(true)} onClick={vi.fn<() => void>()} />
+      </I18nProvider>,
+    );
+
+    const stars = container.querySelectorAll(".game-summoning-ring i");
+    expect(stars).toHaveLength(6);
+    // Each star rests at its own point on the ellipse, so a stopped orbit is still a ring.
+    expect((stars[3] as HTMLElement).style.offsetDistance).toBe("50%");
+    expect(screen.getByRole("button", { name: /Can't attack yet/i })).toBeTruthy();
+  });
+
+  it("shows nothing once the server clears the flag", () => {
+    const { container } = render(
+      <I18nProvider>
+        <PermanentView perm={freshlyPlayed(false)} onClick={vi.fn<() => void>()} />
+      </I18nProvider>,
+    );
+
+    expect(container.querySelector(".game-summoning-ring")).toBeNull();
   });
 });

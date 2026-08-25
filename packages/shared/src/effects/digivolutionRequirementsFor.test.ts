@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import cards from "../cards/data/cards.json" with { type: "json" };
 import { digivolutionRequirementsFor } from "./data.js";
-import { digiXrosRequirementFor } from "./data.js";
+import { digiXrosRequirementFor, digiXrosTrashNameAllowanceFor } from "./data.js";
 
 // Regression for the corresponding regression coverage finding 1: BT26 is hand-implemented
 // and has no effects.json entry, so its printed `[Digivolve] ...: Cost N` alternate paths only
@@ -71,6 +71,13 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
         materials: [{ names: ["Nene Amano"] }, { names: ["Luminamon", "Shademon"] }],
       },
     ]);
+  });
+
+  it("keeps BT18-065's four Vemmon recipe and intrinsic trash gate", () => {
+    expect(digiXrosRequirementFor("BT18-065")).toEqual([
+      { materials: [{ names: ["Vemmon"] }], count: 1, maxMaterials: 4 },
+    ]);
+    expect(digiXrosTrashNameAllowanceFor("BT18-065")).toEqual(["Vemmon"]);
   });
   const bt26WithHeader = (cards as Array<{ cardId: string; set: string; effectText?: string }>).filter(
     (c) => c.set === "BT26" && /\[Digivolve\]/.test(c.effectText ?? ""),

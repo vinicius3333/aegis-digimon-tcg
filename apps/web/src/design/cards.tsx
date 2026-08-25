@@ -2,7 +2,7 @@ import { cardImageUrls, getCardDefinition, type CardDefinition } from "@aegis/sh
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useCardSleeve } from "./sleeve";
-import { COLORS, colorKey, emblemFor, paletteFor, sigilPaths } from "./theme";
+import { COLORS, colorKey, emblemFor, paletteFor, palettePairFor, sigilPaths } from "./theme";
 
 /** True on hover-capable (desktop) pointers; false on touch/responsive devices. */
 function useHoverZoomEnabled(): boolean {
@@ -216,6 +216,7 @@ export function CardFull({
   dim = false,
   onClick,
   count,
+  zoomOnHover = true,
 }: {
   cardId: string;
   width?: number;
@@ -223,6 +224,11 @@ export function CardFull({
   dim?: boolean;
   onClick?: () => void;
   count?: number;
+  /**
+   * Show the floating preview under the pointer. Off on the match screen, where a
+   * card is inspected by clicking it rather than by growing under the cursor.
+   */
+  zoomOnHover?: boolean;
 }) {
   const def = getCardDefinition(cardId);
   const urls = cardImageUrls(def?.imageId ?? cardId);
@@ -237,8 +243,8 @@ export function CardFull({
   return (
     <div
       onClick={onClick}
-      onMouseMove={zoomEnabled ? (e) => setMousePos({ x: e.clientX, y: e.clientY }) : undefined}
-      onMouseLeave={zoomEnabled ? () => setMousePos(null) : undefined}
+      onMouseMove={zoomEnabled && zoomOnHover ? (e) => setMousePos({ x: e.clientX, y: e.clientY }) : undefined}
+      onMouseLeave={zoomEnabled && zoomOnHover ? () => setMousePos(null) : undefined}
       style={{
         position: "relative",
         width,
@@ -286,7 +292,7 @@ export function CardFull({
         </div>
       ) : null}
 
-      {zoomEnabled && mousePos ? (
+      {zoomEnabled && zoomOnHover && mousePos ? (
         <CardZoomPreview cardId={cardId} x={mousePos.x} y={mousePos.y} fallbackIndex={urlIndex} />
       ) : null}
     </div>
@@ -332,6 +338,7 @@ function TokenInfo({ def, width, dp }: { def: CardDefinition; width: number; dp?
   const scale = width / 92;
   const px = (n: number) => Math.round(n * scale);
   const c = paletteFor(def.colors);
+  const dpChip = palettePairFor(def.colors);
   const cost = def.playCost;
   const dpValue = dp ?? def.dp;
   const traits = [def.forms?.[0], def.attributes?.[0], def.types?.[0]].filter((t) => t && t !== "-") as string[];
@@ -434,8 +441,13 @@ function TokenInfo({ def, width, dp }: { def: CardDefinition; width: number; dp?
                 fontSize: px(9),
                 fontWeight: 700,
                 color: "#fff",
-                background: "rgba(255,255,255,0.14)",
-                border: `1px solid ${c.edge}`,
+                // A dual-colour Digimon carries both of its colours on the chip,
+                // which is the fastest read of "this counts as red AND blue" the
+                // board can give without a second badge.
+                background: dpChip.split
+                  ? `linear-gradient(90deg, ${dpChip.from.base} 0 50%, ${dpChip.to.base} 50% 100%)`
+                  : "rgba(255,255,255,0.14)",
+                border: `1px solid ${dpChip.split ? dpChip.to.edge : c.edge}`,
                 borderRadius: px(5),
                 padding: `${px(1)}px ${px(4)}px`,
                 lineHeight: 1.25,
@@ -452,10 +464,14 @@ function TokenInfo({ def, width, dp }: { def: CardDefinition; width: number; dp?
 
 /** Compact board card (top of a permanent, or a hand card on the board).
  *  Pass `info` to overlay the token's name, play cost, level, traits and DP. */
+/** The reference client's Stand_Rest / Rest_Stand clips are 200 ms with flat tangents. */
+const SUSPEND_ROTATE_MS = 200;
+
 export function CardMini({
   cardId,
   width = 88,
   suspended = false,
+  suspendDelayMs = 0,
   selected = false,
   attackable = false,
   onClick,
@@ -467,6 +483,8 @@ export function CardMini({
   cardId?: string;
   width?: number;
   suspended?: boolean;
+  /** Staggers the rotation, so an unsuspend phase sweeps the board instead of snapping. */
+  suspendDelayMs?: number;
   selected?: boolean;
   attackable?: boolean;
   onClick?: () => void;
@@ -504,11 +522,11 @@ export function CardMini({
           : attackable
             ? "0 0 0 2px var(--ds-warning-light), 0 6px 14px rgba(15,23,42,0.32)"
             : "inset 0 0 0 1px rgba(255,255,255,0.06), 0 4px 10px rgba(15,23,42,0.26)",
-        transform: suspended ? "rotate(90deg)" : "none",
+        // The individual `rotate` property rather than `transform`, so a caller that already
+        // owns the card's transform (the board's selection lift) cannot cancel the rotation.
+        rotate: suspended ? "90deg" : "0deg",
         transformOrigin: "center",
-        // 200ms ease-in-out matches the reference client's Stand_Rest / Rest_Stand clips, whose
-        // keys are flat-tangent (Assets/Animation/Battle).
-        transition: "transform 200ms ease-in-out, box-shadow 150ms, border-color 150ms",
+        transition: `rotate ${SUSPEND_ROTATE_MS}ms ease-in-out ${suspendDelayMs}ms, box-shadow 150ms, border-color 150ms`,
         cursor: onClick ? "pointer" : "default",
         overflow: "hidden",
       }}

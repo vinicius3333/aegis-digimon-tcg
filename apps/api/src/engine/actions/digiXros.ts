@@ -11,6 +11,7 @@ import {
   type CardDefinition,
   type DigiXrosMaterial,
   type DigiXrosRequirement,
+  digiXrosTrashNameAllowanceFor,
   type GameState,
   type PlayerState,
   type Seat,
@@ -171,7 +172,15 @@ export function validateDigiXros(
   // AllowDigiXrosMaterialsFromTrash (CAP-C-14, BT21-030): the played card's own IR declares that
   // trash is a valid material source, so trash is unrestricted regardless of expander Tamers.
   let underTamerMax = allowsExtraDigiXrosMaterials(instance.cardId) ? 1 : 0;
-  let trashMax = allowsDigiXrosMaterialsFromTrash(instance.cardId) ? Infinity : 0;
+  const intrinsicTrashNames = digiXrosTrashNameAllowanceFor(instance.cardId);
+  const intrinsicTrashAllowed =
+    intrinsicTrashNames !== undefined &&
+    player.battleArea.every((permanent) => {
+      if (permanent.topCard === undefined) return true;
+      const materialDefinition = definitionOf(permanent.topCard.cardId);
+      return !materialDefinition.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(materialDefinition.nameEn);
+    });
+  let trashMax = allowsDigiXrosMaterialsFromTrash(instance.cardId) || intrinsicTrashAllowed ? Infinity : 0;
   if (allowsExtraDigiXrosMaterials(instance.cardId)) trashMax = 1;
   const expanderPermanentIds = intent.digiXros.expanderPermanentIds ?? [];
   for (const permanentId of expanderPermanentIds) {
@@ -279,7 +288,16 @@ export async function applyDigiXros(
 
   const permanent = placePermanent(deps, player, instance, definition);
   permanent.enterFieldTurnCount = state.turnCount;
-  deps.emit?.({ kind: "cardPlayed", seat, cardId: instance.cardId, permanentId: permanent.permanentId });
+  // A DigiXros is a play with materials (§7-2-2-7), so the mechanic rides on `cardPlayed`
+  // rather than being re-derived client-side from the card's printed DigiXros requirement —
+  // that heuristic said "this card CAN be DigiXros'd", not "this play WAS one".
+  deps.emit?.({
+    kind: "cardPlayed",
+    seat,
+    cardId: instance.cardId,
+    permanentId: permanent.permanentId,
+    mechanic: "digiXros",
+  });
 
   // (4) Place each material under the new permanent. A battle-area material contributes only its
   //     TOP card — §7-2-2-7 removes it from the battle area, so anything under it is trashed

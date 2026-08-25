@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, effectiveStaticNames, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX11-066.js";
 import "../BT11/BT11-070.js";
 import "../P/P-094.js";
@@ -17,6 +18,25 @@ describe("EX11-066 Xeno", () => {
       securityEffectText: "[Security] Play this card without paying the cost.",
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
+  it("is also treated as Zenith by its printed Rule in every zone", async () => {
+    expect(effectiveStaticNames(getCardDefinition("EX11-066")!)).toEqual(["Xeno", "Zenith"]);
+    expect(compiled.effects).toContainEqual({
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "name",
+          tokens: ["Zenith"],
+        },
+      ],
+    });
+
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX11-066", as: "xeno" }] } });
+    await s.ready();
+    expect(observe(s.engine).effectiveNames(s.perm("xeno"))).toEqual(expect.arrayContaining(["xeno", "zenith"]));
   });
 
   it("accepts a card with Vemmon in its text for the start-phase cost", async () => {

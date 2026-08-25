@@ -9,13 +9,15 @@ import {
   CardKind,
   Phase,
   digiXrosRequirementFor,
+  digiXrosTrashNameAllowanceFor,
   digiXrosZoneExpanderFor,
   getCardDefinition,
+  parseTriggerKey,
   type AttackTarget,
   type DecisionResponse,
   type DigiXrosRequirement,
   type Permanent,
-  type ServerEvent,
+  type Seat,
 } from "@aegis/shared";
 import { rejectionMessage } from "../rejectionMessages";
 import { useTranslation } from "../i18n";
@@ -31,8 +33,7 @@ import { CardFull } from "../design/cards";
 import { Icons } from "../design/icons";
 import { BugReportDialog } from "../bugs/BugReportDialog";
 import type { ColorName } from "../design/theme";
-import { playSound, type SoundKind } from "../design/sound";
-import { shouldPlayCue, soundForEvent, type CueTimestamps } from "./soundEvents";
+import { playSound } from "../design/sound";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { useBattlefieldStyle } from "../design/battlefield";
 import "./game.css";
@@ -46,8 +47,17 @@ import {
   MemoryGauge,
   PermanentView,
   Pile,
+  TurnControl,
   type HandEntry,
 } from "./boardPieces";
+import {
+  dragIntentFor,
+  dragIntentLabelOffsetPx,
+  dragIntentLabelKey,
+  type DragIntent,
+  type DropTarget,
+} from "./dragIntents";
+import { isBreedingWindow, turnControlState } from "./turnControl";
 import {
   bothSeated,
   activeBlockWindow,
@@ -67,7 +77,6 @@ import {
   canAttackWith,
   canVortexAttackWith,
   displayMemory,
-  eventsAfter,
   findPermanentInState,
   getDigivolveCostOptions,
   handCardEvolutionRoute,
@@ -78,6 +87,7 @@ import {
   permCardId,
   playButtonLabel,
   playerColorKey,
+  triggerCardId,
   viewerSeatOf,
   type EvoCostOption,
   type LogLine,
@@ -90,19 +100,18 @@ import {
   ActionConfirmationOverlay,
   BarrierOverlay,
   BlockOverlay,
-  BreedingOverlay,
   CardActionMenu,
   CardZoomOverlay,
   CounterOverlay,
   DecisionOverlay,
-  OpponentPermanentInspector,
-  RecoveryToast,
+  PermanentDetailInspector,
   DigiXrosMaterialOverlay,
   EvadeOverlay,
   EvoCostChoiceOverlay,
-  EffectClauseToast,
   GameOverOverlay,
   MulliganOverlay,
+  playerFacingEffectClause,
+  playerFacingPromptText,
   StackViewerOverlay,
   TrashViewerOverlay,
   WaitingOverlay,
@@ -110,50 +119,39 @@ import {
   type DigiXrosEligibleExpander,
   type StackCard,
 } from "./overlays";
-import { MatchHistorySheet, OpponentActionFeed } from "./OpponentActionFeedView";
+import { OpponentActionFeed, PlayLogSidebar } from "./OpponentActionFeedView";
 import { hasOpenCombatPrompt } from "./opponentActionFeed";
-import { AttackAnnouncementBanner, InfoPanelStack } from "./InfoPanelStack";
-import {
-  attackAnnouncementFromEvent,
-  buildInstanceSeatIndex,
-  dismissInfoPanel,
-  expireInfoPanels,
-  infoPanelFromEvent,
-  pushInfoPanel,
-  ATTACK_ANNOUNCE_MS,
-  INFO_PANEL_LIFETIME_MS,
-  type AttackAnnouncement,
-  type InfoPanel,
-  type InfoPanelLookup,
-} from "./infoPanels";
-import { SecurityClash } from "./SecurityClashView";
-import {
-  buildSecurityClashScene,
-  SECURITY_CLASH_TOTAL_MS,
-  type SecurityClashAttacker,
-  type SecurityClashScene,
-} from "./securityClash";
+import { AttackAnnouncementBanner, SidePanelStack } from "./SidePanelStack";
+import { NoticeStack } from "./NoticeStack";
+import { SecurityBranch, SecurityClash, SecurityEdgeFlash } from "./SecurityClashView";
+import { ZoneShowcase } from "./ZoneShowcase";
+import { CardBurst } from "./CardBurst";
+import { CardShatter } from "./CardShatterView";
+import { DigivolutionCutInView } from "./DigivolutionCutInView";
+import { useMatchCues } from "./useMatchCues";
+import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
 import { pressGesture, swallowNextClick } from "./pressGesture";
 import { useOpponentActionFeed } from "./useOpponentActionFeed";
+import { COARSE_POINTER_QUERY, useMediaQuery } from "../design/useMediaQuery";
+import { TargetingSpotlight } from "./TargetingSpotlight";
+import type { SpotlightSubject } from "./spotlight";
+import { pendingFateBadges } from "./pendingFate";
+import { buildPermanentDetail } from "./permanentDetail";
+import { hasFaceUpSecurity, securityAttackLabelKey } from "./securityChrome";
+import { activeAttackArrow, effectTargetArrow, type ArrowEndpoint, type TrackingArrow } from "./trackingArrow";
+import { predictedMemory } from "./memoryArc";
+import { memoryCostPreview, type MemoryDropTarget } from "./memoryCostPreview";
+import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
+import {
+  decisionPresentation,
+  fieldSlots,
+  sourcePermanentIdOf,
+  triggerClauseSummary,
+  triggerSource,
+} from "./decisionPresentation";
 
 const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End];
-
-function useMediaQuery(mediaQuery: string): boolean {
-  const [matches, setMatches] = useState(
-    () =>
-      typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(mediaQuery).matches,
-  );
-  useEffect(() => {
-    if (typeof window.matchMedia !== "function") return;
-    const query = window.matchMedia(mediaQuery);
-    const update = () => setMatches(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, [mediaQuery]);
-  return matches;
-}
 
 /**
  * Phone layout: touch sheets, compact everything. Mirrors the CSS blocks of the
@@ -161,6 +159,14 @@ function useMediaQuery(mediaQuery: string): boolean {
  * short viewport as well, or a landscape phone would fall into the pointer
  * layout and lose the action strip along with every touch sheet.
  */
+/** A solved target arrow: the ids resolved to real positions in board coordinates. */
+interface TrackingArrowGeometry {
+  key: string;
+  kind: TrackingArrow["kind"];
+  from: { x: number; y: number };
+  to: { x: number; y: number }[];
+}
+
 const NARROW_LAYOUT_QUERY = "(width < 600px), (height < 520px) and (orientation: landscape)";
 /**
  * Tablet and split-screen widths. The board keeps its pointer interactions but the
@@ -190,25 +196,38 @@ const NARROW_RAIL_QUERY = "(width < 1240px)";
 /** Slot width whose 1.16× permanent exactly fits the 104px rail's 84px content box. */
 const NARROW_RAIL_SLOT_WIDTH = 72;
 
-/** Card back sent from a deck pile to the hand that just grew, in board coordinates. */
-type DrawFlight = { key: number; x: number; y: number; dx: number; dy: number };
-
-/** Must match `.game-draw-flight` in game.css. */
-const DRAW_FLIGHT_WIDTH = 30;
-const DRAW_FLIGHT_HEIGHT = 42;
-const DRAW_FLIGHT_MS = 340;
-/** The reference client's attack lunge is 150ms out and back (AttackProcess.cs pacing). */
-const ATTACK_LUNGE_MS = 300;
-const SECURITY_HIT_MS = 350;
-/** In 160ms, hold 300ms, out 160ms is the reference client's banner; 1s is the readable web port. */
-const TURN_BANNER_MS = 1000;
-
 /**
  * `deferred` marks a touch gesture whose direction is not yet known: the pointer is
  * left to the browser until `move` decides between a sideways swipe (scroll the row)
  * and a drag (play / attack). `capture` is the element to capture onto once it does.
  */
 type DragOrigin = { deferred?: boolean; capture?: Element };
+
+/** A drop area under the pointer: the `data-drop` name it carries, and the id it names. */
+type DropZoneHit = { target: DropTarget; id?: string };
+
+/**
+ * The drop area under a point — the smallest one, so a permanent inside the
+ * battle row wins over the row itself. The same lookup answers "what would this
+ * drop do" while the card is still in the air and "what did it do" on release.
+ */
+function dropZoneAt(cx: number, cy: number): DropZoneHit | null {
+  let zone: Element | null = null;
+  let bestArea = Infinity;
+  document.querySelectorAll("[data-drop]").forEach((candidate) => {
+    const rect = candidate.getBoundingClientRect();
+    if (cx < rect.left || cx > rect.right || cy < rect.top || cy > rect.bottom) return;
+    const area = rect.width * rect.height;
+    if (area >= bestArea) return;
+    bestArea = area;
+    zone = candidate;
+  });
+  if (!zone) return null;
+  const element = zone as Element;
+  const target = element.getAttribute("data-drop");
+  if (!target) return null;
+  return { target: target as DropTarget, id: element.getAttribute("data-id") ?? undefined };
+}
 
 type DragState =
   | ({
@@ -267,6 +286,7 @@ export function GameScreen({
   const shortBoard = useMediaQuery(SHORT_BOARD_QUERY);
   const landscapePhone = useMediaQuery(LANDSCAPE_PHONE_QUERY);
   const narrowRail = useMediaQuery(NARROW_RAIL_QUERY);
+  const coarsePointer = useMediaQuery(COARSE_POINTER_QUERY);
   const matchConfig = useMemo(() => {
     if (startMode === "casual" || startMode === "ranked") return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
@@ -314,50 +334,15 @@ export function GameScreen({
   const [trashView, setTrashView] = useState<"you" | "opp" | null>(null); // which player's trash modal is open
   const [securityView, setSecurityView] = useState<"you" | "opp" | null>(null); // which player's security modal is open
   const [picks, setPicks] = useState<string[]>([]);
-  const [flash, setFlash] = useState<string | null>(null);
-  const [turnTransition, setTurnTransition] = useState<{
-    endingSeat: number;
-    nextSeat: number;
-    turnCount: number;
-  } | null>(null);
-  const [securityClash, setSecurityClash] = useState<SecurityClashScene | null>(null);
-  const [recoveryToast, setRecoveryToast] = useState<{ seat: number; amount: number; key: number } | null>(null);
-  const [effectNotice, setEffectNotice] = useState<{
-    cardId: string;
-    timing?: string;
-    description?: string;
-    key: string;
-  } | null>(null);
+  // A board-mode decision the viewer asked to see in the dialog instead (Escape
+  // or the rail's back arrow). Reset with every new decision.
+  const [decisionAsDialog, setDecisionAsDialog] = useState(false);
   const [oppInspector, setOppInspector] = useState<{ permanentId: string; x: number; y: number } | null>(null);
-  // Security-attack beats: the attacker leans at the shield, the shield flashes
-  // when a card is actually checked. Both are transient decoration.
-  const [attackLunge, setAttackLunge] = useState<{ permanentId: string; direction: "up" | "down" } | null>(null);
-  const [securityHitSeat, setSecurityHitSeat] = useState<number | null>(null);
-  const [drawFlights, setDrawFlights] = useState<DrawFlight[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  // A card name clicked in the play log opens the card itself, without closing the log.
+  const [zoomCardId, setZoomCardId] = useState<string | null>(null);
   const [bugReportOpen, setBugReportOpen] = useState(false);
-  const [infoPanels, setInfoPanels] = useState<readonly InfoPanel[]>([]);
-  const [attackAnnouncement, setAttackAnnouncement] = useState<AttackAnnouncement | null>(null);
-  const attackAnnounceTimerRef = useRef<number | undefined>(undefined);
-  const infoPanelSequenceRef = useRef(0);
-  // `cardsMoved` names only instance ids, so the panels need the board's current
-  // identity and ownership index to name the cards that just moved.
-  const infoLookupRef = useRef<InfoPanelLookup>({ cardId: () => undefined, seat: () => undefined });
-  const lastNoticeEventRef = useRef<ServerEvent | undefined>(undefined);
-  const securityClashTimerRef = useRef<number | undefined>(undefined);
-  const securityClashKeyRef = useRef(0);
-  // The card the checked player is defending against. A security check carries no
-  // attacker, so it is remembered from the attack that opened the check.
-  const securityAttackerRef = useRef<SecurityClashAttacker | undefined>(undefined);
-  const recoveryToastTimerRef = useRef<number | undefined>(undefined);
-  const effectNoticeTimerRef = useRef<number | undefined>(undefined);
   const inspectorTimerRef = useRef<number | undefined>(undefined);
-  const lungeTimerRef = useRef<number | undefined>(undefined);
-  const securityHitTimerRef = useRef<number | undefined>(undefined);
-  const turnBannerTimerRef = useRef<number | undefined>(undefined);
-  const drawFlightTimersRef = useRef<number[]>([]);
-  const drawFlightKeyRef = useRef(0);
-  const handCountsRef = useRef<{ you: number; opp: number } | null>(null);
   const [evoCostChoice, setEvoCostChoice] = useState<{
     handInstanceId: string;
     permanentId: string;
@@ -372,6 +357,7 @@ export function GameScreen({
     candidates: DigiXrosCandidate[];
     lockedCandidates: DigiXrosCandidate[];
     eligibleExpanders: DigiXrosEligibleExpander[];
+    intrinsicTrashMax: number;
   } | null>(null);
   const [actionConfirm, setActionConfirm] = useState<
     | { kind: "play"; instanceId: string; cardId: string }
@@ -390,6 +376,13 @@ export function GameScreen({
   const battlefield = useBattlefieldStyle();
   const boardRef = useRef<HTMLDivElement | null>(null);
   const permRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  // Where each permanent last stood, in board coordinates. A deletion is narrated after
+  // the board has already dropped the permanent, so the burst needs the last measurement
+  // rather than the (gone) element.
+  const permCentersRef = useRef<Record<string, { x: number; y: number }>>({});
+  // The card that was standing at each position, kept for the same reason: the
+  // shatter is drawn from the deleted card's own art, after the board dropped it.
+  const permCardIdsRef = useRef<Record<string, string>>({});
   const yourSecRef = useRef<HTMLDivElement | null>(null);
   const oppSecRef = useRef<HTMLDivElement | null>(null);
   const yourDeckRef = useRef<HTMLDivElement | null>(null);
@@ -400,56 +393,91 @@ export function GameScreen({
 
   const handleTapRef = useRef<((d: DragState) => void) | null>(null);
   const handleDropRef = useRef<((d: DragState, cx: number, cy: number) => void) | null>(null);
+  // The drop area the pointer is currently over, so the ghost can carry the name
+  // of the intent that release would send.
+  const [dragHover, setDragHover] = useState<DropZoneHit | null>(null);
+  // Which hand card the pointer is over, so the memory gauge can trace where a
+  // play would put memory before the card is even picked up.
+  const [hoveredHandInstanceId, setHoveredHandInstanceId] = useState<string | undefined>(undefined);
+  // The hand card a refusal belongs to. The server's `actionRejected` names the
+  // intent and the reason, not the card, so the card is the one this client last
+  // sent a play for — the only thing that could have been refused.
+  const [shakeHandInstanceId, setShakeHandInstanceId] = useState<string | undefined>(undefined);
+  const lastPlayAttemptRef = useRef<string | undefined>(undefined);
+  // Measured boxes of the permanents a target prompt is offering, for the mask.
+  const [spotlightSubjects, setSpotlightSubjects] = useState<readonly SpotlightSubject[]>([]);
+  const [boardSize, setBoardSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
-  // Cues are observed twice for your own actions (the intent handler fires one
-  // immediately, the server echo arrives later), so repeats are suppressed.
-  const cuePlayedAtRef = useRef<CueTimestamps>({});
-  const cueBaselineRef = useRef(false);
-  const playGameCue = (kind: SoundKind) => {
-    const now = Date.now();
-    if (!shouldPlayCue(kind, now, cuePlayedAtRef.current)) return;
-    cuePlayedAtRef.current[kind] = now;
-    playSound(kind);
-  };
-
-  /**
-   * Sends a card back from a deck pile to the hand that just grew. The reference client presents
-   * a draw centre-screen; the web port keeps the deck→hand read, which is what
-   * makes an opponent's draw visible at all.
-   */
-  const launchDrawFlight = (side: "you" | "opp") => {
-    const board = boardRef.current;
-    const source = side === "you" ? yourDeckRef.current : oppDeckRef.current;
-    const target = side === "you" ? yourHandDockRef.current : oppHandStripRef.current;
-    if (!board || !source || !target) return;
-    const boardRect = board.getBoundingClientRect();
-    const sourceRect = source.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    // Layout-free environments (jsdom) report zero boxes: no geometry, no flight,
-    // and so no timer is ever scheduled there.
-    if (!sourceRect.width || !targetRect.width) return;
-    const from = {
-      x: sourceRect.left + sourceRect.width / 2 - boardRect.left - DRAW_FLIGHT_WIDTH / 2,
-      y: sourceRect.top + sourceRect.height / 2 - boardRect.top - DRAW_FLIGHT_HEIGHT / 2,
-    };
-    const to = {
-      x: targetRect.left + targetRect.width / 2 - boardRect.left - DRAW_FLIGHT_WIDTH / 2,
-      y: targetRect.top + targetRect.height / 2 - boardRect.top - DRAW_FLIGHT_HEIGHT / 2,
-    };
-    const key = (drawFlightKeyRef.current += 1);
-    setDrawFlights((flights) => [...flights, { key, x: from.x, y: from.y, dx: to.x - from.x, dy: to.y - from.y }]);
-    const timer = window.setTimeout(() => {
-      setDrawFlights((flights) => flights.filter((flight) => flight.key !== key));
-      drawFlightTimersRef.current = drawFlightTimersRef.current.filter((id) => id !== timer);
-    }, DRAW_FLIGHT_MS);
-    drawFlightTimersRef.current.push(timer);
-  };
-
+  // Declared before `cues` because the cue hook reports rejections through it;
+  // both bodies only run once the other binding exists.
   const ping = (message: string) => {
     playSound("error");
-    setFlash(message);
-    window.setTimeout(() => setFlash(null), 1800);
+    cues.raiseRejection(message);
+    const offending = lastPlayAttemptRef.current;
+    if (!offending) return;
+    setShakeHandInstanceId(offending);
+    // The class is what plays the shake, so it is taken off once the keyframes
+    // are done; a second refusal on the same card re-adds it and restarts them.
+    setTimeout(
+      () => setShakeHandInstanceId((current) => (current === offending ? undefined : current)),
+      TIMINGS.cardShake,
+    );
   };
+
+  // Every cue the server provokes: sounds, panels, banners, the security clash,
+  // the draw flights. The hook sequences them on the animation queue; this
+  // component only renders what it reports.
+  const cues = useMatchCues({
+    events,
+    state,
+    viewerSeat,
+    mulliganOpen: decision?.kind === "mulligan",
+    anchors: {
+      board: boardRef,
+      permanentCenter: (permanentId) => permCentersRef.current[permanentId],
+      permanentCardId: (permanentId) => permCardIdsRef.current[permanentId],
+      yourDeck: yourDeckRef,
+      oppDeck: oppDeckRef,
+      yourHandDock: yourHandDockRef,
+      oppHandStrip: oppHandStripRef,
+    },
+    onActionRejected: (reason) => ping(rejectionMessage(reason, t)),
+  });
+  const {
+    attackAnnouncement,
+    attackLunge,
+    combatImpactIds,
+    cutIn,
+    deckRiffles,
+    effectSources,
+    securityFlights,
+    dpPulses,
+    freezePulses,
+    phaseBanner,
+    deleteBursts,
+    drawBursts,
+    drawFlights,
+    pendingPermanentIds,
+    permanentBursts,
+    securityBranch,
+    securityBreak,
+    securityClash,
+    securityHitSeat,
+    sidePanels,
+    turnTransition,
+    unsuspendSweep,
+    zoneShowcase,
+  } = cues;
+  const playGameCue = cues.playCue;
+
+  /**
+   * The unsuspend phase sweeps a board rather than snapping it: each slot starts its
+   * rotation a little after the one before it. Only the sweeping seat is staggered — a
+   * single card suspending to declare an attack must turn immediately.
+   */
+  const unsuspendStagger = (seat: Seat, index: number) =>
+    unsuspendSweep?.seat === seat ? index * TIMINGS.suspendStagger : 0;
+
   const clearSel = () => {
     setHandSel(null);
     setSelPerm(null);
@@ -479,136 +507,9 @@ export function GameScreen({
     matchKey: room?.roomId ?? roomCode ?? "pending-match",
   });
 
-  // Declared before the event effect below so the same commit refreshes the
-  // index first: a card is already in its new zone when its movement is narrated.
-  useEffect(() => {
-    if (!state) return;
-    const cardIds = buildInstanceIndex(state, viewerSeat);
-    const seats = buildInstanceSeatIndex(state);
-    infoLookupRef.current = { cardId: (id) => cardIds.get(id), seat: (id) => seats.get(id) };
-  });
-
-  // Surface server rejections as a transient toast.
-  useEffect(() => {
-    const previous = lastNoticeEventRef.current;
-    const fresh = eventsAfter(events, previous);
-    lastNoticeEventRef.current = events.at(-1);
-    const rejection = [...fresh].reverse().find((event) => event.kind === "actionRejected");
-    const securityCheck = [...fresh].reverse().find((event) => event.kind === "securityChecked");
-    const recovery = [...fresh].reverse().find((event) => event.kind === "securityRecovered");
-    const resolvedEffect = [...fresh]
-      .reverse()
-      .find((event) => event.kind === "effectResolved" && event.seat === viewerSeat);
-    const turnEnd = [...fresh].reverse().find((event) => event.kind === "turnEnded");
-    const securityAttack = [...fresh]
-      .reverse()
-      .find((event) => event.kind === "attackDeclared" && event.target.kind === "player");
-    // The first pass is the baseline: a reconnect replays history, which must not
-    // replay its sounds or reopen every panel the match has ever shown.
-    const replayingHistory = !cueBaselineRef.current;
-    cueBaselineRef.current = true;
-    if (!replayingHistory) {
-      for (const event of fresh) {
-        const cue = soundForEvent(event, viewerSeat);
-        if (cue) playGameCue(cue);
-      }
-      const now = Date.now();
-      let announcement: AttackAnnouncement | null = null;
-      const opened: InfoPanel[] = [];
-      for (const event of fresh) {
-        infoPanelSequenceRef.current += 1;
-        const id = `info-panel-${infoPanelSequenceRef.current}`;
-        const panel = infoPanelFromEvent(event, viewerSeat, infoLookupRef.current, id, now);
-        if (panel) opened.push(panel);
-        announcement = attackAnnouncementFromEvent(event, viewerSeat, id, now) ?? announcement;
-      }
-      if (opened.length > 0) {
-        setInfoPanels((panels) =>
-          opened.reduce<readonly InfoPanel[]>(
-            (stack, panel) => pushInfoPanel(stack, panel),
-            expireInfoPanels(panels, now),
-          ),
-        );
-      }
-      if (announcement) {
-        if (attackAnnounceTimerRef.current) window.clearTimeout(attackAnnounceTimerRef.current);
-        setAttackAnnouncement(announcement);
-        attackAnnounceTimerRef.current = window.setTimeout(() => setAttackAnnouncement(null), ATTACK_ANNOUNCE_MS);
-      }
-    }
-    if (rejection?.kind === "actionRejected") ping(rejectionMessage(rejection.reason, t));
-    if (securityAttack?.kind === "attackDeclared") {
-      if (lungeTimerRef.current) window.clearTimeout(lungeTimerRef.current);
-      setAttackLunge({
-        permanentId: securityAttack.attackerPermanentId,
-        direction: securityAttack.seat === viewerSeat ? "up" : "down",
-      });
-      lungeTimerRef.current = window.setTimeout(() => setAttackLunge(null), ATTACK_LUNGE_MS);
-      securityAttackerRef.current = { seat: securityAttack.seat, cardId: securityAttack.attackerCardId };
-    }
-    if (securityCheck?.kind === "securityChecked") {
-      if (securityClashTimerRef.current) window.clearTimeout(securityClashTimerRef.current);
-      securityClashKeyRef.current += 1;
-      setSecurityClash(
-        buildSecurityClashScene({
-          key: securityClashKeyRef.current,
-          revealedCardId: securityCheck.revealedCardId,
-          resolution: securityCheck.resolution,
-          defenderSeat: securityCheck.seat,
-          viewerSeat,
-          attacker: securityAttackerRef.current,
-        }),
-      );
-      securityClashTimerRef.current = window.setTimeout(() => setSecurityClash(null), SECURITY_CLASH_TOTAL_MS);
-      if (securityHitTimerRef.current) window.clearTimeout(securityHitTimerRef.current);
-      setSecurityHitSeat(securityCheck.seat);
-      securityHitTimerRef.current = window.setTimeout(() => setSecurityHitSeat(null), SECURITY_HIT_MS);
-    }
-    if (recovery?.kind === "securityRecovered") {
-      if (recoveryToastTimerRef.current) window.clearTimeout(recoveryToastTimerRef.current);
-      setRecoveryToast({ seat: recovery.seat, amount: recovery.amount, key: Date.now() });
-      recoveryToastTimerRef.current = window.setTimeout(() => setRecoveryToast(null), 2800);
-    }
-    if (resolvedEffect?.kind === "effectResolved") {
-      if (effectNoticeTimerRef.current) window.clearTimeout(effectNoticeTimerRef.current);
-      setEffectNotice({
-        cardId: resolvedEffect.sourceCardId,
-        timing: resolvedEffect.timing,
-        description: resolvedEffect.description,
-        key: `${resolvedEffect.effectKey}-${events.length}`,
-      });
-      effectNoticeTimerRef.current = window.setTimeout(() => setEffectNotice(null), 2800);
-    }
-    if (turnEnd?.kind === "turnEnded") {
-      securityAttackerRef.current = undefined;
-      setTurnTransition({ endingSeat: turnEnd.endingSeat, nextSeat: turnEnd.nextSeat, turnCount: turnEnd.turnCount });
-      if (turnBannerTimerRef.current) window.clearTimeout(turnBannerTimerRef.current);
-      turnBannerTimerRef.current = window.setTimeout(() => setTurnTransition(null), TURN_BANNER_MS);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events]);
-
-  // One timer for the whole stack, set to the oldest panel's remaining lifetime.
-  useEffect(() => {
-    if (infoPanels.length === 0) return;
-    const oldest = Math.min(...infoPanels.map((panel) => panel.createdAt));
-    const remaining = Math.max(0, oldest + INFO_PANEL_LIFETIME_MS - Date.now());
-    const timer = window.setTimeout(() => setInfoPanels((panels) => expireInfoPanels(panels, Date.now())), remaining);
-    return () => window.clearTimeout(timer);
-  }, [infoPanels]);
-
   useEffect(
     () => () => {
-      if (attackAnnounceTimerRef.current) window.clearTimeout(attackAnnounceTimerRef.current);
-      if (securityClashTimerRef.current) window.clearTimeout(securityClashTimerRef.current);
-      if (recoveryToastTimerRef.current) window.clearTimeout(recoveryToastTimerRef.current);
-      if (effectNoticeTimerRef.current) window.clearTimeout(effectNoticeTimerRef.current);
       if (inspectorTimerRef.current) window.clearTimeout(inspectorTimerRef.current);
-      if (lungeTimerRef.current) window.clearTimeout(lungeTimerRef.current);
-      if (securityHitTimerRef.current) window.clearTimeout(securityHitTimerRef.current);
-      if (turnBannerTimerRef.current) window.clearTimeout(turnBannerTimerRef.current);
-      for (const timer of drawFlightTimersRef.current) window.clearTimeout(timer);
-      drawFlightTimersRef.current = [];
     },
     [],
   );
@@ -623,7 +524,96 @@ export function GameScreen({
     setSecurityView(null);
     setDigiXrosPick(null);
     setOppInspector(null);
+    setDecisionAsDialog(false);
   }, [decision?.decisionId, state?.turnSeat]);
+
+  /* The live target arrow (`TargetArrow.cs`). What it points at is protocol truth —
+     the declared attack still open, or the targets the viewer has picked for the
+     effect currently asking. Where those cards *are* changes constantly (a card
+     suspends, the board reflows, the hand grows), so the endpoints are re-solved
+     every frame while the arrow is up rather than measured once at declaration. */
+  const attackerCardIds = new Map(
+    [...(state?.players ?? [])].flatMap((player) =>
+      [...player.battleArea, ...(player.breeding ? [player.breeding] : [])].flatMap((permanent) =>
+        permanent.topCard?.cardId ? [[permanent.topCard.cardId, permanent.permanentId] as const] : [],
+      ),
+    ),
+  );
+  const trackingArrowRequest =
+    activeAttackArrow(events) ??
+    effectTargetArrow({
+      decision,
+      picks,
+      viewerSeat,
+      sourcePermanentId: decision?.sourceCardId ? attackerCardIds.get(decision.sourceCardId) : undefined,
+    });
+  const [trackingArrow, setTrackingArrow] = useState<TrackingArrowGeometry | null>(null);
+  const trackingArrowRef = useRef<TrackingArrow | null>(null);
+  trackingArrowRef.current = trackingArrowRequest;
+  const trackingArrowActive = trackingArrowRequest !== null;
+  useEffect(() => {
+    if (!trackingArrowActive) {
+      setTrackingArrow(null);
+      return;
+    }
+    let frame = 0;
+    let applied = "";
+    const endpoint = (end: ArrowEndpoint, board: DOMRect): { x: number; y: number } | undefined => {
+      const element =
+        end.kind === "permanent"
+          ? permRefs.current[end.permanentId]
+          : end.seat === viewerSeat
+            ? yourSecRef.current
+            : oppSecRef.current;
+      if (!element?.isConnected) return undefined;
+      const rect = element.getBoundingClientRect();
+      if (!rect.width) return undefined;
+      return { x: rect.left + rect.width / 2 - board.left, y: rect.top + rect.height / 2 - board.top };
+    };
+    const solve = () => {
+      frame = window.requestAnimationFrame(solve);
+      const request = trackingArrowRef.current;
+      const board = boardRef.current;
+      if (!request || !board) return;
+      const boardRect = board.getBoundingClientRect();
+      const from = endpoint(request.from, boardRect);
+      const to = request.to.flatMap((end) => {
+        const point = endpoint(end, boardRect);
+        return point ? [point] : [];
+      });
+      if (!from || to.length === 0) {
+        if (applied !== "") {
+          applied = "";
+          setTrackingArrow(null);
+        }
+        return;
+      }
+      const signature = `${request.key}|${Math.round(from.x)},${Math.round(from.y)}|${to
+        .map((point) => `${Math.round(point.x)},${Math.round(point.y)}`)
+        .join(";")}`;
+      if (signature === applied) return;
+      applied = signature;
+      setTrackingArrow({ key: request.key, kind: request.kind, from, to });
+    };
+    frame = window.requestAnimationFrame(solve);
+    return () => window.cancelAnimationFrame(frame);
+  }, [trackingArrowActive, viewerSeat]);
+
+  /* The activation moment for an effect fired from a zone rather than a card on
+     the field: the trash pile throws its top card up, the hand raises the Option.
+     Which zone the source is in comes from the board (`effectSource.ts`), not from
+     the event, which names only the card. */
+  const effectSourceSeats = new Map(effectSources.map((activation) => [activation.key, activation]));
+  const trashEffectSource = (seat: Seat): string | undefined =>
+    [...effectSourceSeats.values()].some((activation) => activation.seat === seat && activation.site.zone === "trash")
+      ? "game-pile--effect-source"
+      : undefined;
+  const handEffectSourceInstanceId = effectSources.find(
+    (activation) => activation.seat === viewerSeat && activation.site.zone === "hand",
+  )?.site;
+  const effectSourcePermanentIds = new Set(
+    effectSources.flatMap((activation) => (activation.site.zone === "field" ? [activation.site.permanentId] : [])),
+  );
 
   // Attack arrow: from the selected attacker to the opponent's security pile.
   useEffect(() => {
@@ -671,6 +661,8 @@ export function GameScreen({
         d.capture?.setPointerCapture?.(e.pointerId);
       }
       setDrag({ ...d, x: e.clientX, y: e.clientY, started: true });
+      const hit = dropZoneAt(e.clientX, e.clientY);
+      setDragHover((current) => (current?.target === hit?.target && current?.id === hit?.id ? current : (hit ?? null)));
     };
     const up = (e: PointerEvent) => {
       const d = dragRef.current;
@@ -685,8 +677,12 @@ export function GameScreen({
         }
       }
       setDrag(null);
+      setDragHover(null);
     };
-    const cancel = () => setDrag(null);
+    const cancel = () => {
+      setDrag(null);
+      setDragHover(null);
+    };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
     window.addEventListener("pointercancel", cancel);
@@ -701,18 +697,93 @@ export function GameScreen({
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
 
-  // A hand that grew was drawn into. The opening hand and a mulligan redeal are
-  // not draws, so the first observed pair is only a baseline.
-  const mulliganOpen = decision?.kind === "mulligan";
+  // Re-measured whenever the board's population changes, which is also the commit that
+  // drops a deleted permanent: the survivors are re-measured and the deleted permanent's
+  // last position stays behind for its burst.
+  const battleAreaSignature = `${you?.battleArea.map((p) => p.permanentId).join(",") ?? ""}|${
+    opp?.battleArea.map((p) => p.permanentId).join(",") ?? ""
+  }`;
+  const permInstanceIds = new Map(
+    [...(you?.battleArea ?? []), ...(opp?.battleArea ?? [])].flatMap((perm) =>
+      perm.topCard?.instanceId ? [[perm.permanentId, perm.topCard.instanceId] as const] : [],
+    ),
+  );
+  const permCardIds = new Map(
+    [...(you?.battleArea ?? []), ...(opp?.battleArea ?? [])].flatMap((perm) =>
+      perm.topCard?.cardId ? [[perm.permanentId, perm.topCard.cardId] as const] : [],
+    ),
+  );
   useEffect(() => {
-    if (you === undefined || opp === undefined) return;
-    const previous = handCountsRef.current;
-    handCountsRef.current = { you: you.handCount, opp: opp.handCount };
-    if (!previous || mulliganOpen) return;
-    if (opp.handCount > previous.opp) launchDrawFlight("opp");
-    if (you.handCount > previous.you) launchDrawFlight("you");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [you?.handCount, opp?.handCount]);
+    const board = boardRef.current;
+    if (!board) return;
+    const boardRect = board.getBoundingClientRect();
+    for (const [permanentId, element] of Object.entries(permRefs.current)) {
+      if (!element?.isConnected) continue;
+      const rect = element.getBoundingClientRect();
+      if (!rect.width) continue;
+      const center = {
+        x: rect.left + rect.width / 2 - boardRect.left,
+        y: rect.top + rect.height / 2 - boardRect.top,
+      };
+      permCentersRef.current[permanentId] = center;
+      // A deletion by an effect names the card instance rather than the permanent, so the
+      // top card is remembered as a second way in to the same position.
+      const topInstanceId = permInstanceIds.get(permanentId);
+      if (topInstanceId) permCentersRef.current[topInstanceId] = center;
+      const topCardId = permCardIds.get(permanentId);
+      if (topCardId) {
+        permCardIdsRef.current[permanentId] = topCardId;
+        if (topInstanceId) permCardIdsRef.current[topInstanceId] = topCardId;
+      }
+    }
+  }, [battleAreaSignature]);
+
+  // The mask's holes. The prompt's candidate list is written to the ref during
+  // render (it is derived far below, after the connection gates); the boxes are
+  // measured here, and the state is only replaced when the geometry actually
+  // moved, so an effect that runs on every commit still settles in one pass.
+  const spotlightRequestRef = useRef<{ ids: readonly string[]; suspended: ReadonlySet<string> }>({
+    ids: [],
+    suspended: new Set(),
+  });
+  const spotlightAppliedRef = useRef("");
+  useEffect(() => {
+    const board = boardRef.current;
+    const { ids, suspended } = spotlightRequestRef.current;
+    if (!board || ids.length === 0) {
+      if (spotlightAppliedRef.current !== "") {
+        spotlightAppliedRef.current = "";
+        setSpotlightSubjects([]);
+      }
+      return;
+    }
+    const boardRect = board.getBoundingClientRect();
+    const next: SpotlightSubject[] = [];
+    for (const id of ids) {
+      const element = permRefs.current[id];
+      if (!element?.isConnected) continue;
+      const rect = element.getBoundingClientRect();
+      if (!rect.width || !rect.height) continue;
+      next.push({
+        id,
+        x: rect.left - boardRect.left,
+        y: rect.top - boardRect.top,
+        width: rect.width,
+        height: rect.height,
+        suspended: suspended.has(id),
+      });
+    }
+    const signature = `${Math.round(boardRect.width)}x${Math.round(boardRect.height)}|${next
+      .map(
+        (subject) =>
+          `${subject.id}:${Math.round(subject.x)}:${Math.round(subject.y)}:${Math.round(subject.width)}:${Math.round(subject.height)}:${subject.suspended ? 1 : 0}`,
+      )
+      .join(",")}`;
+    if (signature === spotlightAppliedRef.current) return;
+    spotlightAppliedRef.current = signature;
+    setSpotlightSubjects(next);
+    setBoardSize({ width: boardRect.width, height: boardRect.height });
+  });
 
   // ----- pre-match / connection gates -----
   if (status === "reconnecting") {
@@ -785,6 +856,13 @@ export function GameScreen({
   }
 
   const isMyTurn = state.turnSeat === viewerSeat;
+  const breedingWindow = isBreedingWindow({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat });
+  // The breeding step is answered on the board rather than in a dialog: the egg
+  // deck hatches, the raising slot moves out and the turn control ends the step.
+  // These drive the highlights and the hint that stand in for the old modal.
+  const canHatchEgg = you.eggDeckCount > 0 && !you.breeding;
+  const canMoveOutOfBreeding = canMoveFromBreeding(you.breeding);
+  const breedingActionsOpen = breedingWindow && !decision && !securityClash && !state.gameOver;
   const memory = displayMemory(state, viewerSeat);
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
   const youColor = identityColor;
@@ -795,6 +873,7 @@ export function GameScreen({
     cardId: ci.cardId,
     activatableEffectsJson: ci.activatableEffectsJson,
     playableFromHand: ci.playableFromHand,
+    projectedPlayCost: ci.projectedPlayCost,
     digivolveTargetPermanentIds: [...ci.digivolveTargetPermanentIds],
   }));
   const selEntry = handSel ? handEntries.find((h) => h.instanceId === handSel) : undefined;
@@ -868,6 +947,16 @@ export function GameScreen({
               })
               .flat()
           : [];
+        const intrinsicTrashNames = digiXrosTrashNameAllowanceFor(entry.cardId);
+        const intrinsicTrashMax =
+          intrinsicTrashNames !== undefined &&
+          you.battleArea.every((permanent) => {
+            if (!permanent.topCard) return true;
+            const definition = getCardDefinition(permanent.topCard.cardId);
+            return !definition?.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(definition.nameEn);
+          })
+            ? reqs[0]?.maxMaterials ?? 0
+            : 0;
         setDigiXrosPick({
           instanceId,
           cardId: entry.cardId,
@@ -875,6 +964,7 @@ export function GameScreen({
           candidates,
           lockedCandidates,
           eligibleExpanders,
+          intrinsicTrashMax,
         });
         return;
       }
@@ -884,6 +974,7 @@ export function GameScreen({
       }
     }
     if (room) {
+      lastPlayAttemptRef.current = instanceId;
       playGameCue("cardPlay");
       intents.playCard(room, instanceId);
     }
@@ -891,6 +982,7 @@ export function GameScreen({
   };
   const digivolve = (permanentId: string, instanceId: string, useAlternateCost?: boolean) => {
     if (room) {
+      lastPlayAttemptRef.current = instanceId;
       playGameCue("digivolve");
       intents.digivolve(room, permanentId, instanceId, useAlternateCost);
     }
@@ -909,6 +1001,12 @@ export function GameScreen({
       playSound("confirm");
       if (room) intents.respondDecision(room, decision.decisionId, response);
       acknowledgeDecision?.(decision.decisionId);
+      // No server event narrates what the viewer picked, so the panel is raised
+      // from the answer itself, in the order the cards were chosen.
+      const revealed = new Map(decision.options?.visibleCards?.map((card) => [card.instanceId, card.cardId]));
+      cues.showSelection(
+        picks.flatMap((id) => [instanceIndex.get(id) ?? revealed.get(id)].filter((c) => c !== undefined)),
+      );
     }
     setPicks([]);
   };
@@ -1033,6 +1131,48 @@ export function GameScreen({
   const dragIsPlay = drag?.kind === "play" && drag.started;
   const dragIsAttack = drag?.kind === "attack" && drag.started;
 
+  /**
+   * What releasing here would do, or null where the drop would be refused. Every
+   * answer is the server's projection read back through `dragIntents.ts`; the
+   * board only paints it.
+   */
+  const dragIntentAt = (hit: DropZoneHit | null): DragIntent | null => {
+    if (!hit || !drag?.started) return null;
+    if (drag.kind === "attack") {
+      const attacker = you.battleArea.find((p) => p.permanentId === drag.permId);
+      return dragIntentFor({
+        drag: { kind: "attack" },
+        target: hit.target,
+        canAttackPlayer: attacker?.canAttackPlayer === true,
+        attackable: hit.id !== undefined && attacker?.attackablePermanentIds.includes(hit.id) === true,
+      });
+    }
+    const definition = getCardDefinition(drag.cardId);
+    const held = {
+      kind: "play" as const,
+      isOption: definition?.kinds.includes(CardKind.Option) ?? false,
+      isDigiEgg: definition?.kinds.includes(CardKind.DigiEgg) ?? false,
+    };
+    const base = hit.target === "perm-you" ? you.battleArea.find((p) => p.permanentId === hit.id) : undefined;
+    const route = base
+      ? handCardEvolutionRoute(drag.cardId, you.battleArea, digivolveTargetsOf(drag.instanceId).includes(hit.id ?? ""))
+      : undefined;
+    return dragIntentFor({
+      drag: held,
+      target: hit.target,
+      evolutionRoute: route?.kind,
+      digivolvable: !!you.breeding && digivolveTargetsOf(drag.instanceId).includes(you.breeding.permanentId),
+    });
+  };
+
+  /** The `data-drag-intent` an area wears while it would accept the card in the air. */
+  const dropIntentAttrs = (target: DropTarget, id?: string): Record<string, string> => {
+    const intent = dragIntentAt({ target, id });
+    return intent ? { "data-drag-intent": intent } : {};
+  };
+
+  const hoveredDragIntent = dragIntentAt(dragHover);
+
   // ----- drag plumbing -----
   const startHandDrag = (index: number, e: React.PointerEvent) => {
     const entry = handEntries[index];
@@ -1093,11 +1233,18 @@ export function GameScreen({
       setSelPerm(null);
       return;
     }
-    setHandSel((selected) => {
-      const next = selected === entry.instanceId ? null : entry.instanceId;
-      if (next) playSound("select");
-      return next;
-    });
+    // Desktop: the first click arms the card, exactly as before — that meaning wins.
+    // The second click on the card already armed is the one that carried nothing, so
+    // it is the one that opens the focused overlay the touch layout reaches through
+    // its card sheet. Nothing grows under the cursor any more, so this is how a hand
+    // card is read here. The selection survives the overlay; every other path that
+    // cleared it (playing, cancelling, a new decision, the turn flipping) still does.
+    if (handSel === entry.instanceId) {
+      setZoomCardId(entry.cardId);
+      return;
+    }
+    playSound("select");
+    setHandSel(entry.instanceId);
     setSelPerm(null);
   };
 
@@ -1111,22 +1258,9 @@ export function GameScreen({
   };
 
   const handleDrop = (d: DragState, cx: number, cy: number) => {
-    let zone: Element | null = null;
-    let bestArea = Infinity;
-    document.querySelectorAll("[data-drop]").forEach((z) => {
-      const r = z.getBoundingClientRect();
-      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
-        const area = r.width * r.height;
-        if (area < bestArea) {
-          bestArea = area;
-          zone = z;
-        }
-      }
-    });
+    const zone = dropZoneAt(cx, cy);
     if (!zone) return;
-    const el = zone as Element;
-    const target = el.getAttribute("data-drop");
-    const id = el.getAttribute("data-id") ?? undefined;
+    const { target, id } = zone;
 
     if (d.kind === "play") {
       const def = getCardDefinition(d.cardId);
@@ -1251,12 +1385,12 @@ export function GameScreen({
       setOppInspector({ permanentId, x: rect.right, y: rect.top });
     };
     if (immediate) open();
-    else inspectorTimerRef.current = window.setTimeout(open, 320);
+    else inspectorTimerRef.current = window.setTimeout(open, TIMINGS.inspectorOpen);
   };
 
   const hideOpponentInspector = () => {
     if (inspectorTimerRef.current) window.clearTimeout(inspectorTimerRef.current);
-    inspectorTimerRef.current = window.setTimeout(() => setOppInspector(null), 160);
+    inspectorTimerRef.current = window.setTimeout(() => setOppInspector(null), TIMINGS.inspectorClose);
   };
 
   function openOwnPermanent(permanentId: string) {
@@ -1350,6 +1484,14 @@ export function GameScreen({
     return state.winnerSeat === viewerSeat ? "win" : "loss";
   })();
 
+  // Turn order is server truth: `matchStarted` names the seat that takes turn 1.
+  // Nothing is shown until that event has arrived rather than inferring a side.
+  const viewerTurnOrder = (() => {
+    const started = events.find((event) => event.kind === "matchStarted");
+    if (started?.kind !== "matchStarted") return undefined;
+    return started.firstSeat === viewerSeat ? ("first" as const) : ("second" as const);
+  })();
+
   const attackerPerm = selPerm ? you.battleArea.find((p) => p.permanentId === selPerm) : undefined;
   const draggedAttackerPerm =
     drag?.kind === "attack" ? you.battleArea.find((p) => p.permanentId === drag.permId) : undefined;
@@ -1358,6 +1500,150 @@ export function GameScreen({
   const attackTargets = attackTargetsOf(attackerPerm, opp.battleArea, vortexMode);
   const canAttackSecurity = canAttackPlayerWith(attackerPerm, vortexMode);
 
+  // ----- the open decision, and where it is answered -----
+  // Everything below reads the server's decision payload; the client adds no
+  // legality of its own, it only decides which surface the payload renders on.
+  const viewerDecision = decision && decision.seat === viewerSeat ? decision : undefined;
+  const allPermanents = [...you.battleArea, ...opp.battleArea];
+  const handInstanceIds = handEntries.map((entry) => entry.instanceId);
+  const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;
+  const decisionSourcePermanentId =
+    viewerDecision?.kind === "optional" ? sourcePermanentIdOf(decisionSourceCardId, allPermanents) : undefined;
+  const boardPresentation = viewerDecision
+    ? decisionPresentation({
+        decision: viewerDecision,
+        handInstanceIds,
+        sourcePermanentId: decisionSourcePermanentId,
+      })
+    : "dialog";
+  const answerOnBoard = boardPresentation === "board" && !decisionAsDialog;
+  const decisionHighlightPermanentId = answerOnBoard ? decisionSourcePermanentId : undefined;
+
+  const decisionSelectable = new Set(viewerDecision?.options?.candidateInstanceIds ?? []);
+  const decisionVisible = viewerDecision ? decisionVisibleCards(viewerDecision.options, instanceIndex) : [];
+  const decisionVisibleCardIds = new Map(decisionVisible.map((card) => [card.instanceId, card.cardId]));
+  const decisionInstanceColors = decisionCardColors(decisionVisible);
+  const decisionDifferentColors = viewerDecision?.options?.differentColors === true;
+  const decisionDistinctCardIds = viewerDecision?.options?.distinctCardIds === true;
+  // CR 4-24-2: a multicolor card only needs one color no other pick uses, so the
+  // picks stay legal as long as a distinct color can still be assigned to each.
+  const decisionAllowsPick = (instanceId: string) =>
+    decisionSelectable.has(instanceId) &&
+    differentColorsAllowCandidate(instanceId, picks, decisionInstanceColors, decisionDifferentColors) &&
+    distinctCardIdsAllow(instanceId, picks, decisionVisibleCardIds, decisionDistinctCardIds);
+  const toggleDecisionPick = (instanceId: string) => {
+    if (!decisionAllowsPick(instanceId)) return;
+    setPicks((current) => {
+      if (current.includes(instanceId)) return current.filter((id) => id !== instanceId);
+      const max = viewerDecision?.options?.max ?? 1;
+      const keep = max > 1 ? current.slice(-(max - 1)) : [];
+      return [...keep, instanceId];
+    });
+  };
+  const decisionMin = viewerDecision?.options?.min ?? 1;
+  const decisionMax = viewerDecision?.options?.max ?? 1;
+  // What the resolving effect will do to each target the viewer has picked. The
+  // fate is the server's own projection (`options.targetFate`); a prompt that
+  // carries none badges nothing.
+  const fateBadges = pendingFateBadges({ decision: viewerDecision, picks, viewerSeat });
+
+  // The cards a target selection currently offers, which is what the mask lights.
+  // Every id here is a server projection read back off the board — the attack
+  // targets the server listed for the chosen attacker, and the bases it listed
+  // for the chosen hand card. Only the tap flows arm the mask: a drag already
+  // carries its own ghost and outlined drop areas, and a second dark pass over
+  // that would be noise. The breeding step keeps its own dim (`breedingWindow`).
+  const spotlightIds = (() => {
+    if (breedingWindow) return [];
+    if (selPerm) return attackTargetIdsOf(attackerPerm, vortexMode);
+    if (handSel && handIsDigi) return you.battleArea.filter(eligibleBase).map((p) => p.permanentId);
+    return [];
+  })();
+  spotlightRequestRef.current = {
+    ids: spotlightIds,
+    suspended: new Set(allPermanents.filter((permanent) => permanent.isSuspended).map((p) => p.permanentId)),
+  };
+  const spotlightOpen = spotlightIds.length > 0;
+
+  // Where memory would land if the action the pointer is offering were taken. Which
+  // action that is changes with the pointer: a hovered or selected hand card prices its
+  // play, a drag over a base prices the digivolution onto that base, and a drag over an
+  // area that would refuse the drop prices nothing. The costs are the server's own
+  // (`projectedPlayCost`, and the paths `getDigivolveCostOptions` reads off the routes
+  // the server offered); the printed figure is only the fallback for a card it did not
+  // project. Still a dashed prediction that gates nothing: a [BeforePayCost] reducer can
+  // lower it again at pay time, which the server cannot resolve without prompting.
+  const previewEntry = (() => {
+    if (dragIsPlay && drag) return handEntries.find((candidate) => candidate.instanceId === drag.instanceId);
+    const instanceId = hoveredHandInstanceId ?? handSel ?? undefined;
+    if (instanceId === undefined) return undefined;
+    return handEntries.find((candidate) => candidate.instanceId === instanceId);
+  })();
+  const previewPlayCost = (() => {
+    if (!previewEntry) return undefined;
+    if (previewEntry.projectedPlayCost >= 0) return previewEntry.projectedPlayCost;
+    const printed = getCardDefinition(previewEntry.cardId)?.playCost;
+    return printed !== undefined && printed >= 0 ? printed : undefined;
+  })();
+  /** The cheapest priced digivolution path onto `base`, or undefined when none is priced. */
+  const cheapestDigivolveCost = (cardId: string, base: Permanent | undefined): number | undefined => {
+    if (!base) return undefined;
+    const costs = getDigivolveCostOptions(cardId, base, you, opp).map((option) => option.cost);
+    return costs.length > 0 ? Math.min(...costs) : undefined;
+  };
+  // What the hovered area would do with the card in the air, priced. Read off the same
+  // intent the board paints, so the preview and the drop can never disagree.
+  const previewDropTarget = ((): MemoryDropTarget | undefined => {
+    if (!dragIsPlay || !drag || !dragHover) return undefined;
+    switch (hoveredDragIntent) {
+      case "play":
+      case "use":
+        return { kind: "field" };
+      case "evolve": {
+        const base = you.battleArea.find((permanent) => permanent.permanentId === dragHover.id);
+        return { kind: "permanent", digivolve: { cost: cheapestDigivolveCost(drag.cardId, base) } };
+      }
+      case "breeding":
+        return { kind: "breeding", digivolve: { cost: cheapestDigivolveCost(drag.cardId, you.breeding) } };
+      default:
+        return { kind: "refused" };
+    }
+  })();
+  const memoryCostCandidate = memoryCostPreview({
+    heldCard: previewEntry
+      ? { playable: previewEntry.playableFromHand === true, playCost: previewPlayCost }
+      : undefined,
+    dropTarget: previewDropTarget,
+  });
+  const memoryPrediction = memoryCostCandidate ? predictedMemory(memory, memoryCostCandidate.cost) : undefined;
+
+  const triggerDetails =
+    viewerDecision?.kind === "orderTriggers"
+      ? (viewerDecision.options?.triggerKeys ?? []).map((key, index) => {
+          const slots = fieldSlots(allPermanents);
+          const source = triggerSource(parseTriggerKey(key).instanceId, {
+            fieldSlots: slots,
+            handInstanceIds,
+          });
+          const cardId = viewerDecision.options?.triggerCardIds?.[index] ?? triggerCardId(key);
+          const clause =
+            playerFacingEffectClause({
+              cardId,
+              timing: viewerDecision.options?.timing,
+              description: undefined,
+            }) ?? getCardDefinition(cardId)?.effectText;
+          return {
+            sourceLabel:
+              source.zone === "field"
+                ? t("overlay.triggerSourceField", { position: source.position })
+                : source.zone === "hand"
+                  ? t("overlay.triggerSourceHand")
+                  : undefined,
+            summary: triggerClauseSummary(clause),
+          };
+        })
+      : [];
+
   // ----- overlays -----
   const stageEl = typeof document !== "undefined" ? document.getElementById("aegis-stage") : null;
   const overlays = (
@@ -1365,6 +1651,7 @@ export function GameScreen({
       {decision && decision.seat === viewerSeat && decision.kind === "mulligan" ? (
         <MulliganOverlay
           handCardIds={handEntries.map((h) => h.cardId)}
+          turnOrder={viewerTurnOrder}
           onKeep={() => respondMulligan(true)}
           onMulligan={() => respondMulligan(false)}
         />
@@ -1393,82 +1680,86 @@ export function GameScreen({
         />
       ) : null}
 
-      {decision &&
-      decision.seat === viewerSeat &&
-      (decision.kind === "optional" ||
-        decision.kind === "chooseTargets" ||
-        decision.kind === "selectCards" ||
-        decision.kind === "orderCards" ||
-        decision.kind === "chooseOption" ||
-        decision.kind === "orderTriggers")
+      {viewerDecision && viewerDecision.kind !== "mulligan" && !answerOnBoard
         ? (() => {
-            const selectable = new Set(decision.options?.candidateInstanceIds ?? []);
-            const visibleCards = decisionVisibleCards(decision.options, instanceIndex);
-            const visible = visibleCards.map((card) => card.instanceId);
-            const visibleCardIds = new Map(visibleCards.map((card) => [card.instanceId, card.cardId]));
-            const sourceCounts = decisionSourceCounts([...you.battleArea, ...opp.battleArea]);
-            const permanentDetails = decisionPermanentDetails([...you.battleArea, ...opp.battleArea]);
-            const opts = decision.options;
-            const diffColors = opts?.differentColors === true;
-            const distinctCardIds = opts?.distinctCardIds === true;
-            const instanceColors = decisionCardColors(visibleCards);
-            // CR 4-24-2: a multicolor card only needs one color no other pick uses, so the
-            // picks stay legal as long as a distinct color can still be assigned to each.
-            const distinctColorsAllow = (iid: string) =>
-              differentColorsAllowCandidate(iid, picks, instanceColors, diffColors);
+            const sourceCounts = decisionSourceCounts(allPermanents);
+            const permanentDetails = decisionPermanentDetails(allPermanents);
             return (
               <DecisionOverlay
-                key={decision.decisionId}
-                request={decision}
-                sourceCardId={decisionEffectSource(decision, events)}
-                candidates={visible.map((iid) => {
-                  const details = permanentDetails.get(iid);
+                key={viewerDecision.decisionId}
+                request={viewerDecision}
+                sourceCardId={decisionSourceCardId}
+                candidates={decisionVisible.map((card) => {
+                  const details = permanentDetails.get(card.instanceId);
                   return {
-                    instanceId: iid,
-                    cardId: visibleCardIds.get(iid),
-                    selectable:
-                      selectable.has(iid) &&
-                      distinctColorsAllow(iid) &&
-                      distinctCardIdsAllow(iid, picks, visibleCardIds, distinctCardIds),
-                    sourceCount: sourceCounts.get(iid),
+                    instanceId: card.instanceId,
+                    cardId: card.cardId,
+                    selectable: decisionAllowsPick(card.instanceId),
+                    sourceCount: sourceCounts.get(card.instanceId),
                     currentDP: details?.currentDP,
                     isSuspended: details?.isSuspended,
                   };
                 })}
                 picks={picks}
-                onTogglePick={(iid) => {
-                  if (!selectable.has(iid)) return;
-                  if (!distinctColorsAllow(iid)) return;
-                  if (!distinctCardIdsAllow(iid, picks, visibleCardIds, distinctCardIds)) return;
-                  setPicks((p) => {
-                    if (p.includes(iid)) return p.filter((x) => x !== iid);
-                    const max = decision.options?.max ?? 1;
-                    const keep = max > 1 ? p.slice(-(max - 1)) : [];
-                    return [...keep, iid];
-                  });
-                }}
+                triggerDetails={triggerDetails}
+                onTogglePick={toggleDecisionPick}
                 onRespond={respondDecision}
               />
             );
           })()
         : null}
 
-      {state.phase === Phase.Breeding && isMyTurn && !decision && !securityClash
-        ? (() => {
-            const canHatch = you.eggDeckCount > 0 && !you.breeding;
-            const canMove = canMoveFromBreeding(you.breeding);
-            if (!canHatch && !canMove) return null;
-            return (
-              <BreedingOverlay
-                canHatch={canHatch}
-                canMove={canMove}
-                onHatch={() => room && intents.hatchEgg(room)}
-                onMove={() => room && you.breeding && intents.moveFromBreeding(room, you.breeding.permanentId)}
-                onSkip={() => room && intents.endPhase(room)}
-              />
-            );
-          })()
-        : null}
+      {viewerDecision && answerOnBoard && viewerDecision.kind === "selectCards" ? (
+        <BoardSelectionRail
+          key={viewerDecision.decisionId}
+          prompt={
+            playerFacingPromptText(viewerDecision.promptText, viewerDecision.kind) ??
+            (decisionMin === decisionMax
+              ? t("overlay.selectCardsSubtitle", { count: decisionMax })
+              : t("overlay.selectCardsRangeSubtitle", { range: `${decisionMin}–${decisionMax}` }))
+          }
+          clause={
+            decisionSourceCardId
+              ? playerFacingEffectClause({
+                  cardId: decisionSourceCardId,
+                  timing: viewerDecision.options?.timing,
+                  description: viewerDecision.options?.effectText,
+                })
+              : viewerDecision.options?.effectText
+          }
+          min={decisionMin}
+          max={decisionMax}
+          pickCount={picks.length}
+          canConfirm={picks.length >= decisionMin && picks.length <= decisionMax}
+          onConfirm={() => respondDecision({ kind: "selectCards", instanceIds: picks })}
+          onNoSelection={() => respondDecision({ kind: "selectCards", instanceIds: [] })}
+          onOpenDialog={() => setDecisionAsDialog(true)}
+        />
+      ) : null}
+
+      {viewerDecision && answerOnBoard && viewerDecision.kind === "optional" ? (
+        <BoardOptionalPrompt
+          key={viewerDecision.decisionId}
+          sourceCardId={decisionSourceCardId}
+          prompt={playerFacingPromptText(viewerDecision.promptText, viewerDecision.kind)}
+          clause={
+            decisionSourceCardId
+              ? playerFacingEffectClause({
+                  cardId: decisionSourceCardId,
+                  timing: viewerDecision.options?.timing,
+                  description: viewerDecision.options?.effectText,
+                })
+              : viewerDecision.options?.effectText
+          }
+          onUse={() => respondDecision({ kind: "optional", accept: true })}
+          onDecline={() => respondDecision({ kind: "optional", accept: false })}
+          onOpenDialog={() => setDecisionAsDialog(true)}
+        />
+      ) : null}
+
+      {state.pendingDecision && state.pendingDecision.seat !== viewerSeat && !state.gameOver ? (
+        <OpponentSelectingPill />
+      ) : null}
 
       {blockWindow ? (
         <BlockOverlay
@@ -1529,27 +1820,25 @@ export function GameScreen({
         />
       ) : null}
 
+      {securityBreak && securityBreak.phase === "break" && !state.gameOver ? (
+        <SecurityEdgeFlash key={securityBreak.key} scene={securityBreak} />
+      ) : null}
+
       {securityClash && !state.gameOver ? <SecurityClash key={securityClash.key} scene={securityClash} /> : null}
 
-      {recoveryToast && !state.gameOver ? (
-        <RecoveryToast
-          key={recoveryToast.key}
-          amount={recoveryToast.amount}
-          mine={recoveryToast.seat === viewerSeat}
-          anchor={recoveryToast.seat === viewerSeat ? yourSecRef.current : oppSecRef.current}
-        />
+      {securityBranch && !state.gameOver ? <SecurityBranch key={securityBranch.key} scene={securityBranch} /> : null}
+
+      {zoneShowcase && !securityClash && !state.gameOver ? (
+        <ZoneShowcase key={zoneShowcase.key} showcase={zoneShowcase} />
       ) : null}
 
-      {effectNotice && !decision && !state.gameOver ? (
-        <EffectClauseToast
-          key={effectNotice.key}
-          cardId={effectNotice.cardId}
-          timing={effectNotice.timing}
-          description={effectNotice.description}
-        />
+      {historyOpen ? (
+        <PlayLogSidebar log={log} onClose={() => setHistoryOpen(false)} onOpenCard={setZoomCardId} />
       ) : null}
 
-      {historyOpen ? <MatchHistorySheet log={log} onClose={() => setHistoryOpen(false)} /> : null}
+      {cutIn && !state.gameOver ? <DigivolutionCutInView key={cutIn.key} cutIn={cutIn} /> : null}
+
+      {zoomCardId ? <CardZoomOverlay cardId={zoomCardId} onClose={() => setZoomCardId(null)} /> : null}
 
       {bugReportOpen ? <BugReportDialog signedIn={signedIn} onClose={() => setBugReportOpen(false)} /> : null}
 
@@ -1648,6 +1937,7 @@ export function GameScreen({
           candidates={digiXrosPick.candidates}
           lockedCandidates={digiXrosPick.lockedCandidates}
           eligibleExpanders={digiXrosPick.eligibleExpanders}
+          intrinsicTrashMax={digiXrosPick.intrinsicTrashMax}
           onConfirm={(materialInstanceIds, expanderPermanentIds) => {
             if (room)
               intents.playCard(room, digiXrosPick.instanceId, undefined, { materialInstanceIds, expanderPermanentIds });
@@ -1736,6 +2026,8 @@ export function GameScreen({
               <StackViewerOverlay
                 title={getCardDefinition(perm.topCard?.cardId ?? "")?.nameEn ?? t("game.stack")}
                 cards={stackCardsOf(perm)}
+                detail={buildPermanentDetail(perm)}
+                fate={fateBadges.get(perm.permanentId)}
                 canAttack={mine && canAttackWith(perm)}
                 canVortex={mine && canVortexAttackWith(perm)}
                 onAttack={() => beginAttack(perm.permanentId)}
@@ -1751,11 +2043,11 @@ export function GameScreen({
             const perm = findPermanent(oppInspector.permanentId);
             if (!perm) return null;
             return (
-              <OpponentPermanentInspector
-                title={getCardDefinition(perm.topCard?.cardId ?? "")?.nameEn ?? t("game.stack")}
-                cards={stackCardsOf(perm)}
-                x={oppInspector.x}
-                y={oppInspector.y}
+              <PermanentDetailInspector
+                detail={buildPermanentDetail(perm)}
+                fate={fateBadges.get(perm.permanentId)}
+                anchorX={oppInspector.x}
+                anchorY={oppInspector.y}
                 onInteractStart={keepOpponentInspector}
                 onInteractEnd={hideOpponentInspector}
               />
@@ -1811,11 +2103,21 @@ export function GameScreen({
   return (
     <main
       className="game-layout"
-      style={{ height: "100%", display: "flex", background: "var(--ds-background)", overflow: "hidden" }}
+      style={{
+        height: "100%",
+        display: "flex",
+        background: "var(--ds-background)",
+        overflow: "hidden",
+        ...BATTLE_TIMING_STYLE,
+      }}
     >
       <div
         className="game-board"
         ref={boardRef}
+        // Clicking through an opponent's sequence fast-forwards it, the way the
+        // reference client lets a player skip their cut-ins. Capture-phase and
+        // passive: it never swallows the click the board was going to handle.
+        onPointerDownCapture={() => cues.skipAnimations()}
         style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", ...battlefield }}
       >
         {/* opponent identity bar */}
@@ -1953,12 +2255,9 @@ export function GameScreen({
           />
         ) : null}
 
-        {!state.gameOver ? (
-          <InfoPanelStack
-            panels={infoPanels}
-            onDismiss={(id: string) => setInfoPanels((panels) => dismissInfoPanel(panels, id))}
-          />
-        ) : null}
+        {!state.gameOver ? <SidePanelStack panels={sidePanels} onDismiss={cues.dismissPanel} /> : null}
+
+        {!state.gameOver ? <NoticeStack notices={cues.notices} onDismiss={cues.dismissNotice} /> : null}
 
         {attackAnnouncement && !state.gameOver ? <AttackAnnouncementBanner announcement={attackAnnouncement} /> : null}
 
@@ -1985,28 +2284,9 @@ export function GameScreen({
           </aside>
         ) : null}
 
-        {flash ? (
-          <div
-            style={{
-              position: "absolute",
-              top: 64,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 70,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 7,
-              padding: "8px 16px",
-              borderRadius: 999,
-              background: "var(--ds-danger-light)",
-              color: "var(--ds-danger)",
-              fontSize: 13,
-              fontWeight: 600,
-              boxShadow: "var(--ds-shadow-md)",
-            }}
-          >
-            <Icons.CircleAlert size={15} />
-            {flash}
+        {phaseBanner ? (
+          <div className="game-phase-banner" key={phaseBanner.key} role="status">
+            <span>{t(phaseBanner.labelKey)}</span>
           </div>
         ) : null}
 
@@ -2021,7 +2301,19 @@ export function GameScreen({
         ) : null}
 
         {/* field: left column / center / right column */}
-        <div className="game-field" style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden" }}>
+        <div
+          className="game-field"
+          style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
+        >
+          {/* The breeding step is about one slot: the field dims behind the dock,
+              which keeps the raising area, the hand that digivolves into it and
+              the turn control lit. Notices, panels and dialogs all sit above. */}
+          {breedingWindow ? <div className="game-breeding-mode" aria-hidden="true" /> : null}
+          {/* The board darkens around exactly the cards the server offered. It is
+              a drawing only — the lit cards underneath keep every pointer event. */}
+          {spotlightOpen ? (
+            <TargetingSpotlight subjects={spotlightSubjects} width={boardSize.width} height={boardSize.height} />
+          ) : null}
           {/* left column: opp deck+trash (top) | your security (bottom) */}
           <aside
             className="game-pile-column game-pile-column--left"
@@ -2048,10 +2340,12 @@ export function GameScreen({
                   compact={compactPiles}
                   count={opp.deckCount}
                   label={t("game.pile.deck")}
+                  riffling={deckRiffles.has(`${otherSeat(viewerSeat)}:deck`)}
                   useSelectedSleeve={false}
                 />
               </div>
               <Pile
+                className={trashEffectSource(otherSeat(viewerSeat))}
                 compact={compactPiles}
                 count={opp.trash.length}
                 label={t("game.pile.trash")}
@@ -2066,6 +2360,10 @@ export function GameScreen({
               compact={compactPiles}
               count={you.securityCount}
               shield="you"
+              armed={securityBreak?.seat === viewerSeat && securityBreak.phase === "arm"}
+              breaking={securityBreak?.seat === viewerSeat && securityBreak.phase === "break"}
+              faceUp={hasFaceUpSecurity(you.security)}
+              landing={securityFlights.has(viewerSeat)}
               label={t("game.yourSecurityPile")}
               refEl={(el) => {
                 yourSecRef.current = el;
@@ -2103,7 +2401,7 @@ export function GameScreen({
                   {t("game.noDigimon")}
                 </span>
               ) : null}
-              {opp.battleArea.map((p) => {
+              {opp.battleArea.map((p, index) => {
                 // A drag is always a normal declaration; only the tap path can be in ＜Vortex＞ mode.
                 const isCand =
                   attackTargetIdsOf(attackerPerm, vortexMode).includes(p.permanentId) ||
@@ -2117,9 +2415,23 @@ export function GameScreen({
                     refCb={(el) => {
                       permRefs.current[p.permanentId] = el;
                     }}
-                    drop={{ "data-drop": "perm-opp", "data-id": p.permanentId }}
+                    drop={{
+                      "data-drop": "perm-opp",
+                      "data-id": p.permanentId,
+                      ...dropIntentAttrs("perm-opp", p.permanentId),
+                    }}
                     candidate={isCand}
+                    effectSource={effectSourcePermanentIds.has(p.permanentId)}
+                    highlight={decisionHighlightPermanentId === p.permanentId}
+                    burst={permanentBursts.get(p.permanentId)}
+                    pending={pendingPermanentIds.has(p.permanentId)}
+                    fate={fateBadges.get(p.permanentId)}
+                    shake={combatImpactIds.has(p.permanentId)}
+                    claw={combatImpactIds.has(p.permanentId)}
+                    dpPulse={dpPulses.get(p.permanentId)}
+                    freezePulse={freezePulses.get(p.permanentId)}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
+                    suspendDelayMs={unsuspendStagger(otherSeat(viewerSeat), index)}
                     onClick={onOppPerm(p)}
                     onInspectStart={
                       !selPerm && !dragIsAttack
@@ -2132,17 +2444,21 @@ export function GameScreen({
               })}
             </div>
             <div className="game-memory-band" style={{ flexShrink: 0, position: "relative" }}>
-              <MemoryGauge value={memory} compact={compactPiles} phaseLabel={t(`game.phase.${state.phase}` as const)} />
-              <button
-                className={`game-end-turn-orb${isMyTurn ? "" : " game-end-turn-orb--waiting"}`}
-                disabled={!isMyTurn}
-                onClick={() => room && intents.endPhase(room)}
-              >
-                {isMyTurn ? t("game.endPhase") : t("game.opponentsTurn")}
-              </button>
+              <MemoryGauge
+                value={memory}
+                compact={compactPiles}
+                phaseLabel={t(`game.phase.${state.phase}` as const)}
+                phaseSweeping={unsuspendSweep !== null}
+                prediction={memoryPrediction}
+              />
+              <TurnControl
+                state={turnControlState({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat })}
+                onEndPhase={() => room && intents.endPhase(room)}
+              />
             </div>
             <div
               data-drop="battle-you"
+              {...dropIntentAttrs("battle-you")}
               className="game-battle-row game-battle-row--you"
               role="group"
               aria-label={t("game.yourBattleArea")}
@@ -2174,7 +2490,7 @@ export function GameScreen({
                   {dragIsPlay ? t("game.dropToPlay") : t("game.noDigimon")}
                 </span>
               ) : null}
-              {you.battleArea.map((p) => {
+              {you.battleArea.map((p, index) => {
                 const isBase =
                   (handIsDigi && eligibleBase(p)) ||
                   (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(p.permanentId));
@@ -2189,9 +2505,24 @@ export function GameScreen({
                       permRefs.current[p.permanentId] = el;
                     }}
                     candidate={isBase}
-                    highlight={selPerm === p.permanentId}
+                    effectSource={effectSourcePermanentIds.has(p.permanentId)}
+                    // A board-mode optional prompt points at the permanent whose
+                    // effect is asking, so the rail and the field read as one.
+                    highlight={selPerm === p.permanentId || decisionHighlightPermanentId === p.permanentId}
+                    burst={permanentBursts.get(p.permanentId)}
+                    pending={pendingPermanentIds.has(p.permanentId)}
+                    fate={fateBadges.get(p.permanentId)}
+                    shake={combatImpactIds.has(p.permanentId)}
+                    claw={combatImpactIds.has(p.permanentId)}
+                    dpPulse={dpPulses.get(p.permanentId)}
+                    freezePulse={freezePulses.get(p.permanentId)}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
-                    drop={{ "data-drop": "perm-you", "data-id": p.permanentId }}
+                    suspendDelayMs={unsuspendStagger(viewerSeat, index)}
+                    drop={{
+                      "data-drop": "perm-you",
+                      "data-id": p.permanentId,
+                      ...dropIntentAttrs("perm-you", p.permanentId),
+                    }}
                     onClick={draggable ? undefined : onYourPerm(p)}
                     onPointerDown={draggable ? (e) => startPermDrag(p, e) : undefined}
                     // Drag-only permanents still need a pointer-free path: Enter or
@@ -2224,6 +2555,7 @@ export function GameScreen({
                 perm={opp.breeding}
                 label={t("game.pile.raising")}
                 compact={compactPiles}
+                burst={opp.breeding ? permanentBursts.get(opp.breeding.permanentId) : undefined}
                 width={compactPiles ? 42 : narrowRail ? NARROW_RAIL_SLOT_WIDTH : undefined}
                 onClick={
                   narrowGameLayout && opp.breeding ? () => showCardMenu(opp.breeding!.permanentId, "opp") : undefined
@@ -2234,12 +2566,21 @@ export function GameScreen({
                 compact={compactPiles}
                 count={opp.securityCount}
                 shield="opp"
+                armed={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "arm"}
+                breaking={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "break"}
+                faceUp={hasFaceUpSecurity(opp.security)}
+                landing={securityFlights.has(otherSeat(viewerSeat))}
+                attackLabel={
+                  canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)
+                    ? t(securityAttackLabelKey(opp.securityCount))
+                    : undefined
+                }
                 label={t("game.opponentSecurity")}
                 useSelectedSleeve={false}
                 refEl={(el) => {
                   oppSecRef.current = el;
                 }}
-                drop={{ "data-drop": "opp-security" }}
+                drop={{ "data-drop": "opp-security", ...dropIntentAttrs("opp-security") }}
                 glow={canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)}
                 onClick={
                   selPerm && canAttackSecurity
@@ -2256,11 +2597,13 @@ export function GameScreen({
                 compact={compactPiles}
                 count={you.deckCount}
                 label={t("game.pile.deck")}
+                riffling={deckRiffles.has(`${viewerSeat}:deck`)}
                 refEl={(el) => {
                   yourDeckRef.current = el;
                 }}
               />
               <Pile
+                className={trashEffectSource(viewerSeat)}
                 compact={compactPiles}
                 count={you.trash.length}
                 label={t("game.pile.trash")}
@@ -2307,23 +2650,52 @@ export function GameScreen({
               {t("game.breedingArea")}
             </div>
             <div style={{ flex: 1, display: "flex", gap: 8, alignItems: "center" }}>
-              <Pile compact={compactPiles} count={you.eggDeckCount} label={t("game.pile.eggs")} />
+              {/* Hatching is the egg deck's own click during the breeding step —
+                  the step used to open a dialog to ask for the same thing. */}
+              <Pile
+                className={breedingActionsOpen && canHatchEgg ? "game-egg-deck--hatchable" : undefined}
+                compact={compactPiles}
+                count={you.eggDeckCount}
+                label={t("game.pile.eggs")}
+                glow={breedingActionsOpen && canHatchEgg}
+                riffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
+                onClick={breedingActionsOpen && canHatchEgg ? onBreeding : undefined}
+              />
               <BreedingSlot
                 perm={you.breeding}
                 label={t("game.pile.raising")}
                 compact={compactPiles}
+                burst={you.breeding ? permanentBursts.get(you.breeding.permanentId) : undefined}
                 // On a phone the dock is a row above the hand; a smaller slot gives
                 // its height back to the battle rows while staying a 44px+ target.
                 width={narrowGameLayout ? 46 : undefined}
                 candidate={
-                  !!you.breeding &&
-                  (eligibleBase(you.breeding) ||
-                    (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(you.breeding.permanentId)))
+                  (breedingActionsOpen && canMoveOutOfBreeding) ||
+                  (!!you.breeding &&
+                    (eligibleBase(you.breeding) ||
+                      (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(you.breeding.permanentId))))
                 }
-                drop={{ "data-drop": "breeding-you" }}
-                onClick={you.breeding ? onYourPerm(you.breeding) : onBreeding}
+                focused={breedingWindow}
+                drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
+                // Inside the breeding step the slot is the move-out action itself
+                // rather than the card menu — `onBreeding` still digivolves first
+                // when a hand card is selected.
+                onClick={
+                  you.breeding && !(breedingActionsOpen && canMoveOutOfBreeding) ? onYourPerm(you.breeding) : onBreeding
+                }
               />
             </div>
+            {/* What the old breeding dialog said, beside the pieces that answer it
+                instead of on top of the board. */}
+            {breedingActionsOpen ? (
+              <p className="game-breeding-hint" role="status">
+                {canHatchEgg
+                  ? t("game.breedingHint.hatch")
+                  : canMoveOutOfBreeding
+                    ? t("game.breedingHint.move")
+                    : t("game.breedingHint.end")}
+              </p>
+            ) : null}
           </div>
 
           {/* action bar + hand */}
@@ -2355,17 +2727,66 @@ export function GameScreen({
               minExposure={compactPiles ? HAND_MIN_EXPOSURE_TOUCH : undefined}
               cards={handEntries}
               selectedInstanceId={handSel ?? undefined}
+              effectSourceInstanceId={
+                handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined
+              }
+              selection={
+                answerOnBoard && viewerDecision?.kind === "selectCards"
+                  ? {
+                      selectableInstanceIds: viewerDecision.options?.candidateInstanceIds ?? [],
+                      pickedInstanceIds: picks,
+                      onToggle: toggleDecisionPick,
+                    }
+                  : undefined
+              }
               startDrag={startHandDrag}
               selectCard={(index) => {
                 const entry = handEntries[index];
                 if (entry) selectHandCard(entry);
               }}
               draggingInstanceId={dragIsPlay && drag?.kind === "play" ? drag.instanceId : undefined}
+              shakeInstanceId={shakeHandInstanceId}
+              onHoverChange={setHoveredHandInstanceId}
             />
           </div>
         </footer>
 
         {arrow ? <AttackArrow from={arrow.from} to={arrow.to} /> : null}
+
+        {/* The persistent arrow: it flashes twice as it extends and then stays up,
+            following its endpoints until the attack or the effect is over. */}
+        {trackingArrow ? (
+          <AttackArrow
+            key={trackingArrow.key}
+            from={trackingArrow.from}
+            to={trackingArrow.to}
+            kind={trackingArrow.kind}
+            tracking
+          />
+        ) : null}
+
+        {deleteBursts.map((burst) => (
+          <span
+            key={burst.key}
+            aria-hidden="true"
+            className="game-delete-burst"
+            style={{ left: burst.x, top: burst.y }}
+          >
+            {/* The card's own art breaking apart where it stood, when the board still
+                remembers which card that was; a plain burst otherwise. */}
+            {burst.cardId ? (
+              <CardShatter cardId={burst.cardId} width={72} color={burst.color ?? "Neutral"} />
+            ) : (
+              <CardBurst variant="delete" />
+            )}
+          </span>
+        ))}
+
+        {drawBursts.map((burst) => (
+          <span key={burst.key} aria-hidden="true" className="game-draw-burst" style={{ left: burst.x, top: burst.y }}>
+            <CardBurst variant="draw" />
+          </span>
+        ))}
 
         {drawFlights.map((flight) => (
           <div
@@ -2422,6 +2843,21 @@ export function GameScreen({
             >
               <CardFull cardId={dragCardId} width={124} />
             </div>,
+            document.body,
+          )
+        : null}
+
+      {/* The name of the intent the hovered area would send, floated clear of the
+          ghost and of the finger holding it. */}
+      {dragCardId && hoveredDragIntent
+        ? createPortal(
+            <span
+              className="game-drag-intent"
+              data-intent={hoveredDragIntent}
+              style={{ left: drag!.x, top: drag!.y - dragIntentLabelOffsetPx(coarsePointer) }}
+            >
+              {t(dragIntentLabelKey(hoveredDragIntent))}
+            </span>,
             document.body,
           )
         : null}

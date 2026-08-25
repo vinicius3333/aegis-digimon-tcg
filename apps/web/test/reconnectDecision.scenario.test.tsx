@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import { Client, type Room } from "colyseus.js";
 import type { GameState } from "@aegis/shared";
@@ -10,7 +11,7 @@ import { swapMainDeckCard } from "./scenarioHarness/decks";
 import { scenario } from "./scenarioHarness/scenario";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
-import { resolveNextTriggerThroughUi } from "./scenarioHarness/decisions";
+import { decisionCandidates, findDecisionSurface, resolveNextTriggerThroughUi } from "./scenarioHarness/decisions";
 
 // Same swap as optionalDecision.scenario.test.tsx: EX11-069 "Yuuki" ([Start of Your
 // Main Phase][On Play] optional GainMemory, each with a mandatory trash-1 cost) 1:1
@@ -94,16 +95,15 @@ scenario("reconnect-decision", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
-    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
 
     const yuukiImg = await screen.findByRole("img", { name: /yuuki/i }, { timeout: 10_000 });
     tap(yuukiImg);
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
     // A real pendingDecision is now open on the protagonist's seat — proven both by
-    // the server's synchronized state and the rendered dialog.
-    const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
+    // the server's synchronized state and the rendered prompt.
+    const dialog = await findDecisionSurface();
     expect(within(dialog).getByText(/yuuki/i)).toBeTruthy();
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.seat).toBe(0), { timeout: 10_000 });
     const decisionIdBeforeDrop = opponent.room.state.pendingDecision?.decisionId;
@@ -125,7 +125,7 @@ scenario("reconnect-decision", () => {
     // (AegisRoom.onLeave's `allowReconnection` branch); the client re-renders it.
     await vi.waitFor(
       () => {
-        const current = screen.getByRole("dialog");
+        const current = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
         expect(within(current).getAllByText(/yuuki/i).length).toBeGreaterThan(0);
       },
       { timeout: 15_000 },
@@ -140,17 +140,16 @@ scenario("reconnect-decision", () => {
         await resolveNextTriggerThroughUi(opponent);
         continue;
       }
-      const current = screen.queryByRole("dialog");
+      const current = screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt");
       if (current === null) break;
       const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
-      const acceptBtn = within(current).queryByRole("button", { name: /yes, activate/i });
-      const declineBtn = within(current).queryByRole("button", { name: /no, decline/i });
+      const acceptBtn = within(current).queryByRole("button", { name: /yes, activate|^use$/i });
+      const declineBtn = within(current).queryByRole("button", { name: /no, decline|^not use$/i });
       if (acceptBtn && declineBtn) {
         fireEvent.click(acceptBtn);
       } else {
-        const candidates = within(current).getAllByRole("button", { pressed: false });
-        fireEvent.click(candidates[0]!);
-        fireEvent.click(within(current).getByRole("button", { name: /confirm target/i }));
+        fireEvent.click(decisionCandidates(current)[0]!);
+        fireEvent.click(within(current).getByRole("button", { name: /confirm target|^end selection$/i }));
       }
       await vi.waitFor(
         () => {
@@ -160,7 +159,7 @@ scenario("reconnect-decision", () => {
       );
     }
 
-    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt")).toBeNull();
     await vi.waitFor(
       () => {
         const line = screen.getByText(/^turn \d+ · memory/i).textContent ?? "";

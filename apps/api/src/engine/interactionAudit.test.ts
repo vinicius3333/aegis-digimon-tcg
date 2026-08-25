@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { DECK_BOTTOM, EffectTiming, Zone, type PlayerState } from "@aegis/shared";
 import {
   setupEngine as setup,
   makeInstance as instance,
@@ -609,6 +609,34 @@ describe("the deck is an ordered zone (§3-2-3)", () => {
 
     const deckAfter = (s.state.players[0] as PlayerState).deck.map((c) => c.instanceId);
     expect(deckAfter).toEqual([...deckBefore, s.inst("h0").instanceId, s.inst("h1").instanceId]);
+  });
+
+  it("names the deck bottom on the movement, so the log can tell it from a top return", async () => {
+    // The two returns land in the same zone but at opposite ends, and only the destination
+    // label distinguishes them for the client's panel and log.
+    const s = setup({
+      0: { deck: [{ card: "AD1-001", as: "d0" }, "BT1-025"], hand: [{ card: "ST7-10", as: "h0" }] },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.returnToDeck([s.inst("h0").instanceId]);
+    await settle(() => false, 2000);
+
+    const moved = s.events.filter((e) => e.kind === "cardsMoved").at(-1);
+    expect(moved).toMatchObject({ to: DECK_BOTTOM });
+  });
+
+  it("still names the plain deck for a top return", async () => {
+    const s = setup({
+      0: { deck: [{ card: "AD1-001", as: "d0" }, "BT1-025"], hand: [{ card: "ST7-10", as: "h0" }] },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.returnToDeck([s.inst("h0").instanceId], { toTop: true });
+    await settle(() => false, 2000);
+
+    const moved = s.events.filter((e) => e.kind === "cardsMoved").at(-1);
+    expect(moved).toMatchObject({ to: Zone.Deck });
   });
 
   it("puts a card returned to the top above the existing deck", async () => {

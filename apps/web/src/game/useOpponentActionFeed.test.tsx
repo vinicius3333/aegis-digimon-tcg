@@ -4,16 +4,19 @@ import { act, renderHook } from "@testing-library/react";
 import type { ServerEvent } from "@aegis/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useOpponentActionFeed } from "./useOpponentActionFeed";
+import { TIMINGS } from "./timings";
 
 afterEach(() => vi.useRealTimers());
 
-function played(cardId: string): ServerEvent {
-  return { kind: "cardPlayed", seat: 1, cardId };
+// A play is shown by the centre-screen showcase, not the feed, so the fixture is
+// an action the feed still narrates.
+function opponentAction(cardId: string): ServerEvent {
+  return { kind: "movedFromBreeding", seat: 1, permanentId: `permanent:${cardId}`, cardId } as ServerEvent;
 }
 
 describe("useOpponentActionFeed", () => {
   it("does not replay history and shows the newest fresh event in a batch", () => {
-    const history = [played("BT1-010")];
+    const history = [opponentAction("BT1-010")];
     const { result, rerender } = renderHook(
       ({ events }) =>
         useOpponentActionFeed({
@@ -28,14 +31,14 @@ describe("useOpponentActionFeed", () => {
 
     expect(result.current.current).toBeUndefined();
 
-    rerender({ events: [...history, played("AD1-001"), played("BT1-009")] });
+    rerender({ events: [...history, opponentAction("AD1-001"), opponentAction("BT1-009")] });
     expect(result.current.current?.cardId).toBe("BT1-009");
     expect(result.current.trail.map(({ cardId }) => cardId)).toEqual(["AD1-001"]);
     expect(result.current.pending).toEqual([]);
   });
 
   it("recognizes cloned reconnect history and enqueues only its fresh suffix", () => {
-    const history = [played("BT1-010")];
+    const history = [opponentAction("BT1-010")];
     const { result, rerender } = renderHook(
       ({ events }) =>
         useOpponentActionFeed({
@@ -48,7 +51,7 @@ describe("useOpponentActionFeed", () => {
       { initialProps: { events: history } },
     );
 
-    rerender({ events: [structuredClone(history[0]!), played("AD1-001")] });
+    rerender({ events: [structuredClone(history[0]!), opponentAction("AD1-001")] });
     expect(result.current.current?.cardId).toBe("AD1-001");
     expect(result.current.pending).toEqual([]);
   });
@@ -67,10 +70,10 @@ describe("useOpponentActionFeed", () => {
       { initialProps: { events: [] as ServerEvent[] } },
     );
 
-    rerender({ events: [played("BT1-010"), played("AD1-001")] });
+    rerender({ events: [opponentAction("BT1-010"), opponentAction("AD1-001")] });
     expect(result.current.current?.cardId).toBe("AD1-001");
 
-    act(() => vi.advanceTimersByTime(2799));
+    act(() => vi.advanceTimersByTime(TIMINGS.feedAction - 1));
     expect(result.current.current?.cardId).toBe("AD1-001");
     act(() => vi.advanceTimersByTime(1));
     expect(result.current.current).toBeUndefined();
@@ -90,14 +93,14 @@ describe("useOpponentActionFeed", () => {
       { initialProps: { events: [] as ServerEvent[], paused: false } },
     );
 
-    rerender({ events: [played("BT1-010")], paused: false });
+    rerender({ events: [opponentAction("BT1-010")], paused: false });
     act(() => vi.advanceTimersByTime(1000));
-    rerender({ events: [played("BT1-010")], paused: true });
+    rerender({ events: [opponentAction("BT1-010")], paused: true });
     act(() => vi.advanceTimersByTime(5000));
     expect(result.current.current?.cardId).toBe("BT1-010");
 
-    rerender({ events: [played("BT1-010")], paused: false });
-    act(() => vi.advanceTimersByTime(1799));
+    rerender({ events: [opponentAction("BT1-010")], paused: false });
+    act(() => vi.advanceTimersByTime(TIMINGS.feedAction - 1000 - 1));
     expect(result.current.current?.cardId).toBe("BT1-010");
     act(() => vi.advanceTimersByTime(1));
     expect(result.current.current).toBeUndefined();

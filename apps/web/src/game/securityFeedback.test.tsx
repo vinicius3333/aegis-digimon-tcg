@@ -3,9 +3,11 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { CardInstance, Permanent } from "@aegis/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { NoticeStack } from "./NoticeStack";
 import { I18nProvider } from "../i18n";
 import { PermanentView } from "./boardPieces";
-import { OpponentPermanentInspector, RecoveryToast, StackViewerOverlay } from "./overlays";
+import { PermanentDetailInspector, StackViewerOverlay } from "./overlays";
+import { buildPermanentDetail } from "./permanentDetail";
 import { SecurityClash } from "./SecurityClashView";
 import { buildSecurityClashScene } from "./securityClash";
 
@@ -78,7 +80,13 @@ describe("security feedback", () => {
   it("announces recovery without exposing a card identity", () => {
     render(
       <I18nProvider>
-        <RecoveryToast amount={2} mine />
+        <NoticeStack
+          notices={[
+            { id: "n1", side: "you", fromSecurity: false, createdAt: 0, body: { variant: "recovery", amount: 2 } },
+          ]}
+          nowMs={0}
+          onDismiss={() => undefined}
+        />
       </I18nProvider>,
     );
 
@@ -158,15 +166,7 @@ describe("opponent permanent inspection", () => {
   it("shows the top effect and inherited effects in stack order", () => {
     render(
       <I18nProvider>
-        <OpponentPermanentInspector
-          title="Agumon"
-          cards={[
-            { cardId: "BT1-010", role: "top" },
-            { cardId: "AD1-001", role: "stack" },
-          ]}
-          x={100}
-          y={100}
-        />
+        <PermanentDetailInspector detail={buildPermanentDetail(permanent())} anchorX={100} anchorY={100} />
       </I18nProvider>,
     );
 

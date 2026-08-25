@@ -1,8 +1,10 @@
+import { getCardDefinition } from "@aegis/shared";
 import { Button, Dialog } from "../design/primitives";
 import { Sigil } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import type { LogLine } from "./boardModel";
+import { logSegments } from "./matchLogLinks";
 import type { OpponentActionItem } from "./opponentActionFeed";
 
 function ActionCopy({ item }: { item: OpponentActionItem }) {
@@ -75,25 +77,74 @@ export function OpponentActionFeed({
   );
 }
 
-export function MatchHistorySheet({ log, onClose }: { log: readonly LogLine[]; onClose: () => void }) {
+/** The card names inside one line, keyed by the name the line actually printed. */
+function namedCards(line: LogLine): Map<string, string> {
+  const named = new Map<string, string>();
+  for (const cardId of line.cardIds ?? []) {
+    const name = getCardDefinition(cardId)?.nameEn;
+    if (name) named.set(name, cardId);
+  }
+  return named;
+}
+
+function LogLineText({ line, onOpenCard }: { line: LogLine; onOpenCard?: (cardId: string) => void }) {
+  const { t } = useTranslation();
+  const segments = logSegments(line.text, namedCards(line));
+  return (
+    <p>
+      {segments.map((segment, index) =>
+        segment.cardId && onOpenCard ? (
+          <button
+            key={index}
+            type="button"
+            className="play-log__card"
+            aria-label={t("feed.openCard", { card: segment.text })}
+            onClick={() => onOpenCard(segment.cardId!)}
+          >
+            {segment.text}
+          </button>
+        ) : (
+          <span key={index}>{segment.text}</span>
+        ),
+      )}
+    </p>
+  );
+}
+
+/**
+ * The play log (`PlayLog.cs` in a `SideBar.cs` drawer): every action the match has
+ * narrated, newest first, in a panel that slides out of the board's right edge and
+ * back into it. Card names are links — clicking one opens the card, which is how
+ * the reference client lets a player check what just hit them without leaving the
+ * board.
+ */
+export function PlayLogSidebar({
+  log,
+  onClose,
+  onOpenCard,
+}: {
+  log: readonly LogLine[];
+  onClose: () => void;
+  onOpenCard?: (cardId: string) => void;
+}) {
   const { t } = useTranslation();
   return (
-    <Dialog className="match-history-sheet game-modal__panel" labelledBy="aegis-match-history-title" onClose={onClose}>
-      <header className="match-history-sheet__header">
+    <Dialog className="play-log game-modal__panel" labelledBy="aegis-play-log-title" onClose={onClose}>
+      <header className="play-log__header">
         <div>
           <span>{t("game.matchLog")}</span>
-          <h2 id="aegis-match-history-title">{t("feed.historyTitle")}</h2>
+          <h2 id="aegis-play-log-title">{t("feed.logTitle")}</h2>
         </div>
-        <Button size="sm" variant="ghost" onClick={onClose}>
+        <Button size="sm" variant="ghost" aria-label={t("feed.closeLog")} onClick={onClose}>
           {t("common.close")}
         </Button>
       </header>
-      <div className="match-history-sheet__list">
-        {log.length === 0 ? <p>{t("feed.noHistory")}</p> : null}
+      <div className="play-log__list">
+        {log.length === 0 ? <p className="play-log__empty">{t("feed.noHistory")}</p> : null}
         {log.map((line, index) => (
-          <div className="match-history-sheet__line" data-kind={line.kind} key={`${index}:${line.text}`}>
+          <div className="play-log__line" data-kind={line.kind} key={`${index}:${line.text}`}>
             <span aria-hidden="true" />
-            <p>{line.text}</p>
+            <LogLineText line={line} onOpenCard={onOpenCard} />
           </div>
         ))}
       </div>

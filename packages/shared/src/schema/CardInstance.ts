@@ -22,6 +22,16 @@ export class CardInstance extends Schema {
   // turn, phase, open decisions, play prohibitions, colour requirements and memory
   // are already resolved here — the same contract as Permanent.attackablePermanentIds.
   @type("boolean") playableFromHand = false;
+  // Memory this card would cost to play right now, with every ACTIVE CONTINUOUS cost modifier
+  // already applied — the exact figure `validatePlayCard` checked affordability against, kept
+  // instead of being collapsed into `playableFromHand`. -1 means "not projected": the card is
+  // outside the turn player's Main-phase hand, or its only route is a material declaration
+  // (DigiXros / Assembly) whose reduction comes from materials nobody has chosen yet.
+  //
+  // An UPPER BOUND, not a ruling. A card with a [BeforePayCost] hook can still reduce this at
+  // pay time, and resolving those means prompting the player and mutating the board, so they
+  // are deliberately not simulated here. The client presents it as a prediction.
+  @type("int8") projectedPlayCost = -1;
   // Own permanents this hand card may legally digivolve onto right now.
   @type(["string"]) digivolveTargetPermanentIds = new ArraySchema<string>();
 }

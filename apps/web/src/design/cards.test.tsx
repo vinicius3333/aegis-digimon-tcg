@@ -12,7 +12,7 @@ describe("CardMini orientation", () => {
 
     const card = screen.getByTitle("Biyomon");
     expect(card.dataset.state).toBe("suspended");
-    expect(card.style.transform).toBe("rotate(90deg)");
+    expect(card.style.rotate).toBe("90deg");
     expect(card.style.transformOrigin).toBe("center");
   });
 });

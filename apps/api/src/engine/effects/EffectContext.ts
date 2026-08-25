@@ -9,6 +9,7 @@ import type {
   Permanent,
   PlayerState,
   Seat,
+  TargetFate,
   ZoneRef,
 } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
@@ -1717,6 +1718,13 @@ export interface EffectContext {
   continuousPass?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
+  /**
+   * What the IR action currently running will do to the permanents it asks the controller
+   * to pick (`targetFateOf`, set and restored by `runAction`). Surfaced on each
+   * `chooseTargets` request so the client can badge a picked target with its coming fate.
+   * Display-only.
+   */
+  activeTargetFate?: TargetFate;
   /** Temporary restrictions installed by a RestrictEffect action in this resolution. */
   effectRestrictions?: Set<string>;
   game: GameAccess;

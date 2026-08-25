@@ -61,7 +61,7 @@ scenario("mulligan", () => {
 
     // The protagonist's dealt (pre-mulligan) hand renders on the board underneath
     // the decision overlay (the decision doesn't hide state, only gate the input).
-    await screen.findByText(/keep this hand\?/i, {}, { timeout: 10_000 });
+    await screen.findByText(/will you mulligan your hand\?/i, {}, { timeout: 10_000 });
     const handBefore = within(screen.getByTestId("hand"))
       .getAllByRole("img")
       .map((img) => img.getAttribute("alt"));
@@ -72,7 +72,9 @@ scenario("mulligan", () => {
 
     // The redraw resolves synchronously server-side (no second mulligan window for
     // this seat) and the match proceeds once the opponent's decision also resolves.
-    await vi.waitFor(() => expect(screen.queryByText(/keep this hand\?/i)).toBeNull(), { timeout: 10_000 });
+    await vi.waitFor(() => expect(screen.queryByText(/will you mulligan your hand\?/i)).toBeNull(), {
+      timeout: 10_000,
+    });
     await vi.waitFor(() => expect(screen.getAllByText(/your turn|opponent's turn/i).length).toBeGreaterThan(0), {
       timeout: 10_000,
     });
@@ -111,14 +113,16 @@ scenario("mulligan", () => {
     });
     opponent.ready();
 
-    await screen.findByText(/keep this hand\?/i, {}, { timeout: 10_000 });
+    await screen.findByText(/will you mulligan your hand\?/i, {}, { timeout: 10_000 });
     const handBefore = within(screen.getByTestId("hand"))
       .getAllByRole("img")
       .map((img) => img.getAttribute("alt"));
 
     fireEvent.click(screen.getByRole("button", { name: /keep hand/i }));
 
-    await vi.waitFor(() => expect(screen.queryByText(/keep this hand\?/i)).toBeNull(), { timeout: 10_000 });
+    await vi.waitFor(() => expect(screen.queryByText(/will you mulligan your hand\?/i)).toBeNull(), {
+      timeout: 10_000,
+    });
     await vi.waitFor(() => expect(screen.getAllByText(/your turn|opponent's turn/i).length).toBeGreaterThan(0), {
       timeout: 10_000,
     });
