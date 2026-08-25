@@ -35,3 +35,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-003.test.ts`).
+
+## BT20-004 — Pinamon
+
+- Catalog contract: green level 2 Bird/ACCEL Digi-Egg; inherited optional `[Your Turn] [Once Per Turn]` watcher lets this Digimon digivolve from hand into an ACCEL Digimon for 2 less when one of your ACCEL Digimon is played.
+- Knowledge base: no card-specific entries; the printed trigger, trait, destination, reduction, and optionality are unambiguous.
+- Implementation evidence: `BT20-004.ts` registers only with `registerIrCard`; its inherited continuous watcher subscribes to controlled Digimon play events filtered to ACCEL, carries the your-turn and once-per-turn scope onto the subscription, and executes an optional self-targeted hand digivolution with `reduceCost: 2`. The digivolve primitive folds that positive legacy reduction into a signed cost delta and uses normal evolution requirements.
+- Peer/stack evidence: the focused test uses Pinamon under ACCEL Liollmon, plays a second ACCEL Liollmon, and observes the host evolve into ACCEL Liamon without paying its alternate cost; playing non-ACCEL Ryudamon leaves the same stack unchanged.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-004.test.ts` — 2 passed.
+- Clause scores: your-turn play trigger 2/2; ACCEL source predicate 2/2; optional self evolution from hand 2/2; ACCEL destination and legal stack transition 2/2; once-per-turn/cost reduction observable state 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-004.test.ts`).
