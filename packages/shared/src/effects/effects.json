@@ -163523,6 +163523,12 @@
     "digivolutionRequirement": [{ "names": ["Barbamon"], "cost": 1, "isAlternate": true }]
   },
   "EX8-064": {
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [{ "names": ["Piedmon"] }, { "names": ["Myotismon"] }]
+      }
+    ],
     "effects": [
       {
         "trigger": "WhenDigivolving",
