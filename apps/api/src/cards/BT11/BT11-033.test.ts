@@ -1,172 +1,171 @@
-import { describe, it, expect } from "vitest";
-import { GameState, PlayerState, Permanent, CardInstance, Phase, type Seat, type DecisionRequest } from "@aegis/shared";
-import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
-import "./BT11-033.js";
+import { compiledEffects, getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { effectiveCopyLimit } from "../../engine/banlistRestrictions.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT11-033.js";
 
-// A3 for BT11-033 (MirageGaogamon — Blue Lv.6 Digimon, RESTRICTED).
-//
-// [When Digivolving] Return 1 of your opponent's level 5 or lower Digimon to their owner's
-// hand. If no Digimon was returned by this effect, your opponent adds the top card of their
-// security stack to their hand.
-//
-// evoCost: Blue Lv.5 @ 4 memory.
-//
-// FAILS-WHEN-REVERTED:
-//   Test 1 — the bounce clause fires: opponent Lv.4 Digimon is bounced to hand.
-//     The original stub's returnToHand IR action was partial; without the hand-written module
-//     the bounce is a no-op (the generated fallback runs instead).
-//   Test 2 — the fallback: when no valid Lv.5-or-lower target exists, opponent's top security
-//     card moves to their hand. The original IR left this clause inert.
-//
-// Cards used:
-//   BT11-033  — MirageGaogamon (the card under test, Blue Lv.6)
-//   BT1-038   — Monzaemon (Blue Lv.5) — valid digivolve base (evoCost: Blue Lv.5 @ 4)
-//   AD1-001   — Greymon (Red Lv.4) — opponent Digimon; level 4 <= 5, valid bounce target
-//   AD1-025   — Omnimon (Lv.7) — opponent Digimon; level 7 > 5, NOT a valid bounce target
-
-let seq = 0;
-
-function inst(cardId: string, seat: Seat): CardInstance {
-  seq += 1;
-  const c = new CardInstance();
-  c.instanceId = `bt11033-inst-${seq}`;
-  c.cardId = cardId;
-  c.ownerSeat = seat;
-  c.faceUp = true;
-  return c;
-}
-
-function perm(cardId: string, seat: Seat, dp = 5000): Permanent {
-  seq += 1;
-  const p = new Permanent();
-  p.permanentId = `bt11033-perm-${seq}`;
-  p.controllerSeat = seat;
-  p.topCard = inst(cardId, seat);
-  p.isSuspended = false;
-  p.inBreeding = false;
-  p.baseDP = dp;
-  p.currentDP = dp;
-  return p;
-}
-
-function setup(): { engine: GameEngine; state: GameState } {
-  const state = new GameState();
-  let engineRef: GameEngine | undefined;
-  const hooks: GameEngineHooks = {
-    seed: 1,
-    requestDecision: (seat: Seat, req: DecisionRequest) => {
-      if (req.kind === "optional") {
-        queueMicrotask(() =>
-          engineRef?.applyIntent(seat, {
-            type: "respondDecision",
-            decisionId: req.decisionId,
-            response: { kind: "optional", accept: true },
-          }),
-        );
-      }
-      if (req.kind === "selectCards" || req.kind === "chooseTargets") {
-        const candidates = req.options?.candidateInstanceIds ?? [];
-        const ids = candidates.slice(0, req.options?.max ?? candidates.length);
-        queueMicrotask(() =>
-          engineRef?.applyIntent(seat, {
-            type: "respondDecision",
-            decisionId: req.decisionId,
-            response:
-              req.kind === "selectCards"
-                ? { kind: "selectCards", instanceIds: ids }
-                : { kind: "chooseTargets", instanceIds: ids },
-          }),
-        );
-      }
-    },
-    emit: () => {},
-  };
-  const engine = new GameEngine(state, hooks);
-  engineRef = engine;
-  engine.seatPlayer(0, "sa", { displayName: "A", deck: { mainDeck: [], eggDeck: [] } });
-  engine.seatPlayer(1, "sb", { displayName: "B", deck: { mainDeck: [], eggDeck: [] } });
-  state.phase = Phase.Main;
-  state.turnSeat = 0;
-  return { engine, state };
-}
-
-async function settle(predicate: () => boolean, maxTicks = 600): Promise<void> {
-  for (let i = 0; i < maxTicks && !predicate(); i++) await Promise.resolve();
-}
-
-describe("BT11-033 MirageGaogamon [When Digivolving]", () => {
-  it("returns an opponent's Lv.4 Digimon to their hand when digivolving", async () => {
-    const s = setup();
-    const p0 = s.state.players[0] as PlayerState;
-    const p1 = s.state.players[1] as PlayerState;
-
-    // Base: Blue Lv.5 Monzaemon (satisfies MirageGaogamon's evoCost: Blue Lv.5 @ 4)
-    const base = perm("BT1-038", 0, 5000);
-    p0.battleArea.push(base);
-    // Put draw-1 fodder in deck (the digivolve draws 1 card).
-    p0.deck.push(inst("BT1-001", 0));
-
-    // Opponent has a Lv.4 Digimon (valid bounce target: level 4 <= 5).
-    const lv4Digimon = perm("AD1-001", 1, 3000);
-    p1.battleArea.push(lv4Digimon);
-    const lv4TopCardId = lv4Digimon.topCard!.instanceId;
-
-    // MirageGaogamon in seat 0's hand.
-    const mirageCard = inst("BT11-033", 0);
-    p0.hand.push(mirageCard);
-    s.state.memory = 10; // evoCost 4; memory 10 → 6 after paying
-
-    const result = s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: base.permanentId,
-      instanceId: mirageCard.instanceId,
+describe("BT11-033 MirageGaogamon", () => {
+  it("matches the catalog, current restriction, and both complete executable contracts", () => {
+    expect(getCardDefinition("BT11-033")).toMatchObject({
+      cardId: "BT11-033",
+      nameEn: "MirageGaogamon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [{ color: "Blue", level: 5, memoryCost: 4 }],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Beast Knight"],
     });
-
-    expect(result).toEqual({ ok: true });
-
-    // After [When Digivolving]: the Lv.4 Digimon is bounced to seat 1's hand.
-    await settle(() => p1.hand.some((c) => c.instanceId === lv4TopCardId));
-
-    expect(p1.hand.some((c) => c.instanceId === lv4TopCardId)).toBe(true);
-    // The Digimon left the battle area.
-    expect(p1.battleArea.some((p) => p.permanentId === lv4Digimon.permanentId)).toBe(false);
-    // MirageGaogamon is on top of the base.
-    expect(base.topCard?.cardId).toBe("BT11-033");
+    expect(effectiveCopyLimit("BT11-033")).toBe(1);
+    expect(compiled).toMatchObject({
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            { kind: "Return", to: "hand" },
+            {
+              kind: "SecurityManipulation",
+              op: "toHand",
+              controller: "opponent",
+              source: "securityTop",
+              condition: { kind: "lastEffectDidNotAct" },
+            },
+          ],
+        },
+        {
+          trigger: "AllTurns",
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenEffectAddsToOpponentHand",
+              actions: [{ kind: "GainMemory", amount: 1, scaling: { per: 4, unit: "cards" } }],
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+    expect(compiledEffects["BT11-033"]).toEqual(compiled);
   });
 
-  it("when opponent has only Lv.7 Digimon (not bounceable), top security card moves to opponent's hand", async () => {
-    const s = setup();
-    const p0 = s.state.players[0] as PlayerState;
-    const p1 = s.state.players[1] as PlayerState;
+  it("evolves for 4, returns the exact level-5 boundary, and gains memory from the resulting fourth card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-028", as: "base" }],
+          hand: [{ card: "BT11-033", as: "mirage" }],
+          deck: ["BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT11-028", as: "level5" }],
+          hand: ["BT1-010", "BT1-011", "BT1-012"],
+          security: [{ card: "BT1-090", as: "security" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const targetId = s.inst("level5").instanceId;
 
-    const base = perm("BT1-038", 0, 5000);
-    p0.battleArea.push(base);
-    p0.deck.push(inst("BT1-001", 0));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mirage").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === targetId));
 
-    // Opponent has only a Lv.7 Digimon (level > 5, NOT a valid bounce target).
-    const lv7Digimon = perm("AD1-025", 1, 13000);
-    p1.battleArea.push(lv7Digimon);
+    expect(s.perm("base").topCard.cardId).toBe("BT11-033");
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.state.memory).toBe(7);
+  });
 
-    // Opponent has 1 security card.
-    const secCard = inst("BT1-090", 1);
-    p1.security.push(secCard);
-
-    const mirageCard = inst("BT11-033", 0);
-    p0.hand.push(mirageCard);
+  it("uses the security fallback above level 5 without activating that card's Security effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-028", as: "base" }],
+          hand: [{ card: "BT11-033", as: "mirage" }],
+          deck: ["BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "AD1-025", as: "level7" }],
+          security: [{ card: "BT1-090", as: "security" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
     s.state.memory = 10;
 
-    const result = s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: base.permanentId,
-      instanceId: mirageCard.instanceId,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mirage").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === s.inst("security").instanceId));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.memory).toBe(6);
+  });
+
+  it("gains floor(hand size / 4) memory using the live post-add hand size", async () => {
+    for (const [handSize, expectedGain] of [
+      [3, 0],
+      [4, 1],
+      [7, 1],
+      [8, 2],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT11-033", as: "mirage" }] },
+        1: { hand: Array.from({ length: handSize }, () => "BT1-010") },
+      });
+      s.state.memory = 0;
+      await s.ready();
+
+      await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+      expect(s.state.memory).toBe(expectedGain);
+    }
+  });
+
+  it("ignores additions to its controller's hand and resolves only once per turn", async () => {
+    const direction = setupEngine({
+      0: { battleArea: [{ card: "BT11-033", as: "mirage" }], hand: Array.from({ length: 8 }, () => "BT1-010") },
     });
+    direction.state.memory = 0;
+    await direction.ready();
+    await advance(direction.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 0 });
+    expect(direction.state.memory).toBe(0);
 
-    expect(result).toEqual({ ok: true });
+    const frequency = setupEngine({
+      0: { battleArea: [{ card: "BT11-033", as: "mirage" }], deck: ["BT1-001", "BT1-002"] },
+      1: { hand: Array.from({ length: 8 }, () => "BT1-010"), deck: ["BT1-001", "BT1-002"] },
+    });
+    frequency.state.memory = 3;
+    const firstTurn = frequency.engine.runOneTurn();
+    await advance(frequency.engine).waitForMainPhase(0);
+    await advance(frequency.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+    await advance(frequency.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+    expect(frequency.state.memory).toBe(5);
+    advance(frequency.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
 
-    // Fallback: the security card should move to opponent's hand.
-    await settle(() => p1.hand.some((c) => c.instanceId === secCard.instanceId));
-
-    expect(p1.hand.some((c) => c.instanceId === secCard.instanceId)).toBe(true);
-    expect(p1.security.length).toBe(0);
+    frequency.state.turnSeat = 1;
+    frequency.state.memory = 3;
+    const nextTurn = frequency.engine.runOneTurn();
+    await advance(frequency.engine).waitForMainPhase(1);
+    await advance(frequency.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+    expect(frequency.state.memory).toBe(1);
+    advance(frequency.engine).endMainPhaseIfOpen(1);
+    await nextTurn;
   });
 });

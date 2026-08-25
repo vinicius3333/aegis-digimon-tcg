@@ -9992,9 +9992,11 @@
             "to": "hand"
           },
           {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): your opponent adds the top card of their security stack to their hand",
-            "condition": { "kind": "raw", "raw": "no Digimon was returned by this effect" }
+            "kind": "SecurityManipulation",
+            "op": "toHand",
+            "controller": "opponent",
+            "source": "securityTop",
+            "condition": { "kind": "lastEffectDidNotAct", "raw": "no Digimon was returned by this effect" }
           }
         ]
       },
@@ -10004,15 +10006,20 @@
           {
             "kind": "SubTrigger",
             "event": "whenEffectAddsToOpponentHand",
-            "actions": [{ "kind": "GainMemory", "amount": 1 }],
-            "scaling": { "per": 4, "filter": { "zone": "hand", "controller": "opponent" }, "unit": "cards" }
+            "actions": [
+              {
+                "kind": "GainMemory",
+                "amount": 1,
+                "scaling": { "per": 4, "filter": { "zone": "hand", "controller": "opponent" }, "unit": "cards" }
+              }
+            ]
           }
         ],
         "frequency": "OncePerTurn"
       }
     ],
-    "coverage": "partial",
-    "residual": ["missing-primitive(unaudited): your opponent adds the top card of their security stack to their hand"]
+    "coverage": "full",
+    "residual": []
   },
   "BT11-034": {
     "effects": [
