@@ -1,5 +1,7 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-051.js";
 
 describe("BT18-051 Entmon", () => {
@@ -18,12 +20,16 @@ describe("BT18-051 Entmon", () => {
         },
       ],
     });
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT18-051", as: "entmon", suspended: true }],
-        hand: [{ card: "EX3-045", as: "hydramon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-051", as: "entmon", suspended: true }],
+          hand: [{ card: "EX3-045", as: "hydramon" }],
+          deck: ["BT1-001"],
+        },
       },
-    });
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
     await s.ready();
     s.state.memory = 10;
     expect(
@@ -33,10 +39,11 @@ describe("BT18-051 Entmon", () => {
         instanceId: s.inst("hydramon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("entmon").topCard?.cardId === "EX3-045");
+    await settle(() => s.perm("entmon").topCard?.cardId === "EX3-045" && s.state.pendingDecision === undefined);
 
     expect(s.perm("entmon").topCard?.cardId).toBe("EX3-045");
     expect(s.state.memory).toBe(7);
+    expect(s.state.pendingDecision).toBeUndefined();
 
     const inactive = setupEngine({
       0: {
@@ -82,6 +89,45 @@ describe("BT18-051 Entmon", () => {
     await settle(() => s.perm("other").topCard?.cardId === "EX3-045");
 
     expect(s.state.memory).toBe(5);
+    assertNoLoudGap(s);
+  });
+
+  it("does not discount a legal level-6 evolution without Plant or Vegetation", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT18-051", as: "entmon", suspended: true }],
+        hand: [{ card: "BT1-081", as: "hercules" }],
+        deck: ["BT1-001"],
+      },
+    });
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("entmon").permanentId,
+        instanceId: s.inst("hercules").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("entmon").topCard?.cardId === "BT1-081" && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(7);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("offers no reduction outside its controller's turn or for a wrong-level Vegetation destination", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT18-051", as: "entmon", suspended: true }] },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("entmon"), getCardDefinition("BT1-078"))).toBe(0);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("entmon"), getCardDefinition("EX3-045"))).toBe(0);
     assertNoLoudGap(s);
   });
 });
