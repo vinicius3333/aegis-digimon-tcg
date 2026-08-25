@@ -4185,6 +4185,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const canDnaDigivolve: NonNullable<Primitives["canDnaDigivolve"]> = (
     materialPermanentIds,
     resultInstanceId,
+    extraMaterialInstanceIds = [],
   ): boolean => {
     const result = peekLooseInstance(state, resultInstanceId);
     if (result === undefined) return false;
@@ -4192,18 +4193,29 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const materials = materialPermanentIds
       .map((id) => access.permanentById(id))
       .filter((permanent): permanent is Permanent => permanent?.topCard !== undefined);
-    if (materials.length !== materialPermanentIds.length || materials.length < 2) return false;
+    const extraMaterials = extraMaterialInstanceIds
+      .map((id) => peekLooseInstance(state, id))
+      .filter((card): card is CardInstance => card !== undefined);
+    if (
+      materials.length !== materialPermanentIds.length ||
+      extraMaterials.length !== extraMaterialInstanceIds.length ||
+      materials.length + extraMaterials.length < 2
+    )
+      return false;
     if (
       into.level === 7 &&
       materials.some((material) => continuous.hasRestriction(material.permanentId, "digivolveToLevel7"))
     ) {
       return false;
     }
-    const definitions = materials.map((material) => {
-      const printed = requireCardDefinition(material.topCard!.cardId);
-      const effectiveLevel = continuous.dnaLevelFor(material.permanentId, into);
-      return effectiveLevel === undefined ? printed : { ...printed, level: effectiveLevel };
-    });
+    const definitions = [
+      ...materials.map((material) => {
+        const printed = requireCardDefinition(material.topCard!.cardId);
+        const effectiveLevel = continuous.dnaLevelFor(material.permanentId, into);
+        return effectiveLevel === undefined ? printed : { ...printed, level: effectiveLevel };
+      }),
+      ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
+    ];
     return dnaDigivolveCostFor(into, definitions) !== undefined;
   };
 

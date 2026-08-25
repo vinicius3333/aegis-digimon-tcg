@@ -1115,7 +1115,11 @@ export interface Primitives {
   /** Treat a permanent as another level only while matching DNA requirements. */
   grantDnaLevel(permanentId: string, level: number, opts?: { intoNames?: string[]; continuous?: boolean }): void;
   /** Pure legality check used before offering an effect-driven DNA result. */
-  canDnaDigivolve?(materialPermanentIds: string[], resultInstanceId: string): boolean;
+  canDnaDigivolve?(
+    materialPermanentIds: string[],
+    resultInstanceId: string,
+    extraMaterialInstanceIds?: string[],
+  ): boolean;
   /** Grant a keyword to all current and future Digimon permanents controlled by a player. */
   grantPlayerKeyword(seat: Seat, keyword: string, duration: EffectDuration, amount?: number): void;
   /**
