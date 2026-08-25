@@ -135,30 +135,12 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          keyword: {
-            keyword: "Piercing",
-            raw: "＜Piercing＞",
-          },
-          duration: "permanent",
-          condition: {
+          kind: "Aura",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          effect: { kind: "keyword", keyword: { keyword: "Piercing", raw: "＜Piercing＞" } },
+          while: {
             kind: "selfHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Xros Heart"],
-                  match: "trait",
-                },
-              ],
-            },
-            raw: "while this Digimon has the [Xros Heart] trait",
+            filter: { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] },
           },
         },
       ],
