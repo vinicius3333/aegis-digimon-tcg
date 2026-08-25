@@ -10,6 +10,39 @@ import { runPlayPerLevel } from "./dna.js";
 import { CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
 import type { Action, Seat, Target } from "@aegis/shared";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
+import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
+
+export function applyPlayCostCeiling(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "PlayWithoutCost" }>,
+  target: Target,
+): Target {
+  const ceiling = action.playCostCeiling;
+  if (ceiling === undefined) return target;
+  const mine = ctx.source.ownerSeat;
+  const opp = ctx.game.opponentOf(mine);
+  const filter = ceiling.filter;
+  const zone = (filter as { zone?: string }).zone;
+  const controller = (filter as { controller?: string }).controller;
+  const seats: Seat[] =
+    controller === "both" || controller === undefined ? [mine, opp] : controller === "opponent" ? [opp] : [mine];
+  let totalCards = 0;
+  if (ceiling.unit === "digivolutionCards") {
+    for (const seat of seats) {
+      for (const permanent of ctx.game.player(seat).battleArea) {
+        if (permanentMatchesFilter(ctx, permanent, filter, ctx.source)) totalCards += permanent.stack.length;
+      }
+    }
+  } else if (ceiling.unit === "selfFaceDownDigivolutionCards") {
+    totalCards = scaleFactor(ctx, { per: 1, filter, unit: ceiling.unit });
+  } else if (zone === "trash") {
+    for (const seat of seats) totalCards += ctx.game.player(seat).trash.length;
+  } else if (ceiling.unit === "cards") {
+    totalCards = scaleFactor(ctx, { per: 1, filter, unit: "cards" });
+  }
+  const computedCeiling = ceiling.base + Math.floor(totalCards / ceiling.per) * ceiling.raise;
+  return { ...target, filter: { ...target.filter, playCostLte: computedCeiling } };
+}
 
 export async function runPlayAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
@@ -253,34 +286,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
-      const playCostAdjustedTarget = (() => {
-        const ceiling = action.playCostCeiling;
-        if (ceiling === undefined) return levelCeilingAdjustedTarget;
-        const mine = ctx.source.ownerSeat;
-        const opp = ctx.game.opponentOf(mine);
-        const f = ceiling.filter;
-        const zone = (f as { zone?: string }).zone;
-        const controller = (f as { controller?: string }).controller;
-        const seats: Seat[] =
-          controller === "both" || controller === undefined ? [mine, opp] : controller === "opponent" ? [opp] : [mine];
-        let totalCards = 0;
-        if (ceiling.unit === "digivolutionCards") {
-          for (const seat of seats) {
-            for (const permanent of ctx.game.player(seat).battleArea) {
-              if (permanentMatchesFilter(ctx, permanent, f, ctx.source)) {
-                totalCards += permanent.stack.length;
-              }
-            }
-          }
-        } else if (zone === "trash") {
-          for (const seat of seats) totalCards += ctx.game.player(seat).trash.length;
-        }
-        const computedCeiling = ceiling.base + Math.floor(totalCards / ceiling.per) * ceiling.raise;
-        return {
-          ...levelCeilingAdjustedTarget,
-          filter: { ...levelCeilingAdjustedTarget.filter, playCostLte: computedCeiling },
-        };
-      })();
+      const playCostAdjustedTarget = applyPlayCostCeiling(ctx, action, levelCeilingAdjustedTarget);
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       let candidates = candidateLooseInstances(ctx, playCostAdjustedTarget, zones);
       if (action.fromTriggerHandTrash === true) {
@@ -411,6 +417,107 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           });
         }
         const permanentIds = chosen.filter((instanceId) => !optionIds.includes(instanceId));
+        let digiXrosMaterialInstanceIds: string[] = [];
+        if (action.allowDigiXros === true && permanentIds.length === 1) {
+          const playedCard = candidates.find((candidate) => candidate.instanceId === permanentIds[0]);
+          const requirement = playedCard === undefined ? undefined : digiXrosRequirementFor(playedCard.cardId)?.[0];
+          if (playedCard !== undefined && requirement !== undefined) {
+            const ownerSeat = playedCard.ownerSeat;
+            const player = ctx.game.player(ownerSeat);
+            const playedDefinition = ctx.game.definitionOf({ cardId: playedCard.cardId } as never);
+            const expanders = Array.from(player.battleArea).filter((permanent) => {
+              if (permanent.isSuspended || permanent.topCard === undefined) return false;
+              const expander = digiXrosZoneExpanderFor(permanent.topCard.cardId);
+              return expander?.appliesTo(playedDefinition) === true;
+            });
+            const selectedExpanderCards =
+              expanders.length === 0
+                ? []
+                : await ctx.ask.selectCards(ctx, {
+                    candidates: expanders.map((permanent) => permanent.topCard!.instanceId),
+                    min: 0,
+                    max: expanders.length,
+                  });
+            const selectedExpanders = expanders.filter((permanent) =>
+              selectedExpanderCards.includes(permanent.topCard!.instanceId),
+            );
+            const expansion = selectedExpanders.reduce(
+              (current, permanent) => {
+                const expander = digiXrosZoneExpanderFor(permanent.topCard!.cardId)!;
+                return {
+                  underTamerMax: Math.max(current.underTamerMax, expander.underTamerMax),
+                  trashMax: Math.max(current.trashMax, expander.trashMax),
+                };
+              },
+              { underTamerMax: 0, trashMax: 0 },
+            );
+            const defaultCandidates = [
+              ...looseCardsInZone(ctx, ownerSeat, "hand").filter(
+                (candidate) => candidate.instanceId !== playedCard!.instanceId,
+              ),
+              ...Array.from(player.battleArea).flatMap((permanent) =>
+                permanent.inBreeding || permanent.topCard === undefined
+                  ? []
+                  : [
+                      {
+                        instanceId: permanent.topCard.instanceId,
+                        cardId: permanent.topCard.cardId,
+                        ownerSeat: permanent.topCard.ownerSeat,
+                        hostPermanentId: permanent.permanentId,
+                      },
+                    ],
+              ),
+            ];
+            const expandedCandidates = [
+              ...(expansion.underTamerMax > 0 ? looseCardsInZone(ctx, ownerSeat, "underTamers") : []),
+              ...(expansion.trashMax > 0 ? looseCardsInZone(ctx, ownerSeat, "trash") : []),
+            ];
+            const materialCandidates = [...defaultCandidates, ...expandedCandidates].filter((candidate) =>
+              materialsSatisfyRecipe(
+                [ctx.game.definitionOf({ cardId: candidate.cardId } as never)],
+                requirement.materials,
+              ),
+            );
+            const materialCap =
+              requirement.maxMaterials ??
+              (requirement.materials.length === 1 ? materialCandidates.length : requirement.materials.length);
+            const selected = await ctx.ask.selectCards(ctx, {
+              candidates: materialCandidates.map((candidate) => candidate.instanceId),
+              min: 0,
+              max: materialCap,
+            });
+            const selectedCandidates = selected
+              .map((instanceId) => materialCandidates.find((candidate) => candidate.instanceId === instanceId))
+              .filter((candidate): candidate is (typeof materialCandidates)[number] => candidate !== undefined);
+            const selectedUnderTamer = selectedCandidates.filter((candidate) =>
+              looseCardsInZone(ctx, ownerSeat, "underTamers").some(
+                (underCard) => underCard.instanceId === candidate.instanceId,
+              ),
+            ).length;
+            const selectedTrash = selectedCandidates.filter((candidate) =>
+              looseCardsInZone(ctx, ownerSeat, "trash").some(
+                (trashCard) => trashCard.instanceId === candidate.instanceId,
+              ),
+            ).length;
+            const definitions = selectedCandidates.map((candidate) =>
+              ctx.game.definitionOf({ cardId: candidate.cardId } as never),
+            );
+            if (
+              selected.length > 0 &&
+              selectedUnderTamer <= expansion.underTamerMax &&
+              selectedTrash <= expansion.trashMax &&
+              materialsSatisfyRecipe(definitions, requirement.materials)
+            ) {
+              if (selectedUnderTamer > 0 || selectedTrash > 0) {
+                await ctx.fx.suspend(
+                  selectedExpanders.map((permanent) => permanent.permanentId),
+                  { byEffectSeat: ownerSeat },
+                );
+              }
+              digiXrosMaterialInstanceIds = selected;
+            }
+          }
+        }
         const hostPermanentIds = Object.fromEntries(
           permanentIds
             .map((instanceId) => {
@@ -430,6 +537,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 effectSourceCardId: ctx.source.cardId,
                 ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
                 ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
+                ...(digiXrosMaterialInstanceIds.length > 0 ? { digiXrosMaterialInstanceIds } : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
                 hostPermanentIds,
               })

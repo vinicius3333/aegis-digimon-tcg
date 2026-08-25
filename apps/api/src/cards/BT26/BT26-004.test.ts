@@ -1,14 +1,15 @@
-import { EffectTiming } from "@aegis/shared";
+import { CARD_ID_VIEW_TAG, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT26-004.js";
 import "../index.js";
 
 const CARD_ID = "BT26-004";
 
 describe("BT26-004 Pagumon", () => {
-  it("pays the hand-card cost, puts it face down at the bottom under a Glowing Dawn Tamer, then draws", async () => {
+  it("Q6954-Q6957 places the cost hidden at the bottom, draws, and reveals it only after trashing", async () => {
     const s = setupEngine(
       {
         0: {
@@ -38,6 +39,16 @@ describe("BT26-004 Pagumon", () => {
     expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([cost, existing]);
     expect(s.perm("tamer").stack[0]!.faceUp).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010"]);
+
+    expect(s.engine.makeStateView(0)!.hasTag(s.inst("cost"), CARD_ID_VIEW_TAG)).toBe(true);
+    expect(s.engine.makeStateView(1)!.hasTag(s.inst("cost"), CARD_ID_VIEW_TAG)).toBe(false);
+
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("tamer").permanentId, [cost], 0);
+    expect(s.state.players[0]!.trash.find((card) => card.instanceId === cost)).toMatchObject({
+      cardId: "BT1-009",
+      faceUp: true,
+    });
+    expect(s.engine.makeStateView(1)!.hasTag(s.inst("cost"), CARD_ID_VIEW_TAG)).toBe(true);
   });
 
   it("places under a controller-owned Glowing Dawn Tamer and not an opponent or plain Tamer", async () => {
@@ -144,7 +155,7 @@ describe("BT26-004 Pagumon", () => {
   });
 
   it("is compiled as a face-down placement cost under a Glowing Dawn Tamer", () => {
-    const action = compiled.effects[0]!.actions[0]! as any;
+    const action = irNode(compiled.effects[0]!.actions[0]!);
     expect(compiled).toMatchObject({
       coverage: "full",
       effects: [{ trigger: "WhenAttacking", frequency: "OncePerTurn", isInherited: true }],

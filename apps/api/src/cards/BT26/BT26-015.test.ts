@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-015.js";
 import "./BT26-015.js";
+import "./BT26-009.js";
+import "./BT26-023.js";
 
 describe("BT26-015 compiled fidelity", () => {
   it("encodes the shared play/evolution debuff, trash return deletion, and deck-add buff attack", () => {
@@ -138,7 +140,7 @@ describe("BT26-015 compiled fidelity", () => {
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("returned").instanceId);
   });
 
-  it("Q6972/Q6975 optionally buffs a chosen Digimon, then makes it attack when your effect adds to either deck", async () => {
+  it("Q6972/Q6975 reacts to your effect adding an opponent's Digimon to their deck", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -147,23 +149,86 @@ describe("BT26-015 compiled fidelity", () => {
             { card: "BT26-015", as: "butenmon" },
             { card: "BT26-014", as: "attacker" },
           ],
+          hand: [
+            { card: "BT26-023", as: "mojyamon" },
+            { card: "BT1-001", as: "material" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT26-039", as: "returnedOpponent" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(
+      s.inst("material").instanceId,
+      s.perm("returnedOpponent").permanentId,
+      s.perm("attacker").permanentId,
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mojyamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(s.inst("returnedOpponent").instanceId);
+    expect(s.perm("attacker").currentDP).toBe(10000);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+  });
+
+  it("Q6974 reacts after an effect removes a deck card and then adds a card to that deck", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-015", as: "butenmon" },
+            { card: "BT26-014", as: "sourceHost", under: [{ card: "BT26-009" }] },
+            { card: "BT26-014", as: "attacker" },
+          ],
+          hand: [{ card: "BT1-009", as: "bottom" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          deck: [{ card: "BT1-014", as: "drawn" }],
         },
         1: { security: ["BT1-001", "BT1-002"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("attacker").permanentId);
+    preferred.push(s.inst("bottom").instanceId, s.perm("attacker").permanentId);
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", {
-      effectAddedToDeckSeat: 1,
-      effectAddedToDeckBySeat: 0,
-      byEffectCardId: "BT26-015",
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("sourceHost"), {
+      attackerPermanentId: s.perm("sourceHost").permanentId,
     });
     await settle(() => s.state.players[1]!.security.length === 1);
 
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.perm("attacker").currentDP).toBe(10000);
     expect(s.perm("attacker").isSuspended).toBe(true);
+  });
+
+  it("Q6973 does not react when a revealed card is merely restored to the deck", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-015", as: "butenmon" },
+          { card: "BT26-014", as: "candidate" },
+        ],
+        deck: [{ card: "BT1-001", as: "revealed" }],
+      },
+      1: { security: ["BT1-002"] },
+    });
+    await s.ready();
+
+    const revealed = s.state.players[0]!.deck.pop()!;
+    s.state.players[0]!.deck.push(revealed);
+
+    expect(s.perm("candidate").currentDP).toBe(7000);
+    expect(s.perm("candidate").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("may decline the deck-add buff without gaining DP or attacking", async () => {
@@ -212,6 +277,7 @@ describe("BT26-015 compiled fidelity", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
     await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", {
       effectAddedToDeckSeat: 0,

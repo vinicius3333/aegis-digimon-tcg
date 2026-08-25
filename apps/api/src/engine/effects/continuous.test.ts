@@ -158,6 +158,25 @@ describe("ContinuousEffectLedger", () => {
     expect(ledger.hasColorWaiver("INST#9")).toBe(true);
   });
 
+  it("retains an opponent-granted keyword while immunity suppresses it, then reactivates it", () => {
+    const { state, permanentId } = boardWithOnePermanent();
+    const ledger = new ContinuousEffectLedger((id) => (id === permanentId ? (0 as Seat) : undefined));
+    ledger.addKeywordGrant(permanentId, "SecurityAttack", EffectDuration.Permanent, -1, {
+      sourceSeat: 1 as Seat,
+      sourceKinds: ["Option"],
+    });
+    expect(ledger.grantedKeywords(permanentId)).toEqual([{ keyword: "SecurityAttack", amount: -1 }]);
+
+    ledger.addRestriction(permanentId, "beAffected", EffectDuration.UntilEachTurnEnd, {
+      fromSourceKind: ["Option"],
+      byOpponentEffectsOnly: true,
+    });
+    expect(ledger.grantedKeywords(permanentId)).toEqual([]);
+
+    ledger.sweep(state, "eachTurnEnd", 0 as Seat);
+    expect(ledger.grantedKeywords(permanentId)).toEqual([{ keyword: "SecurityAttack", amount: -1 }]);
+  });
+
   it("preserves the card and clause that granted an inherited keyword", () => {
     const ledger = new ContinuousEffectLedger();
     ledger.addKeywordGrant("P1", "Decoy", EffectDuration.Permanent, undefined, {

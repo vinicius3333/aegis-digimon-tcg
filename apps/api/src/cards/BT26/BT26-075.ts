@@ -31,6 +31,11 @@ export const compiled: CompiledCard = {
             filter: { controller: "mine", nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] },
           },
         },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
         { kind: "GainKeyword", target: self, keyword: { keyword: "Execute" }, duration: "permanent" },
         { kind: "GainKeyword", target: self, keyword: { keyword: "Ascension" }, duration: "permanent" },
       ],

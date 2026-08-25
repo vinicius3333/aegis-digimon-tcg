@@ -1,8 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-import { CardKind, EffectTiming, type CardDefinition, type CardInstance, type Seat } from "@aegis/shared";
+import {
+  CardKind,
+  EffectTiming,
+  getCardDefinition,
+  type CardDefinition,
+  type CardInstance,
+  type Seat,
+} from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT26-070.js";
@@ -41,6 +49,17 @@ function source(): CardSource {
 
 describe("BT26-070 bottom face-down Tamer cost", () => {
   it("encodes the full two-card Tamer cost and reduced Glowing Dawn Option play", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "NightChiropmon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      types: ["Beastkin", "Glowing Dawn", "BEATBREAK"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
     expect(compiled.digivolutionRequirement).toContainEqual({
       level: 3,
       traits: ["Glowing Dawn"],
@@ -56,6 +75,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
           from: ["trash"],
           payCost: true,
           reduceCostBy: 2,
+          target: { filter: { playCostLte: 99 } },
           cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 },
         },
       ],
@@ -103,14 +123,37 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
     expect(observe(s.engine).hasKeyword(s.perm("top"), "Retaliation")).toBe(false);
   });
 
+  it("executes inherited Retaliation after losing a battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-068", as: "host", under: [CARD_ID] }] },
+        1: { battleArea: [{ card: "BT26-060", as: "defender", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const defenderId = s.perm("defender").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(defenderId);
+  });
+
   it("draws first, then mandates exactly 1 hand discard at both printed timings", async () => {
     for (const timing of [EffectTiming.OnPlay, EffectTiming.WhenDigivolving]) {
       const hand = [{ instanceId: "kept", cardId: "KEEP" }] as CardInstance[];
-      const draw = vi.fn(async () => {
+      const draw = vi.fn<Primitives["draw"]>(async () => {
         hand.push({ instanceId: "drawn", cardId: "DRAWN" } as CardInstance);
         return [hand[1]!];
       });
-      const trash = vi.fn(async () => []);
+      const trash = vi.fn<Primitives["trash"]>(async () => []);
       const cardSource = source();
       const ctx = {
         source: cardSource,
@@ -121,7 +164,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
           definitionOf: (card: { cardId: string }) => def(card.cardId, [CardKind.Digimon]),
         },
         ask: {
-          selectCards: vi.fn(async (_ctx, opts: { candidates: string[]; min: number; max: number }) => {
+          selectCards: vi.fn<DecisionApi["selectCards"]>(async (_ctx, opts) => {
             expect(opts).toMatchObject({ candidates: ["kept", "drawn"], min: 1, max: 1 });
             return ["drawn"];
           }),
@@ -166,18 +209,16 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
     } as unknown as GameAccess;
     const firstSelection: string[][] = [];
     const fx = {
-      trashDigivolutionCards: vi.fn<(...args: any[]) => any>(async (_host: string, ids: string[]) => {
+      trashDigivolutionCards: vi.fn<Primitives["trashDigivolutionCards"]>(async (_host, ids) => {
         firstSelection.push(ids);
-        return ids.map((instanceId) => ({ instanceId, cardId: "UNDER" }));
+        return ids.map((instanceId) => ({ instanceId, cardId: "UNDER" }) as CardInstance);
       }),
-      gainMemory: vi.fn<(...args: any[]) => any>(),
-      useOptionFromHand: vi.fn<(...args: any[]) => any>(async () => undefined),
+      gainMemory: vi.fn<Primitives["gainMemory"]>(),
+      useOptionFromHand: vi.fn<Primitives["useOptionFromHand"]>(async () => []),
     } as unknown as Primitives;
     const ask = {
-      optional: vi.fn<(...args: any[]) => any>(async () => true),
-      selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) =>
-        opts.candidates.slice(0, 2),
-      ),
+      optional: vi.fn<DecisionApi["optional"]>(async () => true),
+      selectCards: vi.fn<DecisionApi["selectCards"]>(async (_ctx, opts) => opts.candidates.slice(0, 2)),
     } as unknown as EffectContext["ask"];
     const cardSource = source();
     const ctx = { source: cardSource, trigger: {}, game, fx, ask } as unknown as EffectContext;
@@ -208,21 +249,21 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
             ? def("OPTION", [CardKind.Option], ["Glowing Dawn"])
             : def(card.cardId, [CardKind.Digimon]),
     } as unknown as GameAccess;
-    const useOptionFromHand = vi.fn();
+    const useOptionFromHand = vi.fn<Primitives["useOptionFromHand"]>(async () => []);
     const ctx = {
       source: source(),
       trigger: {},
       game,
       ask: {
-        optional: vi.fn(async () => true),
-        selectCards: vi.fn(async (_ctx, opts: { candidates: string[]; max: number }) =>
+        optional: vi.fn<DecisionApi["optional"]>(async () => true),
+        selectCards: vi.fn<DecisionApi["selectCards"]>(async (_ctx, opts) =>
           opts.max === 2 ? opts.candidates : ["option"],
         ),
       },
       fx: {
         trashDigivolutionCards: vi
-          .fn()
-          .mockResolvedValueOnce([{ instanceId: "bottom", cardId: "UNDER" }])
+          .fn<Primitives["trashDigivolutionCards"]>()
+          .mockResolvedValueOnce([{ instanceId: "bottom", cardId: "UNDER" } as CardInstance])
           .mockResolvedValueOnce([]),
         useOptionFromHand,
       },
@@ -255,20 +296,20 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
             ? def("OPTION", [CardKind.Option], ["Glowing Dawn"])
             : def(card.cardId, [CardKind.Digimon]),
     } as unknown as GameAccess;
-    const useOptionFromHand = vi.fn(async () => []);
-    const gainMemoryForSeat = vi.fn();
+    const useOptionFromHand = vi.fn<Primitives["useOptionFromHand"]>(async () => []);
+    const gainMemoryForSeat = vi.fn<Primitives["gainMemoryForSeat"]>();
     const ctx = {
       source: source(),
       trigger: {},
       game,
       ask: {
-        optional: vi.fn(async () => true),
-        selectCards: vi.fn(async (_ctx, opts: { candidates: string[]; max: number }) =>
+        optional: vi.fn<DecisionApi["optional"]>(async () => true),
+        selectCards: vi.fn<DecisionApi["selectCards"]>(async (_ctx, opts) =>
           opts.max === 2 ? opts.candidates : ["new-option"],
         ),
       },
       fx: {
-        trashDigivolutionCards: vi.fn(async (_hostId: string, ids: string[]) => {
+        trashDigivolutionCards: vi.fn<Primitives["trashDigivolutionCards"]>(async (_hostId, ids) => {
           const moved = [underOption, otherUnder].filter((card) => ids.includes(card.instanceId));
           player.trash.push(...moved);
           return moved;
@@ -288,5 +329,38 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
       3,
       expect.objectContaining({ payCost: true, costDelta: 2, paymentHandled: true }),
     );
+  });
+
+  it("does not combine two copies' reductions for one Option use (Q7093)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "first" },
+            { card: CARD_ID, as: "second" },
+            { card: "BT25-088", as: "tamerA", under: [{ card: "BT1-001", faceUp: false }] },
+            { card: "BT25-088", as: "tamerB", under: [{ card: "BT1-002", faceUp: false }] },
+            { card: "BT25-088", as: "tamerC", under: [{ card: "BT1-003", faceUp: false }] },
+            { card: "BT25-088", as: "tamerD", under: [{ card: "BT1-004", faceUp: false }] },
+          ],
+          trash: [{ card: "P-236", as: "glowingDawn" }],
+          deck: ["BT25-032", "BT25-033", "BT25-034"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("first"));
+    await settle(() => !s.state.players[0]!.trash.some(({ cardId }) => cardId === "P-236"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash).toHaveLength(2);
+
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("second"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash).toHaveLength(2);
   });
 });

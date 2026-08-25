@@ -42,9 +42,15 @@ export async function runPlaceUnder(
     const owner = ctx.game.player(ctx.source.ownerSeat);
     if (action.mixedSources.battleAreaPermanents || action.mixedSources.linkedCards) {
       for (const permanent of owner.battleArea) {
-        if (permanent.inBreeding || permanent.permanentId === destinationId || permanent.topCard === undefined)
-          continue;
-        if (action.mixedSources.battleAreaPermanents && matches(permanent.topCard))
+        if (permanent.inBreeding || permanent.topCard === undefined) continue;
+        // The destination Digimon itself cannot become one of its own digivolution
+        // cards, but its linked cards remain valid mixed-source materials (BT26-102
+        // Q7183). Do not skip the entire permanent when it is the chosen host.
+        if (
+          permanent.permanentId !== destinationId &&
+          action.mixedSources.battleAreaPermanents &&
+          matches(permanent.topCard)
+        )
           candidates.push({ instanceId: permanent.topCard.instanceId, permanentId: permanent.permanentId });
         if (action.mixedSources.linkedCards) {
           for (const linked of permanent.linked)
@@ -93,7 +99,10 @@ export async function runPlaceUnder(
           return;
       } else if ((await ctx.fx.placeUnder(destinationId, [candidate.instanceId])).length !== 1) return;
     }
-    if (action.trackCount !== undefined) ctx.namedCounts?.set(action.trackCount, count);
+    if (action.trackCount !== undefined) {
+      ctx.namedCounts ??= new Map();
+      ctx.namedCounts.set(action.trackCount, count);
+    }
     return;
   }
   // "Place the top card of your Digi-Egg deck as this Digimon's bottom digivolution card"
@@ -375,12 +384,10 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
   if (action.mixedSources !== undefined) {
     const destination = action.destination;
     if (destination === undefined) return false;
-    const destinationIds = new Set(
-      candidatePermanents(ctx, { filter: destination.filter, count: destination.count }).map(
-        (permanent) => permanent.permanentId,
-      ),
+    const destinationIds = candidatePermanents(ctx, { filter: destination.filter, count: destination.count }).map(
+      (permanent) => permanent.permanentId,
     );
-    if (destinationIds.size === 0) return false;
+    if (destinationIds.length === 0) return false;
     const matches = (card: { cardId: string }): boolean => {
       const definition = ctx.game.definitionOf(card as never);
       const filter = action.target.filter;
@@ -391,17 +398,23 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
       );
     };
     const owner = ctx.game.player(ctx.source.ownerSeat);
-    let available = 0;
-    for (const permanent of owner.battleArea) {
-      if (permanent.inBreeding || destinationIds.has(permanent.permanentId) || permanent.topCard === undefined)
-        continue;
-      if (action.mixedSources.battleAreaPermanents && matches(permanent.topCard)) available += 1;
-      if (action.mixedSources.linkedCards) available += permanent.linked.filter(matches).length;
-    }
-    if (action.mixedSources.hand) available += owner.hand.filter(matches).length;
-    if (action.mixedSources.trash) available += owner.trash.filter(matches).length;
-    const required = action.target.count === "all" ? available : Number(action.target.count ?? 1);
-    return required > 0 && available >= required;
+    return destinationIds.some((destinationId) => {
+      let available = 0;
+      for (const permanent of owner.battleArea) {
+        if (permanent.inBreeding || permanent.topCard === undefined) continue;
+        if (
+          permanent.permanentId !== destinationId &&
+          action.mixedSources!.battleAreaPermanents &&
+          matches(permanent.topCard)
+        )
+          available += 1;
+        if (action.mixedSources!.linkedCards) available += permanent.linked.filter(matches).length;
+      }
+      if (action.mixedSources!.hand) available += owner.hand.filter(matches).length;
+      if (action.mixedSources!.trash) available += owner.trash.filter(matches).length;
+      const required = action.target.count === "all" ? available : Number(action.target.count ?? 1);
+      return required > 0 && available >= required;
+    });
   }
   if (action.fromDeckTop === true) {
     return ctx.source.permanent() !== undefined && ctx.game.player(ctx.source.ownerSeat).deck.length > 0;

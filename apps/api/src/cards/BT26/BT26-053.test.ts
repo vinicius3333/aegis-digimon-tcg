@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-053.js";
 import "../index.js";
 
@@ -25,16 +26,17 @@ describe("BT26-053 Wolvermon", () => {
             {
               kind: "CostGatedBlock",
               cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
-              actions: [{ kind: "UseOptionWithoutCost", from: ["hand"], payCost: false }],
+              actions: [{ kind: "UseOptionWithoutCost", from: ["hand"], payCost: false, selectionRequired: true }],
             },
           ],
         },
       ],
     });
     expect(compiled.effects?.[2]).toMatchObject({
-      trigger: "None",
+      trigger: "Static",
       isInherited: true,
-      actions: [{ kind: "GainKeyword", keyword: { keyword: "Blocker" }, duration: "permanent" }],
+      actions: [],
+      keywords: [{ keyword: "Blocker" }],
     });
   });
 
@@ -83,5 +85,78 @@ describe("BT26-053 Wolvermon", () => {
 
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("P-236");
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toContain("BT1-010");
+  });
+
+  it("doesn't offer or pay the cost when no legal Glowing Dawn Option can be used", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-053", as: "source" },
+            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("source").permanentId,
+    });
+
+    expect(s.decisions).toHaveLength(0);
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("faceDown").instanceId);
+  });
+
+  it("enforces Once Per Turn across repeated target switches", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-053", as: "source" },
+            {
+              card: "BT1-089",
+              as: "tamer",
+              under: [
+                { card: "BT1-009", faceUp: false },
+                { card: "BT1-010", faceUp: false },
+              ],
+            },
+          ],
+          hand: [
+            { card: "P-236", as: "firstOption" },
+            { card: "P-236", as: "secondOption" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+
+    for (let index = 0; index < 2; index += 1) {
+      await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+        attackerPermanentId: s.perm("source").permanentId,
+      });
+    }
+
+    expect(s.perm("tamer").stack).toHaveLength(1);
+    expect(s.state.players[0]!.hand.filter(({ cardId }) => cardId === "P-236")).toHaveLength(1);
+  });
+
+  it("publishes Blocker on Wolvermon and through its inherited effect", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-053", as: "wolvermon" },
+          { card: "BT26-055", as: "host", under: ["BT26-053"] },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("wolvermon"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
 });

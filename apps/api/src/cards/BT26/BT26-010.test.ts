@@ -1,13 +1,5 @@
-import {
-  EffectTiming,
-  digivolutionRequirementsFor,
-  type CardDefinition,
-  type CardInstance,
-  type Seat,
-} from "@aegis/shared";
-import { describe, expect, it, vi } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -16,36 +8,29 @@ import "../index.js";
 
 const CARD_ID = "BT26-010";
 
-function definition(cardId: string, types: string[] = [], attributes: string[] = []): CardDefinition {
-  return {
-    cardId,
-    set: "TEST",
-    nameEn: cardId,
-    kinds: ["Digimon"] as never,
-    colors: [],
-    playCost: 0,
-    dp: 0,
-    types,
-    attributes,
-    evoCosts: [],
-    maxCountInDeck: 4,
-  };
-}
-
-function source(): CardSource {
-  return {
-    instanceId: "source",
-    cardId: CARD_ID,
-    ownerSeat: 0 as Seat,
-    definition: definition(CARD_ID),
-    permanent: () => undefined,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => true,
-  };
-}
-
 describe("BT26-010 Roleplaymon", () => {
+  it("publishes Detach on Roleplaymon itself and does not treat its When Attacking effect as inherited", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: CARD_ID, as: "roleplay", linked: [{ card: "BT26-019", as: "sevenCodeLink" }] },
+          { card: "BT21-009", as: "host", under: [{ card: CARD_ID, as: "sourceOnly" }] },
+        ],
+        hand: [{ card: "BT21-054", as: "eligibleCost" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("roleplay"), "Detach")).toBe(true);
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
+      attackerPermanentId: s.perm("host").permanentId,
+    });
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("eligibleCost").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
   it("uses the exact Appmon Lv.2 cost-0 evolution and rejects an off-color non-Appmon Lv.2", async () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
       level: 2,
@@ -219,6 +204,7 @@ describe("BT26-010 Roleplaymon", () => {
 
   it("encodes the exact hand cost, inherited draw, and linked keywords", () => {
     expect(compiled.effects).toMatchObject([
+      { trigger: "Static", keywords: [{ keyword: "Detach" }] },
       {
         trigger: "WhenAttacking",
         actions: [
@@ -232,7 +218,6 @@ describe("BT26-010 Roleplaymon", () => {
       },
       { trigger: "Static", isLinked: true, keywords: [{ keyword: "Progress" }, { keyword: "Piercing" }] },
     ]);
-    expect(compiled.keywords).toContainEqual(expect.objectContaining({ keyword: "Detach" }));
   });
 
   it("Q6964: Detach saves only the tied attacker and removes linked Piercing before the opponent is deleted", async () => {

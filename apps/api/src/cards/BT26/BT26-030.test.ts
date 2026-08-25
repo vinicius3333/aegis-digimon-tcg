@@ -33,6 +33,7 @@ describe("BT26-030 Pumpkinmon", () => {
               actions: [
                 expect.objectContaining({ kind: "SelectBind" }),
                 expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Execute" } }),
+                expect.objectContaining({ kind: "GrantStatic", grant: "effects", tokens: ["Execute"] }),
                 expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Ascension" } }),
               ],
             }),
@@ -66,6 +67,36 @@ describe("BT26-030 Pumpkinmon", () => {
     expect(Array.from(s.perm("iliad").keywords)).toEqual(expect.arrayContaining(["Execute", "Ascension"]));
     expect(Array.from(s.perm("pumpkinmon").keywords)).not.toEqual(expect.arrayContaining(["Execute", "Ascension"]));
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+  });
+
+  it("makes the granted Execute attack, self-delete, and use the granted Ascension", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-030", as: "pumpkinmon" },
+            { card: "BT24-019", as: "iliad" },
+          ],
+          hand: [{ card: "BT1-001", as: "cost" }],
+        },
+        1: { security: ["BT1-002", "BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("iliad").permanentId);
+    const iliadId = s.perm("iliad").topCard.instanceId;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("pumpkinmon"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("iliad"));
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === iliadId) &&
+        s.state.players[1]!.security.length === 1,
+    );
+
+    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: iliadId, faceUp: false });
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("may decline the hand-trash cost and grants neither keyword", async () => {

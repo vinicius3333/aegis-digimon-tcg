@@ -2,6 +2,7 @@ import { $changes, ArraySchema, StateView } from "@colyseus/schema";
 import {
   PRIVATE_VIEW_TAG,
   PRIVATE_DECISION_VIEW_TAG,
+  CARD_ID_VIEW_TAG,
   type CardInstance,
   type GameState,
   type Permanent,
@@ -43,7 +44,8 @@ function privateZonesOf(player: PlayerState): readonly CardInstance[][] {
 /**
  * Every face-up, publicly-visible CardInstance a player controls on the board:
  * the cards making up each battle-area permanent (active card + digivolution
- * stack + linked cards) and the same for the breeding permanent, plus the trash.
+ * stack + linked cards) and the same for the breeding permanent, plus the trash
+ * and face-down Delay zone.
  *
  * These need explicit per-view exposure because of a @colyseus/schema quirk: once
  * a CardInstance has lived in a @view-tagged zone (hand/deck/eggDeck/security) its
@@ -64,6 +66,7 @@ function publicBoardCardsOf(player: PlayerState): CardInstance[] {
   for (const permanent of player.battleArea) collectPermanent(permanent);
   collectPermanent(player.breeding);
   cards.push(...player.trash);
+  cards.push(...player.delayZone);
   // §9-1-4: an Option resolving between activation and resolution of its 1st [Main]
   // effect. It was revealed to be used (§9-1-9-1), so it is public the same as any
   // board card, and needs the same forced re-add (see the ChangeTree note above).
@@ -157,6 +160,9 @@ function unlockInto(view: StateView, state: GameState, seat: Seat): void {
     // Colyseus scopes the reveal to this specific PlayerState object, so the
     // opponent's identically-tagged fields stay hidden (they were never added).
     view.add(owner, PRIVATE_VIEW_TAG);
+    for (const zone of privateZonesOf(owner)) {
+      for (const card of zone) view.add(card, CARD_ID_VIEW_TAG);
+    }
   }
   if (state.pendingDecision?.seat === seat) {
     view.add(state.pendingDecision, PRIVATE_DECISION_VIEW_TAG);
@@ -167,7 +173,10 @@ function unlockInto(view: StateView, state: GameState, seat: Seat): void {
   for (const player of state.players) {
     if (player === owner) continue;
     for (const card of player.security) {
-      if (card.faceUp) view.add(card, PRIVATE_VIEW_TAG);
+      if (card.faceUp) {
+        view.add(card, PRIVATE_VIEW_TAG);
+        view.add(card, CARD_ID_VIEW_TAG);
+      }
     }
   }
 
@@ -177,7 +186,10 @@ function unlockInto(view: StateView, state: GameState, seat: Seat): void {
   // area decodes with topCard=undefined. Adding the owner's own cards too is
   // harmless (idempotent) and keeps the policy uniform.
   for (const player of state.players) {
-    for (const card of publicBoardCardsOf(player)) view.add(card);
+    for (const card of publicBoardCardsOf(player)) {
+      view.add(card);
+      if (card.faceUp || card.ownerSeat === seat) view.add(card, CARD_ID_VIEW_TAG);
+    }
   }
 }
 

@@ -431,6 +431,20 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         ctx.playLevelCeilingDelta = (ctx.playLevelCeilingDelta ?? 0) + delta;
         return false;
       }
+      // An interactive self-reduction resolved in the card's BeforePayCost window must
+      // modify that imminent payment directly. Installing a continuous play-cost modifier
+      // here is too late: the caller has already supplied the base cost and reads the earned
+      // reduction back from this focused context (BT26-098).
+      if (
+        ctx.activeTiming === "BeforePayCost" &&
+        action.handResident === true &&
+        selfRef &&
+        action.mode === "reduce" &&
+        (action.costType === "play" || action.costType === "use")
+      ) {
+        ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.abs(delta);
+        return false;
+      }
       // Play/use-cost form ("reduce the play cost of your Digimon by N", "increase the
       // cost of your opponent's next Digimon by N"): the predicate matches card
       // DEFINITIONS (and the paying seat) rather than a board permanent, since the

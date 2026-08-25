@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -8,6 +8,17 @@ import "../index.js";
 
 describe("BT26-073 Aegiochusmon: Dark", () => {
   it("encodes both exclusive costs, On Deletion play, inherited Security Attack, and Wizard", () => {
+    expect(getCardDefinition("BT26-073")).toMatchObject({
+      nameEn: "Aegiochusmon: Dark",
+      colors: ["Purple", "Red"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      types: ["Shaman", "Iliad", "TS"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]?.actions[0]).toMatchObject({
       kind: "Modal",
       choose: 1,
@@ -45,6 +56,74 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
         ],
       },
     ]);
+  });
+
+  it("digivolves from an off-color Aegiomon for the named cost 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-033", as: "aegiomon" }],
+        hand: [{ card: "BT26-073", as: "dark" }],
+        deck: ["BT1-001"],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("aegiomon").permanentId,
+        instanceId: s.inst("dark").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("aegiomon").topCard.cardId === "BT26-073");
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("uses one level-4 TS Assembly card for the printed reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-073", as: "dark" }],
+          trash: [{ card: "BT26-069", as: "level4Ts" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 6;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("dark").instanceId,
+        assembly: { materialInstanceIds: [s.inst("level4Ts").instanceId] },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-073"));
+
+    const dark = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT26-073");
+    expect(dark?.stack.map(({ cardId }) => cardId)).toEqual(["BT26-069"]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("Q7098 keeps the level-4 ceiling on the TS side of the Assembly union", () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-073", as: "dark" }],
+        trash: [{ card: "BT26-060", as: "level6Ts" }],
+      },
+    });
+    s.state.memory = 6;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("dark").instanceId,
+        assembly: { materialInstanceIds: [s.inst("level6Ts").instanceId] },
+      } as never),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 
   it("pays the self-delete mode and deletes only an opponent level 5 or lower Digimon", async () => {
@@ -111,6 +190,26 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
+  it("finishes the parent deletion after its self-cost On Deletion plays a TS card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-073", as: "dark" }],
+          hand: [{ card: "BT26-069", as: "candidate" }],
+        },
+        1: { battleArea: [{ card: "BT26-074", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dark"));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-069"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-069"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
   it("can play an eligible TS Tamer rather than only a Digimon on deletion", async () => {
     const s = setupEngine(
       {
@@ -138,5 +237,27 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
     expect(observe(s.engine).hasEffectiveTrait(s.perm("standalone"), "Wizard")).toBe(true);
+  });
+
+  it("executes inherited Security A. +1 for two security checks", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-103", as: "host", under: ["BT26-073"] }] },
+        1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });

@@ -13,8 +13,12 @@ const handCost = {
 };
 
 export const compiled: CompiledCard = {
-  keywords: [{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }],
   effects: [
+    {
+      trigger: "Static",
+      keywords: [{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }],
+      actions: [],
+    },
     {
       trigger: "WhenAttacking",
       isInherited: false,

@@ -3,7 +3,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const anyDigimonTamer = { filter: { controller: "any", kind: ["Digimon", "Tamer"] }, count: 2, upTo: true };
-const opponentDigimonTamer = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2, upTo: true };
+const opponentDigimonTamer = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2 };
 const suspendLock = [
   { kind: "Suspend", target: anyDigimonTamer, optional: true },
   { kind: "Restrict", target: opponentDigimonTamer, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
@@ -23,8 +23,49 @@ const trashSecurity = {
 };
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "WhenDigivolving", actions: [...suspendLock, securityCost, trashSecurity] },
+    { trigger: "WhenDigivolving", actions: suspendLock },
+    { trigger: "WhenDigivolving", actions: [securityCost, trashSecurity] },
     { trigger: "WhenAttacking", actions: [securityCost, trashSecurity] },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }],
+            },
+          },
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        { kind: "Suspend", target: opponentDigimonTamer },
+        {
+          kind: "Restrict",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon", "Tamer"], suspended: true },
+            count: "all",
+          },
+          restriction: "digivolve",
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon", "Tamer"], suspended: true },
+            count: "all",
+          },
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT26-090.js";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT26-090 compiled behavior", () => {
   it("proves Q7143 memory threshold and suspended TS Option use shape", () => {
+    expect(getCardDefinition("BT26-090")).toMatchObject({
+      nameEn: "Kanan Yuki",
+      colors: ["Green"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      types: ["ADAMAS", "TS"],
+    });
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
       isSecurity: true,
@@ -57,6 +64,11 @@ describe("BT26-090 compiled behavior", () => {
     high.state.memory = 5;
     await advance(high.engine).fire(EffectTiming.OnStartMainPhase, high.perm("kanan"));
     expect(high.state.memory).toBe(5);
+
+    const opponentSide = setupEngine({ 0: { battleArea: [{ card: "BT26-090", as: "kanan" }] } });
+    opponentSide.state.memory = -3;
+    await advance(opponentSide.engine).fire(EffectTiming.OnStartMainPhase, opponentSide.perm("kanan"));
+    expect(opponentSide.state.memory).toBe(-2);
   });
 
   it("suspends itself and reduces a TS Option's paid cost by the opponent's memory", async () => {
@@ -78,5 +90,106 @@ describe("BT26-090 compiled behavior", () => {
 
     expect(s.perm("kanan").isSuspended).toBe(true);
     expect(s.state.memory).toBe(-5);
+  });
+
+  it("floors the opponent-memory reduction at zero instead of gaining memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-090", as: "kanan" }],
+          hand: [{ card: "BT25-093", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -6;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kanan"));
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("option").instanceId));
+
+    expect(s.perm("kanan").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-6);
+  });
+
+  it("may decline the Option use without suspending or paying its cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-090", as: "kanan" }],
+          hand: [{ card: "BT25-093", as: "option" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = -3;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kanan"));
+
+    expect(s.perm("kanan").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
+  it("cannot suspend itself to use a non-TS Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-090", as: "kanan" }],
+          hand: [{ card: "BT1-108", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -1;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kanan"));
+
+    expect(s.perm("kanan").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(-1);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
+  it("cannot use the TS Option while this Tamer is already suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-090", as: "kanan", suspended: true }],
+          hand: [{ card: "BT25-093", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -3;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kanan"));
+
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
+  it("plays itself without paying its cost when checked in security", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT26-090", as: "kanan" }] },
+      1: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    const kananId = s.inst("kanan").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === kananId));
+
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === kananId)).toBe(false);
+    expect(s.state.memory).toBe(0);
   });
 });

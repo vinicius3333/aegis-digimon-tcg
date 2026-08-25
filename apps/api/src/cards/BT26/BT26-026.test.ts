@@ -64,28 +64,33 @@ describe("BT26-026 Cougarmon", () => {
           ],
           security: ["BT1-001"],
         },
+        1: { security: ["BT1-002", "BT1-003"] },
       },
       { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
     );
     s.state.memory = 2;
+    const optionId = s.inst("option").instanceId;
+    const nonGlowingOptionId = s.inst("nonGlowingOption").instanceId;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("cougarmon"), {
-      attackerPermanentId: s.perm("cougarmon").permanentId,
-    });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("cougarmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId) &&
+        s.state.players[1]!.security.length === 1,
     );
 
     expect(s.state.memory).toBe(1);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
-      s.inst("nonGlowingOption").instanceId,
-    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(nonGlowingOptionId);
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
-    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(true);
   });
 
   it("uses the bottom face-down Tamer card as the alternate cost and reveals it in trash", async () => {
@@ -206,6 +211,30 @@ describe("BT26-026 Cougarmon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("top"), "Barrier")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+  });
+
+  it("uses top-card Barrier to trash security and prevent effect deletion", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-026", as: "cougarmon" }],
+        security: [
+          { card: "BT1-009", as: "barrierCost" },
+          { card: "BT1-010", as: "remaining" },
+        ],
+      },
+    });
+    const cougarmonId = s.perm("cougarmon").permanentId;
+
+    const deletion = advance(s.engine).verb.deletePermanent([cougarmonId], "byEffect");
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: cougarmonId, accept: true })).toEqual({
+      ok: true,
+    });
+    expect(await deletion).toBe(0);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("remaining").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("barrierCost").instanceId);
   });
 
   it("uses the exact level-3 Glowing Dawn cost-2 evolution and rejects a near-match", async () => {

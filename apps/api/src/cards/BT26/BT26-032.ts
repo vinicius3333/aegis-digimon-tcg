@@ -6,6 +6,7 @@ const opponentSuspendedDigimon = { controller: "opponent", kind: ["Digimon"], su
 const playable = { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Vegetation", "TS"], match: "trait" }] };
 const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
 const opponentDigimonOrTamer = { controller: "opponent", kind: ["Digimon", "Tamer"] };
+const ceresmon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ceresmon"], match: "name" }] };
 const digivolveBody = [
   {
     kind: "ModifyDP",
@@ -61,6 +62,19 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           grant: "trait",
           tokens: ["Vegetation"],
+          duration: "permanent",
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "effects",
+          filter: ceresmon,
+          topmostOnly: true,
           duration: "permanent",
         },
       ],

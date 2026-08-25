@@ -640,6 +640,10 @@ function makeContext(opts: {
       rec.calls.push({ verb: "deletePermanent", args: a });
       return (a[0] as string[]).length;
     },
+    trashPermanentByRule: async (...a) => {
+      rec.calls.push({ verb: "trashPermanentByRule", args: a });
+      return [];
+    },
     suspend: async (...a) => {
       rec.calls.push({ verb: "suspend", args: a });
       return a[0] as string[];
@@ -651,6 +655,10 @@ function makeContext(opts: {
     },
     returnToDeck: async (...a) => {
       rec.calls.push({ verb: "returnToDeck", args: a });
+      return [];
+    },
+    returnStackTopsToDeck: async (...a) => {
+      rec.calls.push({ verb: "returnStackTopsToDeck", args: a });
       return [];
     },
     reveal: async (...a) => {
@@ -831,6 +839,43 @@ describe("attack cost feasibility", () => {
 
     expect(canPayCost(suspendedCtx, cost)).toBe(false);
     expect(canPayCost(rushCtx, cost)).toBe(true);
+  });
+});
+
+describe("filtered hand-trash cost feasibility", () => {
+  const source = makeSource();
+  const cost = {
+    kind: "trash" as const,
+    target: {
+      count: 1,
+      filter: {
+        zone: "hand" as const,
+        controller: "mine" as const,
+        nameOrTrait: [{ tokens: ["NSo"], match: "trait" as const }],
+      },
+    },
+  };
+
+  it("does not offer the cost when the hand has cards but none match its filter", () => {
+    const ctx = makeContext({
+      source,
+      recorder: { calls: [] },
+      ownHand: [{ instanceId: "plain", cardId: "PLAIN", ownerSeat: 0, faceUp: true }],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, types: [] }),
+    });
+
+    expect(canPayCost(ctx, cost)).toBe(false);
+  });
+
+  it("offers the cost when enough matching hand cards exist", () => {
+    const ctx = makeContext({
+      source,
+      recorder: { calls: [] },
+      ownHand: [{ instanceId: "nso", cardId: "NSO", ownerSeat: 0, faceUp: true }],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, types: ["NSo"] }),
+    });
+
+    expect(canPayCost(ctx, cost)).toBe(true);
   });
 });
 
@@ -4806,7 +4851,7 @@ describe("superlative narrowing — highestDP / lowestDP", () => {
 
     for (const e of effects) await e.resolve(ctx);
 
-    const delCall = recorder.calls.find((c) => c.verb === "deletePermanent");
+    const delCall = recorder.calls.find((call) => call.verb === "deletePermanent");
     expect(delCall).toBeDefined();
     expect(delCall!.args[0]).toEqual(["lo"]);
   });
@@ -4839,7 +4884,7 @@ describe("superlative narrowing — highestDP / lowestDP", () => {
 
     for (const e of effects) await e.resolve(ctx);
 
-    const delCall = recorder.calls.find((c) => c.verb === "deletePermanent");
+    const delCall = recorder.calls.find((call) => call.verb === "deletePermanent");
     expect(delCall).toBeDefined();
     const deleted = delCall!.args[0] as string[];
     expect(deleted).not.toContain("c");

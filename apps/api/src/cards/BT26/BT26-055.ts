@@ -24,7 +24,7 @@ const deleteBody = [
   { kind: "Delete", target: { filter: { boundRef: "ownVer3ToDelete" }, count: 1 } },
   {
     kind: "Delete",
-    target: { filter: { controller: "opponent", kind: ["Digimon"], lowestPlayCost: true }, count: "all" },
+    target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestPlayCost" }, count: "all" },
   },
 ];
 const body = [place, ...deleteBody];

@@ -24,6 +24,7 @@ describe("BT26-059 Plutomon", () => {
         actions: [
           expect.objectContaining({
             kind: "PlayWithoutCost",
+            target: expect.objectContaining({ filter: expect.objectContaining({ excludeNames: ["Plutomon"] }) }),
             condition: expect.objectContaining({ kind: "isYourTurn" }),
           }),
         ],
@@ -33,7 +34,12 @@ describe("BT26-059 Plutomon", () => {
       trigger: "AllTurns",
       frequency: "OncePerTurn",
       actions: [
-        { kind: "SubTrigger", event: "whenHandTrashed", actions: [{ kind: "Delete", target: { count: "all" } }] },
+        {
+          kind: "SubTrigger",
+          event: "whenHandTrashed",
+          fireCondition: { kind: "triggerHandTrashedSeat", seat: "any" },
+          actions: [{ kind: "Delete", target: { count: "all" } }],
+        },
       ],
     });
   });
@@ -109,5 +115,82 @@ describe("BT26-059 Plutomon", () => {
     );
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-021");
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("Q7077: stacks its -7 reduction with GranKuwagamon's -4 play reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-059", as: "plutomon" }],
+          hand: [{ card: "BT1-001", as: "cost" }],
+          trash: [{ card: "BT26-045", as: "granKuwagamon" }],
+        },
+        1: { hand: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("granKuwagamon").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-045");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("Q7078: reacts when the opponent's hand is trashed and deletes every tied lowest-level Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-059", as: "plutomon" }] },
+        1: {
+          hand: [{ card: "BT1-001", as: "opponentHand" }],
+          battleArea: [
+            { card: "BT1-009", as: "lowestOne" },
+            { card: "BT1-010", as: "lowestTwo" },
+            { card: "BT1-082", as: "higher" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const higherId = s.perm("higher").permanentId;
+    await s.ready();
+
+    await advance(s.engine).verb.trash([s.inst("opponentHand").instanceId], 0);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([higherId]);
+  });
+
+  it("shares Once Per Turn across On Play and When Attacking", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-059", as: "plutomon" }],
+          hand: [
+            { card: "BT1-001", as: "firstCost" },
+            { card: "BT1-002", as: "secondCost" },
+          ],
+          trash: [
+            { card: "BT26-021", as: "firstTitan" },
+            { card: "BT26-022", as: "secondTitan" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
+    const handAfterFirst = s.state.players[0]!.hand.length;
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("plutomon"));
+
+    expect(handAfterFirst).toBe(1);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(
+      s.state.players[0]!.battleArea.filter(({ topCard }) => ["BT26-021", "BT26-022"].includes(topCard.cardId)),
+    ).toHaveLength(1);
   });
 });

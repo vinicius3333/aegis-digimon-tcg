@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const opponentTargets = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2, upTo: true };
+const opponentTargets = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 2 };
 const dataSquadDigimon = {
   filter: {
     controller: "mine",
@@ -22,7 +22,7 @@ const playCostCeiling = {
   base: 3,
   raise: 1,
   per: 1,
-  filter: { controller: "opponent", kind: ["Digimon", "Tamer"], suspended: true },
+  filter: { controller: "any", kind: ["Digimon", "Tamer"], suspended: true },
   unit: "cards",
 };
 const playOrUseDataSquad = {
@@ -35,7 +35,6 @@ const playOrUseDataSquad = {
         target: dataSquadDigimon,
         from: ["hand"],
         payCost: false,
-        optional: true,
         playCostCeiling,
       },
     ],
@@ -45,7 +44,6 @@ const playOrUseDataSquad = {
         filter: dataSquadOption,
         from: ["hand"],
         payCost: false,
-        optional: true,
         playCostCeiling,
       },
     ],
@@ -55,12 +53,14 @@ const reactPlay = {
   kind: "SubTrigger",
   event: "whenSuspended",
   sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+  optional: true,
   actions: [playOrUseDataSquad],
 };
 const reactTrash = {
   kind: "SubTrigger",
   event: "whenDigivolutionTrashed",
   sourceFilter: { controller: "mine", kind: ["Tamer"], byEffect: true },
+  optional: true,
   actions: [playOrUseDataSquad],
 };
 export const compiled: CompiledCard = {

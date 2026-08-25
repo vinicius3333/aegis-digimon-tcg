@@ -16,6 +16,7 @@ export const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
               nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }],
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { appFusionCostFor, assemblyRequirementFor, EffectDuration, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-037.js";
 
 describe("BT26-037 Weatherdramon", () => {
@@ -85,14 +85,32 @@ describe("BT26-037 Weatherdramon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("does not link a level-3 source that has no Link requirement (Q7014)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-037", as: "weatherdramon", under: [{ card: "BT1-009", as: "noLink" }] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("weatherdramon"));
+
+    expect(s.perm("weatherdramon").linked).toHaveLength(0);
+    expect(s.perm("weatherdramon").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("noLink").instanceId);
+  });
+
   it("can battle and delete a Digimon unaffected by Digimon effects (Q7015/Q7016)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-084", as: "recipient", linked: [{ card: "BT26-037" }] }] },
+        0: {
+          battleArea: [{ card: "BT26-084", as: "recipient" }],
+          hand: [{ card: "BT26-037", as: "weatherdramon" }],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "immune", dp: 3000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
     advance(s.engine).ledgers.continuous.addRestriction(
       s.perm("immune").permanentId,
@@ -101,10 +119,16 @@ describe("BT26-037 Weatherdramon", () => {
       { fromSourceKind: ["Digimon"] },
     );
 
-    await advance(s.engine).fireSubTrigger("whenLinked", {
-      subjectPermanentId: s.perm("recipient").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("weatherdramon").instanceId,
+        targetPermanentId: s.perm("recipient").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
 
+    expect(s.perm("recipient").linked.map(({ cardId }) => cardId)).toContain("BT26-037");
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

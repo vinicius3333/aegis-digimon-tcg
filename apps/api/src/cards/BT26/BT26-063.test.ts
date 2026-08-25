@@ -3,6 +3,7 @@ import {
   CardKind,
   digivolutionRequirementsFor,
   EffectTiming,
+  getCardDefinition,
   type CardDefinition,
   type Seat,
 } from "@aegis/shared";
@@ -70,7 +71,20 @@ async function installedWatcher(cardSource: CardSource): Promise<SubTriggerInsta
 }
 
 describe("BT26-063 Tellermon", () => {
-  it("exposes the printed Detach keyword", () => {
+  it("matches the catalog and exposes the printed Detach keyword", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Tellermon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 4,
+      dp: 4000,
+      forms: ["Stnd.", "Appmon"],
+      attributes: ["Entertainment"],
+      types: ["Fortune Telling (App Name)", "Seven Code"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
     expect(compiled.keywords).toEqual([{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }]);
   });
   it("exposes the Appmon evolution and Link requirements", () => {
@@ -198,6 +212,43 @@ describe("BT26-063 Tellermon", () => {
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT26-060"]);
   });
 
+  it("uses Detach to trash a linked Seven Code card and prevent its battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "tellermon",
+              linked: [{ card: "BT26-019", as: "sevenCodeLink" }],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "BT26-060", as: "defender", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const tellermonId = s.perm("tellermon").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: tellermonId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("sevenCodeLink").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(tellermonId);
+    expect(s.perm("tellermon").linked).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("defender").permanentId,
+    );
+  });
+
   it("does not reveal when another Appmon, rather than this Tellermon, gets linked", async () => {
     const s = setupEngine(
       {
@@ -316,9 +367,11 @@ describe("BT26-063 Tellermon", () => {
       FORM: definition({ cardId: "FORM", forms: ["Open"] as never }),
       OTHER: definition({ cardId: "OTHER", types: ["Seven Codes"] }),
     };
-    const returnToHand = vi.fn(async () => [revealed[0]]);
-    const returnToDeck = vi.fn(async () => revealed.slice(1));
-    const selectCards = vi.fn(async (_ctx, opts: { candidates: string[]; visible: string[] }) => {
+    const returnToHand = vi.fn<() => Promise<(typeof revealed)[number][]>>(async () => [revealed[0]!]);
+    const returnToDeck = vi.fn<() => Promise<typeof revealed>>(async () => revealed.slice(1));
+    const selectCards = vi.fn<
+      (_ctx: EffectContext, opts: { candidates: string[]; visible: string[] }) => Promise<string[]>
+    >(async (_ctx, opts) => {
       expect(opts).toMatchObject({
         candidates: ["attribute-match", "form-match"],
         visible: ["attribute-match", "form-match", "nonmatch"],
@@ -335,8 +388,12 @@ describe("BT26-063 Tellermon", () => {
         permanentById: (permanentId: string) => (permanentId === "tellermon" ? cardSource.permanent() : undefined),
         definitionOf: (card: { cardId: string }) => defs[card.cardId]!,
       } as unknown as GameAccess,
-      ask: { selectCards, chooseOption: vi.fn(async () => choice) },
-      fx: { reveal: vi.fn(async () => revealed), returnToHand, returnToDeck } as unknown as Primitives,
+      ask: { selectCards, chooseOption: vi.fn<() => Promise<number>>(async () => choice) },
+      fx: {
+        reveal: vi.fn<() => Promise<typeof revealed>>(async () => revealed),
+        returnToHand,
+        returnToDeck,
+      } as unknown as Primitives,
     } as unknown as EffectContext;
 
     expect(watcher.matches?.(ctx)).toBe(true);
@@ -356,8 +413,8 @@ describe("BT26-063 Tellermon", () => {
       { instanceId: "plain-a", cardId: "PLAIN-A" },
       { instanceId: "plain-b", cardId: "PLAIN-B" },
     ];
-    const selectCards = vi.fn();
-    const returnToDeck = vi.fn(async () => revealed);
+    const selectCards = vi.fn<() => Promise<string[]>>();
+    const returnToDeck = vi.fn<() => Promise<typeof revealed>>(async () => revealed);
     const ctx = {
       source: cardSource,
       trigger: { subjectPermanentId: "tellermon" },
@@ -367,8 +424,8 @@ describe("BT26-063 Tellermon", () => {
         definitionOf: (card: { cardId: string }) =>
           definition({ cardId: card.cardId, types: card.cardId === "NEAR" ? ["Seven Codes"] : [] }),
       },
-      ask: { selectCards, chooseOption: vi.fn(async () => 1) },
-      fx: { reveal: vi.fn(async () => revealed), returnToDeck },
+      ask: { selectCards, chooseOption: vi.fn<() => Promise<number>>(async () => 1) },
+      fx: { reveal: vi.fn<() => Promise<typeof revealed>>(async () => revealed), returnToDeck },
     } as unknown as EffectContext;
 
     await watcher.run(ctx);

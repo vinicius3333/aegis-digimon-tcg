@@ -43,7 +43,7 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "OnAllyAttack",
+      trigger: "WhenAttacking",
       isInherited: true,
       frequency: "OncePerTurn",
       actions: [
@@ -51,7 +51,7 @@ export const compiled: CompiledCard = {
           kind: "ModifyDP",
           target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 },
           amount: -2000,
-          duration: "untilEachTurnEnd",
+          duration: "forTheTurn",
         },
       ],
     },

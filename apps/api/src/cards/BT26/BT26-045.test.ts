@@ -90,21 +90,35 @@ describe("BT26-045 GranKuwagamon", () => {
             { card: "BT26-040", as: "second" },
           ],
         },
+        1: { security: ["BT1-001", "BT1-002"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("first").instanceId, s.inst("second").instanceId);
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("granKuwagamon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("granKuwagamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
     const played = s.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard?.instanceId === s.inst("first").instanceId,
     )!;
     expect(observe(s.engine).hasKeyword(played, "Alliance")).toBe(true);
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("granKuwagamon"), {
-      attackerPermanentId: s.perm("granKuwagamon").permanentId,
+    const prompt = s.events.find((event) => event.kind === "alliancePrompt") as
+      | { kind: "alliancePrompt"; eligibleAllyIds: string[] }
+      | undefined;
+    expect(prompt?.eligibleAllyIds).toContain(played.permanentId);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: played.permanentId })).toEqual({
+      ok: true,
     });
+    await settle(() => played.isSuspended && !observe(s.engine).isAttacking());
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("granKuwagamon"));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("second").instanceId);
   });
 });

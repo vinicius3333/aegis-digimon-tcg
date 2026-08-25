@@ -182,6 +182,9 @@ interface KeywordGrant {
   /** Exact card/clause that granted the keyword, including inherited sources. */
   sourceCardId?: string;
   sourceEffectText?: string;
+  /** Provenance used to suppress (but retain) opponent-granted effects under immunity. */
+  sourceSeat?: Seat;
+  sourceKinds?: string[];
 }
 
 interface LinkMaxGrant {
@@ -961,6 +964,8 @@ export class ContinuousEffectLedger {
       specifiers?: string[];
       sourceCardId?: string;
       sourceEffectText?: string;
+      sourceSeat?: Seat;
+      sourceKinds?: string[];
     },
   ): void {
     this.keywordGrants.push({
@@ -973,6 +978,8 @@ export class ContinuousEffectLedger {
       specifiers: opts?.specifiers,
       sourceCardId: opts?.sourceCardId,
       sourceEffectText: opts?.sourceEffectText,
+      sourceSeat: opts?.sourceSeat,
+      sourceKinds: opts?.sourceKinds,
     });
   }
 
@@ -1034,6 +1041,17 @@ export class ContinuousEffectLedger {
   }
 
   private keywordGrantIsActive(grant: KeywordGrant): boolean {
+    const recipientSeat = this.controllerSeatOf?.(grant.permanentId);
+    if (grant.sourceSeat !== undefined && recipientSeat !== undefined && grant.sourceSeat !== recipientSeat) {
+      const sourceKinds = grant.sourceKinds ?? [];
+      const immune =
+        sourceKinds.length === 0
+          ? this.hasRestriction(grant.permanentId, "beAffected", undefined, { byOpponentEffect: true })
+          : sourceKinds.some((kind) =>
+              this.hasRestriction(grant.permanentId, "beAffected", kind, { byOpponentEffect: true }),
+            );
+      if (immune) return false;
+    }
     if (grant.active === undefined) return true;
     // A conditional grant may inspect the recipient through permanentMatchesFilter,
     // which itself reads grantedKeywords. Exclude the grant currently being evaluated

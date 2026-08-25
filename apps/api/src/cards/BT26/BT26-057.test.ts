@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectDuration, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-057.js";
 import "../index.js";
 
@@ -62,10 +63,7 @@ describe("BT26-057 Bearcatmon", () => {
 
     expect(s.perm("bearcatmon").currentDP).toBe(11000);
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
-    const continuous = (
-      s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string, source?: string) => boolean } }
-    ).continuous;
-    expect(continuous.hasRestriction(s.perm("bearcatmon").permanentId, "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("bearcatmon"), "beAffected", "Digimon")).toBe(true);
   });
 
   it("grants neither protection nor DP when the exact face-down Tamer-bottom cost is unavailable", async () => {
@@ -85,9 +83,112 @@ describe("BT26-057 Bearcatmon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bearcatmon"));
 
     expect(s.perm("bearcatmon").currentDP).toBe(8000);
-    const continuous = (
-      s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string, source?: string) => boolean } }
-    ).continuous;
-    expect(continuous.hasRestriction(s.perm("bearcatmon").permanentId, "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("bearcatmon"), "beAffected", "Digimon")).toBe(false);
+  });
+
+  it("ignores opposing Digimon effects but remains affected by opposing Option effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-057", as: "bearcatmon" },
+            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", faceUp: false }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bearcatmon"));
+    expect(s.perm("bearcatmon").currentDP).toBe(11000);
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    await advance(s.engine).verb.modifyDP(s.perm("bearcatmon").permanentId, -3000, EffectDuration.UntilOpponentTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("bearcatmon").currentDP).toBe(11000);
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
+    await advance(s.engine).verb.modifyDP(s.perm("bearcatmon").permanentId, -1000, EffectDuration.UntilOpponentTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("bearcatmon").currentDP).toBe(10000);
+  });
+
+  it("shares Once Per Turn between the target-switch and Tamer-trash unsuspend triggers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-057", as: "bearcatmon", suspended: true },
+            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "under" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenDigivolutionTrashed", {
+      subjectPermanentId: s.perm("tamer").permanentId,
+      byEffectSeat: 0,
+    });
+    expect(s.perm("bearcatmon").isSuspended).toBe(false);
+
+    await advance(s.engine).verb.suspend([s.perm("bearcatmon").permanentId]);
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("bearcatmon").permanentId,
+    });
+    expect(s.perm("bearcatmon").isSuspended).toBe(true);
+  });
+
+  it("Q7060/Q7062-Q7066: grants an immune Digimon the attack effect, suppresses it, then activates it after immunity", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-035", as: "glowingDawn" }],
+          hand: [{ card: "BT26-057", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT26-047",
+              as: "immuneTarget",
+              under: [{ card: "BT26-045", as: "source" }],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("immuneTarget").permanentId);
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("immuneTarget"));
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("immuneTarget"), "beAffected", "Option")).toBe(true);
+    const stackBefore = s.perm("immuneTarget").stack.map(({ instanceId }) => instanceId);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("option").instanceId));
+    expect(s.perm("immuneTarget").stack.map(({ instanceId }) => instanceId)).toEqual(stackBefore);
+    expect(observe(s.engine).subscriptions("startOfYourMainPhase", s.perm("immuneTarget").permanentId)).toHaveLength(1);
+
+    await advance(s.engine).verb.unsuspend([s.perm("immuneTarget").permanentId]);
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireSubTrigger("startOfYourMainPhase");
+    expect(s.perm("immuneTarget").isSuspended).toBe(false);
+
+    advance(s.engine).ledgers.continuous.sweep(s.state, "opponentTurnEnd", 0);
+    await advance(s.engine).fireSubTrigger("startOfYourMainPhase");
+    await settle(() => s.perm("immuneTarget").isSuspended);
+    expect(s.perm("immuneTarget").isSuspended).toBe(true);
   });
 });

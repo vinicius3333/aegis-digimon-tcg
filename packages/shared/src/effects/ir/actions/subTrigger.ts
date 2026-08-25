@@ -106,6 +106,8 @@ export interface SubTriggerAction extends ActionBase {
   linkedCardFilter?: Filter;
   /** Restrict the card whose effect produced the event ("by [Rasenmon]'s effect"). */
   effectSourceFilter?: Filter;
+  /** Require the triggering event to carry effect attribution. */
+  requireByEffect?: boolean;
   /** Do not fire when this card's own effect caused the deck trash (EX2-039). */
   excludeSelfEffect?: boolean;
   /**
@@ -117,6 +119,8 @@ export interface SubTriggerAction extends ActionBase {
   fireCondition?: Condition;
   /** For whenDigivolutionTrashed, require that the trashed card was the stack's top card. */
   requireTrashedDigivolutionCardWasTop?: boolean;
+  /** For a discard batch, require at least one card that was face down before it was trashed. */
+  requireFaceDownDigivolutionCardTrashed?: boolean;
   /**
    * Controller scope of the EFFECT that drove the event, for events carrying an acting-effect
    * seat (currently whenEffectSuspends). Absent lets ANY effect's suspension fire it.

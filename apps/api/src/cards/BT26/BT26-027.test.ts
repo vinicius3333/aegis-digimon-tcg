@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { EffectTiming, Phase, digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -39,6 +39,7 @@ describe("BT26-027 Petermon", () => {
             { card: "BT1-009", as: "nonTrait" },
           ],
           hand: [{ card: "BT26-027", as: "petermon" }],
+          security: ["BT1-001", "BT1-002"],
         },
         1: {
           battleArea: [
@@ -50,6 +51,7 @@ describe("BT26-027 Petermon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("vegetationCost").permanentId, s.perm("target").permanentId);
+    s.state.memory = 4;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("petermon").instanceId })).toEqual({
@@ -69,6 +71,19 @@ describe("BT26-027 Petermon", () => {
       expect.arrayContaining([s.perm("vegetationCost").permanentId]),
     );
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
+
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
+    await settle();
+    expect(s.state.players[0]!.security).toHaveLength(2);
   });
 
   it("may decline the suspension payment, and an already-suspended trait Digimon cannot pay it", async () => {

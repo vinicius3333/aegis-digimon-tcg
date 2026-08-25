@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT26-006.js";
 
@@ -219,6 +219,112 @@ describe("BT26-006 Monimon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("Q6960 ends the attack when its attacker becomes DigiXros material for the effect-played Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT10-075",
+              as: "attacker",
+              under: [
+                { card: CARD_ID, as: "monimon" },
+                { card: "BT10-073", as: "costA" },
+                { card: "BT14-057", as: "costB" },
+              ],
+            },
+          ],
+          hand: [
+            { card: "EX10-058", as: "played" },
+            { card: "BT10-077", as: "handMaterial" },
+          ],
+        },
+        1: { security: [{ card: "BT1-001", as: "security" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(
+      s.inst("costA").instanceId,
+      s.inst("costB").instanceId,
+      s.inst("played").instanceId,
+      s.perm("attacker").topCard.instanceId,
+      s.inst("handMaterial").instanceId,
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+    const attackerCardId = s.perm("attacker").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX10-058"), 5000);
+
+    const digiXros = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX10-058")!;
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === attackerId)).toBe(false);
+    expect(digiXros.stack.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([attackerCardId, s.inst("handMaterial").instanceId]),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
+  });
+
+  it("Q6961 drops a pending trashed-source effect when EX10-064 moves that card into the DigiXros stack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX10-034",
+              as: "attacker",
+              under: [
+                { card: CARD_ID, as: "monimon" },
+                { card: "EX10-044", as: "pendingDrawSource" },
+                { card: "BT1-009", as: "otherCost" },
+              ],
+            },
+            { card: "EX10-064", as: "expander" },
+          ],
+          hand: [{ card: "EX10-058", as: "played" }],
+          deck: [{ card: "BT1-010", as: "wouldBeDrawn" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(
+      s.inst("pendingDrawSource").instanceId,
+      s.inst("otherCost").instanceId,
+      s.inst("played").instanceId,
+      s.perm("expander").topCard.instanceId,
+      s.perm("attacker").topCard.instanceId,
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX10-058"), 5000);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const digiXros = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX10-058")!;
+    expect(s.perm("expander").isSuspended).toBe(true);
+    expect(digiXros.stack.map(({ instanceId }) => instanceId)).toContain(s.inst("pendingDrawSource").instanceId);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("wouldBeDrawn").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
   it("encodes the exact two-card Bagra Army cost and both play/use branches", () => {
     expect(compiled.effects).toMatchObject([
       {
@@ -230,7 +336,14 @@ describe("BT26-006 Monimon", () => {
             kind: "Modal",
             choose: 1,
             options: [
-              [{ kind: "PlayWithoutCost", reduceCostBy: 2, cost: { kind: "trash", target: { count: 2 } } }],
+              [
+                {
+                  kind: "PlayWithoutCost",
+                  reduceCostBy: 2,
+                  allowDigiXros: true,
+                  cost: { kind: "trash", target: { count: 2 } },
+                },
+              ],
               [{ kind: "UseOptionWithoutCost", reduceCostBy: 2, cost: { kind: "trash", target: { count: 2 } } }],
             ],
           },

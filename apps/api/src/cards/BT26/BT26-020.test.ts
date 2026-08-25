@@ -21,9 +21,14 @@ describe("BT26-020 ShellNumemon", () => {
     });
   });
   it("draws and restricts exactly one opposing Digimon from attacking or blocking", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT26-020", as: "shell" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+        0: {
+          hand: [{ card: "BT26-020", as: "shell" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+          security: ["BT1-002"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
@@ -31,8 +36,9 @@ describe("BT26-020 ShellNumemon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("first").permanentId);
     s.state.memory = 4;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shell").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("drawn").instanceId));
@@ -44,6 +50,17 @@ describe("BT26-020 ShellNumemon", () => {
     const locked = [s.perm("first"), s.perm("second")].filter((p) => observe(s.engine).isRestricted(p, "attack"));
     expect(locked).toHaveLength(1);
     expect(observe(s.engine).isRestricted(locked[0]!, "block")).toBe(true);
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: locked[0]!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    expect(locked[0]!.isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
 
     advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 0);
     expect(observe(s.engine).isRestricted(locked[0]!, "attack")).toBe(true);

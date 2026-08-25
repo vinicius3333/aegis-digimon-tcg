@@ -598,6 +598,15 @@ export interface Primitives {
   ): Promise<Permanent[]>;
   playFromSecurity(instanceId: string, opts?: { payCost?: boolean }): Promise<Permanent | undefined>;
   /**
+   * Read-only affordability query for an effect-driven paid play. Resolves the same
+   * continuous play-cost modifiers and explicit reduction as `playInstances`, without
+   * moving the card or paying memory. Optional so narrow interpreter test ports may omit it.
+   */
+  canAffordEffectPlay?(
+    instanceId: string,
+    opts?: { costDelta?: number; useAsOption?: boolean; controllerSeat?: Seat },
+  ): Promise<boolean>;
+  /**
    * Play specific loose card instances as new battle-area permanents, locating each
    * one wherever it currently sits (hand, trash, deck, security, breeding, or as a
    * digivolution/linked card under another permanent). Generalizes `playFromHand` to
@@ -900,6 +909,8 @@ export interface Primitives {
    * `ctx.lastDeleteCount` so a subsequent "if this effect didn't delete" Condition can gate.
    */
   deletePermanent(permanentIds: string[], cause?: RemovalCause): Promise<number>;
+  /** Trash an invalid battle-area position during a rule check, without deletion semantics. */
+  trashPermanentByRule(permanentIds: string[]): Promise<CardInstance[]>;
   /** Returns the permanent IDs that actually transitioned to suspended. */
   suspend(
     permanentIds: string[],
@@ -916,6 +927,16 @@ export interface Primitives {
   returnToDeck(
     instanceIds: string[],
     opts?: { toTop?: boolean; byEffectSeat?: Seat; byEffectCardId?: string },
+  ): Promise<CardInstance[]>;
+  /**
+   * Return the named top cards of one or more Digimon stacks to their owners' deck tops while
+   * preserving each permanent and promoting its highest remaining card. The ids must form a
+   * suffix of each complete stack (digivolution cards plus current top), and at least one card
+   * is always retained per permanent.
+   */
+  returnStackTopsToDeck(
+    instanceIds: string[],
+    opts?: { byEffectSeat?: Seat; byEffectCardId?: string },
   ): Promise<CardInstance[]>;
   /** Return loose cards to the bottom of their owners' Digi-Egg decks, face-down. */
   returnToEggDeck?(instanceIds: string[]): Promise<CardInstance[]>;
@@ -1084,6 +1105,9 @@ export interface Primitives {
       specifiers?: string[];
       sourceCardId?: string;
       sourceEffectText?: string;
+      /** Controller and physical kinds of the effect that granted this keyword. */
+      sourceSeat?: Seat;
+      sourceKinds?: string[];
     },
   ): void;
   /** Treat a permanent as another level only while matching DNA requirements. */

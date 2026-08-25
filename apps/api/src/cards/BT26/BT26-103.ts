@@ -2,7 +2,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const _ownDigimon = { controller: "mine", kind: ["Digimon"] };
 const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
 const jupitermon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Jupitermon"], match: "name" }] };
 const recovery = [
@@ -28,6 +27,7 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           grant: "effects",
           filter: jupitermon,
+          topmostOnly: true,
           duration: "permanent",
         },
       ],

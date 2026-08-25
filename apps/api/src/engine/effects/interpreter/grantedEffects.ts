@@ -115,6 +115,26 @@ import type { Action, CardEffect } from "@aegis/shared";
  * at all.
  */
 export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
+  Execute: {
+    trigger: "EndOfYourTurn",
+    actions: [
+      {
+        kind: "GrantCanAttackUnsuspended",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        duration: "forThisAttack",
+      } as Action,
+      {
+        kind: "Attack",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        optional: true,
+        abortOnDecline: true,
+      } as Action,
+      {
+        kind: "Delete",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      } as Action,
+    ],
+  },
   "[All Turns] When this Digimon becomes suspended, lose 1 memory.": {
     trigger: "AllTurns",
     actions: [

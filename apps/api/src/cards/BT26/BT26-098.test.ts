@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-098.js";
@@ -8,6 +8,13 @@ import "../index.js";
 describe("BT26-098 compiled fidelity", () => {
   it("encodes the face-down Tamer payment, literal materials, free Rosemon evolution, and Security mode", () => {
     const card = compiled;
+    expect(getCardDefinition("BT26-098")).toMatchObject({
+      nameEn: "Queen of Thorns",
+      colors: ["Green"],
+      kinds: ["Option"],
+      playCost: 5,
+      types: ["DATA SQUAD"],
+    });
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
     expect(card?.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({
@@ -71,6 +78,68 @@ describe("BT26-098 compiled fidelity", () => {
     });
   });
 
+  it("trashes and reveals only the bottom face-down Tamer card to reduce the use cost by 2", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-036", as: "greenSource" },
+            {
+              card: "BT26-089",
+              as: "tamer",
+              under: [
+                { card: "BT1-001", as: "bottom", faceUp: false },
+                { card: "BT1-002", as: "higher", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "BT26-098", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("bottom").instanceId, faceUp: true }),
+    );
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("higher").instanceId]);
+  });
+
+  it("may decline the cost reduction and use the Option for its full cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-036", as: "greenSource" },
+            {
+              card: "BT26-089",
+              as: "tamer",
+              under: [{ card: "BT1-001", as: "bottom", faceUp: false }],
+            },
+          ],
+          hand: [{ card: "BT26-098", as: "option" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("bottom").instanceId]);
+  });
+
   it("publicly plays a Lalamon from hand and adds itself to hand from security", async () => {
     const s = setupEngine(
       {
@@ -88,6 +157,43 @@ describe("BT26-098 compiled fidelity", () => {
 
     expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT26-036")).toHaveLength(2);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-098");
+  });
+
+  it("plays Yoshino Fujieda from trash and then adds itself to hand from security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT26-098", as: "option", faceUp: true }],
+          trash: [{ card: "BT26-091", as: "yoshino" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("yoshino").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-098");
+  });
+
+  it("adds itself to hand when the optional Security play has no eligible card", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT26-098", as: "option", faceUp: true }],
+        hand: [{ card: "BT25-093", as: "ineligibleOption" }],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("option").instanceId, s.inst("ineligibleOption").instanceId]),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 
   it("places both named materials under one Lalamon before the free evolution", async () => {

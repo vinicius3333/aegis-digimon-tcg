@@ -1,8 +1,17 @@
-import { CardColor, CardKind, EffectTiming, type CardDefinition, type CardInstance, type Seat } from "@aegis/shared";
+import {
+  CardColor,
+  CardKind,
+  EffectTiming,
+  getCardDefinition,
+  type CardDefinition,
+  type CardInstance,
+  type Seat,
+} from "@aegis/shared";
 import { describe, expect, it, vi } from "vitest";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "./BT26-074.js";
@@ -70,6 +79,20 @@ function source(ownersTurn = true): CardSource {
 }
 
 describe("BT26-074 Cerberusmon", () => {
+  it("matches the committed card catalog", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Cerberusmon",
+      colors: ["Purple", "Black"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      types: ["Dark Animal", "Titan", "TS"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("digivolves from a level 4 [TS] Digimon for the alternate cost 3", async () => {
     const s = setupEngine(
       {
@@ -148,17 +171,15 @@ describe("BT26-074 Cerberusmon", () => {
       definitionOf: (instance: CardInstance) => definitions[instance.cardId] ?? definition({ cardId: instance.cardId }),
       opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
     } as unknown as GameAccess;
-    const trash = vi.fn(async () => [handCost]);
-    const useOptionFromHand = vi.fn(async () => []);
-    const gainMemoryForSeat = vi.fn();
-    const selectCards = vi.fn(async (_ctx: EffectContext, request: { candidates: string[] }) => [
-      request.candidates[0]!,
-    ]);
+    const trash = vi.fn<Primitives["trash"]>(async () => [handCost]);
+    const useOptionFromHand = vi.fn<Primitives["useOptionFromHand"]>(async () => []);
+    const gainMemoryForSeat = vi.fn<Primitives["gainMemoryForSeat"]>();
+    const selectCards = vi.fn<DecisionApi["selectCards"]>(async (_ctx, request) => [request.candidates[0]!]);
     const ctx = {
       source: source(),
       trigger: {},
       game,
-      ask: { optional: vi.fn(async () => true), selectCards },
+      ask: { optional: vi.fn<DecisionApi["optional"]>(async () => true), selectCards },
       fx: { trash, gainMemoryForSeat, useOptionFromHand } as unknown as Primitives,
     } as unknown as EffectContext;
     const effect = getEffectModule(CARD_ID)!.effectsForTiming(EffectTiming.WhenDigivolving, ctx.source)[0]!;
@@ -193,15 +214,18 @@ describe("BT26-074 Cerberusmon", () => {
         definition({ cardId: instance.cardId, kinds: [CardKind.Option], playCost: 3, types: ["Titan"] }),
       opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
     } as unknown as GameAccess;
-    const gainMemory = vi.fn();
-    const useOptionFromHand = vi.fn(async () => []);
+    const gainMemory = vi.fn<Primitives["gainMemory"]>();
+    const useOptionFromHand = vi.fn<Primitives["useOptionFromHand"]>(async () => []);
     const ctx = {
       source: source(),
       trigger: {},
       game,
-      ask: { optional: vi.fn(async () => true), selectCards: vi.fn(async () => [handCost.instanceId]) },
+      ask: {
+        optional: vi.fn<DecisionApi["optional"]>(async () => true),
+        selectCards: vi.fn<DecisionApi["selectCards"]>(async () => [handCost.instanceId]),
+      },
       fx: {
-        trash: vi.fn(async () => []),
+        trash: vi.fn<Primitives["trash"]>(async () => []),
         gainMemory,
         useOptionFromHand,
       } as unknown as Primitives,
@@ -212,6 +236,58 @@ describe("BT26-074 Cerberusmon", () => {
 
     expect(gainMemory).not.toHaveBeenCalled();
     expect(useOptionFromHand).not.toHaveBeenCalled();
+  });
+
+  it("does not trash its hand when the reduced Titan Option cost is unaffordable", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "cerberusmon" }],
+          hand: [{ card: "BT1-001", as: "handCost" }],
+          trash: [{ card: "BT24-098", as: "titanOption" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -10;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cerberusmon"));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("handCost").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("titanOption").instanceId);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+  });
+
+  it("shares one use across On Play and When Attacking for the same physical copy", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "cerberusmon" }],
+          hand: [
+            { card: "BT1-001", as: "firstCost" },
+            { card: "BT1-002", as: "secondCost" },
+          ],
+          trash: [{ card: "BT24-098", as: "titanOption" }],
+          deck: ["BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cerberusmon"));
+    expect(
+      advance(s.engine).ledgers.tracker.count(
+        s.inst("cerberusmon").instanceId,
+        `${CARD_ID}/trash-hand-use-titan-option-from-trash`,
+      ),
+    ).toBe(1);
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("cerberusmon"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.memory).toBe(4);
   });
 
   it("the inherited effect offers only tied lowest-level Digimon and deletes exactly the chosen one", async () => {
@@ -235,8 +311,8 @@ describe("BT26-074 Cerberusmon", () => {
       definitionOf: (instance: CardInstance) => definitions[instance.cardId]!,
       permanentById: (permanentId: string) => opponents.find((permanent) => permanent.permanentId === permanentId),
     } as unknown as GameAccess;
-    const chooseTargets = vi.fn(async () => ["low-b"]);
-    const deletePermanent = vi.fn(async () => 1);
+    const chooseTargets = vi.fn<DecisionApi["chooseTargets"]>(async () => ["low-b"]);
+    const deletePermanent = vi.fn<Primitives["deletePermanent"]>(async () => 1);
     const ctx = {
       source: source(),
       trigger: {},
@@ -260,5 +336,25 @@ describe("BT26-074 Cerberusmon", () => {
       }),
     );
     expect(deletePermanent).toHaveBeenCalledWith(["low-b"]);
+  });
+
+  it("executes the inherited lowest-level deletion from a real deleted stack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-075", as: "host", under: [CARD_ID] }] },
+        1: {
+          battleArea: [
+            { card: "BT26-062", as: "low" },
+            { card: "BT26-060", as: "high" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-060"]);
   });
 });

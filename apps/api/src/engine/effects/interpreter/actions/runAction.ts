@@ -8,7 +8,7 @@ import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../targeting/loose.js";
-import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { runBoardAction } from "./board.js";
 import { runCombatAction } from "./combat.js";
 import { runControlFlowAction } from "./controlFlow.js";
@@ -17,7 +17,7 @@ import { canAttemptDigivolve } from "./digivolve.js";
 import { runGrantStaticAction } from "./grantStatic.js";
 import { runMetaAction } from "./meta.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
-import { runPlayAction } from "./play.js";
+import { applyPlayCostCeiling, runPlayAction } from "./play.js";
 import { canAttemptUseOptionWithoutCost } from "./borrowed.js";
 import { runRemovalAction } from "./removal.js";
 import { runResourceAction } from "./resources.js";
@@ -61,6 +61,21 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   ) {
     return action.abortOnDecline === true;
   }
+  const dynamicallyScaledDeleteTarget =
+    action.kind === "Delete" &&
+    (action.dpCeilingScaling !== undefined ||
+      action.totalDpCapScaling !== undefined ||
+      action.playCostCeiling !== undefined ||
+      action.scaling !== undefined);
+  if (
+    action.kind === "Delete" &&
+    action.cost !== undefined &&
+    action.allowCostWithoutTarget !== true &&
+    !dynamicallyScaledDeleteTarget &&
+    candidatePermanents(ctx, action.target).length === 0
+  ) {
+    return action.abortOnDecline === true;
+  }
   if (
     action.kind === "Unsuspend" &&
     action.cost !== undefined &&
@@ -75,15 +90,37 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
     return action.abortOnDecline === true;
   }
+  // Unless a ruling explicitly allows paying the processing condition by itself, a redirect's
+  // activation cost is payable only when the attack can actually be redirected. Preflight
+  // candidates before the optional prompt and generic cost path; otherwise a card such as
+  // BT26-092 can return its Tamer even though no eligible TS Digimon exists to receive the attack.
+  if (action.kind === "RedirectAttack" && action.includePlayer !== true && action.allowCostWithoutTarget !== true) {
+    const target =
+      action.chooser === "opponent"
+        ? { ...action.target, filter: { ...action.target.filter, controller: "opponent" as const } }
+        : action.target;
+    if (candidatePermanents(ctx, target).length === 0) return action.abortOnDecline === true;
+  }
   const structuredCost = action.kind !== "RawUnparsed" && typeof action.cost !== "number" ? action.cost : undefined;
   const costCreatesTrashCandidate =
     structuredCost?.kind === "trashBottomFaceDownUnderTamer" ||
     structuredCost?.kind === "trashBottomFaceDownUnderDigimon";
+  const nestedRequiredOptionUse =
+    action.kind === "CostGatedBlock" &&
+    action.actions.length === 1 &&
+    action.actions[0]?.kind === "UseOptionWithoutCost"
+      ? action.actions[0]
+      : undefined;
+  if (
+    nestedRequiredOptionUse?.selectionRequired === true &&
+    !(await canAttemptUseOptionWithoutCost(ctx, nestedRequiredOptionUse))
+  ) {
+    return action.kind === "CostGatedBlock" && action.abortOnDecline === true;
+  }
   if (
     action.kind === "UseOptionWithoutCost" &&
     action.cost !== undefined &&
-    !costCreatesTrashCandidate &&
-    !canAttemptUseOptionWithoutCost(ctx, action)
+    !(await canAttemptUseOptionWithoutCost(ctx, action))
   ) {
     return action.abortOnDecline === true;
   }
@@ -158,9 +195,26 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
       action.fromOwnDigivolutionStack !== true
     ) {
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      const candidates = candidateLooseInstances(ctx, action.target, zones).filter(
+      const preflightTarget = applyPlayCostCeiling(ctx, action, action.target);
+      let candidates = candidateLooseInstances(ctx, preflightTarget, zones).filter(
         (candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"),
       );
+      // A paid play with an activation cost must be transactional: do not offer it when
+      // every legal target is unaffordable, otherwise the generic cost path below can move
+      // the source card before `playInstances` discovers that memory cannot be paid.
+      // DigiXros material selection can make an otherwise-unaffordable card legal later,
+      // so defer that more complex shape to the play resolver.
+      if (action.payCost === true && action.allowDigiXros !== true && ctx.fx.canAffordEffectPlay !== undefined) {
+        const costDelta =
+          action.reduceCostByScaling === undefined ? action.reduceCostBy : scaleFactor(ctx, action.reduceCostByScaling);
+        const affordability = await Promise.all(
+          candidates.map(async (candidate) => ({
+            candidate,
+            affordable: await ctx.fx.canAffordEffectPlay!(candidate.instanceId, { costDelta }),
+          })),
+        );
+        candidates = affordability.filter(({ affordable }) => affordable).map(({ candidate }) => candidate);
+      }
       if (candidates.length === 0) return false;
     }
     // A PlaceUnder confirmation is actionable only when both sides of the move exist:
