@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-042.js";
+import "./index.js";
 
 describe("BT20-042 Groundramon", () => {
   it("suspends and prevents unsuspending one opponent Digimon or Tamer on play and digivolving", () => {
@@ -25,8 +29,9 @@ describe("BT20-042 Groundramon", () => {
           kind: "GrantStatic",
           target: { filter: { isSelfRef: true, zone: "battleArea" }, isSelf: true },
           grant: "name",
-          tokens: ["Breakdramon", "Examon"],
+          tokens: ["Breakdramon"],
         },
+        { kind: "GrantStatic", grant: { kind: "TreatAsLevel", level: 6, context: "DNADigivolution", intoNames: ["Examon"] } },
       ],
     });
   });
@@ -44,5 +49,43 @@ describe("BT20-042 Groundramon", () => {
         },
       ],
     });
+  });
+
+  it("suspends and locks an opposing Digimon, and grants only the field Breakdramon alias", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-042", as: "groundramon" }] },
+        1: { battleArea: [{ card: "BT20-010", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("groundramon").instanceId })).toEqual({ ok: true });
+    await settle(
+      () => s.perm("target").isSuspended && observe(s.engine).isRestricted(s.perm("target"), "unsuspend"),
+    );
+    expect(observe(s.engine).grantedNames(s.perm("groundramon"))).toContain("breakdramon");
+    expect(observe(s.engine).grantedNames(s.perm("groundramon"))).not.toContain("examon");
+  });
+
+  it("inherits one opposing top-security trash after its surviving host deletes in battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-044", dp: 12000, under: ["BT20-042"], as: "host" }] },
+      1: {
+        battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "target" }],
+        security: ["BT20-001", "BT20-002"],
+      },
+    });
+    s.state.memory = 5;
+    await advance(s.engine).recompute();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 1);
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
   });
 });

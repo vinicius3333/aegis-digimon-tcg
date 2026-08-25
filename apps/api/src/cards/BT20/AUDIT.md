@@ -491,3 +491,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-041.test.ts`).
+
+## BT20-042 — Groundramon
+
+- Catalog contract: green/red level 5 Virus Earth Dragon, play cost 7/7000 DP, green or red level-4 evolution cost 4 plus Coredramon alternate cost 3; On Play/When Digivolving independently suspends one opposing Digimon/Tamer, then locks one from unsuspending through its turn end; in battle it is level-6 Breakdramon for Examon DNA evolution; inherited once per turn trashes opposing top security after a battle deletion.
+- Knowledge base: Q4358 permits different suspend and lock targets; Q4359 confines the level/name treatment to the battle area and forbids using hand Groundramon as Breakdramon for Blast DNA; Q4360 requires the inherited host to survive the battle.
+- Implementation evidence: both entry timings use independent one-card Digimon/Tamer target resolutions and the canonical cross-turn unsuspend restriction. The generated field identity incorrectly granted both Breakdramon and Examon names; it now grants only Breakdramon and separately applies level 6 solely in DNA evolution into Examon. The inherited battle watcher is source/battle-area scoped and once per turn; alternate evolution and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: On Play suspends and locks an opposing Digimon, while the live name ledger contains Breakdramon and explicitly excludes Examon. A Breakdramon host carrying Groundramon deletes a weaker opponent, survives, and reduces opposing security from two to one.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-042.test.ts` — 5 passed.
+- Clause scores: stats/alternate evolution 2/2; dual suspend/lock timing and independent targets 2/2; unsuspend duration 2/2; field-only Breakdramon/Examon-scoped level 6 2/2; inherited surviving battle deletion/security/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-042.test.ts`).
