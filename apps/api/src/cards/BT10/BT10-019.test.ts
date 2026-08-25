@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-019.js";
@@ -125,6 +126,82 @@ describe("BT10-019 Greymon", () => {
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(originalDeck);
+  });
+
+  it("may choose the reveal instead of MetalGreymon recovery when both are available (Q1946)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-088", as: "kiriha" }],
+          hand: [{ card: "BT10-019", as: "greymon" }],
+          trash: [{ card: "BT10-024", as: "metalGreymon" }],
+          deck: [{ card: "BT10-018", as: "blueFlare" }, "BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    const choice = s.state.pendingDecision!;
+    expect(JSON.parse(choice.payloadJson)).toMatchObject({
+      choices: ["Return 1 MetalGreymon from trash", "Reveal 4 cards"],
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "chooseOption", optionIndex: 1 },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("blueFlare").instanceId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("metalGreymon").instanceId)).toBe(true);
+  });
+
+  it("adds the sole Blue Flare card when only one is revealed (Q1947)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-019", as: "greymon" }],
+          deck: [{ card: "BT10-018", as: "onlyMatch" }, "BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("onlyMatch").instanceId));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("onlyMatch").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
+  it("Saves itself under a friendly Tamer on deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-019", as: "greymon" },
+            { card: "BT10-088", as: "kiriha" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const greymonId = s.inst("greymon").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("greymon").permanentId])).toBe(1);
+    await settle(() => s.perm("kiriha").stack.some((card) => card.instanceId === greymonId));
+
+    expect(s.perm("kiriha").stack.some((card) => card.instanceId === greymonId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === greymonId)).toBe(false);
   });
 
   it("unsuspends a Blue Flare host only once per turn when the opponent has 2 Digimon", async () => {
