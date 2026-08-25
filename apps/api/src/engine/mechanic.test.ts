@@ -2013,7 +2013,7 @@ describe("A3 Trash — stack-mill via BT21-030 [On Play]", () => {
   // the WHOLE opponent permanent is deleted (battleArea loses it) instead of its stack being
   // milled — the "permanent still in play" + "stack milled to 0, top intact" assertions go RED.
   it("BT21-030 [On Play] mills an opponent Digimon's stack (does NOT delete the permanent)", async () => {
-    const s = setup({ autoSelectCards: true });
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p1 = s.state.players[1] as PlayerState;
 
     // An opponent Lv.4 Digimon with 3 digivolution (stacked) cards. After the mill, the stack
