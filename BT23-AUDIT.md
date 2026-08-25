@@ -200,6 +200,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR, observes a cost-3 Link with +4000 DP and Security Attack +1, rejects a non-Appmon recipient without mutation, links a level-4 Link card for free When Digivolving while excluding a same-level no-Link card, and proves both accepting and refusing the optional unsuspend.
 - Verification: focused suite — 7 passed; `git diff --check` — passed.
 
+## BT23-023 — Whamon — 10/10
+
+- Catalog evidence: Blue level 5, play cost 9, 9000 DP, standard blue-level-4 evolution for 3 plus alternate level-4 CS evolution for 3; form `Ultimate`, attribute `Vaccine`, types `Sea Animal` and `CS`; both its main and inherited All Turns once-per-turn clauses may play one level-4-or-lower blue Digimon card or one level-4-or-lower CS Digimon card from the carrier's sources without cost when the carrier would leave the battle area other than by its controller's effects.
+- Knowledge base: Q5244 and Q5245 confirm the same OR eligibility for the main and inherited clauses: blue or CS, always a Digimon and level 4 or lower; there are no local errata, restrictions, or unresolved ambiguities.
+- Defect corrected: the direct IR omitted the entire inherited clause. The audited IR adds the identical inherited leave reaction; registration remains exclusively `registerIrCard("BT23-023", compiled)` with full coverage and no residual clauses.
+- Primitive trace: the leave-reaction seam checks source identity and effect ownership before removal, resolves loose candidates from the carrier's digivolution stack, applies the inclusive level-4 and blue-or-CS filters, plays the chosen source through normal no-cost play timing, and then completes the original removal; main and inherited frequencies are scoped to their physical source instances.
+- Behavioral proof: the focused suite checks catalog, complete IR, and alternate evolution metadata; plays a blue card at the exact level-4 boundary before Whamon leaves to an opposing effect; proves the inherited clause can instead play an off-color CS source from a realistic carrier stack; and proves a controller-owned removal does not trigger the reaction.
+- Verification: focused suite — 4 passed; shared leave-reaction mechanism peer BT23-032 covers final-removal ordering; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-023 through BT23-102.
+BT23-024 through BT23-102.

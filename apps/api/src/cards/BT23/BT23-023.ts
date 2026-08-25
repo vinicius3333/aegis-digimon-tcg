@@ -49,6 +49,44 @@ export const compiled: CompiledCard = {
       ],
       frequency: "OncePerTurn",
     },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Blue"],
+                  levelComparison: { op: "lte", value: 4 },
+                },
+                orFilters: [
+                  {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    levelComparison: { op: "lte", value: 4 },
+                    nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+                  },
+                ],
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+      isInherited: true,
+    },
   ],
   coverage: "full",
   residual: [],
