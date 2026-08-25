@@ -27,16 +27,11 @@ export const compiled: CompiledCard = {
               count: 1,
               from: ["hand", "trash"],
             },
-            underTarget: {
-              filter: {
-                isSelfRef: true,
-              },
-              count: 1,
-              isSelf: true,
-            },
             position: "bottom",
             raw: "By placing 1 [Bagra Army] or [Twilight] trait Digimon card from your hand or trash under this Tamer",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
@@ -55,36 +50,22 @@ export const compiled: CompiledCard = {
                 match: "trait",
               },
             ],
-            hasDigiXros: true,
+            hasDigiXrosRequirement: true,
           },
-          cost: {
-            kind: "suspend",
-            target: {
-              filter: {
-                isSelfRef: true,
-              },
-              count: 1,
-              isSelf: true,
-            },
-            raw: "by suspending this Tamer",
-          },
+          mode: "instead",
           actions: [
             {
-              kind: "DigiXrosExtraMaterial",
-              options: [
-                {
-                  from: "underTamers",
-                  count: 1,
-                },
-                {
-                  from: "trash",
-                  count: 1,
-                },
-              ],
+              kind: "DigiXrosMaterialZoneExpansion",
+              zones: ["tamerCards", "trash"],
+              duration: "forTheTurn",
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
               raw: "1 card from under your Tamers and 1 card in your trash can also be placed for their DigiXros",
             },
           ],
-          additionalEffects: [{ kind: "AllowDigiXrosMaterialsFromTrash" }, { kind: "DigiXrosExtraMaterial" }],
         },
       ],
     },
