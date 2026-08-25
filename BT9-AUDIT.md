@@ -29,3 +29,32 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-001.
+
+## BT9-002 — Puyoyomon — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Blue level-2 Digi-Egg, `In-Training` form, `Lesser` type, no evolution recipe, no main or Security text, and the inherited text were checked directly in the committed catalog.
+2. **Turn timing (1/1):** The inherited watcher is installed only by `YourTurn`; an effect-driven addition during the opponent's turn produces no DP change.
+3. **Effect-add event (1/1):** `whenEffectAddsToHand` is the live event fired by both draw and return primitives, rather than the obsolete unfired event name.
+4. **Q1794 return ruling (1/1):** Returning a controller-owned card from trash to hand by an effect triggers the inherited effect and leaves that card observably in hand.
+5. **Q1795 draw ruling (1/1):** An effect-driven `Draw 1` triggers the effect independently of later hand changes; the focused test observes the exact +1000 DP result.
+6. **Controller boundary (1/1):** The subtrigger gate compares `effectAddedToHandSeat` with the source owner; an opponent's effect-driven hand addition does not trigger Puyoyomon.
+7. **Once-per-turn identity (1/1):** A draw followed by a separate return-to-hand event in the same turn still grants only +1000 DP, proving the inherited source's shared `OncePerTurn` key.
+8. **Amount, target, and duration (1/1):** The nested action applies `ModifyDP` +1000 to `isSelfRef` for `forTheTurn`; the realistic buried Digi-Egg source modifies only its carrier.
+9. **Direct IR and registration (1/1):** `BT9-002.ts` has full compiled coverage, no residual clauses, and exactly one `registerIrCard("BT9-002", compiled)` call with no legacy `registerCard` registration.
+10. **Reproducible verification (1/1):** Focused proof passed 5/5; the card-specific and shared hand-addition seam regressions passed 6/6 with 18 unrelated cases skipped; workspace typecheck and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-002
+rg -n 'Q1794|Q1795' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-002.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-002.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-002.subtrigger.test.ts src/engine/subTriggerSeams.test.ts -t 'whenEffectAddsToHand' --reporter=dot
+pnpm typecheck
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-002.
