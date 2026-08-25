@@ -135,10 +135,7 @@ describe("BT10-006 [Opponent's Turn] this digivolution card trashed by effect â†
     s.state.turnSeat = 1;
     const deckBefore = s.state.players[0]!.deck.length;
 
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], {
-      kind: "effect" as const,
-      bySeat: 1,
-    });
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
 
     expect(s.state.players[0]!.deck).toHaveLength(deckBefore);
     expect(s.state.players[0]!.hand).toHaveLength(0);
