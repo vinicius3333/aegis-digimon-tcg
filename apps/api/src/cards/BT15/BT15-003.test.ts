@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT15-003.js";
 
 describe("BT15-003", () => {
@@ -21,5 +24,79 @@ describe("BT15-003", () => {
         target: { filter: { controller: "mine" } },
       },
     });
+  });
+
+  it("trashes one security card and gains exactly 1 memory on its first attack each turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT15-003"] }],
+          security: [
+            { card: "BT1-001", as: "bottom" },
+            { card: "BT1-002", as: "top" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }],
+          security: [{ card: "BT1-001", as: "opponentSecurity" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true },
+    );
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === 1 &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.memory === 1,
+    );
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("bottom").instanceId)).toBe(true);
+    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("may decline without trashing security or gaining memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT15-003"] }],
+          security: [{ card: "BT1-001", as: "security" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
+      },
+      { autoAcceptOptional: false },
+    );
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
