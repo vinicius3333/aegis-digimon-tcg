@@ -344,6 +344,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; adds distinct Royal Base-in-text and CS cards while bottoming the exact remainder; observes the face-up security aura on a friendly Royal Base while excluding a friendly non-Royal-Base and an opposing Royal Base; observes inherited +1000 on a realistic carrier; and accepts zero-cost evolution from independent level-2 CS and Royal Base bases.
 - Verification: focused suite — 9 passed; shared face-up-security, broad-text matching, RevealAdd partitioning, continuous DP, and inherited-effect mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-039 — Perorimon — 10/10
+
+- Catalog evidence: Green level 3, play cost 3, 1000 DP, standard green-level-2 evolution for 0 plus alternate level-2 Appmon evolution for 0; forms `Stnd.` and `Appmon`, attribute `Entertainment`, type `Gourmet`; On Play reveals three and independently adds one Appmon-trait card and one Game-or-Invincible-App-Name-trait card before bottoming the rest; Link onto Appmon costs 1, contributes 2000 DP, and may suspend one opposing Digimon when linked.
+- Knowledge base: `node tools/kb/query.mjs card BT23-039` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-039", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, optional-refusal, and alternate-evolution evidence without changing execution.
+- Primitive trace: RevealAdd uses a shared three-card reveal pool, selects distinct cards through the Appmon and Game/Invincible trait filters, then preserves every unchosen card at deck bottom; the paid Link validates the Appmon host, contributes the printed link DP, fires only the newly linked card's watcher, and leaves its Suspend subaction optional without rolling back the Link.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; adds both distinct reveal categories and bottoms only the remainder; links for exactly 1, contributes +2000 DP, and suspends a chosen opponent when accepted; separately refuses suspension while preserving the paid link and unsuspended opponent; and accepts off-color level-2 Appmon evolution for 0 while rejecting a non-Appmon peer.
+- Verification: focused suite — 7 passed; shared RevealAdd, Link, linked-watcher, optional-refusal, Suspend, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-039 through BT23-102.
+BT23-040 through BT23-102.
