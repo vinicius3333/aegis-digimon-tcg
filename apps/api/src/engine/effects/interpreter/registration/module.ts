@@ -37,7 +37,7 @@ import {
 } from "./keywords.js";
 import { collectWouldBePlayedSelfReducers, collectWouldDigivolveSelfReducers } from "./reducers.js";
 import { normalizeCompiledCard } from "./normalize.js";
-import { EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
+import { compiledEffects, EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
 import type { CardEffect, CompiledCard } from "@aegis/shared";
 
 export function irCardModule(cardId: string, compiled: CompiledCard): EffectModule {
@@ -299,6 +299,10 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
  */
 export function registerIrCard(cardId: string, compiled: CompiledCard): EffectModule {
   const normalized = normalizeCompiledCard(compiled);
+  // The direct card module is the executable IR authority. Keep the shared structural
+  // requirement readers (DigiXros/digivolution/fusion and client projections) on that same
+  // normalized record instead of the older generated effects.json snapshot.
+  compiledEffects[cardId] = normalized;
   registeredCompiledCards.set(cardId, normalized);
   const existing = getEffectModule(cardId);
   const previousIrModule = registeredIrModules.get(cardId);
