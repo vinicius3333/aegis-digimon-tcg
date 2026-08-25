@@ -47,6 +47,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks exact catalog and IR, separately proves Reptile and Dragonkin reductions from 2 to 1, proves a nonmatching destination pays 2, proves Q5215's breeding exclusion, proves Q5586's effect-driven 3-to-2 interaction with a realistic Elizamon/Dimetromon/Lamiamon stack, proves inherited DP on both turn owners, and proves the main reducer is not inherited.
 - Verification: focused suite — 8 passed; `git diff --check` — passed.
 
+## BT23-006 — Huckmon — 10/10
+
+- Catalog evidence: Red level 3, play cost 3, 1000 DP, standard red-level-2 evolution for 0 plus alternate level-2 CS evolution for 0; form `Rookie`, attribute `Data`, types `Mini Dragon` and `CS`; On Play reveals 3, adds one Huckmon/Sistermon name match and one Royal Knight trait match, then bottoms the rest; inherited Your Turn once per turn gains 1 memory when a friendly white Digimon is played; no Security text.
+- Knowledge base: `node tools/kb/query.mjs card BT23-006` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the On Play `RevealAdd` has two separately capped add buckets and `deckBottom` routing; the alternate evolution requirement records exact level, trait, cost, and alternate status; the inherited `whenPlayed` subtrigger filters mine + Digimon + White and grants 1 memory once per source per turn. The module registers exclusively through `registerIrCard("BT23-006", compiled)` with full coverage and no residual clauses.
+- Primitive trace: RevealAdd exposes only the top 3, resolves each capped bucket against definition name/trait semantics, prevents one selected instance from being selected twice, and bottom-orders all leftovers face down; alternate evolution unions with the standard recipe; `whenPlayed` uses the created permanent payload's owner, kind, and effective printed colors; inherited frequency is keyed by source instance.
+- Behavioral proof: the focused suite checks exact catalog/IR, routes one name match and one Royal Knight while leaving the fourth card unrevealed and bottoming the nonmatch, handles a zero-match reveal, proves the off-color CS evolution and rejects an off-color non-CS egg, proves one memory gain across two white plays, proves two Huckmon sources trigger independently, and rejects both a friendly non-white play and an opposing white play.
+- Verification: focused suite — 7 passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-006 through BT23-102.
+BT23-007 through BT23-102.
