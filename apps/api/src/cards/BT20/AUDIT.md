@@ -1067,3 +1067,15 @@
 - Score: 10/10.
 - Ambiguity: the committed catalog omits the Rule line, but Q5555 and the committed direct implementation jointly establish the alternate-name treatment.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-089.test.ts`).
+
+## BT20-090 — Yuuki
+
+- Catalog contract: purple LIBERATOR Tamer, play cost 4; start of own turn sets memory to 3 at 2 or less; at end of own turn with 4 or fewer hand cards may suspend itself as cost to make one own Dark Dragon/Evil Dragon Digimon attack a player; Security free-plays itself.
+- Knowledge base: Q4431 confirms multiple copies trigger simultaneously but a second effect cannot declare another attack while the first attack is in progress.
+- Implementation evidence: memory, inclusive hand condition, self-suspension cost, trait union, unsuspended attacker requirement, player target, optionality, and Security play map directly to shared primitives. Attack serialization in the engine enforces Q4431. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: BT20-075 and BT21-077 prove both trait arms; nonmatching Machine Digimon are excluded and only an unsuspended own qualifying Digimon can be selected.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-090.test.ts` — 4 passed.
+- Clause scores: stats/Security 2/2; memory threshold 2/2; hand threshold/self-suspend cost 2/2; full trait/attacker/player target 2/2; attack resolution/Q4431 concurrency 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-090.test.ts`).
