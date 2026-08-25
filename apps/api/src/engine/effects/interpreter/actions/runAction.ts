@@ -293,16 +293,24 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // destination form a legal digivolution. In particular, "without paying the cost" does
     // not waive printed requirements (P-092 Q4182); do this before asking so the UI never
     // confirms an evolution the resolver will immediately discard.
-    if (
-      action.kind === "Digivolve" &&
-      !(
+    if (action.kind === "Digivolve") {
+      const hostBindingCost =
         action.cost?.kind === "place" &&
         action.cost.bindHostAs !== undefined &&
-        action.cost.bindHostAs === action.target.fromSelectionRef
-      ) &&
-      !canAttemptDigivolve(ctx, action)
-    )
-      return false;
+        action.cost.bindHostAs === action.target.fromSelectionRef &&
+        action.cost.underFilter !== undefined;
+      // The placement cost binds the exact base that the following digivolve must use.
+      // Before payment that binding does not exist, so preflight against the cost's host
+      // filter instead. This keeps the cost transactional: no legal trash/hand evolution
+      // means the source card is not first moved under the host (EX10-066).
+      const canAttempt = hostBindingCost
+        ? canAttemptDigivolve(ctx, {
+            ...action,
+            target: { filter: action.cost!.underFilter!, count: 1 },
+          })
+        : canAttemptDigivolve(ctx, action);
+      if (!canAttempt) return false;
+    }
     const costUnpayable = action.cost !== undefined && !canPayCost(ctx, action.cost as Cost);
     if (!costUnpayable) {
       const yes = await ctx.ask.optional(ctx, describeAction(action));
