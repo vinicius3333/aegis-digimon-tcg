@@ -97,6 +97,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT24-040", // 3 or fewer security cards -> self play cost -5
   "BT24-041", // own Iliad Digimon or Tamer -> self play cost -5
   "BT24-051", // 3+ total Digimon -> self play cost -5
+  "BT21-026", // scaling: self play cost -2 per opposing Digimon
   "BT25-096", // trash the bottom face-down card under a Tamer -> Option use cost -2 (Q6456)
   "EX10-061", // place one of each face-up Dark Masters name from security -> -4 each (Q5783/Q5784)
   "BT22-041", // condition: total cards in both security stacks <= 6 -> self play cost -6
