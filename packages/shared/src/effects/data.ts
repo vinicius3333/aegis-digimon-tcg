@@ -480,6 +480,15 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   "EX11-029": [{ names: ["Maquinamon"], cost: 2, isAlternate: true }],
   // EX11-030's green/black Lv.3 rows are ordinary; only Royal Base is an alternate route.
   "EX11-030": [{ level: 3, traits: ["Royal Base"], cost: 2, isAlternate: true }],
+  // Shoto Kazama is a controller board-state gate, not an alternative evolution base.
+  "EX11-074": [
+    {
+      namesExact: ["GrandGalemon"],
+      cost: 6,
+      isAlternate: true,
+      controllerControls: { kind: ["Tamer"], namesExact: ["Shoto Kazama"], min: 1 },
+    },
+  ],
   // BT12-081: Astamon's Save alternate path is restricted to yellow, green, or purple Lv.4 bases.
   "BT12-081": [{ cost: 3, isAlternate: true, level: 4, texts: ["Save"], colors: ["Yellow", "Green", "Purple"] }],
   // BT12-083: the Save alternate path is restricted to red, black, or purple Lv.4 bases.

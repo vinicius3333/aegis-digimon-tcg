@@ -27,14 +27,23 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
   });
 
   it("keeps only EX11-029's named Maquinamon alternate route", () => {
-    expect(digivolutionRequirementsFor("EX11-029")).toEqual([
-      { names: ["Maquinamon"], cost: 2, isAlternate: true },
-    ]);
+    expect(digivolutionRequirementsFor("EX11-029")).toEqual([{ names: ["Maquinamon"], cost: 2, isAlternate: true }]);
   });
 
   it("keeps only EX11-030's Royal Base alternate route", () => {
     expect(digivolutionRequirementsFor("EX11-030")).toEqual([
       { level: 3, traits: ["Royal Base"], cost: 2, isAlternate: true },
+    ]);
+  });
+
+  it("keeps Shoto Kazama as EX11-074's board gate rather than an evolution base", () => {
+    expect(digivolutionRequirementsFor("EX11-074")).toEqual([
+      {
+        namesExact: ["GrandGalemon"],
+        cost: 6,
+        isAlternate: true,
+        controllerControls: { kind: ["Tamer"], namesExact: ["Shoto Kazama"], min: 1 },
+      },
     ]);
   });
 
