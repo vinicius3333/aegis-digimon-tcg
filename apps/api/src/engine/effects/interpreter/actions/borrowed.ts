@@ -1,6 +1,9 @@
 // Running another card's effect, or an Option, as an effect of this one.
 
 import type { EffectContext } from "../../EffectContext.js";
+import type { CardSource } from "../../CardSource.js";
+import type { Effect } from "../../Effect.js";
+import { effectsOf } from "../../collect.js";
 import { runtimeCompiledCard } from "../compiledCards.js";
 import { describeEffect } from "../describe.js";
 import { runEffect } from "../dispatch.js";
@@ -8,7 +11,7 @@ import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone } from "../targeting/loose.js";
-import { CardKind } from "@aegis/shared";
+import { CardKind, EffectTiming } from "@aegis/shared";
 import { MemoryGauge } from "../../../MemoryGauge.js";
 import type { Action, CardEffect, EffectTrigger, Filter, Seat, ZoneRef } from "@aegis/shared";
 
@@ -17,7 +20,98 @@ interface ForeignCandidate {
   instanceId: string;
   cardId: string;
   permanentId?: string;
-  borrowable: CardEffect[];
+  borrowable: BorrowableEffect[];
+}
+
+interface BorrowableEffect {
+  effect: CardEffect;
+  sourceInstanceId: string;
+  sourceCardId: string;
+  sourcePermanentId?: string;
+  conferredToPermanentId?: string;
+  triggerOrdinal: number;
+}
+
+function borrowedTiming(trigger: EffectTrigger): EffectTiming | undefined {
+  if (trigger === "OnPlay") return EffectTiming.OnPlay;
+  if (trigger === "WhenDigivolving") return EffectTiming.WhenDigivolving;
+  if (trigger === "OnDeletion" || trigger === "OnDestroyedAnyone") return EffectTiming.OnDestroyedAnyone;
+  return undefined;
+}
+
+function borrowedSource(ctx: EffectContext, borrowed: BorrowableEffect): CardSource {
+  const definition = ctx.game.definitionOf({ cardId: borrowed.sourceCardId });
+  const permanentId = borrowed.sourcePermanentId;
+  return {
+    instanceId: borrowed.sourceInstanceId,
+    cardId: borrowed.sourceCardId,
+    ownerSeat: ctx.source.ownerSeat,
+    definition,
+    permanent: () => (permanentId === undefined ? undefined : ctx.game.permanentById(permanentId)),
+    isOnBattleArea: () => permanentId !== undefined && ctx.game.permanentById(permanentId) !== undefined,
+    isOwnersTurn: () => ctx.game.state.turnSeat === ctx.source.ownerSeat,
+    hasColor: (color) => definition.colors.includes(color),
+  } as CardSource;
+}
+
+function registeredBorrowedEffect(ctx: EffectContext, borrowed: BorrowableEffect): Effect | undefined {
+  const timing = borrowedTiming(borrowed.effect.trigger);
+  if (timing === undefined) return undefined;
+  return effectsOf(timing, borrowedSource(ctx, borrowed)).filter(
+    (effect) => effect.irTrigger === borrowed.effect.trigger,
+  )[borrowed.triggerOrdinal];
+}
+
+function availableBorrowedEffects(ctx: EffectContext, effects: BorrowableEffect[]): BorrowableEffect[] {
+  return effects.filter((borrowed) => {
+    const disabledTiming =
+      borrowed.effect.trigger === "WhenDigivolving"
+        ? "whenDigivolving"
+        : borrowed.effect.trigger === "OnPlay"
+          ? "onPlay"
+          : undefined;
+    if (
+      disabledTiming !== undefined &&
+      borrowed.sourcePermanentId !== undefined &&
+      (ctx.fx.isTimingEffectDisabled?.(borrowed.sourcePermanentId, disabledTiming) ??
+        ctx.game.isTimingEffectDisabled?.(borrowed.sourcePermanentId, disabledTiming)) === true
+    ) {
+      return false;
+    }
+    const registered = registeredBorrowedEffect(ctx, borrowed);
+    return registered === undefined || ctx.usage === undefined
+      ? true
+      : registered.maxPerTurn <= 0 ||
+          ctx.usage.count(borrowed.sourceInstanceId, registered.effectKey) < registered.maxPerTurn;
+  });
+}
+
+function borrowableFromCompiled(args: {
+  compiled: NonNullable<ReturnType<typeof runtimeCompiledCard>>;
+  action: Extract<Action, { kind: "ActivateForeignEffect" }>;
+  sourceInstanceId: string;
+  sourceCardId: string;
+  sourcePermanentId?: string;
+  conferredToPermanentId?: string;
+  trigger?: string;
+}): BorrowableEffect[] {
+  const ordinals = new Map<string, number>();
+  const out: BorrowableEffect[] = [];
+  for (const effect of args.compiled.effects) {
+    if (!args.action.fromTriggers.includes(effect.trigger) || effect.isSecurity === true) continue;
+    if (args.trigger !== undefined && effect.trigger !== args.trigger) continue;
+    const triggerOrdinal = ordinals.get(effect.trigger) ?? 0;
+    ordinals.set(effect.trigger, triggerOrdinal + 1);
+    out.push({
+      effect,
+      sourceInstanceId: args.sourceInstanceId,
+      sourceCardId: args.sourceCardId,
+      sourcePermanentId: args.sourcePermanentId,
+      conferredToPermanentId: args.conferredToPermanentId,
+      triggerOrdinal,
+    });
+  }
+  return out;
 }
 
 /**
@@ -72,10 +166,39 @@ function collectForeignCandidates(
     const compiled = runtimeCompiledCard(src.cardId);
     if (compiled === undefined) continue;
     // Borrowable = an [On Play]/[When Digivolving]/[On Deletion] effect (security effects are never
-    // borrowable, source `!cardEffect.IsSecurityEffect`).
-    const borrowable = compiled.effects.filter((e) => action.fromTriggers.includes(e.trigger) && e.isSecurity !== true);
-    if (borrowable.length === 0) continue;
-    out.push({ instanceId: src.instanceId, cardId: src.cardId, permanentId: src.permanentId, borrowable });
+    // borrowable, source `!cardEffect.IsSecurityEffect`). Succession and sibling stack-effect
+    // conferrals contribute their matching effects to the host as well (BT24-102/Q6945).
+    const borrowable = borrowableFromCompiled({
+      compiled,
+      action,
+      sourceInstanceId: src.instanceId,
+      sourceCardId: src.cardId,
+      sourcePermanentId: src.permanentId,
+    });
+    if (src.permanentId !== undefined) {
+      const permanent = ctx.game.permanentById(src.permanentId);
+      for (const conferral of ctx.fx.stackEffectConferrals?.() ?? []) {
+        if (conferral.targetPermanentId !== src.permanentId || conferral.inheritedOnly === true) continue;
+        const stackCard = permanent?.stack.find((card) => card.instanceId === conferral.stackInstanceId);
+        if (stackCard === undefined) continue;
+        const stackCompiled = runtimeCompiledCard(stackCard.cardId);
+        if (stackCompiled === undefined) continue;
+        borrowable.push(
+          ...borrowableFromCompiled({
+            compiled: stackCompiled,
+            action,
+            sourceInstanceId: stackCard.instanceId,
+            sourceCardId: stackCard.cardId,
+            sourcePermanentId: src.permanentId,
+            conferredToPermanentId: src.permanentId,
+            trigger: conferral.trigger,
+          }),
+        );
+      }
+    }
+    const available = availableBorrowedEffects(ctx, borrowable);
+    if (available.length === 0) continue;
+    out.push({ instanceId: src.instanceId, cardId: src.cardId, permanentId: src.permanentId, borrowable: available });
   }
   return out;
 }
@@ -112,25 +235,13 @@ export async function runActivateForeignEffect(
   }
   if (chosen === undefined) return;
 
-  // A borrowed timing effect is still that permanent's timing effect for suppression
-  // purposes. Venusmon therefore prevents Seiken Meppa from activating Jesmon GX's
-  // [When Digivolving] effect (BT10-110 Q2039), even though the Option initiated it.
-  if (
-    chosen.permanentId !== undefined &&
-    action.fromTriggers.includes("WhenDigivolving") &&
-    (ctx.fx.isTimingEffectDisabled?.(chosen.permanentId, "whenDigivolving") ??
-      ctx.game.isTimingEffectDisabled?.(chosen.permanentId, "whenDigivolving")) === true
-  ) {
-    return;
-  }
-
   // When the chosen card has multiple borrowable effects, the controller picks which one
   // (source's second select over the candidate effects). With exactly one, auto-resolve.
-  let toRun: CardEffect[];
+  let toRun: BorrowableEffect[];
   if (chosen.borrowable.length <= 1) {
     toRun = chosen.borrowable;
   } else {
-    const labels = chosen.borrowable.map((e) => describeEffect(e));
+    const labels = chosen.borrowable.map((entry) => describeEffect(entry.effect));
     const idx = await ctx.ask.chooseOption(ctx, labels);
     const picked = chosen.borrowable[idx];
     toRun = picked ? [picked] : [];
@@ -158,7 +269,8 @@ export async function runActivateForeignEffect(
       },
     };
   }
-  for (const eff of toRun.slice(0, action.count)) {
+  for (const borrowed of toRun.slice(0, action.count)) {
+    const eff = borrowed.effect;
     await runEffect(
       {
         ...runCtx,
@@ -167,6 +279,10 @@ export async function runActivateForeignEffect(
       },
       eff,
     );
+    const registered = registeredBorrowedEffect(ctx, borrowed);
+    if (registered !== undefined && registered.maxPerTurn > 0) {
+      ctx.usage?.register(borrowed.sourceInstanceId, registered.effectKey);
+    }
   }
 }
 

@@ -1207,6 +1207,13 @@ export interface Primitives {
     duration: EffectDuration,
     opts?: { trigger?: string; inheritedOnly?: boolean },
   ): void;
+  /** Read the currently active stack-effect conferrals (for effects that borrow another card's skills). */
+  stackEffectConferrals?(): readonly {
+    targetPermanentId: string;
+    stackInstanceId: string;
+    trigger?: string;
+    inheritedOnly?: boolean;
+  }[];
   /**
    * Also offer a permanent's `[On Deletion]` effects — its own printed ones AND the inherited
    * ones its digivolution cards provide — at the end of its own attack (BT16-015's "attach

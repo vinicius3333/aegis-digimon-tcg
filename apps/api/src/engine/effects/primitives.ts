@@ -4287,6 +4287,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       inheritedOnly: opts?.inheritedOnly,
     });
   };
+  const stackEffectConferrals: NonNullable<Primitives["stackEffectConferrals"]> = () =>
+    continuous.listStackEffectConferrals();
 
   // Recorded as a CONTINUOUS fact regardless of which clause installs it: BT16-015 prints the
   // projection under `[Your Turn]` and the compiler emits a `[When Digivolving]` twin of the
@@ -4851,6 +4853,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     grantKind,
     waiveColorRequirement,
     conferStackEffects,
+    stackEffectConferrals,
     projectOnDeletionAtEndOfAttack,
     grantCustomEffect,
     grantCustom,
