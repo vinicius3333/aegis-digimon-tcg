@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -5,6 +6,27 @@ import "../index.js";
 import { compiled } from "./BT23-028.js";
 
 describe("BT23-028 Coordemon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-028")).toMatchObject({
+      cardId: "BT23-028",
+      nameEn: "Coordemon",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [{ color: "Yellow", level: 3, memoryCost: 2 }],
+      forms: ["Sup.", "Appmon"],
+      attributes: ["Entertainment"],
+      types: ["Coordinate"],
+      linkDp: 3000,
+      linkEffect:
+        "[When Linking] Until your opponent's turn ends, 1 of their Digimon can't activate [When Digivolving] effects.",
+      linkRequirement: "[Link] [Appmon]\u00a0trait: Cost 2",
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
   it("waits for its security battle to end, plays itself and applies its On Play DP loss", async () => {
     const s = setupEngine(
       {
@@ -121,5 +143,22 @@ describe("BT23-028 Coordemon", () => {
         },
       ],
     });
+  });
+
+  it("rejects Link onto a non-Appmon without spending memory or moving Coordemon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host" }], hand: [{ card: "BT23-028", as: "coordemon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("coordemon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: false, reason: "link-requirement-unmet" });
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("coordemon").instanceId);
   });
 });

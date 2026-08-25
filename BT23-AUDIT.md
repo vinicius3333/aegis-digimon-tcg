@@ -245,6 +245,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR; draws then DNA digivolves Angemon plus a suspended peer into an unsuspended Shakkoumon containing both materials; proves the opponent-turn path draws but cannot DNA; and observes Barrier both directly and inherited from a realistic stack.
 - Verification: focused suite — 6 passed; Betamon's persistent digivolution-lock regression is covered by BT23-017; `git diff --check` — passed.
 
+## BT23-028 — Coordemon — 10/10
+
+- Catalog evidence: Yellow level 4, play cost 4, 4000 DP, standard yellow-level-3 evolution for 2; forms `Sup.` and `Appmon`, attribute `Entertainment`, type `Coordinate`; Security plays it without cost after the security battle; On Play/When Digivolving gives one opposing Digimon -3000 DP for the turn; Link onto Appmon costs 2, contributes 3000 DP, and until the opponent's turn end prevents one opposing Digimon from activating When Digivolving effects.
+- Knowledge base: Q5258/Q5260 suppress both naturally triggered and effect-activated When Digivolving clauses; Q5259 leaves a shared When Digivolving/When Attacking effect usable at the When Attacking timing; Q5261 forbids processing even a suppressed clause's activation cost; Q5262 confirms suppression does not consume shared once-per-turn frequency.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-028", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, recipient-negative, and runtime Link evidence without changing execution.
+- Primitive trace: Security installs a one-shot end-of-battle watcher and plays the exact revealed instance from trash before On Play resolves; both DP timings use the same exact target and turn duration; player Link validates the Appmon recipient, pays exactly 2, applies link DP, and the linked-source watcher installs the timing-specific restriction without masking When Attacking or consuming blocked frequency.
+- Behavioral proof: the focused suite checks catalog and complete IR; resolves a real security battle, plays Coordemon, and observes its On Play -3000 DP; links for exactly 2 with +3000 DP and observable When Digivolving suppression; rejects a non-Appmon recipient without memory or zone mutation; and verifies both DP trigger clauses.
+- Verification: focused suite — 7 passed; timing-disable semantics are covered by the shared restriction capability suite; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-028 through BT23-102.
+BT23-029 through BT23-102.
