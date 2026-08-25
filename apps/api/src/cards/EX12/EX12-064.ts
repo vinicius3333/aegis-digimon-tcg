@@ -72,6 +72,8 @@ export const compiled: CompiledCard = {
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
             raw: "By unsuspending this Digimon",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       isInherited: true,
@@ -86,6 +88,12 @@ export const compiled: CompiledCard = {
       traits: ["Machine", "ME"],
       cost: 3,
       isAlternate: true,
+    },
+  ],
+  assemblyRequirement: [
+    {
+      reduceCost: 2,
+      materials: [{ count: 1, traits: ["Machine", "Cyborg", "ME"], levelMax: 4 }],
     },
   ],
 };

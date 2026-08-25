@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
           kind: "Restrict",
           target: {
             filter: {
-              controllerDefault: "opponent",
+              controller: "opponent",
               kind: ["Digimon", "Tamer"],
             },
             count: 1,
@@ -51,7 +51,7 @@ const compiled: CompiledCard = {
           kind: "Restrict",
           target: {
             filter: {
-              controllerDefault: "opponent",
+              controller: "opponent",
               kind: ["Digimon", "Tamer"],
             },
             count: 1,
@@ -144,4 +144,5 @@ const compiled: CompiledCard = {
   ],
 };
 
+export { compiled };
 registerIrCard("EX12-063", compiled);

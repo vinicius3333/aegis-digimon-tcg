@@ -66,6 +66,8 @@ export interface DigivolveIntent {
   useAlternateCost?: boolean;
   /** Explicit server-validated alternate path. Indexes `digivolutionRequirementsFor(cardId)`. */
   alternateRequirementIndex?: number;
+  /** Explicitly activate the card's ＜Blast Digivolve＞ cost waiver. Omitted for normal evolution. */
+  useBlastDigivolve?: boolean;
 }
 
 /** Stable rejection reasons (subset of the API-CONTRACT intent-validation vocabulary). */
@@ -241,6 +243,8 @@ export interface DigivolveDeps {
    * applies. The engine binds this to `hasBlastDigivolveKeyword(instance.cardId)`.
    */
   costWaived?(state: GameState, instance: CardInstance): boolean;
+  /** Whether the defending seat currently owns the open Counter Timing window for Blast Digivolve. */
+  blastWindowAllowed?(state: GameState, seat: Seat): boolean;
   /**
    * The POTENTIAL ＜Digisorption -N＞ cost reduction available when digivolving into `intoCardId`
    * (Comprehensive Rules §16-10): N when the card has ＜Digisorption＞ AND a Digimon is currently
@@ -360,13 +364,19 @@ export function validateDigivolve(
     | "potentialInteractiveDigivolveReduction"
     | "baseGrantedDigivolve"
     | "costWaived"
+    | "blastWindowAllowed"
   >,
 ): DigivolveCheck {
   // 1. Game state gates.
   if (state.gameOver) return { ok: false, reason: "game-over" };
   if (state.pendingDecision !== undefined) return { ok: false, reason: "decision-pending" };
-  if (state.turnSeat !== seat) return { ok: false, reason: "not-your-turn" };
-  if (state.phase !== Phase.Main) return { ok: false, reason: "wrong-phase" };
+  const blastRequested = intent.useBlastDigivolve === true;
+  if (blastRequested) {
+    if (deps.blastWindowAllowed?.(state, seat) !== true) return { ok: false, reason: "wrong-phase" };
+  } else {
+    if (state.turnSeat !== seat) return { ok: false, reason: "not-your-turn" };
+    if (state.phase !== Phase.Main) return { ok: false, reason: "wrong-phase" };
+  }
 
   const player = playerAt(state, seat);
   if (player === undefined) return { ok: false, reason: "no-such-player" };
@@ -559,7 +569,10 @@ export function validateDigivolve(
   // ＜Blast Digivolve＞/＜Blast DNA Digivolve＞ (§16-26-1/§16-31-1): "digivolve ... without paying
   // the cost" — the printed digivolution requirement checked above still gates legality, but the
   // memory cost is waived entirely (not merely reduced), skipping every other cost modifier.
-  const blastWaived = deps.costWaived?.(state, found.instance) === true;
+  const blastWaived = intent.useBlastDigivolve === true && deps.costWaived?.(state, found.instance) === true;
+  if (intent.useBlastDigivolve === true && !blastWaived) {
+    return { ok: false, reason: "invalid-evolution" };
+  }
   // `definition` is the card being digivolved INTO — passed so a "when digivolving into
   // this card" cost effect (BT7-040 / BT11-059) can match only this digivolve.
   const cost = blastWaived

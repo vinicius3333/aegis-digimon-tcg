@@ -1,16 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import {
+  assemblyRequirementFor,
+  compiledEffects,
+  EffectTiming,
+  digivolutionRequirementsFor,
+  getCardDefinition,
+} from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-064.js";
 
 describe("EX12-064 Megadramon", () => {
   it("maps the catalog, evolution, delete fallback, trait watcher, and inherited cost", () => {
-    const card = getCardDefinition("EX12-064");
-    expect(card?.effectText).toContain("[Assembly -2]");
-    expect(card?.inheritedEffectText).toContain("lowest play cost");
     expect(digivolutionRequirementsFor("EX12-064")).toEqual([
       { level: 4, traits: ["Machine", "ME"], cost: 3, isAlternate: true },
+    ]);
+    expect(assemblyRequirementFor("EX12-064")).toEqual([
+      { reduceCost: 2, materials: [{ count: 1, traits: ["Machine", "Cyborg", "ME"], levelMax: 4 }] },
     ]);
 
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
@@ -60,11 +67,15 @@ describe("EX12-064 Megadramon", () => {
           kind: "Delete",
           target: { filter: { superlative: "lowestPlayCost" }, count: 1 },
           cost: { kind: "unsuspend", target: { filter: { isSelfRef: true }, isSelf: true } },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+    expect(registeredCompiledCards.get("EX12-064")).toEqual(compiled);
+    expect(compiledEffects["EX12-064"]).toEqual(compiled);
   });
 
   it("deletes exactly one opposing level-4-or-lower Digimon", async () => {
@@ -74,18 +85,20 @@ describe("EX12-064 Megadramon", () => {
         1: {
           battleArea: [
             { card: "BT1-009", as: "low" },
-            { card: "BT1-082", as: "high" },
+            { card: "EX12-059", as: "high", under: ["BT1-009"] },
           ],
         },
       },
-      { autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-082"]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["EX12-059"]);
+    expect(s.perm("high").topCard.cardId).toBe("EX12-059");
+    expect(s.perm("high").stack).toHaveLength(1);
   });
 
   it("de-digivolves when no level-4-or-lower target exists", async () => {
@@ -105,10 +118,16 @@ describe("EX12-064 Megadramon", () => {
     expect(s.perm("opponent").stack).toHaveLength(0);
   });
 
-  it("reactivates the When Digivolving effect for a matching played trait and only once per turn", async () => {
+  it("reactivates the When Digivolving effect for an actually played matching Digimon and only once", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX12-064", as: "source" }] },
+        0: {
+          battleArea: [{ card: "EX12-064", as: "source" }],
+          hand: [
+            { card: "BT1-068", as: "firstMatch" },
+            { card: "BT1-042", as: "secondMatch" },
+          ],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
@@ -119,28 +138,37 @@ describe("EX12-064 Megadramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     await s.ready();
+    s.state.memory = 20;
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("source").permanentId });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstMatch").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("source").permanentId });
-    await settle(() => false, 60);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondMatch").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("allows declining the optional trait watcher", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX12-064", as: "source" }] },
+        0: {
+          battleArea: [{ card: "EX12-064", as: "source" }],
+          hand: [{ card: "BT1-068", as: "match" }],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    s.state.memory = 10;
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("source").permanentId });
-    await settle(() => false, 60);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("match").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
@@ -155,7 +183,7 @@ describe("EX12-064 Megadramon", () => {
           ],
         },
       },
-      { autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     await s.ready();
 
@@ -164,5 +192,126 @@ describe("EX12-064 Megadramon", () => {
 
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["EX12-059"]);
+  });
+
+  it("may decline the inherited unsuspend cost and does nothing when the host is already active", async () => {
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-059", as: "host", suspended: true, under: ["EX12-064"] },
+            { card: "BT1-009", as: "low" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    const resolution = advance(declined.engine).fire(EffectTiming.OnEndAttack, declined.perm("host"));
+    await settle(() => declined.state.pendingDecision?.kind === "optional");
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: declined.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
+    expect(declined.perm("host").isSuspended).toBe(true);
+    expect(declined.state.players[0]!.battleArea).toHaveLength(2);
+
+    const active = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-059", as: "host", under: ["EX12-064"] },
+            { card: "BT1-009", as: "low" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(active.engine).fire(EffectTiming.OnEndAttack, active.perm("host"));
+    await settle();
+    expect(active.state.players[0]!.battleArea).toHaveLength(2);
+  });
+
+  it("assembles with an eligible level 4 material and rejects an over-level one", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "EX12-064", as: "target" }], trash: [{ card: "EX12-054", as: "material" }] },
+    });
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("target").instanceId,
+        assembly: { materialInstanceIds: [s.inst("material").instanceId] },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-064"));
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "EX12-064")!;
+    expect(played.stack.map(({ cardId }) => cardId)).toEqual(["EX12-054"]);
+    expect(s.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { hand: [{ card: "EX12-064", as: "target" }], trash: [{ card: "EX12-059", as: "material" }] },
+    });
+    invalid.state.memory = 7;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: invalid.inst("target").instanceId,
+        assembly: { materialInstanceIds: [invalid.inst("material").instanceId] },
+      } as never),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+  });
+
+  it("uses both normal colors and both alternate traits, rejects a nonmatch, and matches the catalog", async () => {
+    expect(getCardDefinition("EX12-064")).toMatchObject({
+      nameEn: "Megadramon",
+      colors: ["Purple", "Black"],
+      kinds: ["Digimon"],
+      playCost: 7,
+      dp: 7000,
+      level: 5,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Cyborg", "ME"],
+      evoCosts: [
+        { color: "Purple", level: 4, memoryCost: 4 },
+        { color: "Black", level: 4, memoryCost: 4 },
+      ],
+    });
+    for (const [baseCardId, useAlternateCost, cost] of [
+      ["EX12-062", false, 4],
+      ["BT10-061", false, 4],
+      ["BT10-021", true, 3],
+      ["EX12-010", true, 3],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "EX12-064", as: "target" }] },
+      });
+      s.state.memory = 4;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("target").instanceId,
+          useAlternateCost,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "EX12-064");
+      expect(s.state.memory).toBe(4 - cost);
+    }
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-014", as: "base" }], hand: [{ card: "EX12-064", as: "target" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("target").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

@@ -14,10 +14,13 @@ const compiled: CompiledCard = {
           kind: "Draw",
           controller: "mine",
           amount: 1,
+          optional: true,
+          abortOnDecline: true,
           cost: {
             kind: "trash",
             target: {
               filter: {
+                zone: "hand",
                 controller: "mine",
                 nameOrTrait: [
                   {
@@ -34,10 +37,6 @@ const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          condition: {
-            kind: "ifThisEffectActed",
-            raw: "if you did",
-          },
         },
       ],
     },

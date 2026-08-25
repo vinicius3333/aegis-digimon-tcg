@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { compiledEffects, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -61,6 +61,8 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
       trigger: "Static",
       actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave" } }],
     });
+    expect(registered).toEqual(compiled);
+    expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
   it("does not use the Option without a Shambala card satisfying its Use Req", async () => {
@@ -165,6 +167,48 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("uses the face-up security digivolution only once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-006", as: "firstAttacker" },
+            { card: "EX12-006", as: "secondAttacker" },
+          ],
+          hand: [
+            { card: "EX12-025", as: "firstTarget" },
+            { card: "EX12-025", as: "secondTarget" },
+          ],
+          security: [{ card: CARD_ID, as: "security", faceUp: true }],
+        },
+        1: { security: ["BT1-101", "BT1-101", "BT1-101"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstAttacker").topCard?.cardId === "EX12-025");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("secondAttacker").topCard?.cardId).toBe("EX12-006");
+    expect(s.state.players[0]!.hand.filter(({ cardId }) => cardId === "EX12-025")).toHaveLength(1);
+  });
+
   it("plays a qualifying Shambala card from trash and rejects a card over the security limit", async () => {
     const s = setupEngine(
       {
@@ -190,5 +234,45 @@ describe("EX12-074 Genshi Continent & Ashino Island", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("valid").instanceId),
     ).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
+  });
+
+  it("activates its Security play when checked while already face-up", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-006", as: "attacker" }] },
+        1: {
+          trash: [{ card: "EX12-025", as: "target" }],
+          security: [{ card: CARD_ID, as: "security", faceUp: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-025"));
+
+    expect(
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("target").instanceId),
+    ).toBe(true);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("security").instanceId);
+  });
+
+  it("matches the complete catalog identity", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Genshi Continent & Ashino Island",
+      colors: ["White"],
+      kinds: ["Option"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      types: ["Shambala", "SW", "TB"],
+    });
   });
 });

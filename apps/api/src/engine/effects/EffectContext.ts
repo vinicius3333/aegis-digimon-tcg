@@ -1258,6 +1258,7 @@ export interface Primitives {
       withoutSuspending?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
+      attackMechanic?: string;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -1405,6 +1406,9 @@ export interface Primitives {
 /** Args for installing a delayed/triggered sub-effect via the primitives. */
 export interface SubTriggerInstall {
   event: SubTriggerEventName;
+  /** Printed placement class retained so a pending watcher passes the same kernel guard. */
+  isInheritedSource?: boolean;
+  isLinkedSource?: boolean;
   sourcePermanentId?: string;
   /**
    * Anchor for a watcher installed by a card that is NOT a live battle-area Permanent —

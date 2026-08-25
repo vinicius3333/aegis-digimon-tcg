@@ -20,6 +20,7 @@ import {
   isAce,
   isDualKind,
   matchingEvoCost,
+  matchingAlternateDigivolutionRequirement,
   canDigivolveOnto,
   cardHasTrait,
 } from "./cardData.js";
@@ -137,5 +138,13 @@ describe("digivolution matching (static-data half)", () => {
 
   it("evoCostsOf returns the printed entries", () => {
     expect(evoCostsOf(level4Green)).toHaveLength(1);
+  });
+
+  it("matches an alternate 'in text' requirement against the base card name (EX12-051 Q6829)", () => {
+    expect(matchingAlternateDigivolutionRequirement("EX12-051", "BT10-051")).toMatchObject({
+      level: 4,
+      texts: ["Angoramon"],
+      cost: 3,
+    });
   });
 });

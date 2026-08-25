@@ -66,7 +66,8 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     (action.dpCeilingScaling !== undefined ||
       action.totalDpCapScaling !== undefined ||
       action.playCostCeiling !== undefined ||
-      action.scaling !== undefined);
+      action.scaling !== undefined ||
+      action.target.filter.playCostLteScaling !== undefined);
   if (
     action.kind === "Delete" &&
     action.cost !== undefined &&

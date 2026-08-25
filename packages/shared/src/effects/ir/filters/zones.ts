@@ -24,5 +24,7 @@ export type ZoneRef =
   | "linked"
   /** Digivolution cards and ＜Link＞ cards together, as one pool (BT25-085). */
   | "digivolutionCardsOrLinkCards"
+  /** Pseudo-source selector: hosted candidates must belong to the resolving Digimon. */
+  | "thisDigimon"
   /** The prior reveal step's batch (`ctx.lastRevealedCards`), not a real zone. */
   | "revealed";

@@ -62,6 +62,7 @@ const compiled: CompiledCard = {
             upTo: true,
             from: ["hand", "trash"],
           },
+          position: "choice",
           optional: true,
         },
         {
@@ -116,6 +117,7 @@ const compiled: CompiledCard = {
             upTo: true,
             from: ["hand", "trash"],
           },
+          position: "choice",
           optional: true,
         },
         {

@@ -42,7 +42,7 @@
   {
     "cardId": "EX12-052",
     "field": "effectText",
-    "reason": "DUAL card: Digimon-side header/body record was verified on 2026-08-06 (the nameEn/dualEffect/optionEffect/optionColorRequirements gaps were fixed). Kept diffing for an independent wording variant in the [When Digivolving][When Attacking][Counter] clause: committed text reads 'gets +3000 DP ... then it may battle' (unconditional buff, separately-optional follow-up — matches the template used by EX11-074's 'may unsuspend. Then, ... may battle'); source reads 'may get +3000 DP ... and battle' (single all-or-nothing may). No KB coverage exists for EX12 to settle it, so this is left as a documented open question rather than guessed at — not adopted."
+    "reason": "DUAL card: Digimon-side header/body record was verified on 2026-08-06 (the nameEn/dualEffect/optionEffect/optionColorRequirements gaps were fixed). The source wording variant in the [When Digivolving][When Attacking][Counter] clause is not adopted: official Q6836 confirms that after accepting the +3000 DP clause, the selected Digimon must battle if possible, matching the committed 'gets +3000 DP ... then it may battle' sequencing and the audited executable IR."
   },
   {
     "cardId": "EX12-069",

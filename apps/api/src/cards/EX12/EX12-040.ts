@@ -17,6 +17,8 @@ const compiled: CompiledCard = {
             isSelfRef: true,
           },
           into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
             nameOrTrait: [
               {
                 tokens: ["Holy Beast", "VB"],

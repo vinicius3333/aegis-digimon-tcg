@@ -297,6 +297,7 @@ export interface CombatPort {
     target: AttackTarget,
     opts?: {
       withoutTap?: boolean;
+      attackMechanic?: string;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -3296,10 +3297,18 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       engine.controllerSeat(),
       { isBounce: true },
     );
-    if (prevented.size === 0) return instanceIds;
-    return instanceIds.filter((id) => {
+    const notPrevented = instanceIds.filter((id) => {
       const permId = permByInstance.get(id);
       return permId === undefined || !prevented.has(permId);
+    });
+    // An "instead" reaction may move the would-leave top card before the original bounce
+    // resumes. Most importantly, DNA replacement effects turn it into a digivolution card of
+    // a new Digimon (EX12-003 Q6727). Revalidate the snapshotted permanent identity: the old
+    // operation must not chase that instance into its new stack and pull it to hand/deck.
+    return notPrevented.filter((id) => {
+      const originalPermanentId = permByInstance.get(id);
+      if (originalPermanentId === undefined) return true;
+      return access.permanentById(originalPermanentId)?.topCard?.instanceId === id;
     });
   };
 
@@ -4463,6 +4472,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       withoutSuspending?: boolean;
       attackPlayer?: boolean;
       attackPlayerOnly?: boolean;
+      attackMechanic?: string;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -4516,6 +4526,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
     await combat.resolveAttack(controllerSeat, attacker, target, {
       withoutTap: opts?.withoutSuspending ?? false,
+      attackMechanic: opts?.attackMechanic,
       afterAttackTriggers: opts?.afterAttackTriggers,
       drainTimingWindow: opts?.drainTimingWindow,
     });
@@ -4558,7 +4569,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // attack target is switched", BT11-008). The attacker is the event subject; a watcher's
     // sourceFilter isSelfRef gates it to its own attack.
     if (attackerId !== undefined) {
-      await engine.fireSubTrigger?.("whenAttackTargetSwitched", { subjectPermanentId: attackerId });
+      await engine.fireSubTrigger?.("whenAttackTargetSwitched", {
+        subjectPermanentId: attackerId,
+        attackerPermanentId: attackerId,
+      });
     }
   };
 

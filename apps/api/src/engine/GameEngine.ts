@@ -78,7 +78,12 @@ import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription, type SubTriggerTurnLedger } from "./effects/subtriggers.js";
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
 import { consultDigivolutionTrashRedirect } from "./effects/digivolutionTrashRedirect.js";
-import { createGameAccess, createCardStateLookup, createEffectContext } from "./effects/context.js";
+import {
+  createGameAccess,
+  createCardStateLookup,
+  createEffectContext,
+  gatherTriggeredEffects,
+} from "./effects/context.js";
 import { ArraySchema } from "@colyseus/schema";
 import { createCardSource, type CardStateLookup } from "./cards/CardSource.js";
 import { digisorptionAmountFor, isDigisorptionRedirector } from "./cards/digisorptionDigivolve.js";
@@ -381,6 +386,8 @@ export class GameEngine {
   private subTriggerWindowDepth = 0;
   /** Watchers armed for the event of the enclosing window, offered to that window's resolver. */
   private pendingWindowSubTriggers: ArmedSubTrigger[] = [];
+  /** Printed timing effects triggered inside the currently resolving effect body. */
+  private pendingNestedTimingEffects: CollectedEffect[] = [];
 
   /** Security-removal reactions wait until the currently resolving effect finishes. */
   private readonly deferredSecurityRemovalTriggers: Array<{
@@ -424,7 +431,10 @@ export class GameEngine {
 
   /** Close a window opened by `beginResolvingWindow`; a no-op for a non-outermost (nested) call. */
   private endResolvingWindow(wasOutermost: boolean): void {
-    if (wasOutermost) this.activeWindowToken = undefined;
+    if (!wasOutermost) return;
+    this.pendingNestedTimingEffects = [];
+    this.pendingWindowSubTriggers = [];
+    this.activeWindowToken = undefined;
   }
 
   private async flushDeferredSecurityRemovalTriggers(): Promise<void> {
@@ -465,6 +475,22 @@ export class GameEngine {
     } finally {
       this.flushingDeferredTimingWindows = false;
     }
+  }
+
+  private shouldDeferNestedTiming(): boolean {
+    return this.effectResolutionDepth > 0 && this.activeWindowToken !== undefined;
+  }
+
+  private deferNestedTimingEffects(
+    timing: EffectTiming,
+    trigger: TriggerInfo,
+    candidateInstances: readonly CardInstance[],
+  ): void {
+    const capturedTrigger = { ...trigger };
+    const effects = gatherTriggeredEffects(this.effectEnvironment(capturedTrigger), timing, candidateInstances).map(
+      (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger }),
+    );
+    this.pendingNestedTimingEffects.push(...effects);
   }
 
   /**
@@ -625,6 +651,7 @@ export class GameEngine {
           if (att !== undefined) {
             await this.fireTimingForPermanent(timing, att, {
               attackerPermanentId: trigger.attackerPermanentId,
+              attackMechanic: trigger.attackMechanic,
               defenderPermanentId: trigger.defenderPermanentId,
               blockerPermanentId: trigger.blockerPermanentId,
               ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
@@ -643,6 +670,7 @@ export class GameEngine {
           subjectPermanentId: trigger.subjectPermanentId,
           suspendedPermanentId: trigger.suspendedPermanentId,
           attackerPermanentId: trigger.attackerPermanentId,
+          attackMechanic: trigger.attackMechanic,
           defenderPermanentId: trigger.defenderPermanentId,
           blockerPermanentId: trigger.blockerPermanentId,
           ...(trigger.target?.kind === "permanent" ? { targetPermanentId: trigger.target.permanentId } : {}),
@@ -1534,6 +1562,7 @@ export class GameEngine {
       // own printed keyword, read from the compiled-IR side registry (registerIrCard populates it
       // via registerBlastDigivolveFromEffects) since the card is in hand, not a live permanent.
       costWaived: (_state, instance) => hasBlastDigivolveKeyword(instance.cardId),
+      blastWindowAllowed: (_state, seat) => this.combat.hasOpenCounterWindow && this.combat.counterWindowSeat === seat,
       draw: (_state, seat, count) => this.drawCards(seat, count),
       fireWhenDigivolving: async (_state, seat, permanent, previousLevel) => {
         // Turn-scoped fact consumed by inherited effects such as BT1-007. Register before
@@ -1845,6 +1874,11 @@ export class GameEngine {
         return;
       }
     }
+    if (this.shouldDeferNestedTiming() && !this.flushingDeferredTimingWindows) {
+      await this.recomputeContinuousEffects();
+      this.deferNestedTimingEffects(timing, trigger, this.listCandidateInstances());
+      return;
+    }
     await this.runTimingWindow(timing, trigger);
   }
 
@@ -2047,6 +2081,10 @@ export class GameEngine {
       this.deferredSecurityRemovalTriggers.push({ payload: boundPayload, subscriptions: pending, contexts });
       return;
     }
+    if (this.shouldDeferNestedTiming()) {
+      this.pendingWindowSubTriggers.push(...this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload));
+      return;
+    }
     // A SubTrigger body is a triggered, duration-scoped effect even when its watcher was
     // discovered while the engine was re-deriving continuous effects (see
     // {@link withTriggeredMutations}).
@@ -2176,7 +2214,7 @@ export class GameEngine {
    * behave exactly as they do on the SubTrigger bus.
    */
   private pendingWindowCollected(): CollectedEffect[] {
-    return this.pendingWindowSubTriggers
+    const subTriggers = this.pendingWindowSubTriggers
       .filter(
         (item) =>
           !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)) && this.subTriggerStillActivatable(item),
@@ -2188,6 +2226,7 @@ export class GameEngine {
           effect: { ...collected.effect, resolve: async () => this.fireOneSubTrigger(item) },
         };
       });
+    return [...this.pendingNestedTimingEffects, ...subTriggers];
   }
 
   /**
@@ -2257,9 +2296,9 @@ export class GameEngine {
         effectKey: `subtrigger/${sub.id}/${sub.description}`,
         description: sub.description,
         optional: false,
-        isInherited: false,
+        isInherited: sub.isInheritedSource === true,
         isSecurity: false,
-        isLinked: false,
+        isLinked: sub.isLinkedSource === true,
         maxPerTurn: -1,
         canTrigger: () => true,
         canActivate: () => true,
@@ -2835,6 +2874,11 @@ export class GameEngine {
     sourceInstanceId: string,
     trigger: TriggerInfo = {},
   ): Promise<void> {
+    if (this.shouldDeferNestedTiming()) {
+      await this.recomputeContinuousEffects();
+      this.deferNestedTimingEffects(timing, trigger, this.instancesById([sourceInstanceId]));
+      return;
+    }
     const wasOutermostWindow = this.beginResolvingWindow();
     try {
       await this.recomputeContinuousEffects();
@@ -2865,6 +2909,13 @@ export class GameEngine {
     permanent: Permanent,
     trigger: TriggerInfo = {},
   ): Promise<void> {
+    if (this.shouldDeferNestedTiming()) {
+      await this.recomputeContinuousEffects();
+      const scoped: CardInstance[] = [];
+      this.collectPermanentInstances(permanent, scoped);
+      this.deferNestedTimingEffects(timing, trigger, scoped);
+      return;
+    }
     const wasOutermostWindow = this.beginResolvingWindow();
     // Freeze the subject instance set at window open. The resolver re-collects every pass
     // (to fold in effects that BECOME active during resolution), but a card that digivolves
@@ -4961,6 +5012,44 @@ export class GameEngine {
    * sibling combat-decision verbs in combatDecisions.ts don't run it either).
    */
   private handleRespondCounter(seat: Seat, intent: RespondCounterIntent): IntentResult {
+    if (intent.sourceInstanceId !== undefined && intent.effectKey?.startsWith("blast-digivolve:") === true) {
+      if (!this.combat.hasOpenCounterWindow) return { ok: false, reason: "wrong-phase" };
+      if (this.combat.counterWindowSeat !== seat) return { ok: false, reason: "not-your-turn" };
+      if (this.combat.counterActivationsRemaining <= 0) return { ok: false, reason: "illegal-target" };
+      const eligible = this.counterEligibleSources(seat).find(
+        (entry) => entry.instanceId === intent.sourceInstanceId && entry.effectKey === intent.effectKey,
+      );
+      if (eligible === undefined) return { ok: false, reason: "illegal-target" };
+      const permanentId = intent.effectKey.slice("blast-digivolve:".length);
+      const blastIntent: DigivolveIntent = {
+        type: "digivolve",
+        permanentId,
+        instanceId: intent.sourceInstanceId,
+        useBlastDigivolve: true,
+      };
+      const digivolveDeps = this.digivolveDeps();
+      void applyDigivolve(this.state, seat, blastIntent, digivolveDeps)
+        .then((outcome) => {
+          if (!outcome.ok) throw new Error(outcome.reason);
+          this.combat.resolveCounterActivated(seat);
+          this.hooks.emit({
+            kind: "effectActivated",
+            seat,
+            sourceCardId: outcome.outcome.newTopCardId,
+            effectKey: intent.effectKey!,
+            description: eligible.description,
+          });
+        })
+        .catch((err) => {
+          logError("[engine] Blast Digivolve apply failed:", err);
+          this.hooks.emit({
+            kind: "actionRejected",
+            intent: "respondCounter",
+            reason: err instanceof Error ? err.message : "blast-digivolve-apply-error",
+          });
+        });
+      return { ok: true };
+    }
     const deps = this.respondCounterDeps();
     const check = validateRespondCounter(seat, intent, deps);
     if (!check.ok) {
@@ -5030,6 +5119,24 @@ export class GameEngine {
             });
           }
         }
+      }
+    }
+    const blastDeps = { ...this.digivolveDeps(), blastWindowAllowed: () => true };
+    for (const instance of player.hand) {
+      if (!hasBlastDigivolveKeyword(instance.cardId)) continue;
+      for (const permanent of player.battleArea) {
+        const intent: DigivolveIntent = {
+          type: "digivolve",
+          permanentId: permanent.permanentId,
+          instanceId: instance.instanceId,
+          useBlastDigivolve: true,
+        };
+        if (!validateDigivolve(this.state, seat, intent, blastDeps).ok) continue;
+        entries.push({
+          instanceId: instance.instanceId,
+          effectKey: `blast-digivolve:${permanent.permanentId}`,
+          description: "＜Blast Digivolve＞",
+        });
       }
     }
     return entries;

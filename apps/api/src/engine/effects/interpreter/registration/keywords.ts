@@ -115,17 +115,17 @@ export function overclockActivatedEffect(trait: string): CardEffect {
  * ＜Execute＞ (CR §16-38): "At the end of your turn, the Digimon with this keyword effect may
  * attack. At the end of the attack, this Digimon is deleted. This effect also allows for
  * attacking an opponent's unsuspended Digimon." Compiles to a bare keyword marker (no actions,
- * BT20-072), so the end-of-turn attack + trailing self-deletion is synthesized here, mirroring
+ * BT20-072), so the end-of-turn attack is synthesized here, mirroring
  * ＜Training＞/＜Overclock＞'s synthesis above:
  *   1. Grant self "may attack unsuspended" for JUST this attack (`forThisAttack` ->
  *      UntilEndAttack) — the keyword's own "also allows attacking an opponent's unsuspended
  *      Digimon" clause, read by combat legality's `canAttackUnsuspended`.
- *   2. An optional self-attack (`abortOnDecline`): declining ("may attack") skips the trailing
- *      delete entirely — the only way the interpreter's generic optional/abort handling can gate
- *      "the attack having actually happened" without a bespoke result flag.
- *   3. An unconditional trailing self-Delete — reached only when the attack was NOT declined
- *      (§16-38-4: "the processing ... for deleting this Digimon at the end of the attack is
- *      pending processing", i.e. it always follows a declared attack, win or lose).
+ *   2. An optional self-attack tagged with the Execute mechanic. Declining means no attack and
+ *      therefore no end-of-attack deletion.
+ *
+ * The deletion is a separate EndOfAttack effect (`executeDeleteEffect`) because it shares that
+ * timing with printed/inherited EndOfAttack effects and must be orderable with them (EX12-004
+ * Q6728). Keeping Delete after the Attack action incorrectly resolved it after that timing closed.
  */
 export function executeActivatedEffect(): CardEffect {
   return {
@@ -139,10 +139,24 @@ export function executeActivatedEffect(): CardEffect {
       {
         kind: "Attack",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        attackMechanic: "Execute",
+        drainTimingWindowDuringAttack: true,
         optional: true,
         abortOnDecline: true,
-        drainTimingWindowDuringAttack: true,
       } as Action,
+    ],
+  };
+}
+
+/** The pending Execute deletion that enters the attack's normal EndOfAttack timing window. */
+export function executeDeleteEffect(): CardEffect {
+  return {
+    trigger: "EndOfAttack",
+    condition: {
+      kind: "allOf",
+      conditions: [{ kind: "triggerAttackBy", keyword: "Execute" }, { kind: "triggerAttackerIsSelf" }],
+    },
+    actions: [
       {
         kind: "Delete",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },

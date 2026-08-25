@@ -1,4 +1,10 @@
-import { digivolutionRequirementsFor, dnaDigivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import {
+  compiledEffects,
+  digivolutionRequirementsFor,
+  dnaDigivolutionRequirementsFor,
+  EffectTiming,
+  getCardDefinition,
+} from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -10,7 +16,24 @@ const cardId = "EX12-032";
 
 describe("EX12-032 WereGarurumon", () => {
   it("matches the catalog's evolution, DNA, restriction, attack, and Decode clauses", () => {
+    const card = getCardDefinition(cardId);
     const compiled = registeredCompiledCards.get(cardId)!;
+    expect(card).toMatchObject({
+      nameEn: "WereGarurumon",
+      colors: ["Blue", "Purple"],
+      playCost: 7,
+      dp: 7000,
+      level: 5,
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Beastkin", "NSo", "VB"],
+      evoCosts: [
+        { color: "Blue", level: 4, memoryCost: 4 },
+        { color: "Purple", level: 4, memoryCost: 4 },
+      ],
+    });
+    expect(card?.effectText).toContain("2 or more same-level cards");
+    expect(card?.inheritedEffectText).toContain("Decode");
     const dna = [
       {
         cost: 0,
@@ -84,6 +107,42 @@ describe("EX12-032 WereGarurumon", () => {
     expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
       keywords: [{ keyword: "Decode" }],
     });
+    expect(
+      compiled.effects.find((effect) =>
+        effect.actions.some((action) => action.kind === "Replacement" && action.event === "wouldLeavePlay"),
+      ),
+    ).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["digivolutionCards"],
+              payCost: false,
+              playedByDecode: true,
+              optional: true,
+              target: {
+                filter: {
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 4 },
+                  nameOrTrait: [
+                    { tokens: ["Gabumon", "Garurumon"], match: "name" },
+                    { tokens: ["NSo", "VB"], match: "trait" },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      ],
+    });
+    expect(compiledEffects[cardId]).toEqual(compiled);
   });
 
   it("restricts one opposing Digimon from suspending until the opponent's turn ends", async () => {
@@ -99,6 +158,31 @@ describe("EX12-032 WereGarurumon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "suspend"));
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
+  });
+
+  it("applies the same suspension restriction to an opposing Tamer when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-010", as: "base" }],
+          hand: [{ card: cardId, as: "source" }],
+        },
+        1: { battleArea: [{ card: "BT1-085", as: "tamer" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("tamer"), "suspend"));
+
+    expect(observe(s.engine).isRestricted(s.perm("tamer"), "suspend")).toBe(true);
   });
 
   it("digivolves from the trash only when its stack has two same-level cards", async () => {
@@ -134,5 +218,199 @@ describe("EX12-032 WereGarurumon", () => {
     await settle();
     expect(invalid.perm("host").topCard.cardId).toBe(cardId);
     expect(invalid.state.players[0]!.trash.some((card) => card.cardId === "BT1-044")).toBe(true);
+  });
+
+  it("counts two same-level sources even when their level differs from the top card (Q6768)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "host", under: ["BT1-036", "BT1-014"] }],
+          trash: [{ card: "BT1-044", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await settle(() => s.perm("host").topCard.cardId === "BT1-044");
+
+    expect(s.perm("host").topCard.cardId).toBe("BT1-044");
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("executes inherited Decode for both name and trait matches but not battle deletion", async () => {
+    for (const decodeCardId of ["BT1-036", "EX8-010"]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "BT1-011",
+                as: "host",
+                under: [
+                  { card: cardId, as: "source" },
+                  { card: decodeCardId, as: "decode" },
+                ],
+              },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const decodeId = s.inst("decode").instanceId;
+
+      expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+      await settle(() =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === decodeId),
+      );
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === decodeId)).toBe(true);
+    }
+
+    const battle = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT1-011",
+              as: "host",
+              under: [
+                { card: cardId, as: "source" },
+                { card: "BT1-036", as: "decode" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await battle.ready();
+    expect(await advance(battle.engine).verb.deletePermanent([battle.perm("host").permanentId], "byBattle")).toBe(1);
+    expect(battle.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("applies Decode's level-4 ceiling to both name and trait alternatives (Q6769)", async () => {
+    for (const decodeCardId of ["BT23-056", "EX8-060"]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "BT1-011",
+                as: "host",
+                under: [
+                  { card: cardId, as: "source" },
+                  { card: decodeCardId, as: "tooHigh" },
+                ],
+              },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+      expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    }
+  });
+
+  it("uses both normal colors and both cost-3 alternate evolution paths", async () => {
+    for (const [baseCardId, useAlternateCost, startingMemory] of [
+      ["BT1-036", false, 4],
+      ["BT10-074", false, 4],
+      ["EX4-043", true, 3],
+      ["EX12-010", true, 3],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: cardId, as: "source" }] },
+      });
+      s.state.memory = startingMemory;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("source").instanceId,
+          useAlternateCost,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === cardId);
+      expect(s.state.memory).toBe(0);
+    }
+
+    for (const baseCardId of ["BT23-056", "EX8-060"]) {
+      const invalid = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: cardId, as: "source" }] },
+      });
+      expect(
+        invalid.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: invalid.perm("base").permanentId,
+          instanceId: invalid.inst("source").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual(expect.objectContaining({ ok: false }));
+    }
+  });
+
+  it("DNA digivolves through all four printed color pairs for zero and rejects an invalid pair", async () => {
+    for (const [firstCardId, secondCardId] of [
+      ["BT1-040", "BT2-078"],
+      ["BT1-040", "EX12-016"],
+      ["EX12-044", "BT2-078"],
+      ["EX12-044", "EX12-016"],
+    ] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [
+            { card: firstCardId, as: "first" },
+            { card: secondCardId, as: "second" },
+          ],
+          hand: [{ card: cardId, as: "source" }],
+        },
+      });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "dnaDigivolve",
+          materialPermanentIds: [s.perm("first").permanentId, s.perm("second").permanentId],
+          instanceId: s.inst("source").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === cardId));
+      expect(s.state.memory).toBe(0);
+    }
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-040", as: "first" },
+          { card: "EX12-044", as: "second" },
+        ],
+        hand: [{ card: cardId, as: "source" }],
+      },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [invalid.perm("first").permanentId, invalid.perm("second").permanentId],
+        instanceId: invalid.inst("source").instanceId,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
+  it("exposes Decode only through its inherited effect", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: cardId, as: "source" },
+          { card: "BT1-011", as: "host", under: [cardId] },
+        ],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Decode")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Decode")).toBe(true);
   });
 });

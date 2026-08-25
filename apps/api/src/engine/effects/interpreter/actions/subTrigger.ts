@@ -7,7 +7,7 @@ import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { matchingSubjectPermanentIds, subjectMatchesFilter, triggerAddedSecurityMatches } from "../matching/trigger.js";
-import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
+import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Cost, Filter } from "@aegis/shared";
@@ -155,6 +155,9 @@ export async function runSubTrigger(
     return;
   }
   const self = ctx.source.permanent();
+  const isLinkedSource = self?.linked.some((card) => card.instanceId === ctx.source.instanceId) === true;
+  const isInheritedSource =
+    !isLinkedSource && self?.stack.some((card) => card.instanceId === ctx.source.instanceId) === true;
   let anchorPermanentId = playerScoped ? undefined : self?.permanentId;
   let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;
   if (action.on !== undefined) {
@@ -561,6 +564,20 @@ export async function runSubTrigger(
     event === "startOfYourMainPhase"
       ? (subCtx: EffectContext): boolean => subCtx.source.isOwnersTurn() && subCtx.source.isOnBattleArea()
       : undefined;
+  // A trigger granted to another permanent is installed even when that permanent can
+  // currently be selected through immunity (Q6740). At the future timing, however, the
+  // granted effect must not trigger while its recipient is unaffected by the granter's
+  // source kind. Re-evaluate that live state here rather than suppressing the original grant.
+  const grantedEffectAffectableGate =
+    action.on !== undefined && anchorPermanentId !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const recipient = subCtx.game.permanentById(anchorPermanentId);
+          if (recipient === undefined) return false;
+          const sourceKinds = ctx.effectSourceKinds ?? (ctx.source.definition.kinds as readonly string[]);
+          const relevantSourceKinds = sourceKinds.filter((kind) => kind === "Digimon" || kind === "Option");
+          return !isPermanentUnaffectable(subCtx, ctx.source, recipient, relevantSourceKinds);
+        }
+      : undefined;
   // A fire-time payload gate ("your security" + the added-card trait check for whenAddSecurity)
   // evaluated against the freshly bound context's TriggerInfo. When it does not hold the watcher
   // body is skipped entirely, so a mandatory tail never runs on an off-gate event (BT23-083).
@@ -794,6 +811,7 @@ export async function runSubTrigger(
     requireByEffectGate,
     deletionSourceFilterGate,
     ownerMainPhaseGate,
+    grantedEffectAffectableGate,
     fireConditionGate,
     securityRemovalGate,
     discardLibraryGate,
@@ -850,6 +868,8 @@ export async function runSubTrigger(
   const requiresSelfSuspend = (action.actions ?? []).some(costsSelfSuspend);
   ctx.fx.subscribeSubTrigger({
     event,
+    ...(isInheritedSource ? { isInheritedSource: true } : {}),
+    ...(isLinkedSource ? { isLinkedSource: true } : {}),
     ...(requiresSelfSuspend ? { canFire: (subCtx) => subCtx.source.permanent()?.isSuspended !== true } : {}),
     ...(discardedSelfSource ? {} : { sourcePermanentId: anchorPermanentId }),
     ...(playerScoped

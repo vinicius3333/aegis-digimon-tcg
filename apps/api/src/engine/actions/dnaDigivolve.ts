@@ -45,6 +45,8 @@ export interface DnaDigivolveIntent {
   materialPermanentIds: string[];
   /** The hand instance becoming the DNA-digivolved result. */
   instanceId: string;
+  /** Explicitly activate the card's ＜Blast DNA Digivolve＞ waiver. Omitted for normal DNA. */
+  useBlastDigivolve?: boolean;
 }
 
 /** Stable rejection reasons (subset of the API-CONTRACT intent-validation vocabulary). */
@@ -177,7 +179,10 @@ export function validateDnaDigivolve(
   //    the printed DNA-digivolve requirement (these cards print none), but NOT the materials the
   //    keyword itself names — "([WarGreymon] + [MetalGarurumon])" is the requirement for this
   //    path. They are read off the printed text because no structured field compiles for them.
-  const costWaived = deps.costWaived?.(state, found.instance) === true;
+  const costWaived = intent.useBlastDigivolve === true && deps.costWaived?.(state, found.instance) === true;
+  if (intent.useBlastDigivolve === true && !costWaived) {
+    return { ok: false, reason: "invalid-evolution" };
+  }
   if (costWaived) {
     const required = blastDnaMaterialNames(found.instance.cardId);
     if (required !== undefined) {

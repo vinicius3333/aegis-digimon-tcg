@@ -32,6 +32,9 @@ export type SubTriggerRootZone = "trash" | "hand" | "security";
 export interface SubTriggerSubscription {
   id: number;
   event: SubTriggerEventName;
+  /** Printed placement class of the effect that installed this watcher. */
+  isInheritedSource?: boolean;
+  isLinkedSource?: boolean;
   /** Permanent this subscription is anchored to (its source), when applicable. */
   sourcePermanentId?: string;
   /**

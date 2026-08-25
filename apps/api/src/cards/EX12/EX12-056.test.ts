@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { digiXrosRequirementFor, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
-import { EffectTiming } from "@aegis/shared";
+import {
+  compiledEffects,
+  digiXrosRequirementFor,
+  digivolutionRequirementsFor,
+  EffectTiming,
+  getCardDefinition,
+} from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX12-056.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "../index.js";
 
 describe("EX12-056 Cho-Hakkaimon", () => {
@@ -19,8 +25,17 @@ describe("EX12-056 Cho-Hakkaimon", () => {
     ]);
     expect(digiXrosRequirementFor("EX12-056")).toEqual([
       {
-        materials: [{ names: ["Gokuumon"], traits: ["SW"], texts: ["Gokuumon"] }],
+        materials: [
+          {
+            nameOrTrait: [
+              { tokens: ["Gokuumon"], match: "text" },
+              { tokens: ["SW"], match: "trait" },
+            ],
+            levelMax: 5,
+          },
+        ],
         count: 2,
+        maxMaterials: 1,
       },
     ]);
 
@@ -73,6 +88,66 @@ describe("EX12-056 Cho-Hakkaimon", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+    expect(registeredCompiledCards.get("EX12-056")).toEqual(compiled);
+    expect(compiledEffects["EX12-056"]).toEqual(compiled);
+  });
+
+  it("Q6851/Q6853 accepts text-only or SW DigiXros material, enforces level 5, and caps at one", async () => {
+    for (const materialCardId of ["EX6-024", "EX12-012"]) {
+      const s = setupEngine({
+        0: {
+          hand: [
+            { card: "EX12-056", as: "target" },
+            { card: materialCardId, as: "material" },
+          ],
+        },
+      });
+      s.state.memory = 7;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("target").instanceId,
+          digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+        } as never),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "EX12-056"));
+      expect(s.state.memory).toBe(2);
+    }
+
+    const tooHigh = setupEngine({
+      0: {
+        hand: [
+          { card: "EX12-056", as: "target" },
+          { card: "EX12-019", as: "material" },
+        ],
+      },
+    });
+    tooHigh.state.memory = 7;
+    expect(
+      tooHigh.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: tooHigh.inst("target").instanceId,
+        digiXros: { materialInstanceIds: [tooHigh.inst("material").instanceId] },
+      } as never),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+
+    const tooMany = setupEngine({
+      0: {
+        hand: [
+          { card: "EX12-056", as: "target" },
+          { card: "EX12-012", as: "first" },
+          { card: "EX12-022", as: "second" },
+        ],
+      },
+    });
+    tooMany.state.memory = 7;
+    expect(
+      tooMany.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: tooMany.inst("target").instanceId,
+        digiXros: { materialInstanceIds: [tooMany.inst("first").instanceId, tooMany.inst("second").instanceId] },
+      } as never),
+    ).toEqual({ ok: false, reason: "invalid-material" });
   });
 
   it("uses Guard to delete itself and prevent an opponent-effect deletion of another Digimon", async () => {
@@ -113,7 +188,7 @@ describe("EX12-056 Cho-Hakkaimon", () => {
           ],
         },
         1: {
-          battleArea: [{ card: "EX12-029", as: "opponent" }],
+          battleArea: [{ card: "BT1-015", as: "opponent" }],
           security: ["BT1-001"],
         },
       },
@@ -121,9 +196,17 @@ describe("EX12-056 Cho-Hakkaimon", () => {
     );
 
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cho"));
+    const resolution = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cho"));
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenAllianceDecision);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("cho").permanentId })).toEqual({
+      ok: true,
+    });
+    await resolution;
     await settle();
-    expect(s.perm("opponent").topCard?.cardId).toBe("EX12-029");
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.events).toContainEqual(
       expect.objectContaining({
         kind: "effectResolved",
@@ -155,5 +238,54 @@ describe("EX12-056 Cho-Hakkaimon", () => {
     const choId = s.perm("host").permanentId;
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === choId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
+  });
+
+  it("uses both normal colors and the Shambala alternate, rejects a nonmatch, and matches catalog identity", async () => {
+    expect(getCardDefinition("EX12-056")).toMatchObject({
+      nameEn: "Cho-Hakkaimon",
+      colors: ["Black", "Yellow"],
+      kinds: ["Digimon"],
+      playCost: 7,
+      dp: 7000,
+      level: 5,
+      forms: ["Ultimate"],
+      attributes: ["Data"],
+      types: ["Puppet", "Shambala", "SW"],
+      evoCosts: [
+        { color: "Black", level: 4, memoryCost: 4 },
+        { color: "Yellow", level: 4, memoryCost: 4 },
+      ],
+    });
+    for (const [baseCardId, useAlternateCost, expectedCost] of [
+      ["EX12-054", false, 4],
+      ["BT12-038", false, 4],
+      ["EX12-012", true, 3],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "EX12-056", as: "target" }] },
+      });
+      s.state.memory = 4;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("target").instanceId,
+          useAlternateCost,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "EX12-056");
+      expect(s.state.memory).toBe(4 - expectedCost);
+    }
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-017", as: "base" }], hand: [{ card: "EX12-056", as: "target" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("target").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

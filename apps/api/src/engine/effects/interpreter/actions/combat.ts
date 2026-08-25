@@ -29,6 +29,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const opts = {
         withoutSuspending: action.withoutSuspending ?? false,
         attackPlayer: action.attackPlayer,
+        attackMechanic: action.attackMechanic,
         afterAttackTriggers: fireDeferredSuspensionTriggers,
         drainTimingWindow: action.drainTimingWindowDuringAttack ? ctx.drainCurrentTimingWindow : undefined,
       };

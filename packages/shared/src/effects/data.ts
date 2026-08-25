@@ -66,7 +66,7 @@ export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[
         {
           count: 1,
           nameOrTrait: [
-            { tokens: ["Aqua", "Sea Animal"], match: "trait" },
+            { tokens: ["Aqua", "Sea Animal"], match: "traitContains" },
             { tokens: ["TB"], match: "trait" },
           ],
           levelMax: 4,
@@ -210,6 +210,38 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       materials: [
         { color: "Yellow", level: 5 },
         { color: "Purple", level: 5 },
+      ],
+    },
+  ],
+  // EX12-028 prints Blue/Purple Lv.4 + Black/Yellow Lv.4: expand the color alternatives
+  // into the four concrete material pairings consumed by the server legality seam.
+  "EX12-028": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 4 },
+        { color: "Yellow", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 4 },
+        { color: "Yellow", level: 4 },
       ],
     },
   ],
@@ -1080,6 +1112,24 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
         },
       ],
       count: 2,
+      maxMaterials: 1,
+    },
+  ],
+  // EX12-015 prints the same Lv.5-or-lower Gokuumon-text OR SW slot as EX12-029.
+  // The generated aggregate drops the level ceiling and ANDs its split predicates.
+  "EX12-015": [
+    {
+      materials: [
+        {
+          levelMax: 5,
+          nameOrTrait: [
+            { tokens: ["Gokuumon"], match: "text" },
+            { tokens: ["SW"], match: "trait" },
+          ],
+        },
+      ],
+      count: 2,
+      maxMaterials: 1,
     },
   ],
   // EX3-014: up to 5 differently named Digimon whose trait CONTAINS Dragon/saur/Ceratopsian.

@@ -1,4 +1,5 @@
 // Card modules for this set.
+import "./TOKEN-Kotenken.js";
 import "./EX12-001.js";
 import "./EX12-002.js";
 import "./EX12-003.js";

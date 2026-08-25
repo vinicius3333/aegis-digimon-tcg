@@ -368,7 +368,10 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
       const pending: CollectedEffect[] = [];
       for (const c of active) (everActive.has(declineKey(c)) ? pending : derived).push(c);
       for (const c of active) everActive.add(declineKey(c));
-      const ordered = [...orderTurnPlayerFirst(derived, env.turnSeat), ...orderTurnPlayerFirst(pending, env.turnSeat)];
+      // A derived trigger is not merely sorted ahead of an older pending trigger: it forms the
+      // entire next activation tier (§15-4-5-2/3). Do not let a same-controller ordering group
+      // reach across that boundary, or the player could choose the older effect first (Q6723).
+      const ordered = orderTurnPlayerFirst(derived.length > 0 ? derived : pending, env.turnSeat);
 
       // The frontmost contiguous group sharing the frontmost controller is the set of
       // that player's simultaneous triggers they may order among (rulebook: the turn

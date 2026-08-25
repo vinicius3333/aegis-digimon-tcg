@@ -36,6 +36,7 @@ const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+          allowCostWithoutTarget: true,
         },
       ],
     },
@@ -68,6 +69,7 @@ const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+          allowCostWithoutTarget: true,
         },
       ],
     },
@@ -106,4 +108,5 @@ const compiled: CompiledCard = {
   ],
 };
 
+export { compiled };
 registerIrCard("EX12-062", compiled);

@@ -86,7 +86,7 @@ const compiled: CompiledCard = {
           optional: true,
           condition: {
             kind: "stackHasSameLevelCards",
-            value: 2,
+            count: 2,
             raw: "this Digimon's stack has 2 or more same-level cards",
           },
         },
@@ -102,6 +102,36 @@ const compiled: CompiledCard = {
           raw: "＜Decode (Lv.4 or lower w/[Holy Beast]/[NSp]/[VB] trait)＞",
         },
       ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 4 },
+                  nameOrTrait: [{ tokens: ["Holy Beast", "NSp", "VB"], match: "trait" }],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              playedByDecode: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
     },
   ],
   dnaDigivolveRequirement: [

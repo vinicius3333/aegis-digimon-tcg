@@ -1,8 +1,9 @@
-import { EffectTiming } from "@aegis/shared";
+import { compiledEffects, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-071.js";
 import "../index.js";
 
@@ -48,13 +49,15 @@ describe("EX12-071 Saneiketsu Invitation", () => {
       isSecurity: true,
       actions: [{ kind: "ActivateMain" }],
     });
+    expect(registeredCompiledCards.get("EX12-071")).toEqual(compiled);
+    expect(compiledEffects["EX12-071"]).toEqual(compiled);
   });
 
   it("trashes an SW card before drawing and placing itself", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX12-006", as: "sw" }],
+          battleArea: [{ card: "BT26-104", as: "sw" }],
           hand: [
             { card: "EX12-071", as: "option" },
             { card: "EX12-006", as: "payment" },
@@ -97,17 +100,51 @@ describe("EX12-071 Saneiketsu Invitation", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("does not draw or place itself when the controller declines the SW cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-104", as: "sw" }],
+          hand: [
+            { card: "EX12-071", as: "option" },
+            { card: "EX12-006", as: "payment" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const decision = s.decisions.find(({ req }) => req.kind === "optional")!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.req.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-071"));
+
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("payment").instanceId);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-071")).toBe(false);
+  });
+
   it("consumes Delay to free-digivolve an SW host into Saneiketsu", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX12-015", as: "host" },
-            { card: "EX12-006", as: "played" },
-          ],
+          battleArea: [{ card: "EX12-015", as: "host" }],
           hand: [
             { card: "EX12-071", as: "source" },
             { card: "EX12-006", as: "payment" },
+            { card: "EX12-006", as: "played" },
             { card: "EX12-019", as: "target" },
           ],
           deck: ["BT1-001", "BT1-002"],
@@ -115,7 +152,7 @@ describe("EX12-071 Saneiketsu Invitation", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 3;
+    s.state.memory = 10;
     await s.engine.recomputeContinuousEffects();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
@@ -126,8 +163,8 @@ describe("EX12-071 Saneiketsu Invitation", () => {
     )!;
     sourcePermanent.enterFieldTurnCount = s.state.turnCount - 1;
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("played").permanentId,
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
     });
     await settle(() => s.perm("host").topCard?.cardId === "EX12-019");
 
@@ -190,5 +227,17 @@ describe("EX12-071 Saneiketsu Invitation", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-071")).toBe(true);
+  });
+
+  it("matches the complete catalog identity", () => {
+    expect(getCardDefinition("EX12-071")).toMatchObject({
+      nameEn: "Saneiketsu Invitation",
+      colors: ["Black", "Blue", "Red"],
+      kinds: ["Option"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      types: ["Shambala", "SW"],
+    });
   });
 });

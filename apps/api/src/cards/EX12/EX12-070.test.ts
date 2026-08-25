@@ -1,7 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
+import { compiledEffects, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-070.js";
 import "../index.js";
 
@@ -37,13 +38,15 @@ describe("EX12-070 Sanmyojin Arrival", () => {
       isSecurity: true,
       actions: [{ kind: "ActivateMain" }],
     });
+    expect(registeredCompiledCards.get("EX12-070")).toEqual(compiled);
+    expect(compiledEffects["EX12-070"]).toEqual(compiled);
   });
 
   it("trashes a TB card before drawing and placing itself in the battle area", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX12-063", as: "tb" }],
+          battleArea: [{ card: "EX12-009", as: "tb" }],
           hand: [
             { card: "EX12-070", as: "option" },
             { card: "EX12-063", as: "payment" },
@@ -85,6 +88,42 @@ describe("EX12-070 Sanmyojin Arrival", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-070")).toBe(false);
     expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("does not draw or place itself when the controller declines the TB cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-009", as: "tb" }],
+          hand: [
+            { card: "EX12-070", as: "option" },
+            { card: "EX12-063", as: "payment" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const decision = s.decisions.find(({ req }) => req.kind === "optional")!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.req.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-070"));
+
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("payment").instanceId);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-070")).toBe(false);
   });
 
   it("activates Main from security", async () => {
@@ -134,5 +173,48 @@ describe("EX12-070 Sanmyojin Arrival", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-065")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX12-070")).toBe(true);
+  });
+
+  it("does not consume Delay when a level 4 TB Digimon leaves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-011", as: "victim" }],
+          hand: [
+            { card: "EX12-070", as: "option" },
+            { card: "EX12-063", as: "payment" },
+            { card: "EX12-065", as: "sanmyojin" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-070"));
+    const optionPermanent = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "EX12-070")!;
+    optionPermanent.enterFieldTurnCount = s.state.turnCount - 1;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-070")).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("sanmyojin").instanceId);
+  });
+
+  it("matches the complete catalog identity", () => {
+    expect(getCardDefinition("EX12-070")).toMatchObject({
+      nameEn: "Sanmyojin Arrival",
+      colors: ["Yellow", "Green", "Blue"],
+      kinds: ["Option"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      types: ["Shambala", "TB"],
+    });
   });
 });

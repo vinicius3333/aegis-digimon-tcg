@@ -1,17 +1,16 @@
-import { EffectTiming } from "@aegis/shared";
+import { compiledEffects, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
-import "./EX12-067.js";
+import { compiled } from "./EX12-067.js";
 import "../index.js";
 
 const CARD_ID = "EX12-067";
 
 describe("EX12-067 Kiyoshiro Higashimitarai", () => {
   it("maps the catalog, KB-backed text filters, cost, modal branches, and security", () => {
-    const compiled = registeredCompiledCards.get(CARD_ID)!;
     const attack = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     const watcher = attack.actions[0]!;
     const modal = irNode(watcher).actions[0]!;
@@ -58,6 +57,8 @@ describe("EX12-067 Kiyoshiro Higashimitarai", () => {
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
+    expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
+    expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
   it("sets memory to 3 only when the controller starts at 2 or less", async () => {
@@ -102,6 +103,96 @@ describe("EX12-067 Kiyoshiro Higashimitarai", () => {
     expect(s.perm("kiyo").isSuspended).toBe(true);
     expect(s.perm("attacker").topCard?.cardId).toBe("EX12-030");
     expect(s.state.memory).toBe(-1);
+  });
+
+  it("Q6870 matches Jellymon in text even without the DS trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "kiyo" },
+            { card: "BT13-023", as: "attacker" },
+          ],
+          hand: [{ card: "BT13-026", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "BT13-026");
+    expect(s.perm("kiyo").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("Q6871 two copies consume one selected evolution card only once", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "first" },
+            { card: CARD_ID, as: "second" },
+            { card: "EX12-027", as: "attacker" },
+          ],
+          hand: [{ card: "EX12-030", as: "onlyTarget" }],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        autoOrderTriggers: true,
+        autoSelectCards: true,
+        preferOptionIndex: 0,
+      },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "EX12-030");
+    expect(s.perm("attacker").stack.filter(({ cardId }) => cardId === "EX12-027")).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("Q6872 uses the Option at full cost when play-cost reductions are prohibited", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "kiyo" },
+            { card: "EX12-027", as: "attacker" },
+          ],
+          hand: [{ card: "BT9-096", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT9-020", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    advance(s.engine).ledgers.continuous.addCostReductionBlock(0, "play", EffectDuration.UntilEachTurnEnd);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some(({ cardId }) => cardId === "BT9-020"));
+    expect(s.perm("kiyo").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(0);
   });
 
   it("does not waive digivolution requirements when the selected DS card is illegal", async () => {
@@ -178,5 +269,17 @@ describe("EX12-067 Kiyoshiro Higashimitarai", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID)).toBe(true);
+  });
+
+  it("matches the complete catalog identity", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Kiyoshiro Higashimitarai",
+      colors: ["Blue"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      dp: 0,
+      evoCosts: [],
+      types: ["DS"],
+    });
   });
 });

@@ -275,22 +275,38 @@ describe("§16-26 <Blast Digivolve> (comprehensive-0245)", () => {
 
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
-    // AD1-005's printed EvoCost requires a red level-5 base; BT1-021 (MetalGreymon) satisfies it.
-    const base = digimon(0, 8000, "BT1-021");
-    p0.battleArea.push(base);
-    const blastCard = instance("AD1-005", 0, false); // printed <Blast Digivolve>, printed cost 4
-    p0.hand.push(blastCard);
-    s.state.memory = 0; // deliberately NOT enough to pay the normal cost
+    const p1 = s.state.players[1] as PlayerState;
+    const attacker = digimon(0, 3000, "BT1-009");
+    p0.battleArea.push(attacker);
+    // AD1-005's printed EvoCost requires a red level-5 base; BT1-021 satisfies it.
+    const base = digimon(1, 8000, "BT1-021");
+    p1.battleArea.push(base);
+    const blastCard = instance("AD1-005", 1, false);
+    p1.hand.push(blastCard);
+    p1.security.push(instance("BT1-001", 1, false));
+    s.state.memory = 0;
 
-    // Per §16-26-1: a free digivolve is offered despite 0 memory.
-    const result = s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: base.permanentId,
-      instanceId: blastCard.instanceId,
-    });
-    expect(result).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "AD1-005"), 5000);
-    expect(p0.battleArea.some((p) => p.topCard?.cardId === "AD1-005")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"), 5000);
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === blastCard.instanceId);
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => base.topCard?.cardId === "AD1-005", 5000);
+    expect(base.topCard?.cardId).toBe("AD1-005");
     expect(s.state.memory).toBe(0); // cost genuinely waived, not merely affordable
   });
 
@@ -456,6 +472,7 @@ describe("§16-31 <Blast DNA Digivolve> (comprehensive-0250)", () => {
       type: "dnaDigivolve",
       materialPermanentIds: [materialA.permanentId, materialB.permanentId],
       instanceId: blastDna.instanceId,
+      useBlastDigivolve: true,
     } as never);
     expect(result).toEqual({ ok: true });
     await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT17-078"), 5000);
@@ -710,7 +727,9 @@ describe("§16-38 <Execute> (comprehensive-0257)", () => {
         "opponent's unsuspended Digimon, and at the end of the attack it is deleted",
     );
 
-    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
+    // Keep one security card on the defending side so the Execute attack completes its
+    // EndOfAttack window instead of ending the game immediately on an empty stack.
+    const s = setup({ 1: { security: ["BT1-090"] } }, { autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;
     const executor = digimon(0, 7000, "BT20-072"); // printed <Execute>
     p0.battleArea.push(executor);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, assemblyRequirementFor } from "@aegis/shared";
+import { assemblyRequirementFor, digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
@@ -13,19 +13,57 @@ describe("EX12-017 WarGreymon", () => {
         0: { battleArea: [{ card: "EX12-017", as: "source" }] },
         1: {
           battleArea: [
-            { card: "BT1-011", as: "lowest", dp: 3000 },
-            { card: "BT1-011", as: "stacked", dp: 7000, under: ["BT1-009", "BT1-010"] },
+            { card: "EX12-018", as: "stacked", dp: 14000, under: ["EX12-010", "EX12-016"] },
+            { card: "BT1-011", as: "lowest", dp: 1000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+
+    const lowestId = s.perm("lowest").permanentId;
+    const resolving = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets"));
+    const deDigivolveChoice = s.decisions.find(({ req }) => req.kind === "chooseTargets")!;
+    expect(
+      s.engine.applyIntent(deDigivolveChoice.seat, {
+        type: "respondDecision",
+        decisionId: deDigivolveChoice.req.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("stacked").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== lowestId));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId)).toBe(false);
+    expect(s.perm("stacked").topCard.cardId).toBe("EX12-010");
+    expect(s.perm("stacked").stack).toHaveLength(0);
+  });
+
+  it("shares one Once Per Turn use across On Play, When Digivolving, and When Attacking", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-017", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "EX12-018", as: "firstStack", dp: 14000, under: ["EX12-010", "EX12-016"] },
+            { card: "EX12-018", as: "secondStack", dp: 14000, under: ["EX12-010", "EX12-016"] },
+            { card: "BT1-009", as: "lowest", dp: 1000 },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    const lowestId = s.perm("lowest").permanentId;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== lowestId));
+    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.topCard?.cardId !== "BT1-009"));
+    const untouchedTop = s.perm("secondStack").topCard.cardId;
+    const untouchedSources = s.perm("secondStack").stack.map((card) => card.instanceId);
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestId)).toBe(false);
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+
+    expect(s.perm("secondStack").topCard.cardId).toBe(untouchedTop);
+    expect(s.perm("secondStack").stack.map((card) => card.instanceId)).toEqual(untouchedSources);
   });
 
   it("uses the same de-digivolve/delete sequence on When Digivolving and When Attacking", async () => {
@@ -79,6 +117,101 @@ describe("EX12-017 WarGreymon", () => {
         optional: true,
       },
     ]);
+  });
+
+  it("redirects an attack without DNA digivolving when no legal result exists (Q6746)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-023", as: "attacker", dp: 12000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "redirectTarget", dp: 3000 },
+            { card: "EX12-017", as: "counterSource", dp: 12000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [] },
+    );
+    const redirectTargetId = s.perm("redirectTarget").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counterWindowOpened not found");
+    const eligible = opened.eligibleCounters.find(
+      (candidate) => candidate.instanceId === s.perm("counterSource").topCard.instanceId,
+    );
+    expect(eligible).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "attackDeclared").length >= 2);
+
+    expect(s.events.filter((event) => event.kind === "attackDeclared").at(-1)).toMatchObject({
+      target: { kind: "permanent", permanentId: redirectTargetId },
+    });
+  });
+
+  it("DNA digivolves an attacked Digimon away during Counter (Q6744) and spends the attack Counter cap (Q6745)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-023", as: "attacker", dp: 12000 }] },
+        1: {
+          battleArea: [
+            { card: "EX12-018", as: "attackedMaterial", suspended: true },
+            { card: "EX12-017", as: "partner" },
+            { card: "EX12-017", as: "counterSource" },
+          ],
+          hand: [{ card: "EX12-037", as: "dnaResult" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const attackedId = s.perm("attackedMaterial").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: attackedId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counterWindowOpened not found");
+    const eligible = opened.eligibleCounters.find(
+      (candidate) => candidate.instanceId === s.perm("counterSource").topCard.instanceId,
+    );
+    expect(eligible).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-037"));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackedId)).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }).ok,
+    ).toBe(false);
   });
 
   it("preserves all four DNA color routes and plays through the three-card Assembly recipe", async () => {
@@ -182,7 +315,106 @@ describe("EX12-017 WarGreymon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
-  it("keeps Decode, Security Attack +1, evolution routes, and the shared Once Per Turn group", () => {
+  it.each([
+    ["level 5", "BT1-020", "EX12-010", "EX12-005"],
+    ["level 4", "EX12-016", "BT1-019", "EX12-005"],
+    ["level 3", "EX12-016", "EX12-010", "BT1-009"],
+  ])("rejects Assembly when the %s material does not match the name/trait requirement (Q6743)", (_slot, l5, l4, l3) => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "EX12-017", as: "source" }],
+        trash: [
+          { card: l5, as: "level5" },
+          { card: l4, as: "level4" },
+          { card: l3, as: "level3" },
+        ],
+      },
+    });
+    s.state.memory = 6;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+        assembly: {
+          materialInstanceIds: [s.inst("level5").instanceId, s.inst("level4").instanceId, s.inst("level3").instanceId],
+        },
+      } as never),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
+  it("executes Decode before an effect-caused leave and does not Decode from battle", async () => {
+    const byEffect = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-017", as: "host", under: [{ card: "BT10-024", as: "decodeTarget" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await byEffect.ready();
+    const hostId = byEffect.perm("host").permanentId;
+    const targetId = byEffect.inst("decodeTarget").instanceId;
+
+    expect(await advance(byEffect.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
+    await settle(() =>
+      byEffect.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId),
+    );
+    expect(byEffect.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+
+    const byBattle = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-017", as: "host", under: [{ card: "EX12-016", as: "decodeTarget" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await byBattle.ready();
+    const battleTargetId = byBattle.inst("decodeTarget").instanceId;
+    expect(await advance(byBattle.engine).verb.deletePermanent([byBattle.perm("host").permanentId], "byBattle")).toBe(
+      1,
+    );
+    expect(
+      byBattle.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === battleTargetId),
+    ).toBe(false);
+  });
+
+  it("does not Decode a level-6 VB source because the level ceiling applies to both OR branches (Q6742)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-017", as: "host", under: [{ card: "EX12-019", as: "tooHigh" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const targetId = s.inst("tooHigh").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId)).toBe(false);
+  });
+
+  it("checks two security cards with Security Attack +1", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX12-017", as: "attacker" }] },
+      1: { security: ["BT1-090", "BT1-090"] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("keeps executable Decode, Security Attack +1, evolution routes, and the shared Once Per Turn group", () => {
     const compiled = registeredCompiledCards.get("EX12-017")!;
     expect(compiled.digivolutionRequirement).toEqual([
       { level: 5, names: ["Greymon"], cost: 3, isAlternate: true },
@@ -206,6 +438,64 @@ describe("EX12-017 WarGreymon", () => {
         { keyword: "Decode", raw: "＜Decode (Lv.5 or lower w/[Agumon]/[Greymon] in name or w/[ME]/[VB] trait)＞" },
       ],
     });
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          actions: [{ kind: "PlayWithoutCost", playedByDecode: true }],
+        },
+      ],
+    });
     expect(compiled.effects.filter((effect) => effect.frequency === "OncePerTurn")).toHaveLength(4);
+  });
+
+  it("uses both normal colors and both cost-3 evolution alternatives", async () => {
+    expect(digivolutionRequirementsFor("EX12-017")).toEqual([
+      { level: 5, names: ["Greymon"], cost: 3, isAlternate: true },
+      { level: 5, traits: ["ME", "VB"], cost: 3, isAlternate: true },
+    ]);
+    for (const [baseCardId, useAlternateCost, startingMemory] of [
+      ["BT1-020", false, 4],
+      ["BT10-064", false, 4],
+      ["BT10-024", true, 3],
+      ["EX12-044", true, 3],
+    ] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCardId, as: "base" }],
+          hand: [{ card: "EX12-017", as: "warGreymon" }],
+        },
+      });
+      s.state.memory = startingMemory;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("warGreymon").instanceId,
+          useAlternateCost,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "EX12-017");
+      expect(s.state.memory).toBe(0);
+    }
+  });
+
+  it("rejects an off-color level-5 card without Greymon name, ME, or VB", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-038", as: "base" }],
+        hand: [{ card: "EX12-017", as: "warGreymon" }],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("warGreymon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

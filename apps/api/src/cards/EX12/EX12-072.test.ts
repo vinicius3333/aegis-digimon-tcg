@@ -1,8 +1,9 @@
-import { EffectTiming } from "@aegis/shared";
+import { compiledEffects, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-072.js";
 import "../index.js";
 
@@ -35,8 +36,18 @@ describe("EX12-072 Metal Empire", () => {
       },
     ]);
     expect(compiled.effects.find((effect) => effect.trigger === "Security" && effect.isSecurity)).toMatchObject({
-      actions: [{ kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false, optional: true }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+          target: { filter: { playCostLte: 5 } },
+        },
+      ],
     });
+    expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
+    expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
   it("grants Guard only to your ME Digimon while Metal Empire is face-up in security", async () => {
@@ -48,11 +59,13 @@ describe("EX12-072 Metal Empire", () => {
         ],
         security: [{ card: CARD_ID, as: "metal", faceUp: true }],
       },
+      1: { battleArea: [{ card: "EX12-008", as: "opposingMe" }] },
     });
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("me"), "Guard")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Guard")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("opposingMe"), "Guard")).toBe(false);
   });
 
   it("does not grant Guard while the security card is face-down", async () => {
@@ -115,7 +128,18 @@ describe("EX12-072 Metal Empire", () => {
     expect(s.state.players[0]!.security.at(-1)).toMatchObject({ cardId: CARD_ID, faceUp: true });
   });
 
-  it("plays a level-5-or-lower ME card from hand when its Security effect resolves", async () => {
+  it("enforces Use Requirement when no ME card is present", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: CARD_ID, as: "option" }] } });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual(
+      expect.objectContaining({ ok: false }),
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
+  });
+
+  it("plays a cost-5-or-lower ME card from hand when its Security effect resolves", async () => {
     const s = setupEngine(
       {
         0: {
@@ -158,5 +182,45 @@ describe("EX12-072 Metal Empire", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-073"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-073")).toBe(true);
+  });
+
+  it("activates its Security effect when checked while already face-up", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-008", as: "attacker" }] },
+        1: {
+          hand: [{ card: "EX12-008", as: "target" }],
+          security: [{ card: CARD_ID, as: "security", faceUp: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX12-008"));
+
+    expect(
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("target").instanceId),
+    ).toBe(true);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("security").instanceId);
+  });
+
+  it("matches the complete catalog identity", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Metal Empire",
+      colors: ["Black"],
+      kinds: ["Option"],
+      playCost: 2,
+      dp: 0,
+      evoCosts: [],
+      types: ["ME"],
+    });
   });
 });

@@ -17,12 +17,6 @@ const compiled: CompiledCard = {
               controller: "mine",
               includesSelf: true,
               kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["VB"],
-                  match: "trait",
-                },
-              ],
             },
             count: 2,
           },

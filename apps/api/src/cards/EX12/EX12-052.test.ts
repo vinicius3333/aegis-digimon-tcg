@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import {
+  compiledEffects,
+  EffectDuration,
+  EffectTiming,
+  digivolutionRequirementsFor,
+  getCardDefinition,
+} from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX12-052.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 
 describe("EX12-052 Diarbbitmon", () => {
   it("maps evolution, keywords, Use Req., immunity, shared OPT, direct battle, and Option Main", () => {
@@ -38,7 +45,13 @@ describe("EX12-052 Diarbbitmon", () => {
     expect(digivolving).toHaveLength(2);
     expect(digivolving[0]).toMatchObject({
       actions: [
-        { kind: "Restrict", restriction: "beAffected", fromSourceKind: ["Digimon"], duration: "untilOpponentTurnEnd" },
+        {
+          kind: "Restrict",
+          restriction: "beAffected",
+          fromSourceKind: ["Digimon"],
+          byOpponentEffectsOnly: true,
+          duration: "untilOpponentTurnEnd",
+        },
       ],
     });
     expect(digivolving[1]).toMatchObject({
@@ -74,9 +87,11 @@ describe("EX12-052 Diarbbitmon", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+    expect(registeredCompiledCards.get("EX12-052")).toEqual(compiled);
+    expect(compiledEffects["EX12-052"]).toEqual(compiled);
   });
 
-  it("protects the selected Digimon from opponent Digimon effects and forces the direct battle after the buff", async () => {
+  it("Q6836-Q6844 scopes immunity to opposing Digimon effects and forces battle after accepting the buff", async () => {
     const s = setupEngine(
       {
         0: {
@@ -94,6 +109,22 @@ describe("EX12-052 Diarbbitmon", () => {
     expect(s.perm("source").currentDP).toBe(15000);
     expect(observe(s.engine).hasRestriction(s.perm("source"), "beAffected", "Digimon")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+
+    const sourceId = s.perm("source").permanentId;
+    advance(s.engine).verb.enterEffectResolution(0, ["Digimon"]);
+    await advance(s.engine).verb.modifyDP(sourceId, 1000, EffectDuration.UntilOpponentTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("source").currentDP).toBe(16000);
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    await advance(s.engine).verb.modifyDP(sourceId, -1000, EffectDuration.UntilOpponentTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("source").currentDP).toBe(16000);
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
+    await advance(s.engine).verb.modifyDP(sourceId, -1000, EffectDuration.UntilOpponentTurnEnd);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("source").currentDP).toBe(15000);
   });
 
   it("shares the once-per-turn budget across When Digivolving and When Attacking", async () => {
@@ -111,6 +142,26 @@ describe("EX12-052 Diarbbitmon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
     expect(s.perm("source").currentDP).toBe(15000);
+  });
+
+  it.each([
+    ["When Attacking", EffectTiming.OnUseAttack],
+    ["Counter", EffectTiming.OnCounterTiming],
+  ])("executes the shared battle clause from %s", async (_label, timing) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-052", as: "source", dp: 12000 }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(timing, s.perm("source"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.perm("source").currentDP).toBe(15000);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("resolves the Option Main face independently: unsuspends, suspends two, and locks two", async () => {
@@ -150,5 +201,65 @@ describe("EX12-052 Diarbbitmon", () => {
       observe(s.engine).isRestricted(s.perm(alias), "unsuspend"),
     );
     expect(locked).toHaveLength(2);
+  });
+
+  it("digivolves through both colors and both alternates, rejecting a nonmatch", async () => {
+    for (const [baseCardId, useAlternateCost, expectedCost] of [
+      ["BT1-075", false, 4],
+      ["BT10-064", false, 4],
+      ["BT13-055", true, 3],
+      ["EX12-051", true, 3],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "EX12-052", as: "target" }] },
+      });
+      s.state.memory = 4;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("target").instanceId,
+          useAlternateCost,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "EX12-052");
+      expect(s.state.memory).toBe(4 - expectedCost);
+    }
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "base" }], hand: [{ card: "EX12-052", as: "target" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("target").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
+  it("maps the complete dual-card catalog identity and publishes both keywords", async () => {
+    expect(getCardDefinition("EX12-052")).toMatchObject({
+      nameEn: "Diarbbitmon",
+      colors: ["Green", "Black"],
+      kinds: ["Digimon", "Option"],
+      playCost: 5,
+      dp: 12000,
+      level: 6,
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Beast Knight", "NSp"],
+      evoCosts: [
+        { color: "Green", level: 5, memoryCost: 4 },
+        { color: "Black", level: 5, memoryCost: 4 },
+      ],
+      isDualCard: true,
+      dualEffect: "Truskmore Advance",
+      optionColorRequirements: ["Green"],
+    });
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX12-052", as: "source" }] } });
+    await s.ready();
+    expect([...s.perm("source").keywords]).toEqual(expect.arrayContaining(["Piercing", "Vortex"]));
   });
 });

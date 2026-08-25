@@ -1878,7 +1878,12 @@ describe("primitives: redirectAttack (chooser / optional)", () => {
     h.setPick([def1]);
     await h.fx.redirectAttack([def1], { chooserSeat: 1 as Seat });
     expect(h.redirects).toEqual([{ permanentId: def1 }]);
-    expect(h.fires).toEqual([{ event: "whenAttackTargetSwitched", payload: { subjectPermanentId: "ATK1" } }]);
+    expect(h.fires).toEqual([
+      {
+        event: "whenAttackTargetSwitched",
+        payload: { subjectPermanentId: "ATK1", attackerPermanentId: "ATK1" },
+      },
+    ]);
   });
 
   it("does NOT fire whenAttackTargetSwitched when the (optional) redirect is declined", async () => {

@@ -30,8 +30,9 @@ import { normalizeCost, placePermanent } from "./digiXros.js";
  * `levelMax`/`differentLevels`/`differentNames`, all enforced below. `nameOrTrait` mirrors
  * `DigiXrosMaterial.nameOrTrait` for a genuine cross-kind disjunction the compiler can't flatten
  * into one AND-combined `names`+`traits` slot (e.g. EX12-016/-017's "in name or ... trait",
- * BT26-073's "in text or ... trait"); a same-kind "or" (EX12-031's trait-or-trait) folds into
- * the ordinary `traits` array instead. A slot with no structured predicate at all (still
+ * BT26-073's "in text or ... trait"). It also preserves alternatives with different trait
+ * semantics, such as EX12-031's substring [Aqua]/[Sea Animal] match OR exact [TB] match. A slot
+ * with no structured predicate at all (still
  * desc-only after that) is rejected as unenforceable, mirroring `digiXros.ts`'s
  * `materialMatchesSlot` refusal to accept an unconstrained desc-only slot. A level bound WITHOUT
  * a name/trait/nameOrTrait anchor is not sufficient on its own — it would silently accept any

@@ -403,7 +403,10 @@ describe("<Collision> (Comprehensive Rules §16-30) — grants Blocker and force
   });
 
   it("REGRESSION: switching the attack onto a Collision-granted blocker grants NO DP bonus — §16-30-1 is only the forced Blocker grant", async () => {
-    const s = setup();
+    // BT16-032 also has its own optional “when an attack target is switched, end the
+    // attack” effect. Decline that real effect so this case can isolate Collision's
+    // lack of any fabricated DP modifier and continue into the printed-stat battle.
+    const s = setup({ autoDeclineOptional: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 

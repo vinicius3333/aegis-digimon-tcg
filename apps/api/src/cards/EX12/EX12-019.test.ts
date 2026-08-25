@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "../index.js";
 
@@ -20,6 +22,8 @@ describe("EX12-019 Nezhamon", () => {
       attackerPermanentId: s.perm("other").permanentId,
     });
     expect(s.perm("source").currentDP).toBe(16000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Option")).toBe(false);
     await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
       attackerPermanentId: s.perm("other").permanentId,
     });
@@ -43,7 +47,7 @@ describe("EX12-019 Nezhamon", () => {
     expect(s.perm("source").isSuspended).toBe(true);
   });
 
-  it("does not unsuspend for an opponent security removal", async () => {
+  it("also unsuspends for an opponent security removal because either security stack qualifies", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX12-019", as: "source", suspended: true }], security: ["BT1-009"] },
@@ -53,14 +57,76 @@ describe("EX12-019 Nezhamon", () => {
     );
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
-    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("source").isSuspended).toBe(false);
   });
 
-  it("keeps Engage as an end-of-turn optional self-attack", () => {
+  it("encodes Engage as an optional end-of-turn self-attack", () => {
     const compiled = registeredCompiledCards.get("EX12-019")!;
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfYourTurn")).toMatchObject({
       actions: [{ kind: "Attack", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true }],
     });
+  });
+
+  it("has Rush, Collision, Piercing, Blocker, and Engage as live keywords", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX12-019", as: "source" }] } });
+    await s.ready();
+
+    for (const keyword of ["Rush", "Collision", "Blocker", "Engage"]) {
+      expect(observe(s.engine).hasKeyword(s.perm("source"), keyword)).toBe(true);
+    }
+    expect(observe(s.engine).hasPierce(s.perm("source"))).toBe(true);
+  });
+
+  it("can attack on the turn it is played through Rush", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "EX12-019", as: "source" }] },
+      1: { security: ["BT1-090"] },
+    });
+    s.state.memory = 12;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-019"));
+    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "EX12-019")!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: played.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("forces a Collision block, gains +4000 on the switch, and Pierces after winning", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX12-019", as: "source" }] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "blocker", dp: 1000 }],
+        security: ["BT1-090"],
+      },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("blocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+
+    expect(s.perm("source").currentDP).toBe(16000);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("encodes all printed keywords, evolution, and both shared Once Per Turn watchers", () => {
@@ -107,11 +173,58 @@ describe("EX12-019 Nezhamon", () => {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "any" },
           actions: [{ kind: "Unsuspend", optional: true, target: { filter: { isSelfRef: true }, isSelf: true } }],
         },
       ],
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+  });
+
+  it("uses both normal colors and the cost-3 Shambala evolution alternative", async () => {
+    expect(digivolutionRequirementsFor("EX12-019")).toEqual([
+      { level: 5, traits: ["Shambala"], cost: 3, isAlternate: true },
+    ]);
+    for (const [baseCardId, useAlternateCost, startingMemory] of [
+      ["AD1-003", false, 4],
+      ["BT10-064", false, 4],
+      ["EX12-029", true, 3],
+    ] as const) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCardId, as: "base" }],
+          hand: [{ card: "EX12-019", as: "nezhamon" }],
+        },
+      });
+      s.state.memory = startingMemory;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("nezhamon").instanceId,
+          useAlternateCost,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "EX12-019");
+      expect(s.state.memory).toBe(0);
+    }
+  });
+
+  it("rejects an off-color level-5 card without Shambala", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-038", as: "base" }],
+        hand: [{ card: "EX12-019", as: "nezhamon" }],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("nezhamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

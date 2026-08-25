@@ -66,6 +66,7 @@ const compiled: CompiledCard = {
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           restriction: "beAffected",
           fromSourceKind: ["Digimon"],
+          byOpponentEffectsOnly: true,
           duration: "untilOpponentTurnEnd",
         },
       ],

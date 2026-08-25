@@ -94,6 +94,7 @@ export interface CombatTrigger {
   suspendedPermanentId?: string;
   attackerPermanentId?: string;
   attackSequence?: number;
+  attackMechanic?: string;
   defenderPermanentId?: string;
   blockerPermanentId?: string;
   target?: AttackTarget;
@@ -509,6 +510,7 @@ export class CombatController {
     target: AttackTarget,
     opts: {
       withoutTap?: boolean;
+      attackMechanic?: string;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     } = {},
@@ -548,6 +550,7 @@ export class CombatController {
       const attackTrigger: CombatTrigger = {
         attackerPermanentId: attacker.permanentId,
         target,
+        ...(opts.attackMechanic === undefined ? {} : { attackMechanic: opts.attackMechanic }),
         ...(target.kind === "permanent" ? { defenderPermanentId: target.permanentId } : {}),
       };
       await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
@@ -619,7 +622,12 @@ export class CombatController {
           if (chosenInstanceId !== undefined) {
             const chosen = tied.find((p) => p.topCard?.instanceId === chosenInstanceId);
             if (chosen !== undefined) {
-              this.redirectTarget({ kind: "permanent", permanentId: chosen.permanentId });
+              if (this.redirectTarget({ kind: "permanent", permanentId: chosen.permanentId })) {
+                await this.hooks.fireSubTrigger?.("whenAttackTargetSwitched", {
+                  subjectPermanentId: attacker.permanentId,
+                  attackerPermanentId: attacker.permanentId,
+                });
+              }
             }
           }
         }
@@ -657,7 +665,7 @@ export class CombatController {
       // sibling path, rather than returning silently and skipping the window.
       if (!this.attackerStillValid(attacker)) {
         await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          attackerPermanentId: attacker.permanentId,
+          ...attackTrigger,
           target: effectiveTarget,
         });
         return;
@@ -668,7 +676,7 @@ export class CombatController {
       // (AttackProcess.EndAttack). The attack does not succeed.
       if (this.endRequested) {
         await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          attackerPermanentId: attacker.permanentId,
+          ...attackTrigger,
           target: effectiveTarget,
         });
         return;
@@ -687,7 +695,7 @@ export class CombatController {
 
       if (!this.attackerStillValid(attacker)) {
         await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          attackerPermanentId: attacker.permanentId,
+          ...attackTrigger,
           target: effectiveTarget,
         });
         return;
@@ -708,7 +716,7 @@ export class CombatController {
 
       // 5. End of attack (AttackProcess.EndAttack, cs:473-484).
       await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-        attackerPermanentId: attacker.permanentId,
+        ...attackTrigger,
         target: effectiveTarget,
       });
     } finally {
@@ -1016,6 +1024,10 @@ export class CombatController {
     };
     await this.hooks.fireTiming(EffectTiming.OnBlockAnyone, trigger);
     await this.hooks.fireTiming(EffectTiming.OnAttackTargetChanged, trigger);
+    await this.hooks.fireSubTrigger?.("whenAttackTargetSwitched", {
+      ...trigger,
+      subjectPermanentId: attacker.permanentId,
+    });
     // Kept alive as a genuine SubTrigger event (distinct from the OnBlockAnyone timing
     // above) to serve BT4-098's temporary grant shape ("[Your Turn] when this Digimon is
     // blocked, gain <effect> until end of turn") — a shape the timing dispatch alone can't

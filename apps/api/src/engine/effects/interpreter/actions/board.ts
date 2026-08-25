@@ -246,6 +246,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         sourceSeat: ctx.source.ownerSeat,
         sourceKinds: [...ctx.source.definition.kinds],
       };
+      // Follow-up clauses such as EX12-015's "that Digimon ... attacks" gate on whether
+      // this optional grant actually chose a recipient. Preserve that outcome explicitly;
+      // resolvePermanentTargets already binds the same physical recipient for sameTarget.
+      ctx.lastEffectActed = ids.length > 0;
       // ＜Piercing＞ has a dedicated pierce store; every other CONTINUOUS keyword
       // ability is recorded in the continuous-effect ledger (real server state the
       // combat / keyword-abilities subsystem reads). ACTION-type keywords (those that
@@ -332,6 +336,15 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             sourceEffectText: ctx.activeEffectText,
             ...grantProvenance,
           });
+        }
+        // A gained ＜Execute＞ is behavioral, not merely a keyword label. Printed Execute on a
+        // card's own top instance is synthesized by module registration; an inherited or
+        // externally granted Execute instead installs the same two timing effects on the host.
+        if (kw === "Execute") {
+          const top = ctx.game.permanentById(id)?.topCard;
+          if (top !== undefined && top.instanceId !== ctx.source.instanceId) {
+            ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, "Execute", duration);
+          }
         }
       }
       for (const extra of action.keywords ?? []) {
