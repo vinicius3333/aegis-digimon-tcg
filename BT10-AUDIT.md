@@ -61,3 +61,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: realistic stacks prove opponent-effect and controller-effect trashing, a multi-source discard proves only the Tokomon instance draws once for the batch, and effect deletion of the whole host proves collateral stack movement is not “an effect trashes this digivolution card.”
 - Behavioral proof: the focused suite proves both Q1931 ownership paths, the opponent-turn gate, one draw for a mixed batch, exact source identity, and the host-deletion negative boundary.
 - Verification: focused suite — 5 passed; genuine effect-trash batch mechanism regression — 2 passed (20 unrelated tests skipped); workspace typecheck — pending collection gate; `git diff --check` — passed.
+
+## BT10-007 — Dondokomon — 10/10
+
+- Catalog evidence: red level 3 Digimon, play cost 3, 4000 DP; form `Rookie`, attribute `Vaccine`, types `Musical Instrument` and `Xros Heart`; standard evolution is red level 2 for 0 and its only effect text adds evolution from level 2 with the Xros Heart trait for 0; it has no inherited or Security text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-007` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the executable IR has no triggered effects and declares one explicit alternate requirement with exact level 2, Xros Heart trait, cost 0, and `isAlternate: true`; printed catalog metadata retains the independent standard red-level-2 cost-0 recipe. The module has full coverage, no residual clauses, and exclusive `registerIrCard("BT10-007", compiled)` registration.
+- Primitive trace: server digivolution legality first evaluates the printed color/level recipes, then unions matching compiled alternate requirements; alternate trait matching uses the base's live top-card trait union; cost-path selection is explicit and server validated, and both paths move Dondokomon from hand to the top of the existing stack while charging 0.
+- Cross-card and stack proof: a red non-Xros-Heart level 2 proves the standard route, an off-color Xros Heart level 2 proves the alternate route, an off-color non-Xros-Heart level 2 proves the trait boundary, and an off-color Xros Heart level 3 proves the exact-level boundary.
+- Behavioral proof: the focused suite executes both legal evolution paths through public intents, verifies unchanged memory and top-card transition, and rejects both independently invalid alternate candidates.
+- Verification: focused suite — 4 passed; shared digivolution conformance — unchanged seam covered by collection gate; workspace typecheck — pending collection gate; `git diff --check` — passed.
