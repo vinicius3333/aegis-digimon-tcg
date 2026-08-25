@@ -542,6 +542,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; De-Digivolves a stack into an 8000-DP body and deletes it while preserving a larger opponent; observes live Security Attack +1 and Reboot; attacks to borrow Phoenixmon's On Play and delete a 4000-DP opponent; proves a no-candidate first attack consumes the use so revealing an eligible lender before a second same-turn attack does not activate it; and accepts off-color level-5 CS evolution while rejecting a non-CS peer.
 - Verification: focused suite — 8 passed; shared De-Digivolve ordering, DP ceiling, keyword amount, Reboot, foreign-effect activation, empty-candidate frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-061 — Ghostmon — 10/10
+
+- Catalog evidence: Purple level 3, play cost 3, 1000 DP, standard purple-level-2 evolution for 0; form `Rookie`, attribute `Data`, types `Ghost` and `LIBERATOR`; On Play/On Deletion gives one friendly Ghost Digimon Blocker through the opponent's turn end; inherited On Deletion gains 1 memory.
+- Knowledge base: `node tools/kb/query.mjs card BT23-061` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-061", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live trait-bound keyword, direct deletion, negative-trait, and realistic inherited-stack evidence without changing execution.
+- Primitive trace: both direct timings bind exactly one surviving friendly Digimon whose live traits include Ghost and grant Blocker through the opponent's turn end; the inherited effect is gathered from Ghostmon beneath the deleted carrier and credits exactly 1 memory to that physical source's controller.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; grants live Blocker on play; deletes Ghostmon and grants Blocker to a surviving Ghost despite preferring a non-Ghost candidate, proving that peer remains excluded; and deletes a realistic Bakemon-over-Ghostmon stack to observe exactly 1 inherited memory.
+- Verification: focused suite — 5 passed; shared On Deletion gathering, trait targeting, keyword grants, duration, inherited-source ownership, and memory mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-061 through BT23-102.
+BT23-062 through BT23-102.
