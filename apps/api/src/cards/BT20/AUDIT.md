@@ -599,3 +599,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-050.test.ts`).
+
+## BT20-051 — Raptordramon
+
+- Catalog contract: black/yellow level 4 Vaccine Cyborg/X Antibody/Chronicle, play cost 5/6000 DP, black or yellow level-3 evolution cost 3 plus Dorumon or level-3 Chronicle alternate cost 2; When Digivolving, at 1 or fewer own Tamers, may play Kota Domoto from hand free; inherited Opponent's Turn +2000 DP.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: the direct IR uses a numeric own-Tamer `permanentCount <= 1` gate around an optional, free, hand-only exact-name Kota play. Its two alternate requirements independently cover Dorumon and level-3 Chronicle; the inherited modifier is opponent-turn self-scoped. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: BT20-048 proves the Dorumon route and BT20-010 proves the non-Dorumon Chronicle route, both for cost 2. Kota is played at zero and one Tamer, remains in hand at two, and may be declined. A 7000-DP BT20-053 host is 7000 on its controller's turn and 9000 on the opponent's.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-051.test.ts` — 5 passed.
+- Clause scores: stats/ordinary evolution routes 2/2; Dorumon/Chronicle alternate union 2/2; exact 0/1/2-Tamer boundary 2/2; optional named free play/refusal 2/2; inherited opponent-turn +2000/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-051.test.ts`).
