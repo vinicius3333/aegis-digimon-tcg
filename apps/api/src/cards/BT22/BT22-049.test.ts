@@ -19,6 +19,7 @@ describe("BT22-049 Vegiemon", () => {
     expect(effect?.actions[0]).toMatchObject({
       kind: "Digivolve",
       from: ["hand", "trash"],
+      payCost: true,
       optional: true,
       into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ver.2"], match: "trait" }] },
       cost: {
@@ -65,6 +66,9 @@ describe("BT22-049 Vegiemon", () => {
     // bottom-source cost. All 3 cards remain, proving they were placed before its timing opened.
     expect(s.perm("vegiemon").stack.filter((card) => !card.faceUp)).toHaveLength(3);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT22-049")).toHaveLength(0);
+    // Ending the turn first crosses the gauge from +3 to -3; the normal cost-3
+    // evolution then pays another 3 rather than resolving for free.
+    expect(s.state.memory).toBe(-6);
   });
 
   it("cannot satisfy Q4902 with only 2 eligible trash cards", async () => {
