@@ -1016,7 +1016,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       } else if (opts.ignoreLevel) {
         const baseDef = requireCardDefinition(permanent.topCard.cardId);
         const printed = matchingEvoCostIgnoringLevel(definition, baseDef);
-        const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef, { ignoreLevel: true });
+        const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+          ignoreLevel: true,
+          ...(sourceZone === undefined ? {} : { sourceZone }),
+        });
         const useAlternate = opts.useAlternateCost === true && alternate !== undefined;
         const matched = useAlternate ? alternate!.cost : (printed?.memoryCost ?? alternate?.cost);
         if (matched === undefined) return undefined;
@@ -1041,7 +1044,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         const baseGranted =
           opts.virtualBase === undefined ? engine.baseGrantedDigivolve?.(seat, permanent, definition) : undefined;
         const alternate =
-          opts.virtualBase === undefined ? matchingAlternateDigivolutionRequirement(definition, baseDef) : undefined;
+          opts.virtualBase === undefined
+            ? matchingAlternateDigivolutionRequirement(definition, baseDef, {
+                ...(sourceZone === undefined ? {} : { sourceZone }),
+              })
+            : undefined;
         const useAlternate = opts.useAlternateCost === true && alternate !== undefined;
         if (useAlternate && alternate.minNameStackNames !== undefined) {
           const required = alternate.minNameStackCount ?? 1;

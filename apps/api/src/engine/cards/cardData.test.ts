@@ -147,4 +147,13 @@ describe("digivolution matching (static-data half)", () => {
       cost: 3,
     });
   });
+
+  it("preserves BT7-111's hand-only alternate path when an effect sources the card from trash", () => {
+    expect(matchingAlternateDigivolutionRequirement("BT7-111", "EX10-013", { sourceZone: "hand" })).toMatchObject({
+      namesExact: ["Lucemon"],
+      cost: 7,
+      sourceZones: ["hand"],
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT7-111", "EX10-013", { sourceZone: "trash" })).toBeUndefined();
+  });
 });

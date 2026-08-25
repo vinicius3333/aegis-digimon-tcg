@@ -3,6 +3,8 @@
 import type { Condition } from "../predicates/conditions.js";
 
 export interface DigivolutionRequirement {
+  /** Zones from which this alternate path is printed to operate (for example, BT7-111 is hand-only). */
+  sourceZones?: ("hand" | "trash")[];
   /** Live condition that must hold for this alternate path to be available. */
   whileCondition?: Condition;
   /** Required level of the card digivolved FROM ("Lv.5" / "from Lv.3"). */

@@ -15,6 +15,7 @@ import {
   type DigivolutionRequirement,
   type EvoCost,
   type Permanent,
+  type ZoneRef,
 } from "@aegis/shared";
 import { tamerOntoDigivolveLevel } from "./tamerOntoDigivolve.js";
 import type { GameAccess } from "../effects/EffectContext.js";
@@ -374,6 +375,8 @@ export interface AlternateDigivolveOptions {
   ignoreLevel?: boolean;
   /** Match only this stable index in `digivolutionRequirementsFor`; invalid/nonmatching indexes fail. */
   requirementIndex?: number;
+  /** Actual loose-card source zone when an effect digivolves from a named zone. */
+  sourceZone?: ZoneRef;
 }
 
 /**
@@ -409,6 +412,13 @@ function matchGatedRequirement(
 ): DigivolutionRequirement | undefined {
   for (const [requirementIndex, req] of requirements.entries()) {
     if (options?.requirementIndex !== undefined && options.requirementIndex !== requirementIndex) continue;
+    if (
+      options?.sourceZone !== undefined &&
+      req.sourceZones !== undefined &&
+      !req.sourceZones.includes(options.sourceZone as "hand" | "trash")
+    ) {
+      continue;
+    }
     // A requirement with NO gate (no level/traits/names/texts/baseIsTamer) is a data defect,
     // not a real "digivolve onto any base" rule — every printed alternate digivolution names a
     // level, trait, name, or Tamer base. The runtime record flattens special-mechanic paths it can't
