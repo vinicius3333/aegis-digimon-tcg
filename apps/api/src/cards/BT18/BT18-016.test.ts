@@ -31,4 +31,26 @@ describe("BT18-016 Volcanomon", () => {
     expect(s.perm("volcanomon").currentDP).toBe(s.perm("volcanomon").baseDP + 2000);
     expect(observe(s.engine).hasKeyword(s.perm("volcanomon"), "Blitz")).toBe(true);
   });
+
+  it("digivolves from a red level 4 for 3 and preserves the source stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT18-014", as: "gigasmon" }],
+        hand: [{ card: "BT18-016", as: "volcanomon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gigasmon").permanentId,
+        instanceId: s.inst("volcanomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gigasmon").topCard.cardId === "BT18-016");
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("gigasmon").stack.at(-1)?.cardId).toBe("BT18-014");
+    expect(observe(s.engine).hasKeyword(s.perm("gigasmon"), "Blitz")).toBe(true);
+  });
 });
