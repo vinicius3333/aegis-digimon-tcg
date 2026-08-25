@@ -197,6 +197,19 @@ export function zoneList(zone: ZoneRef | ZoneRef[] | undefined): ZoneRef[] {
 }
 
 export function candidateLooseInstances(ctx: EffectContext, target: Target, zones: ZoneRef[]): LooseCandidate[] {
+  if (target.filter.isSelfRef === true) {
+    const self = findLooseCandidateByInstance(ctx, ctx.source.instanceId);
+    if (
+      self === undefined ||
+      !zones.some((zone) =>
+        looseCardsInZone(ctx, self.ownerSeat, zone).some((card) => card.instanceId === ctx.source.instanceId),
+      )
+    ) {
+      return [];
+    }
+    const { isSelfRef: _isSelfRef, ...definitionFilter } = target.filter;
+    return definitionMatches(definitionFilter, ctx.game.definitionOf({ cardId: self.cardId })) ? [self] : [];
+  }
   if (target.fromSelectionRef !== undefined) {
     const boundInstanceId = ctx.selections?.get(target.fromSelectionRef);
     if (boundInstanceId === undefined) return [];

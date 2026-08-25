@@ -13,6 +13,19 @@ import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 // Cost payment
 // ---------------------------------------------------------------------------
 
+function placeCostHostCandidates(ctx: EffectContext, host: Target): Permanent[] {
+  if (host.filter.zone !== "breeding" && host.filter.zone !== "breedingArea") {
+    return candidatePermanents(ctx, host);
+  }
+  const { zone: _zone, ...filter } = host.filter;
+  const candidates: Permanent[] = [];
+  for (const seat of seatsForController(ctx, host.filter)) {
+    const breeding = ctx.game.player(seat).breeding;
+    if (breeding !== undefined && permanentMatchesFilter(ctx, breeding, filter, ctx.source)) candidates.push(breeding);
+  }
+  return candidates;
+}
+
 /**
  * Conservative feasibility precheck for an action's cost, used to avoid prompting "you may…"
  * for an optional cost-bearing action the controller cannot actually perform, and (CR
@@ -236,7 +249,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       if (candidatePermanents(ctx, cost.target).length < required) return false;
       if (cost.destination === "security" || cost.destination === "battleArea") return true;
       if (cost.host !== null && typeof cost.host === "object") {
-        return candidatePermanents(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
+        return placeCostHostCandidates(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
       }
       return ctx.source.permanent() !== undefined;
     }
@@ -1367,11 +1380,11 @@ export async function payCost(
           }
           let hostPermId: string | undefined;
           if (cost.host !== null && typeof cost.host === "object") {
-            const destIds = await resolvePermanentTargets(ctx, {
+            const destIds = placeCostHostCandidates(ctx, {
               filter: cost.host.filter,
               count: cost.host.count,
               orFilters: cost.host.orFilters,
-            });
+            }).map((permanent) => permanent.permanentId);
             if (destIds.length === 0) return false;
             hostPermId =
               destIds.length === 1
@@ -1487,11 +1500,11 @@ export async function payCost(
         let hostPermId: string | undefined;
         if (cost.host !== null && typeof cost.host === "object") {
           // Object form: { filter, count } — player picks a destination Digimon (BT21-071).
-          const destIds = await resolvePermanentTargets(ctx, {
+          const destIds = placeCostHostCandidates(ctx, {
             filter: cost.host.filter,
             count: cost.host.count,
             orFilters: cost.host.orFilters,
-          });
+          }).map((permanent) => permanent.permanentId);
           if (destIds.length === 0) return false;
           hostPermId =
             destIds.length === 1
