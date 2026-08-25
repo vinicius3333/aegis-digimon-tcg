@@ -371,6 +371,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; observes Alliance live; fires the source suspension to give exactly one selected Digimon both Piercing and +3000, then proves a second same-turn event adds nothing; proves another Digimon's suspension does not trigger; and accepts off-color level-3 CS evolution for 2 while rejecting a non-CS peer.
 - Verification: focused suite — 6 passed; shared Alliance, suspension event, same-target binding, Piercing, duration, frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-042 — Waspmon — 10/10
+
+- Catalog evidence: Green/black level 4, play cost 4, 4000 DP, standard green- or black-level-3 evolution for 3 plus alternate level-3 Royal Base-or-CS evolution for 2; form `Champion`, attribute `Virus`, types `Cyborg`, `X Antibody`, `Royal Base`, `CS`, and `Insectoid`; its face-up Security All Turns effect gives every friendly Royal Base Digimon +1000 DP; When Digivolving at one or fewer Tamers may play a Royal Base-in-text Tamer from hand for free; inherited All Turns gives its carrier +1000 DP.
+- Knowledge base: Q5303 defines “Royal Base in its text” across names, traits, effects, inherited effects, Rule text, and every evolution, DigiXros, Burst, App Fusion, Link, and Assembly requirement field.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-042", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live security-aura, exact Tamer-count boundary, and both alternate-evolution branch evidence without changing execution.
+- Primitive trace: the face-up-security continuous builder scopes the Royal Base DP aura to its owner; the When Digivolving action counts only friendly battle-area Tamers, searches hand for a Tamer through the broad text matcher, and preserves optional refusal; the inherited modifier remains bound to its real carrier.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; plays a Royal Base-in-text Tamer for free at the allowed boundary and leaves it in hand at two Tamers; observes the face-up security aura only on a friendly Royal Base; observes inherited +1000 on a realistic carrier; and accepts the 2-cost alternate evolution independently from level-3 Royal Base and CS bases.
+- Verification: focused suite — 10 passed; shared face-up-security, text matching, permanent-count, free-play, inherited-continuous, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-042 through BT23-102.
+BT23-043 through BT23-102.
