@@ -46,25 +46,29 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "PlayWithoutCost",
+          kind: "UseOptionWithoutCost",
           target: {
             filter: {
-              orFilters: [
+              controller: "mine",
+              kind: ["Option"],
+              playCostLte: 99,
+              nameOrTrait: [
                 {
-                  trait: ["Three Musketeers"],
-                  cardType: "Option",
+                  tokens: ["Three Musketeers"],
+                  match: "trait",
                 },
                 {
-                  trait: ["TS"],
-                  cardType: "Option",
+                  tokens: ["TS"],
+                  match: "trait",
                 },
               ],
             },
             count: 1,
-            from: "handOrDigivolution",
+            source: "thisDigimon",
           },
+          from: ["hand", "digivolutionCards"],
           payCost: false,
-          costReduction: 0,
+          allowMultiColor: true,
           optional: true,
         },
       ],
@@ -75,25 +79,29 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "PlayWithoutCost",
+          kind: "UseOptionWithoutCost",
           target: {
             filter: {
-              orFilters: [
+              controller: "mine",
+              kind: ["Option"],
+              playCostLte: 99,
+              nameOrTrait: [
                 {
-                  trait: ["Three Musketeers"],
-                  cardType: "Option",
+                  tokens: ["Three Musketeers"],
+                  match: "trait",
                 },
                 {
-                  trait: ["TS"],
-                  cardType: "Option",
+                  tokens: ["TS"],
+                  match: "trait",
                 },
               ],
             },
             count: 1,
-            from: "handOrDigivolution",
+            source: "thisDigimon",
           },
+          from: ["hand", "digivolutionCards"],
           payCost: false,
-          costReduction: 0,
+          allowMultiColor: true,
           optional: true,
         },
       ],
