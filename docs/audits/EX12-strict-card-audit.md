@@ -2317,3 +2317,25 @@ for the individual evidence below.
   shuffle — 126/126; security activation — 2/2; interpreter — 171/171; capabilities — 290/290;
   shared build, API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
   residual IR, unsupported behavior, or unresolved ruling remains.
+
+## EX12-073 — Giant Meat — 10/10
+
+- **Printed contract:** White cost-3 Option carrying all six NSp/DS/NSo/WG/ME/VB traits and a
+  Use Requirement satisfied by any one of them. Main reveals the top 3, adds one card with any
+  listed trait, returns the rest to deck bottom, then places Giant Meat in the battle area. On a
+  later turn, Main Delay trashes it to gain 2 memory. Security places it in the battle area.
+- **Fidelity result:** direct and aggregate IR were already complete and exactly synchronized;
+  no functional correction was required. The audit adds reproducible registration, aggregate,
+  identity, selection, miss-path, lifecycle, and timing evidence.
+- **Behavioral proof:** a red ME Digimon in breeding independently satisfies the white Option's
+  Use Requirement; an empty field rejects play. A matching card among the real top 3 enters hand,
+  both unmatched cards return to deck bottom, and the Option becomes a permanent. When all three
+  cards miss every listed trait, none enters hand, all return to the deck, and placement still
+  resolves. Delay is unavailable on the entry turn, then on a later turn trashes the exact Option
+  and changes memory by +2. Security places the same instance into the battle area.
+- **Identity and verification:** catalog identity, all six traits, reveal/add/rest routing, Delay,
+  Security, full coverage, empty residuals, exclusive IR registration, and exact direct/aggregate
+  equality are asserted. `EX12-073.test.ts` — 8/8; advanced keyword conformance — 30/30;
+  `PlaceInBattleAreaSelf` — 4/4; security activation — 2/2; interpreter — 171/171; capabilities —
+  290/290; API typecheck, focused formatting, focused lint, and `git diff --check` passed. No
+  residual IR, unsupported behavior, ruling dependency, or unresolved limitation remains.

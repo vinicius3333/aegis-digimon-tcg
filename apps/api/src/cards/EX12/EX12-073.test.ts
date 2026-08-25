@@ -1,8 +1,9 @@
-import { EffectTiming } from "@aegis/shared";
+import { compiledEffects, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-073.js";
 import "../index.js";
 
@@ -49,6 +50,8 @@ describe("EX12-073 Giant Meat", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "Security" && effect.isSecurity)).toMatchObject({
       actions: [{ kind: "PlaceInBattleAreaSelf" }],
     });
+    expect(registeredCompiledCards.get(CARD_ID)).toEqual(compiled);
+    expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
   it("can be played when an [ME] trait Digimon is in the breeding area", async () => {
@@ -72,6 +75,7 @@ describe("EX12-073 Giant Meat", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-038")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
   });
 
   it("still requires a matching trait when the breeding area is empty", () => {
@@ -82,6 +86,29 @@ describe("EX12-073 Giant Meat", () => {
       ok: false,
       reason: "color-requirement-unmet",
     });
+  });
+
+  it("returns all revealed cards to deck bottom when none has a listed trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX12-008", as: "meInBreeding" },
+          hand: [{ card: CARD_ID, as: "option" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
   it("trashes itself and gains 2 memory through Delay on a later turn", async () => {
@@ -136,5 +163,17 @@ describe("EX12-073 Giant Meat", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
+  });
+
+  it("matches the complete catalog identity", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Giant Meat",
+      colors: ["White"],
+      kinds: ["Option"],
+      playCost: 3,
+      dp: 0,
+      evoCosts: [],
+      types: ["NSp", "DS", "NSo", "WG", "ME", "VB"],
+    });
   });
 });
