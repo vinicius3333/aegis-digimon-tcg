@@ -13,6 +13,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: {
+            isSelfRef: true,
+          },
           actions: [
             {
               kind: "PlayWithoutCost",
@@ -49,6 +52,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenAttacking",
+      isLinked: true,
       actions: [
         {
           kind: "ModifyDP",
