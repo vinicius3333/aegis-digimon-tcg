@@ -10,7 +10,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldDigivolve",
-          sourceFilter: { isSelfRef: true },
+          sourceFilter: { isSelfRef: true, zone: "battleArea" },
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
@@ -24,7 +24,7 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "OnBattleDeleteOpponent",
+      trigger: "WhenBattleDeleteOpponent",
       isInherited: true,
       frequency: "OncePerTurn",
       actions: [{ kind: "GainMemory", amount: 1 }],

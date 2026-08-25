@@ -335,3 +335,15 @@
 - Score: 10/10.
 - Ambiguity: Q4321 is covered by the same `fromDigivolution` production event seam; a direct self-play fixture is not independently constructible without another card's compatible level-7 source-play effect.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-028.test.ts`).
+
+## BT20-029 — Pulsemon
+
+- Catalog contract: yellow/green level 3 Vaccine Beastkin, play cost 3/1000 DP, purple or green level-2 evolution cost 1 plus Bibimon or level-2 SEEKERS alternate cost 0; on your turn, its battle-area evolution into a Digimon with Pulsemon in its text or the SEEKERS trait costs 1 less; inherited once per turn gains 1 memory when the host deletes an opponent in battle.
+- Knowledge base: Q4322 defines “Pulsemon in its text” across the complete printed card text; Q4323 says the reduction does not apply in the breeding area; Q4324 says the inherited effect cannot activate if the host is deleted in the same battle.
+- Implementation evidence: the reduction's source filter now explicitly requires the battle area, preserving the full-text/trait union and exact -1 delta. The generated inherited trigger used the runtime timing enum name as an IR trigger, which fell through to continuous timing and repeatedly gained memory during recomputation; it now uses canonical `WhenBattleDeleteOpponent`, routes only to the battle-deletion window, and retains source-scoped once-per-turn. Alternate requirements and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: BT17-034 is a qualifying Pulsemon-text evolution: over a battle-area Pulsemon its cost falls from 3 to 2, while the identical breeding evolution pays the full 3. Under a realistic Digimon host, two direct battle-deletion windows gain exactly one memory total.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-029.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; text-or-trait destination union 2/2; exact evolution reduction 2/2; Q4323 battle-area scope 2/2; inherited battle-deletion timing/once-per-turn 2/2.
+- Score: 10/10.
+- Ambiguity: Q4324 is enforced by the production combat controller, which fires this timing only for the surviving attacker; the direct timing fixture isolates the card's routed effect and frequency.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-029.test.ts`).
