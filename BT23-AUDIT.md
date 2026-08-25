@@ -227,6 +227,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR; pays exactly 5, applies Security Attack -1, and moves MarineAngemon from hand to security; rejects declaration without CS and rejects unaffordable activation without zone changes; returns only a lowest-level opponent; and plays from Security then deletes the bound Digimon at turn end.
 - Verification: focused suite — 6 passed; shared package build — passed; `git diff --check` — passed.
 
+## BT23-026 — Lopmon — 10/10
+
+- Catalog evidence: Yellow/green level 3, play cost 3, 1000 DP, standard yellow- or green-level-2 evolution for 1 plus zero-cost Kokomon-name or level-2 CS evolution; form `Rookie`, attribute `Data`, types `Beast` and `CS`; during its controller's turn while Makiko Date is present it can digivolve into Antylamon from hand for exactly 3 while ignoring requirements; inherited All Turns once per turn gives one opposing Digimon -2000 DP for the turn when another friendly Digimon suspends.
+- Knowledge base: Q5255 confirms Lopmon's special Antylamon digivolution effect may activate simultaneously with another digivolution effect such as Physical Training; there are no local errata, restrictions, or unresolved ambiguities.
+- Defect corrected: the direct IR omitted the complete inherited clause. The audited IR adds the self-excluding suspension watcher and once-per-turn DP reduction; registration remains exclusively `registerIrCard("BT23-026", compiled)` with full coverage and no residual clauses.
+- Primitive trace: the activated Your Turn effect checks the live Makiko Date condition, searches hand for Antylamon, ignores ordinary evolution requirements, pays the fixed 3, and uses normal evolution stack/draw timing; the inherited watcher filters to other friendly Digimon, applies a turn-scoped modifier to one opponent, and keys frequency to Lopmon's source instance.
+- Behavioral proof: the focused suite checks catalog and complete IR; activates the special path with Makiko Date and observes Antylamon enter Lopmon's stack for exactly 3; ignores the carrier's own suspension, applies -2000 for another friendly suspension, and rejects a second use in the same turn.
+- Verification: focused suite — 3 passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-026 through BT23-102.
+BT23-027 through BT23-102.
