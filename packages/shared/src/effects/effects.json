@@ -658,7 +658,6 @@
             },
             "cost": {
               "kind": "place",
-              "targetIsPermanent": true,
               "target": {
                 "filter": {
                   "controller": "mine",
@@ -692,7 +691,6 @@
             },
             "cost": {
               "kind": "place",
-              "targetIsPermanent": true,
               "target": {
                 "filter": {
                   "controller": "mine",
@@ -1371,7 +1369,6 @@
             "amount": 2,
             "cost": {
               "kind": "place",
-              "targetIsPermanent": true,
               "target": {
                 "filter": {
                   "zone": "hand",
@@ -29090,6 +29087,8 @@
             "to": "deckBottom",
             "cost": {
               "kind": "place",
+              "targetIsPermanent": true,
+              "shedOwnCards": true,
               "target": {
                 "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"], "colors": ["Blue"] },
                 "count": 1
@@ -29117,6 +29116,8 @@
             "to": "deckBottom",
             "cost": {
               "kind": "place",
+              "targetIsPermanent": true,
+              "shedOwnCards": true,
               "target": {
                 "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"], "colors": ["Blue"] },
                 "count": 1
@@ -29140,6 +29141,8 @@
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "cost": {
               "kind": "place",
+              "targetIsPermanent": true,
+              "shedOwnCards": true,
               "target": {
                 "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"], "colors": ["Blue"] },
                 "count": 1

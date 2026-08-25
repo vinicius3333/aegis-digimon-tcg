@@ -11,7 +11,12 @@ describe("BT15-029", () => {
       kind: "Return",
       to: "deckBottom",
       target: { filter: { levelLte: "placedDigimonLevel" } },
-      cost: { kind: "place", storeAs: "placedDigimonLevel" },
+      cost: {
+        kind: "place",
+        targetIsPermanent: true,
+        shedOwnCards: true,
+        storeAs: "placedDigimonLevel",
+      },
     });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "Return" }] });
   });
@@ -20,7 +25,13 @@ describe("BT15-029", () => {
       trigger: "WhenAttacking",
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "Unsuspend", cost: { kind: "place" }, optional: true }],
+      actions: [
+        {
+          kind: "Unsuspend",
+          cost: { kind: "place", targetIsPermanent: true, shedOwnCards: true },
+          optional: true,
+        },
+      ],
     }));
 
   it("pays the On Play cost first, then bottoms only a Digimon at or below the placed card's level", async () => {
@@ -101,7 +112,12 @@ describe("BT15-029", () => {
         0: {
           battleArea: [
             { card: "BT15-025", as: "base" },
-            { card: "BT15-023", as: "placedLevelThree" },
+            {
+              card: "BT15-023",
+              as: "placedLevelThree",
+              under: [{ card: "BT15-001", as: "materialPriorSource" }],
+              linked: [{ card: "BT15-002", as: "materialPriorLink" }],
+            },
           ],
           hand: [{ card: "BT15-029", as: "megaSeadramon" }],
           deck: ["BT1-009"],
@@ -129,7 +145,16 @@ describe("BT15-029", () => {
       s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("eligibleLevelThree").instanceId),
     );
 
-    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("placedLevelThree").instanceId);
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("placedLevelThree").instanceId,
+      s.inst("base").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("materialPriorSource").instanceId,
+        s.inst("materialPriorLink").instanceId,
+      ]),
+    );
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("ineligibleLevelFour").permanentId,
     );

@@ -24,6 +24,7 @@ const compiled: CompiledCard = {
           cost: {
             kind: "place",
             targetIsPermanent: true,
+            shedOwnCards: true,
             target: {
               filter: {
                 controller: "mine",
@@ -61,6 +62,7 @@ const compiled: CompiledCard = {
           cost: {
             kind: "place",
             targetIsPermanent: true,
+            shedOwnCards: true,
             target: {
               filter: {
                 controller: "mine",
@@ -96,6 +98,7 @@ const compiled: CompiledCard = {
           cost: {
             kind: "place",
             targetIsPermanent: true,
+            shedOwnCards: true,
             target: {
               filter: {
                 controller: "mine",
