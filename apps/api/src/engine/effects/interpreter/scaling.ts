@@ -249,6 +249,17 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
         : 0;
       break;
     }
+    case "sameLevelDigivolutionPairs": {
+      const self = ctx.source.permanent();
+      const byLevel = new Map<number, number>();
+      for (const card of self?.stack ?? []) {
+        const level = ctx.game.definitionOf(card).level;
+        if (level === undefined) continue;
+        byLevel.set(level, (byLevel.get(level) ?? 0) + 1);
+      }
+      raw = Array.from(byLevel.values()).reduce((pairs, count) => pairs + Math.floor(count / 2), 0);
+      break;
+    }
     case "selfFaceDownDigivolutionCards": {
       // EX9-061 "for every 2 of this Digimon's face-down digivolution cards" — unlike
       // "digivolutionCards", only stack cards NOT face-up count.
