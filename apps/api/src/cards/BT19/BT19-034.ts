@@ -44,16 +44,17 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
+          kind: "SubTrigger",
+          event: "whenOptionUsed",
+          fireCondition: { kind: "triggerOptionCostAtLeast", value: 2 },
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: -2000,
+              duration: "forTheTurn",
             },
-            count: 1,
-          },
-          amount: -2000,
-          duration: "forTheTurn",
+          ],
         },
       ],
       isInherited: true,
