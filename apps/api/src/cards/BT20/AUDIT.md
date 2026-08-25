@@ -83,3 +83,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-007.test.ts`).
+
+## BT20-008 — Huckmon
+
+- Catalog contract: red level 3 Mini Dragon Digimon, play cost 3/1000 DP and red level-2 evolution cost 0; optional start-of-your-main-phase processing condition trashes 1 Huckmon/Sistermon-name or Royal Knight-trait card from hand to draw 1 and gain 1 memory; inherited your-turn aura gives all your Digimon +1000 DP.
+- Knowledge base: no card-specific entries; name matching and exact Royal Knight trait matching follow the shared definition matcher.
+- Implementation evidence: the previous IR made the `By trashing` payment mandatory and could continue to memory gain after refusal. The Draw cost is now optional with `abortOnDecline`; the name/trait alternatives, Draw, GainMemory, all-allied continuous DP target, durations, and exclusive `registerIrCard` registration are otherwise faithful.
+- Peer/stack evidence: a mixed hand contains a Huckmon name match, Examon Royal Knight trait match, and Ryudamon non-match; exactly one valid card is paid, the nonselected cards remain, and refusal changes no zone or memory. An evolved host and a separate allied Digimon both gain +1000 while an opponent does not, and the aura clears off-turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-008.test.ts` — 3 passed.
+- Clause scores: stats/evolution 2/2; optional name-or-trait trash cost 2/2; draw/memory and refusal 2/2; allied all-target +1000 DP 2/2; inherited your-turn stack scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-008.test.ts`).
