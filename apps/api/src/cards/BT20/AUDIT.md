@@ -575,3 +575,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-048.test.ts`).
+
+## BT20-049 — Blimpmon
+
+- Catalog contract: black level 4 Data Machine, play cost 4/4000 DP, black level-3 evolution cost 2; On Play and When Digivolving restrict 1 opposing Digimon from attacking players through the end of that opponent's turn; inherited Reboot.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: two entry effects independently use the shared `Restrict` primitive with opponent Digimon count 1, `attackPlayers`, and `untilOpponentTurnEnd`. Combat legality rejects only player targets for the selected attacker. The inherited static marker publishes Reboot to its host, and registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: both playing Blimpmon and evolving BT20-047 into it restrict exactly the auto-selected BT1-010 while leaving a second opposing Digimon unrestricted; the selected Digimon's player attack is rejected as `illegal-target`. BT20-051 gains Reboot with Blimpmon underneath while a standalone Blimpmon does not.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-049.test.ts` — 4 passed.
+- Clause scores: stats/evolution route 2/2; On Play timing 2/2; When Digivolving timing 2/2; one-target/player-only/duration restriction 2/2; inherited Reboot stack boundary 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-049.test.ts`).
