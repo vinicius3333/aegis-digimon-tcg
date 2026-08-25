@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardInstance } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type CardInstance } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { compiled } from "./EX10-012.js";
 import "../index.js"; // register compiled cards so the real activate / OnEndTurn paths run
 
 const SIBLINGS = ["EX10-012", "EX10-020", "EX10-057"] as const;
@@ -100,20 +102,55 @@ describe.each(SIBLINGS)("%s — [Hand][Main] reduced-cost play + turn-end delete
 });
 
 describe("EX10-012 MetalSeadramon — card-specific effects", () => {
-  it("prevents one opposing Digimon and one opposing Tamer from suspending", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX10-012", as: "metal" }] },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "digimon" },
-          { card: "BT1-085", as: "tamer" },
-        ],
-      },
+  it("records the exact no-evolution catalog facts and every printed executable clause", () => {
+    expect(getCardDefinition("EX10-012")).toMatchObject({
+      colors: ["Blue"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [],
+      types: ["Cyborg", "Dark Masters"],
     });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(registeredCompiledCards.get("EX10-012")).toEqual(compiled);
+    expect(compiled.effects.map(({ trigger }) => trigger)).toEqual([
+      "Main",
+      "OnPlay",
+      "WhenAttacking",
+      "AllTurns",
+      "OnDeletion",
+      "Security",
+    ]);
+  });
+
+  it("restricts exactly one opposing Digimon and Tamer through that opponent's turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX10-012", as: "metal" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "chosenDigimon" },
+            { card: "BT1-010", as: "otherDigimon" },
+            { card: "BT1-085", as: "chosenTamer" },
+            { card: "BT1-085", as: "otherTamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosenDigimon").permanentId, s.perm("chosenTamer").permanentId);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("metal"));
     const ledger = advance(s.engine).ledgers.continuous;
-    expect(ledger.hasRestriction(s.perm("digimon").permanentId, "suspend")).toBe(true);
-    expect(ledger.hasRestriction(s.perm("tamer").permanentId, "suspend")).toBe(true);
+    expect(ledger.hasRestriction(s.perm("chosenDigimon").permanentId, "suspend")).toBe(true);
+    expect(ledger.hasRestriction(s.perm("chosenTamer").permanentId, "suspend")).toBe(true);
+    expect(ledger.hasRestriction(s.perm("otherDigimon").permanentId, "suspend")).toBe(false);
+    expect(ledger.hasRestriction(s.perm("otherTamer").permanentId, "suspend")).toBe(false);
+
+    ledger.sweep(s.state, "ownerTurnEnd", 1);
+    expect(ledger.hasRestriction(s.perm("chosenDigimon").permanentId, "suspend")).toBe(false);
+    expect(ledger.hasRestriction(s.perm("chosenTamer").permanentId, "suspend")).toBe(false);
   });
 
   it("places itself face up in security on deletion when no blue face-up security exists", async () => {
@@ -122,6 +159,22 @@ describe("EX10-012 MetalSeadramon — card-specific effects", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("metal").permanentId]);
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === instanceId));
     expect(s.state.players[0]!.security.find((card) => card.instanceId === instanceId)?.faceUp).toBe(true);
+  });
+
+  it("stays in trash on deletion when a blue face-up security card already exists", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX10-012", as: "metal" }],
+        security: [{ card: "EX10-012", faceUp: true }],
+      },
+    });
+    const instanceId = s.perm("metal").topCard.instanceId;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("metal").permanentId]);
+    await settle();
+
+    expect(s.state.players[0]!.trash.map(({ instanceId: id }) => id)).toContain(instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
   it("plays a level 5 Dark Masters-text card when checked from face-up security", async () => {
@@ -144,5 +197,78 @@ describe("EX10-012 MetalSeadramon — card-specific effects", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-027"));
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT15-027");
+  });
+
+  it("does not play the same target when checked face down", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          hand: [{ card: "BT15-027", as: "playTarget" }],
+          security: [{ card: "EX10-012", faceUp: false }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).toContain("BT15-027");
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain("BT15-027");
+  });
+
+  it("allows Apocalymon, rejects another legal blue evolution, and keeps delayed deletion on the host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX10-012", as: "metal" },
+            { card: "BT15-102", as: "apocalymon" },
+            { card: "BT5-086", as: "omnimon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    const metalInstanceId = s.inst("metal").instanceId;
+    const effectKey = reducedCostPlayEffectKey(s, s.inst("metal"), "EX10-012");
+
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: metalInstanceId, effectKey }),
+    ).toEqual({ ok: true });
+    await settle(() => onField(s, metalInstanceId));
+    await settle(() => false, 200);
+    const host = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === metalInstanceId)!;
+    s.state.memory = 6;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: host.permanentId,
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: host.permanentId,
+        instanceId: s.inst("apocalymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => host.topCard.cardId === "BT15-102");
+
+    void fireEndTurn(s);
+    await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === host.permanentId));
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT15-102", "EX10-012"]),
+    );
   });
 });
