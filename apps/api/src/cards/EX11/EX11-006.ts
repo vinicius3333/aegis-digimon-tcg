@@ -5,8 +5,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Inherited [When Attacking][Once Per Turn]: This Digimon linked with [Maquinamon] may
 //   digivolve into a Digimon card with [Maquinamon] in its text in the hand with the
 //   digivolution cost reduced by 2.
-// "linked with [Maquinamon]" = the host Digimon must have a [Maquinamon] card in its
-//   linked list (KB Q5793 "in its text" spans name/traits/effects/...).
+// "linked with [Maquinamon]" = the host Digimon must have a card named [Maquinamon]
+//   in its linked list. Q5793's broad "in its text" matcher applies only to the
+//   separately worded digivolution destination.
 // `hasLinkedWith` filter is a new engine capability (see LANE_F.md).
 // `reduceCost: 2` is valid on DigivolveAction (ir.ts:1006).
 const compiled: CompiledCard = {
@@ -19,7 +20,7 @@ const compiled: CompiledCard = {
           nameOrTrait: [
             {
               tokens: ["Maquinamon"],
-              match: "text",
+              match: "name",
             },
           ],
         },
