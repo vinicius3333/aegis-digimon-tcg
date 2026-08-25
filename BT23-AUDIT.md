@@ -479,6 +479,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; places a friendly Option, evolves Strikedramon into Cyberdramon for 1 instead of 3, preserves a non-CS hand card, and retains Strikedramon in the stack; proves an opponent's placed Option does not trigger; observes inherited +1000 on a realistic carrier; and accepts off-color level-3 CS evolution while rejecting an off-color non-CS peer.
 - Verification: focused suite — 6 passed; shared placed-Option event, ownership/turn gates, reduced evolution, inherited-continuous, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-054 — Magnamon — 10/10
+
+- Catalog evidence: Black/blue level 4, play cost 7, 7000 DP, standard black- or blue-level-3 evolution for 4 plus alternate Veemon or level-3 CS evolution for 3; form `Armor Form`, attribute `Free`, types `Holy Warrior`, `Royal Knight`, and `CS`; Blocker and Armor Purge; On Play/When Digivolving draws one, then protects one friendly Royal Knight/CS Digimon from opposing hand/deck returns through the opponent's turn end.
+- Knowledge base: `node tools/kb/query.mjs card BT23-054` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-054", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live keyword, opponent-only restriction, and both alternate-evolution branch evidence without changing execution.
+- Primitive trace: static Blocker and Armor Purge project through the live keyword ledger; both entry timings draw before selecting a friendly Royal Knight/CS target, and the duration restriction blocks only opposing effect-driven hand/deck returns while preserving the owner's return effects.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; draws the exact deck top, prevents an opponent-controlled hand return, then proves the owner can return the same protected Magnamon; observes Blocker and Armor Purge live; and accepts 3-cost evolution independently from Veemon and level-3 CS bases.
+- Verification: focused suite — 6 passed; shared Blocker, Armor Purge, Draw, opponent-only return restriction, duration, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-054 through BT23-102.
+BT23-055 through BT23-102.
