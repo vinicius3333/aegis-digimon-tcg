@@ -893,6 +893,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage and field scope; fires a real Huckmon evolution subject, trashes the established Option, and free-plays a physical Sistermon Blanc from hand; structurally verifies Delay nesting, Main ordering, Security optional play, and mandatory placement.
 - Verification: focused suite — 5 passed after refreshing shared runtime data; shared intrinsic Delay, effective-name evolution filtering, hand/trash free play, optional refusal, field color waiver, Draw, and Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-100 — Hudie Net CafxE9 — 10/10
+
+- Catalog evidence: White cost-3 Hudie/CS Option; color requirements may be ignored while a CS Digimon/Tamer is on the field; Main draws 1 then places this Option in battle; a separate Main Delay may free-play one CS Tamer from hand; Security may free-play one level-3 CS Digimon from hand/trash then mandatorily places this card in battle.
+- Knowledge base: Q5388 defines “on the field” as battle area or breeding area; exact catalog and general Main Delay, free-play, level, zone, and Security rules otherwise control.
+- Defects corrected: authoritative shared IR omitted field-zone scope and made Security placement optional. It now matches the executable module; registration remains exclusively `registerIrCard("BT23-100", compiled)` with full coverage/no residuals.
+- Primitive trace: static waiver checks CS Digimon/Tamers across both field zones; ordinary Main draws then places the Option; the separately activatable intrinsic Main Delay trashes an established source and selects one hand CS Tamer for free play; Security unions hand/trash level-3 CS Digimon candidates, optionally plays one, and always places the Option.
+- Behavioral proof: the focused suite checks every catalog field/coverage; resolves Security with a real level-3 CS Huckmon in hand and observes both the free-played Digimon and physical Option in battle; structurally verifies field scope, ordinary Main, exact Delay Tamer filter, Security zones/level, optional play, and mandatory placement.
+- Verification: focused suite — 5 passed after refreshing shared runtime data; shared Main Delay, hand/trash free play, kind/trait/level filtering, field waiver, Draw, Security source movement, and mandatory placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-100 through BT23-102.
+BT23-101 through BT23-102.

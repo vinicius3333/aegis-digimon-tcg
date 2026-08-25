@@ -82527,6 +82527,7 @@
             "condition": {
               "kind": "youHave",
               "filter": {
+                "zone": ["battleArea", "breedingArea"],
                 "controllerDefault": "mine",
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }]
@@ -82578,7 +82579,7 @@
             "payCost": false,
             "optional": true
           },
-          { "kind": "PlaceInBattleAreaSelf", "optional": true }
+          { "kind": "PlaceInBattleAreaSelf" }
         ],
         "isSecurity": true
       }
