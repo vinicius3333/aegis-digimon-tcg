@@ -884,6 +884,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; with a real Violet, Ghostmon base, and Ghost/LIBERATOR hand card, pays Delay, evolves the exact Ghost for zero after the reduction, and observes the physical Option in trash; structurally verifies conjunction, optionality, Main sequencing, and Security routing.
 - Verification: focused suite — 5 passed after refreshing shared runtime data; shared intrinsic Delay, name-trigger filtering, conjunctive traits, reduced-cost evolution, realistic stack mutation, optional free play, mandatory placement, and ActivateMain mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-099 — The Sistermon Sisters Training Gym — 10/10
+
+- Catalog evidence: White cost-2 CS Option; color requirements may be ignored while a Huckmon-name Digimon is on the field; Main draws 1 then places this Option in battle; Your Turn when a friendly Digimon evolves into a Huckmon/Jesmon name may activate Delay to free-play one Sistermon-name card from hand/trash; Security may perform that play then mandatorily places this card in battle.
+- Knowledge base: Q5387 defines “on the field” as battle area or breeding area.
+- Defects corrected: authoritative shared IR omitted field-zone scope, detached the Sistermon play from a marker-style Delay grant, and made Security placement optional. It now mirrors the executable module; registration remains exclusively `registerIrCard("BT23-099", compiled)` with full coverage/no residuals.
+- Primitive trace: static waiver checks Huckmon effective names across both field zones; Main draws then places the Option; the evolution listener filters the exact Huckmon/Jesmon subject, pays established-card Delay, unions hand/trash Sistermon candidates, and optionally free-plays one; Security offers the same play and always places the physical Option.
+- Behavioral proof: the focused suite checks catalog/coverage and field scope; fires a real Huckmon evolution subject, trashes the established Option, and free-plays a physical Sistermon Blanc from hand; structurally verifies Delay nesting, Main ordering, Security optional play, and mandatory placement.
+- Verification: focused suite — 5 passed after refreshing shared runtime data; shared intrinsic Delay, effective-name evolution filtering, hand/trash free play, optional refusal, field color waiver, Draw, and Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-099 through BT23-102.
+BT23-100 through BT23-102.
