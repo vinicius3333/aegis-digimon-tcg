@@ -8,6 +8,7 @@ import "./BT9-006.js";
 import "./BT9-007.js";
 import "./BT9-008.js";
 import "./BT9-009.js";
+import "./BT9-010.js";
 import "./BT9-011.js";
 import "./BT9-012.js";
 import "./BT9-013.js";

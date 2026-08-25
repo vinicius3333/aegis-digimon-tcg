@@ -255,3 +255,32 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-009.
+
+## BT9-010 — Atamadekachimon — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red level-4 Digimon, play cost 5, 7000 DP, `Champion` form, `Data` attribute, `Dinosaur` type, common rarity, image identity, and four-copy limit were checked directly.
+2. **Effectless contract (1/1):** The catalog contains no main, inherited, or Security text; the direct compiled module therefore contains exactly an empty effect list, full coverage, and no residual clause.
+3. **Play cost (1/1):** A public play intent spends exactly 5 memory and moves Atamadekachimon from hand to the battle area.
+4. **No spurious behavior (1/1):** The completed play leaves no pending decision or unresolved effect, proving the empty IR invents no behavior.
+5. **Complete legal evolution stack (1/1):** Public intents build Koromon-to-Minidekachimon-to-Atamadekachimon in the breeding area rather than injecting a prebuilt level-3 source.
+6. **Evolution level and color (1/1):** The complete chain proves the printed red level-3 requirement, while a same-level blue source is rejected as an invalid evolution.
+7. **Evolution cost and stack preservation (1/1):** The final evolution spends exactly 2 memory and leaves Koromon and Minidekachimon in order beneath the Atamadekachimon top card.
+8. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT9-010` reports no rulings, errata, restrictions, or unresolved ambiguity.
+9. **Direct IR and registration (1/1):** `BT9-010.ts` registers executable behavior exactly once through `registerIrCard`, contains no `registerCard`, and the BT9 set index imports the module.
+10. **Reproducible verification (1/1):** The focused suite passed 4/4 and the shared helper regression passed 4/4; workspace typecheck, focused formatting, and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-010
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-010.ts
+rg -n 'BT9-010' apps/api/src/cards/BT9/index.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-010.test.ts src/cards/BT9/BT9-007.test.ts --reporter=dot
+pnpm typecheck
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-010.ts apps/api/src/cards/BT9/BT9-010.test.ts apps/api/src/cards/BT9/effectlessAudit.testkit.ts apps/api/src/cards/BT9/index.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-010.

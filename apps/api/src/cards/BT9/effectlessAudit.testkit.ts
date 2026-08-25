@@ -8,6 +8,7 @@ export function auditEffectlessDigimon({
   expected,
   compiled,
   validBase,
+  validEgg,
   invalidBase,
 }: {
   cardId: string;
@@ -18,6 +19,7 @@ export function auditEffectlessDigimon({
   };
   compiled: CompiledCard;
   validBase: string;
+  validEgg?: string;
   invalidBase: string;
 }): void {
   describe(`${cardId} ${String(expected.nameEn)}`, () => {
@@ -27,10 +29,31 @@ export function auditEffectlessDigimon({
     });
     it("digivolves through the printed recipe and pays its exact cost", async () => {
       const evolution = expected.evoCosts?.[0]!;
+      const baseEvolutionCost = validEgg === undefined ? 0 : getCardDefinition(validBase)?.evoCosts?.[0]?.memoryCost;
+      if (baseEvolutionCost === undefined) throw new Error(`${validBase} has no catalog evolution recipe`);
       const s = setupEngine({
-        0: { battleArea: [{ card: validBase, as: "base" }], hand: [{ card: cardId, as: "evolving" }] },
+        0:
+          validEgg === undefined
+            ? { battleArea: [{ card: validBase, as: "base" }], hand: [{ card: cardId, as: "evolving" }] }
+            : {
+                breeding: { card: validEgg, as: "base" },
+                hand: [
+                  { card: validBase, as: "legalBase" },
+                  { card: cardId, as: "evolving" },
+                ],
+              },
       });
-      s.state.memory = evolution.memoryCost;
+      s.state.memory = baseEvolutionCost + evolution.memoryCost;
+      if (validEgg !== undefined) {
+        expect(
+          s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: s.perm("base").permanentId,
+            instanceId: s.inst("legalBase").instanceId,
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.perm("base").topCard.instanceId === s.inst("legalBase").instanceId);
+      }
       expect(
         s.engine.applyIntent(0, {
           type: "digivolve",
@@ -40,6 +63,9 @@ export function auditEffectlessDigimon({
       ).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
       expect(s.state.memory).toBe(0);
+      if (validEgg !== undefined) {
+        expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([validEgg, validBase]);
+      }
     });
     it("plays for the printed cost and reaches the battle area without opening an effect", async () => {
       const playCost = expected.playCost!;
