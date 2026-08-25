@@ -80624,18 +80624,18 @@
               "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"], "playCostLte": 6 },
               "count": 1
             },
-            "to": "deckBottom"
-          },
-          {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "playcost",
-            "amount": 1,
-            "scaling": {
+            "playCostCeiling": {
+              "base": 6,
+              "raise": 1,
               "per": 1,
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "name" }] },
-              "unit": "digivolutionCards"
-            }
+              "filter": {
+                "controller": "mine",
+                "zone": "breeding",
+                "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "name" }]
+              },
+              "unit": "digivolutionCardsOfFiltered"
+            },
+            "to": "deckBottom"
           }
         ]
       },
@@ -80648,18 +80648,18 @@
               "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"], "playCostLte": 6 },
               "count": 1
             },
-            "to": "deckBottom"
-          },
-          {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "playcost",
-            "amount": 1,
-            "scaling": {
+            "playCostCeiling": {
+              "base": 6,
+              "raise": 1,
               "per": 1,
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "name" }] },
-              "unit": "digivolutionCards"
-            }
+              "filter": {
+                "controller": "mine",
+                "zone": "breeding",
+                "nameOrTrait": [{ "tokens": ["Mother Eater"], "match": "name" }]
+              },
+              "unit": "digivolutionCardsOfFiltered"
+            },
+            "to": "deckBottom"
           }
         ]
       },
@@ -80669,6 +80669,7 @@
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
+            "leaveCause": "otherThanYourEffect",
             "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
