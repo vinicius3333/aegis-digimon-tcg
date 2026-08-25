@@ -6,10 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  digivolutionRequirement: [
-    { level: 3, cost: 3, colors: ["Black", "Blue"], isAlternate: true },
-    { level: 3, traits: ["Cyborg", "Machine"], cost: 2, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ level: 3, traits: ["Cyborg", "Machine"], cost: 2, isAlternate: true }],
   effects: [
     {
       trigger: "WhenDigivolving",

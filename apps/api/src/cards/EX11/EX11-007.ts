@@ -1,121 +1,40 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+const grantTarget = {
+  filter: {
+    controller: "mine" as const,
+    kind: ["Digimon"],
+    nameOrTrait: [
+      { tokens: ["Tyrannomon"], match: "name" as const },
+      { tokens: ["Reptile", "Dinosaur"], match: "trait" as const },
+    ],
+  },
+  count: 1 as const,
+};
+
+// Both keywords belong to the same printed "1 of your Digimon" selection. Encode
+// Piercing as the additional keyword on the same action so target selection occurs once.
+const grantRaidAndPiercing = (): Action[] => [
+  {
+    kind: "GainKeyword",
+    target: grantTarget,
+    keyword: { keyword: "Raid", raw: "＜Raid＞" },
+    keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
+    duration: "forTheTurn",
+  },
+];
+
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenMoving",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Tyrannomon"],
-                  match: "name",
-                },
-                {
-                  tokens: ["Reptile", "Dinosaur"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
-          },
-          keyword: {
-            keyword: "Raid",
-            raw: "＜Raid＞",
-          },
-          duration: "forTheTurn",
-        },
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Tyrannomon"],
-                  match: "name",
-                },
-                {
-                  tokens: ["Reptile", "Dinosaur"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
-          },
-          keyword: {
-            keyword: "Piercing",
-            raw: "＜Piercing＞",
-          },
-          duration: "forTheTurn",
-        },
-      ],
+      actions: grantRaidAndPiercing(),
     },
     {
       trigger: "OnPlay",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Tyrannomon"],
-                  match: "name",
-                },
-                {
-                  tokens: ["Reptile", "Dinosaur"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
-          },
-          keyword: {
-            keyword: "Raid",
-            raw: "＜Raid＞",
-          },
-          duration: "forTheTurn",
-        },
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Tyrannomon"],
-                  match: "name",
-                },
-                {
-                  tokens: ["Reptile", "Dinosaur"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 1,
-          },
-          keyword: {
-            keyword: "Piercing",
-            raw: "＜Piercing＞",
-          },
-          duration: "forTheTurn",
-        },
-      ],
+      actions: grantRaidAndPiercing(),
     },
     {
       trigger: "AllTurns",

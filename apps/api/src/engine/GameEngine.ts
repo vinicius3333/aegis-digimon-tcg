@@ -284,6 +284,8 @@ interface ArmedSubTrigger {
 interface PooledRuleDeletion {
   trigger: TriggerInfo;
   ascensionCandidates: { instanceId: string; seat: Seat }[];
+  /** Token cards vanish on deletion, so retain their sources until this window flushes. */
+  transientCandidates: CardInstance[];
 }
 
 /**
@@ -322,7 +324,11 @@ function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDele
       },
     };
   }, {});
-  return { trigger: merged, ascensionCandidates: pool.flatMap((entry) => entry.ascensionCandidates) };
+  return {
+    trigger: merged,
+    ascensionCandidates: pool.flatMap((entry) => entry.ascensionCandidates),
+    transientCandidates: pool.flatMap((entry) => entry.transientCandidates),
+  };
 }
 
 export class GameEngine {
@@ -1883,7 +1889,16 @@ export class GameEngine {
       // Every deletion of ONE rule-check pass is simultaneous (§17-1-3), so its [On Deletion]
       // effects join the pass's single pool instead of opening a window per sweep (§15-4-3-3).
       if (this.ruleTriggerPool !== undefined) {
-        this.ruleTriggerPool.push({ trigger: { ...trigger }, ascensionCandidates: [] });
+        this.ruleTriggerPool.push({
+          trigger: { ...trigger },
+          ascensionCandidates: [],
+          // A deleted Token leaves the match instead of entering trash. Capture its live card
+          // instance before movement so its already-triggered [On Deletion] can still join the
+          // pooled post-fixpoint window (EX11-012 Q6514).
+          transientCandidates: this.instancesById(trigger.deletedInstanceIds ?? []).filter(
+            (instance) => definitionOf(instance).isToken === true,
+          ),
+        });
         return;
       }
       // A deletion caused during another effect only TRIGGERS [On Deletion] at that point.
@@ -1908,7 +1923,11 @@ export class GameEngine {
    * pooled rule-check window calls this directly: at that point the fixpoint has converged
    * and no card body is on the stack, so there is nothing left to defer behind.
    */
-  private async runTimingWindow(timing: EffectTiming, trigger: TriggerInfo): Promise<void> {
+  private async runTimingWindow(
+    timing: EffectTiming,
+    trigger: TriggerInfo,
+    transientCandidates: readonly CardInstance[] = [],
+  ): Promise<void> {
     const wasOutermostWindow = this.beginResolvingWindow();
     try {
       await this.recomputeContinuousEffects();
@@ -1926,6 +1945,22 @@ export class GameEngine {
               ]),
             )
           : undefined;
+      const listWindowCandidates =
+        phaseBoundarySourceLocations === undefined && transientCandidates.length === 0
+          ? undefined
+          : (): CardInstance[] => {
+              const live =
+                phaseBoundarySourceLocations === undefined
+                  ? this.listCandidateInstances()
+                  : this.instancesById([...phaseBoundarySourceLocations.keys()]).filter(
+                      (instance) =>
+                        this.candidateSourceLocation(instance.instanceId) ===
+                        phaseBoundarySourceLocations.get(instance.instanceId),
+                    );
+              const candidates = new Map(live.map((instance) => [instance.instanceId, instance] as const));
+              for (const instance of transientCandidates) candidates.set(instance.instanceId, instance);
+              return [...candidates.values()];
+            };
       // GRANTED timed triggers fired at the same physical point as the matching window, and
       // therefore simultaneous with the printed effects it collects:
       //   - "[Start of Your Main Phase]" granted onto a permanent (BT23-056); the per-install
@@ -1943,17 +1978,7 @@ export class GameEngine {
           await runTiming(
             timing,
             this.effectEnvironment(trigger),
-            this.resolutionDeps(
-              phaseBoundarySourceLocations === undefined
-                ? undefined
-                : () =>
-                    this.instancesById([...phaseBoundarySourceLocations.keys()]).filter(
-                      (instance) =>
-                        this.candidateSourceLocation(instance.instanceId) ===
-                        phaseBoundarySourceLocations.get(instance.instanceId),
-                    ),
-              { outermost: wasOutermostWindow },
-            ),
+            this.resolutionDeps(listWindowCandidates, { outermost: wasOutermostWindow }),
           );
           if (wasOutermostWindow) {
             await this.flushDeferredTimingWindows();
@@ -1995,7 +2020,11 @@ export class GameEngine {
     // §15-4-3-3). Without this each sweep would resolve its own [On Deletion] effects
     // before the next sweep even ran.
     if (this.ruleTriggerPool !== undefined) {
-      this.ruleTriggerPool.push({ trigger: { ...trigger }, ascensionCandidates: [...ascensionCandidates] });
+      this.ruleTriggerPool.push({
+        trigger: { ...trigger },
+        ascensionCandidates: [...ascensionCandidates],
+        transientCandidates: [],
+      });
       return;
     }
     const ascend = async ({ instanceId, seat }: { instanceId: string; seat: Seat }): Promise<void> => {
@@ -3832,7 +3861,7 @@ export class GameEngine {
       } else {
         const merged = mergeRuleDeletions(pool);
         await this.resolveDeletionReactions(merged.trigger, merged.ascensionCandidates, (deletionTrigger) =>
-          this.runTimingWindow(EffectTiming.OnDestroyedAnyone, deletionTrigger),
+          this.runTimingWindow(EffectTiming.OnDestroyedAnyone, deletionTrigger, merged.transientCandidates),
         );
       }
     } finally {

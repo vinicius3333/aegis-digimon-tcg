@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-057.js";
 
 describe("EX11-057 Suzune Kazuki", () => {
+  it("preserves the printed dual-color Tamer and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-057")).toMatchObject({
+      nameEn: "Suzune Kazuki",
+      colors: ["Blue", "Yellow"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["LIBERATOR"],
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("gains memory at the start of your main phase when the opponent has a Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX11-057", as: "suzune" }] },
@@ -13,6 +25,7 @@ describe("EX11-057 Suzune Kazuki", () => {
     s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("suzune"));
     expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
   });
 
   it("asks before suspending when an opponent Digimon loses a digivolution card", async () => {
@@ -33,6 +46,7 @@ describe("EX11-057 Suzune Kazuki", () => {
 
     expect(s.perm("suzune").isSuspended).toBe(true);
     expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
   });
 
   it("leaves Suzune unsuspended and gains no memory when the suspend cost is declined", async () => {
@@ -54,6 +68,7 @@ describe("EX11-057 Suzune Kazuki", () => {
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
     expect(s.perm("suzune").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
   });
 
   it("trashes one freely chosen source per Ice-Snow Digimon across opposing stacks", async () => {
@@ -81,6 +96,7 @@ describe("EX11-057 Suzune Kazuki", () => {
 
     expect(s.perm("first").stack).toHaveLength(0);
     expect(s.perm("second").stack).toHaveLength(0);
+    assertNoLoudGap(s);
   });
 
   it("publishes exclusive full IR with pooled scaling and the paid opponent-source watcher", () => {

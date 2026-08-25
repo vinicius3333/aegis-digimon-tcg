@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Inherited: whenTrashedFromDigivolutionCards sourceFilter restricts to host Digimon
 //   with Mineral or Rock trait (the Digimon whose digivolution stack this card was in).
 const compiled: CompiledCard = {
-  digivolutionRequirement: [{ level: 2, cost: 0, isAlternate: true }],
+  digivolutionRequirement: [],
   effects: [
     {
       trigger: "WhenMoving",
@@ -74,8 +74,9 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "onDigivolutionCardDiscarded",
-          sourceFilter: {
+          event: "onDigivolutionCardsDiscardedBatch",
+          sourceFilter: { isSelfRef: true },
+          hostFilter: {
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [

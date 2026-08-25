@@ -1,11 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-058.js";
 
 describe("EX11-058 Yao Qinglan", () => {
+  it("preserves the printed Tamer and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-058")).toMatchObject({
+      nameEn: "Yao Qinglan",
+      colors: ["Blue"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      types: ["LIBERATOR"],
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("places an Aqua or Sea Animal card under a matching Digimon and gains memory", async () => {
     const s = setupEngine(
       {
@@ -23,6 +35,7 @@ describe("EX11-058 Yao Qinglan", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("yao"));
     expect(s.state.memory).toBe(1);
     expect(s.perm("host").stack.some((card) => card.cardId === "BT23-023")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("suspends to draw when an Aqua or Sea Animal Digimon is played", async () => {
@@ -46,6 +59,7 @@ describe("EX11-058 Yao Qinglan", () => {
 
     expect(s.perm("yao").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.length).toBe(handBefore + 1);
+    assertNoLoudGap(s);
   });
 
   it("leaves Yao unsuspended and draws nothing when the suspend cost is declined", async () => {
@@ -70,6 +84,7 @@ describe("EX11-058 Yao Qinglan", () => {
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
     expect(s.perm("yao").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.length).toBe(handBefore);
+    assertNoLoudGap(s);
   });
 
   it("locks an opponent Digimon only when the triggering play carries Decode provenance (Q5911-Q5912)", async () => {
@@ -94,6 +109,7 @@ describe("EX11-058 Yao Qinglan", () => {
     });
 
     expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("publishes full IR with Aqua-or-Sea-Animal filters and Decode only on the play watcher", () => {

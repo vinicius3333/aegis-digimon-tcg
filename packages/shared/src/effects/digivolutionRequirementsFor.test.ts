@@ -8,6 +8,45 @@ import { digiXrosRequirementFor, digiXrosTrashNameAllowanceFor } from "./data.js
 // exist via ALTERNATE_DIGIVOLUTION_OVERRIDES or the generated fallback map. Every BT26 card that
 // prints such a header must resolve to a non-empty requirement list.
 describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () => {
+  it("preserves EX11-022's yellow/purple base-color gate", () => {
+    expect(digivolutionRequirementsFor("EX11-022")).toEqual([
+      { level: 4, traits: ["Puppet"], cost: 3, isAlternate: true, baseColors: ["Yellow", "Purple"] },
+    ]);
+  });
+
+  it("does not expose EX11-024's ordinary EvoCost as an alternate requirement", () => {
+    expect(digivolutionRequirementsFor("EX11-024")).toEqual([]);
+  });
+
+  it("preserves EX11-026's unrestricted level 2 alternate route", () => {
+    expect(digivolutionRequirementsFor("EX11-026")).toEqual([{ level: 2, cost: 0, isAlternate: true }]);
+  });
+
+  it("does not expose EX11-028's ordinary EvoCost as an alternate requirement", () => {
+    expect(digivolutionRequirementsFor("EX11-028")).toEqual([]);
+  });
+
+  it("keeps only EX11-029's named Maquinamon alternate route", () => {
+    expect(digivolutionRequirementsFor("EX11-029")).toEqual([{ names: ["Maquinamon"], cost: 2, isAlternate: true }]);
+  });
+
+  it("keeps only EX11-030's Royal Base alternate route", () => {
+    expect(digivolutionRequirementsFor("EX11-030")).toEqual([
+      { level: 3, traits: ["Royal Base"], cost: 2, isAlternate: true },
+    ]);
+  });
+
+  it("keeps Shoto Kazama as EX11-074's board gate rather than an evolution base", () => {
+    expect(digivolutionRequirementsFor("EX11-074")).toEqual([
+      {
+        namesExact: ["GrandGalemon"],
+        cost: 6,
+        isAlternate: true,
+        controllerControls: { kind: ["Tamer"], namesExact: ["Shoto Kazama"], min: 1 },
+      },
+    ]);
+  });
+
   it("keeps BT24-059's Aqua and Sea Animal substring route alongside its TS route", () => {
     expect(digivolutionRequirementsFor("BT24-059")).toEqual([
       { level: 4, traitSubstrings: ["Aqua", "Sea Animal"], cost: 3, isAlternate: true },

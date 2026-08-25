@@ -6,19 +6,17 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  digivolutionRequirement: [
-    { level: 4, cost: 3, isAlternate: true },
-    { level: 4, texts: ["Maquinamon"], cost: 3, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ level: 4, texts: ["Maquinamon"], cost: 3, isAlternate: true }],
   effects: [
     {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "PlayWithoutCost",
+          kind: "Link",
           target: {
             filter: {
-              controller: "mine",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
               nameOrTrait: [
                 {
                   tokens: ["Maquinamon"],
@@ -29,6 +27,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           from: ["hand", "digivolutionCards"],
+          recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           payCost: false,
           optional: true,
         },
@@ -38,10 +37,11 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "PlayWithoutCost",
+          kind: "Link",
           target: {
             filter: {
-              controller: "mine",
+              controllerDefault: "mine",
+              kind: ["Digimon"],
               nameOrTrait: [
                 {
                   tokens: ["Maquinamon"],
@@ -52,6 +52,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           from: ["hand", "digivolutionCards"],
+          recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           payCost: false,
           optional: true,
         },
@@ -63,6 +64,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Delete",

@@ -6,13 +6,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  digivolutionRequirement: [
-    {
-      level: 3,
-      cost: 2,
-      isAlternate: true,
-    },
-  ],
   effects: [
     {
       trigger: "OnPlay",
@@ -65,7 +58,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Shoto Kazama"],
-                      match: "trait",
+                      match: "name",
                     },
                   ],
                 },
@@ -78,6 +71,7 @@ const compiled: CompiledCard = {
                 filter: {
                   controllerDefault: "mine",
                   kind: ["Tamer"],
+                  countMax: 1,
                 },
                 raw: "you have 1 or fewer Tamers",
               },

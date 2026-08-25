@@ -1,8 +1,24 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX11-053.js";
 
 describe("EX11-053 Omekamon", () => {
+  it("preserves the printed card and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-053")).toMatchObject({
+      nameEn: "Omekamon",
+      colors: ["White"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      evoCosts: [],
+      types: ["Puppet", "X Antibody", "LIBERATOR"],
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("places a Royal Knight under King Drasil", async () => {
     const s = setupEngine(
       {
@@ -20,6 +36,8 @@ describe("EX11-053 Omekamon", () => {
     });
     await settle(() => s.state.players[0]!.breeding?.stack.some((card) => card.cardId === "AD1-008") === true, 600);
     expect(s.state.players[0]!.breeding?.stack.some((card) => card.cardId === "AD1-008")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("plays Omnimon (X Antibody) at 1 security and places deleted Omekamon under it (Q5907)", async () => {
@@ -33,14 +51,13 @@ describe("EX11-053 Omekamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await (
-      s.engine as unknown as { primitives: { deletePermanent(ids: string[], cause?: string): Promise<number> } }
-    ).primitives.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-086"));
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-086");
     expect(played?.stack.some((card) => card.instanceId === s.inst("omekamon").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("omekamon").instanceId)).toBe(false);
+    assertNoLoudGap(s);
   });
 
   it("keeps Omnimon (X Antibody) in hand above the printed security threshold", async () => {
@@ -54,12 +71,11 @@ describe("EX11-053 Omekamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await (
-      s.engine as unknown as { primitives: { deletePermanent(ids: string[], cause?: string): Promise<number> } }
-    ).primitives.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
     await settle();
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("omnimonX").instanceId)).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("publishes full compiled coverage, exact host narrowing, and the X Antibody rule name", () => {
@@ -87,5 +103,14 @@ describe("EX11-053 Omekamon", () => {
         }),
       ]),
     );
+  });
+
+  it("is also treated as X Antibody while on the field", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX11-053", as: "omekamon" }] } });
+    await s.ready();
+    expect(observe(s.engine).effectiveNames(s.perm("omekamon"))).toEqual(
+      expect.arrayContaining(["omekamon", "x antibody"]),
+    );
+    assertNoLoudGap(s);
   });
 });

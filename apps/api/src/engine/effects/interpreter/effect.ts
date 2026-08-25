@@ -413,6 +413,35 @@ export function readsSelfKeyword(value: unknown): boolean {
 }
 
 /**
+ * Blanket or source-kind effect immunity must exist before opponent continuous effects resolve
+ * their targets. Otherwise a board enumerated source-first can install an aura restriction before
+ * the recipient's later static immunity is visible, making continuous results depend on seat/card
+ * order (EX11-011 Q5799). Run these providers one tier before ordinary continuous effects.
+ */
+export function providesEffectImmunity(value: unknown): boolean {
+  if (value === null || typeof value !== "object") return false;
+  if (Array.isArray(value)) return value.some(providesEffectImmunity);
+  const record = value as Record<string, unknown>;
+  if (record.kind === "GrantImmunity") return true;
+  if (record.kind === "Restrict" && record.restriction === "beAffected") return true;
+  if (record.kind === "GrantStatic") {
+    if (
+      record.grant === "immuneToOpponentEffects" ||
+      record.grant === "immuneToOpponentDigimonEffects" ||
+      record.grant === "immuneToOpponentOptionEffects"
+    ) {
+      return true;
+    }
+    const grant = record.grant;
+    if (grant !== null && typeof grant === "object") {
+      const objectGrant = grant as Record<string, unknown>;
+      if (objectGrant.immunity === true || objectGrant.immuneToOpponentEffects === true) return true;
+    }
+  }
+  return Object.values(record).some(providesEffectImmunity);
+}
+
+/**
  * (`(!yourTurn || IsOwnerTurn) && (!opponentTurn || IsOpponentTurn)`). A `[Your Turn]` /
  * StartOf-Your / EndOf-Your effect may fire only while its owner is the turn player; the
  * `[Opponent's Turn]` variants only on the opponent's turn. AllTurns / Static / Rule have no

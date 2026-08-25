@@ -122,6 +122,8 @@ export interface SecurityManipulationAction extends ActionBase {
   chooseFromSecurity?: boolean;
   /** Narrows the selectable cards for `chooseFromSecurity`. */
   selectionFilter?: Filter;
+  /** For toHand: take the first face-down card scanning from the requested edge. */
+  faceDownOnly?: boolean;
   /**
    * For placeAsSecurity only: place FACE UP (BT25-102). A face-up security card stays revealed
    * but otherwise behaves normally, and a shuffle re-hides it (KB Q6484-6487). Never set for

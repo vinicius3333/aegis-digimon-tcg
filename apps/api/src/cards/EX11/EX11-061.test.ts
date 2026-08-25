@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-061.js";
 
 describe("EX11-061 Mirai Kinosaki", () => {
+  it("preserves the printed dual-color Tamer and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-061")).toMatchObject({
+      nameEn: "Mirai Kinosaki",
+      colors: ["Yellow", "Purple"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["LIBERATOR"],
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("gains memory at the start of the main phase when the opponent has a Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX11-061", as: "mirai" }] },
@@ -13,6 +25,7 @@ describe("EX11-061 Mirai Kinosaki", () => {
     s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("mirai"));
     expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
   });
 
   it("plays a level 3 Puppet after a Puppet digivolution and deletes exactly it at turn end (Q5915/Q5916)", async () => {
@@ -54,6 +67,7 @@ describe("EX11-061 Mirai Kinosaki", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX11-020")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX11-021")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("publishes full exclusive IR with the delayed delete inside the digivolve watcher", () => {

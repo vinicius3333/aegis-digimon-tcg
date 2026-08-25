@@ -28,9 +28,10 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
               digivolutionCards: "hasAny",
             },
-            count: 1,
+            count: "all",
           },
           amount: 2,
+          scope: "acrossDigimon",
         },
         {
           kind: "SecurityManipulation",
@@ -60,9 +61,10 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
               digivolutionCards: "hasAny",
             },
-            count: 1,
+            count: "all",
           },
           amount: 2,
+          scope: "acrossDigimon",
         },
         {
           kind: "SecurityManipulation",
@@ -88,7 +90,7 @@ const compiled: CompiledCard = {
           kind: "Aura",
           target: {
             filter: {
-              controllerDefault: "mine",
+              isSelfRef: true,
               kind: ["Digimon"],
               nameOrTrait: [
                 {
@@ -98,6 +100,7 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            isSelf: true,
           },
           effect: {
             kind: "keyword",
@@ -120,7 +123,7 @@ const compiled: CompiledCard = {
           kind: "Aura",
           target: {
             filter: {
-              controllerDefault: "mine",
+              isSelfRef: true,
               kind: ["Digimon"],
               nameOrTrait: [
                 {
@@ -130,6 +133,7 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            isSelf: true,
           },
           effect: {
             kind: "keyword",

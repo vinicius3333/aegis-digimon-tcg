@@ -1,13 +1,25 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, effectiveStaticNames, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX11-066.js";
 import "../BT11/BT11-070.js";
 import "../P/P-094.js";
 
 describe("EX11-066 Xeno", () => {
+  it("preserves the printed Tamer and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-066")).toMatchObject({
+      nameEn: "Xeno",
+      colors: ["Black"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["LIBERATOR"],
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("is also treated as Zenith by its printed Rule in every zone", async () => {
     expect(effectiveStaticNames(getCardDefinition("EX11-066")!)).toEqual(["Xeno", "Zenith"]);
     expect(compiled.effects).toContainEqual({
@@ -36,6 +48,7 @@ describe("EX11-066 Xeno", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("xeno"));
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "P-244")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("gains the memory without asking, since only the trash cost is optional", async () => {
@@ -48,6 +61,7 @@ describe("EX11-066 Xeno", () => {
     expect(s.state.memory).toBe(1);
     const optionalPrompts = s.decisions.filter((d) => d.req.kind === "optional");
     expect(optionalPrompts).toHaveLength(1);
+    assertNoLoudGap(s);
   });
 
   it("asks before suspending for the [All Turns] clause and skips it when declined", async () => {
@@ -71,6 +85,7 @@ describe("EX11-066 Xeno", () => {
     expect(s.perm("xeno").isSuspended).toBe(false);
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.perm("vemmon").stack).toHaveLength(0);
+    assertNoLoudGap(s);
   });
 
   it("suspends and places the revealed Vemmon cards when accepted", async () => {
@@ -95,6 +110,7 @@ describe("EX11-066 Xeno", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(Array.from(s.perm("vemmon").stack, (card) => card.cardId)).toContain("BT11-061");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("lets the controller order two copies that trigger off the same digivolution", async () => {

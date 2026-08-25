@@ -14,48 +14,19 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - The "Then, choose ... and delete all other Digimon" clause is an unconditional consequence
 //   of activating the effect (only the preceding Suspend is "may"); removed the stray
 //   `optional: true` from the Delete action.
+// - The opponent-turn attack rule uses the enforced attackOnlySuspendedDigimon aura. Q5797 says
+//   it overrides a positive "can attack unsuspended" permission; Q5798 limits it to declaration;
+//   Q5799 exempts Digimon unaffected by this source's effects.
+// - Security Attack +1 and Fortitude are printed main keywords. This card has no inherited text.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          keyword: {
-            keyword: "SecurityAttack",
-            amount: 1,
-          },
-          duration: "permanent",
-        },
+      actions: [],
+      keywords: [
+        { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+        { keyword: "Fortitude", raw: "＜Fortitude＞" },
       ],
-      keywords: [],
-    },
-    {
-      trigger: "Static",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          keyword: {
-            keyword: "Fortitude",
-          },
-          duration: "permanent",
-        },
-      ],
-      keywords: [],
     },
     {
       trigger: "OnPlay",
@@ -162,31 +133,10 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "Static",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          keyword: {
-            keyword: "SecurityAttack",
-            amount: 1,
-          },
-          duration: "permanent",
-        },
-      ],
-      isInherited: true,
-    },
-    {
       trigger: "OpponentsTurn",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "Aura",
           target: {
             filter: {
               controller: "opponent",
@@ -194,9 +144,11 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
-          grant: "effect",
-          tokens: ["can only attack suspended Digimon"],
-          condition: {
+          effect: {
+            kind: "restriction",
+            restriction: "attackOnlySuspendedDigimon",
+          },
+          while: {
             kind: "selfIsSuspended",
             raw: "this Digimon is suspended",
           },

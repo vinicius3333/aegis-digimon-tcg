@@ -1,15 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-070.js";
 
 describe("EX11-070 Unchained", () => {
+  it("preserves the printed Tamer, inherited text, and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-070")).toMatchObject({
+      nameEn: "Unchained",
+      colors: ["White"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["LIBERATOR"],
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("sets memory to 3 at the start of your turn from 2 or less", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX11-070", as: "unchained" }] } });
     s.state.memory = 2;
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("unchained"));
     expect(s.state.memory).toBe(3);
+    assertNoLoudGap(s);
   });
 
   it("Mind Links without requiring the preceding DNA digivolution (Q5940, Q5942)", async () => {
@@ -29,6 +41,7 @@ describe("EX11-070 Unchained", () => {
 
     expect(s.perm("maquinamonText").stack.map(({ cardId }) => cardId)).toContain("EX11-070");
     expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX11-070")).toHaveLength(0);
+    assertNoLoudGap(s);
   });
 
   it("DNA digivolves exactly 2 Digimon into ExMaquinamon from hand before Mind Link", async () => {
@@ -54,6 +67,7 @@ describe("EX11-070 Unchained", () => {
       expect.arrayContaining(["EX11-034", "EX11-029"]),
     );
     expect(s.state.memory).toBe(2);
+    assertNoLoudGap(s);
   });
 
   it("clamps the inherited host after summed DP changes and blocks only opposing stack trash (Q5941-Q5943)", async () => {
@@ -81,6 +95,7 @@ describe("EX11-070 Unchained", () => {
       0,
     );
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX11-070");
+    assertNoLoudGap(s);
   });
 
   it("plays inherited Unchained from its own stack at end of all turns (Q6523)", async () => {
@@ -97,6 +112,7 @@ describe("EX11-070 Unchained", () => {
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-070")).toBe(true);
     expect(s.perm("host").stack).toHaveLength(0);
+    assertNoLoudGap(s);
   });
 
   it("publishes full exclusive IR for every printed clause", () => {

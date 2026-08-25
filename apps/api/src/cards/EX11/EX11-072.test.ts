@@ -1,13 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-072.js";
 
 describe("EX11-072 Unique Emblem: Guardian Vortex", () => {
+  it("preserves the printed Option and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-072")).toMatchObject({
+      nameEn: "Unique Emblem: Guardian Vortex",
+      colors: ["Green"],
+      kinds: ["Option"],
+      playCost: 3,
+      types: ["Vortex Warriors", "LIBERATOR"],
+      securityEffectText: "[Security] Activate this card's [Main] effects.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("requires both Bird Dragon and LIBERATOR on the Delay digivolution target", () => {
     const delay = compiled.effects?.find(
       (effect) => effect.trigger === "Main" && effect.keywords?.some(({ keyword }) => keyword === "Delay"),
@@ -34,6 +46,7 @@ describe("EX11-072 Unique Emblem: Guardian Vortex", () => {
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(
       expect.arrayContaining(["EX11-026", "EX11-072"]),
     );
+    assertNoLoudGap(s);
   });
 
   it("arms Delay when Shoto suspends, then trashes the emblem to evolve a legal stack for cost 0", async () => {
@@ -70,6 +83,7 @@ describe("EX11-072 Unique Emblem: Guardian Vortex", () => {
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX11-072");
+    assertNoLoudGap(s);
   });
 
   it("publishes a separate Delay grant and paid reduced-cost payload", () => {

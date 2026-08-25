@@ -6,10 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  digivolutionRequirement: [
-    { level: 5, cost: 4, colors: ["Black", "Blue"], isAlternate: true },
-    { level: 5, traits: ["Cyborg", "Machine"], cost: 3, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ level: 5, traits: ["Cyborg", "Machine"], cost: 3, isAlternate: true }],
   effects: [
     {
       trigger: "EndOfOpponentsTurn",
@@ -110,11 +107,19 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "SecurityManipulation",
-          op: "placeFromSourceToSecurity",
-          source: "selfTopDigivolutionCard",
-          position: "bottom",
-          faceUp: true,
+          kind: "SubTrigger",
+          event: "whenCheckedFaceUpSecurity",
+          sourceFilter: { controllerDefault: "mine" },
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "addBottom",
+              controller: "mine",
+              source: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              faceUp: true,
+              optional: true,
+            },
+          ],
         },
       ],
     },

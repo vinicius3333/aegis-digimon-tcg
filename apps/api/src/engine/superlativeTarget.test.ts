@@ -180,4 +180,18 @@ describe("superlative target filter — lowestPlayCost / highestPlayCost", () =>
 
     expect(resolvedIds).toEqual([]);
   });
+
+  it("treats non-positive synthetic costs as no play cost (EX11-011 Q5796)", async () => {
+    const zeroCostSentinel = makePermanent("NC0");
+    const negativeCostSentinel = makePermanent("NCN");
+    const resolvedIds: string[] = [];
+    const ctx = makeContext({
+      opponentBattleArea: [zeroCostSentinel, negativeCostSentinel],
+      costByCardId: { NC0: 0, NCN: -1 },
+      resolvedIds,
+    });
+    await resolve(ctx, deleteSuperlativeCompiled("highestPlayCost", 1));
+
+    expect(resolvedIds).toEqual([]);
+  });
 });

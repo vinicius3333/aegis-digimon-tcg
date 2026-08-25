@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-065.js";
 
 describe("EX11-065 Close", () => {
+  it("preserves the printed Tamer and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-065")).toMatchObject({
+      nameEn: "Close",
+      colors: ["Black"],
+      kinds: ["Tamer"],
+      playCost: 3,
+      types: ["LIBERATOR"],
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("trashes a Mineral card from a digivolution stack to gain memory", async () => {
     const s = setupEngine(
       {
@@ -22,6 +34,7 @@ describe("EX11-065 Close", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-051")).toBe(true);
     expect(s.perm("host").stack).toHaveLength(0);
+    assertNoLoudGap(s);
   });
 
   it("suspends to place a Mineral or Rock card under a played Mineral Digimon", async () => {
@@ -44,6 +57,7 @@ describe("EX11-065 Close", () => {
 
     expect(s.perm("close").isSuspended).toBe(true);
     expect(s.perm("gotsumon").stack.some((card) => card.cardId === "EX8-051")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("leaves Close unsuspended and places nothing when the suspend cost is declined", async () => {
@@ -68,6 +82,7 @@ describe("EX11-065 Close", () => {
     expect(s.perm("close").isSuspended).toBe(false);
     expect(s.perm("gotsumon").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX8-051")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("places from trash under the Mineral Digimon that just digivolved", async () => {
@@ -98,6 +113,7 @@ describe("EX11-065 Close", () => {
 
     expect(s.perm("base").topCard?.cardId).toBe("BT10-062");
     expect(s.perm("base").stack.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("publishes full exclusive IR for both trait-gated trigger events", () => {

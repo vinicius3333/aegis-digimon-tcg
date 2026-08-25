@@ -1,15 +1,32 @@
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import "./EX11-045.js";
+import "../index.js";
+
+const cardId = "EX11-045";
 
 describe("EX11-045 Metatromon", () => {
-  it("preserves both evolution requirements and event-scoped inherited deletion", () => {
-    const compiled = runtimeCompiledCard("EX11-045")!;
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 5, cost: 4, isAlternate: true },
-      { level: 5, texts: ["Maquinamon"], cost: 3, isAlternate: true },
-    ]);
+  it("preserves printed stats, text evolution, Blocker, and event-scoped inherited deletion", () => {
+    expect(getCardDefinition(cardId)).toMatchObject({
+      nameEn: "Metatromon",
+      colors: ["Black"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [{ color: "Black", level: 5, memoryCost: 4 }],
+      types: ["Machine", "LIBERATOR"],
+    });
+    const compiled = runtimeCompiledCard(cardId)!;
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, texts: ["Maquinamon"], cost: 3, isAlternate: true }]);
+    expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
+    expect(compiled.effects.find(({ trigger }) => trigger === "Static")?.actions[0]).toMatchObject({
+      kind: "GainKeyword",
+      keyword: { keyword: "Blocker" },
+    });
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
       const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
       expect(effect).toMatchObject({
@@ -31,5 +48,40 @@ describe("EX11-045 Metatromon", () => {
       kind: "Delete",
       target: { filter: { superlative: "lowestPlayCost" } },
     });
+  });
+
+  it("de-digivolves 2 and restricts an opposing Digimon from evolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source" }] },
+        1: { battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-009", "AD1-001", "EX11-042"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    const target = s.perm("target");
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(target.stack).toHaveLength(1);
+    expect(target.topCard.cardId).toBe("AD1-001");
+    assertNoLoudGap(s);
+  });
+
+  it("free-evolves another Digimon into a green Maquinamon-text card at turn end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source" },
+            { card: "EX11-040", as: "other" },
+          ],
+          hand: [{ card: "EX11-033", as: "maneuvermon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("source"));
+    expect(s.perm("other").topCard.cardId).toBe("EX11-033");
+    expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
   });
 });
