@@ -560,6 +560,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; trashes exactly one matching card, preserves a plain peer, and gains exactly 1 memory; proves a nonmatching-only hand changes neither hand nor memory; attacks with a realistic Bakemon-over-Dracmon stack, evolves it into trash Matadormon for exactly 3 memory, and preserves the full stack; and performs the off-color level-2 CS alternate evolution.
 - Verification: focused suite — 7 passed; shared filtered hand cost, cost abort, memory, inherited attack gathering, trash evolution, paid evolution, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-063 — Sangloupmon — 10/10
+
+- Catalog evidence: Purple level 4, play cost 4, 4000 DP, standard purple-level-3 evolution for 2 plus alternate level-3 CS evolution for 2; form `Champion`, attribute `Virus`, types `Dark Animal` and `CS`; When Attacking may evolve itself into an Undead or CS Digimon from trash, paying its cost; inherited When Attacking once per turn may evolve one friendly Digimon into an Undead or Dark Animal Digimon from trash, paying its cost.
+- Knowledge base: Q5332 and Q5333 establish snapshot trigger gathering: neither Sangloupmon's newly acquired inherited When Attacking effect nor one acquired after Dracmon evolves the attacker can activate retroactively in the same attack window.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-063", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, independent direct-trait branches, paid trash-evolution, and alternate-evolution evidence without changing execution.
+- Primitive trace: the direct attack effect binds only its source and filters trash by the Undead/CS union; the inherited physical-source once-per-turn effect may bind any friendly Digimon and filters by Undead/Dark Animal; both run ordinary evolution legality/cost from trash, while the attack timing's gathered-effect snapshot excludes effects newly inherited during their resolution.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; evolves attacking Sangloupmon into trash Matadormon through the Undead branch and independently into LadyDevimon through the CS-only branch, paying exactly 3 in each case; verifies the inherited target/trait/frequency structure; and accepts off-color level-3 CS evolution while rejecting a non-CS peer.
+- Verification: focused suite — 6 passed; shared attack-trigger snapshot, direct/inherited source binding, trash evolution, paid evolution, trait unions, frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-063 through BT23-102.
+BT23-064 through BT23-102.
