@@ -147,4 +147,14 @@ describe("digivolution matching (static-data half)", () => {
       cost: 3,
     });
   });
+
+  it("enforces minimum base play cost on BT20-101's alternate evolution route", () => {
+    expect(matchingAlternateDigivolutionRequirement("BT20-101", "EX11-035")).toMatchObject({
+      level: 6,
+      traits: ["Vortex Warriors"],
+      basePlayCostMin: 10,
+      cost: 1,
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT20-101", "BT20-101")).toBeUndefined();
+  });
 });

@@ -64271,7 +64271,9 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 6, "traits": ["Vortex Warriors"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 6, "traits": ["Vortex Warriors"], "basePlayCostMin": 10, "cost": 1, "isAlternate": true }
+    ]
   },
   "BT20-102": {
     "effects": [

@@ -1199,3 +1199,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-100.test.ts`).
+
+## BT20-101 — Zephagamon
+
+- Catalog contract: green level 6 Data Magic Knight/Vortex Warriors/LIBERATOR/Bird Dragon ACE, play cost 8/13000 DP, green level-5 evolution cost 5 and alternate cost 1 from a play-cost-10-or-higher level-6 Vortex Warriors; Blast Digivolve, Piercing, Vortex, Blocker; all turns once per turn on any Digimon suspension may unsuspend; On Play/When Digivolving may suspend any Digimon, then may bottom-deck one opposing suspended Digimon per two suspended Digimon; Overflow -4.
+- Knowledge base: Q4415 confirms either player's suspension triggers the watcher; Q4416 confirms either player's Digimon may be selected by the entry suspension.
+- Implementation evidence: audit added a reusable minimum-base-play-cost evolution prerequisite and enforced 10 on both direct and catalog IR; previously any level-6 Vortex Warriors, including this cost-8 printing, qualified. All keywords, any-controller filters, once frequency, scaling, duration, ACE, and Overflow are direct. Registration is exclusively `registerIrCard`.
+- Peer/stack evidence: EX11-035 (cost 11) qualifies for cost 1 while BT20-101 (cost 8) does not; both-player suspended populations drive the return count and only opposing suspended Digimon can be returned.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-101.test.ts` — 3 passed; `pnpm --filter @aegis/api exec vitest run src/engine/cards/cardData.test.ts -t 'minimum base play cost'` — 1 passed, 13 skipped.
+- Clause scores: stats/ACE/Overflow/ordinary route 2/2; exact alternate play-cost/level/trait gate 2/2; four live keywords 2/2; any-controller suspension/once unsuspend Q4415 2/2; dual entry suspension/scaled opponent return Q4416 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-101.test.ts`).
