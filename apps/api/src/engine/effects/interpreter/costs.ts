@@ -14,7 +14,8 @@ import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 // ---------------------------------------------------------------------------
 
 function placeCostHostCandidates(ctx: EffectContext, host: Target): Permanent[] {
-  if (host.filter.zone !== "breeding" && host.filter.zone !== "breedingArea") {
+  const zone = host.filter.zone as string | readonly string[] | undefined;
+  if (zone !== "breeding" && zone !== "breedingArea") {
     return candidatePermanents(ctx, host);
   }
   const { zone: _zone, ...filter } = host.filter;
