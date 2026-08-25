@@ -202,9 +202,14 @@ This ledger records a fresh, ascending-ID revalidation against the committed cat
 - Behavioral proof: isolated `BT13-023.test.ts` passed 3 tests: exact full-coverage IR; a real inherited attack that removes only the opponent's bottom source to that owner's trash while preserving the top source and the attacking host's stack; and a real effect-deletion attempt where Jellymon's controller accepts Evade, Jellymon suspends, the deletion count is zero, and it remains in play. Reverting Evade installation, decision ownership/cost, inherited anchoring, attack timing, opponent filter, bottom direction, amount, or trash routing makes a focused observable assertion fail.
 - Revalidation result: 10/10; no remaining card-specific queue.
 
-## BT13-024 — Gawappamon — Pending
+## BT13-024 — Gawappamon — 10/10
 
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
+- Catalog evidence: Blue level 4 Digimon, play cost 4, 5000 DP; Champion/Data/Cyborg; evolves from blue level 3 for 2. Its only executable text is Blocker, allowing it to suspend during an opposing Digimon's attack and redirect that attack to itself.
+- Knowledge base: `node tools/kb/query.mjs card BT13-024` reviewed; no card-specific entries exist. The reminder text is the standard shared Blocker rule and adds no residual clause.
+- Implementation and primitive trace: `BT13-024.ts` carries one Static effect with the `Blocker` keyword, no actions, `coverage: "full"`, and no residual. Traced through static keyword installation, continuous-ledger observation, `eligibleBlockers`, defending-seat block-window publication and validation, suspension, target replacement, DP battle, deletion, and security suppression. Registration is exclusively `registerIrCard("BT13-024", compiled)`.
+- Peers, traits, evolution, timing, ownership, and frequency: BT13-022 is the immediate same-color/same-set Blocker peer using identical IR, while this proof independently uses Gawappamon's printed 5000 DP to exercise the opposite battle outcome. There is no name/trait selector, alternate evolution, inherited effect, or frequency key; timing and ownership are fixed to the opponent's attack and Gawappamon's controller.
+- Behavioral proof: isolated `BT13-024.test.ts` passed 3 tests: exact full-coverage IR; public observer exposure; and a real player attack where the defending player declares Gawappamon, it suspends and redirects the attack, survives against a 4000 DP attacker, deletes that attacker, and prevents a security check. Reverting keyword installation, ownership/zone eligibility, block timing, suspension, target switching, or combat/security routing makes a focused observable assertion fail.
+- Revalidation result: 10/10; no remaining card-specific queue.
 
 ## BT13-025 — GaoGamon — Pending
 
