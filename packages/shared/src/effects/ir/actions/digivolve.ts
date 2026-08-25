@@ -39,7 +39,7 @@ export interface DigivolveAction extends ActionBase {
   /** Source zone for the card digivolved INTO; the interpreter resolves the pool. */
   from?: ZoneRef[];
   /** Restrict the source card to the enclosing trigger's loose source instance. */
-  source?: "triggerSource";
+  source?: "triggerSource" | "triggerTrashedFromHand";
   /**
    * A legacy prose-compiler encoding stores the fixed cost as a NUMBER, which the interpreter
    * normalizes to {@link DigivolveAction.costOverride}. New IR should use `true` + `costOverride`.

@@ -22,6 +22,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [{ tokens: ["Dark Animal", "SoC"], match: "trait" }],
               },
               from: ["trash"],
+              source: "triggerTrashedFromHand",
               payCost: true,
               optional: true,
             },
