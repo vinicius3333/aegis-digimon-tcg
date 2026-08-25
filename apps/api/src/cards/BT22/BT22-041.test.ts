@@ -79,6 +79,27 @@ describe("BT22-041 Kentaurosmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(4);
   });
 
+  it("reduces its play cost only at the six-total-security boundary", async () => {
+    for (const [securityCount, expectedMemory] of [
+      [6, 4],
+      [7, -2],
+    ] as const) {
+      const ownSecurity = Array.from({ length: securityCount }, () => "BT1-001");
+      const s = setupEngine({
+        0: { security: ownSecurity, hand: [{ card: "BT22-041", as: "kentaurosmon" }] },
+      });
+      await s.ready();
+      s.state.memory = 10;
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kentaurosmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+
+      expect(s.state.memory).toBe(expectedMemory);
+    }
+  });
+
   it("trashes one top security to unsuspend, but only on the first suspension each turn", async () => {
     const s = setupEngine({
       0: {
