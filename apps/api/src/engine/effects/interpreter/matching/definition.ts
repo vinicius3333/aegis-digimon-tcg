@@ -132,6 +132,13 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
     if (op === "gte" && !(def.level >= value)) return false;
     if (op === "eq" && def.level !== value) return false;
   }
+  const hasPlayCostConstraint =
+    filter.playCostLte !== undefined ||
+    filter.playCostGte !== undefined ||
+    (filter.playCostOneOf !== undefined && filter.playCostOneOf.length > 0);
+  // `-1` is the catalog sentinel for cards/tokens with NO play cost. They cannot satisfy
+  // effects that require a play cost, regardless of the numerical comparison (BT14-018 Q2386).
+  if (hasPlayCostConstraint && def.playCost < 0) return false;
   if (filter.playCostLte !== undefined && def.playCost > filter.playCostLte) return false;
   if (filter.playCostGte !== undefined && def.playCost < filter.playCostGte) return false;
   // Disjunctive exact play-cost match ("memory cost of 1 or 7", ST6-04): qualify on any listed value.

@@ -1,0 +1,31 @@
+import { describe, expect, it } from "vitest";
+import { resolveTokenCardId, tokenDefinitions } from "./tokens.js";
+
+describe("BT14 Four Great Dragons tokens", () => {
+  it("preserves the printed identity, absent level/play cost, and combat keywords", () => {
+    expect(resolveTokenCardId("Amon of Crimson Flame")).toBe("TOKEN-Amon-of-Crimson-Flame");
+    expect(resolveTokenCardId("Umon of Blue Thunder")).toBe("TOKEN-Umon-of-Blue-Thunder");
+    expect(tokenDefinitions.find(({ cardId }) => cardId === "TOKEN-Amon-of-Crimson-Flame")).toMatchObject({
+      nameEn: "Amon of Crimson Flame",
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      dp: 6000,
+      playCost: -1,
+      effectText: "＜Rush＞",
+      isToken: true,
+    });
+    expect(tokenDefinitions.find(({ cardId }) => cardId === "TOKEN-Umon-of-Blue-Thunder")).toMatchObject({
+      nameEn: "Umon of Blue Thunder",
+      colors: ["Yellow"],
+      kinds: ["Digimon"],
+      dp: 6000,
+      playCost: -1,
+      effectText: "＜Blocker＞",
+      isToken: true,
+    });
+    for (const cardId of ["TOKEN-Amon-of-Crimson-Flame", "TOKEN-Umon-of-Blue-Thunder"]) {
+      const token = tokenDefinitions.find((definition) => definition.cardId === cardId);
+      expect(token).not.toHaveProperty("level");
+    }
+  });
+});

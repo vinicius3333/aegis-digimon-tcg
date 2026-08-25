@@ -9,7 +9,10 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayToken",
-          tokens: ["Amon of Crimson Flame", "Umon of Blue Thunder"],
+          tokens: [
+            { name: "Amon of Crimson Flame", keywords: [{ keyword: "Rush" }] },
+            { name: "Umon of Blue Thunder", keywords: [{ keyword: "Blocker" }] },
+          ],
           count: 1,
           payCost: false,
         },
@@ -20,7 +23,10 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayToken",
-          tokens: ["Amon of Crimson Flame", "Umon of Blue Thunder"],
+          tokens: [
+            { name: "Amon of Crimson Flame", keywords: [{ keyword: "Rush" }] },
+            { name: "Umon of Blue Thunder", keywords: [{ keyword: "Blocker" }] },
+          ],
           count: 1,
           payCost: false,
         },
@@ -56,6 +62,12 @@ export const compiled: CompiledCard = {
                 count: "all",
               },
             },
+            {
+              kind: "Recover",
+              controller: "mine",
+              amount: 1,
+              condition: { kind: "ifThisEffectActed" },
+            },
           ],
         },
         {
@@ -85,40 +97,11 @@ export const compiled: CompiledCard = {
                 count: "all",
               },
             },
-          ],
-        },
-        {
-          kind: "SubTrigger",
-          event: "onDeletionOf",
-          sourceFilter: {
-            controllerDefault: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Amon of Crimson Flame"],
-                match: "name",
-              },
-              {
-                tokens: ["Umon of Blue Thunder"],
-                match: "name",
-              },
-            ],
-          },
-          actions: [
             {
-              kind: "GainKeyword",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
-              },
-              keyword: {
-                keyword: "Recovery",
-                raw: "＜Recovery +1 (Deck)＞",
-                amount: 1,
-              },
-              duration: "permanent",
+              kind: "Recover",
+              controller: "mine",
+              amount: 1,
+              condition: { kind: "ifThisEffectActed" },
             },
           ],
         },

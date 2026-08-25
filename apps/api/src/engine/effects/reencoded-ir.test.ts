@@ -123,6 +123,8 @@ describe("playCostLte — 'play cost N or less' actually bounds the candidate po
 
     // Guards against a vacuous test: the at-bound card must genuinely qualify.
     expect(definitionMatches(filter, facts({ ...base, playCost: bound }))).toBe(true);
+    // A no-play-cost token/card uses -1 as a sentinel, not a numeric cost below the cap (BT14-018 Q2386).
+    expect(definitionMatches(filter, facts({ ...base, playCost: -1 }))).toBe(false);
     // REVERT-CONFIRM-RED: with the dead spelling restored this is `true` — the bound is
     // unread, so an over-cost Digimon is a legal target.
     expect(definitionMatches(filter, facts({ ...base, playCost: bound + 1 }))).toBe(false);
