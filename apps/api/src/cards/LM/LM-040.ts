@@ -3,6 +3,9 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // KB Q4843: the Then clause (-6000 DP) always fires regardless of the if-condition.
+// Audit fixes (LM audit): the Security Digimon debuff moved from a permanent ModifyDP over a
+// `zone: "security"` filter (which never resolves — Security Digimon are loose cards) to the
+// security-DP ledger, and the pooled digivolution-card target count "any" became "all".
 const compiled: CompiledCard = {
   effects: [
     {
@@ -24,7 +27,7 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
               digivolutionCards: "hasAny",
             },
-            count: "any",
+            count: "all",
           },
           scope: "acrossDigimon",
           amount: 4,
@@ -47,7 +50,9 @@ const compiled: CompiledCard = {
           condition: {
             kind: "opponentHasNone",
             filter: {
-              digivolutionCardsGteSource: true,
+              // `digivolutionCardsCompareToSource` is the supported comparison; the previous
+              // `digivolutionCardsGteSource` flag matched nothing, so the gate always held.
+              digivolutionCardsCompareToSource: "gte",
               controller: "opponent",
               kind: ["Digimon"],
             },
@@ -56,16 +61,11 @@ const compiled: CompiledCard = {
         },
         {
           // "Then, all of your opponent's Security Digimon get -6000 DP for the turn."
-          // Always fires (KB Q4843).
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              zone: "security",
-            },
-            count: "all",
-          },
+          // Always fires (KB Q4843). Security Digimon are loose cards, not battle-area
+          // permanents, so this is the security-DP ledger delta, not a permanent ModifyDP:
+          // a `zone: "security"` ModifyDP resolved no targets at all.
+          kind: "ModifySecurityDP",
+          controller: "opponent",
           amount: -6000,
           duration: "forTheTurn",
         },
