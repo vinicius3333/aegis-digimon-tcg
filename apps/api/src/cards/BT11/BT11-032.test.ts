@@ -1,8 +1,40 @@
+import { compiledEffects, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-032.js";
+import { compiled } from "./BT11-032.js";
 
 describe("BT11-032 UlforceVeedramon", () => {
+  it("matches the catalog and carries every complete printed contract", () => {
+    expect(getCardDefinition("BT11-032")).toMatchObject({
+      cardId: "BT11-032",
+      nameEn: "UlforceVeedramon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      evoCosts: [{ color: "Blue", level: 5, memoryCost: 4 }],
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Holy Warrior", "Royal Knight"],
+    });
+    expect(compiled).toMatchObject({
+      effects: [
+        { trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost", optional: true }] },
+        { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenPlayed" }] },
+        {
+          trigger: "YourTurn",
+          frequency: "OncePerTurn",
+          actions: [{ kind: "SubTrigger", event: "whenUnsuspended", actions: [{ kind: "Return" }] }],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    });
+    expect(compiledEffects["BT11-032"]).toEqual(compiled);
+  });
+
   it("plays a blue Tamer from hand without paying its cost when digivolving", async () => {
     const s = setupEngine(
       {
@@ -33,6 +65,35 @@ describe("BT11-032 UlforceVeedramon", () => {
     expect(s.state.memory).toBe(6);
   });
 
+  it("allows declining the free Tamer play while completing the evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-029", as: "base" }],
+          hand: [
+            { card: "BT11-032", as: "ulforce" },
+            { card: "BT11-090", as: "tamer" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ulforce").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT11-032");
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("tamer").instanceId);
+    expect(s.state.memory).toBe(6);
+  });
+
   it("unsuspends when its controller plays a blue Tamer", async () => {
     const s = setupEngine({
       0: {
@@ -46,6 +107,29 @@ describe("BT11-032 UlforceVeedramon", () => {
     await settle(() => !s.perm("ulforce").isSuspended);
 
     expect(s.perm("ulforce").isSuspended).toBe(false);
+  });
+
+  it("does not unsuspend for a non-blue Tamer or during the opponent's turn", async () => {
+    const wrongColor = setupEngine({
+      0: {
+        battleArea: [{ card: "BT11-032", as: "ulforce", suspended: true }],
+        hand: [{ card: "BT11-089", as: "redTamer" }],
+      },
+    });
+    wrongColor.state.memory = 10;
+    expect(
+      wrongColor.engine.applyIntent(0, { type: "playCard", instanceId: wrongColor.inst("redTamer").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => wrongColor.state.players[0]!.battleArea.length === 2);
+    expect(wrongColor.perm("ulforce").isSuspended).toBe(true);
+
+    const opponentTurn = setupEngine({
+      0: { battleArea: [{ card: "BT11-032", as: "ulforce", suspended: true }] },
+      1: { battleArea: [{ card: "BT11-023", as: "target" }] },
+    });
+    opponentTurn.state.turnSeat = 1;
+    await advance(opponentTurn.engine).verb.unsuspend([opponentTurn.perm("ulforce").permanentId]);
+    expect(opponentTurn.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("returns up to level 3 plus one level for each blue Tamer when it unsuspends", async () => {
@@ -69,5 +153,50 @@ describe("BT11-032 UlforceVeedramon", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(targetId);
+  });
+
+  it("uses exact 3-plus-blue-Tamers level boundaries and only once per turn", async () => {
+    for (const [tamerCount, targetCard, shouldReturn] of [
+      [0, "BT11-025", false],
+      [1, "BT11-025", true],
+      [1, "BT11-028", false],
+      [2, "BT11-028", true],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT11-032", as: "ulforce", suspended: true },
+              ...Array.from({ length: tamerCount }, () => "BT11-090"),
+            ],
+          },
+          1: { battleArea: [{ card: targetCard, as: "target" }] },
+        },
+        { autoSelectCards: true },
+      );
+      await advance(s.engine).verb.unsuspend([s.perm("ulforce").permanentId]);
+      await settle(() => s.perm("ulforce").isSuspended === false);
+      expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("target").instanceId)).toBe(
+        !shouldReturn,
+      );
+    }
+
+    const frequency = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT11-032", as: "ulforce", suspended: true }] },
+        1: {
+          battleArea: [
+            { card: "BT11-023", as: "first" },
+            { card: "BT11-023", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(frequency.engine).verb.unsuspend([frequency.perm("ulforce").permanentId]);
+    expect(frequency.state.players[1]!.battleArea).toHaveLength(1);
+    await advance(frequency.engine).verb.suspend([frequency.perm("ulforce").permanentId]);
+    await advance(frequency.engine).verb.unsuspend([frequency.perm("ulforce").permanentId]);
+    expect(frequency.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

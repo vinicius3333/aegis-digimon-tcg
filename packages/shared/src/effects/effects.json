@@ -9951,24 +9951,21 @@
                   "filter": {
                     "controller": "opponent",
                     "kind": ["Digimon"],
-                    "levelComparison": { "op": "lte", "value": 3 }
+                    "levelComparison": {
+                      "op": "lte",
+                      "value": 3,
+                      "scaling": {
+                        "per": 1,
+                        "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Tamer"], "colors": ["Blue"] },
+                        "unit": "cards"
+                      }
+                    }
                   },
                   "count": 1
                 },
                 "to": "hand"
               }
             ]
-          },
-          {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "level",
-            "amount": 1,
-            "scaling": {
-              "per": 1,
-              "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Tamer"], "colors": ["Blue"] },
-              "unit": "cards"
-            }
           }
         ],
         "frequency": "OncePerTurn"
