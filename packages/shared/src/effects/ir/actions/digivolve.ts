@@ -110,6 +110,8 @@ export interface PlaceUnderAction extends ActionBase {
   kind: "PlaceUnder";
   /** Cards placed as digivolution cards or under a Tamer. */
   target: Target;
+  /** Legacy compiler shape: printed placement quantity stored on the action instead of `target.count`. */
+  count?: number | "all";
   underFilter?: Filter;
   /**
    * Place the top card of the Digi-Egg deck instead of a card resolved by `target` (BT13-007,

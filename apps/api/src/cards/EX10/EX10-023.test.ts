@@ -170,7 +170,7 @@ describe("EX10-023 Quartzmon compiled contract", () => {
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).not.toContain(
       s.inst("first").instanceId,
     );
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("quartz"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("quartz"));
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual(
       expect.arrayContaining([s.inst("second").instanceId, s.inst("standing").instanceId, s.inst("tamer").instanceId]),
     );
