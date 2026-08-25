@@ -251,3 +251,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-021.test.ts`).
+
+## BT20-022 — Crabmon (X Antibody)
+
+- Catalog contract: blue level 3 Data Crustacean/X Antibody, play cost 4/2000 DP, blue level-2 evolution cost 0 plus Crabmon alternate cost 0; On Play/When Digivolving gives one allied Digimon battle-deletion protection through the opponent turn end; inherited attack once per turn draws 1 at 7 or fewer hand cards.
+- Knowledge base: no card-specific entries; the inclusive hand boundary, battle-only protection, recipient/controller, dual timings, duration, and once-per-turn identity are unambiguous.
+- Implementation evidence: both entry timings share an allied-Digimon `beDeletedInBattle` restriction with the exact cross-turn duration. The inherited action evaluates the live controller hand at `<= 7`, draws one, and uses source-scoped once-per-turn. The alternate Crabmon requirement and exclusive `registerIrCard` registration are direct.
+- Peer/stack evidence: a selected 1000-DP ally survives battle against an 11000-DP opposing attacker on the following opponent turn. Under a realistic Coredramon stack, exactly seven hand cards draws to eight, a repeated timing does not draw again, and an eight-card negative fixture never draws.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-022.test.ts` — 3 passed.
+- Clause scores: stats/alternate evolution 2/2; dual entry timing/selection 2/2; battle-only protection 2/2; opponent-turn-end duration/observable survival 2/2; inherited hand boundary/draw/once-per-turn 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-022.test.ts`).
