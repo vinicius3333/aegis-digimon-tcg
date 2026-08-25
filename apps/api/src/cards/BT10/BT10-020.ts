@@ -3,7 +3,7 @@
 // AllTurns Aura while condition: added count:2 (opponent has 2+ Digimon).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
