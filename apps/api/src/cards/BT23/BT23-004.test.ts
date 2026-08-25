@@ -1,39 +1,108 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT23-004.js";
 
 describe("BT23-004 DemiMeramon", () => {
-  it("grants Blocker and Retaliation to one Ghost Digimon until opponent's turn ends", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "OnDeletion");
-
-    expect(effect).toMatchObject({ trigger: "OnDeletion", isInherited: true });
-    expect(effect?.actions).toHaveLength(2);
-    expect(effect?.actions).toEqual([
+  it("matches the catalog and binds both inherited grants to one Ghost", () => {
+    expect(getCardDefinition("BT23-004")).toMatchObject({
+      cardId: "BT23-004",
+      nameEn: "DemiMeramon",
+      colors: ["Purple"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      forms: ["In-Training"],
+      attributes: ["-"],
+      types: ["Flame", "LIBERATOR"],
+      inheritedEffectText:
+        "[On Deletion] 1 of your Digimon with the [Ghost]\u00a0trait gains ＜Blocker＞ and ＜Retaliation＞ until your opponent's turn ends.",
+    });
+    expect(compiled.effects).toEqual([
       {
-        kind: "GainKeyword",
-        target: {
-          filter: {
-            controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Ghost"], match: "trait" }],
+        trigger: "OnDeletion",
+        actions: [
+          {
+            kind: "SelectBind",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Ghost"], match: "trait" }],
+              },
+              count: 1,
+              bindAs: "demimeramonGhost",
+            },
           },
-          count: 1,
-        },
-        keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
-        duration: "untilOpponentTurnEnd",
-      },
-      {
-        kind: "GainKeyword",
-        target: {
-          filter: {
-            controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Ghost"], match: "trait" }],
+          {
+            kind: "GainKeyword",
+            target: { fromSelectionRef: "demimeramonGhost" },
+            keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+            duration: "untilOpponentTurnEnd",
           },
-          count: 1,
-        },
-        keyword: { keyword: "Retaliation", raw: "＜Retaliation＞" },
-        duration: "untilOpponentTurnEnd",
+          {
+            kind: "GainKeyword",
+            target: { fromSelectionRef: "demimeramonGhost" },
+            keyword: { keyword: "Retaliation", raw: "＜Retaliation＞" },
+            duration: "untilOpponentTurnEnd",
+          },
+        ],
+        isInherited: true,
       },
     ]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
+  it("grants both keywords to exactly the chosen friendly Ghost and keeps them through the opponent's turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          battleArea: [
+            { card: "BT1-010", under: ["BT23-004"], as: "source" },
+            { card: "BT20-063", as: "firstGhost" },
+            { card: "BT20-067", as: "chosenGhost" },
+            { card: "BT1-009", as: "nonGhost" },
+          ],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          battleArea: [{ card: "BT4-077", as: "opponentGhost" }],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosenGhost").permanentId);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(1);
+
+    expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Retaliation")).toBe(true);
+    for (const alias of ["firstGhost", "nonGhost", "opponentGhost"] as const) {
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker"), alias).toBe(false);
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Retaliation"), alias).toBe(false);
+    }
+
+    await advance(s.engine).runTurn(0);
+    expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Retaliation")).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("chosenGhost"), "Retaliation")).toBe(false);
+  });
+
+  it("does nothing when no friendly Ghost target exists", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", under: ["BT23-004"], as: "source" }, "BT1-009"] },
+      1: { battleArea: ["BT4-077"] },
+    });
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(1);
+    expect(s.decisions).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 });

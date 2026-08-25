@@ -29,6 +29,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks the exact catalog and IR contract, attacks after a controller-owned CS Option placement, suppresses a second placement that turn, rejects a non-CS Option and an opponent-owned CS Option, and proves the controller can refuse without suspending or changing security.
 - Verification: focused suite — 5 passed; Option-placement event regression — 1 passed (129 unrelated tests skipped); `git diff --check` — passed.
 
+## BT23-004 — DemiMeramon — 10/10
+
+- Catalog evidence: Purple level 2 Digi-Egg; form `In-Training`, attribute `-`, types `Flame` and `LIBERATOR`; inherited text is `[On Deletion] 1 of your Digimon with the [Ghost] trait gains <Blocker> and <Retaliation> until your opponent's turn ends`; no main or Security text and no evolution requirements.
+- Knowledge base: `node tools/kb/query.mjs card BT23-004` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Defect corrected: the generated IR performed two independent target selections, which allowed Blocker and Retaliation to be granted to different Ghost Digimon. The audited IR now uses `SelectBind` once and both `GainKeyword` actions consume `fromSelectionRef: "demimeramonGhost"`; registration remains exclusively `registerIrCard("BT23-004", compiled)` with full coverage and no residual clauses.
+- Primitive trace: inherited On Deletion collection retains the deleted stack source; `SelectBind` stores exactly one permanent ID; both keyword grants use the shared bound-target resolver and continuous ledger; `untilOpponentTurnEnd` survives the controller's turn end and expires after the opponent's turn-end boundary; Blocker and Retaliation are read by the combat subsystem from the same keyword ledger.
+- Behavioral proof: the focused suite checks the exact catalog and corrected IR, deletes a realistic Digi-Egg stack, selects among multiple exact Ghost matches while excluding a friendly non-Ghost and opposing Ghost, proves both keywords land on only one chosen recipient, proves both duration boundaries, and proves an empty eligible set opens no decision or grant.
+- Verification: focused suite — 3 passed; Retaliation combat regression — 4 passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-004 through BT23-102.
+BT23-005 through BT23-102.
