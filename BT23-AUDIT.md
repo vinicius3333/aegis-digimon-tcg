@@ -821,6 +821,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage and exact field scope; places an established Wolkenapalm beside a CS attacker, fires the attack event, trashes the exact Option as intrinsic Delay, deletes only the lower-DP opponent, and preserves the higher-DP Digimon; structurally verifies identical Main/Security deletion and battle placement.
 - Verification: focused suite — 4 passed after refreshing shared runtime data; CAP-E14 intrinsic Delay regressions — 13 passed; shared field color waiver, attack-subject listener, Delay age/cost, Option departure receipt, lowest-DP deletion, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-092 — Ice Archery — 10/10
+
+- Catalog evidence: Blue cost-5 CS Option; color requirements may be ignored while a CS Digimon/Tamer is on the field; Main makes one opposing Digimon and one opposing Tamer unable to suspend through the opponent's turn end, then places this Option in battle; Your Turn on a friendly CS attack may activate Delay for the same two restrictions; Security performs those restrictions then places this card in battle.
+- Knowledge base: Q5365 defines “on the field” as battle area or breeding area, so the color waiver checks both zones.
+- Defects corrected: authoritative shared IR omitted field-zone scope, collapsed the independently chosen Digimon/Tamer into one union target, and split a granted Delay marker from a single detached restriction. It now carries two targets in Main/Security and nests both under the intrinsic Delay listener; registration remains exclusively `registerIrCard("BT23-092", compiled)` with full coverage/no residuals.
+- Primitive trace: static color waiver checks live CS Digimon/Tamers across battle/breeding; Main/Security independently select one opposing Digimon and one Tamer, attach suspend restrictions through opponent turn end, then place the physical Option in battle; the Your Turn listener filters the CS attacker, applies the established-card Delay gate/cost, and resolves both restrictions after successful Option departure.
+- Behavioral proof: the focused suite checks catalog/coverage and exact field scope; with an established Ice Archery and CS attacker, fires the attack event, trashes the Option, and observes live suspend restrictions on both a real opposing Digimon and Tamer; structurally verifies independent Main targets, ordered battle placement, Delay nesting, and Security sequence.
+- Verification: focused suite — 4 passed after refreshing shared runtime data; shared field color waiver, intrinsic Delay, independent kind targets, duration restrictions, Option departure, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-092 through BT23-102.
+BT23-093 through BT23-102.

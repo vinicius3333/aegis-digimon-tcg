@@ -81936,6 +81936,7 @@
             "condition": {
               "kind": "youHave",
               "filter": {
+                "zone": "field",
                 "controllerDefault": "mine",
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["CS"], "match": "trait" }]
@@ -81950,7 +81951,13 @@
         "actions": [
           {
             "kind": "Restrict",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": { "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "restriction": "suspend",
+            "duration": "untilOpponentTurnEnd"
+          },
+          {
+            "kind": "Restrict",
+            "target": { "filter": { "controllerDefault": "opponent", "kind": ["Tamer"] }, "count": 1 },
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd"
           },
@@ -81970,27 +81977,34 @@
             },
             "actions": [
               {
-                "kind": "GainKeyword",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "keyword": { "keyword": "Delay", "raw": "＜Delay＞" },
-                "duration": "permanent"
+                "kind": "Restrict",
+                "target": { "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] }, "count": 1 },
+                "restriction": "suspend",
+                "duration": "untilOpponentTurnEnd"
+              },
+              {
+                "kind": "Restrict",
+                "target": { "filter": { "controllerDefault": "opponent", "kind": ["Tamer"] }, "count": 1 },
+                "restriction": "suspend",
+                "duration": "untilOpponentTurnEnd"
               }
             ]
-          },
-          {
-            "kind": "Restrict",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
-            "restriction": "suspend",
-            "duration": "untilOpponentTurnEnd"
           }
-        ]
+        ],
+        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
       },
       {
         "trigger": "Security",
         "actions": [
           {
             "kind": "Restrict",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": { "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "restriction": "suspend",
+            "duration": "untilOpponentTurnEnd"
+          },
+          {
+            "kind": "Restrict",
+            "target": { "filter": { "controllerDefault": "opponent", "kind": ["Tamer"] }, "count": 1 },
             "restriction": "suspend",
             "duration": "untilOpponentTurnEnd"
           },
