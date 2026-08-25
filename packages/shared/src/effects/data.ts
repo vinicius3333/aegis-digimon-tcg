@@ -1090,6 +1090,14 @@ export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] 
  * + cost) and CLIENT (material highlighting) read ONE source of truth.
  */
 export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[]> = {
+  // BT20-058: [DigiXros -2] requires all three named Machine/Cyborg components. The generated
+  // aggregate retained only Raijinmon, rejecting the complete printed recipe.
+  "BT20-058": [
+    {
+      materials: [{ names: ["Raijinmon"] }, { names: ["Fujinmon"] }, { names: ["Suijinmon"] }],
+      count: 2,
+    },
+  ],
   // BT18-065: [DigiXros -1] 4 [Vemmon]. The generated parser consumed the inherited
   // [All Turns][Once Per Turn] header as extra material metadata.
   "BT18-065": [{ materials: [{ names: ["Vemmon"] }], count: 1, maxMaterials: 4 }],

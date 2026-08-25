@@ -80,7 +80,7 @@ export const compiled: CompiledCard = {
   digiXrosRequirement: [
     {
       materials: [{ names: ["Raijinmon"] }, { names: ["Fujinmon"] }, { names: ["Suijinmon"] }],
-      cost: 2,
+      count: 2,
     },
   ],
 };

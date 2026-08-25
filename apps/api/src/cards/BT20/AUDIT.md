@@ -683,3 +683,15 @@
 - Score: 10/10.
 - Ambiguity: Q4294 references BT20-05 in its rendered question, but the ruling's self-reduction stacking principle is clear and does not alter this card's isolated -4 clause.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-057.test.ts`).
+
+## BT20-058 — Raidenmon
+
+- Catalog contract: black level 6 Virus Machine, play cost 12/12000 DP, black level-5 evolution cost 4; On Play/When Digivolving deletes 1 opponent at play cost 7 or less; all-turn when leaving battle may free-play 1 play-cost-11-or-lower Cyborg/Machine Digimon from its evolution cards; DigiXros -2 with Raijinmon + Fujinmon + Suijinmon.
+- Knowledge base: Q4391 explicitly defines the leave-play candidate union as any qualifying Cyborg or any qualifying Machine under the shared cost-11 ceiling.
+- Implementation evidence: both entry deletions and the self/battle leave watcher are direct and ordered. Audit found the direct DigiXros recipe used the wrong `cost` field and shared metadata retained only Raijinmon, so the complete three-name declaration was rejected. The direct IR now uses `count: 2`, and a shared override supplies all three distinct slots to server legality and client highlighting. Registration remains exclusively `registerIrCard`.
+- Peer/stack evidence: both play and evolution delete cost-7 BT20-054 while preserving cost-8 BT10-025. On departure, BT9-042 proves the Cyborg arm and BT9-029 the Machine arm; cost-12 Raidenmon and cost-11 nonmatching Jesmon stay ineligible and reach trash, while refusal plays nothing. All three exact hand materials produce a six-cost play and become Raidenmon's evolution cards.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-058.test.ts` — 7 passed; `pnpm --filter @aegis/shared exec vitest run src/effects/digivolutionRequirementsFor.test.ts` — 83 passed; `pnpm typecheck` — passed.
+- Clause scores: stats/evolution route 2/2; dual entry cost-7 deletion boundary 2/2; all-turn/self-leave/optional source play 2/2; Q4391 trait union/cost ceiling 2/2; exact three-slot DigiXros -2/cost/stack 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-058.test.ts`).

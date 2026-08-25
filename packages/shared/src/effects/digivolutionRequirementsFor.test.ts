@@ -40,6 +40,15 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
     ]);
     expect(digiXrosTrashNameAllowanceFor("BT18-065")).toEqual(["Vemmon"]);
   });
+
+  it("keeps BT20-058's three distinct named DigiXros -2 slots", () => {
+    expect(digiXrosRequirementFor("BT20-058")).toEqual([
+      {
+        materials: [{ names: ["Raijinmon"] }, { names: ["Fujinmon"] }, { names: ["Suijinmon"] }],
+        count: 2,
+      },
+    ]);
+  });
   const bt26WithHeader = (cards as Array<{ cardId: string; set: string; effectText?: string }>).filter(
     (c) => c.set === "BT26" && /\[Digivolve\]/.test(c.effectText ?? ""),
   );
