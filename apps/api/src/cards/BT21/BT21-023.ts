@@ -8,6 +8,19 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
       trigger: "Static",
       actions: [],
       keywords: [
@@ -31,11 +44,13 @@ export const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
+              hasLinkRequirement: true,
             },
             count: 1,
           },
           payCost: false,
           optional: true,
+          from: ["hand", "digivolutionCards"],
         },
       ],
     },
@@ -52,11 +67,13 @@ export const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
+              hasLinkRequirement: true,
             },
             count: 1,
           },
           payCost: false,
           optional: true,
+          from: ["hand", "digivolutionCards"],
         },
       ],
     },
@@ -66,6 +83,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Delete",
@@ -95,6 +113,7 @@ export const compiled: CompiledCard = {
       cost: 0,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
 
 registerIrCard("BT21-023", compiled);

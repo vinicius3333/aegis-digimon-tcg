@@ -21,6 +21,7 @@ export const compiled: CompiledCard = {
             kind: ["Tamer"],
           },
           from: ["hand", "trash"],
+          position: "bottom",
           optional: true,
         },
         {

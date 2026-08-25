@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   GameState,
   CardKind,
+  DECK_BOTTOM,
   EffectDuration,
   EffectTiming,
   type AttackTarget,
@@ -745,7 +746,7 @@ describe("primitives: return to hand / deck", () => {
     ]);
     expect(h.state.players[0]!.hand).toHaveLength(0);
     expect(h.events.filter((event) => event.kind === "cardsMoved")).toEqual([
-      expect.objectContaining({ instanceIds: requestedOrder, to: "deckBottom" }),
+      expect.objectContaining({ instanceIds: requestedOrder, to: DECK_BOTTOM }),
     ]);
   });
 

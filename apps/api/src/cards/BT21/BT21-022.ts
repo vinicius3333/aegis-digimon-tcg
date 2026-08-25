@@ -99,6 +99,9 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          mode: "prevent",
+          leaveCause: "byOpponentEffect",
+          optional: true,
           sourceFilter: {
             controllerDefault: "mine",
             kind: ["Digimon"],
@@ -109,25 +112,15 @@ export const compiled: CompiledCard = {
               },
             ],
           },
-          actions: [
-            {
-              kind: "Prevent",
-              mode: "leavePlay",
-              cost: {
-                kind: "trash",
-                target: {
-                  filter: {
-                    controllerDefault: "mine",
-                    kind: ["Digimon"],
-                  },
-                  count: 3,
-                },
-                raw: "by trashing 3 Digimon cards from its digivolution cards",
-              },
-              optional: true,
-              abortOnDecline: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: { zone: "digivolutionCards", isSelfRef: true, kind: ["Digimon"] },
+              count: 3,
+              from: ["digivolutionCards"],
             },
-          ],
+            raw: "by trashing 3 Digimon cards from its digivolution cards",
+          },
         },
       ],
       isInherited: true,

@@ -27,11 +27,14 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           condition: {
-            kind: "youHave",
+            kind: "permanentCount",
+            seat: "mine",
             filter: {
               controllerDefault: "mine",
               kind: ["Tamer"],
             },
+            op: "lte",
+            value: 1,
             raw: "you have 1 or fewer Tamers",
           },
           optional: true,
@@ -44,6 +47,8 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "opponent" },
+          fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "opponent" },
           actions: [
             {
               kind: "GainMemory",

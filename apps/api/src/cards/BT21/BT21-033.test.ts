@@ -1,5 +1,10 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-033.js";
+import "../index.js";
 
 describe("BT21-033 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -27,7 +32,7 @@ describe("BT21-033 compiled implementation", () => {
           {
             filter: {
               controllerDefault: "mine",
-              nameOrTrait: [{ tokens: ["Avian", "Bird"], match: "trait" }],
+              nameOrTrait: [{ tokens: ["Avian", "Bird"], match: "traitContains" }],
             },
             count: 1,
             to: "hand",
@@ -55,5 +60,91 @@ describe("BT21-033 compiled implementation", () => {
         keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }],
       }),
     );
+  });
+
+  it("adds distinct Avian/Bird and WG matches and bottoms the nonmatch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-033", as: "floramon" }],
+          deck: [
+            { card: "BT21-034", as: "ancientBirdWg" },
+            { card: "BT21-033", as: "wg" },
+            { card: "BT1-009", as: "nonmatch" },
+            { card: "BT1-001", as: "unrevealed" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("floramon"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("ancientBirdWg").instanceId, s.inst("wg").instanceId]),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("unrevealed").instanceId);
+    expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(s.inst("nonmatch").instanceId);
+  });
+
+  it("adds only the available matching category and bottoms every other revealed card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-033", as: "floramon" }],
+          deck: [
+            { card: "BT21-033", as: "wg" },
+            { card: "BT1-009", as: "firstNonmatch" },
+            { card: "BT1-010", as: "secondNonmatch" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("floramon"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("wg").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.deck.every((card) => card.faceUp === false)).toBe(true);
+  });
+
+  it("evolves from a level-2 WG egg for 0 and preserves the stack", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT21-003", as: "yokomon" },
+        hand: [{ card: "BT21-033", as: "floramon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yokomon").permanentId,
+        instanceId: s.inst("floramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yokomon").topCard.cardId === "BT21-033");
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("yokomon").stack.map((card) => card.cardId)).toEqual(["BT21-003"]);
+  });
+
+  it("grants Jamming only while Floramon is in the evolution stack", async () => {
+    const inherited = setupEngine({
+      0: { battleArea: [{ card: "BT21-034", as: "host", under: ["BT21-033"] }] },
+    });
+    const isolated = setupEngine({ 0: { battleArea: [{ card: "BT21-033", as: "floramon" }] } });
+    await inherited.ready();
+    await isolated.ready();
+
+    expect(observe(inherited.engine).hasKeyword(inherited.perm("host"), "Jamming")).toBe(true);
+    expect(observe(isolated.engine).hasKeyword(isolated.perm("floramon"), "Jamming")).toBe(false);
   });
 });

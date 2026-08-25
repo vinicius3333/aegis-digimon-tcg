@@ -85,9 +85,10 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "PlayToken",
-              token: "Petrification",
+              token: "Petrification Token",
               amount: 1,
-              controller: "opponent",
+              controller: "mine",
+              placedAs: "opponentDigimon",
             },
           ],
           raw: "When any of your opponent's Digimon are deleted, they play 1 Petrification Token",
@@ -101,9 +102,10 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "PlayToken",
-              token: "Petrification",
+              token: "Petrification Token",
               amount: 1,
-              controller: "opponent",
+              controller: "mine",
+              placedAs: "opponentDigimon",
             },
           ],
           raw: "When their security stack is removed from, they play 1 Petrification Token",
@@ -114,6 +116,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 5, colors: ["Red"], cost: 4 }],
 };
 
 registerIrCard("BT21-029", compiled);

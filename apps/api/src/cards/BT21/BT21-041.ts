@@ -12,14 +12,8 @@ export const compiled: CompiledCard = {
       isLinked: true,
       actions: [
         {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              zone: "security",
-            },
-          },
+          kind: "ModifySecurityDP",
+          controller: "opponent",
           amount: -3000,
           duration: "permanent",
         },

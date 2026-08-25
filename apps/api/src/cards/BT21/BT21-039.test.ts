@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-039.js";
+import "../index.js";
 
 describe("BT21-039 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -76,5 +80,89 @@ describe("BT21-039 compiled implementation", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gryphonmon").instanceId)).toBe(
       true,
     );
+    expect(observe(s.engine).hasKeyword(s.perm("gryphonmon"), "Alliance")).toBe(true);
+  });
+
+  it("plays exactly one level-4-or-lower WG Digimon for free when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-039", as: "gryphonmon" }],
+          hand: [
+            { card: "BT21-034", as: "legal" },
+            { card: "BT21-038", as: "tooHigh" },
+            { card: "BT1-009", as: "nonWg" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gryphonmon"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-034"));
+
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("tooHigh").instanceId, s.inst("nonWg").instanceId]),
+    );
+  });
+
+  it("may decline the free WG play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-039", as: "gryphonmon" }],
+          hand: [{ card: "BT21-034", as: "legal" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gryphonmon"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("legal").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("digivolves another Digimon into a WG card for free and only once per turn", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-039", as: "gryphonmon" },
+            { card: "BT21-033", as: "firstBase" },
+            { card: "BT21-033", as: "secondBase" },
+          ],
+          hand: [
+            { card: "BT21-034", as: "firstEvolution" },
+            { card: "BT21-034", as: "secondEvolution" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("firstBase").permanentId, s.inst("firstEvolution").instanceId);
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("gryphonmon"));
+    await settle(() => s.perm("firstBase").topCard.cardId === "BT21-034");
+    expect(s.state.memory).toBe(3);
+
+    preferInstanceIds.splice(
+      0,
+      preferInstanceIds.length,
+      s.perm("secondBase").permanentId,
+      s.inst("secondEvolution").instanceId,
+    );
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("gryphonmon"));
+
+    expect(s.perm("secondBase").topCard.cardId).toBe("BT21-033");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("secondEvolution").instanceId);
   });
 });

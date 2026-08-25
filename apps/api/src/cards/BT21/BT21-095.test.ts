@@ -1,6 +1,9 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-095.js";
+import "../index.js";
 
 describe("BT21-095 Wind Guardians", () => {
   it("keeps the face-up-security color waiver and security/Main branches faithful", () => {
@@ -58,5 +61,39 @@ describe("BT21-095 Wind Guardians", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT21-095" && card.faceUp)).toBe(true);
+  });
+
+  it("Q4609/Q4610 works with zero security: it only places itself face-up", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT21-095", as: "option" }] },
+    });
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
+  });
+
+  it("Security plays a level-5 WG Digimon from hand without paying cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT21-095", as: "option" }],
+          hand: [{ card: "BT21-038", as: "wg" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("wg").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 });

@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-093.js";
+import "../index.js";
 
 describe("BT21-093 [Main] on-play body fires on a real playCard (not dead)", () => {
   it("deletes the opponent's highest-DP Digimon and lands in the battle area", async () => {
@@ -41,12 +43,13 @@ describe("BT21-093 [Main] on-play body fires on a real playCard (not dead)", () 
 
 describe("BT21-093 Raging Serpentine", () => {
   it("models the conditional use reduction, highest-DP deletion, and Delay digivolution", () => {
-    const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static");
+    const staticEffect = compiled.effects.find((entry) => entry.trigger === "BeforePayCost");
     expect(staticEffect?.actions[0]).toMatchObject({
       kind: "CostModifier",
       costType: "use",
       mode: "reduce",
       amount: 4,
+      handResident: true,
       condition: { kind: "zoneCount", seat: "opponent", zone: "security", op: "lte", value: 3 },
     });
 
@@ -76,5 +79,47 @@ describe("BT21-093 Raging Serpentine", () => {
     expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+  });
+
+  it.each([
+    [3, 4, 0],
+    [4, 8, -4],
+  ])("with %i opposing security pays a use cost of %i", async (securityCount, expectedCost, expectedMemory) => {
+    const s = setup(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "color" }], hand: [{ card: "BT21-093", as: "option" }] },
+        1: { security: securityCount },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-093"));
+    expect(4 - s.state.memory).toBe(expectedCost);
+    expect(s.state.memory).toBe(expectedMemory);
+  });
+
+  it("Security deletes only one opposing highest-DP Digimon", async () => {
+    const s = setup(
+      {
+        0: { security: [{ card: "BT21-093", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low", dp: 3000 },
+            { card: "BT1-010", as: "high", dp: 8000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("low").instanceId,
+    ]);
   });
 });

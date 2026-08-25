@@ -23,22 +23,17 @@ function watcher(event: string) {
     sourceFilter: { controller: "mine", kind: ["Digimon"] },
     actions: [
       {
-        kind: "SelectBind",
+        kind: "GainKeyword",
         target: { filter: targetFilter, count: 1 },
-        bindAs: "takatoTarget",
+        keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+        duration: "untilOpponentTurnEnd",
         cost: suspendCost,
         optional: true,
         abortOnDecline: true,
       },
       {
-        kind: "GainKeyword",
-        target: { fromSelectionRef: "takatoTarget" },
-        keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
-        duration: "untilOpponentTurnEnd",
-      },
-      {
         kind: "ModifyDP",
-        target: { fromSelectionRef: "takatoTarget" },
+        target: { filter: {}, count: 1, sameTarget: true },
         amount: 2000,
         duration: "untilOpponentTurnEnd",
         condition: {

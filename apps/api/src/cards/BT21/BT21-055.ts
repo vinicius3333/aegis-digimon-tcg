@@ -46,6 +46,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
+          requireByEffect: true,
           hostFilter: {
             controller: "mine",
             kind: ["Digimon"],

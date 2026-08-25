@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-055.js";
+import "../index.js";
 
 describe("BT21-055 Sunarizamon", () => {
   it("reduces eligible digivolution costs and deletes after its stack card is trashed", () => {
@@ -19,6 +20,7 @@ describe("BT21-055 Sunarizamon", () => {
         kind: "SubTrigger",
         event: "onDigivolutionCardDiscarded",
         sourceFilter: { isSelfRef: true },
+        requireByEffect: true,
         hostFilter: {
           controller: "mine",
           kind: ["Digimon"],
@@ -54,8 +56,69 @@ describe("BT21-055 Sunarizamon", () => {
     );
 
     await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("stacked").instanceId], 0);
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("eligible").instanceId));
 
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("eligible").permanentId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("tooExpensive").permanentId)).toBe(true);
+  });
+
+  it("does not trigger when the inherited source is trashed as a non-effect cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-055", as: "host", under: [{ card: "BT21-055", as: "stacked" }] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "eligible" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("stacked").instanceId]);
+
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("eligible").permanentId),
+    ).toBe(true);
+  });
+
+  it("reduces a Mineral evolution by 1 in the battle area", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-055", as: "sunarizamon" }],
+        hand: [{ card: "BT10-062", as: "golemon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sunarizamon").permanentId,
+        instanceId: s.inst("golemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sunarizamon").topCard.instanceId === s.inst("golemon").instanceId);
+
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("Q4559 does not reduce the same evolution in the breeding area", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT21-055", as: "sunarizamon" },
+        hand: [{ card: "BT10-062", as: "golemon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sunarizamon").permanentId,
+        instanceId: s.inst("golemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sunarizamon").topCard.instanceId === s.inst("golemon").instanceId);
+
+    expect(s.state.memory).toBe(2);
   });
 });

@@ -23,6 +23,11 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenAttackTargetSwitched",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
+          },
           actions: [
             {
               kind: "SecurityManipulation",
@@ -41,6 +46,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "opponent" },
           fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "opponent" },
           actions: [
             {
