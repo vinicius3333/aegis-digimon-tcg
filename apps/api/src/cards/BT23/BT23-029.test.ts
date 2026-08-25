@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -6,6 +7,32 @@ import "../index.js";
 import { compiled } from "./BT23-029.js";
 
 describe("BT23-029 Antylamon", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-029")).toMatchObject({
+      cardId: "BT23-029",
+      nameEn: "Antylamon",
+      colors: ["Yellow", "Green"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [
+        { color: "Yellow", level: 4, memoryCost: 4 },
+        { color: "Green", level: 4, memoryCost: 4 },
+      ],
+      forms: ["Ultimate"],
+      attributes: ["Data"],
+      types: ["Holy Beast", "Deva", "CS"],
+      inheritedEffectText:
+        "[All Turns] [Once Per Turn] When any of your other Digimon suspend, 1 of your opponent's Digimon gets -4000 DP for the turn.",
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Turuiemon", "Wendigomon"], cost: 3, isAlternate: true },
+      { level: 4, traits: ["CS"], cost: 3, isAlternate: true },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
   it("reacts when this card itself is played and restricts one opposing Digimon", async () => {
     const s = setupEngine(
       {
@@ -89,5 +116,33 @@ describe("BT23-029 Antylamon", () => {
         },
       ],
     });
+  });
+
+  it.each(["AD1-010", "BT1-035", "BT23-017"])("reacts to a played Beast, Beastkin, or CS peer: %s", async (peer) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-029", as: "antylamon" }], hand: [{ card: peer, as: "peer" }] },
+        1: { battleArea: [{ card: "BT1-024", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("peer").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving"));
+    expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
+  });
+
+  it("ignores a played card with no Beast, Beastkin, or CS trait", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-029", as: "antylamon" }], hand: [{ card: "BT1-009", as: "peer" }] },
+        1: { battleArea: [{ card: "BT1-024", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("peer").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(false);
   });
 });

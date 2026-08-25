@@ -254,6 +254,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog and complete IR; resolves a real security battle, plays Coordemon, and observes its On Play -3000 DP; links for exactly 2 with +3000 DP and observable When Digivolving suppression; rejects a non-Appmon recipient without memory or zone mutation; and verifies both DP trigger clauses.
 - Verification: focused suite — 7 passed; timing-disable semantics are covered by the shared restriction capability suite; `git diff --check` — passed.
 
+## BT23-029 — Antylamon — 10/10
+
+- Catalog evidence: Yellow/green level 5, play cost 7, 7000 DP, standard yellow- or green-level-4 evolution for 4 plus alternate Turuiemon/Wendigomon-name or level-4 CS evolution for 3; form `Ultimate`, attribute `Data`, types `Holy Beast`, `Deva`, and `CS`; Alliance; All Turns once per turn, when any friendly Beast, Beastkin, or CS card is played, prevents one opposing Digimon from activating When Digivolving effects through the opponent's turn end; inherited All Turns once per turn gives one opposing Digimon -4000 DP when another friendly Digimon suspends.
+- Knowledge base: Q5265 includes Antylamon's own play; Q5266/Q5268 suppress both triggered and effect-activated When Digivolving clauses; Q5267 preserves the When Attacking half of a shared effect; Q5269 forbids paying a suppressed clause's activation cost; Q5270 confirms suppression does not consume shared once-per-turn frequency.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-029", compiled)` with full coverage and no residual clauses; the audit adds full catalog and mixed-trait behavioral evidence without changing execution.
+- Primitive trace: the play watcher includes Digimon, Tamer, and Option cards because it filters trait rather than kind, matches Antylamon itself, and shares one per-source turn frequency; timing suppression is specifically scoped to When Digivolving; Alliance is a direct static keyword; the inherited watcher excludes its carrier and applies a turn-scoped DP modifier.
+- Behavioral proof: the focused suite checks catalog and complete IR; proves Antylamon's own play; independently plays Beast, Beastkin, and CS peers from a mixed pool and observes suppression; rejects a nonmatching peer; ignores the inherited carrier's own suspension; and applies -4000 only for another friendly Digimon.
+- Verification: focused suite — 10 passed; timing-disable semantics are covered by the shared restriction capability suite; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-029 through BT23-102.
+BT23-030 through BT23-102.
