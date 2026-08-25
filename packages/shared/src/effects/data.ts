@@ -444,6 +444,12 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { names: ["BurningGreymon"], cost: 1, isAlternate: true },
     { names: ["Takuya Kanbara"], cost: 2, isAlternate: true, baseIsTamer: true },
   ],
+  // BT12-025: Calmaramon's Tamer route is limited to blue Tamers; the generated
+  // fallback lost the printed color qualifier.
+  "BT12-025": [
+    { names: ["Lanamon"], cost: 1, isAlternate: true },
+    { cost: 0, isAlternate: true, baseIsTamer: true, baseColors: ["Blue"] },
+  ],
   // BT24-059: "[Aqua] or [Sea Animal] in any trait" is substring matching, not exact traits.
   "BT24-059": [
     { level: 4, traitSubstrings: ["Aqua", "Sea Animal"], cost: 3, isAlternate: true },
