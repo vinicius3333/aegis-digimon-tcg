@@ -59,7 +59,6 @@ export const compiled: CompiledCard = {
                       count: 1,
                     },
                     to: "hand",
-                    optional: true,
                   },
                 ],
                 [
@@ -75,7 +74,6 @@ export const compiled: CompiledCard = {
                     },
                     fromOwnDigivolutionStack: true,
                     payCost: false,
-                    optional: true,
                   },
                 ],
               ],

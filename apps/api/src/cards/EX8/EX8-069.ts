@@ -76,6 +76,7 @@ export const compiled: CompiledCard = {
           duration: "permanent",
         },
       ],
+      isSecurity: true,
     },
     {
       trigger: "Main",

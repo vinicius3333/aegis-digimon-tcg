@@ -46018,8 +46018,7 @@
                         },
                         "count": 1
                       },
-                      "to": "hand",
-                      "optional": true
+                      "to": "hand"
                     }
                   ],
                   [
@@ -46034,8 +46033,7 @@
                         "count": 1
                       },
                       "fromOwnDigivolutionStack": true,
-                      "payCost": false,
-                      "optional": true
+                      "payCost": false
                     }
                   ]
                 ]
