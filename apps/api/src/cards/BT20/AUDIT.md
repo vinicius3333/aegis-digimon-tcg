@@ -1043,3 +1043,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-087.test.ts`).
+
+## BT20-088 — Violet Inboots
+
+- Catalog contract: purple LIBERATOR Tamer, play cost 3; start of own main phase gains 1 memory if the opponent has a Digimon; on own turn when an own Ghost Digimon is deleted, may suspend this Tamer as cost so an own Digimon evolves into a hand Ghost Digimon with cost reduced by 2; Security free-plays itself.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: the memory condition is opponent/battle/Digimon scoped. The deletion watcher filters the deleted event subject by own controller and semantic Ghost trait, then offers a hand-only Ghost evolution with reduction 2 after the self-suspension cost. Security and registration are direct, with exclusive `registerIrCard`.
+- Peer/stack evidence: Ghost matching aligns with BT20-079 while the recipient may be any own battle Digimon whose normal evolution legality is checked by the shared evolution primitive; unrelated trait and opponent deletions cannot trigger it.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-088.test.ts` — 2 passed.
+- Clause scores: stats/Security 2/2; opponent-presence memory condition 2/2; own Ghost deletion watcher 2/2; paid optional evolution 2/2; hand/Ghost/reduction/recipient scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-088.test.ts`).
