@@ -25,6 +25,7 @@ export const compiled: CompiledCard = {
           },
           keyword: {
             keyword: "SecurityAttack",
+            amount: 1,
           },
           duration: "permanent",
         },

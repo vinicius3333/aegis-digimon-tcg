@@ -533,6 +533,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; trashes a friendly effect-placed Option, deletes only the lowest-cost opponent, unsuspends Justimon, then proves an opposing Examon suspension effect cannot affect it; proves no deletion occurs without an Option to pay; observes Blocker live; verifies all three shared timings and the watcher shape; accepts 1-cost evolution from both named Justimon forms and 3-cost off-color level-5 CS evolution while rejecting a non-CS peer.
 - Verification: focused suite — 7 passed; shared effect-placed Option identity, trash event, superlative deletion, unsuspend, Digimon-effect immunity, frequency, Blocker, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-060 — Machinedramon — 10/10
+
+- Catalog evidence: Black/red level 6, play cost 12, 12000 DP, standard black- or red-level-5 evolution for 4 plus alternate level-5 CS evolution for 4; form `Mega`, attribute `Virus`, types `Machine`, `Zaxon`, and `CS`; Security Attack +1 and Reboot; On Play/When Digivolving De-Digivolves one opponent by 1, then deletes one opposing 8000-DP-or-less Digimon; When Attacking once per turn mandatorily activates one On Play effect of a face-up Zaxon Digimon in its security as Machinedramon's effect.
+- Knowledge base: Q5330 makes the attack trigger mandatory and consumes its once-per-turn use even when no eligible face-up Zaxon exists. Q5331 requires the complete borrowed On Play effect, including a payable “By” condition, to resolve rather than permitting selective omission.
+- Defect corrected: the printed Security Attack +1 was encoded as a `GainKeyword` without `amount`, producing a live modifier of 0. The audit adds `amount: 1`, preserves the hand-authored `ActivateForeignEffect`, full coverage/no residuals, and exclusive `registerIrCard("BT23-060", compiled)` registration.
+- Primitive trace: both entry timings De-Digivolve before independently selecting against the post-evolution 8000-DP ceiling; static keyword grants project +1 security check and Reboot; the physical-source attack watcher marks its use even with an empty candidate pool, otherwise selects one face-up friendly Zaxon security Digimon and executes its entire On Play effect under Machinedramon's effect context.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; De-Digivolves a stack into an 8000-DP body and deletes it while preserving a larger opponent; observes live Security Attack +1 and Reboot; attacks to borrow Phoenixmon's On Play and delete a 4000-DP opponent; proves a no-candidate first attack consumes the use so revealing an eligible lender before a second same-turn attack does not activate it; and accepts off-color level-5 CS evolution while rejecting a non-CS peer.
+- Verification: focused suite — 8 passed; shared De-Digivolve ordering, DP ceiling, keyword amount, Reboot, foreign-effect activation, empty-candidate frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-060 through BT23-102.
+BT23-061 through BT23-102.
