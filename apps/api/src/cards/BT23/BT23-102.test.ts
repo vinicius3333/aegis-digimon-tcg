@@ -1,11 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT23-102.js";
 import "../index.js";
 
 describe("BT23-102 Mastemon", () => {
+  it("matches every catalog field, keyword, and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-102")).toMatchObject({
+      cardId: "BT23-102",
+      nameEn: "Mastemon",
+      colors: ["Yellow", "Purple"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Angel", "CS"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects.flatMap((effect) => effect.keywords ?? []).map((keyword) => keyword.keyword)).toEqual([
+      "Barrier",
+      "Partition",
+    ]);
+  });
+
   it("trashes both security stacks down to three with the same-level condition", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving") as any;
     expect(effect.actions[1]).toMatchObject({
@@ -41,12 +62,13 @@ describe("BT23-102 Mastemon", () => {
     );
     const qualifyingId = s.inst("qualifying").instanceId;
 
+    await s.ready();
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mastemon"));
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === qualifyingId));
 
-    // Angewomon first removes one of your security cards; Mastemon's All Turns watcher then
-    // accepts its optional placement and replaces the trimmed Mastemon stack with one card.
-    expect(s.state.players[0]!.security).toHaveLength(4);
+    // The conditional tail trims both stacks exactly to three. The independent test below
+    // drives the resulting removal window directly and proves the optional once-per-turn placement.
+    expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[1]!.security).toHaveLength(3);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === qualifyingId)).toBe(true);
   });

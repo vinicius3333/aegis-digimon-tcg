@@ -82722,10 +82722,15 @@
             "optional": true
           },
           {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine" }, "count": 1 },
-            "condition": { "kind": "raw", "raw": "this Digimon's stack has 2 or more same-level cards" },
-            "optional": true
+            "kind": "SecurityManipulation",
+            "op": "trashTop",
+            "controller": "mine",
+            "bothPlayers": true,
+            "leaveCount": 3,
+            "condition": {
+              "kind": "selfDigivolutionStackHasSameLevelPair",
+              "raw": "this Digimon's stack has 2 or more same-level cards"
+            }
           }
         ]
       },
@@ -82733,11 +82738,22 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "SecurityManipulation",
-            "op": "addBottom",
-            "controller": "mine",
-            "amount": 1,
-            "source": { "filter": { "isDigimon": true }, "count": 1, "upTo": false }
+            "kind": "SubTrigger",
+            "event": "whenSecurityRemoved",
+            "actions": [
+              {
+                "kind": "SecurityManipulation",
+                "op": "addBottom",
+                "controller": "any",
+                "amount": 1,
+                "source": {
+                  "filter": { "isDigimon": true, "controller": "any" },
+                  "count": 1,
+                  "upTo": false
+                },
+                "optional": true
+              }
+            ]
           }
         ],
         "frequency": "OncePerTurn"
