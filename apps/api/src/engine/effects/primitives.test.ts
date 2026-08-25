@@ -156,6 +156,25 @@ describe("primitives: draw", () => {
     expect(drawn).toHaveLength(1);
     expect(h.state.players[0]!.deck).toHaveLength(0);
   });
+
+  it("publishes the resolving effect's owner and Digimon kind with hand additions", async () => {
+    const h = harness({ board: { 0: { deck: [DIGIMON] } } });
+
+    h.fx.enterEffectResolution?.(0, [CardKind.Digimon]);
+    await h.fx.draw(0, 1);
+    h.fx.leaveEffectResolution?.();
+
+    expect(h.subTriggerFires).toContainEqual({
+      event: "whenEffectAddsToHand",
+      payload: {
+        effectAddedToHandSeat: 0,
+        addedToHand: {
+          instanceIds: [h.state.players[0]!.hand[0]!.instanceId],
+          byEffect: { ownerSeat: 0, isDigimonEffect: true },
+        },
+      },
+    });
+  });
 });
 
 describe("primitives: memory (delegates to MemoryGauge)", () => {
