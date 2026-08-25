@@ -722,6 +722,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; proves guarded start-main memory; accepts an effect-deletion replacement and observes the exact CS card on top security plus Yu in deck; repeats for battle deletion and observes a zero deletion count, covering the Piercing ruling; declines and proves ordinary deletion proceeds while Yu remains; and structurally verifies the exact subject/cost binding.
 - Verification: focused suite — 6 passed after refreshing shared runtime data; shared would-be-deleted replacement, battle/effect causes, exact-subject binding, deck-bottom cost, stack-to-security movement, optional refusal, start-main guard, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-081 — Chitose Imai — 10/10
+
+- Catalog evidence: Yellow cost-4 Tamer, types `Hudie` and `CS`; Start of Your Main Phase gains 1 memory while controlling a CS Digimon; On Play may play one cost-5-or-lower Hudie Digimon from hand for free; All Turns when a friendly Hudie Digimon suspends, may suspend this Tamer to give one opposing Digimon -3000 DP for the turn; Security plays this card for free.
+- Knowledge base: no card-specific rulings are recorded locally; the exact catalog text and general trigger-subject, cost, optionality, free-play, and DP rules therefore control.
+- Defects corrected: none; direct and authoritative shared IR already agree on every executable clause, with exclusive `registerIrCard("BT23-081", compiled)` registration, full coverage, and no residuals.
+- Primitive trace: start-main checks the live friendly CS board; On Play filters the hand by Digimon/Hudie and the inclusive cost-5 ceiling before optional free play; the all-turns listener filters the suspension subject by friendly Hudie, pays by suspending Chitose, and applies -3000 to one opposing Digimon for the turn; Security self-play is free.
+- Behavioral proof: the focused suite checks catalog/coverage; proves the positive and absent-CS start-main boundary; plays an exact cost-5 Hudie from a mixed hand while preserving the non-Hudie and separately refuses the play; accepts a Hudie suspension to suspend Chitose and reduce an opposing 3000-DP Digimon to 0; and proves a non-Hudie suspension produces neither cost nor reduction.
+- Verification: focused suite — 7 passed; shared start-main possession gate, inclusive free-play filter, optional refusal, suspension-subject trait filter, Tamer suspension cost, temporary negative DP, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-081 through BT23-102.
+BT23-082 through BT23-102.
