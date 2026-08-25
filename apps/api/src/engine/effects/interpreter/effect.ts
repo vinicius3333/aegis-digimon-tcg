@@ -609,6 +609,11 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     (action.additionalCosts?.length ?? 0) > 0 ||
     (action.costOptions?.length ?? 0) > 0;
   const costsPayable = (action: ParsedAction): boolean => {
+    // A reactive listener pays its activation costs when the future event fires, against
+    // that event's payload. Preflighting those costs while installing the listener can lack
+    // its trigger subject and incorrectly suppress the watcher entirely (EX10-067's
+    // triggerSource placement host).
+    if (action.kind === "SubTrigger" || action.kind === "Replacement") return true;
     const primaryPayable = action.cost === undefined || typeof action.cost === "number" || canPayCost(ctx, action.cost);
     if (!primaryPayable) return false;
     if (action.additionalCost !== undefined && !canPayCost(ctx, action.additionalCost)) return false;

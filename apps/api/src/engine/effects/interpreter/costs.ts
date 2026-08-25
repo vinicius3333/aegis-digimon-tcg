@@ -246,6 +246,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     if (required <= 0 || (!cost.target.upTo && candidates.length < required)) return false;
 
     if (cost.destination === "security" || cost.destination === "battleArea") return true;
+    if (cost.host === "triggerSource") {
+      const triggerHostId =
+        ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId ?? ctx.trigger.deletedPermanentId;
+      return triggerHostId !== undefined && ctx.game.permanentById(triggerHostId) !== undefined;
+    }
     if (cost.underFilter !== undefined) {
       return (
         candidatePermanents(ctx, {
@@ -1388,6 +1393,9 @@ export async function payCost(
               destIds.length === 1
                 ? destIds[0]
                 : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
+          } else if (cost.host === "triggerSource") {
+            hostPermId =
+              ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId ?? ctx.trigger.deletedPermanentId;
           } else {
             const selfPerm =
               ctx.source.permanent() ??
@@ -1508,6 +1516,9 @@ export async function payCost(
             destIds.length === 1
               ? destIds[0]
               : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
+        } else if (cost.host === "triggerSource") {
+          hostPermId =
+            ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId ?? ctx.trigger.deletedPermanentId;
         } else {
           // "place ... as 1 of your Digimon's ... card" names the destination
           // separately from the material filter. Older IR omitted an explicit host
