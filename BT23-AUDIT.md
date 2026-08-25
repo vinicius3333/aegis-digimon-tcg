@@ -866,6 +866,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage and field scope; trashes an established Comet Hammer on a CS attack and moves a five-card realistic opposing stack down to its deepest card; structurally verifies amount 4, Delay nesting, and Main/Security order.
 - Verification: focused suite — 4 passed after refreshing shared runtime data; shared intrinsic Delay, CS attack filter, De-Digivolve stack handling/floor, field color waiver, and Main/Security placement mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-097 — Seventh Penetration — 10/10
+
+- Catalog evidence: Purple cost-7 Seven Great Demon Lords Option; from trash on Your Turn when a friendly Digimon evolves into Belphemon (X Antibody), may return this card to deck bottom to activate its Main; Main deletes one opposing Digimon whose level is at least the number of cards in hand; Security activates Main.
+- Knowledge base: Q5385 defines Trash effects as activatable only from trash. Q5570 confirms this trigger is simultaneous with effects triggered by the Belphemon evolution and the player chooses their activation order.
+- Defects corrected: authoritative shared IR omitted the return cost's deck-bottom destination. Additionally, generic return-cost preflight/payment could not resolve `this card` while the effect source was a loose trash instance; it now verifies and moves the exact physical source before Main activation. Registration remains exclusively `registerIrCard("BT23-097", compiled)` with full coverage/no residuals.
+- Primitive trace: the trash-only listener filters the exact evolution subject by name, optionally returns its own instance to true deck bottom, aborts if unpaid, then routes into Main; the dynamic level comparison counts the controller's live hand and includes the equality boundary; Security reuses Main.
+- Behavioral proof: the focused suite checks catalog/coverage; with four cards in hand fires a real Belphemon (X Antibody) evolution subject, moves Seventh Penetration from trash to deck bottom, deletes a level-4 opponent at equality, and preserves a level-3 opponent; structurally verifies trash scope, cost destination, name gate, scaling, and Security routing.
+- Verification: focused suite — 5 passed after refreshing shared runtime data; shared trash-effect collection, physical loose-source return, aborting optional cost, ActivateMain, live hand scaling, inclusive level comparison, and Security routing mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-097 through BT23-102.
+BT23-098 through BT23-102.

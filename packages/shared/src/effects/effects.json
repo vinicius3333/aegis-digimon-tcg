@@ -32644,7 +32644,8 @@
                 "cost": {
                   "kind": "return",
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by returning this card to the bottom of the deck"
+                  "raw": "by returning this card to the bottom of the deck",
+                  "to": "deckBottom"
                 }
               },
               {

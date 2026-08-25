@@ -152,6 +152,13 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return cost.target.upTo === true ? true : required > 0 && candidates.length >= required;
   }
+  if (
+    cost.kind === "return" &&
+    cost.target?.filter.isSelfRef === true &&
+    ctx.source.permanent() === undefined
+  ) {
+    return ctx.game.player(ctx.source.ownerSeat).trash.some((card) => card.instanceId === ctx.source.instanceId);
+  }
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === undefined) {
     const candidates = candidatePermanents(ctx, cost.target);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
@@ -1012,6 +1019,18 @@ export async function payCost(
         if (cost.to === "deckTop") return true;
         return /\bto the top\b/i.test(cost.raw ?? "");
       };
+      // Trash effects can pay "by returning this card" while the source is a loose card,
+      // not a battle-area permanent. Resolve that exact physical instance before the generic
+      // permanent-target branch (BT23-097).
+      if (cost.target.filter.isSelfRef === true && ctx.source.permanent() === undefined) {
+        const inTrash = ctx.game
+          .player(ctx.source.ownerSeat)
+          .trash.some((card) => card.instanceId === ctx.source.instanceId);
+        if (!inTrash || cost.to === "hand") return false;
+        await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: await returnToTop() });
+        if (out) out.paidCount = 1;
+        return true;
+      }
       if (cost.target.filter.zone === "hand") {
         const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
