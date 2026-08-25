@@ -229,9 +229,14 @@ This ledger records a fresh, ascending-ID revalidation against the committed cat
 - Behavioral proof: isolated `BT13-026.test.ts` passed 4 tests: exact full IR; a real attack moves the controller's top deck card to hand; two same-turn attack timings draw twice; and an inherited attack removes only the opponent's bottom source to that owner's trash while retaining the opponent's top source and the host's own stack. Reverting timing, draw controller/amount/frequency, inherited anchoring, opponent filter, bottom direction, amount, or trash ownership makes a focused observable assertion fail.
 - Revalidation result: 10/10; no remaining card-specific queue.
 
-## BT13-027 — Shaujinmon — Pending
+## BT13-027 — Shaujinmon — 10/10
 
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
+- Catalog evidence: Blue level 5 Digimon, play cost 7, 7000 DP; Ultimate/Virus/Wizard; evolves from blue level 4 for 3. Printed clauses checked independently: Blocker, and during the opponent's turn when an opposing Digimon attacks, optionally play 1 level 4 or lower Digimon from this Digimon's sources without cost.
+- Knowledge base: `node tools/kb/query.mjs card BT13-027` reviewed; no card-specific entries exist. Opponent-turn duration, attack ownership, optionality, source-local origin, Digimon kind, inclusive level cap, and free play are explicit.
+- Implementation and primitive trace: `BT13-027.ts` maps the opponent-turn record to the Blocker keyword plus a `whenOpponentAttacks` SubTrigger whose optional `PlayWithoutCost` selects one controlled Digimon of level at most 4 from its own digivolution stack. Traced through continuous turn-condition installation/removal, attack event publication, watcher source/controller identity, optional decision, source candidate filtering, detachment, permanent creation without cost, and remaining-stack preservation. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-027", compiled)`.
+- Peers, traits, evolution, timing, ownership, and frequency: BT13-024 independently corroborates the shared Blocker seam, while BT13-026 is a realistic level-4 source and BT13-028 is the level-5 negative boundary. Opponent-turn and own-turn recomputes isolate duration; opposing attack and refusal fixtures isolate event ownership and optionality. The attack watcher is not once per turn and can resolve on each qualifying attack while Shaujinmon remains present.
+- Behavioral proof: isolated `BT13-027.test.ts` passed 4 tests: exact full IR; an opposing attack plays the eligible level-4 TeslaJellymon for free, removes it from Shaujinmon's stack, and leaves an ineligible level-5 source attached; explicit refusal keeps the eligible source attached and creates no permanent; and the public observer reports Blocker absent on its controller's turn but present on the opponent's turn. Reverting duration, Blocker, event ownership, optionality, origin, kind/level filter, payment, detachment, or stack routing makes a focused observable assertion fail.
+- Revalidation result: 10/10; no remaining card-specific queue.
 
 ## BT13-028 — Thetismon — Pending
 

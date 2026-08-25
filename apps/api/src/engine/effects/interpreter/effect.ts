@@ -554,7 +554,20 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     }
     return;
   }
-  if (effect.trigger === "Static") {
+  // A continuous record may carry both resident keywords and executable actions. Do not
+  // drop the keywords merely because the action list is non-empty (BT13-027 combines
+  // opponent-turn Blocker with a when-opponent-attacks subscription).
+  if (
+    effect.trigger === "Static" ||
+    effect.trigger === "Rule" ||
+    effect.trigger === "YourTurn" ||
+    effect.trigger === "OpponentsTurn" ||
+    effect.trigger === "AllTurns"
+  ) {
+    const duration =
+      effect.trigger === "Static" || effect.trigger === "Rule" || effect.trigger === "YourTurn"
+        ? "permanent"
+        : "forTheTurn";
     for (const keyword of effect.keywords ?? []) {
       if (keyword.keyword === "Reboot" || ACTION_TYPE_KEYWORDS.has(keyword.keyword)) continue;
       await runAction(ctxWithSelections, {
@@ -564,7 +577,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
           keyword: keyword.keyword,
           ...(keyword.amount !== undefined ? { amount: keyword.amount } : {}),
         },
-        duration: "permanent",
+        duration,
       });
     }
   }

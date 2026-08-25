@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-027.js";
 
 describe("BT13-027 Shaujinmon", () => {
@@ -20,7 +21,10 @@ describe("BT13-027 Shaujinmon", () => {
   it("plays a level 4 card from its own stack when the opponent attacks", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-027", as: "shaujin", under: ["BT13-026"] }], security: ["BT1-001"] },
+        0: {
+          battleArea: [{ card: "BT13-027", as: "shaujin", under: ["BT13-028", "BT13-026"] }],
+          security: ["BT1-001"],
+        },
         1: { battleArea: [{ card: "BT1-015", as: "attacker" }], security: ["BT1-002"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -39,5 +43,39 @@ describe("BT13-027 Shaujinmon", () => {
       3000,
     );
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-026")).toBe(true);
+    expect(s.perm("shaujin").stack.map(({ cardId }) => cardId)).toEqual(["BT13-028"]);
+  });
+
+  it("allows the controller to decline playing from its stack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-027", as: "shaujin", under: ["BT13-026"] }], security: ["BT1-001"] },
+        1: { battleArea: [{ card: "BT1-015", as: "attacker" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
+
+    expect(s.perm("shaujin").stack.map(({ cardId }) => cardId)).toEqual(["BT13-026"]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("installs Blocker only during the opponent's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-027", as: "shaujin" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("shaujin"), "Blocker")).toBe(false);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(s.perm("shaujin"), "Blocker")).toBe(true);
   });
 });
