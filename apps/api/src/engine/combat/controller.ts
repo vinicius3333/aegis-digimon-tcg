@@ -1052,10 +1052,12 @@ export class CombatController {
    * resolve.ts; here we apply it to authoritative state and narrate.
    */
   async resolveBattle(attacker: Permanent, defender: Permanent): Promise<void> {
-    await this.resolveDigimonBattle(attacker, defender);
+    // An effect-created direct battle is not an attack. In particular, a Piercing
+    // winner does not perform a security check here (EX11-074 Q5955-Q5959).
+    await this.resolveDigimonBattle(attacker, defender, false);
   }
 
-  private async resolveDigimonBattle(attacker: Permanent, defender: Permanent): Promise<void> {
+  private async resolveDigimonBattle(attacker: Permanent, defender: Permanent, allowPiercing = true): Promise<void> {
     const continuous = this.hooks.continuous;
     const outcome = resolvePermanentBattle({
       attackerPermanentId: attacker.permanentId,
@@ -1439,7 +1441,7 @@ export class CombatController {
       // pre-end-of-attack check, Comprehensive Rules §16-7); reuses the validated
       // runSecurityCheck hand-off rather than building a new security path. The pierce
       // grant is server-only state (ModifierLedger.hasPierce), never client-supplied.
-      if (this.hooks.hasPierce?.(attacker.permanentId) === true) {
+      if (allowPiercing && this.hooks.hasPierce?.(attacker.permanentId) === true) {
         await this.hooks.checkSecurity(this.access.opponentOf(attacker.controllerSeat), attacker.permanentId);
       }
     }
