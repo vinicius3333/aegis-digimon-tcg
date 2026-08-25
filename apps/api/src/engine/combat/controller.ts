@@ -146,6 +146,13 @@ export interface CombatHooks {
    */
   fireSubTrigger?: (event: SubTriggerEventName, payload: TriggerInfo) => Promise<void>;
   /**
+   * Snapshot a SubTrigger event's armed watchers at the instant the event occurs, while
+   * deferring their activation until the caller invokes the returned function. Attack
+   * declarations use this to preserve the event-time watcher set while System-A
+   * [When Attacking] effects resolve first.
+   */
+  prepareSubTrigger?: (event: SubTriggerEventName, payload: TriggerInfo) => () => Promise<void>;
+  /**
    * Consult card-authored deletion replacements before battle losers leave the field. The
    * effect-path primitive already uses the same shared consult; combat otherwise deletes by
    * raw state access and would pay a prevention cost without actually saving the Digimon.
@@ -555,6 +562,18 @@ export class CombatController {
         ...(opts.attackMechanic === undefined ? {} : { attackMechanic: opts.attackMechanic }),
         ...(target.kind === "permanent" ? { defenderPermanentId: target.permanentId } : {}),
       };
+      const attackSubTriggerPayload: TriggerInfo = {
+        attackerPermanentId: attacker.permanentId,
+        attackSequence,
+        ...(attackTrigger.defenderPermanentId !== undefined
+          ? { defenderPermanentId: attackTrigger.defenderPermanentId }
+          : {}),
+      };
+      const preparedWhenAttacking = this.hooks.prepareSubTrigger?.("whenAttacking", attackSubTriggerPayload);
+      const preparedWhenOpponentAttacks = this.hooks.prepareSubTrigger?.(
+        "whenOpponentAttacks",
+        attackSubTriggerPayload,
+      );
       await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
       await this.hooks.fireTiming(EffectTiming.OnAllyAttack, attackTrigger);
 
@@ -564,20 +583,10 @@ export class CombatController {
       // installs from the System-A timing-collected attack builders, so there is no
       // cross-system double-fire (RESEARCH Pitfall 4 / Assumption A3). The attacker is the
       // event subject for both events; a watcher's captured sourceFilter gates on it.
-      await this.hooks.fireSubTrigger?.("whenAttacking", {
-        attackerPermanentId: attacker.permanentId,
-        attackSequence,
-        ...(attackTrigger.defenderPermanentId !== undefined
-          ? { defenderPermanentId: attackTrigger.defenderPermanentId }
-          : {}),
-      });
-      await this.hooks.fireSubTrigger?.("whenOpponentAttacks", {
-        attackerPermanentId: attacker.permanentId,
-        attackSequence,
-        ...(attackTrigger.defenderPermanentId !== undefined
-          ? { defenderPermanentId: attackTrigger.defenderPermanentId }
-          : {}),
-      });
+      if (preparedWhenAttacking !== undefined) await preparedWhenAttacking();
+      else await this.hooks.fireSubTrigger?.("whenAttacking", attackSubTriggerPayload);
+      if (preparedWhenOpponentAttacks !== undefined) await preparedWhenOpponentAttacks();
+      else await this.hooks.fireSubTrigger?.("whenOpponentAttacks", attackSubTriggerPayload);
       // A suspension paid as the cost of an effect-driven forced attack triggers at the
       // same time as the attack declaration. Resolve the turn player's When Attacking
       // effects first, then the deferred non-turn suspension watchers (EX3-024/074,

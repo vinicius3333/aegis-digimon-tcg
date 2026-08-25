@@ -690,6 +690,7 @@ export class GameEngine {
         });
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
+      prepareSubTrigger: (event, payload) => this.prepareSubTrigger(event, payload),
       resolveDeletionReactions: async (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
       effectiveColorsOf: (permanentId) => {
         const permanent = this.access.permanentById(permanentId);
@@ -2141,6 +2142,28 @@ export class GameEngine {
     // A watcher body may have moved/deleted permanents; refresh the continuous tier so a
     // subsequent read sees the post-fire board (mirrors fireTiming's trailing recompute).
     await this.recomputeContinuousEffects();
+  }
+
+  /**
+   * Capture the watchers armed when an event occurs, then return a deferred activation.
+   * This is distinct from a nested timing deferral: combat deliberately resolves its
+   * System-A [When Attacking] window before the System-B watcher bus, but both systems
+   * observe the same attack declaration. A watcher installed by an earlier System-A
+   * effect therefore must not retroactively join that declaration (BT24-078/Q5775).
+   */
+  private prepareSubTrigger(event: SubTriggerEventName, payload: TriggerInfo): () => Promise<void> {
+    const boundPayload = { ...payload };
+    const subscriptions = [...this.subTriggers.subscriptionsFor(event)];
+    const contexts = new Map<number, EffectContext>();
+    for (const sub of subscriptions) {
+      const ctx = this.buildSubTriggerContext(sub, boundPayload);
+      if (ctx !== undefined) contexts.set(sub.id, ctx);
+    }
+    return async () => {
+      await this.withTriggeredMutations(async () => {
+        await this.fireSubTriggerSnapshot(subscriptions, boundPayload, contexts);
+      });
+    };
   }
 
   /**
