@@ -26,7 +26,9 @@ describe("BT21-021 OmniShoutmon", () => {
       trigger: "Static",
       actions: [{ kind: "GrantStatic", grant: "name", tokens: ["Shoutmon"] }],
     });
-    expect(compiled.effects.some((effect) => effect.keywords?.some((keyword) => keyword.keyword === "SecurityAttack"))).toBe(false);
+    expect(
+      compiled.effects.some((effect) => effect.keywords?.some((keyword) => keyword.keyword === "SecurityAttack")),
+    ).toBe(false);
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({
         trigger: "EndOfAttack",

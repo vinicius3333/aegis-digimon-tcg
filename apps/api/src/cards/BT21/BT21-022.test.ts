@@ -85,9 +85,7 @@ describe("BT21-022 Canoweissmon", () => {
         ],
       }),
     );
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 4, texts: ["Gammamon"], cost: 3, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, texts: ["Gammamon"], cost: 3, isAlternate: true }]);
   });
 
   it("pays the Gammamon-text hand cost, places it at the bottom, and deletes exactly a 7000 DP target", async () => {
@@ -127,7 +125,12 @@ describe("BT21-022 Canoweissmon", () => {
     ] as const) {
       const s = setupEngine(
         {
-          0: { hand: [{ card: "BT21-022", as: "canoweissmon" }, { card: material, as: "material" }] },
+          0: {
+            hand: [
+              { card: "BT21-022", as: "canoweissmon" },
+              { card: material, as: "material" },
+            ],
+          },
           1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }] },
         },
         options,

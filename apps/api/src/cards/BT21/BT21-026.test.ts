@@ -104,7 +104,12 @@ describe("BT21-026 WarGreymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT21-026", as: "wargreymon", suspended: true }] },
-        1: { battleArea: [{ card: "BT1-009", as: "first" }, { card: "BT1-010", as: "second" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
       },
       { autoAcceptOptional: true },
     );

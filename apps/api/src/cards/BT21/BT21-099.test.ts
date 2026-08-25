@@ -36,7 +36,7 @@ describe("BT21-099 Xros Up", () => {
 
   it("places Save from hand/trash under a Tamer and offers Save digivolution from trash", () => {
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
-    const place = main?.actions[0] as any;
+    const place = main?.actions[0];
     expect(place).toMatchObject({
       kind: "PlaceUnder",
       from: ["hand", "trash"],
@@ -45,7 +45,7 @@ describe("BT21-099 Xros Up", () => {
       position: "bottom",
       optional: true,
     });
-    const digivolve = main?.actions[1] as any;
+    const digivolve = main?.actions[1];
     expect(digivolve).toMatchObject({
       kind: "Digivolve",
       from: ["trash"],

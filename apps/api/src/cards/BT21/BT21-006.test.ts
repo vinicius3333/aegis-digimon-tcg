@@ -30,9 +30,7 @@ describe("BT21-006 Tsumemon", () => {
   it("applies the inherited DP bonus at exactly four named Vemmon sources", async () => {
     const below = setupEngine({
       0: {
-        battleArea: [
-          { card: "BT21-062", as: "below", under: ["BT21-006", "BT21-056", "BT21-056", "BT21-056"] },
-        ],
+        battleArea: [{ card: "BT21-062", as: "below", under: ["BT21-006", "BT21-056", "BT21-056", "BT21-056"] }],
       },
     });
     const atBoundary = setupEngine({

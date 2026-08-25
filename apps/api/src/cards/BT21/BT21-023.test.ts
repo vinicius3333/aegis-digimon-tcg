@@ -78,7 +78,12 @@ describe("BT21-023 Globemon", () => {
       expect.objectContaining({
         trigger: "WhenLinking",
         isLinked: true,
-        actions: [expect.objectContaining({ kind: "Delete", target: { filter: expect.objectContaining({ controller: "opponent" }), count: 1 } })],
+        actions: [
+          expect.objectContaining({
+            kind: "Delete",
+            target: { filter: expect.objectContaining({ controller: "opponent" }), count: 1 },
+          }),
+        ],
       }),
     );
   });
@@ -97,7 +102,9 @@ describe("BT21-023 Globemon", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("globemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("globemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => {
       const globemon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-023");
       return globemon?.linked.some((card) => card.instanceId === s.inst("link").instanceId) ?? false;
@@ -113,14 +120,26 @@ describe("BT21-023 Globemon", () => {
       ["BT21-023", { autoAcceptOptional: true, autoSelectCards: true }],
       ["BT21-018", { autoDeclineOptional: true }],
     ] as const) {
-      const s = setupEngine({ 0: { hand: [{ card: "BT21-023", as: "globemon" }, { card, as: "candidate" }] } }, options);
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT21-023", as: "globemon" },
+              { card, as: "candidate" },
+            ],
+          },
+        },
+        options,
+      );
       s.state.memory = 10;
       await s.ready();
       s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("globemon").instanceId });
       await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-023"));
       const globemon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-023")!;
       expect(globemon.linked).toHaveLength(0);
-      expect(s.state.players[0]!.hand.map((candidate) => candidate.instanceId)).toContain(s.inst("candidate").instanceId);
+      expect(s.state.players[0]!.hand.map((candidate) => candidate.instanceId)).toContain(
+        s.inst("candidate").instanceId,
+      );
     }
   });
 

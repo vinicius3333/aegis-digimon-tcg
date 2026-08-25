@@ -77,9 +77,9 @@ describe("BT21-014 BurningGreymon", () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT21-014", as: "burningGreymon" }] } });
     s.state.memory = 10;
     await s.ready();
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("burningGreymon").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("burningGreymon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-014"));
     const permanent = s.state.players[0]!.battleArea.find((entry) => entry.topCard.cardId === "BT21-014")!;
     expect(permanent.currentDP).toBe(9000);

@@ -30,7 +30,10 @@ describe("BT21-101 Gaiamon", () => {
     const yourTurn = compiled.effects.find((entry) => entry.trigger === "YourTurn");
     expect(yourTurn).toMatchObject({ frequency: "OncePerTurn" });
     expect(yourTurn?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenLinked" });
-    const nested = (yourTurn?.actions[0] as any).actions;
+    const subTrigger = yourTurn?.actions[0];
+    expect(subTrigger?.kind).toBe("SubTrigger");
+    if (subTrigger?.kind !== "SubTrigger") throw new Error("expected linked subtrigger");
+    const nested = subTrigger.actions;
     expect(nested[0]).toMatchObject({
       kind: "Trash",
       target: { filter: { controller: "opponent", zone: "security", position: "top" } },

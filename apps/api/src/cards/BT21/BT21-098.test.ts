@@ -49,7 +49,10 @@ describe("BT21-098 Ragnarok Cannon", () => {
       event: "whenAttacking",
       sourceFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Galacticmon"], match: "name" }] },
     });
-    const nested = (yourTurn?.actions[0] as any).actions;
+    const subTrigger = yourTurn?.actions[0];
+    expect(subTrigger?.kind).toBe("SubTrigger");
+    if (subTrigger?.kind !== "SubTrigger") throw new Error("expected attack subtrigger");
+    const nested = subTrigger.actions;
     expect(nested).toHaveLength(2);
     expect(nested[0]).toMatchObject({
       kind: "Delete",

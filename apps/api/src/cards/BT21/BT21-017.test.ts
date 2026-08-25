@@ -98,11 +98,7 @@ describe("BT21-017 Dimetromon", () => {
     const blocked = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT21-007", as: "base" },
-            { card: "BT1-085" },
-            { card: "BT1-087" },
-          ],
+          battleArea: [{ card: "BT21-007", as: "base" }, { card: "BT1-085" }, { card: "BT1-087" }],
           hand: [
             { card: "BT21-017", as: "dimetromon" },
             { card: "BT21-081", as: "owen" },
