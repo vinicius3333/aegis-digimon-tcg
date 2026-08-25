@@ -102,6 +102,10 @@ export interface SubTriggerAction extends ActionBase {
    * added card must match for the watcher to fire.
    */
   addedDigivolutionCardFilter?: Filter;
+  /** Require the newly added digivolution cards to have been placed at this stack position. */
+  addedDigivolutionCardsPosition?: "top" | "bottom";
+  /** Require the event to be the source Digimon's former top card moving to its stack bottom. */
+  requirePlacedOwnTopAtStackBottom?: boolean;
   /** For whenLinked, at least one card newly linked by this event must match. */
   linkedCardFilter?: Filter;
   /** Restrict the card whose effect produced the event ("by [Rasenmon]'s effect"). */

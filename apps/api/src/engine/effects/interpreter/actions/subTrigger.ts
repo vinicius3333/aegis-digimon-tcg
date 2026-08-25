@@ -757,6 +757,15 @@ export async function runSubTrigger(
           );
         }
       : undefined;
+  const addedDigivolutionPositionGate =
+    event === "onAddDigivolutionCards" && action.addedDigivolutionCardsPosition !== undefined
+      ? (subCtx: EffectContext): boolean =>
+          subCtx.trigger.addedDigivolutionCardsPosition === action.addedDigivolutionCardsPosition
+      : undefined;
+  const placedOwnTopAtStackBottomGate =
+    event === "onAddDigivolutionCards" && action.requirePlacedOwnTopAtStackBottom === true
+      ? (subCtx: EffectContext): boolean => subCtx.trigger.placedOwnTopAtStackBottom === true
+      : undefined;
   // `sourceFilter.nameMatchesInheritedHost` (CAP-G2, BT2-059 Kurisarimon): fires ONLY when the
   // played card's name matches the HOST permanent's current top-card name. "This Digimon" in an
   // inherited effect text refers to the Digimon whose digivolution stack contains this card —
@@ -859,6 +868,8 @@ export async function runSubTrigger(
     effectSourceGate,
     triggerFilterGate,
     addedDigivolutionCardGate,
+    addedDigivolutionPositionGate,
+    placedOwnTopAtStackBottomGate,
     linkedCardGate,
     linkedSelfSourceGate,
     inheritedHostNameGate,

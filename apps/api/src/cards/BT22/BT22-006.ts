@@ -1,88 +1,32 @@
-import { EffectTiming, getCompiledCard, type CompiledCard } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { staticModifier } from "../../engine/effects/builders.js";
+import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-import { registerCard } from "../../engine/effects/registry.js";
 
-/**
- * BT22-006 — Moonmon (Purple Lv.2 Digi-Egg).
- *
- *
- * [Your Turn][Once Per Turn] When effects place this Digimon's top stacked card
- * as its bottom digivolution card, <Draw 1> and trash 1 card in your hand.
- */
-const cardId = "BT22-006";
-const compiled: CompiledCard = {
-  ...getCompiledCard(cardId)!,
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "YourTurn",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          triggerFilter: { isSelfRef: true },
+          addedDigivolutionCardsPosition: "bottom",
+          requirePlacedOwnTopAtStackBottom: true,
+          actions: [
+            { kind: "Draw", controller: "mine", amount: 1 },
+            {
+              kind: "Trash",
+              target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+            },
+          ],
+        },
+      ],
+    },
+  ],
   coverage: "full",
   residual: [],
 };
 
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    // [Your Turn][Once Per Turn] When effects place this Digimon's top stacked card
-    // as its bottom digivolution card, Draw 1 and trash 1 card in your hand.
-    //
-    // SubTrigger, filtered to self-only additions and owner's turn.
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/on-add-divo-draw-trash`,
-          description:
-            "[Your Turn][Once Per Turn] When effects place this Digimon's top stacked card " +
-            "as its bottom digivolution card, ＜Draw 1＞ and trash 1 card in your hand.",
-          isInherited: true,
-          maxPerTurn: 1,
-          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          canActivate: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-
-            ctx.fx.subscribeSubTrigger({
-              event: "onAddDigivolutionCards",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              oncePerTurnKey: `${cardId}/on-add-divo-draw-trash`,
-              description: `${cardId}: When a card is placed under this Digimon, draw 1 and trash 1.`,
-              matches: (subCtx) => {
-                return (
-                  subCtx.source.isOnBattleArea() &&
-                  subCtx.source.isOwnersTurn() &&
-                  subCtx.trigger.addedDigivolutionCardsPosition === "bottom" &&
-                  subCtx.trigger.placedOwnTopAtStackBottom === true
-                );
-              },
-              run: async (subCtx) => {
-                await subCtx.fx.draw(source.ownerSeat, 1);
-
-                const owner = subCtx.game.player(source.ownerSeat);
-                if (owner.hand.length === 0) return;
-                const chosen = await subCtx.ask.selectCards(subCtx, {
-                  candidates: owner.hand.map((c) => c.instanceId),
-                  min: 1,
-                  max: 1,
-                });
-                if (chosen.length > 0) {
-                  await subCtx.fx.trash(chosen);
-                }
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
-};
-
-// The hand-written module goes in first so it keeps registry precedence; registerIrCard then
-// records the compiled record without displacing it.
-registerCard(module);
-registerIrCard(cardId, compiled);
-export default module;
+registerIrCard("BT22-006", compiled);

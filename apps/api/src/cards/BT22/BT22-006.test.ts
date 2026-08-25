@@ -1,60 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, type Seat } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import "./index.js";
-import "./BT22-006.js";
+import { compiled } from "./BT22-006.js";
 
 describe("BT22-006 Moonmon", () => {
-  it("installs a once-per-turn bottom-stack placement watcher", async () => {
-    const permanent = {
-      permanentId: "moon",
-      topCard: { instanceId: "moon-card", cardId: "BT22-006", ownerSeat: 0 as Seat },
-      stack: [],
-      linked: [],
-    };
-    const source: CardSource = {
-      instanceId: "moon-card",
-      cardId: "BT22-006",
-      ownerSeat: 0 as Seat,
-      definition: {} as any,
-      permanent: () => permanent as any,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      hasColor: () => false,
-    };
-    let subscription: any;
-    const ctx: any = {
-      source,
-      game: { player: () => ({ hand: [] }), definitionOf: () => ({}) },
-      fx: {
-        subscribeSubTrigger: (value: any) => {
-          subscription = value;
+  it("registers only compiled IR for the exact bottom rotation trigger", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          triggerFilter: { isSelfRef: true },
+          addedDigivolutionCardsPosition: "bottom",
+          requirePlacedOwnTopAtStackBottom: true,
         },
-      },
-      ask: {},
-    };
-    const effect = getEffectModule("BT22-006")!.effectsForTiming(EffectTiming.None, source)[0]!;
-    await effect.resolve(ctx);
-    expect(subscription).toMatchObject({
-      event: "onAddDigivolutionCards",
-      oncePerTurnKey: "BT22-006/on-add-divo-draw-trash",
+      ],
     });
-    const subContext = {
-      source,
-      trigger: { addedDigivolutionCardsPosition: "bottom", placedOwnTopAtStackBottom: true },
-      game: ctx.game,
-    };
-    expect(subscription.matches(subContext)).toBe(true);
-    expect(subscription.matches({ ...subContext, trigger: { addedDigivolutionCardsPosition: "top" } })).toBe(false);
-    expect(
-      subscription.matches({
-        ...subContext,
-        trigger: { addedDigivolutionCardsPosition: "bottom", placedOwnTopAtStackBottom: false },
-      }),
-    ).toBe(false);
   });
 
   it("draws and trashes only when the host's own top card is rotated to the bottom", async () => {
@@ -85,5 +53,35 @@ describe("BT22-006 Moonmon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(host.stack[0]!.cardId).toBe("BT22-046");
+  });
+
+  it("does not draw for an ordinary card placement, another stack, or the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-001", "BT1-002"],
+        hand: [{ card: "BT1-009", as: "placed" }],
+        battleArea: [
+          { card: "BT22-046", as: "host", under: ["BT22-006"] },
+          { card: "BT22-046", as: "otherHost" },
+        ],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("placed").instanceId]);
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("otherHost").permanentId,
+      addedDigivolutionCardsPosition: "bottom",
+      placedOwnTopAtStackBottom: true,
+    });
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardsPosition: "bottom",
+      placedOwnTopAtStackBottom: true,
+    });
+
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });
