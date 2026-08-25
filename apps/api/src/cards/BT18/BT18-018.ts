@@ -17,6 +17,8 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           amount: 1,
+          choose: true,
+          scope: "acrossDigimon",
           scaling: {
             per: 1,
             filter: {

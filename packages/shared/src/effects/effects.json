@@ -45271,7 +45271,15 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Takuya Kanbara"], "cost": 5, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "names": ["Takuya Kanbara"],
+        "cost": 5,
+        "isAlternate": true,
+        "minTraitStackCount": 5,
+        "minTraitStackTraits": ["Hybrid"]
+      }
+    ]
   },
   "BT18-019": {
     "effects": [
