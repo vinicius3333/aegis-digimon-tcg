@@ -53,6 +53,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
 }
 
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
+  if (action.kind === "PlayWithoutCost" && action.target.filter.sameColorAsReturned === true) {
+    ctx.lastReturnedColors = undefined;
+  }
   // Per-action gate. `while` is the continuously re-evaluated spelling used by persistent
   // actions: the recompute pass clears the old contribution, and this gate decides whether
   // the action contributes again. Individual handlers may additionally use `while` to mark
@@ -233,9 +236,30 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     ) {
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       const preflightTarget = applyPlayCostCeiling(ctx, action, action.target);
-      let candidates = candidateLooseInstances(ctx, preflightTarget, zones).filter(
+      const sameColorAsReturned = preflightTarget.filter.sameColorAsReturned === true;
+      const staticPreflightTarget = sameColorAsReturned
+        ? { ...preflightTarget, filter: { ...preflightTarget.filter, sameColorAsReturned: undefined } }
+        : preflightTarget;
+      let candidates = candidateLooseInstances(ctx, staticPreflightTarget, zones).filter(
         (candidate) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, candidate.cardId, "play"),
       );
+      // A return-cost clause can define the play target's color dynamically. Preflight the
+      // pair transactionally: at least one currently returnable card must share a color with
+      // at least one currently playable card, otherwise paying the return first would strand
+      // the optional payload (EX10-068, Q5181/Q5182).
+      if (sameColorAsReturned && action.cost?.kind === "return" && action.cost.target !== undefined) {
+        const returnTarget = action.cost.target;
+        const returnZones = zoneList(returnTarget.filter.zone ?? "trash");
+        const returnable = candidateLooseInstances(ctx, returnTarget, returnZones);
+        const returnableColors = new Set(
+          returnable.flatMap((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never).colors),
+        );
+        candidates = candidates.filter((candidate) =>
+          ctx.game
+            .definitionOf({ cardId: candidate.cardId } as never)
+            .colors.some((color) => returnableColors.has(color)),
+        );
+      }
       // A paid play with an activation cost must be transactional: do not offer it when
       // every legal target is unaffordable, otherwise the generic cost path below can move
       // the source card before `playInstances` discovers that memory cannot be paid.

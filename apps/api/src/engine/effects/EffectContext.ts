@@ -1870,4 +1870,6 @@ export interface EffectContext {
    * the count to loop its nested `action` that many times (BT2-041). Fresh per `runEffect`.
    */
   namedCounts?: Map<string, number>;
+  /** Colors snapshotted from cards paid by the current return cost. */
+  lastReturnedColors?: string[];
 }

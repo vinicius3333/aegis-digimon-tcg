@@ -273,6 +273,11 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
             ctx.game.effectiveColors?.(reference) ?? ctx.game.definitionOf(reference.topCard).colors;
           if (!def.colors.some((color) => referenceColors.includes(color))) continue;
         }
+        if (
+          matchedFilter?.sameColorAsReturned === true &&
+          !def.colors.some((color) => ctx.lastReturnedColors?.includes(color) === true)
+        )
+          continue;
         if (matchedFilter?.faceUp === true && cand.faceUp !== true) continue;
         if (matchedFilter?.faceUp === false && cand.faceUp === true) continue;
         if (matchedFilter?.faceDown === true && cand.faceUp === true) continue;

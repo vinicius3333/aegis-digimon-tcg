@@ -1140,6 +1140,13 @@ export async function payCost(
               destination: cost.to === "deckTop" ? "deckTop" : "deckBottom",
             })) ?? chosen;
         }
+        ctx.lastReturnedColors = [
+          ...new Set(
+            candidates
+              .filter((candidate) => chosen.includes(candidate.instanceId))
+              .flatMap((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never).colors),
+          ),
+        ];
         recordTrackedColors(candidates, chosen);
         await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;
