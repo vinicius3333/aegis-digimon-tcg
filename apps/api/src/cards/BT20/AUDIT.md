@@ -779,3 +779,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-065.test.ts`).
+
+## BT20-066 — Stingmon
+
+- Catalog contract: purple level 4 Free Insectoid, play cost 4/4000 DP, purple or red level-3 evolution cost 2; On Play/When Digivolving deletes 1 opposing level-3 Digimon, then on its controller's turn may DNA digivolve 2 own Digimon into a hand Digimon with Imperialdramon in name or the Free trait, paying its cost; inherited Retaliation.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: both entry timings preserve the ordered exact-level deletion before an optional, owner-turn-gated two-material DNA action. The result filter is the Imperialdramon-name/Free-trait union, hand-only, and delegates exact material and cost validation to the shared DNA primitive. The inherited keyword is stack-only. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: On Play deletes BT20-061 at exactly level 3, then BT20-074 Dinobeemon plus BT20-016 Paildramon DNA digivolve into hand BT20-076 Imperialdramon, preserving both material stacks beneath the result. Effect-driven When Digivolving on the opponent's turn still deletes level 3 but leaves the Imperialdramon in hand. Under BT20-074, Stingmon confers Retaliation; standalone Stingmon does not.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-066.test.ts` — 7 passed.
+- Clause scores: stats/evolution routes 2/2; dual entry exact-level deletion 2/2; owner-turn/optional DNA gate 2/2; result union/material/cost/zone behavior 2/2; inherited Retaliation stack scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-066.test.ts`).
