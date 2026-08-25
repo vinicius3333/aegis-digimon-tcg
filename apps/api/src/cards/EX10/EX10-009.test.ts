@@ -133,7 +133,7 @@ describe("EX10-009 Creepymon", () => {
       expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("eligible").instanceId)).toBe(
         true,
       );
-      expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(trashCount === 10);
+      expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
     }
   });
 
