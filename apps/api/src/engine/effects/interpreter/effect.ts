@@ -24,6 +24,7 @@ import {
 import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
 import { canAttemptDigivolve } from "./actions/digivolve.js";
+import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
 import { canAttemptLink } from "./actions/link.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost } from "./costs.js";
@@ -657,6 +658,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   const isGated = (action: ParsedAction) =>
     action.kind === "Digivolve" ||
     action.kind === "DnaDigivolve" ||
+    action.kind === "PlaceUnder" ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
     action.cost !== undefined ||
     action.additionalCost !== undefined ||
@@ -677,6 +679,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
         action.cost.bindHostAs === action.target.fromSelectionRef;
       return costProducedTarget || canAttemptDigivolve(ctx, action);
     }
+    if (action.kind === "PlaceUnder") return canAttemptPlaceUnder(ctx, action);
     return action.kind === "DnaDigivolve"
       ? canAttemptDnaDigivolve(ctx, action)
       : action.kind !== "Link" || canAttemptLink(ctx, action);
