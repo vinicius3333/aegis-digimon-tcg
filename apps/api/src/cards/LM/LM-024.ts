@@ -19,7 +19,8 @@ const compiled: CompiledCard = {
           kind: "Suspend",
           target: {
             filter: {
-              controller: "opponent",
+              // "suspend 1 Digimon" carries no possessive: either player's.
+              controllerDefault: "any",
               kind: ["Digimon"],
             },
             count: 1,
@@ -74,7 +75,8 @@ const compiled: CompiledCard = {
           kind: "Suspend",
           target: {
             filter: {
-              controller: "opponent",
+              // "suspend 1 Digimon" carries no possessive: either player's.
+              controllerDefault: "any",
               kind: ["Digimon"],
             },
             count: 1,
@@ -136,7 +138,9 @@ const compiled: CompiledCard = {
           grant: "immuneToOpponentDigimonEffects",
           duration: "whileCondition",
           condition: {
-            kind: "isSelfSuspended",
+            // `selfIsSuspended` is the supported condition kind; `isSelfSuspended` is not one,
+            // and an unknown kind evaluates to false, so the immunity never armed.
+            kind: "selfIsSuspended",
             raw: "while this Digimon is suspended",
           },
         },

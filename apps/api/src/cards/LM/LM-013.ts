@@ -15,11 +15,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Audit fixes:
 // - Counter/BlastDigivolve: empty actions + BlastDigivolve keyword is the CORRECT standard
 //   encoding. The audit finding was a false positive — no change needed.
-// - [When Attacking] DelayedReturn: replaced with the canonical two-part encoding:
-//   (1) WhenAttacking: PlayWithoutCost with resultRef "playedAngoramon"
-//   (2) EndOfOpponentsTurn: Return top card of that Digimon to hand + TrashDigivolution remainder
-//       (conditioned on the played Angoramon reference being present).
-//   KB Q4001: Return top card → hand; trash all cards beneath it (digivolution cards).
+// - [When Attacking] delayed return: uses `bindResultAs` plus a `nextEndOfOpponentTurn`
+//   DelayedEffect, the encoding BT17-069 already uses for the same printed sentence. The
+//   earlier `selectionRefExists`/`fromSelectionRef` shape had no interpreter support and left
+//   two residual entries; Q4001 falls out of the return-to-hand rule itself.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -91,8 +90,11 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      // [When Attacking]: play an Angoramon-text Digimon from hand without cost.
-      // resultRef captures the identity of the played Digimon for the EndOfOpponentsTurn trigger.
+      // [When Attacking]: play an Angoramon-text Digimon from hand without cost, then hand it
+      // back at the next end of the opponent's turn. `bindResultAs` + a `nextEndOfOpponentTurn`
+      // DelayedEffect is the shape BT17-069 uses for the same printed sentence.
+      // KB Q4001 needs no extra clause: returning a battle-area Digimon to the hand already
+      // sends the TOP card to the hand and trashes everything stacked beneath it.
       trigger: "WhenAttacking",
       actions: [
         {
@@ -108,53 +110,28 @@ const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
-          resultRef: "playedAngoramon",
+          bindResultAs: "playedAngoramon",
         },
-      ],
-    },
-    {
-      // At the end of your opponent's turn: return the top card of the played Angoramon to hand.
-      // KB Q4001: if it digivolved, the TOP card goes to hand; all cards BENEATH it are trashed.
-      trigger: "EndOfOpponentsTurn",
-      actions: [
         {
-          // Return the top card (the Digimon or whatever is on top of the stack) to hand.
-          kind: "Return",
-          target: {
-            filter: {
-              fromSelectionRef: "playedAngoramon",
-              topCard: true,
+          kind: "DelayedEffect",
+          effect: {
+            kind: "Return",
+            target: {
+              // No `isSelf`: the return targets the card this effect PLAYED, not Diarbbitmon.
+              filter: {
+                boundRef: "playedAngoramon",
+              },
+              count: 1,
             },
-            count: 1,
+            to: "hand",
           },
-          to: "hand",
-          condition: {
-            kind: "selectionRefExists",
-            ref: "playedAngoramon",
-            raw: "the played Angoramon is still in play",
-          },
-        },
-        {
-          // KB Q4001: trash all digivolution cards beneath the returned top card.
-          kind: "TrashDigivolution",
-          target: {
-            fromSelectionRef: "playedAngoramon",
-          },
-          amount: 99,
-          condition: {
-            kind: "selectionRefExists",
-            ref: "playedAngoramon",
-            raw: "the played Angoramon digivolved (has cards beneath it)",
-          },
+          trigger: "nextEndOfOpponentTurn",
         },
       ],
     },
   ],
   coverage: "full",
-  residual: [
-    "selectionRefExists condition: EndOfOpponentsTurn must gate on whether the played Angoramon reference is still valid. Engine needs cross-trigger selection reference persistence (spec'd in LANE_A.md if missing).",
-    "topCard flag on fromSelectionRef: return only the top card of the tracked Digimon stack (KB Q4001 — if digivolved, top card goes to hand). Spec'd in LANE_A.md.",
-  ],
+  residual: [],
 };
 
 registerIrCard("LM-013", compiled);

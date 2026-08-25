@@ -3,9 +3,16 @@
 // KB Q3994: trash 2 blue cards => trash 1 under each of 2 Digimon/Tamers (usePaidCount scales).
 // KB Q3995: WhenAttacking SecurityAttack+1 can fire multiple times in a turn if Digimon attacks again.
 // Fixes applied:
-//   - actions[1] scaling uses usePaidCount:true (count of blue cards trashed in action 0)
-//   - actions[2] return target filter adds digivolutionCards:"none"
+//   - the return target filter adds digivolutionCards:"none"
 //   - WhenAttacking: added SecurityAttack+1 for the turn behind a return-3-Jellymon cost
+// Audit fixes (LM audit):
+//   - the [Hand][Counter] parenthetical is the <Blast Digivolve> keyword; without the marker
+//     the cost waiver was never registered for this card
+//   - "trash any 1 card UNDER your opponent's Digimon or Tamers" trashes DIGIVOLUTION CARDS,
+//     not the permanents themselves — TrashDigivolution with scope "acrossDigimon" pools the
+//     opponent's stacks so Q3994's "1 under each of 2" selection is reachable
+//   - `usePaidCount` reads the count paid by the action's OWN cost, so the hand trash moves
+//     from a preceding action into that cost (the EX12-030 pattern for the same archetype)
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -15,40 +22,47 @@ const compiled: CompiledCard = {
       trigger: "Counter",
       actions: [],
       isFromHand: true,
+      keywords: [
+        {
+          keyword: "BlastDigivolve",
+          raw: "[Hand] [Counter] (Your Digimon may digivolve into this card without paying the cost)",
+        },
+      ],
     },
     {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              zone: "hand",
-              controller: "mine",
-              colors: ["Blue"],
-            },
-            count: 4,
-            upTo: true,
-          },
-          optional: true,
-        },
-        {
-          kind: "Trash",
+          kind: "TrashDigivolution",
+          scope: "acrossDigimon",
           target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon", "Tamer"],
             },
-            count: 1,
+            count: "all",
+          },
+          amount: 1,
+          optional: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                colors: ["Blue"],
+              },
+              count: 4,
+              upTo: true,
+            },
+            raw: "You may trash up to 4 blue cards in your hand",
           },
           scaling: {
             per: 1,
-            filter: {
-              controllerDefault: "mine",
-            },
             unit: "cards",
             usePaidCount: true,
           },
+          raw: "For each one, trash any 1 card under your opponent's Digimon or Tamers",
         },
         {
           kind: "Return",
@@ -68,35 +82,36 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              zone: "hand",
-              controller: "mine",
-              colors: ["Blue"],
-            },
-            count: 4,
-            upTo: true,
-          },
-          optional: true,
-        },
-        {
-          kind: "Trash",
+          kind: "TrashDigivolution",
+          scope: "acrossDigimon",
           target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon", "Tamer"],
             },
-            count: 1,
+            count: "all",
+          },
+          amount: 1,
+          optional: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                colors: ["Blue"],
+              },
+              count: 4,
+              upTo: true,
+            },
+            raw: "You may trash up to 4 blue cards in your hand",
           },
           scaling: {
             per: 1,
-            filter: {
-              controllerDefault: "mine",
-            },
             unit: "cards",
             usePaidCount: true,
           },
+          raw: "For each one, trash any 1 card under your opponent's Digimon or Tamers",
         },
         {
           kind: "Return",

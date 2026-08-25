@@ -103,6 +103,16 @@ export interface SecurityManipulationAction extends ActionBase {
   from?: ZoneRef[];
   /** For placeAsSecurity; default top. */
   toTop?: boolean;
+  /**
+   * For placeAsSecurity with a FIELD source: place each card into ITS OWNER's security stack
+   * rather than the single `controller` stack ("on top of its owner's security stack" — LM-020).
+   */
+  ownerSecurity?: boolean;
+  /**
+   * For placeAsSecurity from a LOOSE zone: reveal the chosen card to the opponent before it goes
+   * face down onto the stack (LM-023 Q4025).
+   */
+  revealChosen?: boolean;
   position?: string;
   /**
    * For toHand: choose from the whole stack rather than taking top or bottom ("look at your

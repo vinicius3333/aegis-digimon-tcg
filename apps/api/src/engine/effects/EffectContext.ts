@@ -1195,8 +1195,12 @@ export interface Primitives {
    * static-continuous-effects lifecycle. `color` is a CardColor value (e.g. CardColor.Blue).
    */
   addColorGrant(permanentId: string, color: CardColor, duration: EffectDuration): void;
-  /** Record that an instance may be used/played without meeting its color requirement. */
-  waiveColorRequirement(instanceId: string, duration: EffectDuration): void;
+  /**
+   * Record that an instance may be used/played without meeting its color requirement, or —
+   * with `alsoColor` — that one extra colour ALSO satisfies the printed requirement
+   * ("Black also meets this card's colour requirements").
+   */
+  waiveColorRequirement(instanceId: string, duration: EffectDuration, opts?: { alsoColor?: CardColor }): void;
   /**
    * Confer all effects of a digivolution-stack card onto its owning permanent
    * (GrantStatic grant:"effects").

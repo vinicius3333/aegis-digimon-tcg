@@ -4274,8 +4274,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     continuous.addKindGrant(permanentId, kinds, durationForTarget(permanentId, duration), continuousOpt());
   };
 
-  const waiveColorRequirement = (instanceId: string, duration: EffectDuration): void => {
-    continuous.addColorWaiver(instanceId, duration, continuousOpt());
+  const waiveColorRequirement = (
+    instanceId: string,
+    duration: EffectDuration,
+    opts?: { alsoColor?: CardColor },
+  ): void => {
+    continuous.addColorWaiver(instanceId, duration, { ...continuousOpt(), alsoColor: opts?.alsoColor });
   };
 
   const conferStackEffects = (

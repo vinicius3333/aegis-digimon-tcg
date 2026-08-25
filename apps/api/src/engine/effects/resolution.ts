@@ -122,6 +122,7 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
           undefined,
           env.effectiveColors,
           env.colorRequirementWaived,
+          env.colorRequirementAlternatives,
           undefined,
           (permanentId, printedTraits) => effectiveTraits(env.continuous, permanentId, printedTraits),
           (permanentId, printedKinds) => effectiveKinds(env.continuous, permanentId, printedKinds),

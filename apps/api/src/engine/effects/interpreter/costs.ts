@@ -1153,6 +1153,17 @@ export async function payCost(
           ctx.namedCounts.set(cost.storeAs, level);
         }
       }
+      // storeAsPlayCost: record the returned permanent's printed PLAY COST so a later
+      // `namedCount` scaling can reference it — "play this card with the play cost reduced by
+      // the play cost of the returned Tamer" (LM-006). A -1 sentinel (Digi-Egg) floors at 0.
+      if (cost.storeAsPlayCost !== undefined) {
+        const returned = ctx.game.permanentById(permIds[0]!);
+        const playCost = returned?.topCard ? ctx.game.definitionOf(returned.topCard).playCost : undefined;
+        if (playCost !== undefined) {
+          if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
+          ctx.namedCounts.set(cost.storeAsPlayCost, Math.max(0, playCost));
+        }
+      }
       if (cost.to === "deckBottom") {
         await ctx.fx.returnToDeck(ids, { toTop: false });
       } else {

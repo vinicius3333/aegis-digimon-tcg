@@ -1,6 +1,7 @@
 import {
   CardKind,
   EffectDuration,
+  type CardColor,
   type CardDefinition,
   type GameState,
   type Permanent,
@@ -163,6 +164,12 @@ interface DigivolveIntoConstraint {
 interface ColorWaiver {
   /** The instance whose color requirement is waived (a card in hand/security). */
   instanceId: string;
+  /**
+   * When set, the requirement is NOT waived outright: this colour ALSO satisfies it
+   * ("Black also meets this card's colour requirements" — the LM Memory Boost family).
+   * Absent means the blanket "you can ignore this card's colour requirements" waiver.
+   */
+  alsoColor?: CardColor;
   duration: EffectDuration;
   continuous?: boolean;
 }
@@ -566,7 +573,11 @@ export class ContinuousEffectLedger {
       return sourceKind !== undefined && r.fromSourceKind.includes(sourceKind);
     });
     if (individuallyRestricted) return true;
-    const controllerSeat = this.controllerSeatOf?.(permanentId);
+    // A player-scoped restriction can name ANY permanent kind ("none of your opponent's Tamers
+    // can unsuspend" — LM-010), so it resolves the controller through the kind-agnostic lookup.
+    // `controllerSeatOf` deliberately answers only for Digimon (it also drives the
+    // Digimon-only player KEYWORD grants) and would silently drop every Tamer here.
+    const controllerSeat = this.anyControllerSeatOf?.(permanentId) ?? this.controllerSeatOf?.(permanentId);
     return this.playerRestrictions.some(
       (entry) => entry.seat === controllerSeat && entry.restriction === restriction && entry.matches(permanentId),
     );
@@ -923,14 +934,28 @@ export class ContinuousEffectLedger {
     );
   }
 
-  /** Record that an instance may be used/played without meeting its color requirement. */
-  addColorWaiver(instanceId: string, duration: EffectDuration, opts?: { continuous?: boolean }): void {
-    this.colorWaivers.push({ instanceId, duration, continuous: opts?.continuous });
+  /**
+   * Record that an instance may be used/played without meeting its color requirement, or —
+   * with `alsoColor` — that one extra colour ALSO satisfies the printed requirement.
+   */
+  addColorWaiver(
+    instanceId: string,
+    duration: EffectDuration,
+    opts?: { continuous?: boolean; alsoColor?: CardColor },
+  ): void {
+    this.colorWaivers.push({ instanceId, duration, continuous: opts?.continuous, alsoColor: opts?.alsoColor });
   }
 
-  /** Whether an instance's color requirement is currently waived. */
+  /** Whether an instance's color requirement is waived outright (no colour source needed). */
   hasColorWaiver(instanceId: string): boolean {
-    return this.colorWaivers.some((w) => w.instanceId === instanceId);
+    return this.colorWaivers.some((w) => w.instanceId === instanceId && w.alsoColor === undefined);
+  }
+
+  /** Extra colours that currently also satisfy an instance's printed colour requirement. */
+  colorRequirementAlternatives(instanceId: string): CardColor[] {
+    return this.colorWaivers
+      .filter((w) => w.instanceId === instanceId && w.alsoColor !== undefined)
+      .map((w) => w.alsoColor as CardColor);
   }
 
   addDnaLevelOverride(permanentId: string, level: number, opts?: { intoNames?: string[]; continuous?: boolean }): void {
@@ -986,6 +1011,7 @@ export class ContinuousEffectLedger {
   constructor(
     private readonly controllerSeatOf?: (permanentId: string) => Seat | undefined,
     private readonly printedKeywordsOfPermanent?: (permanentId: string) => readonly string[],
+    private readonly anyControllerSeatOf?: (permanentId: string) => Seat | undefined,
   ) {}
 
   /** Grant a keyword to every current and future Digimon permanent controlled by `seat`. */

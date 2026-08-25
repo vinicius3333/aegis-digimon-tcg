@@ -1,5 +1,6 @@
 // Auras and continuous permissions.
 
+import type { CardColor } from "@aegis/shared";
 import type { EffectContext, Restriction } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
 import { runAction } from "../dispatch.js";
@@ -166,7 +167,19 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
         unsupported(ctx, action, "WaiveColorRequirement on a non-self target needs a card selection");
         return false;
       }
-      ctx.fx.waiveColorRequirement(ctx.source.instanceId, duration);
+      // A printed `color` is the "X ALSO meets this card's colour requirements" family
+      // (the LM Memory Boost cards): the printed requirement still has to be met, by the
+      // card's own colour OR by this extra one. Without a colour the clause is the blanket
+      // "you can ignore this card's colour requirements" waiver (ST20-14, EX9-070).
+      const alsoColor =
+        typeof action.color === "string"
+          ? ((action.color.charAt(0).toUpperCase() + action.color.slice(1).toLowerCase()) as CardColor)
+          : undefined;
+      ctx.fx.waiveColorRequirement(
+        ctx.source.instanceId,
+        duration,
+        alsoColor === undefined ? undefined : { alsoColor },
+      );
       return false;
     }
     default:

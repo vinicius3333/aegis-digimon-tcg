@@ -661,6 +661,18 @@ export async function runSubTrigger(
           if (sourceFilter?.isSelfRef === true) {
             return subCtx.trigger?.trashedFromHandInstanceId === subCtx.source.instanceId;
           }
+          // "When a card with [X] in its text is trashed from your hand" (LM-004) narrows the
+          // watcher to a named card. The trashed card is loose, so the generic permanent-subject
+          // gate never sees it; match its DEFINITION against the printed name/trait clause here.
+          // Only `nameOrTrait` is applied: the other filter fields on existing hand-trash
+          // watchers describe the watching permanent, not the trashed card.
+          if (sourceFilter?.nameOrTrait !== undefined) {
+            const definition = getCardDefinition(cardId);
+            return (
+              definition !== undefined &&
+              definitionMatches({ nameOrTrait: sourceFilter.nameOrTrait }, definition as DefinitionFacts)
+            );
+          }
           return true;
         }
       : undefined;
@@ -793,10 +805,14 @@ export async function runSubTrigger(
           return linkedIds === undefined || linkedIds.includes(subCtx.source.instanceId);
         }
       : undefined;
-  const sourceDeleteCause = (sourceFilter as (Filter & { deleteCause?: "dpReachedZero" }) | undefined)?.deleteCause;
+  const sourceDeleteCause = (sourceFilter as (Filter & { deleteCause?: string }) | undefined)?.deleteCause;
+  // "When an EFFECT deletes ..." (LM-016) narrows the same knob to effect-driven removals. The
+  // `onDeletionOf` payload carries the removal cause but no `byEffectSeat`, so the generic
+  // `requireByEffect` gate cannot see it — this is the gate that can.
   const deleteCauseGate =
-    event === "onDeletionOf" && sourceDeleteCause === "dpReachedZero"
-      ? (subCtx: EffectContext): boolean => subCtx.trigger.removalCause === "byRule"
+    event === "onDeletionOf" && (sourceDeleteCause === "dpReachedZero" || sourceDeleteCause === "byEffect")
+      ? (subCtx: EffectContext): boolean =>
+          subCtx.trigger.removalCause === (sourceDeleteCause === "byEffect" ? "byEffect" : "byRule")
       : undefined;
   const trashedDigivolutionTopGate =
     event === "whenDigivolutionTrashed" && action.requireTrashedDigivolutionCardWasTop === true

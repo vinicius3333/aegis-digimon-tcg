@@ -63,6 +63,12 @@ export interface Cost {
    * later `levelLte` can compare against it (BT19-002 "returnedDigimonLevel").
    */
   storeAs?: string;
+  /**
+   * Store the returned permanent's printed play cost in `EffectContext.namedCounts` under this
+   * name, so a later `namedCount` scaling can reference it — "play this card with the play cost
+   * reduced by the play cost of the returned Tamer" (LM-006).
+   */
+  storeAsPlayCost?: string;
   /** Stop a compound cost when an up-to component is paid with zero cards. */
   stopIfZero?: boolean;
   /** Order cards selected by a compound bottom-deck return as one final choice. */

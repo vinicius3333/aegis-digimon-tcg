@@ -604,16 +604,26 @@ export class GameEngine {
   ) {
     // TODO(effect-framework): import "../cards" is done at boot for side-effect
     //   registration; wire the registry into the resolution path here.
-    this.continuous = new ContinuousEffectLedger((permanentId) => {
-      for (const player of this.state.players) {
-        const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
-        if (permanent !== undefined) {
-          const definition = lookupDefinition(permanent.topCard.cardId);
-          if (definition !== undefined && isDigimon(definition)) return permanent.controllerSeat;
+    this.continuous = new ContinuousEffectLedger(
+      (permanentId) => {
+        for (const player of this.state.players) {
+          const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
+          if (permanent !== undefined) {
+            const definition = lookupDefinition(permanent.topCard.cardId);
+            if (definition !== undefined && isDigimon(definition)) return permanent.controllerSeat;
+          }
         }
-      }
-      return undefined;
-    });
+        return undefined;
+      },
+      undefined,
+      (permanentId) => {
+        for (const player of this.state.players) {
+          const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
+          if (permanent !== undefined) return permanent.controllerSeat;
+        }
+        return undefined;
+      },
+    );
     this.memory = new MemoryGauge(this.state, this.hooks.emit, (seat, opts) => {
       const kinds = opts.isTamerEffect ? [CardKind.Tamer] : [CardKind.Digimon];
       return this.continuous.canGainMemoryFromEffect(seat, {
@@ -928,6 +938,7 @@ export class GameEngine {
         !this.continuous.hasRestriction(permanentId, "beAffected"),
       (permanent) => this.effectiveColorsOf(permanent),
       (instanceId) => this.continuous.hasColorWaiver(instanceId),
+      (instanceId) => this.continuous.colorRequirementAlternatives(instanceId),
       (permanent) => canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
       (permanentId, printedTraits) => effectiveTraits(this.continuous, permanentId, printedTraits),
       (permanentId, printedKinds) => effectiveKinds(this.continuous, permanentId, printedKinds),
@@ -3447,6 +3458,7 @@ export class GameEngine {
       digivolvedThisTurn: (seat) => this.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
       effectiveColors: (permanent) => this.effectiveColorsOf(permanent),
       colorRequirementWaived: (instanceId) => this.continuous.hasColorWaiver(instanceId),
+      colorRequirementAlternatives: (instanceId) => this.continuous.colorRequirementAlternatives(instanceId),
       canDeclareAttack: (permanent) =>
         canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
       triggerInfo: trigger,
@@ -4151,6 +4163,7 @@ export class GameEngine {
         const permanent = this.access.permanentById(permanentId);
         return permanent !== undefined && resolveKeywords(permanent, this.continuous).includes(keyword);
       },
+      hasRestriction: (permanentId, restriction) => this.continuous.hasRestriction(permanentId, restriction),
       securityCardDp: (card) => {
         const owner = card.ownerSeat;
         return (lookupDefinition(card.cardId)?.dp ?? 0) + this.securityDp.deltaFor(owner);
@@ -4285,7 +4298,13 @@ export class GameEngine {
       // has waived this instance — `continuous.hasColorWaiver` is the consuming read that
       // makes the waiver observable. Deliberately not the full color subsystem (Phase 4).
       colorRequirementMet: (_state, seat, instance, definition, mode) =>
-        this.continuous.hasColorWaiver(instance.instanceId) || this.printedColorRequirementMet(seat, definition, mode),
+        this.continuous.hasColorWaiver(instance.instanceId) ||
+        this.printedColorRequirementMet(
+          seat,
+          definition,
+          mode,
+          this.continuous.colorRequirementAlternatives(instance.instanceId),
+        ),
       nextPermanentId: () => this.nextPermanentId(),
       // Pay-time interactive cost reduction (BeforePayCost): fire the played card's BeforePayCost
       // window (where a ReducePlayCost action runs its optional server-side payment) and return the
@@ -4412,7 +4431,12 @@ export class GameEngine {
    * derivation, which is Phase 4). Used also to give WaiveColorRequirement an observable
    * consumer; the waiver short-circuit is applied by the caller before this runs.
    */
-  private printedColorRequirementMet(seat: Seat, definition: CardDefinition, mode: PlayMode): boolean {
+  private printedColorRequirementMet(
+    seat: Seat,
+    definition: CardDefinition,
+    mode: PlayMode,
+    alsoColors: readonly CardColor[] = [],
+  ): boolean {
     const required = definition.optionColorRequirements ?? (mode === "option" ? (definition.colors ?? []) : []);
     if (required.length === 0) return true;
     const player = this.state.players[seat];
@@ -4438,6 +4462,9 @@ export class GameEngine {
       // a permanent that is continuously treated as another color contributes that color here.
       for (const color of this.effectiveColorsOf(perm)) available.add(color);
     }
+    // "X ALSO meets this card's colour requirements" (LM Memory Boost family, Q4063/Q4064):
+    // one extra colour on the field satisfies the printed requirement in full.
+    if (alsoColors.some((color) => available.has(color))) return true;
     return required.every((color) => available.has(color));
   }
 

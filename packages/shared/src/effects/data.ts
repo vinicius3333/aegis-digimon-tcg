@@ -936,6 +936,26 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     },
   ],
 
+  // LM-021/LM-022 print "[Digivolve] [Agumon]/[Gabumon] while you have 2 or fewer security
+  // cards: Cost 3". The generated entry kept the name and cost but dropped the live security
+  // gate, so the Cost 3 path stood at any security count — KB Q4014/Q4021 say it does not.
+  "LM-021": [
+    {
+      names: ["Agumon"],
+      cost: 3,
+      whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 2 },
+      isAlternate: true,
+    },
+  ],
+  "LM-022": [
+    {
+      names: ["Gabumon"],
+      cost: 3,
+      whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 2 },
+      isAlternate: true,
+    },
+  ],
+
   // BT26-050 combines an ordinary alternate path with a Burst Digivolve clause, so its
   // complete requirements are kept together here instead of in the committed data below.
   "BT26-050": [
