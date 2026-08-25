@@ -677,6 +677,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; returns an eligible Tamer while preserving a higher-cost Digimon; uses a realistic breeding Mother Eater with two sources to return a cost-8 Eater at the raised boundary; under an opponent deletion both accepts the optional free Eater play before EDEN leaves and separately refuses it while EDEN still leaves; and deletes only the lower-cost opposing Digimon at opponent turn end.
 - Verification: focused suite — 8 passed after refreshing shared runtime data; shared filtered-stack scaling, dynamic return ceiling, deck-bottom movement, physical-source leave reaction, optional refusal, free play, opponent-turn guard, frequency, and lowest-cost deletion mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-076 — Sistermon Blanc — 10/10
+
+- Catalog evidence: White level 3 Digimon, play cost 3, 3000 DP, no ordinary evolution; form `Rookie`, attribute `Vaccine`, types `Puppet` and `CS`; On Play adds the current top security card to hand and then recovers the deck top; Your Turn when this Digimon suspends, another friendly Digimon may evolve from hand or trash into a Huckmon-name/Royal Knight/CS Digimon with cost reduced by 1.
+- Knowledge base: no card-specific rulings are recorded locally; the exact catalog sequence and general trigger, zone, evolution-legality, payment, and optional-effect rules therefore control.
+- Defect corrected: authoritative shared IR omitted the self-only subject filter on the suspension watcher, so another friendly Digimon suspending could incorrectly trigger Sistermon Blanc. The shared record now matches the direct module's `sourceFilter.isSelfRef`; registration remains exclusively `registerIrCard("BT23-076", compiled)` with full coverage/no residuals.
+- Primitive trace: On Play moves the exact existing security top to hand before adding the exact deck top face down to security; the Your Turn resident listener compares the suspension subject to Blanc's physical permanent, excludes Blanc from evolution recipients, unions the printed name/trait destination filter across hand and trash, validates normal evolution legality, and charges the resulting cost minus 1 only when accepted.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; observes the exact security/deck instances exchange in printed order; with Blanc and a separate Huckmon present, fires Blanc's suspension, evolves the other stack into hand BaoHuckmon, and pays 1 instead of 2; then fires the same event for the other Digimon and proves no evolution or memory change occurs.
+- Verification: focused suite — 6 passed after refreshing shared runtime data; shared ordered security movement, Recovery, physical-source suspension filtering, other-recipient targeting, hand/trash evolution, destination union, optionality, legality, and reduced-cost payment mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-076 through BT23-102.
+BT23-077 through BT23-102.
