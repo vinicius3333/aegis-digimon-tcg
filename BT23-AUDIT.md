@@ -146,6 +146,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog and IR field, proves a valid Link costs exactly 1, contributes exactly 2000 DP, and draws exactly one; plays Eri Karan for free with exactly one Tamer; rejects the play with two Tamers; proves optional refusal; rejects a non-Appmon Link without changing memory or zones; and proves the off-color alternate evolution boundary while rejecting an off-color non-Appmon.
 - Verification: focused suite — 7 passed; `git diff --check` — passed.
 
+## BT23-017 — Betamon — 10/10
+
+- Catalog evidence: Blue/purple level 3, play cost 3, 1000 DP, standard blue- or purple-level-2 evolution for 1 plus alternate level-2 CS evolution for 0; form `Rookie`, attribute `Virus`, types `Amphibian`, `Hudie`, and `CS`; On Play may trash one hand card to return one non-Digi-Egg CS card from trash; inherited When Attacking once per turn may play a cost-5-or-lower Hudie Digimon from hand without cost, permanently prevents that played Digimon from digivolving, and deletes it at the end of the opponent's turn.
+- Knowledge base: Q5235 permits the newly played Hudie to pay the current attack's Alliance cost; Q5256/Q5318 forbid the played Betamon from DNA digivolving; Q5561 confirms both the opponent-turn-end deletion and persistent digivolution lock if deletion is prevented; Q5562 makes the delayed deletion simultaneous with other end-turn triggers.
+- Defect corrected: the direct module omitted the entire inherited clause. The audited IR adds the optional bound Hudie play, permanent bound-target digivolution restriction, opponent-turn-end delayed deletion, and inherited once-per-turn scope; registration remains exclusively `registerIrCard("BT23-017", compiled)` with full coverage and no residual clauses.
+- Primitive trace: the On Play transaction pays its hand-trash cost before resolving the exact non-Digi-Egg kind/CS trash target; `PlayWithoutCost` enforces the cost ceiling and Hudie trait, binds only the resulting permanent, and uses normal play timing so Alliance can observe it; the bound `Restrict` remains even if deletion is replaced; `DelayedDelete` schedules against the same bound result at the source controller's opponent-turn-end boundary; inherited frequency is keyed to Betamon's source instance.
+- Behavioral proof: the focused suite checks catalog and complete IR, pays the exact hand cost and returns one CS Tamer while excluding a CS Digi-Egg, proves optional refusal preserves both zones, plays an exact-ceiling Hudie while excluding a more expensive peer, observes the permanent digivolution restriction and both turn-end duration boundaries, and proves the off-color CS evolution recipe against a same-level non-CS negative.
+- Verification: focused suite — 5 passed; shared bound-play peer regression is covered by BT23-048; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-017 through BT23-102.
+BT23-018 through BT23-102.
