@@ -2,9 +2,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// Hand-fixed IR: the Aqua/Sea Animal category is substring-based and the "by placing"
+// memory clause is an optional activation after the mandatory unsuspend.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -54,7 +53,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Aqua", "Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
               },
@@ -64,9 +63,9 @@ const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
             host: "self",
+            targetIsPermanent: true,
           },
-          optional: false,
-          abortOnDecline: false,
+          optional: true,
         },
       ],
     },
