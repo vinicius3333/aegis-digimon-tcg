@@ -398,6 +398,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; charges 4 with Yuuko, charges 4 with a CS Digimon, and the printed 7 with neither; proves a realistic inherited carrier trashes the exact opposing top security after winning battle; verifies all cost, target, trait, duration, and causality structures; and accepts off-color level-4 CS evolution while rejecting a non-CS peer.
 - Verification: focused suite — 9 passed; shared pay-time reducer, suspension-cost, return restriction, battle-won survival, security-trash, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-045 — TigerVespamon ACE — 10/10
+
+- Catalog evidence: Green/black level 6 ACE, play cost 8, 12000 DP, Overflow -4, standard green- or black-level-5 evolution for 4 plus alternate level-5 Royal Base-or-CS evolution for 3; form `Mega`, attribute `Virus`, types `Cyborg`, `X Antibody`, `Royal Base`, `Zaxon`, `CS`, and `Insectoid`; hand Counter Blast Digivolve; On Play/When Digivolving places a Royal Base/Zaxon Digimon from hand or trash face up at security bottom as a cost, then returns an opposing Digimon at or below this Digimon's DP; whenever this Digimon suspends, it may flip top face-up security down to unsuspend a friendly Digimon.
+- Knowledge base: Q5307-Q5310 establish face-up security visibility, ordinary checking and Security activation, and face-down normalization on shuffle. Q5331 makes the “By” placement mandatory when the On Play effect is externally activated and a qualifying card exists, including the trash/hand availability boundary.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-045", compiled)` with full coverage and no residual clauses; the audit adds complete ACE metadata, hand/trash cost, relative-DP negative, and both alternate-evolution branch evidence without changing execution.
+- Primitive trace: the Counter keyword exposes the hand-resident Blast Digivolve seam and Overflow metadata; both entry timings move one qualifying loose Digimon to face-up security bottom before resolving the relative-source-DP hand return; the suspension watcher is self-subject gated and pays only with top face-up security before unsuspending one friendly target.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; pays with a hand Zaxon and returns an eligible opponent; separately pays from trash, returns only the eligible target, and preserves a 13000-DP opponent; flips top face-up security down to unsuspend after the source suspends; and accepts 3-cost evolution independently from level-5 Royal Base and CS bases.
+- Verification: focused suite — 9 passed; shared Blast Digivolve, ACE overflow, face-up-security, placement-cost, relative DP, Return, suspension, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-045 through BT23-102.
+BT23-046 through BT23-102.
