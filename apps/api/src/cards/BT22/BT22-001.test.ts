@@ -18,12 +18,12 @@ describe("BT22-001 Puyoyomon", () => {
     await s.ready();
 
     await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("firstSeaAnimal").instanceId]);
-    expect(s.state.players[0].deck).toHaveLength(1);
-    expect(s.state.players[0].hand).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
 
     await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("secondSeaAnimal").instanceId]);
-    expect(s.state.players[0].deck).toHaveLength(1);
-    expect(s.state.players[0].hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
   it("does not draw for a nonmatching Digimon, another stack, or the opponent's turn", async () => {
@@ -48,7 +48,7 @@ describe("BT22-001 Puyoyomon", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("opponentTurn").instanceId]);
 
-    expect(s.state.players[0].deck).toHaveLength(2);
-    expect(s.state.players[0].hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 });

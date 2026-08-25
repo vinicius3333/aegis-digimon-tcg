@@ -18,9 +18,9 @@ describe("BT22-002 Kyaromon", () => {
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("firstPuppet").permanentId], "byEffect");
-    expect(s.state.players[0].deck).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
     await advance(s.engine).verb.deletePermanent([s.perm("secondPuppet").permanentId], "byEffect");
-    expect(s.state.players[0].deck).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
   it("does not draw for a non-Puppet, an opponent's Puppet, its own host, or on the opponent's turn", async () => {
@@ -42,7 +42,7 @@ describe("BT22-002 Kyaromon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     s.state.turnSeat = 1;
     await advance(s.engine).verb.deletePermanent([s.perm("wrongTurnPuppet").permanentId], "byEffect");
-    expect(s.state.players[0].deck).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
   it("models Tokens and Puppet Digimon as alternatives rather than requiring a Puppet Token", () => {
