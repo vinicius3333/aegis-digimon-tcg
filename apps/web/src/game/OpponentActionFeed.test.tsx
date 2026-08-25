@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
-import { MatchHistorySheet, OpponentActionFeed } from "./OpponentActionFeedView";
+import { OpponentActionFeed, PlayLogSidebar } from "./OpponentActionFeedView";
 import type { OpponentActionItem } from "./opponentActionFeed";
 
 afterEach(cleanup);
@@ -40,11 +40,11 @@ describe("OpponentActionFeed", () => {
   });
 });
 
-describe("MatchHistorySheet", () => {
-  it("renders the same semantic log lines in a closable dialog", () => {
+describe("PlayLogSidebar", () => {
+  it("renders the same semantic log lines in a closable drawer", () => {
     render(
       <I18nProvider>
-        <MatchHistorySheet
+        <PlayLogSidebar
           log={[
             { kind: "opp", text: "Opponent played Agumon" },
             { kind: "sys", text: "Combat resolved" },
@@ -54,8 +54,39 @@ describe("MatchHistorySheet", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByRole("dialog", { name: "Match history" })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Play log" })).toBeTruthy();
     expect(screen.getByText("Opponent played Agumon")).toBeTruthy();
     expect(screen.getByText("Combat resolved")).toBeTruthy();
+  });
+
+  it("turns a named card into a link that opens it", () => {
+    const opened: string[] = [];
+    render(
+      <I18nProvider>
+        <PlayLogSidebar
+          log={[{ kind: "opp", text: "Opponent played Agumon.", cardIds: ["BT1-010"] }]}
+          onClose={() => undefined}
+          onOpenCard={(cardId) => opened.push(cardId)}
+        />
+      </I18nProvider>,
+    );
+
+    const link = screen.getByRole("button", { name: "Open Agumon" });
+    fireEvent.click(link);
+    expect(opened).toEqual(["BT1-010"]);
+  });
+
+  it("leaves a line with no named card unlinked", () => {
+    render(
+      <I18nProvider>
+        <PlayLogSidebar
+          log={[{ kind: "sys", text: "Combat resolved" }]}
+          onClose={() => undefined}
+          onOpenCard={() => undefined}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.queryByRole("button", { name: /^Open / })).toBeNull();
   });
 });

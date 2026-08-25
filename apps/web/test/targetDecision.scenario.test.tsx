@@ -82,6 +82,11 @@ scenario("target-decision", () => {
     // and just passes, banking the +3 bonus for turn 2.
     const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
     fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    // The board's own turn control reads "End breeding" while the breeding sheet is
+    // open, so waiting for the sheet to close is what leaves one "End phase" button.
+    await vi.waitFor(() => expect(screen.queryByRole("heading", { name: /breeding area/i })).toBeNull(), {
+      timeout: 10_000,
+    });
     fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
 
     // Turn 2 (memory +3 from the pass-turn bonus): play the first Monodramon

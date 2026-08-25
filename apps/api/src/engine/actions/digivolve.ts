@@ -7,10 +7,12 @@ import {
   type CardInstance,
   type CardDefinition,
   type DigivolutionRequirement,
+  type DigivolveMechanic,
   type EvoCost,
   type GameState,
   type Permanent,
   type Seat,
+  type ServerEvent,
 } from "@aegis/shared";
 import {
   cardHasTrait,
@@ -83,6 +85,29 @@ export type DigivolveRejection =
   | "not-a-digimon"
   | "invalid-evolution"
   | "insufficient-memory";
+
+/**
+ * Which digivolution mechanic the validated path represents, for the client's cut-in tier.
+ * Read off the same booleans `applyDigivolve` pays the cost from, so the announcement and the
+ * payment can never describe different mechanics.
+ *
+ * Exported so the ordering is a unit-testable contract rather than an unobservable
+ * branch inside the apply path.
+ *
+ * Ordered most specific first. ＜Burst Digivolve＞ outranks a ＜Blast Digivolve＞ waiver because
+ * a burst is the grander beat and the waiver may accompany it; `usedBaseGranted` outranks the
+ * generic alternate because a base-granted path bypasses the alternate handling entirely.
+ * Armor and X-Antibody are NOT distinguishable here: the card compiler collapses every
+ * "digivolve from [ExactCard]" path into the same gateless alternate requirement, so they
+ * report `alternate` rather than a guess.
+ */
+export function digivolveMechanicOf(check: Extract<DigivolveCheck, { ok: true }>): DigivolveMechanic {
+  if (check.usedAlternate && check.altRequirement?.burstDigivolve) return "burst";
+  if (check.blastWaived) return "blast";
+  if (check.usedBaseGranted) return "baseGranted";
+  if (check.usedAlternate) return "alternate";
+  return "normal";
+}
 
 /** Result of validating a digivolve intent without mutating anything. */
 export type DigivolveCheck =
@@ -286,10 +311,7 @@ export interface DigivolveDeps {
 }
 
 /** Events this action narrates (subset of @aegis/shared ServerEvent). */
-export type DigivolveEvent =
-  | { kind: "digivolved"; seat: Seat; permanentId: string; cardId: string }
-  | { kind: "memoryChanged"; from: number; to: number; reason: string }
-  | { kind: "cardsMoved"; instanceIds: string[]; from: string; to: string };
+export type DigivolveEvent = Extract<ServerEvent, { kind: "digivolved" | "memoryChanged" | "cardsMoved" }>;
 
 /** What applyDigivolve produced (for the caller / tests / event log). */
 export interface DigivolveOutcome {
@@ -744,7 +766,13 @@ export async function applyDigivolve(
   //     state across digivolution; rulebook + documented behavior restore).
   permanent.isSuspended = carriedSuspended;
 
-  deps.emit?.({ kind: "digivolved", seat, permanentId: permanent.permanentId, cardId: evolving.cardId });
+  deps.emit?.({
+    kind: "digivolved",
+    seat,
+    permanentId: permanent.permanentId,
+    cardId: evolving.cardId,
+    mechanic: digivolveMechanicOf(check),
+  });
 
   // (4b) Apply the Digisorption reduction paid at (0c) to the memory cost. Declining the
   //      immediate effect produced 0, so the full cost is paid here.

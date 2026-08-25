@@ -116,6 +116,9 @@ function buildSeatScopedApi(
           max: opts.max,
           ...(opts.maxTotalPlayCost !== undefined ? { maxTotalPlayCost: opts.maxTotalPlayCost } : {}),
           ...(opts.maxTotalDP !== undefined ? { maxTotalDP: opts.maxTotalDP } : {}),
+          // What the running action will do to whatever is picked here, so the board
+          // can badge a chosen target rather than parse the prompt's English.
+          ...(ctx.activeTargetFate !== undefined ? { targetFate: ctx.activeTargetFate } : {}),
           ...provenance(ctx),
         },
       });

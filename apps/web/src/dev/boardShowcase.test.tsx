@@ -10,13 +10,32 @@ afterEach(() => cleanup());
 
 const SECTION_IDS = [
   "showcase-memory-gauge",
+  "showcase-memory-arc",
+  "showcase-turn-control",
+  "showcase-breeding-mode",
+  "showcase-drag-intents",
   "showcase-hand",
   "showcase-permanents",
   "showcase-breeding",
   "showcase-security",
+  "showcase-shield-break",
+  "showcase-security-branch",
+  "showcase-summoning-ring",
   "showcase-turn-banner",
   "showcase-attack-arc",
+  "showcase-side-panels",
+  "showcase-notices",
   "showcase-dialogs",
+  "showcase-cut-in",
+  "showcase-permanent-inspector",
+  "showcase-effect-sources",
+  "showcase-tracking-arrow",
+  "showcase-security-chrome",
+  "showcase-deck-chrome",
+  "showcase-shatter",
+  "showcase-card-inspect",
+  "showcase-security-outcome",
+  "showcase-play-log",
 ];
 
 describe("BoardShowcase", () => {

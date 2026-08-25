@@ -7,6 +7,7 @@ import { describeAction } from "../describe.js";
 import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
+import { targetFateOf } from "../targetFate.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { runBoardAction } from "./board.js";
@@ -37,6 +38,21 @@ import type { Action, Cost, ZoneRef } from "@aegis/shared";
  * `abortOnDecline` is set — the caller should stop processing further actions.
  */
 export async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
+  // Display-only provenance: every decision this action raises carries what the
+  // action is about to do to the permanents it offers, so the client badges a
+  // picked target instead of reading its fate out of printed English. Restored
+  // afterwards because a nested action (a branch, a repeat) resolves its own
+  // targets and must not inherit the outer action's fate.
+  const outerFate = ctx.activeTargetFate;
+  ctx.activeTargetFate = targetFateOf(action);
+  try {
+    return await runActionInner(ctx, action);
+  } finally {
+    ctx.activeTargetFate = outerFate;
+  }
+}
+
+async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
   // Per-action gate.
   if (action.kind !== "RawUnparsed" && action.kind !== "ConditionalBranch" && action.condition) {
     ctx.lastActionConditionMatched = evaluateCondition(ctx, action.condition);

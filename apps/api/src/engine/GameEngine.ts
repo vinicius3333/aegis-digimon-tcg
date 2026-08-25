@@ -30,7 +30,7 @@ import { buildStateView, refreshStateView as refreshStateViewInto, syncPublicCou
 import { GameStateAccess, insertCard, takeTop } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
 import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
-import { canAttackerDeclare } from "./combat/legality.js";
+import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
 import { resolveKeywords } from "./combat/keywords.js";
 import { WinCheck, runSecurityCheck, type SecurityCheckDeps } from "./security/index.js";
@@ -222,6 +222,9 @@ export function securityStrikeCount(saGrants: ReadonlyArray<{ amount?: number }>
 }
 
 const NO_DIGIVOLVE_TARGETS: readonly string[] = [];
+
+/** `CardInstance.projectedPlayCost` sentinel: this card has no projectable play cost right now. */
+const NO_PROJECTED_COST = -1;
 
 /** A hand card reads as playable when it validates, or when only memory is short of a material-cost route. */
 function playableFromHand(check: PlayCardCheck, cardId: string): boolean {
@@ -2536,8 +2539,47 @@ export class GameEngine {
     }
     this.syncActivatableEffects();
     this.syncKeywords();
+    this.syncSummoningSickness();
+    this.syncCombatRestrictions();
     this.syncAttackTargets();
     this.syncHandAffordances();
+  }
+
+  /**
+   * The number of security cards an attack by `permanentId` checks. Single reader for both
+   * the live security-check loop (`strikeFor`) and the {@link syncCombatRestrictions}
+   * projection, so the inspector value cannot drift from the rule.
+   */
+  private securityStrikeFor(permanentId: string): number {
+    // When SA-sign inversion is active on the attacker, each existing ＜Security Attack ±N＞
+    // grant has its amount NEGATED per-instance before summing (two ＜SA -1＞ → two ＜SA +1＞ =
+    // +2 to the strike, NOT ＜SA +2＞ recomputed). The sign is applied per grant inside the
+    // reduce, so the composition is faithful to the per-instance flip with no value math here.
+    const invert = this.continuous.securityAttackInverted(permanentId);
+    const saGrants = this.continuous.grantedKeywords(permanentId).filter((g) => g.keyword === "SecurityAttack");
+    return securityStrikeCount(saGrants, invert);
+  }
+
+  /**
+   * Publish the blanket combat restrictions imposed on each permanent, plus its resolved
+   * ＜Security Attack＞ count. Both seats and every phase, like {@link syncSummoningSickness}
+   * and unlike {@link syncAttackTargets}: these are board-state facts about the permanent
+   * itself, not "can this attack be declared right now", so the client can pulse a freeze
+   * the moment a restriction lands and show a truthful strike count in the inspector.
+   */
+  private syncCombatRestrictions(): void {
+    for (const player of this.state.players) {
+      for (const perm of player.battleArea) this.projectCombatRestrictions(perm);
+      // A permanent in the raising area can neither attack nor block by the rules of the
+      // area itself, so an imposed restriction has nothing to add; leave the defaults.
+      if (player.breeding) this.projectCombatRestrictions(player.breeding);
+    }
+  }
+
+  private projectCombatRestrictions(perm: Permanent): void {
+    perm.cannotAttack = this.continuous.hasRestriction(perm.permanentId, "attack");
+    perm.cannotBlock = this.continuous.hasRestriction(perm.permanentId, "block");
+    perm.securityAttack = this.securityStrikeFor(perm.permanentId);
   }
 
   /**
@@ -2806,6 +2848,23 @@ export class GameEngine {
   }
 
   /**
+   * Publish which permanents entered the field this turn without ＜Rush＞, i.e. which ones
+   * cannot declare an ordinary attack yet (Comprehensive Rules §16-1). Both seats and every
+   * phase, unlike {@link syncAttackTargets}: the client draws the summoning-sickness ring
+   * from this flag and must not re-derive the rule from `enterFieldTurnCount`.
+   */
+  private syncSummoningSickness(): void {
+    for (const player of this.state.players) {
+      for (const perm of player.battleArea) {
+        perm.summoningSick = hasSummoningSickness(perm, this.state.turnCount, this.continuous);
+      }
+      // A permanent in the raising area cannot attack at all, so summoning sickness has
+      // nothing to say about it.
+      if (player.breeding) player.breeding.summoningSick = false;
+    }
+  }
+
+  /**
    * Publish the exact attack targets accepted by the server's combat legality seam.
    * This keeps click, drag and highlighting clients correct for unsuspended-target
    * grants and target-specific restrictions without duplicating card rules in React.
@@ -2894,21 +2953,19 @@ export class GameEngine {
           active !== undefined && player === active.player ? lookupDefinition(instance.cardId) : undefined;
         if (active === undefined || definition === undefined) {
           instance.playableFromHand = false;
+          instance.projectedPlayCost = NO_PROJECTED_COST;
           replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
           continue;
         }
 
-        instance.playableFromHand = definition.kinds.includes(CardKind.DigiEgg)
-          ? false
-          : playableFromHand(
-              validatePlayCard(
-                this.state,
-                seat,
-                { type: "playCard", instanceId: instance.instanceId },
-                active.playDeps,
-              ),
-              instance.cardId,
-            );
+        // A DigiEgg is never played from hand, so it skips the validation entirely.
+        const playCheck = definition.kinds.includes(CardKind.DigiEgg)
+          ? undefined
+          : validatePlayCard(this.state, seat, { type: "playCard", instanceId: instance.instanceId }, active.playDeps);
+        instance.playableFromHand = playCheck !== undefined && playableFromHand(playCheck, instance.cardId);
+        // Only the success branch carries a cost. A card that reads as playable through the
+        // material-route escape hatch was rejected for memory, so it has no figure to publish.
+        instance.projectedPlayCost = playCheck?.ok === true ? playCheck.cost : NO_PROJECTED_COST;
 
         if (!definition.kinds.includes(CardKind.Digimon)) {
           replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
@@ -4219,11 +4276,7 @@ export class GameEngine {
         // amount NEGATED per-instance before summing (two ＜SA -1＞ → two ＜SA +1＞ = +2 to the
         // strike, NOT ＜SA +2＞ recomputed). The sign is applied per grant inside the reduce, so the
         // composition is faithful to the per-instance flip with no per-permanent value math.
-        const invert = this.continuous.securityAttackInverted(attacker.permanentId);
-        const saGrants = this.continuous
-          .grantedKeywords(attacker.permanentId)
-          .filter((g) => g.keyword === "SecurityAttack");
-        return securityStrikeCount(saGrants, invert);
+        return this.securityStrikeFor(attacker.permanentId);
       },
       permanentById: (permanentId) => this.access.permanentById(permanentId),
       fireTiming: async (timing, info) =>
@@ -4699,6 +4752,7 @@ export class GameEngine {
       ],
       firstSeat,
       seed: this.hooks.seed,
+      onShuffled: (seat, deck) => this.hooks.emit({ kind: "deckShuffled", seat, deck }),
     });
     this.rngForSeat = setup.rngForSeat;
 
@@ -4742,7 +4796,11 @@ export class GameEngine {
       const keep = await this.mulligan.request(seat);
       if (!keep && this.rngForSeat !== undefined) {
         const player = this.state.players[seat];
-        if (player !== undefined) mulliganRedraw(player, this.rngForSeat(seat));
+        if (player !== undefined) {
+          mulliganRedraw(player, this.rngForSeat(seat), (deck) =>
+            this.hooks.emit({ kind: "deckShuffled", seat, deck }),
+          );
+        }
       }
     }
   }

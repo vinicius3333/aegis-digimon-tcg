@@ -107,6 +107,24 @@ function hasRush(permanent: Permanent, reader: ContinuousLegalityReader | undefi
 }
 
 /**
+ * Whether `permanent` is summoning-sick (Comprehensive Rules §16-1): it entered the field
+ * on the current turn and has no ＜Rush＞, so it may not declare an ordinary attack.
+ * Digivolving does NOT reset `enterFieldTurnCount`, so a Digimon that evolved onto an
+ * established permanent is not sick. ＜Vortex＞ is a same-turn-attack grant of its own
+ * (§16-33-1) and is applied by the caller, because it only exempts a Vortex declaration.
+ *
+ * Exported because the engine also publishes it to the client
+ * (`Permanent.summoningSick`), which must not rebuild the rule from a turn counter.
+ */
+export function hasSummoningSickness(
+  permanent: Permanent,
+  turnCount: number,
+  reader: ContinuousLegalityReader | undefined,
+): boolean {
+  return turnCount > 0 && permanent.enterFieldTurnCount === turnCount && !hasRush(permanent, reader);
+}
+
+/**
  * Whether `attacker` has ＜Collision＞ — printed in its top card's effect text or
  * granted by an active continuous effect (the ledger). Comprehensive Rules §16-30:
  * while a Digimon with this effect is attacking, all of the opponent's Digimon gain
@@ -168,9 +186,7 @@ export function canAttackerDeclare(
   // ALSO a same-turn-attack grant in its own right — a Vortex-mode declaration
   // from a Digimon with the keyword is exempt even without ＜Rush＞.
   if (
-    access.game.turnCount > 0 &&
-    attacker.enterFieldTurnCount === access.game.turnCount &&
-    !hasRush(attacker, reader) &&
+    hasSummoningSickness(attacker, access.game.turnCount, reader) &&
     !(isVortex === true && hasVortex(attacker, reader))
   ) {
     return "illegal-target";

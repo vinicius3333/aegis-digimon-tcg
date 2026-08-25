@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, Eyebrow, Field, Switch, type PlayerIdentity } from "../design/primitives";
 import { Icons } from "../design/icons";
 import { getSoundVolume, isSoundEnabled, playSound, setSoundEnabled, setSoundVolume } from "../design/sound";
+import { areCutInsEnabled, setCutInsEnabled } from "../design/cutIn";
 import { areActionConfirmationsEnabled, setActionConfirmationsEnabled } from "../design/actionConfirmation";
 import { BattlefieldPicker } from "../design/battlefieldPicker";
 import { CardSleevePicker } from "../design/sleevePicker";
@@ -36,6 +37,7 @@ export function Settings({
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
   const [volume, setVolume] = useState(Math.round(getSoundVolume() * 100));
   const [actionConfirmationsOn, setActionConfirmationsOn] = useState(areActionConfirmationsEnabled());
+  const [cutInsOn, setCutInsOn] = useState(areCutInsEnabled());
   function confirmRename() {
     const name = nameInput.trim();
     if (!name || name === player.name) return;
@@ -133,6 +135,17 @@ export function Settings({
                 onChange={(next) => {
                   setActionConfirmationsEnabled(next);
                   setActionConfirmationsOn(next);
+                }}
+              />
+            </div>
+            <div className="settings-block">
+              <Switch
+                checked={cutInsOn}
+                label={t("settings.cutIns")}
+                description={t("settings.cutInsDesc")}
+                onChange={(next) => {
+                  setCutInsEnabled(next);
+                  setCutInsOn(next);
                 }}
               />
             </div>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CardInstance,
   GameState,
@@ -19316,6 +19316,11 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   }, [cardId, effect, step]);
   const [decision, setDecision] = useState<DecisionRequest | undefined>(fixture?.decision);
   const [blockWindowAcknowledged, setBlockWindowAcknowledged] = useState(false);
+  // The match screen treats the first batch of events it sees as replayed
+  // history and narrates none of it. Holding the fixture's events back by one
+  // commit makes them arrive as fresh events, which is what the demo is for.
+  const [narrating, setNarrating] = useState(false);
+  useEffect(() => setNarrating(true), []);
 
   if (!fixture) {
     return <main className="aegis-screen-fallback">No simulated match is registered for {cardId}. Try EX3-074.</main>;
@@ -19325,9 +19330,11 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     room: undefined,
     status: "connected",
     state: fixture.state,
-    events: blockWindowAcknowledged
-      ? (fixture.events ?? []).filter((event) => event.kind !== "blockWindowOpened")
-      : (fixture.events ?? []),
+    events: !narrating
+      ? []
+      : blockWindowAcknowledged
+        ? (fixture.events ?? []).filter((event) => event.kind !== "blockWindowOpened")
+        : (fixture.events ?? []),
     decision,
     acknowledgeDecision: () => setDecision(undefined),
     acknowledgeBlockWindow: () => setBlockWindowAcknowledged(true),

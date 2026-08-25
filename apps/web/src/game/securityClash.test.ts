@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildSecurityBranchScene,
+  buildSecurityBreakScene,
   buildSecurityClashScene,
   normalizeSecurityClashResolution,
   orderSecurityClashFighters,
+  SECURITY_BRANCH_TIMINGS,
+  SECURITY_BRANCH_TOTAL_MS,
+  SECURITY_BREAK_AT_MS,
+  SECURITY_BREAK_TIMINGS,
+  SECURITY_BREAK_TOTAL_MS,
   SECURITY_CLASH_TIMINGS,
   SECURITY_CLASH_TOTAL_MS,
 } from "./securityClash";
@@ -97,5 +104,88 @@ describe("security clash scene", () => {
     const beats = Object.values(SECURITY_CLASH_TIMINGS).reduce((total, beat) => total + beat, 0);
     expect(SECURITY_CLASH_TOTAL_MS).toBe(beats);
     expect(SECURITY_CLASH_TOTAL_MS).toBeLessThan(3000);
+  });
+});
+
+describe("shield break and the security-effect branch", () => {
+  it("breaks the checked player's own shield, mirrored per seat", () => {
+    expect(buildSecurityBreakScene({ key: 1, defenderSeat: 0, viewerSeat: 0 })).toEqual({
+      key: 1,
+      seat: 0,
+      side: "you",
+    });
+    expect(buildSecurityBreakScene({ key: 2, defenderSeat: 1, viewerSeat: 0 })).toEqual({
+      key: 2,
+      seat: 1,
+      side: "opp",
+    });
+  });
+
+  it("branches only for a card that resolves an effect", () => {
+    const branch = (resolution: string) =>
+      buildSecurityBranchScene({ key: 3, revealedCardId: OPTION_CARD_ID, resolution, defenderSeat: 1, viewerSeat: 0 });
+
+    expect(branch("effect")).toEqual({ key: 3, cardId: OPTION_CARD_ID, side: "opp" });
+    expect(branch("battle")).toBeNull();
+    expect(branch("trashed")).toBeNull();
+    expect(branch("nonsense-from-a-future-server")).toBeNull();
+  });
+
+  it("runs the break before the reveal and the branch after the clash", () => {
+    expect(SECURITY_BREAK_AT_MS).toBe(SECURITY_BREAK_TIMINGS.armMs);
+    expect(SECURITY_BREAK_TOTAL_MS).toBe(
+      SECURITY_BREAK_TIMINGS.armMs + SECURITY_BREAK_TIMINGS.breakMs + SECURITY_BREAK_TIMINGS.holdMs,
+    );
+    expect(SECURITY_BRANCH_TOTAL_MS).toBe(
+      SECURITY_BRANCH_TIMINGS.inMs + SECURITY_BRANCH_TIMINGS.holdMs + SECURITY_BRANCH_TIMINGS.outMs,
+    );
+    // The revealed card is readable centre-stage before it slides aside.
+    expect(SECURITY_BRANCH_TIMINGS.holdMs).toBeGreaterThan(SECURITY_BRANCH_TIMINGS.inMs);
+  });
+});
+
+describe("security battle outcome", () => {
+  const attacker = { seat: 0 as const, cardId: DIGIMON_CARD_ID, permanentId: "att", topInstanceId: "att-top" };
+
+  const sceneWith = (battle?: { attackerDeleted: boolean; securityDigimonDeleted: boolean }, withAttacker = true) =>
+    buildSecurityClashScene({
+      key: 1,
+      revealedCardId: DIGIMON_CARD_ID,
+      resolution: "battle",
+      defenderSeat: 1,
+      viewerSeat: 0,
+      ...(withAttacker ? { attacker } : {}),
+      ...(battle ? { battle } : {}),
+    });
+
+  it("names the attacker as the loser when it lost the compare", () => {
+    expect(sceneWith({ attackerDeleted: true, securityDigimonDeleted: false }).loser).toEqual({
+      attacker: true,
+      revealed: false,
+    });
+  });
+
+  it("names the security Digimon as the loser in the other direction", () => {
+    expect(sceneWith({ attackerDeleted: false, securityDigimonDeleted: true }).loser).toEqual({
+      attacker: false,
+      revealed: true,
+    });
+  });
+
+  it("names both on a tie", () => {
+    expect(sceneWith({ attackerDeleted: true, securityDigimonDeleted: true }).loser).toEqual({
+      attacker: true,
+      revealed: true,
+    });
+  });
+
+  it("leaves the outcome unmarked when the server published no compare", () => {
+    expect(sceneWith(undefined).loser).toBeUndefined();
+  });
+
+  it("never marks an outcome for a check with no attacker facing it", () => {
+    const scene = sceneWith({ attackerDeleted: true, securityDigimonDeleted: false }, false);
+    expect(scene.attacker).toBeUndefined();
+    expect(scene.loser).toBeUndefined();
   });
 });

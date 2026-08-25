@@ -66,7 +66,7 @@ scenario("surrender", () => {
 
     // The protagonist's own rendered DOM shows the Defeat overlay.
     await screen.findByText(/^defeat$/i, {}, { timeout: 10_000 });
-    await screen.findByText(/you lost by surrender/i, {}, { timeout: 10_000 });
+    await screen.findByText(/you surrendered/i, {}, { timeout: 10_000 });
 
     await opponent.leave();
   }, 20_000);

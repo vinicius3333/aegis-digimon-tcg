@@ -17,6 +17,15 @@ const landscapeRules = gameCss.match(
 // Where the sidebar stops being a column and becomes a strip along the bottom.
 const stripRules = gameCss.match(/@media \(width < 960px\) \{(?<rules>[\s\S]*?)\n\}\n\n@media/)?.groups?.rules;
 
+/** Phone portrait only: the floating stacks and the board-mode sheet. */
+const phonePortraitRules = gameCss.match(
+  /@media \(width < 600px\) and \(orientation: portrait\) \{(?<rules>[\s\S]*?)\n\}\n/,
+)?.groups?.rules;
+/** Narrow width at any orientation — a landscape phone is ~844px wide, so it is not this. */
+const narrowWidthRules = gameCss.match(/@media \(width < 600px\) \{(?<rules>[\s\S]*?)\n\}\n/)?.groups?.rules;
+/** Pointer widths, which keep the full-size fanned hand. */
+const pointerWidthRules = gameCss.match(/@media \(width >= 960px\) \{(?<rules>[\s\S]*?)\n\}\n/)?.groups?.rules;
+
 describe("mobile portrait match layout", () => {
   it("keeps the match inside the viewport and limits scrolling to cards", () => {
     expect(portraitRules).toBeDefined();
@@ -113,6 +122,17 @@ describe("mobile portrait match layout", () => {
     );
     expect(portraitRules).toMatch(/\.decision-board-return > button \{[^}]*min-height:\s*44px/);
   });
+
+  it("shrinks the board-mode decision rail so the phone board stays readable", () => {
+    // The rail is the only way to answer a board-mode decision, so its actions must
+    // never be pushed off: it takes a fraction of the width and lets only the
+    // printed clause scroll.
+    expect(portraitRules).toMatch(/\.board-prompt \{[^}]*width:\s*min\(15rem, 46vw\)/);
+    expect(portraitRules).toMatch(/\.board-prompt__clause \{[^}]*max-height:\s*4\.5rem/);
+    expect(gameCss).toMatch(/\.board-prompt__clause \{[^}]*overflow-y:\s*auto/);
+    // The opponent pill clears the phone opponent bar instead of painting over it.
+    expect(portraitRules).toMatch(/\.board-opponent-pill \{[^}]*top:\s*3\.5rem/);
+  });
 });
 
 describe("choice rows lead with the affirmative action", () => {
@@ -144,9 +164,11 @@ describe("choice rows lead with the affirmative action", () => {
 describe("match overlays opt into the mobile sheet", () => {
   // Every dialog-style overlay on the match screen must carry the shared classes,
   // otherwise it keeps its desktop centring on a phone and overflows the viewport.
+  // GameOverOverlay is deliberately absent: it is no longer a dialog on top of
+  // the board but the full-screen result splash, which owns the whole viewport
+  // and scrolls itself (asserted below) rather than sitting in a sheet.
   const OVERLAYS = [
     "BreedingOverlay",
-    "GameOverOverlay",
     "StackViewerOverlay",
     "TrashViewerOverlay",
     "DigiXrosMaterialOverlay",
@@ -160,6 +182,21 @@ describe("match overlays opt into the mobile sheet", () => {
     const next = overlaysSource.indexOf("\nexport function ", start + 1);
     const body = overlaysSource.slice(start, next === -1 ? undefined : next);
     expect(body).toContain("game-modal__panel");
+  });
+});
+
+describe("the result splash owns the whole screen", () => {
+  // It replaces the board rather than covering it, so on a phone it has to lay
+  // its own contents out and scroll them instead of relying on the sheet rules.
+  it("fills the viewport and scrolls its own contents", () => {
+    const rules = gameCss.slice(gameCss.indexOf(".game-result {"));
+    expect(rules).toMatch(/\.game-result \{[^}]*position:\s*absolute/);
+    expect(rules).toMatch(/\.game-result \{[^}]*inset:\s*0/);
+    expect(rules).toMatch(/\.game-result \{[^}]*overflow:\s*auto/);
+  });
+
+  it("sizes the one big word against the viewport", () => {
+    expect(gameCss).toMatch(/\.game-result__title \{[^}]*font-size:\s*clamp\(/);
   });
 });
 
@@ -220,7 +257,93 @@ describe("nothing on the phone board is clipped by its neighbour", () => {
   });
 
   it("spans the reveal panel across the screen", () => {
-    expect(portraitRules).toMatch(/\.info-panel-stack \{[^}]*width:\s*auto/);
+    expect(portraitRules).toMatch(/\.side-panel-stack,\s*\.match-notice-stack \{[^}]*width:\s*auto/);
+  });
+});
+
+describe("floating chrome keeps clear of the hand and the memory band", () => {
+  // Both stacks span the width on a phone in portrait, so "notices left, panels
+  // right" no longer separates them: they landed on the same pixels. Each gets a
+  // band of its own, and neither may grow out of it.
+  it("gives the notice stack and the side panels separate bands in portrait", () => {
+    expect(phonePortraitRules).toBeDefined();
+    expect(phonePortraitRules).toMatch(
+      /\.match-notice-stack,\s*\.side-panel-stack \{[^}]*max-height:\s*7rem[^}]*overflow:\s*hidden/,
+    );
+    expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="opp"\] \{[^}]*top:\s*calc\(17rem/);
+    expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="you"\] \{[^}]*bottom:\s*calc\(17rem/);
+    // The notices keep the corner they already had.
+    expect(gameCss).toMatch(/\.match-notice-stack\[data-anchor\^="bottom-"\] \{[^}]*bottom:\s*calc\(11rem/);
+  });
+
+  it("clears the full-size fanned hand at pointer widths", () => {
+    // The 132px hand fans ~75px taller than the compact one; at 11rem the viewer's
+    // panels and notices sat on top of it on a 900px-tall laptop.
+    expect(pointerWidthRules).toBeDefined();
+    expect(pointerWidthRules).toMatch(/\.side-panel-stack\[data-side="you"\] \{[^}]*bottom:\s*calc\(13rem/);
+    expect(pointerWidthRules).toMatch(/\.match-notice-stack\[data-anchor\^="bottom-"\] \{[^}]*bottom:\s*calc\(13rem/);
+  });
+
+  it("moves the opponent's notices and the attack call-out off the landscape band", () => {
+    // The memory band crosses the middle of a 390px-tall screen, which is where
+    // 9.5rem put both of them.
+    expect(landscapeRules).toMatch(/\.match-notice-stack\[data-anchor\^="top-"\] \{[^}]*top:\s*calc\(3\.25rem/);
+    expect(landscapeRules).toMatch(/\.attack-announcement \{[^}]*top:\s*calc\(3\.25rem[^}]*translate:\s*none/);
+  });
+});
+
+describe("the drag intent label reads the pointer, not the viewport", () => {
+  it("asks the pointer media query rather than guessing from the width", () => {
+    // A touchscreen laptop is wide, so a width breakpoint would leave the label
+    // under the finger on exactly the devices that need it lifted.
+    expect(gameScreenSource).toMatch(/COARSE_POINTER_QUERY/);
+    expect(gameScreenSource).toMatch(/top:\s*drag!\.y - dragIntentLabelOffsetPx\(coarsePointer\)/);
+  });
+});
+
+describe("the board-mode rail becomes a bottom sheet on a phone in portrait", () => {
+  it("anchors the prompt above the hand instead of over the field", () => {
+    expect(phonePortraitRules).toMatch(
+      /\.board-prompt \{[^}]*top:\s*auto[^}]*bottom:\s*calc\(var\(--game-hand-h\)[^}]*translate:\s*none/,
+    );
+    // The rail's own entrance slides sideways from a vertical centring it no
+    // longer has, so the sheet brings its own.
+    expect(phonePortraitRules).toMatch(/\.board-prompt \{[^}]*animation-name:\s*battle-board-sheet-in/);
+    expect(gameCss).toMatch(/@keyframes battle-board-sheet-in \{/);
+    // The pending decision's only exit outranks anything transient.
+    expect(phonePortraitRules).toMatch(/\.board-prompt \{[^}]*z-index:\s*calc\(var\(--ds-z-dialog\) - 3\)/);
+    expect(phonePortraitRules).toMatch(/\.board-prompt__actions > button \{[^}]*min-height:\s*44px/);
+  });
+
+  it("leaves the landscape phone with the left rail it was tuned for", () => {
+    expect(landscapeRules).not.toMatch(/\.board-prompt \{/);
+  });
+});
+
+describe("centre-stage cards are sized by the viewport", () => {
+  it("scales the zone showcase by width on a phone and by height in landscape", () => {
+    expect(portraitRules).toMatch(/\.battle-showcase__art > div \{[^}]*width:\s*min\(190px, 46vw\)/);
+    expect(landscapeRules).toMatch(/\.battle-showcase__art > div \{[^}]*height:\s*min\(58dvh, 266px\)/);
+  });
+
+  it("drives the security branch's lift from a property the short blocks retune", () => {
+    // 8rem above the middle of a 390px board puts the card's top edge off screen.
+    expect(gameCss).toMatch(/\.battle-security-branch \{[^}]*--security-branch-lift:\s*8rem/);
+    expect(gameCss).toMatch(/@keyframes battle-security-branch \{[^}]*var\(--security-branch-lift\)/);
+    expect(gameCss).not.toMatch(/translate:\s*[^;]*calc\(-50% - 8rem\)/);
+    expect(landscapeRules).toMatch(/\.battle-security-branch \{[^}]*--security-branch-lift:\s*2\.5rem/);
+    expect(landscapeRules).toMatch(/\.battle-security-branch__frame > div \{[^}]*width:\s*92px/);
+  });
+});
+
+describe("the mulligan's three actions fit the row they are given", () => {
+  it("wraps the peek button onto its own line at narrow widths only", () => {
+    expect(narrowWidthRules).toBeDefined();
+    expect(narrowWidthRules).toMatch(/\.mulligan-actions \{\s*flex-wrap:\s*wrap/);
+    expect(narrowWidthRules).toMatch(/\.mulligan-actions > button:last-child \{\s*flex-basis:\s*100%/);
+    // A landscape phone is ~844px wide and fits all three; wrapping there would
+    // cost the 390px-tall sheet a whole button row for nothing.
+    expect(landscapeRules).not.toMatch(/\.mulligan-actions \{/);
   });
 });
 
@@ -275,6 +398,12 @@ describe("landscape phone match layout", () => {
   it("keeps the result dialog's own buttons on screen", () => {
     expect(landscapeRules).toMatch(/\.game-over-dialog > div:first-child \{\s*display:\s*none !important/);
     expect(landscapeRules).toMatch(/\.game-over-dialog > h1 \{[^}]*font-size:\s*var\(--ds-text-2xl\)/);
+  });
+
+  it("keeps the turn orb a finger wide", () => {
+    // 2.75rem is 44px. The extra overhang keeps the band exactly as tall as it
+    // was, so the two battle rows lose nothing to the bigger target.
+    expect(landscapeRules).toMatch(/\.game-end-turn-orb \{[^}]*width:\s*2\.75rem[^}]*margin:\s*-0\.375rem/);
   });
 
   it("names an explicit card width for the battle rows", () => {

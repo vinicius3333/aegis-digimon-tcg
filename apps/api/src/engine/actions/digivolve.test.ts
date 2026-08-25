@@ -14,6 +14,7 @@ import { MemoryGauge } from "../MemoryGauge.js";
 import {
   validateDigivolve,
   applyDigivolve,
+  digivolveMechanicOf,
   memoryDepsFromGauge,
   type DigivolveDeps,
   type DigivolveIntent,
@@ -571,5 +572,69 @@ describe("digivolve — breeding area (cost payment, affordability, emit zone)",
       seat: 0,
       cardId: EVOLVER,
     });
+  });
+
+  it("names the mechanic on the digivolved event, so the client never guesses a tier", async () => {
+    const { state, gauge, permanent, evolver } = makeState({ memory: 5 });
+    const events: { kind: string; mechanic?: string }[] = [];
+    const deps = depsFrom(gauge, { emit: (e) => events.push(e as { kind: string; mechanic?: string }) });
+
+    await applyDigivolve(state, 0, intent(permanent.permanentId, evolver.instanceId), deps);
+
+    expect(events.find((e) => e.kind === "digivolved")?.mechanic).toBe("normal");
+  });
+
+  it("names the alternate path when the digivolution rode an alternate requirement", async () => {
+    const { state, gauge, permanent, evolver } = makeState({
+      baseCardId: "AD1-020",
+      evolverCardId: "AD1-002",
+      memory: 5,
+    });
+    permanent.stack.push(instance("AD1-002", 0), instance("BT12-009", 0));
+    const events: { kind: string; mechanic?: string }[] = [];
+    const deps = depsFrom(gauge, { emit: (e) => events.push(e as { kind: string; mechanic?: string }) });
+
+    await applyDigivolve(state, 0, intent(permanent.permanentId, evolver.instanceId), deps);
+
+    expect(events.find((e) => e.kind === "digivolved")?.mechanic).toBe("alternate");
+  });
+});
+
+describe("digivolveMechanicOf", () => {
+  const check = (over: Partial<Parameters<typeof digivolveMechanicOf>[0]>) =>
+    digivolveMechanicOf({
+      ok: true,
+      usedAlternate: false,
+      usedBaseGranted: false,
+      blastWaived: false,
+      cost: 0,
+      printedCost: 0,
+      ...over,
+    } as Parameters<typeof digivolveMechanicOf>[0]);
+
+  it("reads a plain printed EvoCost path as normal", () => {
+    expect(check({})).toBe("normal");
+  });
+
+  it("reads a gateless alternate requirement as alternate", () => {
+    expect(check({ usedAlternate: true })).toBe("alternate");
+  });
+
+  it("reads a base-granted digivolve ahead of the generic alternate", () => {
+    expect(check({ usedBaseGranted: true, usedAlternate: true })).toBe("baseGranted");
+  });
+
+  it("reads a Blast cost waiver as blast", () => {
+    expect(check({ blastWaived: true })).toBe("blast");
+  });
+
+  it("reads Burst ahead of an accompanying Blast waiver", () => {
+    expect(
+      check({
+        usedAlternate: true,
+        blastWaived: true,
+        altRequirement: { burstDigivolve: { returnTamerNamesExact: ["X"] } } as never,
+      }),
+    ).toBe("burst");
   });
 });

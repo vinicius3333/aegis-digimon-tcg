@@ -30,6 +30,12 @@ export type LogKind = "you" | "opp" | "sys";
 export interface LogLine {
   text: string;
   kind: LogKind;
+  /**
+   * The cards this line names, so the play log can turn their names into links
+   * (`PlayLog.cs`). The names are already inside `text`; this says which card each
+   * one is, rather than making the reader guess from the printed name.
+   */
+  cardIds?: readonly string[];
 }
 
 const LOG_ZONE_KEYS: Record<string, TranslationKey> = {
@@ -941,13 +947,22 @@ export function describeEvent(
       return {
         text: t(event.seat === viewerSeat ? "log.youPlayed" : "log.oppPlayed", { card: cardName(event.cardId) }),
         kind: mine(event.seat),
+        cardIds: [event.cardId],
       };
     case "hatched":
-      return { text: t("log.hatched", { card: cardName(event.cardId) }), kind: mine(event.seat) };
+      return {
+        text: t("log.hatched", { card: cardName(event.cardId) }),
+        kind: mine(event.seat),
+        cardIds: [event.cardId],
+      };
     case "movedFromBreeding":
-      return { text: t("log.movedFromBreeding", { card: cardName(event.cardId) }), kind: mine(event.seat) };
+      return {
+        text: t("log.movedFromBreeding", { card: cardName(event.cardId) }),
+        kind: mine(event.seat),
+        cardIds: [event.cardId],
+      };
     case "digivolved":
-      return { text: t("log.digivolved", { card: cardName(event.cardId) }), kind: "sys" };
+      return { text: t("log.digivolved", { card: cardName(event.cardId) }), kind: "sys", cardIds: [event.cardId] };
     case "memoryChanged":
       // The server reason is an internal event name (for example `playCard` or
       // `payCost`). It is useful for diagnostics, but exposing it in the match
@@ -961,6 +976,7 @@ export function describeEvent(
       return {
         text: who ? t("log.attackOnBy", { target, card: cardName(who) }) : t("log.attackOn", { target }),
         kind: "sys",
+        cardIds: [who, event.targetCardId].filter((id): id is string => id !== undefined),
       };
     }
     case "blockWindowOpened":
@@ -981,6 +997,7 @@ export function describeEvent(
           resolution: event.resolution,
         }),
         kind: mine(otherSeat(event.seat)),
+        cardIds: [event.revealedCardId],
       };
     case "securityRecovered":
       return {
@@ -1002,12 +1019,14 @@ export function describeEvent(
           source === undefined ? { card: cardName(event.cardId) } : { card: cardName(event.cardId), source },
         ),
         kind: mine(event.seat),
+        cardIds: [event.cardId, event.sourceCardId].filter((id): id is string => id !== undefined),
       };
     }
     case "effectActivated":
       return {
         text: t("log.effectActivated", { card: cardName(event.sourceCardId), description: event.description }),
         kind: "sys",
+        cardIds: [event.sourceCardId],
       };
     case "effectResolved":
       return null; // shown as a transient left-side clause overlay, not a log line

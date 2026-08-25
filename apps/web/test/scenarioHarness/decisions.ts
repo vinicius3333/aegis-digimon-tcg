@@ -36,6 +36,35 @@ export async function resolveNextTriggerThroughUi(opponent: HeadlessOpponent): P
   return true;
 }
 
+/**
+ * The surface the open decision is answered on. Most decisions render the modal
+ * dialog; the ones the board can answer in place (a selection made entirely out
+ * of the viewer's hand, an optional effect whose source is on the field) render
+ * the left rail instead, with the cards picked in the hand itself.
+ */
+export async function findDecisionSurface(): Promise<HTMLElement> {
+  return await waitFor(
+    () => {
+      const surface = screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt");
+      expect(surface).not.toBeNull();
+      return surface!;
+    },
+    { timeout: 10_000 },
+  );
+}
+
+export function isBoardRail(surface: HTMLElement): boolean {
+  return surface.getAttribute("data-testid") === "board-prompt";
+}
+
+/** Every card the open decision offers, wherever it renders them. */
+export function decisionCandidates(surface: HTMLElement): HTMLElement[] {
+  const container = isBoardRail(surface) ? screen.getByTestId("hand") : surface;
+  return within(container)
+    .getAllByRole("button", { pressed: false })
+    .filter((candidate) => !candidate.hasAttribute("disabled") && candidate.getAttribute("aria-disabled") !== "true");
+}
+
 /** Finish incidental effect-body prompts through the public desktop overlay. */
 export async function resolveIncidentalDecisionsThroughUi(opponent: HeadlessOpponent): Promise<void> {
   for (let round = 0; round < 10; round += 1) {
@@ -47,19 +76,19 @@ export async function resolveIncidentalDecisionsThroughUi(opponent: HeadlessOppo
     }
 
     const decisionId = request.decisionId;
-    const dialog = await screen.findByRole("dialog", {}, { timeout: 10_000 });
+    const dialog = await findDecisionSurface();
+    const board = isBoardRail(dialog);
     if (request.kind === "optional") {
-      fireEvent.click(within(dialog).getByRole("button", { name: /no, decline/i }));
+      fireEvent.click(within(dialog).getByRole("button", { name: board ? /^not use$/i : /no, decline/i }));
     } else if (request.kind === "selectCards" || request.kind === "chooseTargets") {
       const min = request.options?.min ?? 1;
       if (min === 0) {
-        fireEvent.click(within(dialog).getByRole("button", { name: /^none$/i }));
+        fireEvent.click(within(dialog).getByRole("button", { name: board ? /^no selection$/i : /^none$/i }));
       } else {
-        const candidates = within(dialog)
-          .getAllByRole("button", { pressed: false })
-          .filter((candidate) => !candidate.hasAttribute("disabled"));
-        for (const candidate of candidates.slice(0, min)) fireEvent.click(candidate);
-        const confirm = within(dialog).getByRole("button", { name: /confirm target/i });
+        for (const candidate of decisionCandidates(dialog).slice(0, min)) fireEvent.click(candidate);
+        const confirm = within(dialog).getByRole("button", {
+          name: board ? /^end selection$/i : /confirm target/i,
+        });
         await waitFor(() => expect(confirm.hasAttribute("disabled")).toBe(false));
         fireEvent.click(confirm);
       }
