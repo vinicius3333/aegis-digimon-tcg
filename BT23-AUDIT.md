@@ -83,6 +83,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog and IR field, links Musclemon onto Coachmon and proves exact +2000 linked DP plus one exact +4000 boost without affecting another friendly Digimon, links Coachmon onto an Appmon and proves exact cost 2, +3000 DP, and the executable end-turn player attack, proves optional refusal leaves suspension and security unchanged, and proves a non-Appmon host leaves memory and zones unchanged.
 - Verification: focused suite — 5 passed; Link and attack conformance regressions — 44 passed; API typecheck — passed; `git diff --check` — passed.
 
+## BT23-010 — GeoGreymon — 10/10
+
+- Catalog evidence: Red/black level 4, play cost 5, 5000 DP, standard red- or black-level-3 evolution for 3 plus alternate level-3 Agumon-name or CS-trait evolution for 2; form `Champion`, attribute `Vaccine`, types `Dinosaur` and `CS`; Security plays it after its battle; main body has Raid and Blocker; inherited body has Blocker.
+- Knowledge base: `node tools/kb/query.mjs card BT23-010` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Defects corrected: the generated IR omitted the printed inherited Blocker and used a direct Security self-play that did not retain the post-battle trash source. The audited IR adds an inherited static Blocker and routes Security through the once-only `whenSecurityBattleEnded` subtrigger with `PlayWithoutCost` from trash; registration remains exclusively `registerIrCard("BT23-010", compiled)` with full coverage and no residual clauses.
+- Primitive trace: the Security lifecycle reveals, battles, trashes, then resolves the retained source without memory payment; alternate evolution name and trait paths union with the two standard color recipes; Raid redirects through the normal highest-unsuspended-opponent selection and battle lifecycle; both top-card and inherited static keyword collectors feed the same Blocker legality check, while inherited collection excludes the top-card Raid clause.
+- Behavioral proof: the focused suite checks every catalog and IR field, performs a real security battle and post-battle play with unchanged memory, proves both off-color alternate evolution boundaries and an off-color nonmatch, executes Raid and preserves security while deleting its redirected target, proves Blocker is observable on both the top card and a realistic evolved host, and uses the inherited Blocker to intercept a real player attack without a security check.
+- Verification: focused suite — 5 passed; Blocker/Raid mechanism checks — 5 passed (29 unrelated tests skipped); API typecheck — passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-010 through BT23-102.
+BT23-011 through BT23-102.

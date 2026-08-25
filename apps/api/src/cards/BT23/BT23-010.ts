@@ -12,15 +12,21 @@ export const compiled: CompiledCard = {
       timing: "endOfBattle",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
+              },
+              from: ["trash"],
+              payCost: false,
             },
-            count: 1,
-            isSelf: true,
-          },
-          payCost: false,
+          ],
         },
       ],
     },
@@ -43,6 +49,12 @@ export const compiled: CompiledCard = {
           raw: "＜Blocker＞",
         },
       ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
   ],
   coverage: "full",
