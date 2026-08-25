@@ -767,6 +767,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; proves positive/negative start-main possession; fires On Play and observes all three live protections on the same Hudiemon; suspends a Hudie, pays by suspending Ryuji, uses the real single-color Hudie Net Cafe Option for free, places it, and observes its Draw effect; and structurally verifies every filter/cost/duration clause.
 - Verification: focused suite — 7 passed after refreshing shared runtime data; shared opponent-provenance DP immunity, same-target binding, duration keywords, Hudie suspension listener, paid single-color CS Option use, Option resolution, start-main gate, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-086 — Yuugo — 10/10
+
+- Catalog evidence: Black/red cost-5 Tamer, types `Zaxon` and `CS`; Start of Your Turn sets memory to 3 when at 2 or less; On Play may add the top security to hand as a cost to place one Zaxon Digimon from hand/trash face up at security bottom; End of Your Turn may suspend Yuugo to make one friendly level-6 Machine/Zaxon attack a player; Security plays this card for free.
+- Knowledge base: Q5358-Q5361 establish that effect-placed face-up security stays revealed, otherwise follows normal security rules, triggers its Security effect when checked, and turns face down before a security shuffle.
+- Defects corrected: authoritative shared IR left the security-to-hand payment as a raw cost and omitted the destination card's face-up state. It now uses the executable payment primitive and explicit face-up placement; registration remains exclusively `registerIrCard("BT23-086", compiled)` with full coverage/no residuals.
+- Primitive trace: start-turn sets rather than gains memory at the inclusive <=2 boundary; On Play preflights an available security cost and eligible hand/trash Zaxon, moves the exact security top to hand, then adds the selected card face up at true security bottom; end-turn suspends Yuugo and forces the selected level-6 Machine/Zaxon to attack the opposing player; Security self-play is free.
+- Behavioral proof: the focused suite checks catalog/coverage; sets memory from 2 to 3 while preserving 4; pays with the exact security top and places a hand Zaxon face up at bottom while preserving a non-Zaxon, repeats from trash, and proves zone removal; uses a real level-6 Machine at end turn, suspends Yuugo/attacker, and consumes opposing security; and structurally checks all boundaries.
+- Verification: focused suite — 8 passed after refreshing shared runtime data; shared memory setting, security-to-hand cost, hand/trash loose selection, face-up bottom placement, level/trait attack filtering, player attack, Tamer suspension cost, and Security self-play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-086 through BT23-102.
+BT23-087 through BT23-102.

@@ -81495,7 +81495,8 @@
             },
             "from": ["hand", "trash"],
             "toTop": false,
-            "cost": { "kind": "raw", "raw": "By adding your top security card to the hand" },
+            "cost": { "kind": "securityToHand", "raw": "By adding your top security card to the hand" },
+            "faceUp": true,
             "optional": true,
             "abortOnDecline": true
           }
