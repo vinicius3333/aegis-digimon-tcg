@@ -143,3 +143,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-012.test.ts`).
+
+## BT20-013 — BaoHuckmon
+
+- Catalog contract: red level 4 Data Dinosaur, play cost 5/5000 DP and red level-3 evolution cost 2; `[Main] [Once Per Turn]` may play one Sistermon/Gankoomon-name Digimon from hand with its paid play cost reduced by 2; inherited your-turn aura gives all your Digimon +1000 DP.
+- Knowledge base: Q4293 forbids combining two simultaneous card-playing activations; Q4294 confirms the inline -2 stacks with Gankoomon's own -4; Q4295 says cost-reduction locks preserve the play but suppress the reduction; Q4296 says effect-play locks allow activation but prevent the play.
+- Implementation evidence: the prior IR attempted to install a `wouldBePlayed` replacement after the play action, so the reduction could not affect its own play. The correction folds `reduceCostBy: 2` into the optional paid `PlayWithoutCost` action; the once-per-turn activation identity, exact name filter, hand zone, inherited aura, and exclusive `registerIrCard` registration remain intact. The play primitive applies reductions inline and respects global play/reduction restrictions required by Q4295/Q4296.
+- Peer/stack evidence: the public Main activation plays Sistermon Ciel (Awakened) for 3 instead of 5 while leaving nonmatching Ryudamon in hand, and a second activation in the same turn is rejected. BaoHuckmon under SaviorHuckmon buffs both allied Digimon by +1000, never the opponent, and clears off-turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-013.test.ts` — 3 passed.
+- Clause scores: stats/evolution 2/2; Main optional name/zone selection 2/2; exact inline paid reduction 2/2; once-per-turn activation 2/2; inherited allied aura/turn scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-013.test.ts`).
