@@ -635,3 +635,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-053.test.ts`).
+
+## BT20-054 — Bulbmon
+
+- Catalog contract: black level 5 Data Machine, play cost 7/7000 DP, black level-4 evolution cost 3; Blocker; on the opponent's turn when leaving battle, may free-play 1 play-cost-4-or-lower Digimon card from its evolution cards; inherited opponent-turn once-per-turn optional redirect to host.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: the resident keyword publishes Blocker. The opponent-turn `wouldLeavePlay` replacement is self/battle scoped and runs an optional, free, own-stack Digimon selection capped at play cost 4 without preventing Bulbmon's departure. The inherited watcher is optional, self-targeted, opponent-turn, and once tracked. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: deleting a stack containing play-cost-5 BT20-051 and play-cost-3 BT20-047 on the opponent's turn can play only BT20-047 while Bulbmon and BT20-051 reach trash; the same deletion on its controller's turn cannot play, and refusal also plays nothing. A BT20-056 host with Bulbmon underneath redirects an attack and preserves security; standalone Bulbmon contributes no inherited redirect.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-054.test.ts` — 5 passed.
+- Clause scores: stats/evolution route 2/2; live Blocker 2/2; opponent-turn/self-leave scope 2/2; optional free own-stack cost ceiling 2/2; inherited redirect/stack/frequency 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-054.test.ts`).
