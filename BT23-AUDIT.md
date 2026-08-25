@@ -587,6 +587,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; activates the hand Main, places Bakemon under BT21-065 Ghostmon, evolves the bound host into the exact hand Phantomon, and pays 2 after the Q5334 reduction; proves the declaration is unavailable without Violet Inboots; plays only an eligible level-4 Ghost on direct deletion; and repeats the free play through a realistic inherited Necromon-over-Phantomon stack.
 - Verification: focused suite — 8 passed; shared hand Main declaration, conditional availability, bound placement/evolution, fixed-cost reduction, ignore-requirements, direct/inherited On Deletion, level/trait filtering, and free play mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-066 — Matadormon — 10/10
+
+- Catalog evidence: Purple level 5, play cost 7, 7000 DP, standard purple-level-4 evolution for 3 plus alternate level-4 CS evolution for 3; form `Ultimate`, attribute `Virus`, types `Undead` and `CS`; Scapegoat; On Play/When Digivolving deletes one opposing level-4-or-lower Digimon, then only if evolved from trash may play one cost-3-or-lower Undead or CS card from trash for free; inherited All Turns once per turn may delete its carrier to prevent another friendly Digimon from leaving play.
+- Knowledge base: `node tools/kb/query.mjs card BT23-066` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation result: every printed clause was already present in compiled IR and registration is exclusively `registerIrCard("BT23-066", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live Scapegoat, positive/negative origin gating, realistic inherited replacement, and alternate-evolution evidence without changing execution.
+- Primitive trace: Scapegoat projects through the live keyword ledger; both entry timings delete one opponent at the inclusive level-4 ceiling, while the second action reads the actual evolution origin and only then filters trash by cost 3 and the Undead/CS union; the inherited physical-source replacement excludes its own carrier as the protected subject, deletes that carrier as the optional all-or-nothing cost, and prevents the selected ally's current departure once per turn.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; proves ordinary play deletes level 4 but cannot run the trash-origin tail; evolves Sangloupmon into Matadormon from trash, deletes level 4, plays cost-3 Dracmon for free, and pays the evolution cost; observes Scapegoat live; deletes a realistic LadyDevimon-over-Matadormon carrier to preserve another ally from opponent-effect deletion; and accepts off-color level-4 CS evolution while rejecting a non-CS peer.
+- Verification: focused suite — 9 passed; shared Scapegoat, level deletion, evolution-origin condition, free trash play, inherited leave replacement, self-deletion cost, frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-066 through BT23-102.
+BT23-067 through BT23-102.
