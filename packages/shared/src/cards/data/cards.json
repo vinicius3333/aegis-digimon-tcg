@@ -73617,7 +73617,7 @@
     "forms": ["-"],
     "attributes": ["-"],
     "types": ["LIBERATOR"],
-    "effectText": "[Start of Your Main Phase] [On Play] By trashing 1 card with [Vemmon] in its text from your hand, ＜Draw 1＞ and gain 1 memory.\n[All Turns] When your Digimon are played or digivolve, if any of them have [Vemmon] in their texts, by suspending this Tamer, reveal the top 2 cards of your deck. Place all [Vemmon] among them as any of those Digimon's bottom digivolution cards. Trash the rest.",
+    "effectText": "[Start of Your Main Phase] [On Play] By trashing 1 card with [Vemmon] in its text from your hand, ＜Draw 1＞ and gain 1 memory.\n[All Turns] When your Digimon are played or digivolve, if any of them have [Vemmon] in their texts, by suspending this Tamer, reveal the top 2 cards of your deck. Place all [Vemmon] among them as any of those Digimon's bottom digivolution cards. Trash the rest.\n(Rule) Name: Also treated as [Zenith].",
     "securityEffectText": "[Security] Play this card without paying the cost.",
     "rarity": "U",
     "maxCountInDeck": 4,
