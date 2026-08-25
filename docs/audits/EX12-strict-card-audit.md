@@ -2426,3 +2426,45 @@ for the individual evidence below.
   primitives — 126/126; interpreter — 171/171; capabilities — 290/290; shared build, API
   typecheck, focused formatting, focused lint, and `git diff --check` passed. No residual IR,
   unsupported behavior, or unresolved ruling remains.
+
+## EX12-077 — Proximamon — 10/10
+
+- **Printed contract:** White/Red/Purple level-7 Digimon, play cost 15 and 15000 DP, normally
+  evolving from red or purple level 6 for 5 and alternatively from a level-6 card with
+  Gammamon in its text or the VB trait for 5. DNA Digivolve combines a red or blue level 6
+  with a black or purple level 6 for 0. It has Security Attack +1 and Blocker. On play and
+  when digivolving, placing exactly two qualifying cards from hand and/or trash as one own
+  Digimon's chosen top or bottom digivolution cards pays the cost to delete one opposing
+  Digimon or Tamer. Across On Play, When Digivolving, When Attacking, and Counter, one shared
+  once-per-turn effect may play or use a qualifying cost-10-or-lower card from any own
+  Digimon's digivolution cards for free.
+- **KB evidence:** Q6897 defines “with X in its text” across names, traits, effects, inherited
+  effects, Rule text, and evolution/material requirements. Q6898 permits paying the placement
+  with one hand card and one trash card; Q6899 forbids partial payment. Q6900 limits an attack
+  to one Counter activation. Q6901 scopes the cost-10 ceiling to both alternatives. Q6902 says
+  the two On Play/When Digivolving effects trigger simultaneously and the controller chooses
+  their activation order.
+- **Corrections:** the aggregate omitted the top/bottom choice, destination, host selection,
+  and host filter from both placement costs; omitted the cost-10 ceiling and shared-use key
+  from all four play/use timings; and omitted DNA requirements entirely. The direct and
+  aggregate DNA recipes also misread the two color alternatives as red+blue or black+purple.
+  They now encode all four legal cross-pairs: red+black, red+purple, blue+black, and
+  blue+purple. Direct and aggregate IR are exactly synchronized.
+- **Behavioral proof:** one hand card plus one trash card pays the indivisible two-card cost and
+  deletes an opposing Digimon, while only one matching card moves nothing and deletes nothing.
+  A qualifying cost-5 Digimon is played from the stack but a qualifying cost-12 Digimon is not.
+  A real EX12-069 Option is used from the stack, resolves Main, and becomes face-up security
+  instead of incorrectly becoming a permanent. Resolving the On Play play/use window consumes
+  the shared identity and prevents the later When Attacking window that turn. Alternate
+  evolution accepts a VB level 6 and rejects an unrelated blue level 6. All four DNA color
+  combinations resolve for cost 0, while red+blue is rejected.
+- **Identity and verification:** catalog identity, both normal colors, alternate filters, all
+  four DNA recipes, both keywords, exact two-card mixed-zone cost, host/position choice,
+  Digimon-or-Tamer deletion, play-or-use routing, cost ceiling, four timing windows, shared OPT,
+  full coverage, empty residuals, exclusive IR registration, and exact direct/aggregate equality
+  are asserted. `EX12-077.test.ts` — 11/11; advanced keyword conformance — 30/30; capabilities
+  including placement choice — 290/290; primitives including Option use and DNA — 126/126;
+  interpreter — 171/171; effect-driven digivolution legality — 5/5; DNA conformance — 17/17;
+  attack/Counter conformance including Q6900 — 23/23; activation stack — 31/31; simultaneous
+  timing — 17/17; shared build, API typecheck, focused formatting, focused lint, and
+  `git diff --check` passed. No residual IR, unsupported behavior, or unresolved ruling remains.

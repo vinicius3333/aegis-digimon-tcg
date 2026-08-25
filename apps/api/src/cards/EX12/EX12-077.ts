@@ -264,7 +264,7 @@ const compiled: CompiledCard = {
           level: 6,
         },
         {
-          color: "Blue",
+          color: "Black",
           level: 6,
         },
       ],
@@ -273,7 +273,33 @@ const compiled: CompiledCard = {
       cost: 0,
       materials: [
         {
+          color: "Red",
+          level: 6,
+        },
+        {
+          color: "Purple",
+          level: 6,
+        },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        {
+          color: "Blue",
+          level: 6,
+        },
+        {
           color: "Black",
+          level: 6,
+        },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        {
+          color: "Blue",
           level: 6,
         },
         {

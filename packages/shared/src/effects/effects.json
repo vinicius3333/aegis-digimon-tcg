@@ -137814,10 +137814,12 @@
                 "count": 2,
                 "from": ["hand", "trash"]
               },
+              "destination": "digivolutionStack",
+              "position": "choice",
+              "host": "target",
+              "underFilter": { "controller": "mine", "kind": ["Digimon"] },
               "raw": "By placing 2 cards with [Gammamon] in their texts or the [VB] trait from your hand or trash as 1 of your Digimon's top or bottom digivolution cards"
-            },
-            "optional": true,
-            "abortOnDecline": true
+            }
           }
         ]
       },
@@ -137841,10 +137843,12 @@
                 "count": 2,
                 "from": ["hand", "trash"]
               },
+              "destination": "digivolutionStack",
+              "position": "choice",
+              "host": "target",
+              "underFilter": { "controller": "mine", "kind": ["Digimon"] },
               "raw": "By placing 2 cards with [Gammamon] in their texts or the [VB] trait from your hand or trash as 1 of your Digimon's top or bottom digivolution cards"
-            },
-            "optional": true,
-            "abortOnDecline": true
+            }
           }
         ]
       },
@@ -137859,7 +137863,8 @@
                 "nameOrTrait": [
                   { "tokens": ["Gammamon"], "match": "text" },
                   { "tokens": ["VB"], "match": "trait" }
-                ]
+                ],
+                "playCostLte": 10
               },
               "count": 1
             },
@@ -137868,7 +137873,8 @@
             "optional": true
           }
         ],
-        "frequency": "OncePerTurn"
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "ir-shared-0"
       },
       {
         "trigger": "WhenDigivolving",
@@ -137881,7 +137887,8 @@
                 "nameOrTrait": [
                   { "tokens": ["Gammamon"], "match": "text" },
                   { "tokens": ["VB"], "match": "trait" }
-                ]
+                ],
+                "playCostLte": 10
               },
               "count": 1
             },
@@ -137890,7 +137897,8 @@
             "optional": true
           }
         ],
-        "frequency": "OncePerTurn"
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "ir-shared-0"
       },
       {
         "trigger": "WhenAttacking",
@@ -137903,7 +137911,8 @@
                 "nameOrTrait": [
                   { "tokens": ["Gammamon"], "match": "text" },
                   { "tokens": ["VB"], "match": "trait" }
-                ]
+                ],
+                "playCostLte": 10
               },
               "count": 1
             },
@@ -137912,7 +137921,8 @@
             "optional": true
           }
         ],
-        "frequency": "OncePerTurn"
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "ir-shared-0"
       },
       {
         "trigger": "Counter",
@@ -137925,7 +137935,8 @@
                 "nameOrTrait": [
                   { "tokens": ["Gammamon"], "match": "text" },
                   { "tokens": ["VB"], "match": "trait" }
-                ]
+                ],
+                "playCostLte": 10
               },
               "count": 1
             },
@@ -137934,7 +137945,8 @@
             "optional": true
           }
         ],
-        "frequency": "OncePerTurn"
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "ir-shared-0"
       }
     ],
     "coverage": "full",
@@ -137942,6 +137954,12 @@
     "digivolutionRequirement": [
       { "level": 6, "texts": ["Gammamon"], "cost": 5, "isAlternate": true },
       { "traits": ["VB"], "cost": 5, "isAlternate": true, "level": 6 }
+    ],
+    "dnaDigivolveRequirement": [
+      { "cost": 0, "materials": [{ "color": "Red", "level": 6 }, { "color": "Black", "level": 6 }] },
+      { "cost": 0, "materials": [{ "color": "Red", "level": 6 }, { "color": "Purple", "level": 6 }] },
+      { "cost": 0, "materials": [{ "color": "Blue", "level": 6 }, { "color": "Black", "level": 6 }] },
+      { "cost": 0, "materials": [{ "color": "Blue", "level": 6 }, { "color": "Purple", "level": 6 }] }
     ]
   },
   "EX2-001": {
