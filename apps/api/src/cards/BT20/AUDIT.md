@@ -611,3 +611,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-051.test.ts`).
+
+## BT20-052 — Oblivimon
+
+- Catalog contract: black/blue level 5 Virus Cyborg/LIBERATOR, play cost 7/7000 DP, black or blue level-4 evolution cost 4 plus level-4 Cyborg/Machine alternate cost 3; face-up Security End of Opponent's Turn free play; When Digivolving flips the opponent's top face-down security; on your turn, after any allied Digimon checks face-up security, may place Oblivimon's top card face-up at own security bottom; inherited your-turn attack-target-change lock.
+- Knowledge base: Q4375 requires the next face-down scan; Q4376-Q4379 define persistent face-up security behavior; Q4380 orders Security before other check/removal triggers; Q4381 preserves the newly promoted card's End of Attack effect after Oblivimon moves; Q4719 preserves loss at zero security; Q4720 confirms the top-card move can expose a Tamer and remove the attacking Digimon.
+- Implementation evidence: face-up security contributes the delayed end-turn effect; the evolution flip uses the shared face-down scan; `whenCheckedFaceUpSecurity` is emitted only for a pre-existing face-up check. Audit exposed that `runSecurityAdd` discarded the supported `detachPermanentTop` flag, causing the whole stack to move. The seam now forwards that flag and this action sets it, so only Oblivimon moves while its top source is promoted. The inherited restriction is stack- and owner-turn scoped, and registration remains exclusively `registerIrCard`.
+- Peer/stack evidence: face-up Oblivimon plays free at the opponent's end turn; BT20-050 satisfies the Cyborg route for 3 and Q4375 flips only the second of three security cards. A real attack into face-up BT20-047 moves Oblivimon face-up to security bottom and leaves HoverEspimon active. BT20-053 receives the target lock only with Oblivimon underneath and only on its controller's turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-052.test.ts` — 7 passed; `pnpm --filter @aegis/api exec vitest run src/engine/effects/primitives.test.ts -t 'addSecurity'` — 9 passed; `pnpm typecheck` — passed.
+- Clause scores: stats/evolution routes 2/2; delayed Security free play 2/2; Q4375 next-face-down flip 2/2; face-up-check optional top-card detach/promotion 2/2; inherited turn/stack target lock 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-052.test.ts`).
