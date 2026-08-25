@@ -28,30 +28,39 @@ const RESOLUTION_LABEL_KEYS = {
   trashed: "overlay.securityTrashed",
 } as const;
 
-/** What the outcome beat does to one of the two cards. */
-type ClashFate = "none" | "beaten" | "spent" | "stands";
+/** The battle verdict for one of the two cards. */
+type ClashFate = "none" | "beaten" | "stands";
 
 function ClashCard({
   fighter,
   role,
   fate,
+  spent,
 }: {
   fighter: SecurityClashFighter;
   role: "attacker" | "revealed";
-  /** `beaten` takes the claw and the shake, `spent` breaks apart, `stands` is emphasized. */
+  /** `beaten` takes the claw, the shake and the dim; `stands` is emphasized. */
   fate: ClashFate;
+  /** This card leaves the board after the beat, whatever the verdict was. */
+  spent: boolean;
 }) {
   const { t } = useTranslation();
   const cardName = getCardDefinition(fighter.cardId)?.nameEn ?? fighter.cardId;
   return (
-    <figure className="battle-clash__card" data-role={role} data-side={fighter.side} data-fate={fate}>
+    <figure
+      className="battle-clash__card"
+      data-role={role}
+      data-side={fighter.side}
+      data-fate={fate}
+      data-spent={spent ? "true" : undefined}
+    >
       <div className="battle-clash__frame">
         <div className="battle-clash__art">
           <CardFull cardId={fighter.cardId} width={CLASH_CARD_WIDTH} />
         </div>
         {/* Drawn outside the art box, which clips its own entrance: the shards and
             the claw both reach past the card's edge. */}
-        {fate === "spent" ? (
+        {spent ? (
           <span className="battle-clash__shatter" aria-hidden="true">
             <CardShatter cardId={fighter.cardId} width={CLASH_CARD_WIDTH} color={clashShatterColor(fighter.cardId)} />
           </span>
@@ -70,18 +79,26 @@ function ClashCard({
 }
 
 /**
- * What the outcome beat does to each card, from what the server actually said.
+ * The verdict each card takes, straight from the server's DP compare. Whichever side
+ * lost gets the claw, the shake and the dim, and the side that survived is emphasized
+ * — both directions, and a tie beats both. No DP is compared here: the figures on the
+ * cards are printed values, not the live ones the engine battled with.
  *
- * The checked card is spent whatever the battle decided (CR 13-1-8-4 sends it to the
- * trash either way), so it always breaks apart. The attacker only takes the claw when
- * the check's own events named it in a deletion; with no such event it demonstrably
- * survived the check and is emphasized instead. No DP is compared here — the figures
- * on the cards are printed values, not the live ones the engine battled with.
+ * With no compare published there is no verdict to draw, so neither card is marked.
  */
 function clashFate(scene: SecurityClashScene, role: "attacker" | "revealed"): ClashFate {
-  if (scene.resolution !== "battle") return "none";
-  if (role === "revealed") return "spent";
-  return scene.attackerDeleted ? "beaten" : "stands";
+  if (scene.resolution !== "battle" || scene.loser === undefined) return "none";
+  const lost = role === "attacker" ? scene.loser.attacker : scene.loser.revealed;
+  return lost ? "beaten" : "stands";
+}
+
+/**
+ * Whether the card leaves the board after the beat. The checked card always does —
+ * CR 13-1-8-4 trashes it whichever way the compare went — while the attacker is a
+ * permanent whose own deletion is narrated by the board, not by this scene.
+ */
+function clashSpent(scene: SecurityClashScene, role: "attacker" | "revealed"): boolean {
+  return scene.resolution === "battle" && role === "revealed";
 }
 
 /** The revealed card breaks in its own colour, the way a deleted permanent does. */
@@ -105,7 +122,12 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
         {t("overlay.securityCheck")}
       </p>
       <div className="battle-clash__stage">
-        <ClashCard fighter={fighters[0]!.fighter} role={fighters[0]!.role} fate={clashFate(scene, fighters[0]!.role)} />
+        <ClashCard
+          fighter={fighters[0]!.fighter}
+          role={fighters[0]!.role}
+          fate={clashFate(scene, fighters[0]!.role)}
+          spent={clashSpent(scene, fighters[0]!.role)}
+        />
         {fighters.length > 1 ? (
           <span className="battle-clash__mark" aria-hidden="true">
             VS
@@ -113,7 +135,12 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
           </span>
         ) : null}
         {fighters[1] ? (
-          <ClashCard fighter={fighters[1].fighter} role={fighters[1].role} fate={clashFate(scene, fighters[1].role)} />
+          <ClashCard
+            fighter={fighters[1].fighter}
+            role={fighters[1].role}
+            fate={clashFate(scene, fighters[1].role)}
+            spent={clashSpent(scene, fighters[1].role)}
+          />
         ) : null}
       </div>
       <p className="battle-clash__outcome">{t(RESOLUTION_LABEL_KEYS[scene.resolution])}</p>

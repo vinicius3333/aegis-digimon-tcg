@@ -3,7 +3,7 @@
    drawing lives in ./SecurityClashView; this module only decides the contents and
    owns the timeline the CSS keyframes are cut to. */
 
-import { getCardDefinition, isDigimon, type Seat } from "@aegis/shared";
+import { getCardDefinition, isDigimon, type SecurityBattleResult, type Seat } from "@aegis/shared";
 import {
   CLASH_OUTCOME_AT_MS,
   CLASH_REVEAL_AT_MS,
@@ -41,14 +41,16 @@ export interface SecurityClashScene {
   /** Absent for effect-driven checks, which have no attacker to face. */
   attacker?: SecurityClashFighter;
   /**
-   * The attacker was deleted by this check — the server named it in a deletion
-   * alongside the check, which is the one side of a security battle the protocol
-   * identifies. The other direction has no event: a checked Security Digimon is a
-   * loose card that goes to the trash whether it won or lost (CR 13-1-8-4), so
-   * "the security card lost" is deliberately not inferred. Nothing here compares
-   * DP: the figures on the cards are the printed ones, not the live values.
+   * Who lost the DP compare, straight from the server's `securityChecked.battle`.
+   * Both directions are named, and a tie names both — nothing here compares DP, and
+   * nothing is inferred from the deletions that follow. Absent when no compare
+   * happened (any non-battle resolution, or an attacker that left play first).
+   *
+   * A losing Security Digimon still only ever goes to the trash: CR 14-2-3 keeps the
+   * loose card alive whatever the compare said and CR 13-1-8-4 trashes it either way,
+   * so `revealed` here drives the claw, not the card's destination.
    */
-  attackerDeleted?: boolean;
+  loser?: { attacker: boolean; revealed: boolean };
 }
 
 /**
@@ -167,7 +169,7 @@ export function buildSecurityClashScene({
   defenderSeat,
   viewerSeat,
   attacker,
-  attackerDeleted = false,
+  battle,
 }: {
   key: number;
   revealedCardId: string;
@@ -176,8 +178,8 @@ export function buildSecurityClashScene({
   defenderSeat: Seat;
   viewerSeat: Seat;
   attacker?: SecurityClashAttacker;
-  /** The check's own event batch named the attacker in a deletion. */
-  attackerDeleted?: boolean;
+  /** The DP compare the server published on `securityChecked`. */
+  battle?: SecurityBattleResult;
 }): SecurityClashScene {
   const defenderSide: SecurityClashSide = defenderSeat === viewerSeat ? "you" : "opp";
   const attackerSide: SecurityClashSide = defenderSide === "you" ? "opp" : "you";
@@ -189,7 +191,11 @@ export function buildSecurityClashScene({
     resolution: normalizeSecurityClashResolution(resolution),
     revealed: { cardId: revealedCardId, side: defenderSide, dp: comparableDp(revealedCardId) },
     ...(facing ? { attacker: { cardId: facing.cardId, side: attackerSide, dp: comparableDp(facing.cardId) } } : {}),
-    ...(facing && attackerDeleted ? { attackerDeleted: true } : {}),
+    // Without an attacker on stage there is no side to claw, so the verdict is dropped
+    // rather than shown against a card that is not there.
+    ...(facing && battle
+      ? { loser: { attacker: battle.attackerDeleted, revealed: battle.securityDigimonDeleted } }
+      : {}),
   };
 }
 

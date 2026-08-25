@@ -38,7 +38,7 @@ export type NoticeBody =
   | { variant: "keyword"; keyword: NoticeKeyword; cardId: string };
 
 /** The named mechanics the board calls out by name as they happen. */
-export type NoticeKeyword = "digiXros";
+export type NoticeKeyword = "digiXros" | "cannotAttack" | "cannotBlock";
 
 export type NoticeVariant = NoticeBody["variant"];
 

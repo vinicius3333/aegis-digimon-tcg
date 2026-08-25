@@ -450,6 +450,7 @@ export function GameScreen({
     effectSources,
     securityFlights,
     dpPulses,
+    freezePulses,
     phaseBanner,
     deleteBursts,
     drawBursts,
@@ -864,6 +865,7 @@ export function GameScreen({
     cardId: ci.cardId,
     activatableEffectsJson: ci.activatableEffectsJson,
     playableFromHand: ci.playableFromHand,
+    projectedPlayCost: ci.projectedPlayCost,
     digivolveTargetPermanentIds: [...ci.digivolveTargetPermanentIds],
   }));
   const selEntry = handSel ? handEntries.find((h) => h.instanceId === handSel) : undefined;
@@ -1544,16 +1546,26 @@ export function GameScreen({
   };
   const spotlightOpen = spotlightIds.length > 0;
 
-  // Where memory would land if the card in hand were played. The figure is the
-  // card's PRINTED cost — the server projects whether a play is legal, not what
-  // it would finally charge — so this is a dashed prediction and gates nothing.
-  const predictionCardId = (() => {
-    if (drag?.kind === "play" && drag.started) return drag.cardId;
+  // Where memory would land if the card in hand were played. The server projects the
+  // cost with its active continuous reducers already applied (`projectedPlayCost`), and
+  // the printed figure is only the fallback for a card it did not project. Still a
+  // dashed prediction that gates nothing: a [BeforePayCost] reducer can lower it again
+  // at pay time, which the server cannot resolve without prompting the player.
+  const predictionEntry = (() => {
+    if (drag?.kind === "play" && drag.started) {
+      return handEntries.find((candidate) => candidate.cardId === drag.cardId);
+    }
     if (hoveredHandInstanceId === undefined) return undefined;
     const entry = handEntries.find((candidate) => candidate.instanceId === hoveredHandInstanceId);
-    return entry?.playableFromHand === true ? entry.cardId : undefined;
+    return entry?.playableFromHand === true ? entry : undefined;
   })();
-  const predictionCost = predictionCardId ? getCardDefinition(predictionCardId)?.playCost : undefined;
+  const predictionCardId = predictionEntry?.cardId;
+  const predictionCost =
+    predictionEntry && predictionEntry.projectedPlayCost >= 0
+      ? predictionEntry.projectedPlayCost
+      : predictionCardId
+        ? getCardDefinition(predictionCardId)?.playCost
+        : undefined;
   const memoryPrediction =
     predictionCost !== undefined && predictionCost >= 0 ? predictedMemory(memory, predictionCost) : undefined;
 
@@ -2385,6 +2397,7 @@ export function GameScreen({
                     shake={combatImpactIds.has(p.permanentId)}
                     claw={combatImpactIds.has(p.permanentId)}
                     dpPulse={dpPulses.get(p.permanentId)}
+                    freezePulse={freezePulses.get(p.permanentId)}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                     suspendDelayMs={unsuspendStagger(otherSeat(viewerSeat), index)}
                     onClick={onOppPerm(p)}
@@ -2470,6 +2483,7 @@ export function GameScreen({
                     shake={combatImpactIds.has(p.permanentId)}
                     claw={combatImpactIds.has(p.permanentId)}
                     dpPulse={dpPulses.get(p.permanentId)}
+                    freezePulse={freezePulses.get(p.permanentId)}
                     lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
                     suspendDelayMs={unsuspendStagger(viewerSeat, index)}
                     drop={{

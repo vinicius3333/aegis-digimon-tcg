@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, type ServerEvent } from "@aegis/shared";
+import type { DigivolveMechanic } from "@aegis/shared";
 import { CUT_IN_MIN_LEVEL, cutInFromEvent } from "./cutIn";
 
 const MEGA = "ST1-11";
@@ -7,8 +8,8 @@ const MEGA_ON_PLAY = "AD1-004";
 const XROS_MEGA = "AD1-006";
 const ROOKIE = "ST1-03";
 
-function digivolved(cardId: string): ServerEvent {
-  return { kind: "digivolved", seat: 0, permanentId: "p1", cardId };
+function digivolved(cardId: string, mechanic: DigivolveMechanic = "normal"): ServerEvent {
+  return { kind: "digivolved", seat: 0, permanentId: "p1", cardId, mechanic };
 }
 
 describe("cutInFromEvent", () => {
@@ -26,8 +27,61 @@ describe("cutInFromEvent", () => {
     });
   });
 
-  it("gives a DigiXros card its own tier", () => {
-    expect(cutInFromEvent(digivolved(XROS_MEGA), 1, true)).toMatchObject({ tier: "digiXros" });
+  it("tiers by the mechanic the server named, not by the card's own data", () => {
+    // XROS_MEGA prints a DigiXros requirement, but this play was an ordinary digivolve.
+    expect(cutInFromEvent(digivolved(XROS_MEGA), 1, true)).toMatchObject({ tier: "base" });
+  });
+
+  it("gives Burst its own tier and its own word", () => {
+    expect(cutInFromEvent(digivolved(MEGA, "burst"), 1, true)).toMatchObject({
+      tier: "burst",
+      label: "game.cutInWordBurst",
+    });
+  });
+
+  it("renames Blast without moving it off the base tier", () => {
+    expect(cutInFromEvent(digivolved(MEGA, "blast"), 1, true)).toMatchObject({
+      tier: "base",
+      label: "game.cutInWordBlast",
+    });
+  });
+
+  it("keeps every other mechanic on the base tier", () => {
+    for (const mechanic of ["normal", "alternate", "baseGranted"] as const) {
+      expect(cutInFromEvent(digivolved(MEGA, mechanic), 1, true)).toMatchObject({ tier: "base" });
+    }
+  });
+
+  it("gives a DigiXros play its own tier", () => {
+    const played: ServerEvent = {
+      kind: "cardPlayed",
+      seat: 0,
+      cardId: XROS_MEGA,
+      permanentId: "p9",
+      mechanic: "digiXros",
+    };
+    expect(cutInFromEvent(played, 1, true)).toMatchObject({ tier: "digiXros" });
+  });
+
+  it("gives a DNA play its own tier and the two cards that merged", () => {
+    const played: ServerEvent = {
+      kind: "cardPlayed",
+      seat: 0,
+      cardId: MEGA,
+      permanentId: "p9",
+      mechanic: "dna",
+      sourceCardIds: [ROOKIE, ROOKIE],
+    };
+    expect(cutInFromEvent(played, 1, true)).toMatchObject({
+      tier: "dna",
+      sourceCardIds: [ROOKIE, ROOKIE],
+    });
+  });
+
+  it("announces a mechanic play even with no On Play clause", () => {
+    // MEGA prints no [On Play], so only the mechanic earns it the cut-in.
+    const played: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: MEGA, permanentId: "p9", mechanic: "dna" };
+    expect(cutInFromEvent(played, 1, true)).not.toBeNull();
   });
 
   it("leaves a low-level digivolution alone", () => {

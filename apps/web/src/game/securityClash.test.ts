@@ -147,41 +147,45 @@ describe("shield break and the security-effect branch", () => {
 describe("security battle outcome", () => {
   const attacker = { seat: 0 as const, cardId: DIGIMON_CARD_ID, permanentId: "att", topInstanceId: "att-top" };
 
-  it("marks the attacker beaten when the check named it in a deletion", () => {
-    const scene = buildSecurityClashScene({
+  const sceneWith = (battle?: { attackerDeleted: boolean; securityDigimonDeleted: boolean }, withAttacker = true) =>
+    buildSecurityClashScene({
       key: 1,
       revealedCardId: DIGIMON_CARD_ID,
       resolution: "battle",
       defenderSeat: 1,
       viewerSeat: 0,
-      attacker,
-      attackerDeleted: true,
+      ...(withAttacker ? { attacker } : {}),
+      ...(battle ? { battle } : {}),
     });
-    expect(scene.attackerDeleted).toBe(true);
+
+  it("names the attacker as the loser when it lost the compare", () => {
+    expect(sceneWith({ attackerDeleted: true, securityDigimonDeleted: false }).loser).toEqual({
+      attacker: true,
+      revealed: false,
+    });
   });
 
-  it("leaves the outcome unmarked when no deletion named the attacker", () => {
-    const scene = buildSecurityClashScene({
-      key: 1,
-      revealedCardId: DIGIMON_CARD_ID,
-      resolution: "battle",
-      defenderSeat: 1,
-      viewerSeat: 0,
-      attacker,
+  it("names the security Digimon as the loser in the other direction", () => {
+    expect(sceneWith({ attackerDeleted: false, securityDigimonDeleted: true }).loser).toEqual({
+      attacker: false,
+      revealed: true,
     });
-    expect(scene.attackerDeleted).toBeUndefined();
+  });
+
+  it("names both on a tie", () => {
+    expect(sceneWith({ attackerDeleted: true, securityDigimonDeleted: true }).loser).toEqual({
+      attacker: true,
+      revealed: true,
+    });
+  });
+
+  it("leaves the outcome unmarked when the server published no compare", () => {
+    expect(sceneWith(undefined).loser).toBeUndefined();
   });
 
   it("never marks an outcome for a check with no attacker facing it", () => {
-    const scene = buildSecurityClashScene({
-      key: 1,
-      revealedCardId: DIGIMON_CARD_ID,
-      resolution: "battle",
-      defenderSeat: 1,
-      viewerSeat: 0,
-      attackerDeleted: true,
-    });
+    const scene = sceneWith({ attackerDeleted: true, securityDigimonDeleted: false }, false);
     expect(scene.attacker).toBeUndefined();
-    expect(scene.attackerDeleted).toBeUndefined();
+    expect(scene.loser).toBeUndefined();
   });
 });

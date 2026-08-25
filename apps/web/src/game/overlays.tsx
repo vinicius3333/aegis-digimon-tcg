@@ -767,8 +767,10 @@ export function PermanentDetailInspector({
             {detail.keywords.map((keyword) => (
               <li key={keyword} data-granted={granted.has(keyword) || undefined}>
                 {formatKeyword(keyword)}
-                {keyword === "SecurityAttack" && detail.securityAttackPrinted !== undefined
-                  ? ` ${detail.securityAttackPrinted > 0 ? "+" : ""}${detail.securityAttackPrinted}`
+                {/* The server's resolved count, not the printed parameter: a granted or
+                    inverted modifier is already folded into it. */}
+                {keyword === "SecurityAttack" && detail.securityAttack !== undefined
+                  ? ` \u00d7${detail.securityAttack}`
                   : ""}
               </li>
             ))}
@@ -2306,8 +2308,8 @@ function StackViewerState({ detail, fate }: { detail: PermanentDetail; fate?: Pe
         {detail.keywords.map((keyword) => (
           <li key={keyword} data-granted={granted.has(keyword) || undefined}>
             {formatKeyword(keyword)}
-            {keyword === "SecurityAttack" && detail.securityAttackPrinted !== undefined
-              ? ` ${detail.securityAttackPrinted > 0 ? "+" : ""}${detail.securityAttackPrinted}`
+            {keyword === "SecurityAttack" && detail.securityAttack !== undefined
+              ? ` \u00d7${detail.securityAttack}`
               : ""}
           </li>
         ))}

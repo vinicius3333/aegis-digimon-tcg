@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Seat, ServerEvent } from "@aegis/shared";
+import type { ServerEvent } from "@aegis/shared";
 import { DECK_MAX_LAYERS, deckLayerCount, deckRiffleFromEvent } from "./deckChrome";
 
 describe("deckLayerCount", () => {
@@ -29,30 +29,23 @@ describe("deckLayerCount", () => {
   });
 });
 
-const seatOf = (instanceId: string): Seat | undefined => (instanceId === "mine" ? 0 : undefined);
-
 describe("deckRiffleFromEvent", () => {
-  it("riffles the main deck when cards are put back into it", () => {
-    const event: ServerEvent = { kind: "cardsMoved", instanceIds: ["mine"], from: "hand", to: "deck" };
-    expect(deckRiffleFromEvent(event, 4, seatOf)).toEqual({ key: 4, seat: 0, pile: "deck" });
+  it("riffles the deck the server says it shuffled", () => {
+    const event: ServerEvent = { kind: "deckShuffled", seat: 0, deck: "deck" };
+    expect(deckRiffleFromEvent(event, 4)).toEqual({ key: 4, seat: 0, pile: "deck" });
   });
 
-  it("riffles the egg deck for its own returns", () => {
-    const event: ServerEvent = { kind: "cardsMoved", instanceIds: ["mine"], from: "breeding", to: "eggDeck" };
-    expect(deckRiffleFromEvent(event, 1, seatOf)?.pile).toBe("eggDeck");
+  it("riffles the egg deck on its own shuffle", () => {
+    const event: ServerEvent = { kind: "deckShuffled", seat: 1, deck: "eggDeck" };
+    expect(deckRiffleFromEvent(event, 1)).toEqual({ key: 1, seat: 1, pile: "eggDeck" });
   });
 
-  it("leaves a draw alone", () => {
-    const event: ServerEvent = { kind: "cardsMoved", instanceIds: ["mine"], from: "deck", to: "hand" };
-    expect(deckRiffleFromEvent(event, 1, seatOf)).toBeNull();
-  });
-
-  it("stays still when the owner cannot be resolved", () => {
-    const event: ServerEvent = { kind: "cardsMoved", instanceIds: ["theirs"], from: "hand", to: "deck" };
-    expect(deckRiffleFromEvent(event, 1, seatOf)).toBeNull();
+  it("leaves cards returning to a deck alone, because §3-2-3 does not reorder it", () => {
+    const event: ServerEvent = { kind: "cardsMoved", instanceIds: ["mine"], from: "hand", to: "deckBottom" };
+    expect(deckRiffleFromEvent(event, 1)).toBeNull();
   });
 
   it("ignores every other event", () => {
-    expect(deckRiffleFromEvent({ kind: "securityRecovered", seat: 0, amount: 1 }, 1, seatOf)).toBeNull();
+    expect(deckRiffleFromEvent({ kind: "securityRecovered", seat: 0, amount: 1 }, 1)).toBeNull();
   });
 });

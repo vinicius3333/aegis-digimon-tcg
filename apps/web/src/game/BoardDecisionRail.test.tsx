@@ -133,6 +133,7 @@ describe("Hand in selection mode", () => {
       cardId: "ST1-03",
       activatableEffectsJson: "",
       playableFromHand: true,
+      projectedPlayCost: -1,
       digivolveTargetPermanentIds: [],
     },
     {
@@ -140,6 +141,7 @@ describe("Hand in selection mode", () => {
       cardId: "ST1-03",
       activatableEffectsJson: "",
       playableFromHand: false,
+      projectedPlayCost: -1,
       digivolveTargetPermanentIds: [],
     },
     {
@@ -147,6 +149,7 @@ describe("Hand in selection mode", () => {
       cardId: "ST1-07",
       activatableEffectsJson: "",
       playableFromHand: false,
+      projectedPlayCost: -1,
       digivolveTargetPermanentIds: [],
     },
   ];

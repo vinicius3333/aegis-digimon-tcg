@@ -331,6 +331,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.stats.yourSecurity": "Sua segurança",
   "game.stack": "Pilha",
   "game.cutInWord": "Digievolução",
+  "game.cutInWordBlast": "Digievolução Blast",
+  "game.cutInWordBurst": "Digievolução Burst",
   "game.securityAttack": "Ataque à segurança",
   "game.directAttack": "Ataque direto",
   "game.faceUpSecurity": "Carta virada na segurança",
@@ -654,6 +656,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "panel.attacking": "{card} está atacando",
   "notice.rejected": "Não permitido",
   "notice.keyword.digiXros": "DigiXros!",
+  "notice.keyword.cannotAttack": "Não pode atacar",
+  "notice.keyword.cannotBlock": "Não pode bloquear",
   "notice.dismiss": "Fechar aviso",
 
   "reject.not-your-turn": "Não é seu turno",

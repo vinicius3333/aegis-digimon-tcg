@@ -66,9 +66,10 @@ export function shouldDrawMemoryArc(from: number, to: number): boolean {
 
 /**
  * Where memory would land if the held card were played for `cost`, clamped to the
- * chips that exist. A prediction, not a ruling: the figure is the card's PRINTED
- * cost, because the server projects legality (`playableFromHand`) but not the
- * reduced cost it would actually charge. It gates nothing — the dashed line is
+ * chips that exist. A prediction, not a ruling: `cost` is the server's own
+ * `projectedPlayCost`, which has every ACTIVE CONTINUOUS reducer applied but cannot
+ * include a [BeforePayCost] reduction — resolving one means prompting the player and
+ * mutating the board — so it is an upper bound. It gates nothing: the dashed line is
  * decoration over the same gauge the real value keeps drawing.
  */
 export function predictedMemory(current: number, cost: number): number {

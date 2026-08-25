@@ -81,6 +81,7 @@ import {
 import { deckRiffleFromEvent, type DeckRiffle } from "./deckChrome";
 import { phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
 import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
+import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } from "./freezePulse";
 import {
   CLASH_TOTAL_MS,
   COMBAT_IMPACT_TOTAL_MS,
@@ -197,6 +198,8 @@ export interface MatchCues {
   combatImpactIds: ReadonlySet<string>;
   /** The DP change each permanent is currently pulsing over, by permanent id. */
   dpPulses: ReadonlyMap<string, DpPulse>;
+  /** The attack/block lock each permanent is currently jolting over, by permanent id. */
+  freezePulses: ReadonlyMap<string, FreezePulse>;
   securityHitSeat: number | null;
   drawFlights: readonly DrawFlight[];
   drawBursts: readonly DrawBurst[];
@@ -271,18 +274,6 @@ function buildCardSiteIndex(state: GameState): {
   };
 }
 
-/**
- * Whether this batch of events names the attacker in a deletion — the one side of a
- * security battle the protocol identifies. A combat resolution names the permanent
- * and an effect deletion names the card instance, so both handles are checked.
- */
-function attackerDeletedIn(events: readonly ServerEvent[], attacker: SecurityClashAttacker | undefined): boolean {
-  if (!attacker) return false;
-  const handles = new Set([attacker.permanentId, attacker.topInstanceId].filter((id) => id !== undefined));
-  if (handles.size === 0) return false;
-  return events.some((event) => deletionAnchorIdsFromEvent(event).some((anchorId) => handles.has(anchorId)));
-}
-
 export function useMatchCues({
   events,
   state,
@@ -326,6 +317,7 @@ export function useMatchCues({
   const [phaseBanner, setPhaseBanner] = useState<PhaseBanner | null>(null);
   const [combatImpactIds, setCombatImpactIds] = useState<ReadonlySet<string>>(new Set());
   const [dpPulses, setDpPulses] = useState<ReadonlyMap<string, DpPulse>>(new Map());
+  const [freezePulses, setFreezePulses] = useState<ReadonlyMap<string, FreezePulse>>(new Map());
   const [cutIn, setCutIn] = useState<DigivolutionCutIn | null>(null);
   const [effectSources, setEffectSources] = useState<readonly EffectActivation[]>([]);
   const [deckRiffles, setDeckRiffles] = useState<ReadonlySet<string>>(new Set());
@@ -354,6 +346,7 @@ export function useMatchCues({
   const showcaseKeyRef = useRef(0);
   const phaseBannerKeyRef = useRef(0);
   const dpPulseKeyRef = useRef(0);
+  const freezePulseKeyRef = useRef(0);
   const cutInKeyRef = useRef(0);
   const effectSourceKeyRef = useRef(0);
   const deckRiffleKeyRef = useRef(0);
@@ -371,6 +364,8 @@ export function useMatchCues({
   // Last read of every permanent's live DP, so the next commit can tell which
   // figures actually moved. The first read is only a baseline.
   const dpByPermanentRef = useRef<Map<string, number> | null>(null);
+  // The same baseline discipline for the projected attack/block restrictions.
+  const restrictionsByPermanentRef = useRef<Map<string, FreezeFlags> | null>(null);
   const handCountsRef = useRef<{ you: number; opp: number } | null>(null);
   // Set when the draw phase is announced and spent by the hand that grows in the
   // same commit, which is what tells a turn-start draw from an effect draw.
@@ -519,11 +514,11 @@ export function useMatchCues({
           },
         });
       }
-      // Cards going back into a deck are the one movement that always ends in a
-      // shuffle, which is the moment the reference client riffles the pile.
+      // The server names each deck it randomizes, which is the moment the reference
+      // client riffles that pile.
       for (const event of fresh) {
         deckRiffleKeyRef.current += 1;
-        const riffle = deckRiffleFromEvent(event, deckRiffleKeyRef.current, cardSiteRef.current.seatOf);
+        const riffle = deckRiffleFromEvent(event, deckRiffleKeyRef.current);
         if (!riffle) continue;
         enqueue(deckRiffleStep(riffle));
       }
@@ -628,7 +623,7 @@ export function useMatchCues({
         defenderSeat: securityCheck.seat,
         viewerSeat,
         attacker: securityAttackerRef.current,
-        attackerDeleted: attackerDeletedIn(fresh, securityAttackerRef.current),
+        ...(securityCheck.battle ? { battle: securityCheck.battle } : {}),
       });
       const breakScene = buildSecurityBreakScene({ key, defenderSeat: securityCheck.seat, viewerSeat });
       const branch = buildSecurityBranchScene({
@@ -861,6 +856,80 @@ export function useMatchCues({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dpSignature]);
+
+  // A permanent that just had "can't attack" / "can't block" imposed on it jolts.
+  // The driver is the server's own projection of those restrictions, so nothing here
+  // reads card text; a permanent that entered already restricted is not a moment, which
+  // is what the baseline read keeps out.
+  const restrictionSignature = state
+    ? [...state.players]
+        .flatMap((player) => [...player.battleArea, ...(player.breeding ? [player.breeding] : [])])
+        .map(
+          (permanent) => `${permanent.permanentId}:${permanent.cannotAttack ? 1 : 0}${permanent.cannotBlock ? 1 : 0}`,
+        )
+        .join(",")
+    : "";
+  useEffect(() => {
+    if (!state) return;
+    const current = new Map<string, FreezeFlags>();
+    const identity = new Map<string, { cardId: string | undefined; seat: Seat }>();
+    for (const player of state.players) {
+      for (const permanent of player.battleArea) {
+        current.set(permanent.permanentId, {
+          cannotAttack: permanent.cannotAttack,
+          cannotBlock: permanent.cannotBlock,
+        });
+        identity.set(permanent.permanentId, {
+          cardId: permanent.topCard?.cardId,
+          seat: permanent.controllerSeat,
+        });
+      }
+    }
+    const previous = restrictionsByPermanentRef.current;
+    restrictionsByPermanentRef.current = current;
+    if (!previous || queue.getMode() !== "live") return;
+    const pulses = diffFreezePulses({ previous, next: current, nextKey: freezePulseKeyRef.current });
+    if (pulses.length === 0) return;
+    freezePulseKeyRef.current += pulses.length;
+    for (const pulse of pulses) {
+      const frozen = identity.get(pulse.permanentId);
+      const frozenCardId = frozen?.cardId;
+      const frozenSide = frozen?.seat === viewerSeat ? "you" : "opp";
+      queue.enqueue({
+        id: `freeze-pulse-${pulse.key}`,
+        // Several permanents can be locked by one resolution, so each jolts on its own
+        // track rather than queueing behind another card's.
+        track: `freezePulse-${pulse.permanentId}`,
+        replace: true,
+        async run(context) {
+          if (context.mode !== "live") return;
+          if (frozenCardId !== undefined) {
+            setNotices((stack) =>
+              pushNotice(stack, {
+                id: `freeze-${pulse.key}`,
+                side: frozenSide,
+                fromSecurity: false,
+                body: { variant: "keyword", keyword: pulse.kind, cardId: frozenCardId },
+                createdAt: Date.now(),
+              }),
+            );
+          }
+          try {
+            setFreezePulses((pulsing) => new Map(pulsing).set(pulse.permanentId, pulse));
+            await context.wait(TIMINGS.freezeShake);
+          } finally {
+            setFreezePulses((pulsing) => {
+              if (pulsing.get(pulse.permanentId)?.key !== pulse.key) return pulsing;
+              const next = new Map(pulsing);
+              next.delete(pulse.permanentId);
+              return next;
+            });
+          }
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restrictionSignature]);
 
   // A hand that grew was drawn into. The opening hand and a mulligan redeal are
   // not draws, so the first observed pair is only a baseline.
@@ -1101,6 +1170,7 @@ export function useMatchCues({
     phaseBanner,
     combatImpactIds,
     dpPulses,
+    freezePulses,
     securityHitSeat,
     drawFlights,
     drawBursts,

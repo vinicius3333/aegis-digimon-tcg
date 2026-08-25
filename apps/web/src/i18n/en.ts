@@ -327,6 +327,8 @@ export const en = {
   "game.stats.yourSecurity": "Your security",
   "game.stack": "Stack",
   "game.cutInWord": "Digivolution",
+  "game.cutInWordBlast": "Blast Digivolution",
+  "game.cutInWordBurst": "Burst Digivolution",
   "game.securityAttack": "Security Attack",
   "game.directAttack": "Direct Attack",
   "game.faceUpSecurity": "Face-up card in security",
@@ -648,6 +650,8 @@ export const en = {
   "panel.attacking": "{card} is attacking",
   "notice.rejected": "Not allowed",
   "notice.keyword.digiXros": "DigiXros!",
+  "notice.keyword.cannotAttack": "Can't attack",
+  "notice.keyword.cannotBlock": "Can't block",
   "notice.dismiss": "Dismiss notice",
 
   "reject.not-your-turn": "It's not your turn",

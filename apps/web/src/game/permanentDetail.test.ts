@@ -49,10 +49,22 @@ describe("buildPermanentDetail", () => {
     ]);
   });
 
-  it("leaves the security-attack figure out when the keyword is not active", () => {
+  it("leaves the security-attack figure out at the default single check", () => {
     const perm = permanent();
-    perm.keywords.clear();
-    expect(buildPermanentDetail(perm).securityAttackPrinted).toBeUndefined();
+    perm.securityAttack = 1;
+    expect(buildPermanentDetail(perm).securityAttack).toBeUndefined();
+  });
+
+  it("shows the server's resolved count when it differs from the default", () => {
+    const perm = permanent();
+    perm.securityAttack = 3;
+    expect(buildPermanentDetail(perm).securityAttack).toBe(3);
+  });
+
+  it("shows a count of zero, which a negative modifier can reach", () => {
+    const perm = permanent();
+    perm.securityAttack = 0;
+    expect(buildPermanentDetail(perm).securityAttack).toBe(0);
   });
 });
 

@@ -9,6 +9,7 @@
    fallback stops matching the table. */
 
 import type { CSSProperties } from "react";
+import type { CutInTier } from "./cutIn";
 
 export const TIMINGS = {
   /** Card back flying from a deck pile to the hand that just grew. */
@@ -137,10 +138,16 @@ export const TIMINGS = {
   cutIn: 1450,
   /** The DigiXros tier, which holds longer and shakes (2.0 s). */
   cutInXros: 2000,
+  /** The DNA / Jogress tier, which flanks the result with its two sources (1.65 s). */
+  cutInDna: 1650,
+  /** The Burst tier, the longest of them (2.7 s). */
+  cutInBurst: 2700,
   /** The cut-in's card and band wiping in, and back out again. */
   cutInWipe: 180,
   /** The play log sliding out of, and back into, the right edge. */
   logSidebar: 160,
+  /** The jolt a permanent takes when an attack or block lock lands on it (0.2 s). */
+  freezeShake: 200,
   /** One riffle of a deck pile being shuffled. */
   deckRiffle: 180,
   /** A card that just landed settling on its OutBounce drop. */
@@ -200,8 +207,17 @@ export const ARROW_FLASH_COUNT = 2;
 export const ARROW_FLASH_TOTAL_MS = TIMINGS.arrowFlash * ARROW_FLASH_COUNT * 2;
 
 /** A cut-in, end to end, for the tier it is playing. */
-export function cutInTotalMs(tier: "base" | "digiXros"): number {
-  return tier === "digiXros" ? TIMINGS.cutInXros : TIMINGS.cutIn;
+export function cutInTotalMs(tier: CutInTier): number {
+  switch (tier) {
+    case "digiXros":
+      return TIMINGS.cutInXros;
+    case "dna":
+      return TIMINGS.cutInDna;
+    case "burst":
+      return TIMINGS.cutInBurst;
+    case "base":
+      return TIMINGS.cutIn;
+  }
 }
 
 /** A DP pulse, end to end: the particles plus the beat the new figure is held on. */
@@ -256,8 +272,11 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-result-splash-in": TIMINGS.resultSplashIn,
   "--t-cut-in": TIMINGS.cutIn,
   "--t-cut-in-xros": TIMINGS.cutInXros,
+  "--t-cut-in-dna": TIMINGS.cutInDna,
+  "--t-cut-in-burst": TIMINGS.cutInBurst,
   "--t-cut-in-wipe": TIMINGS.cutInWipe,
   "--t-log-sidebar": TIMINGS.logSidebar,
+  "--t-freeze-shake": TIMINGS.freezeShake,
   "--t-deck-riffle": TIMINGS.deckRiffle,
   "--t-landing-bounce": TIMINGS.landingBounce,
   "--t-landing-dust": TIMINGS.landingDust,

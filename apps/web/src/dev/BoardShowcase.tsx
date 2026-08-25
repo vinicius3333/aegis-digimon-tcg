@@ -123,6 +123,7 @@ function handEntry({
     cardId,
     activatableEffectsJson: "",
     playableFromHand: playable,
+    projectedPlayCost: -1,
     digivolveTargetPermanentIds: [...digivolveTargets],
   };
 }
@@ -1065,6 +1066,18 @@ export function BoardShowcase() {
             dpPulse={{ permanentId: "i-4", kind: "debuffFatal", from: 4000, to: 0, key: 3 }}
           />
         </Case>
+        <Case label="freeze: can't attack">
+          <PermanentView
+            perm={permanent({ permanentId: "i-5", cardId: CARDS.champion, baseDP: 4000 })}
+            freezePulse={{ permanentId: "i-5", kind: "cannotAttack", key: 4 }}
+          />
+        </Case>
+        <Case label="freeze: can't block">
+          <PermanentView
+            perm={permanent({ permanentId: "i-6", cardId: CARDS.champion, baseDP: 4000 })}
+            freezePulse={{ permanentId: "i-6", kind: "cannotBlock", key: 5 }}
+          />
+        </Case>
       </Section>
 
       <Section
@@ -1146,16 +1159,35 @@ export function BoardShowcase() {
       <Section
         id="showcase-cut-in"
         title="digivolution cut-in"
-        note="Behind a setting, off by default. The card lands centre-screen over a sweeping colour band; the DigiXros tier holds longer and shakes."
+        note="Behind a setting, off by default. The card lands centre-screen over a sweeping colour band. The server names the mechanic on the event, and each mechanic gets its own tier: DigiXros holds longer and shakes, DNA flanks the result with the two cards that merged, Burst is the longest and glows while it holds. Blast keeps the base tier and only changes the word."
         stacked
       >
         {[
-          { tier: "base" as const, cardId: CARDS.mega, label: "base tier (1.45s)" },
-          { tier: "digiXros" as const, cardId: CARDS.mega, label: "DigiXros tier (2.0s + shake)" },
+          { tier: "base" as const, label: "base tier (1.45s)", extra: {} },
+          { tier: "digiXros" as const, label: "DigiXros tier (2.0s + shake)", extra: {} },
+          {
+            tier: "dna" as const,
+            label: "DNA tier (1.65s, two sources flanking)",
+            extra: { sourceCardIds: [CARDS.champion, CARDS.champion] },
+          },
+          { tier: "burst" as const, label: "Burst tier (2.7s)", extra: { label: "game.cutInWordBurst" as const } },
+          {
+            tier: "base" as const,
+            label: "Blast (base tier, own word)",
+            extra: { label: "game.cutInWordBlast" as const },
+          },
         ].map((sample) => (
-          <Stage key={sample.tier} label={sample.label} height={420}>
+          <Stage key={sample.label} label={sample.label} height={420}>
             <DigivolutionCutInView
-              cutIn={{ key: 1, cardId: sample.cardId, seat: 0, tier: sample.tier, color: "Red" }}
+              cutIn={{
+                key: 1,
+                cardId: CARDS.mega,
+                seat: 0,
+                tier: sample.tier,
+                label: "game.cutInWord",
+                color: "Red",
+                ...sample.extra,
+              }}
             />
           </Stage>
         ))}
@@ -1293,13 +1325,19 @@ export function BoardShowcase() {
       <Section
         id="showcase-security-outcome"
         title="security battle outcome"
-        note="The checked card is spent whatever the battle decided, so it breaks into its own art. The attacker takes the claw only when the check's own events named it deleted; otherwise it stands, lit for a beat."
+        note="The server publishes the DP compare on the check itself, so whichever side lost takes the claw, the shake and the dim while the survivor is lit for a beat — both directions, and a tie beats both. The checked card breaks into its own art whatever the compare said, because CR 13-1-8-4 trashes it either way."
         stacked
       >
-        <Stage label="attacker deleted (claw on the attacker)" height={420}>
-          <SecurityClash scene={{ ...BATTLE_CLASH, attackerDeleted: true }} />
+        <Stage label="attacker lost (claw on the attacker)" height={420}>
+          <SecurityClash scene={{ ...BATTLE_CLASH, loser: { attacker: true, revealed: false } }} />
         </Stage>
-        <Stage label="attacker survived (attacker stands)" height={420}>
+        <Stage label="security Digimon lost (claw on the reveal)" height={420}>
+          <SecurityClash scene={{ ...BATTLE_CLASH, loser: { attacker: false, revealed: true } }} />
+        </Stage>
+        <Stage label="tie (both beaten)" height={420}>
+          <SecurityClash scene={{ ...BATTLE_CLASH, loser: { attacker: true, revealed: true } }} />
+        </Stage>
+        <Stage label="no compare published (neither marked)" height={420}>
           <SecurityClash scene={BATTLE_CLASH} />
         </Stage>
       </Section>

@@ -5,23 +5,15 @@
    Every figure here is server truth. `Permanent.keywords` is re-derived by the
    engine each continuous-recompute pass, `currentDP` already has every modifier
    applied, and the stack is the synchronized array. Nothing is re-derived from
-   card text — with one narrow exception, called out on `securityAttackPrinted`
-   below.
+   card text.
 
    Pure projection over a `Permanent`; no rules, no measurement. */
 
 import { getCardDefinition, type Permanent } from "@aegis/shared";
 import type { StackCard } from "./overlays";
 
-/**
- * The keyword the server normalizes ＜Security Attack +N＞ down to. The engine
- * strips the parameter, so the resolved list says only *that* the position attacks
- * security more than once.
- */
-const SECURITY_ATTACK_KEYWORD = "SecurityAttack";
-
-/** The printed spelling on the card, which still carries the number. */
-const SECURITY_ATTACK_PRINTED = /＜Security Attack ([+-]?\d+)＞/;
+/** How many security cards an attack checks with no modifier at all. */
+const BASE_SECURITY_ATTACK = 1;
 
 export interface PermanentDetail {
   permanentId: string;
@@ -38,24 +30,28 @@ export interface PermanentDetail {
   /** The subset of those that an effect granted rather than the card printing. */
   grantedKeywords: readonly string[];
   /**
-   * The ＜Security Attack＞ value as *printed on the top card*, shown only when the
-   * server's resolved keyword list says the keyword is actually active. The engine
-   * normalizes the parameter away, so a granted or modified value cannot be shown;
-   * undefined means "active, value not projected" as much as it means "absent" —
-   * which is why the badge reads the keyword and this only decorates it.
+   * How many security cards an attack by this position would check, as the server
+   * resolved it: base 1 plus every ＜Security Attack ±N＞ in effect, floored at 0
+   * (`Permanent.securityAttack`). Undefined when it is the plain 1 nobody needs told.
+   * A granted or inverted modifier is already folded in — this is the same figure the
+   * security-check loop itself reads, not a number scraped out of printed text.
    */
-  securityAttackPrinted?: number;
+  securityAttack?: number;
   suspended: boolean;
   summoningSick: boolean;
   inBreeding: boolean;
 }
 
-function printedSecurityAttack(cardId: string): number | undefined {
-  const text = `${getCardDefinition(cardId)?.effectText ?? ""} ${getCardDefinition(cardId)?.inheritedEffectText ?? ""}`;
-  const match = SECURITY_ATTACK_PRINTED.exec(text);
-  if (!match) return undefined;
-  const value = Number(match[1]);
-  return Number.isFinite(value) ? value : undefined;
+/**
+ * The figure worth showing: anything other than the default single check. The keyword
+ * being active and the count differing are the same question in the engine, but a
+ * ＜Security Attack -1＞ takes the count to 0 with the keyword still listed, so the
+ * count is what decides rather than the keyword.
+ */
+function shownSecurityAttack(permanent: Permanent): number | undefined {
+  const resolved = permanent.securityAttack;
+  if (resolved === BASE_SECURITY_ATTACK) return undefined;
+  return resolved;
 }
 
 /** Everything the inspector shows for one field position. */
@@ -77,7 +73,7 @@ export function buildPermanentDetail(permanent: Permanent): PermanentDetail {
     dpDelta: permanent.currentDP - permanent.baseDP,
     keywords,
     grantedKeywords: [...permanent.grantedKeywords],
-    securityAttackPrinted: keywords.includes(SECURITY_ATTACK_KEYWORD) ? printedSecurityAttack(topCardId) : undefined,
+    securityAttack: shownSecurityAttack(permanent),
     suspended: permanent.isSuspended,
     summoningSick: permanent.summoningSick,
     inBreeding: permanent.inBreeding,

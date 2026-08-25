@@ -4933,6 +4933,25 @@ button.opponent-action-feed__current:focus-visible {
   animation: battle-card-shake var(--t-card-shake, 250ms) linear both;
 }
 
+/* An attack or block lock landing on a permanent: the reference client's own
+   `FreezePermanentEffect` shake, 0.2 s, with a cold flash so the jolt reads as a
+   lock rather than as a refusal (which is the plain shake above). */
+.game-permanent-freeze {
+  animation:
+    battle-card-shake var(--t-freeze-shake, 200ms) linear both,
+    battle-permanent-freeze var(--t-freeze-shake, 200ms) ease-out both;
+}
+
+@keyframes battle-permanent-freeze {
+  0%,
+  100% {
+    filter: none;
+  }
+  45% {
+    filter: brightness(1.15) saturate(0.4) drop-shadow(0 0 12px var(--battle-cyan));
+  }
+}
+
 @keyframes battle-card-shake {
   0% {
     translate: 0 0;
@@ -5453,6 +5472,7 @@ button.opponent-action-feed__current:focus-visible {
   /* A shake, a claw and a DP burst are motion with nothing to read: the notice
      and the refreshed figure on the card already say what happened. */
   .game-permanent-shake,
+  .game-permanent-freeze,
   .game-hand-card--shake {
     animation: none;
   }
@@ -5508,6 +5528,45 @@ button.opponent-action-feed__current:focus-visible {
   animation:
     battle-cut-in var(--t-cut-in-xros, 2000ms) linear both,
     battle-cut-in-shake var(--t-cut-in-wipe, 180ms) ease-in-out 6;
+}
+
+.game-cut-in--dna {
+  animation: battle-cut-in var(--t-cut-in-dna, 1650ms) linear both;
+}
+
+/* The longest tier, and the only one that keeps glowing while it holds. */
+.game-cut-in--burst {
+  animation:
+    battle-cut-in var(--t-cut-in-burst, 2700ms) linear both,
+    battle-cut-in-burst-glow var(--t-cut-in-xros, 2000ms) ease-in-out infinite;
+}
+
+@keyframes battle-cut-in-burst-glow {
+  0%,
+  100% {
+    background: rgb(3 8 20 / 72%);
+  }
+  50% {
+    background: rgb(24 10 4 / 82%);
+  }
+}
+
+/* The two merged sources, held either side of the result they became. */
+.game-cut-in__source {
+  position: absolute;
+  top: 50%;
+  opacity: 0.85;
+  translate: 0 -50%;
+}
+
+.game-cut-in__source[data-slot="left"] {
+  right: calc(100% - 1rem);
+  rotate: -8deg;
+}
+
+.game-cut-in__source[data-slot="right"] {
+  left: calc(100% - 1rem);
+  rotate: 8deg;
 }
 
 @keyframes battle-cut-in {
@@ -6053,7 +6112,7 @@ button.opponent-action-feed__current:focus-visible {
 /* The card underneath goes as its shards leave. The whole chain is restated because
    the revealed card already carries its entrance and its impact on this element, and
    an `animation` shorthand replaces rather than adds to them. */
-.battle-clash[data-resolution="battle"] .battle-clash__card[data-fate="spent"] .battle-clash__art {
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-spent="true"] .battle-clash__art {
   animation:
     battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
     battle-clash-impact var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both,
@@ -6111,6 +6170,32 @@ button.opponent-action-feed__current:focus-visible {
   animation-delay: calc(var(--t-clash-outcome-at, 1983ms) + var(--claw-index) * 24ms);
 }
 
+/* The loser is knocked about under its claw (`Effects.cs:2143` shakes every loser
+   for the same 0.25 s the claw takes to land). */
+.battle-clash__card[data-fate="beaten"] .battle-clash__frame {
+  animation: battle-clash-hit var(--t-clash-outcome, 620ms) linear var(--t-clash-outcome-at, 1983ms) both;
+}
+
+@keyframes battle-clash-hit {
+  0%,
+  40%,
+  100% {
+    translate: 0 0;
+  }
+  8% {
+    translate: -6px 3px;
+  }
+  16% {
+    translate: 5px -3px;
+  }
+  24% {
+    translate: -4px -2px;
+  }
+  32% {
+    translate: 2px 2px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* The outcome label already says how the check resolved, so the beat is dropped
      rather than flashed past. */
@@ -6119,8 +6204,9 @@ button.opponent-action-feed__current:focus-visible {
     display: none;
   }
 
-  .battle-clash[data-resolution="battle"] .battle-clash__card[data-fate="spent"] .battle-clash__art,
+  .battle-clash[data-resolution="battle"] .battle-clash__card[data-spent="true"] .battle-clash__art,
   .battle-clash__card[data-fate="beaten"],
+  .battle-clash__card[data-fate="beaten"] .battle-clash__frame,
   .battle-clash__card[data-fate="stands"] {
     animation: none;
   }

@@ -7,7 +7,10 @@ describe("soundForEvent", () => {
     const cases: { event: ServerEvent; cue: string }[] = [
       { event: { kind: "cardPlayed", seat: 0, cardId: "BT1-001" }, cue: "cardPlay" },
       { event: { kind: "cardPlayed", seat: 1, cardId: "BT1-001" }, cue: "cardPlay" },
-      { event: { kind: "digivolved", seat: 1, permanentId: "p1", cardId: "BT1-010" }, cue: "digivolve" },
+      {
+        event: { kind: "digivolved", seat: 1, permanentId: "p1", cardId: "BT1-010", mechanic: "normal" },
+        cue: "digivolve",
+      },
       { event: { kind: "hatched", seat: 0, permanentId: "p2", cardId: "BT1-002" }, cue: "hatch" },
       {
         event: {

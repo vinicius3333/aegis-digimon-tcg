@@ -36,6 +36,13 @@ const COMBAT: ServerEvent = {
 };
 const UNSUSPEND_PHASE: ServerEvent = { kind: "phaseChanged", phase: "Active", turnSeat: 0, turnCount: 5 };
 const OPP_PLAY: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT1-010", permanentId: "perm-9" };
+const SHUFFLE: ServerEvent = { kind: "deckShuffled", seat: 1, deck: "eggDeck" };
+const RETURN_TO_DECK: ServerEvent = {
+  kind: "cardsMoved",
+  instanceIds: ["i-1"],
+  from: "hand",
+  to: "deckBottom",
+};
 const YOUR_PLAY: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT1-011", permanentId: "perm-8" };
 
 /** Nothing is laid out in jsdom, so a draw flight measures zero and never launches. */
@@ -294,7 +301,7 @@ describe("zone-change showcases", () => {
 
     rerender([
       { kind: "hatched", seat: 0, permanentId: "perm-egg", cardId: "ST1-01" },
-      { kind: "digivolved", seat: 0, permanentId: "perm-egg", cardId: "ST1-03" },
+      { kind: "digivolved", seat: 0, permanentId: "perm-egg", cardId: "ST1-03", mechanic: "normal" },
     ]);
     await advance(0);
     // The second burst replaces the first on the permanent's own track.
@@ -302,7 +309,10 @@ describe("zone-change showcases", () => {
   });
 
   it("plays nothing for the history a reconnect replays", async () => {
-    const { result } = renderCues([OPP_PLAY, { kind: "digivolved", seat: 1, permanentId: "p", cardId: "BT1-011" }]);
+    const { result } = renderCues([
+      OPP_PLAY,
+      { kind: "digivolved", seat: 1, permanentId: "p", cardId: "BT1-011", mechanic: "normal" },
+    ]);
     await advance(0);
 
     expect(result.current.zoneShowcase).toBeNull();
@@ -442,5 +452,41 @@ describe("notices", () => {
     act(() => result.current.showSelection(["BT1-001", "BT1-002"]));
     expect(result.current.sidePanels[0]?.titleKey).toBe("panel.selectedCards");
     expect(result.current.sidePanels[0]?.cards).toHaveLength(2);
+  });
+});
+
+describe("server-named signals", () => {
+  it("riffles exactly the pile the server said it shuffled", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([SHUFFLE]);
+    await advance(1);
+    expect([...result.current.deckRiffles]).toEqual(["1:eggDeck"]);
+    await advance(TIMINGS.deckRiffle + 10);
+    expect(result.current.deckRiffles.size).toBe(0);
+  });
+
+  it("no longer riffles for cards merely returning to a deck", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    rerender([RETURN_TO_DECK]);
+    await advance(1);
+    expect(result.current.deckRiffles.size).toBe(0);
+  });
+
+  it("carries the server's DP compare onto the clash scene, in either direction", async () => {
+    const { result, rerender } = renderCues([ATTACK]);
+    await advance(0);
+    rerender([ATTACK, { ...CHECK, battle: { attackerDeleted: false, securityDigimonDeleted: true } } as ServerEvent]);
+    await advance(SECURITY_BREAK_TOTAL_MS + 1);
+    expect(result.current.securityClash?.loser).toEqual({ attacker: false, revealed: true });
+  });
+
+  it("leaves the clash outcome unmarked when the server published no compare", async () => {
+    const { result, rerender } = renderCues([ATTACK]);
+    await advance(0);
+    rerender([ATTACK, CHECK]);
+    await advance(SECURITY_BREAK_TOTAL_MS + 1);
+    expect(result.current.securityClash?.loser).toBeUndefined();
   });
 });

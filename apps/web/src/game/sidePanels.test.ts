@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Seat, ServerEvent } from "@aegis/shared";
+import { DECK_BOTTOM, type Seat, type ServerEvent } from "@aegis/shared";
 import {
   attackAnnouncementFromEvent,
   dismissSidePanel,
@@ -51,6 +51,11 @@ describe("titleForMovement", () => {
     expect(titleForMovement("hand", "deck")).toBe("panel.deckCards");
     expect(titleForMovement("deck", "selected")).toBe("panel.selectedCards");
     expect(titleForMovement("hand", "stackBottom")).toBe("panel.digivolutionCards");
+  });
+
+  it("uses the exact destination the server emits for a deck-bottom return", () => {
+    // Pinned to the shared constant so renaming it on the server fails here, not in the UI.
+    expect(titleForMovement("various", DECK_BOTTOM)).toBe("panel.deckBottomCard");
   });
 
   it("stays silent about movements the board already shows", () => {
@@ -121,8 +126,14 @@ describe("sidePanelFromEvent", () => {
   });
 
   it("announces only the opponent's digivolution", () => {
-    const mine: ServerEvent = { kind: "digivolved", seat: 0, permanentId: "p", cardId: "BT1-040" };
-    const theirs: ServerEvent = { kind: "digivolved", seat: 1, permanentId: "p", cardId: "BT1-041" };
+    const mine: ServerEvent = { kind: "digivolved", seat: 0, permanentId: "p", cardId: "BT1-040", mechanic: "normal" };
+    const theirs: ServerEvent = {
+      kind: "digivolved",
+      seat: 1,
+      permanentId: "p",
+      cardId: "BT1-041",
+      mechanic: "normal",
+    };
     expect(sidePanelFromEvent(mine, VIEWER, lookup({}, {}), "a", 0)).toBeNull();
     expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0)?.titleKey).toBe("panel.digivolutionCards");
   });

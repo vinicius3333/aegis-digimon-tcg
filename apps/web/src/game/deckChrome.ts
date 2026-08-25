@@ -4,9 +4,11 @@
    entirely at zero rather than leaving an empty rectangle behind. A shuffle
    riffles the stack for a fifth of a second.
 
-   The protocol has no shuffle event, so a riffle is played for the moment that
-   always implies one: cards being put back into a deck. Everything else is left
-   alone rather than guessed at.
+   The riffle plays on the server's own `deckShuffled`, which the engine emits from
+   the single helper that randomizes a deck. It used to be inferred from cards moving
+   back into a deck, which turned out to be exactly wrong: §3-2-3 forbids reordering a
+   deck, so a card returned to a deck lands in place and nothing is shuffled — every
+   printed "shuffle" in the card pool shuffles a SECURITY stack instead.
 
    Pure arithmetic and event reading. */
 
@@ -38,24 +40,12 @@ export interface DeckRiffle {
   pile: DeckPile;
 }
 
-const SHUFFLE_DESTINATIONS: readonly string[] = ["deck", "deckBottom", "eggDeck"];
-
-/** Asks the board which seat owns a card that just moved. */
-export type CardSeatLookup = (instanceId: string) => Seat | undefined;
-
 /**
- * Which pile an event riffles, or null when it riffles none. Cards returning to a
- * deck are the one movement that always ends in a shuffle; a draw, a mill and a
- * recovery all move cards out of a deck and leave its order alone.
- *
- * `cardsMoved` names instances rather than a seat, so the owner is resolved from
- * the board. A card that landed somewhere the viewer cannot see resolves to
- * nothing and no pile riffles, rather than both of them riffling on a guess.
+ * Which pile an event riffles, or null when it riffles none. One event, one pile:
+ * the server names both the seat and the deck it randomized, so nothing is inferred
+ * from card movement any more.
  */
-export function deckRiffleFromEvent(event: ServerEvent, key: number, seatOf: CardSeatLookup): DeckRiffle | null {
-  if (event.kind !== "cardsMoved") return null;
-  if (!SHUFFLE_DESTINATIONS.includes(event.to)) return null;
-  const seat = event.instanceIds.map(seatOf).find((candidate) => candidate !== undefined);
-  if (seat === undefined) return null;
-  return { key, seat, pile: event.to === "eggDeck" ? "eggDeck" : "deck" };
+export function deckRiffleFromEvent(event: ServerEvent, key: number): DeckRiffle | null {
+  if (event.kind !== "deckShuffled") return null;
+  return { key, seat: event.seat, pile: event.deck };
 }

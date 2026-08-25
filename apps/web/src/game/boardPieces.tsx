@@ -24,6 +24,7 @@ import { hasBlocker, sourceCountBadge } from "./fieldBadges";
 import { deckLayerCount } from "./deckChrome";
 import type { PendingFateBadge } from "./pendingFate";
 import type { DpPulse } from "./dpPulse";
+import type { FreezePulse } from "./freezePulse";
 import { TIMINGS } from "./timings";
 import { useTranslation } from "../i18n";
 
@@ -39,6 +40,8 @@ export interface HandEntry {
   activatableEffectsJson: string;
   /** Server projection: this card can be played right now. */
   playableFromHand: boolean;
+  /** Server projection: memory this play would cost with active reducers applied; -1 if not projected. */
+  projectedPlayCost: number;
   /** Server projection: own permanents this card may digivolve onto right now. */
   digivolveTargetPermanentIds: readonly string[];
 }
@@ -348,6 +351,7 @@ export function PermanentView({
   shake,
   claw,
   dpPulse,
+  freezePulse,
   effectSource,
   suspendDelayMs,
   width,
@@ -374,6 +378,8 @@ export function PermanentView({
   claw?: boolean;
   /** The DP change this permanent is currently pulsing over. */
   dpPulse?: DpPulse;
+  /** The attack/block lock that just landed on this permanent, which jolts the card. */
+  freezePulse?: FreezePulse;
   /** This permanent's own effect is activating: it glows and throws a small particle. */
   effectSource?: boolean;
   /** The colour-keyed burst this permanent is playing, behind the card. */
@@ -457,6 +463,7 @@ export function PermanentView({
         [
           lunge ? `game-permanent-lunge--${lunge}` : "",
           shake ? "game-permanent-shake" : "",
+          freezePulse ? "game-permanent-freeze" : "",
           effectSource ? "game-permanent--effect-source" : "",
         ]
           .filter(Boolean)

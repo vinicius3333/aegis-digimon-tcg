@@ -13,7 +13,13 @@ const VIEWER = 0;
 const OPPONENT = 1;
 
 const PLAYED: ServerEvent = { kind: "cardPlayed", seat: OPPONENT, cardId: "BT1-010", permanentId: "perm-1" };
-const DIGIVOLVED: ServerEvent = { kind: "digivolved", seat: OPPONENT, permanentId: "perm-1", cardId: "BT1-011" };
+const DIGIVOLVED: ServerEvent = {
+  kind: "digivolved",
+  seat: OPPONENT,
+  permanentId: "perm-1",
+  cardId: "BT1-011",
+  mechanic: "normal",
+};
 
 describe("centre-screen showcase", () => {
   it("announces the opponent's play and digivolution", () => {
