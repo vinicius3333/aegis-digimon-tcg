@@ -1,34 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { EffectTiming, getCompiledCard } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-047.js";
-
-describe("BT12-047 handwritten module", () => {
-  it("registers its printed timing without declarative effect record", () => {
-    const module = getEffectModule("BT12-047");
-    expect(module?.cardId).toBe("BT12-047");
-    const source = {
-      instanceId: "source-047",
-      cardId: "BT12-047",
-      ownerSeat: 0,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      permanent: () => undefined,
-    } as unknown as CardSource;
-    expect(module!.effectsForTiming(EffectTiming.OnPlay, source).length).toBeGreaterThan(0);
-    expect(getCompiledCard("BT12-047")?.effects).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          trigger: "EndOfYourTurn",
-          isInherited: true,
-          actions: [expect.objectContaining({ kind: "DnaDigivolve", optional: true, payCost: true })],
-        }),
-      ]),
-    );
-  });
-});
 
 it("adds both eligible cards from the reveal and bottoms the remainder", async () => {
   const s = setupEngine(
@@ -64,4 +38,39 @@ it("adds the eligible Digimon even when no Ken Ichijoji is revealed", async () =
   await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT17-077"));
   expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT17-077");
   expect(s.state.players[0]!.deck).toHaveLength(2);
+});
+
+it("adds Ken Ichijoji even when no eligible Digimon is revealed", async () => {
+  const s = setupEngine(
+    { 0: { hand: [{ card: "BT12-047", as: "wormmon" }], deck: ["BT3-094", "BT1-009", "BT1-010"] } },
+    { autoSelectCards: true },
+  );
+  s.state.memory = 3;
+  s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wormmon").instanceId });
+  await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT3-094"));
+  expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT3-094"]);
+  expect(s.state.players[0]!.deck).toHaveLength(2);
+});
+
+it("may DNA digivolve its host with another Digimon at end of its turn", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-050", as: "green", under: ["BT12-047"] },
+          { card: "BT12-022", as: "blue" },
+        ],
+        hand: [{ card: "BT12-028", as: "paildramon" }],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 3;
+  const greenTop = s.perm("green").topCard.instanceId;
+  const blueTop = s.perm("blue").topCard.instanceId;
+  await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("green"));
+  await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-028"));
+  const result = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT12-028")!;
+  expect(result.stack.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining([greenTop, blueTop]));
+  expect(s.state.memory).toBe(3);
 });
