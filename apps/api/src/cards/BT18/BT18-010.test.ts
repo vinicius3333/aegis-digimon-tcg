@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-010.js";
+import "./BT18-011.js";
 
 // A3 for BT18-010 (Bokomon) — [Your Turn][Once Per Turn]:
 //   "When any of your Digimon or Tamers digivolve into a Digimon with the [Hybrid]/[Ten Warriors]
@@ -29,17 +30,14 @@ describe("BT18-010 [Your Turn][Once Per Turn] digivolve into [Hybrid] → gain 1
   });
 
   it("gains 1 memory when a Hybrid-trait Digimon digivolves while BT18-010 is in play", async () => {
-    // Place BT18-010 (Bokomon) on the controller's battle area, and a non-Hybrid Digimon
-    // that will digivolve into a Hybrid one. BT12-009 (Flamemon) has the [Hybrid] trait
-    // (forms: ["Hybrid"]); its stack card satisfies the DigivolveFromCondition.
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT18-010", dp: 3000, as: "bokomon" },
-            // A Lv.3 Digimon (Monodramon) beneath the top satisfies DigivolveFromCondition.
-            { card: "BT12-009", dp: 5000, as: "digivolvedPerm", under: ["BT1-009"] },
+            { card: "BT1-009", as: "base" },
           ],
+          hand: [{ card: "BT18-011", as: "agunimon" }],
         },
       },
       { autoAcceptOptional: true },
@@ -49,22 +47,22 @@ describe("BT18-010 [Your Turn][Once Per Turn] digivolve into [Hybrid] → gain 1
     // Install SubTrigger watchers via the continuous-recompute pass.
     await engine.recomputeContinuousEffects();
 
-    state.memory = 0;
-    const digivolvedPermId = s.perm("digivolvedPerm").permanentId;
+    state.memory = 10;
+    expect(
+      engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT18-011" && state.memory === 8);
+    expect(state.memory).toBe(8);
 
-    // Trigger the whenOneOfYoursDigivolves SubTrigger for the Hybrid Digimon. We simulate a
-    // digivolve directly via fireSubTrigger rather than the real digivolve action path.
     await (engine as unknown as { fireSubTrigger: (event: string, payload: unknown) => Promise<void> }).fireSubTrigger(
       "whenOneOfYoursDigivolves",
-      {
-        subjectPermanentId: digivolvedPermId,
-      },
+      { subjectPermanentId: s.perm("base").permanentId },
     );
-
-    await settle(() => state.memory !== 0);
-
-    // BT18-010's watcher should have given +1 memory.
-    expect(state.memory).toBe(1);
+    expect(state.memory).toBe(8);
   });
 
   it("does NOT gain memory when a non-Hybrid Digimon digivolves", async () => {
@@ -97,5 +95,69 @@ describe("BT18-010 [Your Turn][Once Per Turn] digivolve into [Hybrid] → gain 1
 
     // No [Hybrid] trait → no memory gain.
     expect(state.memory).toBe(0);
+  });
+
+  it("reveals three and mandatorily adds both printed categories", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-010", as: "bokomon" }],
+          deck: [{ card: "BT12-009" }, { card: "BT18-088" }, { card: "BT1-010" }, { card: "BT1-011" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bokomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.cardId === "BT12-009") &&
+        s.state.players[0]!.hand.some((card) => card.cardId === "BT18-088"),
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("gains memory when a Tamer digivolves into a Hybrid", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT18-010", as: "bokomon" },
+          { card: "BT12-088", as: "takuya" },
+        ],
+        hand: [{ card: "BT18-011", as: "agunimon" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("takuya").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("takuya").topCard.cardId === "BT18-011" && s.state.memory === 9);
+    expect(s.state.memory).toBe(9);
+  });
+
+  it("digivolves from a red level 2 for 0", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-001", as: "egg" }],
+        hand: [{ card: "BT18-010", as: "bokomon" }],
+      },
+    });
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("bokomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT18-010");
+    expect(s.state.memory).toBe(2);
   });
 });
