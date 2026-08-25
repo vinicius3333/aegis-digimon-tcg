@@ -8,6 +8,7 @@ import { scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, zoneList } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
+import { definitionMatches } from "../matching/definition.js";
 import type { Action, CardEffect, Condition, Cost, Permanent, Scaling, ZoneRef } from "@aegis/shared";
 
 /**
@@ -280,6 +281,7 @@ export interface WouldDigivolveSelfReducer {
   cost?: Cost;
   scaling?: Scaling;
   sourceFilter?: import("@aegis/shared").Filter;
+  sourceStackFilter?: import("@aegis/shared").Filter;
   amount: number;
   raw: string;
 }
@@ -287,6 +289,7 @@ export interface WouldDigivolveSelfReducer {
 const WOULD_DIGIVOLVE_SELF_REDUCERS = new Map<string, WouldDigivolveSelfReducer[]>();
 
 const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
+  "BT21-020", // Agunimon/BurningGreymon in the source stack -> self digivolution cost -1 (Q4524)
   "EX3-054", // return up to 5 [D-Brigade] cards from trash to deck top -> -1 each (KB Q3423)
   "BT22-038", // -1 for each face-down digivolution card on the Ver.1 base (KB Q4884/Q5196)
   "BT8-112", // return a white level 7 from trash to the deck bottom -> -4
@@ -311,6 +314,9 @@ export function collectWouldDigivolveSelfReducers(cardId: string, effects: reado
             ...(action.cost !== undefined ? { cost: action.cost } : {}),
             ...(action.scaling !== undefined ? { scaling: action.scaling } : {}),
             ...(outer.sourceFilter !== undefined ? { sourceFilter: outer.sourceFilter } : {}),
+            ...(outer.condition?.kind === "selfDigivolutionStackMatchesFilter" && outer.condition.filter !== undefined
+              ? { sourceStackFilter: outer.condition.filter }
+              : {}),
             amount: action.amount,
             raw: action.cost?.raw ?? action.raw ?? "Reduce the digivolution cost.",
           });
@@ -345,6 +351,13 @@ export function potentialWouldDigivolveSelfReduction(
   if (
     reducer.sourceFilter !== undefined &&
     (target === undefined || !permanentMatchesFilter(ctx, target, reducer.sourceFilter, ctx.source))
+  ) {
+    return 0;
+  }
+  if (
+    reducer.sourceStackFilter !== undefined &&
+    (target === undefined ||
+      !target.stack.some((card) => definitionMatches(reducer.sourceStackFilter!, ctx.game.definitionOf(card))))
   ) {
     return 0;
   }
