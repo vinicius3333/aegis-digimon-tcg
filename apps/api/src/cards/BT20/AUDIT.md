@@ -59,3 +59,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-005.test.ts`).
+
+## BT20-006 — DemiMeramon
+
+- Catalog contract: purple level 2 Flame/LIBERATOR Digi-Egg; inherited optional `[On Deletion]` returns 1 Ghost-trait Digimon card from your trash to hand.
+- Knowledge base: Q4285/Q4286/Q5905 establish that inherited deletion effects are pending for the deleted top card's trash object: moving that top card before another pending effect activates invalidates the latter, while moving a source card formerly underneath does not. This card's single recovery clause needs no invented ordering rule.
+- Implementation evidence: `BT20-006.ts` registers only through `registerIrCard`; its inherited OnDeletion action selects one controlled-trash Digimon with exact Ghost trait matching, optionally returns it to hand, and uses the deletion engine's captured inherited-effect source.
+- Peer/stack evidence: the focused test deletes a Bakemon stack containing DemiMeramon in battle, with Ghostmon and a near-zone non-Ghost Ryudamon in trash. It observes only Ghostmon move to the controller's hand and confirms no opponent-zone leakage.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-006.test.ts` — 2 passed.
+- Clause scores: inherited On Deletion timing 2/2; optionality 2/2; one-card boundary 2/2; Ghost Digimon predicate 2/2; controller trash-to-hand zones and stack provenance 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-006.test.ts`).
