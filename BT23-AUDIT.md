@@ -497,6 +497,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog field and complete IR; deletes a play-cost-5 target while preserving play-cost 6; places an Option through the real effect seam, trashes it to prevent Cyberdramon's first deletion, and proves the second deletion succeeds; repeats prevention through a realistic inherited CS carrier; and accepts off-color level-4 CS evolution while rejecting an off-color non-CS peer.
 - Verification: focused suite — 8 passed; shared play-cost filtering, placed-Option identity, leave replacement/cost, inherited carrier filter, frequency, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-056 — WereGarurumon — 10/10
+
+- Catalog evidence: Black level 5, play cost 7, 7000 DP, standard black-level-4 evolution for 3 plus alternate level-4 CS evolution for 3; form `Ultimate`, attribute `Virus`, types `Beastkin` and `CS`; Blocker; On Play/When Digivolving while controlling a CS Tamer grants one opposing Digimon a forced attack at the start of its owner's main phase through that turn end; inherited All Turns once per turn De-Digivolves one opponent when attack targets change.
+- Knowledge base: Q5321 permits granting the delayed attack ability to a Digimon currently unaffected by effects, but the granted ability will not trigger if that Digimon remains unaffected at its start-main timing.
+- Implementation result: the hand-authored IR already corrects the generated direct-attack/no-Tamer-gate defect and registration is exclusively `registerIrCard("BT23-056", compiled)` with full coverage and no residual clauses; the audit adds complete catalog, live Blocker, and alternate-evolution evidence without changing execution.
+- Primitive trace: the entry timings gate on a friendly CS Tamer, bind one opposing Digimon, and install a duration-scoped start-of-owner-main watcher whose self attack is rechecked for effect immunity at trigger time; the inherited physical-source watcher listens to the distinct attack-target-switch event and De-Digivolves one selected opponent once per turn.
+- Behavioral proof: the focused suite checks every catalog field and complete IR; plays WereGarurumon with a CS Tamer, proves no immediate attack, then fires the opponent's main phase and observes the bound Digimon attack; from a realistic inherited stack De-Digivolves exactly once across two target-change events; observes Blocker live; and accepts off-color level-4 CS evolution while rejecting an off-color non-CS peer.
+- Verification: focused suite — 7 passed; shared granted watcher, duration, effect immunity, forced attack, target-switch, De-Digivolve, Blocker, and alternate-evolution mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-056 through BT23-102.
+BT23-057 through BT23-102.
