@@ -815,3 +815,15 @@
 - Score: 10/10.
 - Ambiguity: the rendered Q&A's “this card” does not identify the other inherited source, but its host-versus-source movement rule is explicit.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-068.test.ts`).
+
+## BT20-069 — Punkmon
+
+- Catalog contract: purple/red level 4 Virus Dark Dragon/LIBERATOR, play cost 5/5000 DP, purple or red level-3 evolution cost 3 plus level-3 Evil alternate cost 2; On Play/When Digivolving trashes 1 hand card, then gives the same own Digimon Blocker and Retaliation through the opponent's turn; inherited Your Turn +2000 DP.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: both entry timings preserve the trash-then-grant order. The second keyword uses `sameTarget` to bind it to the first selected ally, and both use the exact opponent-turn-end duration. Because the text uses “Then” rather than a paid “By” cost, the shared action runner correctly continues to the grants when the hand is empty. The alternate evolution and inherited continuous modifier are direct; registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: BT20-061 proves the exact level-3 Evil cost-2 route. Both hard play and evolution trash BT20-047 and give one BT20-061 ally both live keywords. With no remaining hand card, both grants still resolve. Under BT20-070, Punkmon raises the host from 6000 to 8000 only on its controller's turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-069.test.ts` — 6 passed.
+- Clause scores: stats/ordinary evolution 2/2; Evil alternate boundary/cost 2/2; dual timing hand trash 2/2; same-target dual keywords/duration/Then semantics 2/2; inherited stack/turn DP scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-069.test.ts`).
