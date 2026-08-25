@@ -23,7 +23,6 @@ const compiled: CompiledCard = {
             filter: { controllerDefault: "opponent", kind: ["Digimon"] },
             raw: "your opponent has a Digimon",
           },
-          optional: true,
         },
       ],
     },
@@ -46,7 +45,6 @@ const compiled: CompiledCard = {
             filter: { controllerDefault: "opponent", kind: ["Digimon"] },
             raw: "your opponent has a Digimon",
           },
-          optional: true,
         },
       ],
     },
@@ -56,6 +54,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDigivolutionTrashed",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "GainKeyword",
@@ -69,7 +68,10 @@ const compiled: CompiledCard = {
               },
               keyword: { keyword: "Jamming", raw: "＜Jamming＞" },
               duration: "forTheTurn",
-              cost: { kind: "suspend" },
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              },
               optional: true,
               abortOnDecline: true,
             },

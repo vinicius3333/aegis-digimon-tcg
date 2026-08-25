@@ -41,4 +41,30 @@ describe("ST23-02 Liollmon", () => {
       ],
     });
   });
+
+  it("does not apply its cost reduction while this card is in the breeding area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "ST23-02", as: "liollmon" },
+          hand: [{ card: "ST23-03", as: "cougarmon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("liollmon").permanentId,
+        instanceId: s.inst("cougarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("liollmon").topCard?.cardId === "ST23-03" && s.state.memory === 0);
+
+    expect(s.state.memory).toBe(0);
+  });
 });

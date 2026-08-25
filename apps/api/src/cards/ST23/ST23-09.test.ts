@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./ST23-09.js";
 
 describe("ST23-09 Fenriloogamon", () => {
@@ -37,5 +39,38 @@ describe("ST23-09 Fenriloogamon", () => {
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === lowId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === highId)).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === lowId)).toBe(true);
+  });
+
+  it("exposes Security Attack +1, Reboot, and Blocker on its Digimon side", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST23-09", as: "atratusmon" }] } });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("atratusmon"), "SecurityAttack")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("atratusmon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("atratusmon"), "Blocker")).toBe(true);
+  });
+
+  it("keeps shared once-per-turn immunity/deletion and the Option-side highest-DP return", () => {
+    const card = runtimeCompiledCard("ST23-09");
+    for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
+      expect(card?.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
+        frequency: "OncePerTurn",
+        sharedUseKey: "ir-shared-0",
+        actions: [
+          { kind: "GrantStatic", grant: "immuneToOpponentDigimonEffects", duration: "untilOpponentTurnEnd" },
+          { kind: "Delete", target: { filter: { superlative: "lowestDP" } } },
+        ],
+      });
+    }
+    expect(card?.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
+      actions: [
+        { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] } } },
+        {
+          kind: "Return",
+          to: "deckBottom",
+          target: { filter: { controller: "opponent", suspended: true, superlative: "highestDP" } },
+        },
+      ],
+    });
   });
 });
