@@ -539,3 +539,15 @@
 - Score: 10/10.
 - Ambiguity: a full unfiltered `interactionAudit.test.ts` run has one unrelated pre-existing optional-processing expectation failure; both affected Blast DNA tests in that file are green and final collection gates remain pending.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-045.test.ts`).
+
+## BT20-046 — Espimon
+
+- Catalog contract: black/blue level 3 Virus Cyborg/LIBERATOR, play cost 3/1000 DP, black or blue level-2 evolution cost 1 plus Kapurimon alternate cost 0; on your turn, its battle-area evolution into a Cyborg/Machine Digimon costs 1 less; inherited all-turn +1000 DP.
+- Knowledge base: Q4369 explicitly says the evolution reducer does not trigger in the breeding area because it lacks the Breeding icon.
+- Implementation evidence: the resident replacement is self-referenced, battle-area scoped, destination-gated to the Cyborg/Machine trait union, and reduces exactly 1. The inherited All Turns modifier targets its host permanently, the Kapurimon alternate requirement is exact, and registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: BT20-050's Cyborg alternate path normally costs 2; over a battle-area Espimon it costs 1, while the identical breeding evolution costs the full 2. HoverEspimon with Espimon underneath is 5000 DP from a 4000 base on both controller and opponent turns.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-046.test.ts` — 4 passed.
+- Clause scores: stats/Kapurimon alternate evolution 2/2; Cyborg/Machine union 2/2; exact -1 reduction 2/2; Q4369 battle-area scope 2/2; inherited all-turn +1000/stack behavior 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-046.test.ts`).
