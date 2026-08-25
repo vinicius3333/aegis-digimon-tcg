@@ -283,7 +283,7 @@ export async function runSecurityManipulation(
     }
     case "flipFaceUp":
       // Flip the first FACE-DOWN security card of the targeted stack face up (EX11-064).
-      ctx.fx.flipSecurityFaceUp(seat, { fromTop: true });
+      ctx.lastEffectActed = ctx.fx.flipSecurityFaceUp(seat, { fromTop: true });
       return;
     case "placeAsSecurity": {
       // Place cards onto the security stack. Two source shapes:

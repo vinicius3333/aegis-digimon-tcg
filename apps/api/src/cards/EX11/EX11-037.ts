@@ -6,10 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  digivolutionRequirement: [
-    { level: 2, cost: 1, colors: ["Black", "Blue"], isAlternate: true },
-    { names: ["Kapurimon"], cost: 0, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ names: ["Kapurimon"], cost: 0, isAlternate: true }],
   effects: [
     {
       trigger: "WhenMoving",
@@ -20,21 +17,15 @@ const compiled: CompiledCard = {
           controller: "opponent",
         },
         {
-          kind: "Draw",
-          controller: "mine",
-          amount: 1,
+          kind: "ConditionalBranch",
           condition: {
             kind: "ifThisEffectDidNotAct",
             raw: "this effect didn't flip",
           },
-        },
-        {
-          kind: "GainMemory",
-          amount: 1,
-          condition: {
-            kind: "ifThisEffectDidNotAct",
-            raw: "this effect didn't flip",
-          },
+          ifTrue: [
+            { kind: "Draw", controller: "mine", amount: 1 },
+            { kind: "GainMemory", amount: 1 },
+          ],
         },
       ],
     },
@@ -47,21 +38,15 @@ const compiled: CompiledCard = {
           controller: "opponent",
         },
         {
-          kind: "Draw",
-          controller: "mine",
-          amount: 1,
+          kind: "ConditionalBranch",
           condition: {
             kind: "ifThisEffectDidNotAct",
             raw: "this effect didn't flip",
           },
-        },
-        {
-          kind: "GainMemory",
-          amount: 1,
-          condition: {
-            kind: "ifThisEffectDidNotAct",
-            raw: "this effect didn't flip",
-          },
+          ifTrue: [
+            { kind: "Draw", controller: "mine", amount: 1 },
+            { kind: "GainMemory", amount: 1 },
+          ],
         },
       ],
     },
