@@ -2,9 +2,11 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// Audit fix (LM audit): "Yellow also meets this card's colour requirements" registers an
+// ALTERNATIVE colour, not a blanket waiver — the printed requirement still has to be met by one
+// of the two colours (Q4063). The gate is also not limited to the battle area: a colour source
+// in the breeding area counts (Q4064), so no extra `condition` narrows it.
+
 const compiled: CompiledCard = {
   effects: [
     {
@@ -12,13 +14,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "WaiveColorRequirement",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          color: "yellow",
         },
       ],
     },

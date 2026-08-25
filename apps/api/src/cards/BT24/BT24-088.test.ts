@@ -75,6 +75,34 @@ describe("BT24-088 Asuna Shiroki", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
   });
 
+  it("Q5679: does not activate the start-of-turn effect on the Asuna it just played", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-088", as: "source" }],
+          trash: [
+            { card: "BT24-088", as: "replacement" },
+            { card: "BT24-010", as: "stillInTrash" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("replacement").instanceId);
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireGlobal(EffectTiming.StartOfYourTurn);
+
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("replacement").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("stillInTrash").instanceId);
+  });
+
   it("trashes a qualifying hand card to draw 2 on play (Q5677)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

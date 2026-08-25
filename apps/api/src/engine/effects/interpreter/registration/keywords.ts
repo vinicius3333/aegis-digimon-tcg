@@ -104,6 +104,7 @@ export function overclockActivatedEffect(trait: string): CardEffect {
             },
             count: 1,
           },
+          mechanic: "Overclock",
           raw: `by deleting 1 of your Tokens or other [${trait}] trait Digimon`,
         },
       } as Action,

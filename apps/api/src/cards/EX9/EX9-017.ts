@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           amount: 1,
+          scope: "acrossDigimon",
           cost: {
             kind: "place",
             target: {
@@ -53,7 +54,7 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
             },
-            unit: "digivolutionCards",
+            unit: "selfFaceDownDigivolutionCards",
           },
         },
       ],
@@ -72,6 +73,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           amount: 1,
+          scope: "acrossDigimon",
           cost: {
             kind: "place",
             target: {
@@ -94,7 +96,7 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
             },
-            unit: "digivolutionCards",
+            unit: "selfFaceDownDigivolutionCards",
           },
         },
       ],

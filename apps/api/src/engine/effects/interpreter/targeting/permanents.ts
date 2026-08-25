@@ -97,8 +97,13 @@ export function candidatePermanents(
   const relevantSourceKinds =
     ctx.fx.isBeAffectedBySourceKind !== undefined ? sourceKinds.filter((k) => k === "Option" || k === "Digimon") : [];
   const result: Permanent[] = [];
-  const isBreedingFilter = (filter: Filter): boolean => filter.zone === "breeding";
-  const isBattleAreaFilter = (filter: Filter): boolean => filter.zone === undefined || filter.zone === "battleArea";
+  const allowsZone = (filter: Filter, zone: "battleArea" | "breeding"): boolean => {
+    if (filter.zone !== undefined) return filter.zone === zone;
+    if (filter.or !== undefined && filter.or.length > 0) return filter.or.some((branch) => allowsZone(branch, zone));
+    return zone === "battleArea";
+  };
+  const isBreedingFilter = (filter: Filter): boolean => allowsZone(filter, "breeding");
+  const isBattleAreaFilter = (filter: Filter): boolean => allowsZone(filter, "battleArea");
   for (const seat of seatSet) {
     const p = ctx.game.player(seat);
     if (allFilters.some(isBreedingFilter) && p.breeding !== undefined) {
@@ -226,7 +231,11 @@ export function raiseDeletionDpCap(ctx: EffectContext, target: Target): Target {
  * a smaller legal subset chosen on the player's behalf.
  */
 export async function resolveTotalDpCapTargets(ctx: EffectContext, target: Target): Promise<string[]> {
-  const baseBudget = target.totalDpCap;
+  // "whose total DP adds up to equal or less than THIS DIGIMON's DP" (LM-021): the budget is the
+  // source's LIVE DP, so a DP buff or reduction moves it. `totalDpCap` remains the fallback for
+  // a source that is not a battle-area permanent when the effect resolves.
+  const sourceDp = target.totalDpCapFromSourceDp === true ? ctx.source.permanent()?.currentDP : undefined;
+  const baseBudget = sourceDp ?? target.totalDpCap;
   if (baseBudget === undefined) return [];
   const sourcePermanentId = ctx.source.permanent()?.permanentId;
   const modifier = ctx.fx.deletionMaxDpBonus?.(ctx.source.ownerSeat, sourcePermanentId) ?? 0;

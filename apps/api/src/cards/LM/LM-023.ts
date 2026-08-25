@@ -3,8 +3,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// registers it.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -36,6 +35,8 @@ const compiled: CompiledCard = {
           },
           from: ["hand"],
           toTop: true,
+          // Q4025: the chosen card is revealed to the opponent before it is placed face down.
+          revealChosen: true,
           optional: true,
         },
       ],
@@ -58,6 +59,8 @@ const compiled: CompiledCard = {
           },
           from: ["hand"],
           toTop: true,
+          // Q4025: the chosen card is revealed to the opponent before it is placed face down.
+          revealChosen: true,
           optional: true,
         },
       ],
@@ -86,9 +89,8 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenAddSecurity",
-          fireCondition: {
-            kind: "triggerSecurityIsYours",
-          },
+          // "when a card is added to A security stack" names no owner, so either player's
+          // stack arms the clause; the previous gate limited it to the controller's own.
           actions: [
             {
               kind: "ModifyDP",

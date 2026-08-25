@@ -3,8 +3,13 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// registers it.
+// Audit fixes (LM audit):
+//   - "None of your opponent's Tamers can unsuspend" is a standing rule over that player's
+//     Tamers, so it installs as a live seat-scoped filter rather than a snapshot of the
+//     Tamers present when it resolved
+//   - "For each suspended Tamer" carries no possessive, so it counts BOTH players' suspended
+//     Tamers — which is the whole point of suspending one and locking the opponent's
 const compiled: CompiledCard = {
   effects: [
     {
@@ -31,6 +36,7 @@ const compiled: CompiledCard = {
           },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
+          whileMatchesTargetFilter: true,
         },
       ],
     },
@@ -51,7 +57,7 @@ const compiled: CompiledCard = {
           scaling: {
             per: 1,
             filter: {
-              controllerDefault: "mine",
+              controllerDefault: "any",
               suspended: true,
               kind: ["Tamer"],
             },

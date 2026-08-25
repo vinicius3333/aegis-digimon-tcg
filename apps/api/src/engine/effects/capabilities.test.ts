@@ -1848,6 +1848,7 @@ describe("DnaDigivolve materials as an array (W7-E-2, EX6-072 mixed-zone materia
       { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
     ];
     const dnaCalls: { materialIds: string[]; resultId: string; opts: { extraMaterialInstanceIds?: string[] } }[] = [];
+    const legalityCalls: { materialIds: string[]; resultId: string; extraMaterialIds?: string[] }[] = [];
     const game: GameAccess = {
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (seat: Seat) => players[seat] as never,
@@ -1857,6 +1858,10 @@ describe("DnaDigivolve materials as an array (W7-E-2, EX6-072 mixed-zone materia
       linkMax: () => 1,
     } as never;
     const fx = {
+      canDnaDigivolve: (materialIds: string[], resultId: string, extraMaterialIds?: string[]) => {
+        legalityCalls.push({ materialIds, resultId, extraMaterialIds });
+        return true;
+      },
       dnaDigivolveInto: async (
         materialIds: string[],
         resultId: string,
@@ -1894,7 +1899,7 @@ describe("DnaDigivolve materials as an array (W7-E-2, EX6-072 mixed-zone materia
       ask,
       selections: new Map(),
     } as never;
-    return { ctx, dnaCalls };
+    return { ctx, dnaCalls, legalityCalls };
   }
 
   const mixedZoneIr: CompiledCard = {
@@ -1920,7 +1925,7 @@ describe("DnaDigivolve materials as an array (W7-E-2, EX6-072 mixed-zone materia
   } as never as CompiledCard;
 
   it("resolves one material from the field and one from hand, consuming both", async () => {
-    const { ctx, dnaCalls } = makeMixedZoneCtx();
+    const { ctx, dnaCalls, legalityCalls } = makeMixedZoneCtx();
 
     const effects = irCardModule("MIXED-ZONE-MATERIALS-TEST", mixedZoneIr).effectsForTiming(
       EffectTiming.OnUseOption,
@@ -1933,6 +1938,11 @@ describe("DnaDigivolve materials as an array (W7-E-2, EX6-072 mixed-zone materia
     expect(dnaCalls[0]!.materialIds).toEqual(["FIELD_MAT"]);
     // The hand slot resolved through the loose-card path, independently of the field slot.
     expect(dnaCalls[0]!.opts.extraMaterialInstanceIds).toEqual(["HAND_MAT"]);
+    expect(legalityCalls).toContainEqual({
+      materialIds: ["FIELD_MAT"],
+      resultId: "RESULT",
+      extraMaterialIds: ["HAND_MAT"],
+    });
     // The result comes from hand, per the `into.zone: "hand"` restriction.
     expect(dnaCalls[0]!.resultId).toBe("RESULT");
   });

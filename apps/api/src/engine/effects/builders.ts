@@ -181,7 +181,12 @@ export const onDeletion = (opts: BuilderOptions): Effect =>
     baseGuard: (ctx) => {
       const deleted = ctx.trigger?.deletedInstanceIds;
       if (deleted === undefined) return true;
-      return deleted.includes(ctx.source.instanceId);
+      if (!deleted.includes(ctx.source.instanceId)) return false;
+      if (!opts.isLinked) return true;
+
+      const hostInstanceId = ctx.trigger.deletedLinkHostInstanceByLinkedInstanceId?.[ctx.source.instanceId];
+      if (hostInstanceId === undefined) return true;
+      return ctx.game.state.players.some((player) => player.trash.some((card) => card.instanceId === hostInstanceId));
     },
   });
 

@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -56,10 +56,7 @@ const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
-              playCost: {
-                op: "gte",
-                value: 4,
-              },
+              playCostGte: 4,
             },
             count: 1,
           },
@@ -68,6 +65,7 @@ const compiled: CompiledCard = {
           reduceCostBy: 2,
           cost: {
             kind: "return",
+            to: "deckBottom",
             target: {
               filter: {
                 isSelfRef: true,

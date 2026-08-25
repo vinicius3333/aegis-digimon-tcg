@@ -50,7 +50,7 @@ const compiled: CompiledCard = {
             controller: "mine",
             raw: "by trashing the bottom face-down card from under any of your Tamers",
           },
-          optional: false,
+          optional: true,
           actions: [],
         },
       ],

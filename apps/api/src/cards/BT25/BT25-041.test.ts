@@ -1,8 +1,17 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_041 } from "./BT25-041.js";
 import "../index.js";
 
 describe("BT25-041 Murasamemon", () => {
+  it("exposes its printed Alliance keyword", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT25-041", as: "murasamemon" }] } });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("murasamemon"), "Alliance")).toBe(true);
+  });
+
   it("keeps both payment choices and both play/use choices", () => {
     for (const trigger of ["WhenDigivolving", "WhenAttacking"] as const) {
       const effect = BT25_041.effects?.find((entry) => entry.trigger === trigger);

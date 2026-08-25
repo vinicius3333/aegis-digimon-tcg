@@ -153,12 +153,13 @@ describe("LM-020 Quantumon", () => {
     const compiled = runtimeCompiledCard("LM-020")!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
-      frequency: "OncePerTurn",
       actions: [
         { kind: "SecurityManipulation", op: "placeAsSecurity", optional: true },
         { kind: "SecurityManipulation", op: "revealAllChooseToDeckTopShuffleRest", controller: "opponent" },
       ],
     });
+    // No [Once Per Turn] is printed on the When Digivolving clause.
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")?.frequency).toBeUndefined();
     expect(compiled.effects.find((effect) => effect.trigger === "StartOfOpponentsTurn")?.actions).toEqual([
       expect.objectContaining({ kind: "DeclareCategoryImmunity", duration: "forTheTurn" }),
     ]);
@@ -218,6 +219,35 @@ describe("LM-020 Quantumon", () => {
     expect(s.state.players[0]!.security.filter((card) => card.cardId === "LM-020")).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
+  it("places a chosen opposing Digimon into that opponent's own security stack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-036", as: "base" }], hand: [{ card: "LM-020", as: "quantumon" }] },
+        1: { battleArea: [{ card: "LM-016", as: "theirs" }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("theirs").permanentId);
+    s.state.memory = 10;
+
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("quantumon").instanceId,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0, 2000);
+
+    // The Digimon lands in ITS OWNER's stack, never the resolving player's. The second half of
+    // the clause then moves one of that stack's cards onto the same player's deck, so the card
+    // ends up in one of those two zones — both belonging to its owner.
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "LM-016")).toBe(false);
+    expect(
+      s.state.players[1]!.security.some((card) => card.cardId === "LM-016") ||
+        s.state.players[1]!.deck.some((card) => card.cardId === "LM-016"),
+    ).toBe(true);
+  });
+
   const module = getEffectModule("LM-020");
 
   it("is registered", () => {

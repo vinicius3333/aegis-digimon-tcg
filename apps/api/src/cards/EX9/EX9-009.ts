@@ -32,6 +32,14 @@ export const compiled: CompiledCard = {
           },
           amount: 1000,
           duration: "untilOpponentTurnEnd",
+          scaling: {
+            per: 1,
+            filter: {
+              faceDown: true,
+              controllerDefault: "mine",
+            },
+            unit: "targetFaceDownDigivolutionCards",
+          },
           cost: {
             kind: "place",
             target: {

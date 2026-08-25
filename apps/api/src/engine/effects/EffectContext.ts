@@ -193,10 +193,18 @@ export interface TriggerInfo {
   deletedWasStackInstanceIds?: string[];
   /** Subset of deletedInstanceIds that were linked cards before their host left play. */
   deletedWasLinkedInstanceIds?: string[];
+  /**
+   * Deleted host top-card instance keyed by each linked card that left with it. A linked
+   * [On Deletion] effect stays pending for the host card, not the link card (BT24-036 Q5615),
+   * so the host must still be in trash when that pending effect would activate.
+   */
+  deletedLinkHostInstanceByLinkedInstanceId?: Record<string, string>;
   /** Battle opponent for each card instance deleted in a battle. */
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
   /** Why the cards in this deletion window left play. */
   removalCause?: RemovalCause;
+  /** Named procedure that caused the deletion, when the rules distinguish it. */
+  removalMechanic?: "Overclock";
   /** True when this simultaneous deletion batch is the rule check for Digimon at exactly 0 DP. */
   deletedByDpZero?: boolean;
   /** Top-card instance IDs that individually reached exactly 0 DP in this deletion window. */
@@ -910,7 +918,7 @@ export interface Primitives {
    * deletion-immune permanent contributes 0 — KB BT23-069 Q5338). The interpreter binds this on
    * `ctx.lastDeleteCount` so a subsequent "if this effect didn't delete" Condition can gate.
    */
-  deletePermanent(permanentIds: string[], cause?: RemovalCause): Promise<number>;
+  deletePermanent(permanentIds: string[], cause?: RemovalCause, opts?: { mechanic?: "Overclock" }): Promise<number>;
   /** Trash an invalid battle-area position during a rule check, without deletion semantics. */
   trashPermanentByRule(permanentIds: string[]): Promise<CardInstance[]>;
   /** Returns the permanent IDs that actually transitioned to suspended. */
@@ -1115,7 +1123,11 @@ export interface Primitives {
   /** Treat a permanent as another level only while matching DNA requirements. */
   grantDnaLevel(permanentId: string, level: number, opts?: { intoNames?: string[]; continuous?: boolean }): void;
   /** Pure legality check used before offering an effect-driven DNA result. */
-  canDnaDigivolve?(materialPermanentIds: string[], resultInstanceId: string): boolean;
+  canDnaDigivolve?(
+    materialPermanentIds: string[],
+    resultInstanceId: string,
+    extraMaterialInstanceIds?: string[],
+  ): boolean;
   /** Grant a keyword to all current and future Digimon permanents controlled by a player. */
   grantPlayerKeyword(seat: Seat, keyword: string, duration: EffectDuration, amount?: number): void;
   /**
@@ -1189,8 +1201,12 @@ export interface Primitives {
    * static-continuous-effects lifecycle. `color` is a CardColor value (e.g. CardColor.Blue).
    */
   addColorGrant(permanentId: string, color: CardColor, duration: EffectDuration): void;
-  /** Record that an instance may be used/played without meeting its color requirement. */
-  waiveColorRequirement(instanceId: string, duration: EffectDuration): void;
+  /**
+   * Record that an instance may be used/played without meeting its color requirement, or —
+   * with `alsoColor` — that one extra colour ALSO satisfies the printed requirement
+   * ("Black also meets this card's colour requirements").
+   */
+  waiveColorRequirement(instanceId: string, duration: EffectDuration, opts?: { alsoColor?: CardColor }): void;
   /**
    * Confer all effects of a digivolution-stack card onto its owning permanent
    * (GrantStatic grant:"effects").
@@ -1201,6 +1217,13 @@ export interface Primitives {
     duration: EffectDuration,
     opts?: { trigger?: string; inheritedOnly?: boolean },
   ): void;
+  /** Read the currently active stack-effect conferrals (for effects that borrow another card's skills). */
+  stackEffectConferrals?(): readonly {
+    targetPermanentId: string;
+    stackInstanceId: string;
+    trigger?: string;
+    inheritedOnly?: boolean;
+  }[];
   /**
    * Also offer a permanent's `[On Deletion]` effects — its own printed ones AND the inherited
    * ones its digivolution cards provide — at the end of its own attack (BT16-015's "attach

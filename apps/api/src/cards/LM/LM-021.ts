@@ -29,6 +29,8 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: "all",
+            // "equal or less than THIS Digimon's DP": read the live DP, not the printed 14000.
+            totalDpCapFromSourceDp: true,
             totalDpCap: 14000,
           },
         },
@@ -45,6 +47,8 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: "all",
+            // "equal or less than THIS Digimon's DP": read the live DP, not the printed 14000.
+            totalDpCapFromSourceDp: true,
             totalDpCap: 14000,
           },
         },
@@ -78,10 +82,16 @@ const compiled: CompiledCard = {
       names: ["Agumon"],
       cost: 3,
       isAlternate: true,
-      condition: {
-        kind: "securityCountLte",
+      // `whileCondition` is the field the digivolve validator reads, and it accepts a
+      // `zoneCount` shape only; the previous `condition: { kind: "securityCountLte" }` was
+      // ignored outright, leaving the Cost 3 path available at any security count (Q4014).
+      whileCondition: {
+        kind: "zoneCount",
+        seat: "mine",
+        zone: "security",
+        op: "lte",
         value: 2,
-        controller: "mine",
+        raw: "while you have 2 or fewer security cards",
       },
     },
   ],

@@ -10,7 +10,7 @@ describe("EX11-004 Kapurimon", () => {
       cardId: "EX11-004",
       definition: getCardDefinition("EX11-004"),
       ownerSeat: 0,
-      permanent: () => ({ permanentId: "host" }),
+      permanent: () => ({ permanentId: "host", linked: [], stack: [] }),
       isOnBattleArea: () => true,
       isOwnersTurn: () => true,
     } as any;

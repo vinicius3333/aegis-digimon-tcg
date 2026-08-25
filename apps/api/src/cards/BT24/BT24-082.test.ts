@@ -81,6 +81,30 @@ describe("BT24-082 Owen Dreadnought", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("elizamon").instanceId);
   });
 
+  it("Q5664: does not activate a start-of-main effect on the Owen played during that window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-082", as: "source" }],
+          hand: [{ card: "BT21-081", as: "replacement" }],
+        },
+        1: { battleArea: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireGlobal(EffectTiming.StartOfYourMainPhase);
+
+    expect(s.state.memory).toBe(0);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("replacement").instanceId,
+      ),
+    ).toBe(true);
+  });
+
   it("suspends Owen to give the digivolved Reptile 3000 DP and let it attack", async () => {
     const s = setupEngine(
       {

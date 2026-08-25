@@ -53,4 +53,29 @@ describe("ST23-03 Cougarmon", () => {
       ],
     });
   });
+
+  it("performs Recovery +1 even when there is no security card to add to hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST23-02", as: "base" }],
+        hand: [{ card: "ST23-03", as: "cougarmon" }],
+        deck: ["BT1-002", "BT1-003", "BT1-004"],
+      },
+    });
+    const deckBefore = s.state.players[0]!.deck.length;
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("cougarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1 && deckBefore - s.state.players[0]!.deck.length === 2);
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(deckBefore - s.state.players[0]!.deck.length).toBe(2);
+  });
 });

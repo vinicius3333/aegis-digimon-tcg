@@ -26,6 +26,15 @@ export async function runControlFlowAction(ctx: EffectContext, action: Action): 
     case "DelayedEffect": {
       const self = ctx.source.permanent();
       if (self === undefined) return false;
+      // The delayed body runs in a FRESH context a turn later, so the effect-result bindings it
+      // names ("return THAT Digimon to the hand" — BT17-069, LM-013) have to be carried across
+      // explicitly. Snapshot them at arm time: nothing else survives the gap, and without this
+      // a `boundRef` target resolves to nothing and the delayed clause silently does nothing.
+      const armedBindings = {
+        boundPlayed: ctx.boundPlayed === undefined ? undefined : new Map(ctx.boundPlayed),
+        selections: ctx.selections === undefined ? undefined : new Map(ctx.selections),
+        namedCounts: ctx.namedCounts === undefined ? undefined : new Map(ctx.namedCounts),
+      };
       ctx.fx.subscribeSubTrigger({
         event: "endOfTurn",
         sourcePermanentId: self.permanentId,
@@ -34,6 +43,20 @@ export async function runControlFlowAction(ctx: EffectContext, action: Action): 
         matches: (subCtx) => !subCtx.source.isOwnersTurn(),
         description: action.raw ?? "DelayedEffect(nextEndOfOpponentTurn)",
         run: async (subCtx) => {
+          const writable = subCtx as unknown as {
+            boundPlayed?: Map<string, Set<string>>;
+            selections?: Map<string, string>;
+            namedCounts?: Map<string, number>;
+          };
+          if (armedBindings.boundPlayed !== undefined) {
+            writable.boundPlayed = new Map([...(writable.boundPlayed ?? []), ...armedBindings.boundPlayed]);
+          }
+          if (armedBindings.selections !== undefined) {
+            writable.selections = new Map([...(writable.selections ?? []), ...armedBindings.selections]);
+          }
+          if (armedBindings.namedCounts !== undefined) {
+            writable.namedCounts = new Map([...(writable.namedCounts ?? []), ...armedBindings.namedCounts]);
+          }
           await runAction(subCtx, action.effect);
         },
       });

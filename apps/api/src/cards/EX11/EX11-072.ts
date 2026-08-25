@@ -56,43 +56,47 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "Digivolve",
+              kind: "GainKeyword",
               target: {
                 filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [
-                    {
-                      tokens: ["Avian", "Bird"],
-                      match: "trait",
-                    },
-                    {
-                      tokens: ["Vortex Warriors"],
-                      match: "trait",
-                    },
-                  ],
+                  isSelfRef: true,
                 },
                 count: 1,
+                isSelf: true,
               },
-              into: {
-                controllerDefault: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Bird Dragon", "LIBERATOR"],
-                    match: "traitAll",
-                  },
-                ],
-              },
-              from: ["hand"],
-              reduceCost: 3,
-              optional: true,
+              keyword: { keyword: "Delay", raw: "＜Delay＞" },
+              duration: "permanent",
             },
           ],
-          keyword: {
-            keyword: "Delay",
-            raw: "＜Delay＞",
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      actions: [
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                { tokens: ["Avian", "Bird"], match: "traitContains" },
+                { tokens: ["Vortex Warriors"], match: "trait" },
+              ],
+            },
+            count: 1,
           },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Bird Dragon", "LIBERATOR"], match: "traitAll" }],
+          },
+          from: ["hand"],
+          payCost: true,
+          reduceCost: 3,
+          optional: true,
         },
       ],
     },

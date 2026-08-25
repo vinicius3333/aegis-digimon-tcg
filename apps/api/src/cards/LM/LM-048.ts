@@ -1,15 +1,15 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+// Audit fix (LM audit): "Black also meets this card's colour requirements" registers an
+// ALTERNATIVE colour, not a blanket waiver — the printed requirement still has to be met by one
+// of the two colours (Q4063). The gate is also not limited to the battle area: a colour source
+// in the breeding area counts (Q4064), so no extra `condition` narrows it.
+
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      condition: {
-        kind: "youHave",
-        filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon", "Tamer"], colors: ["Black"] },
-        raw: "you have a black Digimon or Tamer in the battle area",
-      },
       actions: [
         {
           kind: "WaiveColorRequirement",

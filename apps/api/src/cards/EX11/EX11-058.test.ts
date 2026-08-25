@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
-import "./EX11-058.js";
+import { compiled } from "./EX11-058.js";
 
 describe("EX11-058 Yao Qinglan", () => {
   it("places an Aqua or Sea Animal card under a matching Digimon and gains memory", async () => {
@@ -69,5 +70,51 @@ describe("EX11-058 Yao Qinglan", () => {
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
     expect(s.perm("yao").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.length).toBe(handBefore);
+  });
+
+  it("locks an opponent Digimon only when the triggering play carries Decode provenance (Q5911-Q5912)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT14-008", as: "decoded" },
+            { card: "EX11-058", as: "yao" },
+          ],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("decoded").permanentId,
+      playedByDecode: true,
+    });
+
+    expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(true);
+  });
+
+  it("publishes full IR with Aqua-or-Sea-Animal filters and Decode only on the play watcher", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    const watchers = compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions ?? [];
+    const played = watchers.find((action) => action.kind === "SubTrigger" && action.event === "whenPlayed");
+    const evolved = watchers.find(
+      (action) => action.kind === "SubTrigger" && action.event === "whenOneOfYoursDigivolves",
+    );
+    expect(played).toMatchObject({
+      sourceFilter: {
+        nameOrTrait: [
+          { tokens: ["Aqua"], match: "trait" },
+          { tokens: ["Sea Animal"], match: "trait", orPrevious: true },
+        ],
+      },
+      actions: [
+        { kind: "Draw", cost: { kind: "suspend" }, abortOnDecline: true },
+        { kind: "Restrict", condition: { kind: "triggerPlayedByDecode" } },
+      ],
+    });
+    expect(evolved).toMatchObject({ actions: [{ kind: "Draw" }] });
   });
 });

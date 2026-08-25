@@ -11,12 +11,18 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
   it("gains 1 memory when an effect trashes this Digimon's link card", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", linked: [{ card: "EX10-001", as: "flickmon" }] }],
+        battleArea: [
+          {
+            card: "BT1-009",
+            as: "host",
+            under: [{ card: "EX10-001", as: "flickmon" }],
+            linked: [{ card: "BT1-009", as: "linkCard" }],
+          },
+        ],
       },
     });
-    const p0 = s.state.players[0]!;
     const host = s.perm("host");
-    const link = s.inst("flickmon");
+    const link = s.inst("linkCard");
     const memoryBefore = s.state.memory;
 
     await s.engine.recomputeContinuousEffects();

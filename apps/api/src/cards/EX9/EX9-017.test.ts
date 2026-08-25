@@ -13,6 +13,8 @@ describe("EX9-017", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "TrashDigivolution",
       amount: 1,
+      scope: "acrossDigimon",
+      scaling: { unit: "selfFaceDownDigivolutionCards", per: 1 },
       cost: { kind: "place", destination: "digivolutionStack", faceDown: true },
     });
   });
@@ -22,19 +24,37 @@ describe("EX9-017", () => {
       raw: "＜Jamming＞",
     }));
 
-  it("trashes an opposing digivolution card while placing a hand card face down underneath", async () => {
+  it("trashes across opposing Digimon once per face-down source and ignores face-up sources", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX9-017", as: "source" }], hand: ["BT1-001"] },
-        1: { battleArea: [{ card: "BT1-009", as: "target", under: ["BT1-001"] }] },
+        0: {
+          battleArea: [
+            {
+              card: "EX9-017",
+              as: "source",
+              under: [
+                { card: "EX9-070", faceUp: false },
+                { card: "EX9-071", faceUp: true },
+              ],
+            },
+          ],
+          hand: ["EX9-072"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target-a", under: ["EX9-070"] },
+            { card: "BT1-010", as: "target-b", under: ["EX9-071"] },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
 
-    expect(s.perm("target").stack).toHaveLength(0);
-    expect(s.perm("source").stack).toHaveLength(1);
-    expect(s.perm("source").stack[0]!.faceUp).toBe(false);
+    expect(s.perm("target-a").stack).toHaveLength(0);
+    expect(s.perm("target-b").stack).toHaveLength(0);
+    expect(s.perm("source").stack).toHaveLength(3);
+    expect(s.perm("source").stack.filter((card) => card.faceUp !== true)).toHaveLength(2);
   });
 });

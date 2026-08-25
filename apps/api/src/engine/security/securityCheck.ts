@@ -139,6 +139,14 @@ export interface SecurityCheckDeps {
    * the security unit tests need no change; absent => keyword(s) not checked.
    */
   hasKeyword?(permanentId: string, keyword: string): boolean;
+
+  /**
+   * Whether a permanent currently carries a continuous restriction — used for the
+   * "can't be deleted in battle" grant, which KB LM-003 Q3991 confirms also spares the
+   * attacker from a Security Digimon battle. Optional so the security unit tests need no
+   * change; absent => the restriction is not checked.
+   */
+  hasRestriction?(permanentId: string, restriction: "beDeletedInBattle"): boolean;
 }
 
 /**
@@ -317,7 +325,12 @@ async function battleSecurityDigimon(
   });
   if (outcome.attackerDeleted) {
     // ＜Jamming＞ (§16-9): attacker with Jamming isn't deleted in Security Digimon battles.
-    if (deps.hasKeyword?.(attackerPermanent.permanentId, "Jamming") !== true) {
+    // A "can't be deleted in battle" grant spares it too — LM-003 Q3991 states the protection
+    // covers battles against Security Digimon, which are battles like any other.
+    const spared =
+      deps.hasKeyword?.(attackerPermanent.permanentId, "Jamming") === true ||
+      deps.hasRestriction?.(attackerPermanent.permanentId, "beDeletedInBattle") === true;
+    if (!spared) {
       await deps.deletePermanents([attacker.permanentId]);
     }
   } else if (outcome.securityDigimonDeleted) {

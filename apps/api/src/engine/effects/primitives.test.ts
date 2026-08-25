@@ -2183,7 +2183,7 @@ describe("primitives: suspend (whenEffectSuspends fire seam)", () => {
     // The pre-existing whenSuspended fire is preserved alongside it.
     expect(h.subTriggerFires).toContainEqual({
       event: "whenSuspended",
-      payload: { suspendedPermanentId: tamerId },
+      payload: { subjectPermanentId: tamerId, suspendedPermanentId: tamerId, effectSuspendSeat: 0 },
     });
   });
 
@@ -2217,6 +2217,10 @@ describe("primitives: suspend (whenEffectSuspends fire seam)", () => {
     await h.fx.suspend([tamerId]);
     expect(h.subTriggerFires).toContainEqual({
       event: "whenEffectSuspends",
+      payload: { subjectPermanentId: tamerId, suspendedPermanentId: tamerId },
+    });
+    expect(h.subTriggerFires).toContainEqual({
+      event: "whenSuspended",
       payload: { subjectPermanentId: tamerId, suspendedPermanentId: tamerId },
     });
   });
@@ -2356,6 +2360,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     changeEvoCost: true,
     changePlayCost: true,
     conferStackEffects: true,
+    stackEffectConferrals: true,
     declareWinner: true,
     deDigivolve: true,
     delayedDeletePlayed: true,

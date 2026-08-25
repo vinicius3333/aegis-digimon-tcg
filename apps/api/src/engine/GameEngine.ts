@@ -308,6 +308,10 @@ function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDele
       deletedWasStackInstanceIds: union("deletedWasStackInstanceIds"),
       deletedWasLinkedInstanceIds: union("deletedWasLinkedInstanceIds"),
       deletedByDpZeroInstanceIds: union("deletedByDpZeroInstanceIds"),
+      deletedLinkHostInstanceByLinkedInstanceId: {
+        ...trigger.deletedLinkHostInstanceByLinkedInstanceId,
+        ...into.deletedLinkHostInstanceByLinkedInstanceId,
+      },
       deletedByDpZero: into.deletedByDpZero === true || trigger.deletedByDpZero === true,
       deletedEffectiveColorsByInstanceId: {
         ...trigger.deletedEffectiveColorsByInstanceId,
@@ -604,16 +608,26 @@ export class GameEngine {
   ) {
     // TODO(effect-framework): import "../cards" is done at boot for side-effect
     //   registration; wire the registry into the resolution path here.
-    this.continuous = new ContinuousEffectLedger((permanentId) => {
-      for (const player of this.state.players) {
-        const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
-        if (permanent !== undefined) {
-          const definition = lookupDefinition(permanent.topCard.cardId);
-          if (definition !== undefined && isDigimon(definition)) return permanent.controllerSeat;
+    this.continuous = new ContinuousEffectLedger(
+      (permanentId) => {
+        for (const player of this.state.players) {
+          const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
+          if (permanent !== undefined) {
+            const definition = lookupDefinition(permanent.topCard.cardId);
+            if (definition !== undefined && isDigimon(definition)) return permanent.controllerSeat;
+          }
         }
-      }
-      return undefined;
-    });
+        return undefined;
+      },
+      undefined,
+      (permanentId) => {
+        for (const player of this.state.players) {
+          const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
+          if (permanent !== undefined) return permanent.controllerSeat;
+        }
+        return undefined;
+      },
+    );
     this.memory = new MemoryGauge(this.state, this.hooks.emit, (seat, opts) => {
       const kinds = opts.isTamerEffect ? [CardKind.Tamer] : [CardKind.Digimon];
       return this.continuous.canGainMemoryFromEffect(seat, {
@@ -661,6 +675,7 @@ export class GameEngine {
               deletedInstanceIds: trigger.deletedInstanceIds,
               deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
               deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
+              deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
               battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
             });
             return;
@@ -680,10 +695,12 @@ export class GameEngine {
           deletedInstanceIds: trigger.deletedInstanceIds,
           deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
           deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
+          deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
           battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
         });
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
+      prepareSubTrigger: (event, payload) => this.prepareSubTrigger(event, payload),
       resolveDeletionReactions: async (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
       effectiveColorsOf: (permanentId) => {
         const permanent = this.access.permanentById(permanentId);
@@ -928,6 +945,7 @@ export class GameEngine {
         !this.continuous.hasRestriction(permanentId, "beAffected"),
       (permanent) => this.effectiveColorsOf(permanent),
       (instanceId) => this.continuous.hasColorWaiver(instanceId),
+      (instanceId) => this.continuous.colorRequirementAlternatives(instanceId),
       (permanent) => canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
       (permanentId, printedTraits) => effectiveTraits(this.continuous, permanentId, printedTraits),
       (permanentId, printedKinds) => effectiveKinds(this.continuous, permanentId, printedKinds),
@@ -1891,6 +1909,20 @@ export class GameEngine {
     const wasOutermostWindow = this.beginResolvingWindow();
     try {
       await this.recomputeContinuousEffects();
+      // A phase-boundary event has one fixed set of card sources: a Tamer played by an
+      // earlier start-of-turn/start-of-main effect did not exist when that boundary
+      // occurred and cannot retroactively trigger (BT24-082/Q5664, BT24-083/Q5667).
+      // Keep ordinary timing windows live because derived triggers and mid-window
+      // digivolutions intentionally join those resolution fixpoints.
+      const phaseBoundarySourceLocations =
+        timing === EffectTiming.OnStartTurn || timing === EffectTiming.OnStartMainPhase
+          ? new Map(
+              this.listCandidateInstances().map((instance) => [
+                instance.instanceId,
+                this.candidateSourceLocation(instance.instanceId),
+              ]),
+            )
+          : undefined;
       // GRANTED timed triggers fired at the same physical point as the matching window, and
       // therefore simultaneous with the printed effects it collects:
       //   - "[Start of Your Main Phase]" granted onto a permanent (BT23-056); the per-install
@@ -1908,7 +1940,17 @@ export class GameEngine {
           await runTiming(
             timing,
             this.effectEnvironment(trigger),
-            this.resolutionDeps(undefined, { outermost: wasOutermostWindow }),
+            this.resolutionDeps(
+              phaseBoundarySourceLocations === undefined
+                ? undefined
+                : () =>
+                    this.instancesById([...phaseBoundarySourceLocations.keys()]).filter(
+                      (instance) =>
+                        this.candidateSourceLocation(instance.instanceId) ===
+                        phaseBoundarySourceLocations.get(instance.instanceId),
+                    ),
+              { outermost: wasOutermostWindow },
+            ),
           );
           if (wasOutermostWindow) {
             await this.flushDeferredTimingWindows();
@@ -2082,7 +2124,16 @@ export class GameEngine {
       return;
     }
     if (this.shouldDeferNestedTiming()) {
-      this.pendingWindowSubTriggers.push(...this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload));
+      // The event subject can leave the board before the causing effect finishes. Bind each
+      // context now, at trigger time, so the pending activation keeps the subject snapshot
+      // required by CR §15-4-4 instead of re-running its filter against an already-moved card.
+      const subscriptions = this.subTriggers.subscriptionsFor(event);
+      const contexts = new Map<number, EffectContext>();
+      for (const sub of subscriptions) {
+        const ctx = this.buildSubTriggerContext(sub, payload);
+        if (ctx !== undefined) contexts.set(sub.id, ctx);
+      }
+      this.pendingWindowSubTriggers.push(...this.armedSubTriggers(subscriptions, payload, contexts));
       return;
     }
     // A SubTrigger body is a triggered, duration-scoped effect even when its watcher was
@@ -2126,6 +2177,28 @@ export class GameEngine {
     // A watcher body may have moved/deleted permanents; refresh the continuous tier so a
     // subsequent read sees the post-fire board (mirrors fireTiming's trailing recompute).
     await this.recomputeContinuousEffects();
+  }
+
+  /**
+   * Capture the watchers armed when an event occurs, then return a deferred activation.
+   * This is distinct from a nested timing deferral: combat deliberately resolves its
+   * System-A [When Attacking] window before the System-B watcher bus, but both systems
+   * observe the same attack declaration. A watcher installed by an earlier System-A
+   * effect therefore must not retroactively join that declaration (BT24-078/Q5775).
+   */
+  private prepareSubTrigger(event: SubTriggerEventName, payload: TriggerInfo): () => Promise<void> {
+    const boundPayload = { ...payload };
+    const subscriptions = [...this.subTriggers.subscriptionsFor(event)];
+    const contexts = new Map<number, EffectContext>();
+    for (const sub of subscriptions) {
+      const ctx = this.buildSubTriggerContext(sub, boundPayload);
+      if (ctx !== undefined) contexts.set(sub.id, ctx);
+    }
+    return async () => {
+      await this.withTriggeredMutations(async () => {
+        await this.fireSubTriggerSnapshot(subscriptions, boundPayload, contexts);
+      });
+    };
   }
 
   /**
@@ -3438,6 +3511,7 @@ export class GameEngine {
       digivolvedThisTurn: (seat) => this.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
       effectiveColors: (permanent) => this.effectiveColorsOf(permanent),
       colorRequirementWaived: (instanceId) => this.continuous.hasColorWaiver(instanceId),
+      colorRequirementAlternatives: (instanceId) => this.continuous.colorRequirementAlternatives(instanceId),
       canDeclareAttack: (permanent) =>
         canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
       triggerInfo: trigger,
@@ -4052,6 +4126,41 @@ export class GameEngine {
     return out;
   }
 
+  /**
+   * Identify the exact effect-source role occupied by an instance. Phase-boundary
+   * windows snapshot this value so an instance that was merely present in a stack,
+   * linked slot, or loose zone cannot gain a newly available printed effect after it
+   * moves during resolution of that same physical boundary.
+   */
+  private candidateSourceLocation(instanceId: string): string | undefined {
+    for (const [seat, player] of this.state.players.entries()) {
+      if (player === undefined) continue;
+      const permanentLocation = (area: "battle" | "breeding", permanent: Permanent): string | undefined => {
+        if (permanent.topCard?.instanceId === instanceId) return `${seat}:${area}:${permanent.permanentId}:top`;
+        if (permanent.stack.some((card) => card.instanceId === instanceId)) {
+          return `${seat}:${area}:${permanent.permanentId}:stack`;
+        }
+        if (permanent.linked.some((card) => card.instanceId === instanceId)) {
+          return `${seat}:${area}:${permanent.permanentId}:linked`;
+        }
+        return undefined;
+      };
+      for (const permanent of player.battleArea) {
+        const location = permanentLocation("battle", permanent);
+        if (location !== undefined) return location;
+      }
+      if (player.breeding !== undefined) {
+        const location = permanentLocation("breeding", player.breeding);
+        if (location !== undefined) return location;
+      }
+      if (player.hand.some((card) => card.instanceId === instanceId)) return `${seat}:hand`;
+      if (player.trash.some((card) => card.instanceId === instanceId)) return `${seat}:trash`;
+      if (player.security.some((card) => card.instanceId === instanceId && card.faceUp)) return `${seat}:security`;
+      if (player.resolvingOption?.instanceId === instanceId) return `${seat}:resolvingOption`;
+    }
+    return undefined;
+  }
+
   /** Push a permanent's top card, digivolution-stack cards, and linked cards. */
   private collectPermanentInstances(permanent: Permanent, out: CardInstance[]): void {
     if (permanent.topCard !== undefined) out.push(permanent.topCard);
@@ -4142,6 +4251,7 @@ export class GameEngine {
         const permanent = this.access.permanentById(permanentId);
         return permanent !== undefined && resolveKeywords(permanent, this.continuous).includes(keyword);
       },
+      hasRestriction: (permanentId, restriction) => this.continuous.hasRestriction(permanentId, restriction),
       securityCardDp: (card) => {
         const owner = card.ownerSeat;
         return (lookupDefinition(card.cardId)?.dp ?? 0) + this.securityDp.deltaFor(owner);
@@ -4276,7 +4386,13 @@ export class GameEngine {
       // has waived this instance — `continuous.hasColorWaiver` is the consuming read that
       // makes the waiver observable. Deliberately not the full color subsystem (Phase 4).
       colorRequirementMet: (_state, seat, instance, definition, mode) =>
-        this.continuous.hasColorWaiver(instance.instanceId) || this.printedColorRequirementMet(seat, definition, mode),
+        this.continuous.hasColorWaiver(instance.instanceId) ||
+        this.printedColorRequirementMet(
+          seat,
+          definition,
+          mode,
+          this.continuous.colorRequirementAlternatives(instance.instanceId),
+        ),
       nextPermanentId: () => this.nextPermanentId(),
       // Pay-time interactive cost reduction (BeforePayCost): fire the played card's BeforePayCost
       // window (where a ReducePlayCost action runs its optional server-side payment) and return the
@@ -4403,7 +4519,12 @@ export class GameEngine {
    * derivation, which is Phase 4). Used also to give WaiveColorRequirement an observable
    * consumer; the waiver short-circuit is applied by the caller before this runs.
    */
-  private printedColorRequirementMet(seat: Seat, definition: CardDefinition, mode: PlayMode): boolean {
+  private printedColorRequirementMet(
+    seat: Seat,
+    definition: CardDefinition,
+    mode: PlayMode,
+    alsoColors: readonly CardColor[] = [],
+  ): boolean {
     const required = definition.optionColorRequirements ?? (mode === "option" ? (definition.colors ?? []) : []);
     if (required.length === 0) return true;
     const player = this.state.players[seat];
@@ -4429,6 +4550,9 @@ export class GameEngine {
       // a permanent that is continuously treated as another color contributes that color here.
       for (const color of this.effectiveColorsOf(perm)) available.add(color);
     }
+    // "X ALSO meets this card's colour requirements" (LM Memory Boost family, Q4063/Q4064):
+    // one extra colour on the field satisfies the printed requirement in full.
+    if (alsoColors.some((color) => available.has(color))) return true;
     return required.every((color) => available.has(color));
   }
 

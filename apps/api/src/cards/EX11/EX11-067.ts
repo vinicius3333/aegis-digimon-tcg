@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   sourceFilter: any of your Digimon (no name restriction on the source).
 //   digivolveIntoFilter: Lucemon in name.
 //   Actions: GainMemory with suspend as its cost (not a cost on the SubTrigger itself).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
@@ -37,7 +37,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              zone: "field",
+              or: [{ zone: "battleArea" }, { zone: "breeding" }],
               nameOrTrait: [
                 {
                   tokens: ["Lucemon"],

@@ -39,6 +39,28 @@ describe("BT25-085 BeelStarmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("uses an Option from this Digimon's sources but not another Digimon's sources", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "beel", under: [{ card: CARD_ID, as: "ownOption" }] },
+            { card: "BT1-009", as: "other", under: [{ card: CARD_ID, as: "otherOption" }] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("beel"));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownOption").instanceId);
+    expect(s.perm("other").stack.map((card) => card.instanceId)).toContain(s.inst("otherOption").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
   it("trashes one Option link card from any own Digimon and then unsuspends", async () => {
     const s = setupEngine(
       {

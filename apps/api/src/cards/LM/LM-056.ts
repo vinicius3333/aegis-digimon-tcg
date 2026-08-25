@@ -3,14 +3,12 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // LM-056 Image Training
-// [Static] While you don't have [Image Training] in the battle area, you can ignore this
-//   card's color requirements. (youHaveNone filter is correct for "don't have")
-// [Main] Reveal the top 2 cards of your deck. Add 1 blue or purple card among them to
-//   the hand. Return the rest to the bottom of deck. Then, place this card in the battle area.
-// [Main] <Delay> 1 of your Digimon may digivolve into a blue or purple Digimon card in
-//   your hand for its digivolution cost. When it would digivolve by this effect, reduce
-//   the cost by 2.
-// [Security] (same as [Main] reveal effect + place in battle area)
+// Same printed card as LM-054 Treadmill Training in blue/purple. Audit fix (LM audit): the
+// generated modules for LM-055 through LM-062 dropped part of the shared Delay clause — the
+// `reduceCost: 2` reduction, the `payCost: true` that makes the digivolution paid at all, or
+// both — so this file is templated from the audited LM-054 module with the colours and the
+// self-name swapped.
+
 const compiled: CompiledCard = {
   effects: [
     {
@@ -37,7 +35,7 @@ const compiled: CompiledCard = {
                 },
               ],
             },
-            raw: "you don't have [Image Training] in the battle area",
+            raw: "you have don't have [Image Training] in the battle area",
           },
         },
       ],
@@ -67,12 +65,6 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Main",
-      keywords: [
-        {
-          keyword: "Delay",
-          raw: "＜Delay＞",
-        },
-      ],
       actions: [
         {
           kind: "Digivolve",
@@ -90,7 +82,14 @@ const compiled: CompiledCard = {
           },
           from: ["hand"],
           reduceCost: 2,
+          payCost: true,
           optional: true,
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
         },
       ],
     },

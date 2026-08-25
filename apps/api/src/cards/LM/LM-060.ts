@@ -2,10 +2,13 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Static: while you don't have another [Shadow Training] in the battle area,
-// ignore this card's color requirements (WaiveColorRequirement).
-// Main (Delay): 1 Digimon may digivolve into a green/purple Digimon from hand
-// for its digivolution cost, reduced by 2 (payCost:true + effectScopedReduction).
+// LM-060 Shadow Training
+// Same printed card as LM-054 Treadmill Training in green/purple. Audit fix (LM audit): the
+// generated modules for LM-055 through LM-062 dropped part of the shared Delay clause — the
+// `reduceCost: 2` reduction, the `payCost: true` that makes the digivolution paid at all, or
+// both — so this file is templated from the audited LM-054 module with the colours and the
+// self-name swapped.
+
 const compiled: CompiledCard = {
   effects: [
     {
@@ -14,7 +17,9 @@ const compiled: CompiledCard = {
         {
           kind: "WaiveColorRequirement",
           target: {
-            filter: { isSelfRef: true },
+            filter: {
+              isSelfRef: true,
+            },
             count: 1,
             isSelf: true,
           },
@@ -30,7 +35,7 @@ const compiled: CompiledCard = {
                 },
               ],
             },
-            raw: "you don't have [Shadow Training] in the battle area",
+            raw: "you have don't have [Shadow Training] in the battle area",
           },
         },
       ],
@@ -60,12 +65,6 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Main",
-      keywords: [
-        {
-          keyword: "Delay",
-          raw: "＜Delay＞",
-        },
-      ],
       actions: [
         {
           kind: "Digivolve",
@@ -80,12 +79,17 @@ const compiled: CompiledCard = {
             controllerDefault: "mine",
             kind: ["Digimon"],
             colors: ["Green", "Purple"],
-            zone: "hand",
           },
           from: ["hand"],
-          payCost: true,
           reduceCost: 2,
+          payCost: true,
           optional: true,
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
         },
       ],
     },

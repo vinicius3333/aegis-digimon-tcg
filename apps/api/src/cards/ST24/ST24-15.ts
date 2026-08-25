@@ -36,6 +36,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              kind: ["Digimon", "Tamer"],
               playCostLte: 4,
               nameOrTrait: [
                 {
@@ -49,7 +50,6 @@ const compiled: CompiledCard = {
           from: ["hand", "trash"],
           payCost: false,
           optional: true,
-          abortOnDecline: true,
         },
         {
           kind: "PlaceInBattleAreaSelf",

@@ -127,6 +127,7 @@ export function createGameAccess(
   isTimingEffectDisabled?: (permanentId: string, timing: "whenDigivolving" | "whenAttacking" | "onPlay") => boolean,
   effectiveColors?: (permanent: Permanent) => import("@aegis/shared").CardColor[],
   colorRequirementWaived?: (instanceId: string) => boolean,
+  colorRequirementAlternatives?: (instanceId: string) => import("@aegis/shared").CardColor[],
   canDeclareAttack?: (permanent: Permanent) => boolean,
   effectiveTraitsResolver?: (permanentId: string, printedTraits: readonly string[]) => string[],
   effectiveKindsResolver?: (
@@ -183,6 +184,7 @@ export function createGameAccess(
     colorRequirementWaived: (instanceId): boolean => (colorRequirementWaived ?? (() => false))(instanceId),
     optionColorRequirementMet: (seat, instanceId, definition): boolean => {
       if ((colorRequirementWaived ?? (() => false))(instanceId)) return true;
+      const alsoColors = (colorRequirementAlternatives ?? (() => []))(instanceId);
       const required = definition.optionColorRequirements ?? definition.colors ?? [];
       if (required.length === 0) return true;
       const available = new Set<import("@aegis/shared").CardColor>();
@@ -201,6 +203,8 @@ export function createGameAccess(
         const colors = (effectiveColors ?? ((p) => requireCardDefinition(p.topCard.cardId).colors))(permanent);
         for (const color of colors) available.add(color);
       }
+      // "X ALSO meets this card's colour requirements" (LM Memory Boost family).
+      if (alsoColors.some((color) => available.has(color))) return true;
       return required.every((color) => available.has(color));
     },
     baseGrantedDigivolve,
@@ -370,6 +374,7 @@ export interface EffectEnvironment {
   digivolvedThisTurn?: (seat: Seat) => boolean;
   effectiveColors?: (permanent: Permanent) => import("@aegis/shared").CardColor[];
   colorRequirementWaived?: (instanceId: string) => boolean;
+  colorRequirementAlternatives?: (instanceId: string) => import("@aegis/shared").CardColor[];
   /** Shared ordinary-attack legality used by attack costs before they are offered. */
   canDeclareAttack?: (permanent: Permanent) => boolean;
   /** Trigger payload for the active timing window. */
@@ -405,6 +410,7 @@ export function gatherTriggeredEffects(
     undefined,
     env.effectiveColors,
     env.colorRequirementWaived,
+    env.colorRequirementAlternatives,
     env.canDeclareAttack,
     (permanentId, printedTraits) => effectiveTraits(env.continuous, permanentId, printedTraits),
     (permanentId, printedKinds) => {

@@ -313,6 +313,14 @@ export async function runSecurityManipulation(
           }
         }
         const chosen = await pickLoose(ctx, scaledSource, candidates);
+        // "Do I reveal the card to my opponent? Yes" (LM-023 Q4025): the card is shown before it
+        // goes face down onto the stack, so a hidden-zone placement stays public information.
+        if (action.revealChosen === true) {
+          for (const instanceId of chosen) {
+            const card = candidates.find((candidate) => candidate.instanceId === instanceId);
+            if (card !== undefined) ctx.fx.revealCard(ctx.source.ownerSeat, card.cardId, ctx.source.cardId);
+          }
+        }
         if (chosen.length > 0)
           await ctx.fx.addSecurity(seat, chosen, { toTop: action.toTop ?? true, faceUp: action.faceUp });
         return;
@@ -330,8 +338,25 @@ export async function runSecurityManipulation(
         unsupported(ctx, action, `SecurityManipulation placeAsSecurity source ${action.source} unsupported`);
         return;
       }
-      const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, action.source));
+      const resolvedPermanentIds = await resolvePermanentTargets(ctx, action.source);
+      const ids = topInstanceIds(ctx, resolvedPermanentIds);
       if (ids.length === 0) return;
+      // "on top of ITS OWNER's security stack" (LM-020): the destination follows each placed
+      // card, not the resolving player, so a chosen opposing Digimon lands in that player's
+      // stack. Without the flag the destination stays the single `seat` above.
+      if (action.ownerSecurity === true) {
+        for (const permanentId of resolvedPermanentIds) {
+          const permanent = ctx.game.permanentById(permanentId);
+          const top = permanent?.topCard;
+          if (permanent === undefined || top === undefined) continue;
+          await ctx.fx.addSecurity(top.ownerSeat, [top.instanceId], {
+            toTop: action.toTop ?? true,
+            faceUp: action.faceUp,
+            detachPermanentTop: action.detachPermanentTop,
+          });
+        }
+        return;
+      }
       await ctx.fx.addSecurity(seat, ids, {
         toTop: action.toTop ?? true,
         faceUp: action.faceUp,

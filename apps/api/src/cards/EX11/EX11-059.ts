@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // `payCost: true` is unchanged (the text has no "without paying the cost" clause); the
 // separate `cost` (suspending this Tamer) is a normal per-action cost the interpreter already
 // pays generically before any action — including DnaDigivolve — runs.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourMainPhase",
