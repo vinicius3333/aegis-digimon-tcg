@@ -41,3 +41,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: realistic Bosamon-under-Digimon stacks suspend both a friendly Digimon and an opposing Digimon, prove a single grant across both events, prove two physical Bosamon sources arm independently without watcher duplication, and reject activation outside the source controller's turn.
 - Behavioral proof: the focused suite proves the errata once-per-turn limit, Q1930 ownership breadth, source-instance frequency, recompute idempotence, exact +1000 amount, turn restriction, and duration expiry.
 - Verification: focused suite — 3 passed; `whenEffectSuspends` primitive regression — 4 passed (126 unrelated tests skipped); workspace typecheck — pending collection gate; `git diff --check` — passed.
+
+## BT10-005 — Monimon — 10/10
+
+- Catalog evidence: black level 2 Digi-Egg; form `In-Training`, types `CRT`, `Twilight`, and `Xros Heart`; inherited text is `[All Turns] While this Digimon has [Twilight] in its traits, it gets +1000 DP`; it has no main or Security effect and no evolution requirements.
+- Knowledge base: `node tools/kb/query.mjs card BT10-005` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: one inherited `AllTurns` aura adds exactly 1000 DP to its host while `selfHasTrait` matches the current Digimon's `Twilight` trait. The module has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT10-005", compiled)`.
+- Primitive trace: inherited continuous collection binds the aura's self reference to the live host; `selfHasTrait` evaluates only the host's current top-card form/attribute/type union; continuous recomputation adds or removes the modifier as the top identity changes; `AllTurns` carries no turn-owner guard.
+- Cross-card and stack proof: Monimon beneath DarkKnightmon proves exact Twilight matching on both turn owners. A real De-Digivolve exposes non-Twilight Deckerdramon while Monimon remains lower in the stack, proving that neither the inherited source's own Twilight trait nor another lower card substitutes for the current top identity.
+- Behavioral proof: the focused suite proves exact +1000 DP on both players' turns and observable loss of the bonus after a production De-Digivolve changes the host's identity without removing Monimon from its stack.
+- Verification: focused suite — 2 passed; De-Digivolve mechanism coverage — exercised by the focused production flow; workspace typecheck — pending collection gate; `git diff --check` — passed.
