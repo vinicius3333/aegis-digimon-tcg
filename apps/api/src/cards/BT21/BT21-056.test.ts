@@ -1,5 +1,9 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-056.js";
+import "../index.js";
 
 describe("BT21-056 Vemmon", () => {
   it("preserves full coverage with no residual clauses", () => {
@@ -40,5 +44,87 @@ describe("BT21-056 Vemmon", () => {
       into: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }] },
       actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1 }],
     });
+  });
+
+  it("pays with a Vemmon-text hand card and returns a non-Digi-Egg Vemmon-text card", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-056", as: "played" },
+            { card: "BT11-061", as: "cost" },
+          ],
+          trash: [
+            { card: "BT21-058", as: "returned" },
+            { card: "BT21-006", as: "egg" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("cost").instanceId, s.inst("returned").instanceId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returned").instanceId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("egg").instanceId)).toBe(true);
+  });
+
+  it("declining the recovery leaves the hand cost and trash target in place", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-056", as: "vemmon" }],
+          hand: [{ card: "BT11-061", as: "cost" }],
+          trash: [{ card: "BT21-058", as: "target" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("vemmon"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+  });
+
+  it("reduces only the first Vemmon-text evolution each turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-058", as: "host", under: [{ card: "BT21-056", as: "source" }] }],
+        hand: [
+          { card: "BT21-060", as: "destromon" },
+          { card: "BT21-062", as: "galacticmon" },
+        ],
+      },
+    });
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("destromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("destromon").instanceId);
+    expect(s.state.memory).toBe(8);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("galacticmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("galacticmon").instanceId);
+    expect(s.state.memory).toBe(2);
   });
 });
