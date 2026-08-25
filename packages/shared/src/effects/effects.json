@@ -9643,8 +9643,7 @@
             "kind": "GainKeyword",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
-            "duration": "untilOpponentTurnEnd",
-            "scaling": { "per": 4, "filter": { "zone": "hand", "controller": "opponent" }, "unit": "cards" }
+            "duration": "untilOpponentTurnEnd"
           },
           {
             "kind": "ModifyDP",
