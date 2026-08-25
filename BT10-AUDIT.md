@@ -91,3 +91,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: Taiki supplies two legal materials from under itself for a reduced real play; full Shoutmon X4 attack stacks prove source transfer, self-deletion, empty-stack rejection, and refusal; the Q1937 unsuspend decision observably offers both the source-destination Tamer and a different Tamer as legal candidates; a three-material deletion proves the Material Save 2 cap and leftover trash zone.
 - Behavioral proof: the focused suite proves exact Draw 2, DigiXros cost and zones, all Q1935-Q1937 boundaries, final self-deletion, and Material Save eligibility/count.
 - Verification: focused suite — 7 passed; DigiXros/Material Save/end-of-attack mechanisms — exercised through focused production flows; workspace typecheck — pending collection gate; `git diff --check` — passed.
+
+## BT10-010 — Asuramon — 10/10
+
+- Catalog evidence: red level 5 Digimon, play cost 7, 8000 DP; evolves from red level 4 for 2; form `Ultimate`, attribute `Vaccine`, type `Wizard`; it has no main, inherited, or Security text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-010` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct compiled module intentionally contains an empty effect list with full coverage and no residual clauses, and registers exclusively through `registerIrCard("BT10-010", compiled)`. All executable behavior is therefore the ordinary catalog-driven play and evolution lifecycle, with no invented trigger.
+- Primitive trace: normal play validates the hand source and affordability, charges the printed cost 7, and creates the 8000-DP permanent without an effect decision; normal digivolution matches the live base's red color and exact level 4, charges 2, moves Asuramon to the top, and retains the former top in the stack.
+- Cross-card and stack proof: a real Shoutmon X4 red level 4 base proves the catalog evolution recipe and retained source transition; a direct play proves the vanilla card does not open an On Play or other decision.
+- Behavioral proof: the focused suite asserts every catalog identity field, performs the exact-cost play, performs the exact-cost evolution, checks final memory and zones, and verifies the resulting stack.
+- Verification: focused suite — 2 passed; generic play/evolution mechanisms — exercised through focused production flows; workspace typecheck — pending collection gate; `git diff --check` — passed.
