@@ -80369,7 +80369,18 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Violet Inboots", "Phantomon"], "cost": 6, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "names": ["Phantomon"],
+        "controllerControls": {
+          "kind": ["Tamer"],
+          "namesExact": ["Violet Inboots"],
+          "min": 1
+        },
+        "cost": 6,
+        "isAlternate": true
+      }
+    ]
   },
   "BT23-072": {
     "effects": [

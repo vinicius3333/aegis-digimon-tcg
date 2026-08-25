@@ -103,7 +103,12 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Violet Inboots", "Phantomon"],
+      names: ["Phantomon"],
+      controllerControls: {
+        kind: ["Tamer"],
+        namesExact: ["Violet Inboots"],
+        min: 1,
+      },
       cost: 6,
       isAlternate: true,
     },
