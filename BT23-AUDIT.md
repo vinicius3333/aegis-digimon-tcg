@@ -38,6 +38,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks the exact catalog and corrected IR, deletes a realistic Digi-Egg stack, selects among multiple exact Ghost matches while excluding a friendly non-Ghost and opposing Ghost, proves both keywords land on only one chosen recipient, proves both duration boundaries, and proves an empty eligible set opens no decision or grant.
 - Verification: focused suite — 3 passed; Retaliation combat regression — 4 passed; `git diff --check` — passed.
 
+## BT23-005 — Elizamon — 10/10
+
+- Catalog evidence: Red level 3, play cost 3, 1000 DP, evolves from a red level 2 for 0; form `Rookie`, attribute `Virus`, types `Reptile` and `LIBERATOR`; main text reduces by 1 when this Digimon would evolve into a Reptile- or Dragonkin-trait Digimon; inherited text gives the host +2000 DP during its controller's turn; no Security text.
+- Knowledge base: Q5215 says the main reduction does not activate from the breeding area. Q5586 says BT24-016 Lamiamon's hand effect sets its evolution cost to 3 and Elizamon then reduces that to 2. Both rulings are covered directly and no ambiguity remains.
+- Implementation: the top-card `YourTurn` effect installs a self-scoped `wouldDigivolve` replacement whose `into` filter is the exact Reptile/Dragonkin trait union and whose nested reducer subtracts 1. The inherited `YourTurn` effect continuously adds 2000 DP to the host. The module registers exclusively through `registerIrCard("BT23-005", compiled)` with full coverage and no residual clauses.
+- Primitive trace: the continuous pass installs the replacement only for a battle-area top-card source; `costReductionFor("wouldDigivolve", target, into)` checks both the source permanent and destination definition after a fixed effect-driven cost is established; breeding cards do not satisfy the static builder's battle-area guard; inherited collection excludes the top-card main clause and continuously recomputes the DP modifier across turn ownership.
+- Behavioral proof: the focused suite checks exact catalog and IR, separately proves Reptile and Dragonkin reductions from 2 to 1, proves a nonmatching destination pays 2, proves Q5215's breeding exclusion, proves Q5586's effect-driven 3-to-2 interaction with a realistic Elizamon/Dimetromon/Lamiamon stack, proves inherited DP on both turn owners, and proves the main reducer is not inherited.
+- Verification: focused suite — 8 passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-005 through BT23-102.
+BT23-006 through BT23-102.
