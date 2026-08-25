@@ -875,6 +875,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks catalog/coverage; with four cards in hand fires a real Belphemon (X Antibody) evolution subject, moves Seventh Penetration from trash to deck bottom, deletes a level-4 opponent at equality, and preserves a level-3 opponent; structurally verifies trash scope, cost destination, name gate, scaling, and Security routing.
 - Verification: focused suite — 5 passed after refreshing shared runtime data; shared trash-effect collection, physical loose-source return, aborting optional cost, ActivateMain, live hand scaling, inclusive level comparison, and Security routing mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
 
+## BT23-098 — Unique Emblem: Soul Banquet — 10/10
+
+- Catalog evidence: Purple cost-3 LIBERATOR Option; Main may free-play one Ghostmon or Violet Inboots from hand/trash, then mandatorily places this Option in battle; Your Turn when a Violet Inboots suspends may activate Delay so one friendly Ghost may evolve into a hand Digimon carrying both Ghost and LIBERATOR with cost reduced by 3; Security activates Main.
+- Knowledge base: Q5386 confirms the evolution destination must have both printed traits, not either one.
+- Defects corrected: authoritative shared IR made battle placement optional, detached evolution from a marker-style Delay grant, and encoded the destination traits as an OR. It now mirrors mandatory placement, intrinsic nesting, and `allNameOrTraits`; registration remains exclusively `registerIrCard("BT23-098", compiled)` with full coverage/no residuals.
+- Primitive trace: Main unions exact-name candidates across hand/trash for an optional free play and always places the Option afterward; the suspension listener filters Violet by effective name, pays established-card Delay, selects a friendly Ghost recipient, requires both destination traits in hand, applies -3 to the legal evolution cost, and preserves optional refusal; Security reuses Main.
+- Behavioral proof: the focused suite checks catalog/coverage; with a real Violet, Ghostmon base, and Ghost/LIBERATOR hand card, pays Delay, evolves the exact Ghost for zero after the reduction, and observes the physical Option in trash; structurally verifies conjunction, optionality, Main sequencing, and Security routing.
+- Verification: focused suite — 5 passed after refreshing shared runtime data; shared intrinsic Delay, name-trigger filtering, conjunctive traits, reduced-cost evolution, realistic stack mutation, optional free play, mandatory placement, and ActivateMain mechanisms have dedicated engine/peer regressions; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-098 through BT23-102.
+BT23-099 through BT23-102.

@@ -1,7 +1,45 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT23-098.js";
 
 describe("BT23-098 Unique Emblem: Soul Banquet", () => {
+  it("matches every catalog field and complete compiled clause", () => {
+    expect(getCardDefinition("BT23-098")).toMatchObject({
+      cardId: "BT23-098",
+      nameEn: "Unique Emblem: Soul Banquet",
+      colors: ["Purple"],
+      kinds: ["Option"],
+      playCost: 3,
+      types: ["LIBERATOR"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
+  it("pays Delay and evolves a Ghost only into a Ghost/LIBERATOR card with cost reduced by 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-098", as: "option" },
+            { card: "BT23-087", as: "violet", suspended: true },
+            { card: "BT23-061", as: "ghost" },
+          ],
+          hand: [{ card: "BT23-064", as: "evolver" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.perm("option").topCard!.instanceId;
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("violet").permanentId });
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.perm("ghost").topCard?.cardId).toBe("BT23-064");
+    expect(s.state.memory).toBe(0);
+  });
+
   it("places itself after the optional Ghostmon/Violet Inboots play", () => {
     const main = compiled.effects.find((effect) => effect.trigger === "Main") as any;
     expect(main.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand", "trash"], optional: true });
