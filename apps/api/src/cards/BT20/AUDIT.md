@@ -767,3 +767,15 @@
 - Score: 10/10.
 - Ambiguity: catalog colors are purple/red while its printed ordinary evolution entries are red/yellow; tests treat those committed fields independently without inventing a purple route.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-064.test.ts`).
+
+## BT20-065 — Wormmon
+
+- Catalog contract: purple level 3 Free Larva, play cost 3/1000 DP, purple or red level-2 evolution cost 0; On Play may trash 1 own hand card to give 1 opponent Digimon “[On Deletion] Lose 1 memory” through the end of that opponent's turn; inherited Retaliation.
+- Knowledge base: the card query has no card-specific entries.
+- Implementation evidence: the costed optional GrantAura targets exactly one opposing Digimon and routes its exact quoted text through the registered granted-effect library. The shared action defaults this action family to `UntilOpponentTurnEnd`, anchors the grant to the recipient top card, and resolves its On Deletion memory loss from that card's controller perspective. The inherited keyword is stack-only. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: paying with BT1-085 installs the named effect on BT1-009 with the exact duration; deleting it moves the gauge 1 against its controller. With no hand card after Wormmon is played, no grant installs and deletion changes no memory. Under BT20-066, Wormmon confers Retaliation, while standalone Wormmon does not.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-065.test.ts` — 5 passed.
+- Clause scores: stats/evolution routes 2/2; On Play opponent target 2/2; hand cost/payability boundary 2/2; granted On Deletion memory/duration 2/2; inherited Retaliation stack scope 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-065.test.ts`).
