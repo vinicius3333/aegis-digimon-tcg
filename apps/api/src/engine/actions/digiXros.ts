@@ -279,7 +279,16 @@ export async function applyDigiXros(
 
   const permanent = placePermanent(deps, player, instance, definition);
   permanent.enterFieldTurnCount = state.turnCount;
-  deps.emit?.({ kind: "cardPlayed", seat, cardId: instance.cardId, permanentId: permanent.permanentId });
+  // A DigiXros is a play with materials (§7-2-2-7), so the mechanic rides on `cardPlayed`
+  // rather than being re-derived client-side from the card's printed DigiXros requirement —
+  // that heuristic said "this card CAN be DigiXros'd", not "this play WAS one".
+  deps.emit?.({
+    kind: "cardPlayed",
+    seat,
+    cardId: instance.cardId,
+    permanentId: permanent.permanentId,
+    mechanic: "digiXros",
+  });
 
   // (4) Place each material under the new permanent. A battle-area material contributes only its
   //     TOP card — §7-2-2-7 removes it from the battle area, so anything under it is trashed

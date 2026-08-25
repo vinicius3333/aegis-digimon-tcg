@@ -112,6 +112,30 @@ describe("dealOpeningHand / mulliganRedraw", () => {
     mulliganRedraw(player, makeRng(seatSeed(1, 0)));
     expect(player.hand.map((c) => c.instanceId)).toEqual(handAfterFirst);
   });
+
+  it("narrates each pile it randomizes, so the client never infers a shuffle", () => {
+    const player = buildPlayerState(0, "s", "P", RED_DECK);
+    const shuffled: string[] = [];
+    shuffleDecks(player, makeRng(seatSeed(1, 0)), (deck) => shuffled.push(deck));
+    expect(shuffled).toEqual(["deck", "eggDeck"]);
+  });
+
+  it("narrates the mulligan reshuffle through the same hook", () => {
+    const player = freshPlayer(RED_DECK);
+    dealOpeningHand(player);
+    const shuffled: string[] = [];
+    mulliganRedraw(player, makeRng(seatSeed(1, 0)), (deck) => shuffled.push(deck));
+    expect(shuffled).toEqual(["deck", "eggDeck"]);
+  });
+
+  it("narrates nothing for a mulligan the player already spent", () => {
+    const player = freshPlayer(RED_DECK);
+    dealOpeningHand(player);
+    mulliganRedraw(player, makeRng(seatSeed(1, 0)));
+    const shuffled: string[] = [];
+    mulliganRedraw(player, makeRng(seatSeed(1, 0)), (deck) => shuffled.push(deck));
+    expect(shuffled).toEqual([]);
+  });
 });
 
 describe("runSetup / finalizeSecurity (full deal)", () => {

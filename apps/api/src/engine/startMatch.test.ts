@@ -92,6 +92,31 @@ describe("GameEngine.startMatch - deck-and-setup", () => {
     expect(mull!.seat).toBe(0); // even seed => seat 0 goes first
   });
 
+  it("emits deckShuffled for both piles of both seats during setup", async () => {
+    h.engine.startMatch();
+    await flush();
+
+    const shuffles = h.events
+      .filter((e) => e.kind === "deckShuffled")
+      .map((e) => `${(e as { seat: number }).seat}:${(e as { deck: string }).deck}`);
+    expect(shuffles).toEqual(["0:deck", "0:eggDeck", "1:deck", "1:eggDeck"]);
+  });
+
+  it("emits deckShuffled again for a seat that takes its mulligan", async () => {
+    h.engine.startMatch();
+    await flush();
+    const before = h.events.filter((e) => e.kind === "deckShuffled").length;
+
+    expect(h.engine.applyIntent(0, { type: "mulligan", keep: false })).toEqual({ ok: true });
+    await flush();
+
+    const added = h.events.filter((e) => e.kind === "deckShuffled").slice(before);
+    expect(added.map((e) => `${(e as { seat: number }).seat}:${(e as { deck: string }).deck}`)).toEqual([
+      "0:deck",
+      "0:eggDeck",
+    ]);
+  });
+
   it("deals the rulebook opening state once mulligans resolve (hand 5, security 5, memory 0)", async () => {
     h.engine.startMatch();
     const firstSeat = await resolveMulligans(h);

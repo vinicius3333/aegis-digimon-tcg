@@ -69,6 +69,21 @@ export class Permanent extends Schema {
   // because the client draws the summoning-sickness ring from it and must never rebuild the
   // rule from `enterFieldTurnCount` and a turn counter.
   @type("boolean") summoningSick = false;
+  // Server-resolved blanket combat restrictions imposed by effects ("this Digimon can't
+  // attack" / "can't block"), read from the same continuous-effect ledger entries the
+  // legality seam consults (`hasRestriction(id, "attack" | "block")`). Deliberately NOT
+  // the same question as `summoningSick`: that is a rule about entering the field, this
+  // is an imposed restriction, and the client animates only the latter (a freeze pulse
+  // when one lands). Blanket only — target-scoped restrictions ("can't attack players",
+  // "can't attack Digimon") stay inside `attackablePermanentIds` / `canAttackPlayer`,
+  // which already resolve them; surfacing them here too would double-count.
+  @type("boolean") cannotAttack = false;
+  @type("boolean") cannotBlock = false;
+  // Number of security cards an attack by this Digimon checks: base 1 plus every resolved
+  // ＜Security Attack ±N＞ grant, floored at 0 (Comprehensive Rules §16-4-4). Projected from
+  // the same helper the security-check loop uses (`securityStrikeCount`) so the inspector can
+  // never disagree with what an attack would actually do.
+  @type("uint8") securityAttack = 1;
   // Server-projected opponent permanents this Digimon may legally attack right now.
   // The client must not reconstruct combat rules from suspension or card text: grants
   // such as ST12-08 and target-scoped restrictions are already resolved here.

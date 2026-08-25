@@ -1,6 +1,7 @@
 import { ArraySchema } from "@colyseus/schema";
 import {
   CardKind,
+  DECK_BOTTOM,
   Permanent,
   Zone,
   EffectTiming,
@@ -1190,9 +1191,16 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // over (mirrors GameStateAccess.deletePermanent's stack/top/linked-to-trash pattern).
     const stackCards: CardInstance[] = [];
     const trashedLinked: CardInstance[] = [];
+    // The materials' own top cards, kept for the `cardPlayed` announcement: the cut-in flanks
+    // the result with the two faces that merged (JogressEffectObject.cs:24), and they are about
+    // to be buried in the new stack where the client can no longer tell them from older cards.
+    const sourceCardIds: string[] = [];
     for (const mat of materials) {
       for (const c of mat.stack) stackCards.push(c);
-      if (mat.topCard !== undefined) stackCards.push(mat.topCard);
+      if (mat.topCard !== undefined) {
+        sourceCardIds.push(mat.topCard.cardId);
+        stackCards.push(mat.topCard);
+      }
       for (const c of mat.linked) {
         insertCard(player(c.ownerSeat), Zone.Trash, c);
         trashedLinked.push(c);
@@ -1247,7 +1255,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (dnaMemoryGain > 0) {
       engine.memory.addMemoryForSeat(seat, dnaMemoryGain, "gainMemory", { isTamerEffect: false });
     }
-    engine.emit({ kind: "cardPlayed", seat, cardId: instance.cardId, permanentId: permanent.permanentId });
+    // A DNA digivolution is announced as a play because that is how the engine models it — one
+    // card arriving on a new permanent — so the mechanic rides on `cardPlayed` rather than
+    // duplicating the moment with a second `digivolved` event.
+    engine.emit({
+      kind: "cardPlayed",
+      seat,
+      cardId: instance.cardId,
+      permanentId: permanent.permanentId,
+      mechanic: "dna",
+      sourceCardIds,
+    });
     // CR 8-2-3-3: the DNA digivolution procedure itself draws 1 card — unconditional, part of
     // the placement procedure (mirrors applyDigivolve step 6), not an optional card effect.
     await draw(seat, 1);
@@ -3542,7 +3560,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         kind: "cardsMoved",
         instanceIds: moved.map((c) => c.instanceId),
         from: "various",
-        to: Zone.Deck,
+        // `toTop` is a per-call option, so one batch never splits across both ends. The
+        // bottom gets its own destination name because "under the whole deck" is the part
+        // the player must be able to read back; `cardsMoved.to` is already a free-form label
+        // (`"various"`, `"suspended"`) that no rules code branches on, so naming the position
+        // here is a smaller change than adding a placement field to every mover.
+        to: toTop ? Zone.Deck : DECK_BOTTOM,
       });
       // The whenEffectAddsToHand sibling for deck-bound returns (BT26-015). Fire once per
       // distinct recipient seat, mirroring returnToHand's own-hand fire above.

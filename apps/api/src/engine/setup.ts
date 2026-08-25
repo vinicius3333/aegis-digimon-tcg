@@ -144,8 +144,19 @@ export function buildPlayerState(seat: Seat, sessionId: string, displayName: str
   return loadDeckInto(player, seat, deck);
 }
 
-/** Shuffle a seat's deck and egg deck in place (Comprehensive Rules §5-2-1-1/2). */
-export function shuffleDecks(player: PlayerState, rng: Rng): void {
+/** Which pile a {@link shuffleDecks} pass just randomized, for the `deckShuffled` event. */
+export type ShuffledDeck = "deck" | "eggDeck";
+
+/**
+ * Shuffle a seat's deck and egg deck in place (Comprehensive Rules §5-2-1-1/2).
+ *
+ * `onShuffled` is invoked once per pile, immediately after that pile is randomized, so a
+ * caller can narrate the shuffle without re-deriving when one happened. It lives here
+ * rather than at the call sites because this is the only deck shuffle in the game: every
+ * printed "shuffle" in the card pool shuffles a SECURITY stack, not a deck (see the §3-2-3
+ * invariant asserted in interactionAudit.test.ts).
+ */
+export function shuffleDecks(player: PlayerState, rng: Rng, onShuffled?: (deck: ShuffledDeck) => void): void {
   const shuffleZone = (zone: typeof player.deck): void => {
     zone.move((cards) => {
       for (let i = cards.length - 1; i > 0; i -= 1) {
@@ -157,7 +168,9 @@ export function shuffleDecks(player: PlayerState, rng: Rng): void {
   };
 
   shuffleZone(player.deck);
+  onShuffled?.("deck");
   shuffleZone(player.eggDeck);
+  onShuffled?.("eggDeck");
 }
 
 /**
@@ -180,13 +193,13 @@ export function dealOpeningHand(player: PlayerState): void {
  * become security back in). Idempotent guard: marks `hasMulliganed`; calling twice is
  * a no-op after the first (each player may redraw only once).
  */
-export function mulliganRedraw(player: PlayerState, rng: Rng): void {
+export function mulliganRedraw(player: PlayerState, rng: Rng, onShuffled?: (deck: ShuffledDeck) => void): void {
   if (player.hasMulliganed) return;
   player.hasMulliganed = true;
 
   const returned = clearZone(player, Zone.Hand);
   for (const card of returned) insertCard(player, Zone.Deck, card);
-  shuffleDecks(player, rng);
+  shuffleDecks(player, rng, onShuffled);
   dealOpeningHand(player);
 }
 
@@ -219,6 +232,8 @@ export interface SetupInput {
   firstSeat: Seat;
   /** Master match seed (server-only); per-seat sub-seeds are derived from it. */
   seed: number;
+  /** Narration hook for each pile randomized during setup (see {@link shuffleDecks}). */
+  onShuffled?: (seat: Seat, deck: ShuffledDeck) => void;
 }
 
 /** Per-seat PRNG used for that seat's shuffles (so a later mulligan reshuffles deterministically). */
@@ -252,7 +267,7 @@ export function runSetup(state: GameState, input: SetupInput): SetupResult {
 
     const rng = makeRng(seatSeed(input.seed, seat));
     rngs[seat] = rng;
-    shuffleDecks(player, rng);
+    shuffleDecks(player, rng, (deck) => input.onShuffled?.(seat, deck));
     dealOpeningHand(player);
   }
 

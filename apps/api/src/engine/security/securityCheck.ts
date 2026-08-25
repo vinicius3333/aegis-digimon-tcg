@@ -6,6 +6,7 @@ import {
   type Permanent,
   type PlayerState,
   type Seat,
+  type SecurityBattleResult,
   type ServerEvent,
 } from "@aegis/shared";
 import { resolveSecurityBattle } from "../combat/resolve.js";
@@ -270,13 +271,14 @@ export async function runSecurityCheck(
     // The battle against a Security Digimon is the step AFTER the card left the
     // security stack (CR 13-1-8-3, 13-1-7 "a checked Digimon card is treated as a
     // Security Digimon"), so watchers of the removal have already run by now.
-    if (battlesAttacker) await battleSecurityDigimon(deps, attacker, revealed);
+    const battle = battlesAttacker ? await battleSecurityDigimon(deps, attacker, revealed) : undefined;
 
     emit({
       kind: "securityChecked",
       seat: defenderSeat,
       revealedCardId: revealed.cardId,
       resolution,
+      ...(battle === undefined ? {} : { battle }),
     });
 
     // The checked card goes to trash unless an effect already relocated it
@@ -299,16 +301,19 @@ export async function runSecurityCheck(
 /**
  * Battle the attacker against the revealed Security Digimon (CR 13-1-8-3).
  * Source: the battle branch of ISecurityCheck.
+ *
+ * Returns the DP-compare outcome so the caller can publish it on `securityChecked`,
+ * or `undefined` when no compare happened (the attacker left play in between).
  */
 async function battleSecurityDigimon(
   deps: SecurityCheckDeps,
   attacker: SecurityCheckAttacker,
   revealed: CardInstance,
-): Promise<void> {
+): Promise<SecurityBattleResult | undefined> {
   // The removal watchers that ran between the check and this battle may have
   // removed the attacker from play; there is nothing left to battle then.
   const attackerPermanent = deps.permanentById(attacker.permanentId);
-  if (attackerPermanent === undefined) return;
+  if (attackerPermanent === undefined) return undefined;
 
   const outcome = resolveSecurityBattle({
     attackerPermanentId: attacker.permanentId,
@@ -333,6 +338,7 @@ async function battleSecurityDigimon(
   // The Security Digimon is a loose card, not a field permanent: CR 14-2-3 keeps it
   // alive whatever the DP compare says, and CR 13-1-8-4 sends it to the trash unless
   // an effect gave it an area — which is exactly what trashIfStillLoose applies.
+  return outcome;
 }
 
 /** Move `card` to the seat's trash if it is not already in another zone. */
