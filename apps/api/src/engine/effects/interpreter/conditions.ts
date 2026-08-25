@@ -814,6 +814,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const seat = cond.seat === "opponent" ? opp : mine;
       return ctx.trigger.handTrashedSeat === seat;
     }
+    case "triggeredByEffect":
+      return ctx.trigger.effectSuspendSeat !== undefined;
     case "triggerRemovalCause":
       return (
         ctx.trigger.removalCause === cond.removalCause &&

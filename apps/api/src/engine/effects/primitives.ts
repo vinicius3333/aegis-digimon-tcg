@@ -3142,6 +3142,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       subjectPermanentId: firstPermanentId,
       ...(permanentIds.length > 1 ? { subjectPermanentIds: permanentIds } : {}),
       suspendedPermanentId: firstPermanentId,
+      ...(opts?.byEffectSeat !== undefined ? { effectSuspendSeat: opts.byEffectSeat } : {}),
     };
     // One action that suspends multiple permanents creates one simultaneous timing, not one
     // timing per card (BT2-041 Q1015 / BT4-084 Q1230). Carry every subject so filtered watchers
@@ -3150,10 +3151,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       suspendedPermanentId: firstPermanentId,
       ...(permanentIds.length > 1 ? { subjectPermanentId: firstPermanentId, subjectPermanentIds: permanentIds } : {}),
     });
-    await engine.fireSubTrigger?.(
-      "whenSuspended",
-      permanentIds.length > 1 ? simultaneousTrigger : { suspendedPermanentId: firstPermanentId },
-    );
+    await engine.fireSubTrigger?.("whenSuspended", simultaneousTrigger);
     if (opts?.suppressWhenEffectSuspends !== true) {
       await engine.fireSubTrigger?.("whenEffectSuspends", {
         ...simultaneousTrigger,

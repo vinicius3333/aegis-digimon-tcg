@@ -96,6 +96,7 @@ export interface Condition {
     | "triggerRemovedSecuritySeat"
     | "triggerSecurityRemovedByEffect"
     | "triggerHandTrashedSeat"
+    | "triggeredByEffect" // whenSuspended was produced by an effect, not attack/block rules (EX11-062)
     | "triggerRemovalCause"
     | "triggerDeletedByDpZero"
     | "triggerIsFirstDeletedPermanent"
