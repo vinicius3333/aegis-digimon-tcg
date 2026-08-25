@@ -94717,15 +94717,21 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": { "filter": { "kind": ["Option"] }, "count": 1 },
+            "kind": "UseOptionWithoutCost",
+            "filter": {
+              "controller": "mine",
+              "kind": ["Option"],
+              "playCostLte": 99,
+              "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }]
+            },
             "from": ["trash"],
             "payCost": true,
             "reduceCostBy": 3,
+            "allowMultiColor": true,
             "cost": {
               "kind": "trash",
               "target": {
-                "filter": { "isSelfRef": true, "zone": "digivolutionCards", "kind": ["Option"] },
+                "filter": { "controller": "mine", "zone": "digivolutionCards", "kind": ["Option"] },
                 "count": 1
               },
               "raw": "By trashing 1 Option card from any of your Digimon's digivolution cards"
@@ -94741,15 +94747,21 @@
         "trigger": "WhenAttacking",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": { "filter": { "kind": ["Option"] }, "count": 1 },
+            "kind": "UseOptionWithoutCost",
+            "filter": {
+              "controller": "mine",
+              "kind": ["Option"],
+              "playCostLte": 99,
+              "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }]
+            },
             "from": ["trash"],
             "payCost": true,
             "reduceCostBy": 3,
+            "allowMultiColor": true,
             "cost": {
               "kind": "trash",
               "target": {
-                "filter": { "isSelfRef": true, "zone": "digivolutionCards", "kind": ["Option"] },
+                "filter": { "controller": "mine", "zone": "digivolutionCards", "kind": ["Option"] },
                 "count": 1
               },
               "raw": "By trashing 1 Option card from any of your Digimon's digivolution cards"

@@ -66,7 +66,14 @@ describe("BT25-083 LadyDevimon", () => {
 
   it("Q6395 trashes and uses the same physical dual Option from sources, paying cost minus 3", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: CARD_ID, as: "lady", under: [{ card: "BT25-085", as: "option" }] }] } },
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "lady" },
+            { card: "BT1-009", as: "other", under: [{ card: "BT25-085", as: "option" }] },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
@@ -79,7 +86,7 @@ describe("BT25-083 LadyDevimon", () => {
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
     expect(s.state.memory).toBe(2);
-    expect(s.perm("lady").stack.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
+    expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
     expect(s.state.players[0]!.trash.filter((card) => card.instanceId === s.inst("option").instanceId)).toHaveLength(1);
   });
 

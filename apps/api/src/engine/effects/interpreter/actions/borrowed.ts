@@ -7,7 +7,7 @@ import { runEffect } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
-import { looseCardsInZone } from "../targeting/loose.js";
+import { candidateLooseInstances, looseCardsInZone } from "../targeting/loose.js";
 import { CardKind } from "@aegis/shared";
 import { MemoryGauge } from "../../../MemoryGauge.js";
 import type { Action, CardEffect, EffectTrigger, Filter, Seat, ZoneRef } from "@aegis/shared";
@@ -308,6 +308,20 @@ function optionUseCandidates(
       )
       .map((permanent) => permanent.stack[0]!);
     if (bottomCards.length >= required) bottomCards.forEach(addIfEligible);
+  }
+  // A normal digivolution-card trash cost can likewise create the requested
+  // trash-zone Option candidate (BT25-083 Q6395). Preflight the payable stack
+  // pool so the cost-bearing action is offered when the trash starts empty;
+  // after payment, normal trash-zone enumeration still chooses the Option.
+  if (
+    includePayableCostCards &&
+    zones.includes("trash") &&
+    action.cost?.kind === "trash" &&
+    action.cost.target?.filter.zone === "digivolutionCards"
+  ) {
+    const costCandidates = candidateLooseInstances(ctx, action.cost.target, ["digivolutionCards"]);
+    const required = action.cost.target.count === "all" ? costCandidates.length : (action.cost.target.count ?? 1);
+    if (required > 0 && costCandidates.length >= required) costCandidates.forEach(addIfEligible);
   }
   return { candidates, zones, seat };
 }
