@@ -74,6 +74,15 @@ This ledger records the evidence gathered in ascending card ID order. A card is 
 - Behavioral proof: the focused suite checks every catalog/IR field, performs Q5216's exact restack and 3-to-1 Gabumon play, rejects Q5217's empty-stack declaration without changing memory or hand, performs Q5218's egg-only activation and verifies both stack cards are rule-trashed after the reduced play, performs Q5219's legal activation and 0-DP rule deletion with the restored inherited modifier included, proves optional refusal is cost-free and zone-stable, proves both off-color alternate evolution boundaries and rejects a nonmatch, executes Raid against an unsuspended opposing Digimon while preserving security, and proves inherited DP across both turn owners.
 - Verification: focused suite — 9 passed; affected restack/DP/Raid mechanism checks — 4 passed (40 unrelated tests skipped); API typecheck — passed; `git diff --check` — passed.
 
+## BT23-009 — Coachmon — 10/10
+
+- Catalog evidence: Red level 4, play cost 4, 4000 DP, evolves from red level 3 for 2; forms `Sup.` and `Appmon`, attribute `Game`, types `Training` and `Leviathan`; its Your Turn once-per-turn effect gives one friendly Digimon +4000 DP for the turn when Coachmon gets linked; Link onto Appmon costs 2, contributes 3000 DP, and grants the host an optional once-per-turn End of Your Turn player attack.
+- Knowledge base: `node tools/kb/query.mjs card BT23-009` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Defect corrected: the generated IR omitted the entire Link requirement, printed Link DP behavior contract, and linked End of Your Turn attack. The audited IR adds the Appmon cost-2 requirement and a linked once-per-turn end-turn self attack with player targeting and timing-window drainage; registration remains exclusively `registerIrCard("BT23-009", compiled)` with full coverage and no residual clauses.
+- Primitive trace: `whenLinked` matches the receiving Coachmon permanent through `isSelfRef`, and the parent frequency is threaded into the installed watcher using source-instance identity; `ModifyDP` selects exactly one controller-owned Digimon and expires at the turn boundary; the Link action validates the host's live Appmon trait, spends 2, moves the card into the linked zone, and the modifier ledger adds catalog `linkDp`; the linked effect resolves self against its host, drains the remaining end-turn window before combat, and delegates to the normal forced player-attack lifecycle.
+- Behavioral proof: the focused suite checks every catalog and IR field, links Musclemon onto Coachmon and proves exact +2000 linked DP plus one exact +4000 boost without affecting another friendly Digimon, links Coachmon onto an Appmon and proves exact cost 2, +3000 DP, and the executable end-turn player attack, proves optional refusal leaves suspension and security unchanged, and proves a non-Appmon host leaves memory and zones unchanged.
+- Verification: focused suite — 5 passed; Link and attack conformance regressions — 44 passed; API typecheck — passed; `git diff --check` — passed.
+
 ## Remaining queue
 
-BT23-009 through BT23-102.
+BT23-010 through BT23-102.
