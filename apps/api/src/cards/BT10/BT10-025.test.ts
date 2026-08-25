@@ -4,7 +4,7 @@ import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-025.js";
+import { compiled } from "./BT10-025.js";
 
 const CYBERDRAMON = "BT10-025";
 const BLUE_FLARE_HOST = "BT10-024"; // MetalGreymon — in-cutoff Digimon with the [Blue Flare] trait
@@ -17,12 +17,37 @@ function handMainEffectKey(s: EngineSetup, instance: CardInstance): string | und
 }
 
 describe("BT10-025 — [Hand][Main] activates only while the card is in hand (CR §15-14-2-1)", () => {
+  it("encodes one hand-resident paid placement, bound unsuspend, and inherited threshold aura", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "Main",
+        isFromHand: true,
+        actions: [
+          expect.objectContaining({
+            kind: "PlaceUnder",
+            position: "bottom",
+            bindHostAs: "bt10025PlaceHost",
+            cost: expect.objectContaining({ kind: "payMemory", memory: 3 }),
+          }),
+          expect.objectContaining({
+            kind: "Unsuspend",
+            target: expect.objectContaining({ filter: expect.objectContaining({ boundRef: "bt10025PlaceHost" }) }),
+          }),
+        ],
+      }),
+      expect.objectContaining({ trigger: "AllTurns", isInherited: true }),
+    ]);
+  });
+
   it("activates from HAND: places itself under the [Blue Flare] host for 3 memory", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [{ card: CYBERDRAMON, as: "cyber" }],
-          battleArea: [{ card: BLUE_FLARE_HOST, as: "host", under: ["BT10-019"], suspended: true }],
+          battleArea: [
+            { card: BLUE_FLARE_HOST, as: "host", under: ["BT10-019"], suspended: true },
+            { card: "BT10-019", as: "otherBlueFlare", suspended: true },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
@@ -47,6 +72,7 @@ describe("BT10-025 — [Hand][Main] activates only while the card is in hand (CR
     expect(s.perm("host").stack.some((c) => c.instanceId === cyber.instanceId)).toBe(true);
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([CYBERDRAMON, "BT10-019"]);
     expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.perm("otherBlueFlare").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === cyber.instanceId)).toBe(false);
     expect(s.state.memory).toBe(0); // "by paying 3 memory"
   });
