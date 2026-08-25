@@ -37,25 +37,11 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
-          kind: "SubTrigger",
-          event: "whenSuspended",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "ModifyDP",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
-              },
-              amount: 4000,
-              duration: "untilOpponentTurnEnd",
-            },
-          ],
+          kind: "ModifyDP",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          amount: 4000,
+          duration: "untilOpponentTurnEnd",
+          condition: { kind: "selfIsSuspended", raw: "if this Digimon is suspended" },
         },
       ],
     },
@@ -74,25 +60,11 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
-          kind: "SubTrigger",
-          event: "whenSuspended",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "ModifyDP",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
-              },
-              amount: 4000,
-              duration: "untilOpponentTurnEnd",
-            },
-          ],
+          kind: "ModifyDP",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          amount: 4000,
+          duration: "untilOpponentTurnEnd",
+          condition: { kind: "selfIsSuspended", raw: "if this Digimon is suspended" },
         },
       ],
     },

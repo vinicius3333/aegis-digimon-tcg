@@ -4,7 +4,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
   digivolutionRequirement: [
-    { level: 5, cost: 6, isAlternate: true },
     { names: ["Snatchmon"], cost: 9, isAlternate: true },
     { names: ["Galacticmon"], cost: 5, isAlternate: true },
   ],

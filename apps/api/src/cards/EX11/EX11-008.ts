@@ -38,17 +38,9 @@ const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Reptile", "Dragonkin"],
-                  match: "trait",
-                },
-              ],
-            },
+            filter: {},
             count: 1,
+            sameTarget: true,
           },
           amount: 3000,
           duration: "forTheTurn",
@@ -82,17 +74,9 @@ const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Reptile", "Dragonkin"],
-                  match: "trait",
-                },
-              ],
-            },
+            filter: {},
             count: 1,
+            sameTarget: true,
           },
           amount: 3000,
           duration: "forTheTurn",
@@ -105,7 +89,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
-          seat: "opponent",
+          sourceFilter: { controller: "opponent" },
           actions: [
             {
               kind: "GainMemory",

@@ -26,7 +26,7 @@ export const TIMINGS = {
   memorySweep: 120,
   /** The red arc tracing from the chip memory left to the one it landed on. */
   memoryArc: 520,
-  /** One breath of the yellow glow under the chip memory currently sits on. */
+  /** One breath of the yellow ring around the chip memory currently sits on. */
   memoryGlow: 1600,
   /** The attack arrow drawing itself from attacker to target. */
   attackArrow: 380,
@@ -73,7 +73,7 @@ export const TIMINGS = {
   /** The centre-screen card growing in on a zone change. */
   showcaseIn: 160,
   /** How long the announced card is held centre-screen before the board takes over. */
-  showcaseHold: 900,
+  showcaseHold: 1500,
   /** The centre-screen card clearing out of the way. */
   showcaseOut: 160,
   /** The colour-keyed rays and rings behind a card that just landed. */
@@ -88,6 +88,10 @@ export const TIMINGS = {
   noticeCrowdedLifetime: 1400,
   /** A notice sliding in from its anchor. */
   noticeIn: 200,
+  /** How long one opponent action stays up in the corner feed. */
+  feedAction: 3600,
+  /** A feed entry carrying effect text to read is held longer than a bare title. */
+  feedEffect: 5600,
   /** How long a side panel stays readable on its own. */
   sidePanelLifetime: 5000,
   /** A side panel sharing its column with another erodes on this clock instead. */

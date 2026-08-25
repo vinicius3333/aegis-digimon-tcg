@@ -47,6 +47,7 @@ describe("BT22-095 Akemi Suedou", () => {
 
   it("plays itself from security without paying the cost", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
   });

@@ -34,28 +34,22 @@ const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
-              or: [
-                {
-                  nameOrTrait: [
-                    {
-                      tokens: ["Suzune Kazuki"],
-                      match: "any",
-                    },
-                  ],
-                },
-                {
-                  levels: [4],
-                },
-              ],
               controller: "mine",
-              kind: ["Digimon"],
               nameOrTrait: [
                 {
-                  tokens: ["Ice-Snow"],
-                  match: "trait",
+                  tokens: ["Suzune Kazuki"],
+                  match: "name",
                 },
               ],
             },
+            orFilters: [
+              {
+                controller: "mine",
+                kind: ["Digimon"],
+                levelComparison: { op: "lte", value: 4 },
+                nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }],
+              },
+            ],
             count: 1,
           },
           from: ["hand"],
@@ -73,28 +67,22 @@ const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
-              or: [
-                {
-                  nameOrTrait: [
-                    {
-                      tokens: ["Suzune Kazuki"],
-                      match: "any",
-                    },
-                  ],
-                },
-                {
-                  levels: [4],
-                },
-              ],
               controller: "mine",
-              kind: ["Digimon"],
               nameOrTrait: [
                 {
-                  tokens: ["Ice-Snow"],
-                  match: "trait",
+                  tokens: ["Suzune Kazuki"],
+                  match: "name",
                 },
               ],
             },
+            orFilters: [
+              {
+                controller: "mine",
+                kind: ["Digimon"],
+                levelComparison: { op: "lte", value: 4 },
+                nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }],
+              },
+            ],
             count: 1,
           },
           from: ["hand"],
@@ -112,28 +100,22 @@ const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
-              or: [
-                {
-                  nameOrTrait: [
-                    {
-                      tokens: ["Suzune Kazuki"],
-                      match: "any",
-                    },
-                  ],
-                },
-                {
-                  levels: [4],
-                },
-              ],
               controller: "mine",
-              kind: ["Digimon"],
               nameOrTrait: [
                 {
-                  tokens: ["Ice-Snow"],
-                  match: "trait",
+                  tokens: ["Suzune Kazuki"],
+                  match: "name",
                 },
               ],
             },
+            orFilters: [
+              {
+                controller: "mine",
+                kind: ["Digimon"],
+                levelComparison: { op: "lte", value: 4 },
+                nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }],
+              },
+            ],
             count: 1,
           },
           from: ["hand"],
@@ -163,9 +145,10 @@ const compiled: CompiledCard = {
                   kind: ["Digimon"],
                   digivolutionCards: "hasAny",
                 },
-                count: 1,
+                count: "all",
               },
               amount: 3,
+              scope: "acrossDigimon",
             },
             {
               kind: "Restrict",
@@ -198,9 +181,10 @@ const compiled: CompiledCard = {
                   kind: ["Digimon"],
                   digivolutionCards: "hasAny",
                 },
-                count: 1,
+                count: "all",
               },
               amount: 3,
+              scope: "acrossDigimon",
             },
             {
               kind: "Restrict",

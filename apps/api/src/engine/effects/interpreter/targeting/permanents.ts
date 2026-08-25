@@ -123,8 +123,9 @@ export function candidatePermanents(
 /**
  * SERVER-SIDE superlative play-cost narrowing (threat T-08-01): keep only the minimum
  * (`lowestPlayCost`) or maximum (`highestPlayCost`) printed-play-cost permanents in the eligible
- * pool (ties: all extrema). Candidates with no play cost are excluded; if NONE has a play cost the
- * set is empty (KB BT23-024 Q6025/Q6026 "all restricted, none exempt"). Because target resolution
+ * pool (ties: all extrema). Candidates with no play cost are excluded; synthetic definitions use
+ * a non-positive sentinel for that absence, so only positive printed costs are comparable. If NONE
+ * has a play cost the set is empty (KB BT23-024 Q6025/Q6026 / EX11-011 Q5796). Because target resolution
  * (and thus client-intent validation in resolvePermanentTargets) runs over this narrowed pool, a
  * client naming a permanent outside the superlative set is rejected.
  */
@@ -191,7 +192,7 @@ function narrowToSuperlative(
   for (const permanent of pool) {
     if (permanent.topCard === undefined) continue;
     const cost = ctx.game.definitionOf(permanent.topCard).playCost;
-    if (cost === undefined) continue;
+    if (cost === undefined || cost <= 0) continue;
     withCost.push({ permanent, cost });
   }
   if (withCost.length === 0) return [];

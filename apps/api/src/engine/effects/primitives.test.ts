@@ -745,7 +745,7 @@ describe("primitives: return to hand / deck", () => {
     ]);
     expect(h.state.players[0]!.hand).toHaveLength(0);
     expect(h.events.filter((event) => event.kind === "cardsMoved")).toEqual([
-      expect.objectContaining({ instanceIds: requestedOrder, to: "deck" }),
+      expect.objectContaining({ instanceIds: requestedOrder, to: "deckBottom" }),
     ]);
   });
 

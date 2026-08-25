@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { cleanup, fireEvent, render, screen } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import { getCardDefinition, isDigimon, type CardDefinition, type CardInstance } from "@aegis/shared";
 import type { AegisJoinOptions } from "../src/net/types";
@@ -93,8 +94,7 @@ scenario("activate-main", () => {
     // Protagonist's own Breeding window: nothing to do, end phase into Main, then
     // straight through Main (nothing to play yet) to pass the turn — the opponent
     // can't act until it's their turn.
-    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
 
     // Wait for the opponent's real playCard round trip: their battle area
@@ -104,8 +104,7 @@ scenario("activate-main", () => {
     await vi.waitFor(() => expect(opponent.room.state.players[1]!.battleArea.length).toBe(1), { timeout: 10_000 });
 
     // Protagonist's second turn: skip breeding again.
-    const secondBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
 
     // Play BT15-009 (Meramon) from hand into the battle area.
     const [meramonImg] = await screen.findAllByRole("img", { name: /meramon/i }, { timeout: 10_000 });
@@ -117,8 +116,7 @@ scenario("activate-main", () => {
     // the board wire the permanent for a drag (attack) rather than a click, which
     // is the arrangement the activation has to survive on touch.
     fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
-    const thirdBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(thirdBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
 
     // Activate Meramon's [Main] ability the way a player does: an attack-capable
     // Digimon is drag-wired, so a non-moving tap on it opens the card action menu

@@ -550,13 +550,17 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       return false;
     }
     case "Return": {
+      const scaledTarget =
+        action.scaling !== undefined && typeof action.target.count === "number"
+          ? { ...action.target, count: action.target.count * scaleFactor(ctx, action.scaling) }
+          : action.target;
       const returnTarget =
         action.playCostCeiling === undefined
-          ? action.target
+          ? scaledTarget
           : {
-              ...action.target,
+              ...scaledTarget,
               filter: {
-                ...action.target.filter,
+                ...scaledTarget.filter,
                 playCostLte:
                   action.playCostCeiling.base +
                   Math.floor(

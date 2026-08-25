@@ -12,8 +12,12 @@ import { resolveBotProfile, type BotProfile, type BotProfileName } from "./profi
 import { createBotRandom } from "./rng.js";
 import { buildBotView, type BotView } from "./view.js";
 
-/** Default think-time window (ms) so the bot does not act instantaneously. */
-const DEFAULT_ACTION_DELAY_MS = 2_000;
+/* Default think-time window (ms). It is a window rather than a fixed beat so a
+   run of actions does not tick out metronomically, and it is this long because
+   the client narrates every bot action — the showcase, the burst and the feed
+   entry all have to be readable before the next action displaces them. */
+export const DEFAULT_MIN_ACTION_DELAY_MS = 2_000;
+export const DEFAULT_MAX_ACTION_DELAY_MS = 2_800;
 
 /** Safety valve: the most actions the bot will take in one Main phase. */
 const MAX_MAIN_PHASE_ACTIONS = 40;
@@ -62,8 +66,8 @@ export class BotPlayer {
     private readonly sendIntent: (intent: Intent) => IntentResult | void,
     options: BotOptions = {},
   ) {
-    this.minThinkMs = options.minThinkMs ?? DEFAULT_ACTION_DELAY_MS;
-    this.maxThinkMs = Math.max(options.maxThinkMs ?? DEFAULT_ACTION_DELAY_MS, this.minThinkMs);
+    this.minThinkMs = options.minThinkMs ?? DEFAULT_MIN_ACTION_DELAY_MS;
+    this.maxThinkMs = Math.max(options.maxThinkMs ?? DEFAULT_MAX_ACTION_DELAY_MS, this.minThinkMs);
     const seed = options.seed ?? 0x5eed;
     this.policy = options.policy ?? createEvaluationPolicy({ profile: resolveBotProfile(options.profile), seed });
     const random = createBotRandom(seed ^ 0x9e37);

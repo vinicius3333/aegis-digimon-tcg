@@ -85,6 +85,11 @@ export async function consultLeavePrevention(
         if (ctx === undefined) continue;
         if (repl.appliesTo && !repl.appliesTo(ctx, leavingId)) continue;
         await repl.apply(ctx);
+        // A true relocation replacement (BT22-007) removes the would-leave permanent from
+        // the battle area as its payload. Do not let the original removal continue against
+        // the now-relocated cards. Side-effect-only "instead" reactions such as Decode leave
+        // the permanent live here and therefore keep their established fall-through behavior.
+        if (host.permanentById(leavingId) === undefined) prevented.add(leavingId);
         if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
       }
       // "prevent" pass: the first successful reaction wins and stops the search.

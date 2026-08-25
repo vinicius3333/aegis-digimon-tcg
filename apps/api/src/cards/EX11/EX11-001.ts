@@ -34,6 +34,7 @@ const compiled: CompiledCard = {
             ],
           },
           from: ["hand"],
+          payCost: true,
           optional: true,
         },
       ],

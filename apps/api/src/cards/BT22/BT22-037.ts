@@ -24,7 +24,6 @@ export const compiled: CompiledCard = {
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            levelComparison: { op: "gte", value: 6 },
             nameOrTrait: [
               { tokens: ["Kentaurosmon", "Mitamamon"], match: "name" },
               { tokens: ["CS"], match: "trait" },
@@ -33,7 +32,6 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: true,
           costDelta: -2,
-          ignoreRequirements: true,
           optional: true,
           cost: { kind: "trashSecurityTop", raw: "By trashing your top security card" },
         },

@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-055.js";
 
 describe("EX11-055 Chitose Horaiji", () => {
+  it("preserves the printed dual-color Tamer and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-055")).toMatchObject({
+      nameEn: "Chitose Horaiji",
+      colors: ["Red", "Purple"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["LIBERATOR"],
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("trashes a Composite card to draw and gain memory on play", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: "EX11-055", as: "chitose" }, "AD1-006"], deck: ["BT1-001"] } },
@@ -22,6 +34,7 @@ describe("EX11-055 Chitose Horaiji", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "AD1-006")).toBe(true);
     expect(s.state.memory).toBe(2);
+    assertNoLoudGap(s);
   });
 
   it("repeats the paid draw and memory effect at the start of its owner's main phase", async () => {
@@ -41,6 +54,7 @@ describe("EX11-055 Chitose Horaiji", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
     expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
   });
 
   it("suspends after a Composite deletion and plays an exact Gazimon from hand", async () => {
@@ -56,13 +70,19 @@ describe("EX11-055 Chitose Horaiji", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await (
-      s.engine as unknown as { primitives: { deletePermanent(ids: string[], cause?: string): Promise<number> } }
-    ).primitives.deletePermanent([s.perm("composite").permanentId], "byEffect");
+    await advance(s.engine).verb.deletePermanent([s.perm("composite").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-071"));
 
     expect(s.perm("chitose").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("gazimon").instanceId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("plays itself from security without paying the cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "EX11-055", as: "chitose" }] } }, { autoDeclineOptional: true });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("chitose"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX11-055")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("publishes full compiled coverage with coupled payments and exact deletion filters", () => {

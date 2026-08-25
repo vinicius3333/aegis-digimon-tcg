@@ -4,6 +4,8 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { compiled } from "./BT22-007.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 /**
  * A3 for BT22-007's {Breeding}[Start of Your Main Phase] cluster (KB BT22-007; documented behavior):
@@ -232,5 +234,68 @@ describe("BT22-007 inherited leave-play replacement", () => {
       underFilter: { isSelfRef: true },
       position: "bottom",
     });
+  });
+
+  it("replaces an opponent-effect deletion of an owned Eater with bottom placement under the breeding host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT22-079", under: ["BT22-007"], as: "breedingHost" },
+          battleArea: [{ card: "BT22-080", as: "leavingEater" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(advance(s.engine).ledgers.subTriggers.replacementsFor("wouldLeavePlay")).toHaveLength(1);
+    const leavingId = s.inst("leavingEater").instanceId;
+
+    advance(s.engine).verb.enterEffectResolution(1 as Seat, ["Digimon"]);
+    try {
+      await advance(s.engine).verb.deletePermanent([s.perm("leavingEater").permanentId], "byEffect");
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === leavingId)).toBe(false);
+    expect(s.perm("breedingHost").stack.at(-1)?.instanceId).toBe(leavingId);
+  });
+});
+
+describe("BT22-007 battle-area clauses", () => {
+  it("treats owned Mother Eaters as 16000 DP while the source is in breeding", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT22-007", as: "breedingSource" },
+        battleArea: [{ card: "BT22-007", as: "battleMother" }],
+      },
+    });
+    await s.ready();
+    await advance(s.engine).recompute();
+
+    expect(s.perm("battleMother").currentDP).toBe(16000);
+  });
+
+  it("deletes exactly one opposing Digimon on play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT22-007", as: "mother" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mother"));
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
   });
 });

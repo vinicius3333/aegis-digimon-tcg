@@ -121,7 +121,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // host, it does not mean "play the source card again". The latter is reserved for the
       // targetless/self target forms used by Security and revive clauses.
       const selfPlayTarget =
-        action.target?.isSelf || (action.target?.filter?.isSelfRef === true && action.target.filter.zone === undefined);
+        action.target?.isSelf ||
+        (action.target?.filter?.isSelfRef === true &&
+          action.target.filter.zone === undefined &&
+          action.from?.includes("digivolutionCards") !== true);
       if (selfPlayTarget) {
         // "Play this card without paying its cost" — from security (the common
         // [Security] form) or from hand.

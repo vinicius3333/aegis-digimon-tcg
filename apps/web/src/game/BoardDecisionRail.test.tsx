@@ -183,4 +183,85 @@ describe("Hand in selection mode", () => {
     fireEvent.click(within(hand).getByRole("button", { name: "Pick Greymon" }));
     expect(onToggle.mock.calls).toEqual([["h1"]]);
   });
+
+  describe("on touch", () => {
+    /** A finger landing on a card and lifting `travel` px away from where it landed. */
+    function fingerTap(card: Element, travel: { dx: number; dy: number } = { dx: 0, dy: 0 }) {
+      const at = { clientX: 120, clientY: 400, pointerId: 7, pointerType: "touch" };
+      fireEvent.pointerDown(card, at);
+      fireEvent.pointerUp(card, { ...at, clientX: at.clientX + travel.dx, clientY: at.clientY + travel.dy });
+    }
+
+    function renderPickableHand() {
+      const onToggle = vi.fn<(instanceId: string) => void>();
+      renderIn(
+        <Hand
+          cards={cards}
+          startDrag={noop}
+          selection={{ selectableInstanceIds: ["h1"], pickedInstanceIds: [], onToggle }}
+        />,
+      );
+      const hand = screen.getByTestId("hand");
+      return { onToggle, hand, card: within(hand).getByRole("button", { name: /copy 1 of 2$/ }) };
+    }
+
+    it("picks a card from the tap itself, not from the click the browser may never send", () => {
+      // The hand is a `pan-x` scroll-snap row on a phone, so the browser is free to
+      // swallow or retarget the trailing click. The pick must not depend on it.
+      const { onToggle, card } = renderPickableHand();
+      fingerTap(card);
+      expect(onToggle.mock.calls).toEqual([["h1"]]);
+    });
+
+    it("counts the tap once when the browser does send its trailing click", () => {
+      const { onToggle, card } = renderPickableHand();
+      fingerTap(card);
+      fireEvent.click(card, { detail: 1 });
+      expect(onToggle.mock.calls).toEqual([["h1"]]);
+    });
+
+    it("still answers a browser that reports the tap as a click alone", () => {
+      // The pointerup lands on the row rather than the card there, so the click is
+      // the only signal the pick ever gets.
+      const { onToggle, card } = renderPickableHand();
+      fireEvent.pointerDown(card, { clientX: 120, clientY: 400, pointerId: 7, pointerType: "touch" });
+      fireEvent.pointerUp(window, { clientX: 120, clientY: 400, pointerId: 7, pointerType: "touch" });
+      fireEvent.click(card, { detail: 1 });
+      expect(onToggle.mock.calls).toEqual([["h1"]]);
+    });
+
+    it("picks again when the same card is tapped a second time", () => {
+      const { onToggle, card } = renderPickableHand();
+      fingerTap(card);
+      fireEvent.click(card, { detail: 1 });
+      fingerTap(card);
+      expect(onToggle.mock.calls).toEqual([["h1"], ["h1"]]);
+    });
+
+    it("leaves a sideways swipe to the row it scrolls", () => {
+      const { onToggle, card } = renderPickableHand();
+      fingerTap(card, { dx: 60, dy: 4 });
+      expect(onToggle).not.toHaveBeenCalled();
+    });
+
+    it("drops the pick when the browser takes the gesture over for a scroll", () => {
+      const { onToggle, card } = renderPickableHand();
+      fireEvent.pointerDown(card, { clientX: 120, clientY: 400, pointerId: 7, pointerType: "touch" });
+      fireEvent.pointerCancel(card, { pointerId: 7, pointerType: "touch" });
+      fireEvent.pointerUp(card, { clientX: 120, clientY: 400, pointerId: 7, pointerType: "touch" });
+      expect(onToggle).not.toHaveBeenCalled();
+    });
+
+    it("ignores a tap on a card the decision does not offer", () => {
+      const { onToggle, hand } = renderPickableHand();
+      fingerTap(within(hand).getByRole("button", { name: "Pick Greymon" }));
+      expect(onToggle).not.toHaveBeenCalled();
+    });
+
+    it("still answers keyboard and assistive activation, which sends no pointer at all", () => {
+      const { onToggle, card } = renderPickableHand();
+      fireEvent.click(card);
+      expect(onToggle.mock.calls).toEqual([["h1"]]);
+    });
+  });
 });

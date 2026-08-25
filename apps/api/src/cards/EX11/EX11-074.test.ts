@@ -1,11 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-074.js";
 
 describe("EX11-074 Vortexdramon", () => {
+  it("preserves the printed level 7 Digimon and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-074")).toMatchObject({
+      nameEn: "Vortexdramon",
+      colors: ["Green"],
+      level: 7,
+      playCost: 14,
+      dp: 14000,
+      evoCosts: [{ color: "Green", level: 6, memoryCost: 4 }],
+      types: ["Bird Dragon", "Vortex Warriors", "LIBERATOR"],
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(digivolutionRequirementsFor("EX11-074")).toEqual(compiled.digivolutionRequirement);
+  });
+
   it("publishes the exact evolution, keywords, suspend windows, and All Turns OPT", () => {
     expect(compiled.digivolutionRequirement).toEqual([
       {
@@ -86,6 +100,7 @@ describe("EX11-074 Vortexdramon", () => {
     await advance(s.engine).verb.modifyDP(s.perm("source").permanentId, -1000, EffectDuration.UntilOpponentTurnEnd);
     advance(s.engine).verb.leaveEffectResolution();
     expect(s.perm("source").currentDP).toBe(19000);
+    assertNoLoudGap(s);
   });
 
   it("Q5955-Q5959 unsuspends and directly battles without making a security check", async () => {
@@ -112,5 +127,6 @@ describe("EX11-074 Vortexdramon", () => {
 
     expect(s.perm("source").isSuspended).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(initialSecurity);
+    assertNoLoudGap(s);
   });
 });

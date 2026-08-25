@@ -8,10 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [EndOfYourTurn] Digivolve action: "from:['hand']" already restricts source zone to hand;
 //   the "into" filter describes card characteristics only (no zone redundancy needed).
 const compiled: CompiledCard = {
-  digivolutionRequirement: [
-    { level: 5, cost: 4, isAlternate: true },
-    { level: 5, texts: ["Maquinamon"], cost: 3, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ level: 5, texts: ["Maquinamon"], cost: 3, isAlternate: true }],
   effects: [
     {
       trigger: "Static",
@@ -147,6 +144,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Suspend",

@@ -1,8 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-075.js";
 
 describe("BT22-075 Fakemon", () => {
+  it("grants Scapegoat while linked", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-071", as: "host", linked: [{ card: "BT22-075", as: "fakemon" }] }] },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Scapegoat")).toBe(true);
+  });
+
   it("links only cards with Link requirements from trash or this stack", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({

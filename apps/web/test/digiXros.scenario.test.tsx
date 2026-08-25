@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -85,8 +86,7 @@ scenario("digi-xros", () => {
     const yourBattleArea = () => document.querySelector('[data-drop="battle-you"]') as HTMLElement;
 
     // Skip breeding to reach the Main phase.
-    const breedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(breedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
 
     // Select "Shoutmon + StarSword" in hand (a tap) and click "Play Digimon". Unlike
     // a normal play, GameScreen.tsx's `playCard` checks `digiXrosRequirementFor`

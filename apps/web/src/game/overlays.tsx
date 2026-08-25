@@ -1609,73 +1609,9 @@ export function DecisionOverlay({
   );
 }
 
-/* ---------------- BREEDING PHASE ---------------- */
-export function BreedingOverlay({
-  canHatch,
-  canMove,
-  onHatch,
-  onMove,
-  onSkip,
-}: {
-  canHatch: boolean;
-  canMove: boolean;
-  onHatch: () => void;
-  onMove: () => void;
-  onSkip: () => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <Scrim className="game-modal">
-      <div
-        className="game-modal__panel"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          textAlign: "center",
-          maxWidth: 420,
-          padding: 32,
-          background: "var(--ds-surface)",
-          borderRadius: 24,
-          border: "1px solid var(--ds-border)",
-          boxShadow: "var(--ds-shadow-summary)",
-        }}
-      >
-        <Badge tone="primary" style={{ marginBottom: 14 }}>
-          <Icons.Hexagon size={13} />
-          {t("overlay.breedingPhase")}
-        </Badge>
-        <h2
-          style={{
-            fontFamily: "var(--ds-font-display)",
-            fontWeight: 800,
-            fontSize: 26,
-            color: "var(--ds-fg)",
-            margin: "0 0 8px",
-          }}
-        >
-          {t("overlay.breedingArea")}
-        </h2>
-        <p style={{ color: "var(--ds-fg-secondary)", fontSize: 14, margin: "0 0 26px", lineHeight: 1.5 }}>
-          {canHatch ? t("overlay.hatchHint") : canMove ? t("overlay.moveHint") : t("overlay.noBreedingActions")}
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {canHatch ? (
-            <Button size="lg" full icon={Icons.Dices} onClick={onHatch}>
-              {t("overlay.hatchDigiEgg")}
-            </Button>
-          ) : null}
-          {canMove ? (
-            <Button size="lg" full icon={Icons.ChevronRight} onClick={onMove}>
-              {t("overlay.moveToBattleArea")}
-            </Button>
-          ) : null}
-          <Button size="lg" full variant="secondary" icon={Icons.ChevronRight} onClick={onSkip}>
-            {t("overlay.endPhase")}
-          </Button>
-        </div>
-      </div>
-    </Scrim>
-  );
-}
+/* The breeding step has no dialog of its own: hatching, moving out and ending the
+   step are all answered on the board — the egg deck, the raising slot and the
+   turn control — with a hint beside them instead of a modal. See GameScreen. */
 
 /* ---------------- GAME OVER ---------------- */
 
@@ -2712,6 +2648,7 @@ export function DigiXrosMaterialOverlay({
   candidates,
   lockedCandidates,
   eligibleExpanders,
+  intrinsicTrashMax = 0,
   onConfirm,
   onSkip,
   onCancel,
@@ -2726,6 +2663,8 @@ export function DigiXrosMaterialOverlay({
   lockedCandidates: DigiXrosCandidate[];
   /** Unsuspended expander Tamers that can be suspended for this DigiXros play. */
   eligibleExpanders: DigiXrosEligibleExpander[];
+  /** Trash capacity granted by the played card itself, without suspending a Tamer. */
+  intrinsicTrashMax?: number;
   /** Confirm with the chosen materials and expander Tamers to suspend. */
   onConfirm: (materialInstanceIds: string[], expanderPermanentIds: string[]) => void;
   /** Play the card normally without DigiXros (full cost, no materials). */
@@ -2749,7 +2688,7 @@ export function DigiXrosMaterialOverlay({
   const slotLabels = req.materials.map((material) => materialSlotLabel(material, t));
   const chosenExpanders = eligibleExpanders.filter((e) => chosenExpanderPermanentIds.includes(e.permanentId));
   const underTamerMax = chosenExpanders.reduce((max, e) => Math.max(max, e.underTamerMax), 0);
-  const trashMax = chosenExpanders.reduce((max, e) => Math.max(max, e.trashMax), 0);
+  const trashMax = chosenExpanders.reduce((max, e) => Math.max(max, e.trashMax), intrinsicTrashMax);
   const trashCandidates = lockedCandidates.filter((c) => c.zone === "trash");
   const underTamerCandidates = lockedCandidates.filter((c) => c.zone === "underTamer");
   const availableCandidates = [
@@ -2914,7 +2853,7 @@ export function DigiXrosMaterialOverlay({
               fontSize: 12.5,
             }}
           >
-            {t("overlay.xrosUnlockHint")}
+            {eligibleExpanders.length > 0 ? t("overlay.xrosUnlockHint") : t("overlay.xrosZoneLocked")}
           </div>
         )}
       </div>

@@ -114,7 +114,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
-          excludeOwnEffects: true,
+          leaveCause: "otherThanYourEffect",
           optional: true,
           actions: [
             {

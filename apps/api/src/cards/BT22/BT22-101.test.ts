@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-101.js";
 
 describe("BT22-101 Kyoko Kuremi", () => {
@@ -52,6 +52,7 @@ describe("BT22-101 Kyoko Kuremi", () => {
       into: { nameOrTrait: [{ tokens: ["Alphamon"], match: "name" }] },
       from: ["hand"],
       reduceCost: 2,
+      payCost: true,
       optional: true,
       condition: {
         kind: "youHaveNone",
@@ -72,5 +73,27 @@ describe("BT22-101 Kyoko Kuremi", () => {
     s.state.memory = 2;
     await advance(s.engine).fireForInstance(EffectTiming.OnStartTurn, s.perm("kyoko").topCard!);
     expect(s.state.memory).toBe(3);
+  });
+
+  it("pays the reduced cost and respects Alphamon's Kyoko evolution requirement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-101", as: "kyoko", suspended: true }],
+          hand: [{ card: "BT22-063", as: "alphamon" }],
+          security: 3,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    await advance(s.engine).fireSubTrigger("whenUnsuspended", {
+      unsuspendedPermanentId: s.perm("kyoko").permanentId,
+    });
+    await settle(() => s.perm("kyoko").topCard?.cardId === "BT22-063");
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("kyoko").stack.at(-1)?.cardId).toBe("BT22-101");
   });
 });

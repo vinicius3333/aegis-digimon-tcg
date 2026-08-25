@@ -6,10 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  digivolutionRequirement: [
-    { level: 5, cost: 4, colors: ["Green", "Black"], isAlternate: true },
-    { level: 5, traits: ["Royal Base"], cost: 3, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ level: 5, traits: ["Royal Base"], cost: 3, isAlternate: true }],
   effects: [
     {
       trigger: "OnPlay",
@@ -22,6 +19,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
           },
           amount: 1,
+          faceUp: true,
           optional: true,
         },
         {
@@ -57,6 +55,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
           },
           amount: 1,
+          faceUp: true,
           optional: true,
         },
         {
@@ -92,6 +91,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
           },
           amount: 1,
+          faceUp: true,
           optional: true,
         },
         {

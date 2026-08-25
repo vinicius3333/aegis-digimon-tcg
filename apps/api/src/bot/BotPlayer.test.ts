@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Phase, type DecisionRequest, type GameState, type Intent, type ServerEvent } from "@aegis/shared";
-import { BotPlayer } from "./BotPlayer.js";
+import { BotPlayer, DEFAULT_MAX_ACTION_DELAY_MS, DEFAULT_MIN_ACTION_DELAY_MS } from "./BotPlayer.js";
 
 /**
  * Pacing and wiring tests for the bot seat.
@@ -52,6 +52,11 @@ function botState() {
   };
 }
 
+/* The plumbing tests below pin the handshakes, not the default pace, so they run
+   the seat on a fixed think time. The default window — deliberately a range, so a
+   run of actions does not tick out metronomically — is pinned by its own test. */
+const FIXED_THINK = { minThinkMs: 2_000, maxThinkMs: 2_000 };
+
 async function advance(milliseconds: number): Promise<void> {
   await vi.advanceTimersByTimeAsync(milliseconds);
   await Promise.resolve();
@@ -64,10 +69,15 @@ describe("BotPlayer action pacing and player attacks", () => {
     vi.useFakeTimers();
     const { state } = botState();
     const intents: Intent[] = [];
-    const bot = new BotPlayer(1, state, (intent) => {
-      intents.push(intent);
-      return { ok: true };
-    });
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
 
     bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
     await advance(1_999);
@@ -87,17 +97,22 @@ describe("BotPlayer action pacing and player attacks", () => {
     vi.useFakeTimers();
     const { state, attackers } = botState();
     const intents: Intent[] = [];
-    const bot = new BotPlayer(1, state, (intent) => {
-      intents.push(intent);
-      if (intent.type === "attack") {
-        const attacker = attackers.find((candidate) => candidate.permanentId === intent.attackerPermanentId);
-        if (attacker) {
-          attacker.isSuspended = true;
-          attacker.canAttackPlayer = false; // the engine clears the projection once suspended
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        if (intent.type === "attack") {
+          const attacker = attackers.find((candidate) => candidate.permanentId === intent.attackerPermanentId);
+          if (attacker) {
+            attacker.isSuspended = true;
+            attacker.canAttackPlayer = false; // the engine clears the projection once suspended
+          }
         }
-      }
-      return { ok: true };
-    });
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
 
     bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
     await advance(2_000);
@@ -117,12 +132,17 @@ describe("BotPlayer action pacing and player attacks", () => {
     vi.useFakeTimers();
     const { state } = botState();
     const intents: Intent[] = [];
-    const bot = new BotPlayer(1, state, (intent) => {
-      intents.push(intent);
-      return intent.type === "attack" && intent.attackerPermanentId === "large"
-        ? { ok: false, reason: "illegal-target" }
-        : { ok: true };
-    });
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return intent.type === "attack" && intent.attackerPermanentId === "large"
+          ? { ok: false, reason: "illegal-target" }
+          : { ok: true };
+      },
+      FIXED_THINK,
+    );
 
     bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
     await advance(2_000);
@@ -140,10 +160,15 @@ describe("BotPlayer action pacing and player attacks", () => {
     vi.useFakeTimers();
     const { state } = botState();
     const intents: Intent[] = [];
-    const bot = new BotPlayer(1, state, (intent) => {
-      intents.push(intent);
-      return { ok: true };
-    });
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
     const request = {
       decisionId: "dec-order",
       seat: 1,
@@ -174,10 +199,15 @@ describe("BotPlayer action pacing and player attacks", () => {
     // The prompts below target the defending seat, so put the opponent on turn.
     state.turnSeat = 0;
     const intents: Intent[] = [];
-    const bot = new BotPlayer(1, state, (intent) => {
-      intents.push(intent);
-      return { ok: true };
-    });
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
 
     bot.onEvent({
       kind: "counterWindowOpened",
@@ -203,10 +233,15 @@ describe("BotPlayer action pacing and player attacks", () => {
     vi.useFakeTimers();
     const { state } = botState();
     const intents: Intent[] = [];
-    const bot = new BotPlayer(1, state, (intent) => {
-      intents.push(intent);
-      return { ok: true };
-    });
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
 
     bot.onEvent({
       kind: "alliancePrompt",
@@ -230,15 +265,39 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(intents[1]).toEqual({ type: "respondAlliance", allyPermanentId: "small" });
   });
 
-  it("ignores combat prompts aimed at permanents it does not control", async () => {
+  it("paces its default think time inside the window the client narration needs", async () => {
     vi.useFakeTimers();
     const { state } = botState();
-    state.turnSeat = 0;
     const intents: Intent[] = [];
     const bot = new BotPlayer(1, state, (intent) => {
       intents.push(intent);
       return { ok: true };
     });
+
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    // Nothing before the floor: every action the client narrates has to stay
+    // readable until the next one displaces it.
+    await advance(DEFAULT_MIN_ACTION_DELAY_MS - 1);
+    expect(intents).toEqual([]);
+
+    await advance(DEFAULT_MAX_ACTION_DELAY_MS - DEFAULT_MIN_ACTION_DELAY_MS + 1);
+    expect(intents).toHaveLength(1);
+  });
+
+  it("ignores combat prompts aimed at permanents it does not control", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
 
     bot.onEvent({ kind: "evadePrompt", permanentId: "not-mine" } as ServerEvent);
     await advance(2_000);

@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
             ],
           },
           from: ["hand", "trash"],
+          payCost: true,
           optional: true,
           cost: {
             kind: "place",

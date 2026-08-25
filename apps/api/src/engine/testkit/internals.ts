@@ -34,7 +34,7 @@ export interface EngineInternals {
   syncActivatableEffects(): void;
   fireTiming(timing: EffectTiming, trigger?: TriggerInfo): Promise<void>;
   fireTimingForPermanent(timing: EffectTiming, permanent: Permanent, trigger?: TriggerInfo): Promise<void>;
-  fireTimingForInstance(timing: EffectTiming, instanceId: string): Promise<void>;
+  fireTimingForInstance(timing: EffectTiming, instanceId: string, trigger?: TriggerInfo): Promise<void>;
   fireSubTrigger(event: SubTriggerEventName, payload?: TriggerInfo): Promise<void>;
   cardSourceOf(instance: CardInstance): CardSource;
   drawCards(seat: Seat, count: number): Promise<CardInstance[]>;

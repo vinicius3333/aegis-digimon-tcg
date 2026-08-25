@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -87,8 +88,7 @@ scenario("alliance", () => {
 
     // Turn 1: skip breeding, then play Agumon (cost 3, memory 0 -> -3) — crosses;
     // fine, Agumon is already placed. It will stand in as the Alliance ally.
-    const firstBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(firstBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
     const [agumonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^agumon$/i });
@@ -103,8 +103,7 @@ scenario("alliance", () => {
 
     // Turn 3 (protagonist's second turn; memory +3 from the pass-turn bonus): skip
     // breeding, then play Seadramon (cost 5, memory 3 -> -2) — crosses; fine.
-    const secondBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(secondBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     await vi.waitFor(
       () => {
         expect(opponent.room.state.turnSeat).toBe(0);
@@ -124,8 +123,7 @@ scenario("alliance", () => {
     // Turn 5 (protagonist's third turn; memory +3 again): skip breeding, then
     // declare an attack with Seadramon (entered turn 3, so summoning sickness —
     // Comprehensive Rules §16-1 — has cleared by turn 5).
-    const thirdBreedingHeading = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 10_000 });
-    fireEvent.click(within(thirdBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+    await endBreedingStep();
     await vi.waitFor(
       () => {
         expect(opponent.room.state.turnSeat).toBe(0);

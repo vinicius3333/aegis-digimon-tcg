@@ -90,4 +90,23 @@ describe("BT22-037 Chirinmon", () => {
     expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
+
+  it("applies the inherited once-per-turn attack reduction in a CS evolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT22-041", under: ["BT22-037"], as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-028", as: "victim", dp: 10000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+    await settle(() => s.perm("victim").currentDP === 6000);
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+    await settle();
+
+    expect(s.perm("victim").currentDP).toBe(6000);
+    assertNoLoudGap(s);
+  });
 });

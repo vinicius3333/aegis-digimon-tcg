@@ -10,16 +10,7 @@ export const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [{ tokens: ["Yao Qinglan"], match: "name" }],
-            },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
+          kind: "CostGatedBlock",
           cost: {
             kind: "return",
             to: "deckBottom",
@@ -30,29 +21,42 @@ export const compiled: CompiledCard = {
             },
             raw: "By returning this Tamer to the bottom of the deck",
           },
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [{ tokens: ["Sangomon"], match: "name" }],
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Yao Qinglan"], match: "name" }],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
             },
-            count: 1,
-          },
-          from: ["trash"],
-          payCost: false,
-          condition: {
-            kind: "youHaveNone",
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Sangomon"], match: "name" }],
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              payCost: false,
+              condition: {
+                kind: "youHaveNone",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                },
+                raw: "you don't have a Digimon",
+              },
+              optional: true,
             },
-            raw: "you don't have a Digimon",
-          },
-          optional: true,
+          ],
         },
       ],
     },

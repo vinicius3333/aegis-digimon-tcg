@@ -465,6 +465,30 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { level: 5, traits: ["ME", "VB"], cost: 3, isAlternate: true },
   ],
   "EX12-037": [{ level: 6, traits: ["ME", "VB"], cost: 5, isAlternate: true }],
+  // EX11-022: the committed generated fallback predates the compiler's base-color support.
+  // Preserve the printed yellow/purple restriction for both server legality and client previews.
+  "EX11-022": [{ level: 4, traits: ["Puppet"], cost: 3, isAlternate: true, baseColors: ["Yellow", "Purple"] }],
+  // EX11-024 has only its ordinary yellow Lv.5 EvoCost row. The generated IR incorrectly
+  // duplicated that row as a printed alternate [Digivolve] requirement.
+  "EX11-024": [],
+  // EX11-026 prints an unrestricted [Digivolve] Lv.2: Cost 0 route in addition to
+  // its ordinary green EvoCost row; the generated fallback currently omits it.
+  "EX11-026": [{ level: 2, cost: 0, isAlternate: true }],
+  // EX11-028 has only its ordinary green Lv.3 EvoCost row; it prints no alternate header.
+  "EX11-028": [],
+  // EX11-029's only alternate route is the named Maquinamon header; its green Lv.3 row is ordinary.
+  "EX11-029": [{ names: ["Maquinamon"], cost: 2, isAlternate: true }],
+  // EX11-030's green/black Lv.3 rows are ordinary; only Royal Base is an alternate route.
+  "EX11-030": [{ level: 3, traits: ["Royal Base"], cost: 2, isAlternate: true }],
+  // Shoto Kazama is a controller board-state gate, not an alternative evolution base.
+  "EX11-074": [
+    {
+      namesExact: ["GrandGalemon"],
+      cost: 6,
+      isAlternate: true,
+      controllerControls: { kind: ["Tamer"], namesExact: ["Shoto Kazama"], min: 1 },
+    },
+  ],
   // BT12-081: Astamon's Save alternate path is restricted to yellow, green, or purple Lv.4 bases.
   "BT12-081": [{ cost: 3, isAlternate: true, level: 4, texts: ["Save"], colors: ["Yellow", "Green", "Purple"] }],
   // BT12-083: the Save alternate path is restricted to red, black, or purple Lv.4 bases.
@@ -1098,6 +1122,9 @@ export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] 
  * + cost) and CLIENT (material highlighting) read ONE source of truth.
  */
 export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[]> = {
+  // BT18-065: [DigiXros -1] 4 [Vemmon]. The generated parser consumed the inherited
+  // [All Turns][Once Per Turn] header as extra material metadata.
+  "BT18-065": [{ materials: [{ names: ["Vemmon"] }], count: 1, maxMaterials: 4 }],
   // AD1-006: DigiXros -2 requires all six distinct named slots. The generated aggregate retained
   // only OmniShoutmon, which made the server accept an incomplete recipe.
   "AD1-006": [
@@ -1244,6 +1271,19 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
     },
   ],
 };
+
+/**
+ * Intrinsic conditional trash-source allowances printed on DigiXros cards.
+ * The value lists every Digimon name the controller may have while the allowance
+ * remains active; an empty battle area also satisfies the condition (Q6014).
+ */
+export const DIGIXROS_TRASH_NAME_ALLOWANCES: Readonly<Record<string, readonly string[]>> = {
+  "BT18-065": ["Vemmon"],
+};
+
+export function digiXrosTrashNameAllowanceFor(cardId: string): readonly string[] | undefined {
+  return DIGIXROS_TRASH_NAME_ALLOWANCES[cardId];
+}
 
 /**
  * The DigiXros requirement(s) for a played card: the hand-authored override when one exists,

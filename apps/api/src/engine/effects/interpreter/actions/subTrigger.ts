@@ -734,10 +734,10 @@ export async function runSubTrigger(
   // ATTACKER, so the same subject-filter gate lets a watcher fire only when the attacker matches —
   // including relative gates like `digivolutionCardsCompareToSource` ("with as many or fewer
   // digivolution cards as this Digimon attacks", BT15-032 and AD1/BT16-family cards).
-  const ATTACK_TRIGGER_FILTER_EVENTS = new Set(["whenAttacking", "whenOpponentAttacks"]);
+  const SUBJECT_TRIGGER_FILTER_EVENTS = new Set(["whenAttacking", "whenOpponentAttacks", "whenLinked"]);
   const triggerFilterGate =
     action.triggerFilter !== undefined &&
-    (event === "onAddDigivolutionCards" || ATTACK_TRIGGER_FILTER_EVENTS.has(event))
+    (event === "onAddDigivolutionCards" || SUBJECT_TRIGGER_FILTER_EVENTS.has(event))
       ? (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, action.triggerFilter!)
       : undefined;
   const addedDigivolutionCardGate =
@@ -756,6 +756,15 @@ export async function runSubTrigger(
               definitionMatches(action.addedDigivolutionCardFilter!, subCtx.game.definitionOf(card)),
           );
         }
+      : undefined;
+  const addedDigivolutionPositionGate =
+    event === "onAddDigivolutionCards" && action.addedDigivolutionCardsPosition !== undefined
+      ? (subCtx: EffectContext): boolean =>
+          subCtx.trigger.addedDigivolutionCardsPosition === action.addedDigivolutionCardsPosition
+      : undefined;
+  const placedOwnTopAtStackBottomGate =
+    event === "onAddDigivolutionCards" && action.requirePlacedOwnTopAtStackBottom === true
+      ? (subCtx: EffectContext): boolean => subCtx.trigger.placedOwnTopAtStackBottom === true
       : undefined;
   // `sourceFilter.nameMatchesInheritedHost` (CAP-G2, BT2-059 Kurisarimon): fires ONLY when the
   // played card's name matches the HOST permanent's current top-card name. "This Digimon" in an
@@ -859,6 +868,8 @@ export async function runSubTrigger(
     effectSourceGate,
     triggerFilterGate,
     addedDigivolutionCardGate,
+    addedDigivolutionPositionGate,
+    placedOwnTopAtStackBottomGate,
     linkedCardGate,
     linkedSelfSourceGate,
     inheritedHostNameGate,

@@ -1,8 +1,7 @@
-import { EffectTiming, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT22-067.js";
+import { compiled } from "./BT22-067.js";
 import "./index.js";
 
 describe("BT22-067 LordKnightmon", () => {
@@ -16,14 +15,20 @@ describe("BT22-067 LordKnightmon", () => {
     });
   });
 
-  it("registers effects for play, digivolving, ally player attacks, and continuous keywords", () => {
-    const module = getEffectModule("BT22-067");
-    expect(module).toBeDefined();
-    const source = {} as never;
-    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(2);
-    expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.OnAllyAttack, source)).toHaveLength(1);
+  it("registers complete compiled IR for both keywords, both buff/attack timings, and all player attacks", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects.filter((entry) => entry.trigger === "Static")).toHaveLength(2);
+    expect(compiled.effects.find((entry) => entry.trigger === "OnPlay")?.actions[1]).toMatchObject({
+      kind: "Attack",
+      attackPlayer: true,
+      optional: true,
+    });
+    expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenAttacking",
+      sourceFilter: { controllerDefault: "any", kind: ["Digimon"] },
+    });
   });
 
   it("gates the Rie Kishibe evolution path at three security cards", () => {

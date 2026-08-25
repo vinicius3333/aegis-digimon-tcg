@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
+import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
@@ -81,8 +82,7 @@ scenario("block", () => {
     // time the UI patch arrives. Only drive the overlay when it is still open;
     // this scenario proves blocking, not a timing race in the breeding fixture.
     if (opponent.room.state.phase === "Breeding") {
-      const t2Breeding = await screen.findByRole("heading", { name: /breeding area/i }, { timeout: 20_000 });
-      fireEvent.click(within(t2Breeding.parentElement!).getByRole("button", { name: /^end phase$/i }));
+      await endBreedingStep(20_000);
     }
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 

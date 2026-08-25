@@ -114,4 +114,21 @@ describe("rule-check trigger pool — one group per pass (CR §17-1-3, §15-4-3-
     expect(p0.trash.some((card) => card.instanceId === deletedId)).toBe(true);
     expect(resolvedSeats(s.events, ON_DELETION_CARD)).toEqual([0]);
   });
+
+  it("retains a deleted Token source until its pooled [On Deletion] effect resolves", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: TRIGGER_CARD, as: "trigger" }] },
+      1: {
+        battleArea: [{ card: "TOKEN-Petrification-Token", dp: 0, as: "token" }],
+        security: ["BT1-001", "BT1-002"],
+      },
+    });
+    const tokenPermanentId = s.perm("token").permanentId;
+
+    await triggerSweep(s);
+
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === tokenPermanentId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(resolvedSeats(s.events, "TOKEN-Petrification-Token")).toEqual([1]);
+  });
 });

@@ -29,12 +29,13 @@ const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           condition: {
-            kind: "youHaveFewOrEqual",
+            kind: "permanentCount",
+            op: "lte",
+            value: 1,
             filter: {
               controllerDefault: "mine",
               kind: ["Tamer"],
             },
-            count: 1,
             raw: "you have 1 or fewer Tamers",
           },
           optional: true,
@@ -47,24 +48,19 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOpponentAttacks",
-          actions: [
-            {
-              kind: "Delete",
-              target: {
-                filter: {
-                  controller: "mine",
-                  excludeSelf: true,
-                  kind: ["Digimon"],
-                },
-                count: 1,
+          actions: [{ kind: "EndAttack" }],
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                kind: ["Digimon"],
               },
-              cost: true,
-              raw: "by deleting 1 of your other Digimon",
+              count: 1,
             },
-            {
-              kind: "EndAttack",
-            },
-          ],
+            raw: "by deleting 1 of your other Digimon",
+          },
           optional: true,
           abortOnDecline: true,
         },

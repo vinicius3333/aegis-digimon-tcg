@@ -84,4 +84,24 @@ describe("BT22-047 Kuwagamon", () => {
 
     expect(s.state.memory).toBe(1);
   });
+
+  it("implements Q4900 by not gaining memory when both battling Digimon are deleted", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT22-047"], dp: 12000 }] },
+      1: { battleArea: [{ card: "BT1-009", as: "defender", suspended: true, dp: 12000 }] },
+    });
+    await s.ready();
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.memory).toBe(0);
+  });
 });

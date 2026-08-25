@@ -265,6 +265,14 @@ export function permanentMatchesFilter(
     let bound: number | undefined;
     if (cmp.relativeToSource) {
       bound = source.permanent()?.currentDP;
+    } else if (cmp.relativeToFilter !== undefined) {
+      const referenceDps = seatsForController(ctx, cmp.relativeToFilter).flatMap((seat) =>
+        ctx.game
+          .player(seat)
+          .battleArea.filter((candidate) => permanentMatchesFilter(ctx, candidate, cmp.relativeToFilter!, source))
+          .map((candidate) => candidate.currentDP),
+      );
+      bound = referenceDps.length > 0 ? Math.max(...referenceDps) : undefined;
     } else if (cmp.valueFrom !== undefined) {
       const boundIds = ctx.boundPlayed?.get(cmp.valueFrom);
       const boundId = boundIds?.values().next().value as string | undefined;

@@ -10,7 +10,7 @@ describe("BT22-098 Unique Emblem: Fable Waltz", () => {
 
     expect(effect?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
     expect(watcher).toMatchObject({ kind: "SubTrigger", event: "whenSuspended" });
-    expect(digivolve).toMatchObject({ kind: "Digivolve", reduceCost: 3, optional: true });
+    expect(digivolve).toMatchObject({ kind: "Digivolve", reduceCost: 3, payCost: true, optional: true });
     expect(digivolve.into.and).toEqual([
       { nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }] },
       { nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] },

@@ -45,6 +45,7 @@ describe("BT22-039 Ouranosmon", () => {
         },
       ],
     });
+    expect(allTurns?.actions[0]).not.toHaveProperty("sourceFilter.excludeSelf");
   });
 
   it("implements Q4892 by playing an Appmon on attack and linking an eligible stack card", async () => {

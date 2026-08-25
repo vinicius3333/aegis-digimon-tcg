@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "WhenDigivolving",
+      optional: true,
       actions: [
         {
           kind: "PlayWithoutCost",
@@ -41,7 +42,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Aqua"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },
@@ -53,7 +54,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
               },
@@ -74,7 +75,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Aqua"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },
@@ -86,7 +87,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
               },
@@ -107,7 +108,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Aqua"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },
@@ -119,7 +120,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Sea Animal"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
               },
@@ -147,6 +148,7 @@ export const compiled: CompiledCard = {
           to: "deckBottom",
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 controller: "mine",
@@ -192,6 +194,7 @@ export const compiled: CompiledCard = {
           to: "deckBottom",
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 controller: "mine",

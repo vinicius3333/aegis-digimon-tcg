@@ -1,12 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-073.js";
 import "./EX11-070.js";
 
 describe("EX11-073 ExMaquinamon", () => {
+  it("preserves the printed level 7 Digimon and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-073")).toMatchObject({
+      nameEn: "ExMaquinamon",
+      colors: ["Green", "Black"],
+      level: 7,
+      playCost: 15,
+      dp: 15000,
+      evoCosts: [
+        { color: "Green", level: 6, memoryCost: 5 },
+        { color: "Black", level: 6, memoryCost: 5 },
+      ],
+      types: ["Unique", "LIBERATOR"],
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("has Security Attack +1 and Blocker while on the field", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX11-073", as: "exmaquinamon" }] } });
     await s.engine.recomputeContinuousEffects();
@@ -14,6 +30,7 @@ describe("EX11-073 ExMaquinamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("exmaquinamon"), "SecurityAttack")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("exmaquinamon"), "Blocker")).toBe(true);
     expect(observe(s.engine).linkMaxDelta(s.perm("exmaquinamon"))).toBe(2);
+    assertNoLoudGap(s);
   });
 
   it("links up to 3 exact Maquinamon from hand, trash, and only this Digimon's stack when DNA digivolving", async () => {
@@ -37,6 +54,7 @@ describe("EX11-073 ExMaquinamon", () => {
 
     expect(s.perm("host").linked.map(({ cardId }) => cardId)).toEqual(["EX11-027", "EX11-027", "EX11-027"]);
     expect(s.perm("other").stack.map(({ cardId }) => cardId)).toContain("EX11-027");
+    assertNoLoudGap(s);
   });
 
   it("trashes material link cards immediately before the DNA merge (Q5945-Q5946)", async () => {
@@ -69,6 +87,7 @@ describe("EX11-073 ExMaquinamon", () => {
     expect(s.perm("result").stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["EX11-034", "EX11-029", "EX11-070"]),
     );
+    assertNoLoudGap(s);
   });
 
   it("processes all security trashes before all deck-bottom returns for each link card (Q5947)", async () => {
@@ -110,6 +129,7 @@ describe("EX11-073 ExMaquinamon", () => {
     );
     expect(securityMove).toBeGreaterThanOrEqual(0);
     expect(deckMove).toBeGreaterThan(securityMove);
+    assertNoLoudGap(s);
   });
 
   it("publishes full exclusive IR with exact link sources and ordered per-link action groups", () => {

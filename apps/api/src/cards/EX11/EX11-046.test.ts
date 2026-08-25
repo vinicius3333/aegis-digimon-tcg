@@ -1,5 +1,6 @@
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js"; // register the compiled cards so the real activateEffect path runs
@@ -26,11 +27,32 @@ const OPPONENT_CHEAP = "AD1-011"; // playCost 8 — must be deleted (not the hig
 const OPPONENT_COSTLY = "AD1-004"; // playCost 12 — the highest, must survive
 
 describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-cost opponent Digimon", () => {
-  it("retains the standard level 5 evolution requirement alongside both alternates", () => {
-    expect(runtimeCompiledCard(GALACTICMON)?.digivolutionRequirement).toEqual([
-      { level: 5, cost: 6, isAlternate: true },
+  it("preserves the printed card and only its two text evolution requirements", () => {
+    expect(getCardDefinition(GALACTICMON)).toMatchObject({
+      nameEn: "Galacticmon",
+      colors: ["Black"],
+      level: 6,
+      playCost: 14,
+      dp: 14000,
+      evoCosts: [{ color: "Black", level: 5, memoryCost: 6 }],
+      types: ["Unknown", "LIBERATOR"],
+    });
+    const compiled = runtimeCompiledCard(GALACTICMON)!;
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.digivolutionRequirement).toEqual([
       { names: ["Snatchmon"], cost: 9, isAlternate: true },
       { names: ["Galacticmon"], cost: 5, isAlternate: true },
+    ]);
+    expect(digivolutionRequirementsFor(GALACTICMON)).toEqual(compiled.digivolutionRequirement);
+    expect(compiled.effects.find(({ trigger }) => trigger === "EndOfOpponentsTurn")?.actions).toMatchObject([
+      {
+        kind: "Digivolve",
+        into: { names: ["Galacticmon"] },
+        from: ["hand", "trash"],
+        payCost: false,
+        ignoreRequirements: true,
+        optional: true,
+      },
     ]);
   });
 
@@ -96,5 +118,10 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     expect(base.topCard?.cardId).toBe(GALACTICMON);
     expect(base.stack.filter((card) => card.cardId === "BT11-061")).toHaveLength(4);
     expect(observe(s.engine).hasKeyword(base, "Blocker")).toBe(true);
+    expect(runtimeCompiledCard(GALACTICMON)?.effects[1]?.actions[2]).toMatchObject({
+      kind: "GrantImmunity",
+      duration: "untilOpponentTurnEnd",
+    });
+    assertNoLoudGap(s);
   });
 });

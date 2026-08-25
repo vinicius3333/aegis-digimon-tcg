@@ -10,6 +10,12 @@ export const compiled: CompiledCard = {
     {
       trigger: "Static",
       actions: [],
+      isLinked: true,
+      keywords: [{ keyword: "Scapegoat", raw: "＜Scapegoat＞" }],
+    },
+    {
+      trigger: "Static",
+      actions: [],
       keywords: [
         {
           keyword: "Retaliation",

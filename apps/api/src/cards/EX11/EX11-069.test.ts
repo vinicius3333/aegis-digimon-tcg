@@ -1,12 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-069.js";
 import "./EX11-050.js";
 import "./EX11-052.js";
 
 describe("EX11-069 Yuuki", () => {
+  it("preserves the printed dual-color Tamer and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-069")).toMatchObject({
+      nameEn: "Yuuki",
+      colors: ["Purple", "Red"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["LIBERATOR"],
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("trashes a hand card to gain memory at the start of the main phase", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX11-069", as: "yuuki" }], hand: ["BT1-001"] } },
@@ -16,6 +28,7 @@ describe("EX11-069 Yuuki", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("yuuki"));
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    assertNoLoudGap(s);
   });
 
   it("evolves only the attacking Digimon from trash, pays the cost reduced by 1, and is once per turn", async () => {
@@ -47,6 +60,7 @@ describe("EX11-069 Yuuki", () => {
     expect(s.perm("other").topCard.cardId).toBe("EX11-049");
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX11-052");
+    assertNoLoudGap(s);
   });
 
   it("suspends itself to return an eligible trait card at end of all turns", async () => {
@@ -64,6 +78,7 @@ describe("EX11-069 Yuuki", () => {
 
     expect(s.perm("yuuki").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX11-050"]);
+    assertNoLoudGap(s);
   });
 
   it("publishes full exclusive IR with trigger-subject evolution and no retroactive end trigger (Q5939)", () => {
@@ -105,5 +120,6 @@ describe("EX11-069 Yuuki", () => {
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX11-069");
     expect(played?.isSuspended).toBe(false);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX11-050");
+    assertNoLoudGap(s);
   });
 });

@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     says "For each suspended Digimon" with no controller restriction.
 
 const compiled: CompiledCard = {
-  digivolutionRequirement: [{ level: 5, cost: 3, isAlternate: true }],
+  digivolutionRequirement: [],
   effects: [
     {
       trigger: "Static",

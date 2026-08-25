@@ -69,6 +69,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          triggerFilter: {
+            isSelfRef: true,
+          },
           actions: [
             {
               kind: "PlayWithoutCost",
@@ -93,6 +96,38 @@ export const compiled: CompiledCard = {
         },
       ],
       frequency: "OncePerTurn",
+    },
+    {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -4000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            unit: "cards",
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Appmon"],
+                  match: "trait",
+                },
+              ],
+            },
+          },
+        },
+      ],
     },
   ],
   coverage: "full",

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT22-093.js";
 import "./index.js";
 
 // A3 for BT22-093 (Ami Aiba) — [Start of Your Main Phase]:
@@ -19,6 +20,20 @@ import "./index.js";
 
 const AMI_AIBA = "BT22-093";
 const OPPONENT_DIGIMON = "BT1-009"; // Monodramon — any Digimon works
+
+it("registers exclusive compiled IR for the same-level CS chain", () => {
+  expect(compiled.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
+    timingOverride: "OnEnterFieldAnyone",
+    condition: {
+      kind: "allOf",
+      conditions: expect.arrayContaining([
+        expect.objectContaining({ kind: "triggerSubjectMatchesFilter" }),
+        { kind: "triggerSubjectStackHasSameLevel" },
+      ]),
+    },
+    actions: [{ kind: "CostGatedBlock", actions: [{ kind: "Digivolve", payCost: false }] }],
+  });
+});
 
 function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
   return (

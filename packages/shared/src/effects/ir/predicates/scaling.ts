@@ -22,6 +22,7 @@ export interface Scaling {
     | "security" // cards in `filter.controller`'s security stack
     | "trash"
     | "digivolutionCards" // the source's whole stack, regardless of face state
+    | "sameLevelDigivolutionPairs" // sum of floor(count / 2) independently for each printed level
     | "selfFaceDownDigivolutionCards" // face-down stack cards only (EX9-061)
     | "digivolutionCardColors" // distinct colors in the source's stack, not cards (BT18-018)
     | "selfAndDigivolutionCardColors"

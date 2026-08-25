@@ -11,55 +11,38 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levelComparison: {
-                op: "lte",
-                value: 5,
-              },
-            },
-            count: 1,
-          },
+          kind: "CostGatedBlock",
           cost: {
             kind: "payMemory",
             memory: 3,
             raw: "By paying 3 cost",
           },
-        },
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 5 },
+                },
+                count: 1,
+              },
             },
-            count: 1,
-            isSelf: true,
-          },
-          keyword: {
-            keyword: "SecurityAttack",
-            amount: 1,
-            raw: "＜Security Attack +1＞",
-          },
-          duration: "forTheTurn",
-          condition: {
-            kind: "ifThisEffectDidNotDelete",
-            raw: "if this effect didn't delete",
-          },
-        },
-        {
-          kind: "Attack",
-          target: {
-            filter: {
-              isSelfRef: true,
+            {
+              kind: "GainKeyword",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+              duration: "forTheTurn",
+              condition: { kind: "ifThisEffectDidNotDelete", raw: "if this effect didn't delete" },
             },
-            count: 1,
-            isSelf: true,
-          },
-          withoutSuspending: false,
-          optional: true,
+            {
+              kind: "Attack",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              withoutSuspending: false,
+              optional: true,
+            },
+          ],
         },
       ],
       frequency: "OncePerTurn",

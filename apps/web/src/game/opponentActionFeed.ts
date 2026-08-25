@@ -1,15 +1,18 @@
+/* The opponent's transient narration: the corner feed that says what the other
+   seat just did while it is still worth reading.
+
+   It deliberately stays silent about a play, a hatch and a digivolution. Those
+   three already get the centre-screen showcase and the colour-keyed burst where
+   the card lands, so narrating them here only doubled the same moment in a
+   corner the player then had to look away to read. Everything the board cannot
+   show on its own — an attack, an effect, a reveal, a Digimon leaving breeding —
+   is still announced. */
+
 import { getCardDefinition, type Seat, type ServerEvent } from "@aegis/shared";
 import type { TranslationKey, TranslationParams } from "../i18n";
+import { TIMINGS } from "./timings";
 
-export type OpponentActionKind =
-  | "played"
-  | "hatched"
-  | "movedFromBreeding"
-  | "digivolved"
-  | "attack"
-  | "combatResult"
-  | "revealed"
-  | "effect";
+export type OpponentActionKind = "movedFromBreeding" | "attack" | "combatResult" | "revealed" | "effect";
 
 export interface OpponentActionItem {
   id: string;
@@ -30,8 +33,8 @@ export interface OpponentFeedState {
   trail: OpponentActionItem[];
 }
 
-const SHORT_DURATION_MS = 2800;
-const EFFECT_DURATION_MS = 4500;
+const SHORT_DURATION_MS = TIMINGS.feedAction;
+const EFFECT_DURATION_MS = TIMINGS.feedEffect;
 
 function cardName(cardId: string): string {
   return getCardDefinition(cardId)?.nameEn ?? cardId;
@@ -43,26 +46,6 @@ function belongsToOpponent(eventSeat: Seat, viewerSeat: Seat): boolean {
 
 export function opponentActionFromEvent(event: ServerEvent, viewerSeat: Seat, id: string): OpponentActionItem | null {
   switch (event.kind) {
-    case "cardPlayed":
-      if (!belongsToOpponent(event.seat, viewerSeat)) return null;
-      return {
-        id,
-        kind: "played",
-        cardId: event.cardId,
-        titleKey: "feed.opponentPlayed",
-        titleParams: { card: cardName(event.cardId) },
-        durationMs: SHORT_DURATION_MS,
-      };
-    case "hatched":
-      if (!belongsToOpponent(event.seat, viewerSeat)) return null;
-      return {
-        id,
-        kind: "hatched",
-        cardId: event.cardId,
-        titleKey: "feed.opponentHatched",
-        titleParams: { card: cardName(event.cardId) },
-        durationMs: SHORT_DURATION_MS,
-      };
     case "movedFromBreeding":
       if (!belongsToOpponent(event.seat, viewerSeat)) return null;
       return {
@@ -70,16 +53,6 @@ export function opponentActionFromEvent(event: ServerEvent, viewerSeat: Seat, id
         kind: "movedFromBreeding",
         cardId: event.cardId,
         titleKey: "feed.movedFromBreeding",
-        titleParams: { card: cardName(event.cardId) },
-        durationMs: SHORT_DURATION_MS,
-      };
-    case "digivolved":
-      if (!belongsToOpponent(event.seat, viewerSeat)) return null;
-      return {
-        id,
-        kind: "digivolved",
-        cardId: event.cardId,
-        titleKey: "feed.digivolved",
         titleParams: { card: cardName(event.cardId) },
         durationMs: SHORT_DURATION_MS,
       };

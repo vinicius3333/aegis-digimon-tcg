@@ -36,45 +36,37 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "ModifyDP",
-              target: {
-                filter: {
-                  controller: "opponent",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-              },
-              amount: -2000,
-              duration: "forTheTurn",
+              kind: "CostGatedBlock",
               cost: {
                 kind: "suspend",
                 target: {
-                  filter: {
-                    isSelfRef: true,
-                  },
+                  filter: { isSelfRef: true },
                   count: 1,
                   isSelf: true,
                 },
                 raw: "by suspending this Tamer",
               },
-              optional: true,
-              abortOnDecline: true,
-            },
-            {
-              kind: "AppFuse",
-              source: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
+              actions: [
+                {
+                  kind: "ModifyDP",
+                  target: {
+                    filter: { controller: "opponent", kind: ["Digimon"] },
+                    count: 1,
+                  },
+                  amount: -2000,
+                  duration: "forTheTurn",
                 },
-                count: 1,
-              },
-              into: {
-                controllerDefault: "mine",
-                kind: ["Digimon"],
-              },
-              from: ["hand"],
-              optional: true,
+                {
+                  kind: "AppFuse",
+                  source: {
+                    filter: { controller: "mine", kind: ["Digimon"] },
+                    count: 1,
+                  },
+                  into: { controllerDefault: "mine", kind: ["Digimon"] },
+                  from: ["hand"],
+                  optional: true,
+                },
+              ],
             },
           ],
         },

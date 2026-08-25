@@ -29,6 +29,7 @@ export const compiled: CompiledCard = {
             isSelfRef: true,
           },
           costOverride: 6,
+          payCost: true,
           ignoreRequirements: true,
           condition: {
             kind: "youHave",

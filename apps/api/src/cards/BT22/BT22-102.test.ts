@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-102.js";
 
 describe("BT22-102 Sayo", () => {
@@ -32,6 +32,7 @@ describe("BT22-102 Sayo", () => {
       kind: "Digivolve",
       target: { filter: { isTriggerSource: true }, count: 1 },
       from: ["trash"],
+      payCost: true,
       costDelta: -2,
       optional: true,
     });
@@ -56,5 +57,35 @@ describe("BT22-102 Sayo", () => {
     s.state.memory = 0;
     await advance(s.engine).fireForInstance(EffectTiming.OnStartMainPhase, s.perm("sayo").topCard!);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("suspends Sayo and pays the reduced trash evolution for a repeated-level attacker", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-102", as: "sayo" },
+            {
+              card: "BT22-069",
+              as: "attacker",
+              under: ["BT22-068", "BT22-071"],
+            },
+          ],
+          trash: [{ card: "BT22-072", as: "lekismon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenAttacking", {
+      subjectPermanentId: s.perm("attacker").permanentId,
+    });
+    await settle(() => s.perm("attacker").topCard?.cardId === "BT22-072");
+
+    expect(s.perm("sayo").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("attacker").stack.at(-1)?.cardId).toBe("BT22-069");
   });
 });

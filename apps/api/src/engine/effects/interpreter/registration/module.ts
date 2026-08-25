@@ -11,6 +11,7 @@ import { runEffect } from "../dispatch.js";
 import {
   builderForTrigger,
   canActivateEffect,
+  providesEffectImmunity,
   readsSelfKeyword,
   timingsForTrigger,
   turnOwnerGuard,
@@ -268,7 +269,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
           attackScope: effect.attackScope,
           isFromTrash: effect.isFromTrash,
           isFromHand: effect.isFromHand,
-          continuousPriority: readsSelfKeyword(effect) ? 1 : 0,
+          continuousPriority: providesEffectImmunity(effect) ? -1 : readsSelfKeyword(effect) ? 1 : 0,
           // isSecurity is set by the `security` builder itself, not via options.
           maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : effect.frequency === "TwicePerTurn" ? 2 : -1,
           when: (ctx) =>

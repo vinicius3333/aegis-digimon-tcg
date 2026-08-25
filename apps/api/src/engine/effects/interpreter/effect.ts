@@ -44,6 +44,7 @@ import type { Action, CardEffect, Target } from "@aegis/shared";
  * contributes nothing at any timing for that effect — visible as "none" stub).
  */
 function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
+  if (effect.timingOverride === "OnEnterFieldAnyone") return EffectTiming.OnEnterFieldAnyone;
   // A compound `[Security][Your Turn]`/`[Security][All Turns]` effect is a persistent
   // watcher while the face-up card remains in security, not the one-shot `[Security]`
   // skill window. Keep pure security skills on SecuritySkill below, but let the
@@ -287,6 +288,7 @@ function isHandTrashWatcherHost(effect: CardEffect): boolean {
 
 /** Pick the timing builder that matches an IR trigger. */
 export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) => Effect {
+  if (effect.timingOverride === "OnEnterFieldAnyone") return turnTiming;
   if (
     effect.isSecurity &&
     (effect.trigger === "YourTurn" || effect.trigger === "OpponentsTurn" || effect.trigger === "AllTurns")
@@ -420,6 +422,35 @@ export function readsSelfKeyword(value: unknown): boolean {
     }
   }
   return Object.values(record).some(readsSelfKeyword);
+}
+
+/**
+ * Blanket or source-kind effect immunity must exist before opponent continuous effects resolve
+ * their targets. Otherwise a board enumerated source-first can install an aura restriction before
+ * the recipient's later static immunity is visible, making continuous results depend on seat/card
+ * order (EX11-011 Q5799). Run these providers one tier before ordinary continuous effects.
+ */
+export function providesEffectImmunity(value: unknown): boolean {
+  if (value === null || typeof value !== "object") return false;
+  if (Array.isArray(value)) return value.some(providesEffectImmunity);
+  const record = value as Record<string, unknown>;
+  if (record.kind === "GrantImmunity") return true;
+  if (record.kind === "Restrict" && record.restriction === "beAffected") return true;
+  if (record.kind === "GrantStatic") {
+    if (
+      record.grant === "immuneToOpponentEffects" ||
+      record.grant === "immuneToOpponentDigimonEffects" ||
+      record.grant === "immuneToOpponentOptionEffects"
+    ) {
+      return true;
+    }
+    const grant = record.grant;
+    if (grant !== null && typeof grant === "object") {
+      const objectGrant = grant as Record<string, unknown>;
+      if (objectGrant.immunity === true || objectGrant.immuneToOpponentEffects === true) return true;
+    }
+  }
+  return Object.values(record).some(providesEffectImmunity);
 }
 
 /**

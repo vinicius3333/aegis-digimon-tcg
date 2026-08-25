@@ -10,12 +10,6 @@ const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 4,
-      cost: 4,
-      colors: ["Green", "Black"],
-      isAlternate: true,
-    },
-    {
-      level: 4,
       traits: ["Royal Base"],
       cost: 3,
       isAlternate: true,
@@ -135,6 +129,7 @@ const compiled: CompiledCard = {
               },
             ],
           },
+          leaveCause: "otherThanYourEffect",
           actions: [
             {
               kind: "Prevent",

@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-064.js";
 
 describe("EX11-064 Altea", () => {
+  it("preserves the printed dual-color Tamer and complete compiled coverage", () => {
+    expect(getCardDefinition("EX11-064")).toMatchObject({
+      nameEn: "Altea",
+      colors: ["Black", "Blue"],
+      kinds: ["Tamer"],
+      playCost: 4,
+      types: ["LIBERATOR"],
+      securityEffectText: "[Security] Play this card without paying the cost.",
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("gains memory at the start of the main phase when the opponent has a Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX11-064", as: "altea" }] },
@@ -13,6 +25,7 @@ describe("EX11-064 Altea", () => {
     s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("altea"));
     expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
   });
 
   it("flips the opponent's top face-down security card face up (Q5928-Q5931)", async () => {
@@ -25,6 +38,7 @@ describe("EX11-064 Altea", () => {
 
     expect(s.state.players[1]!.security[0]!.faceUp).toBe(true);
     expect(s.state.players[1]!.security[1]!.faceUp).toBe(false);
+    assertNoLoudGap(s);
   });
 
   it("digivolves only the attacking Cyborg and reduces its cost per face-up opposing security", async () => {
@@ -61,6 +75,7 @@ describe("EX11-064 Altea", () => {
     expect(s.perm("attackingCyborg").topCard?.cardId).toBe("EX11-039");
     expect(s.perm("otherCyborg").topCard?.cardId).toBe("EX11-037");
     expect(s.state.memory).toBe(2);
+    assertNoLoudGap(s);
   });
 
   it("publishes full exclusive IR with trigger-subject scoping and folded face-up scaling", () => {

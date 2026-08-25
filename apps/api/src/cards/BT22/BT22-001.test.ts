@@ -1,18 +1,54 @@
 import { describe, expect, it } from "vitest";
-import { compiled } from "./BT22-001.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "./BT22-001.js";
 
 describe("BT22-001 Puyoyomon", () => {
-  it("draws only once per turn when an effect adds an Aqua/Sea Animal card to this stack", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn");
-    expect(effect).toMatchObject({ isInherited: true, frequency: "OncePerTurn" });
-    const trigger = effect?.actions[0] as any;
-    expect(trigger).toMatchObject({
-      kind: "SubTrigger",
-      event: "onAddDigivolutionCards",
-      sourceFilter: { controllerDefault: "mine" },
-      triggerFilter: { isSelfRef: true },
-      addedDigivolutionCardFilter: { nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }] },
+  it("draws once when an effect adds a Sea Animal Digimon to its inherited host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT6-030", under: ["BT22-001"], as: "host" }],
+        hand: [
+          { card: "BT1-033", as: "firstSeaAnimal" },
+          { card: "BT1-033", as: "secondSeaAnimal" },
+        ],
+        deck: ["BT1-001", "BT1-002"],
+      },
     });
-    expect(trigger.actions).toEqual([{ kind: "Draw", controller: "mine", amount: 1 }]);
+    await s.ready();
+
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("firstSeaAnimal").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("secondSeaAnimal").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
+
+  it("does not draw for a nonmatching Digimon, another stack, or the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT6-030", under: ["BT22-001"], as: "host" },
+          { card: "BT6-030", as: "otherHost" },
+        ],
+        hand: [
+          { card: "BT1-010", as: "nonmatching" },
+          { card: "BT1-033", as: "wrongStack" },
+          { card: "BT1-033", as: "opponentTurn" },
+        ],
+        deck: ["BT1-001", "BT1-002"],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("nonmatching").instanceId]);
+    await advance(s.engine).verb.placeUnder(s.perm("otherHost").permanentId, [s.inst("wrongStack").instanceId]);
+    s.state.turnSeat = 1;
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("opponentTurn").instanceId]);
+
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 });
