@@ -441,3 +441,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: two real green Tamer plays prove the main frequency while a red Tamer and opponent-owned green Tamer prove both filter boundaries. Angoramon under a legal green host observes two distinct opposing suspensions but draws only for the first, and an opponent-turn fixture proves the owner-turn boundary.
 - Behavioral proof: four focused cases prove catalog and structural fidelity, exact green-Tamer ownership filters, main once-per-turn, legal inherited stack activation, opposing-Digimon filtering, inherited once-per-turn, and both owner-turn negatives.
 - Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
+## BT10-045 — Kokuwamon — 10/10
+
+- Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
+- Knowledge base: `node tools/kb/query.mjs card BT10-045` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: one inherited owner-turn source-instance once-per-turn `whenDeletesInBattle` watcher requires the event attacker to be its own live host and gains exactly 1 memory. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-045", compiled)`.
+- Primitive trace: combat records the attacker permanent that won battle after deleting the opposing permanent; the event matcher resolves `isSelfRef` against Kokuwamon's current host before consuming frequency. Effect deletion and battles won by another allied Digimon do not satisfy this event identity, and owner-turn gating prevents off-turn activation.
+- Cross-card and stack proof: Kokuwamon beneath a real green level-4 host defeats a suspended lower-DP Mushroomon through the complete attack/battle/deletion pipeline and gains memory. Controlled secondary event drives isolate once-per-turn, different-winner, and opponent-turn boundaries without substituting for the production-path proof.
+- Behavioral proof: five focused cases prove catalog/IR fidelity, real battle deletion and zone result, exact host identity, +1 amount, source frequency, other-winner negative, and owner-turn negative.
+- Verification: focused suite — 5 passed; battle-deletion production mechanism exercised; focused lint/format and `git diff --check` — passed.
