@@ -9265,7 +9265,6 @@
               {
                 "kind": "GainMemory",
                 "amount": 1,
-                "at": "endOfTurn",
                 "scaling": {
                   "per": 1,
                   "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Tamer"], "colors": ["Red"] },
