@@ -955,7 +955,7 @@ export function GameScreen({
             const definition = getCardDefinition(permanent.topCard.cardId);
             return !definition?.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(definition.nameEn);
           })
-            ? reqs[0]?.maxMaterials ?? 0
+            ? (reqs[0]?.maxMaterials ?? 0)
             : 0;
         setDigiXrosPick({
           instanceId,

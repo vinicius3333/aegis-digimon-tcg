@@ -968,7 +968,7 @@ export function MemoryGauge({
             by cell fraction, which the marker's own extra width puts it beside, and
             a blurred disc that wide washed over its neighbours either way. */}
         {ticks.map(renderCoin)}
-        {arcEnds ?<MemoryArc key={sweepGeneration.current} from={arcEnds.from} to={arcEnds.to} /> : null}
+        {arcEnds ? <MemoryArc key={sweepGeneration.current} from={arcEnds.from} to={arcEnds.to} /> : null}
         {prediction !== undefined && shouldDrawMemoryPrediction(cv, prediction) ? (
           <MemoryPredictionArc from={cv} to={prediction} />
         ) : null}

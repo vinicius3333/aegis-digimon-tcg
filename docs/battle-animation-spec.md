@@ -10,7 +10,7 @@ All timings below are read out of the the reference client source at `the local 
 
 The reference client drives motion three ways. Port each one to a different web mechanism.
 
-| the reference client mechanism                                                                                      | Where                                                      | Web equivalent                                      |
+| the reference client mechanism                                                                      | Where                                                      | Web equivalent                                      |
 | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
 | DOTween `Sequence` with explicit float durations                                                    | `Effects.cs`, `CardObjectController.cs`, `MemoryObject.cs` | CSS keyframes / transitions with matching `ms`      |
 | Unity `Animator` clips (`.anim` assets)                                                             | `Assets/Animation/Battle/**`                               | CSS keyframes; clip keyframe times map 1:1          |
