@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -79,5 +79,97 @@ describe("EX8-023", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("polar"));
     expect(s.perm("opponent-a").stack).toHaveLength(0);
     expect(s.perm("opponent-b").stack).toHaveLength(0);
+  });
+
+  it("keeps both restrictions after the chosen Digimon gains a source and blocks its digivolving effect (Q3882–Q3888)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-023", as: "polar" },
+            { card: "BT1-024", as: "victim", under: ["BT1-001", "BT1-002"] },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "EX8-019", as: "penguinmon" }],
+          hand: [{ card: "EX8-022", as: "frigimon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("polar"));
+    expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "cannotActivateWhenDigivolving")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("penguinmon").permanentId,
+        instanceId: s.inst("frigimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("penguinmon").topCard.instanceId === s.inst("frigimon").instanceId);
+
+    expect(s.perm("penguinmon").stack).toHaveLength(1);
+    expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "cannotActivateWhenDigivolving")).toBe(true);
+    expect(s.perm("victim").stack).toHaveLength(2);
+  });
+
+  it("gains Piercing as the last opposing stack is deleted in battle and checks security (Q3883)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-028", as: "host", under: ["EX8-023"] }] },
+      1: {
+        battleArea: [{ card: "BT1-009", dp: 1000, as: "target", suspended: true, under: ["BT1-001"] }],
+        security: 1,
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("meets the inherited condition with no opposing Digimon and uses the Ice-Snow route for 3 (Q6042)", async () => {
+    const empty = setupEngine({
+      0: { battleArea: [{ card: "EX8-028", as: "host", under: ["EX8-023"] }] },
+    });
+    await empty.ready();
+    expect(observe(empty.engine).hasPierce(empty.perm("host"))).toBe(true);
+    expect(observe(empty.engine).keywordAmount(empty.perm("host"), "SecurityAttack")).toBe(1);
+
+    expect(digivolutionRequirementsFor("EX8-023")).toContainEqual({
+      level: 4,
+      traits: ["Ice-Snow"],
+      cost: 3,
+      isAlternate: true,
+    });
+    const evolution = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-022", as: "frigimon" }], hand: [{ card: "EX8-023", as: "polar" }] },
+      },
+      { autoSelectCards: true },
+    );
+    evolution.state.memory = 3;
+    expect(
+      evolution.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: evolution.perm("frigimon").permanentId,
+        instanceId: evolution.inst("polar").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => evolution.perm("frigimon").topCard.instanceId === evolution.inst("polar").instanceId);
+    expect(evolution.state.memory).toBe(0);
   });
 });
