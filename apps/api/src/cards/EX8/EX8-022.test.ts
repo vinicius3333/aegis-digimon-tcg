@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -47,5 +47,70 @@ describe("EX8-022", () => {
     });
     await settle(() => observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack") === -1);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
+  });
+
+  it("trashes exactly the bottom two on play and gains no memory while a source remains", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX8-022", as: "frigimon" }] },
+        1: {
+          battleArea: [
+            {
+              card: "BT1-024",
+              as: "target",
+              under: [
+                { card: "BT1-001", as: "bottom" },
+                { card: "BT1-002", as: "middle" },
+                { card: "BT1-003", as: "top" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("frigimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").stack.length === 1);
+
+    expect(s.perm("target").stack[0]!.instanceId).toBe(s.inst("top").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("bottom").instanceId, s.inst("middle").instanceId]),
+    );
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("uses the Ice-Snow route, trashes all two sources, and then gains 1 memory", async () => {
+    expect(digivolutionRequirementsFor("EX8-022")).toContainEqual({
+      level: 3,
+      traits: ["Ice-Snow"],
+      cost: 2,
+      isAlternate: true,
+    });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-019", as: "penguinmon" }],
+          hand: [{ card: "EX8-022", as: "frigimon" }],
+        },
+        1: { battleArea: [{ card: "BT1-024", as: "target", under: ["BT1-001", "BT1-002"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("penguinmon").permanentId,
+        instanceId: s.inst("frigimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 0 && s.state.memory === 1);
+
+    expect(s.state.players[1]!.trash).toHaveLength(2);
+    expect(s.state.memory).toBe(1);
   });
 });
