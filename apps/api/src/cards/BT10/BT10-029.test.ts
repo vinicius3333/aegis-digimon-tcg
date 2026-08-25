@@ -1,9 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-029.js";
+import { compiled } from "./BT10-029.js";
 
 describe("BT10-029 Starmons", () => {
+  it("encodes Save, conditional inherited Draw 1, and the alternate Xros Heart evolution", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({ trigger: "OnDeletion", keywords: [expect.objectContaining({ keyword: "Save" })] }),
+      expect.objectContaining({
+        trigger: "WhenAttacking",
+        isInherited: true,
+        actions: [
+          expect.objectContaining({
+            kind: "Draw",
+            amount: 1,
+            condition: expect.objectContaining({ kind: "selfHasNameContaining" }),
+          }),
+        ],
+      }),
+    ]);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 2, traits: ["Xros Heart"], cost: 0, isAlternate: true },
+    ]);
+  });
+
   it("draws when its Shoutmon-named host attacks, but not under another host", async () => {
     const matching = setupEngine({
       0: {
@@ -132,5 +152,23 @@ describe("BT10-029 Starmons", () => {
     ).toBe(false);
     assertNoLoudGap(traitBase);
     assertNoLoudGap(plainBase);
+  });
+
+  it("also uses its standard yellow level-2 evolution route for 0", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-003", as: "yellowBase" }],
+        hand: [{ card: "BT10-029", as: "starmons" }],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("starmons").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    expect(s.state.memory).toBe(0);
   });
 });
