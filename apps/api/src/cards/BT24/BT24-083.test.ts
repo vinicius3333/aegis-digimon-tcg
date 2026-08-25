@@ -82,6 +82,32 @@ describe("BT24-083 Hiroko Sagisaka", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
   });
 
+  it("Q5667: does not activate the start-of-turn effect on a Hiroko played during that window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-083", as: "source" }],
+          hand: [
+            { card: "BT24-083", as: "replacement" },
+            { card: "BT24-013", as: "stillInHand" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireGlobal(EffectTiming.StartOfYourTurn);
+
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("replacement").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("stillInHand").instanceId);
+  });
+
   it("reveals three, adds one TS card, and bottoms the rest", async () => {
     const s = setupEngine(
       {

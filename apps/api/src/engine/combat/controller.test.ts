@@ -86,6 +86,13 @@ function harness(opts?: { preventBattleDeletion?: boolean }): Harness {
       firedSubTriggers.push({ event, payload });
       timeline.push(`sub:${event}`);
     },
+    prepareSubTrigger: (event, payload) => {
+      timeline.push(`prepare:${event}`);
+      return async () => {
+        firedSubTriggers.push({ event, payload });
+        timeline.push(`sub:${event}`);
+      };
+    },
     consultLeavePrevention: async (permanentIds) => {
       timeline.push("replacement:consultLeavePrevention");
       return opts?.preventBattleDeletion === true ? new Set(permanentIds) : new Set<string>();
@@ -122,6 +129,23 @@ async function flush(): Promise<void> {
 }
 
 describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
+  it("snapshots attack watchers before System-A timings and activates them afterward", async () => {
+    const h = harness();
+    const attacker = digimon(0, 9000);
+    const defender = digimon(1, 4000, { suspended: true, cardId: DIGIMON_B });
+    h.state.players[0]?.battleArea.push(attacker);
+    h.state.players[1]?.battleArea.push(defender);
+
+    await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
+
+    expect(h.timeline.indexOf("prepare:whenAttacking")).toBeLessThan(
+      h.timeline.indexOf(`timing:${EffectTiming.OnUseAttack}`),
+    );
+    expect(h.timeline.indexOf(`timing:${EffectTiming.OnAllyAttack}`)).toBeLessThan(
+      h.timeline.indexOf("sub:whenAttacking"),
+    );
+  });
+
   it("attacker with higher DP deletes the defender and suspends the attacker", async () => {
     const h = harness();
     const attacker = digimon(0, 9000);

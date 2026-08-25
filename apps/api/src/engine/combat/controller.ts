@@ -110,6 +110,8 @@ export interface CombatTrigger {
   deletedWasStackInstanceIds?: string[];
   /** Subset of deletedInstanceIds that were linked cards before deletion. */
   deletedWasLinkedInstanceIds?: string[];
+  /** Deleted host top-card instance keyed by each linked card that left with it. */
+  deletedLinkHostInstanceByLinkedInstanceId?: Record<string, string>;
   /** Top-card instance IDs that individually reached exactly 0 DP in this deletion window. */
   deletedByDpZeroInstanceIds?: string[];
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
@@ -143,6 +145,13 @@ export interface CombatHooks {
    * so the combat unit tests (minimal hooks) need no change; absent => no watcher runs.
    */
   fireSubTrigger?: (event: SubTriggerEventName, payload: TriggerInfo) => Promise<void>;
+  /**
+   * Snapshot a SubTrigger event's armed watchers at the instant the event occurs, while
+   * deferring their activation until the caller invokes the returned function. Attack
+   * declarations use this to preserve the event-time watcher set while System-A
+   * [When Attacking] effects resolve first.
+   */
+  prepareSubTrigger?: (event: SubTriggerEventName, payload: TriggerInfo) => () => Promise<void>;
   /**
    * Consult card-authored deletion replacements before battle losers leave the field. The
    * effect-path primitive already uses the same shared consult; combat otherwise deletes by
@@ -553,6 +562,18 @@ export class CombatController {
         ...(opts.attackMechanic === undefined ? {} : { attackMechanic: opts.attackMechanic }),
         ...(target.kind === "permanent" ? { defenderPermanentId: target.permanentId } : {}),
       };
+      const attackSubTriggerPayload: TriggerInfo = {
+        attackerPermanentId: attacker.permanentId,
+        attackSequence,
+        ...(attackTrigger.defenderPermanentId !== undefined
+          ? { defenderPermanentId: attackTrigger.defenderPermanentId }
+          : {}),
+      };
+      const preparedWhenAttacking = this.hooks.prepareSubTrigger?.("whenAttacking", attackSubTriggerPayload);
+      const preparedWhenOpponentAttacks = this.hooks.prepareSubTrigger?.(
+        "whenOpponentAttacks",
+        attackSubTriggerPayload,
+      );
       await this.hooks.fireTiming(EffectTiming.OnUseAttack, attackTrigger);
       await this.hooks.fireTiming(EffectTiming.OnAllyAttack, attackTrigger);
 
@@ -562,20 +583,10 @@ export class CombatController {
       // installs from the System-A timing-collected attack builders, so there is no
       // cross-system double-fire (RESEARCH Pitfall 4 / Assumption A3). The attacker is the
       // event subject for both events; a watcher's captured sourceFilter gates on it.
-      await this.hooks.fireSubTrigger?.("whenAttacking", {
-        attackerPermanentId: attacker.permanentId,
-        attackSequence,
-        ...(attackTrigger.defenderPermanentId !== undefined
-          ? { defenderPermanentId: attackTrigger.defenderPermanentId }
-          : {}),
-      });
-      await this.hooks.fireSubTrigger?.("whenOpponentAttacks", {
-        attackerPermanentId: attacker.permanentId,
-        attackSequence,
-        ...(attackTrigger.defenderPermanentId !== undefined
-          ? { defenderPermanentId: attackTrigger.defenderPermanentId }
-          : {}),
-      });
+      if (preparedWhenAttacking !== undefined) await preparedWhenAttacking();
+      else await this.hooks.fireSubTrigger?.("whenAttacking", attackSubTriggerPayload);
+      if (preparedWhenOpponentAttacks !== undefined) await preparedWhenOpponentAttacks();
+      else await this.hooks.fireSubTrigger?.("whenOpponentAttacks", attackSubTriggerPayload);
       // A suspension paid as the cost of an effect-driven forced attack triggers at the
       // same time as the attack declaration. Resolve the turn player's When Attacking
       // effects first, then the deferred non-turn suspension watchers (EX3-024/074,
@@ -1323,6 +1334,7 @@ export class CombatController {
     const deletedInstanceIds: string[] = [];
     const deletedWasStackInstanceIds: string[] = [];
     const deletedWasLinkedInstanceIds: string[] = [];
+    const deletedLinkHostInstanceByLinkedInstanceId: Record<string, string> = {};
     const battleOpponentPermanentIdByInstanceId: Record<string, string> = {};
     const deletedEffectiveColorsByInstanceId: Record<string, CardColor[]> = {};
     const tokenDeletionIds = postCardPreventionDeletedIds.flatMap((permanentId) => {
@@ -1348,6 +1360,7 @@ export class CombatController {
       }
       const stackIds = this.access.permanentById(permanentId)?.stack.map((c) => c.instanceId) ?? [];
       const linkedIds = this.access.permanentById(permanentId)?.linked.map((c) => c.instanceId) ?? [];
+      const hostInstanceId = this.access.permanentById(permanentId)?.topCard?.instanceId;
       const effectiveColors = this.hooks.effectiveColorsOf?.(permanentId) ?? [];
       const moved = this.access.deletePermanent(permanentId);
       const battleOpponentId = permanentId === attacker.permanentId ? defender.permanentId : attacker.permanentId;
@@ -1356,6 +1369,11 @@ export class CombatController {
       deletedInstanceIds.push(...moved);
       deletedWasStackInstanceIds.push(...stackIds);
       deletedWasLinkedInstanceIds.push(...linkedIds);
+      if (hostInstanceId !== undefined) {
+        for (const linkedInstanceId of linkedIds) {
+          deletedLinkHostInstanceByLinkedInstanceId[linkedInstanceId] = hostInstanceId;
+        }
+      }
       // Drop the leaving permanent's modifier/continuous/subTrigger ledgers as it leaves the
       // field; combat deletes through raw state access and so routes its own teardown.
       this.hooks.dropPermanentSubscriptions?.(permanentId);
@@ -1391,6 +1409,7 @@ export class CombatController {
         deletedInstanceIds,
         deletedWasStackInstanceIds,
         deletedWasLinkedInstanceIds,
+        deletedLinkHostInstanceByLinkedInstanceId,
         deletedEffectiveColorsByInstanceId,
         battleOpponentPermanentIdByInstanceId,
         removalCause: "byBattle" as const,

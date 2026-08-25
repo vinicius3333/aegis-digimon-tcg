@@ -11,9 +11,9 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "PlaceInBattleAreaSelf" },
         { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, toTop: true },
         { kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck" },
+        { kind: "PlaceInBattleAreaSelf" },
       ],
     },
     {
@@ -41,6 +41,26 @@ export const compiled: CompiledCard = {
               toTop: true,
             },
           ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Aegiomon", "Elecmon"], match: "nameExact" }],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
       ],
     },

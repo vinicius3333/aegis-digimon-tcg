@@ -308,6 +308,10 @@ function mergeRuleDeletions(pool: readonly PooledRuleDeletion[]): PooledRuleDele
       deletedWasStackInstanceIds: union("deletedWasStackInstanceIds"),
       deletedWasLinkedInstanceIds: union("deletedWasLinkedInstanceIds"),
       deletedByDpZeroInstanceIds: union("deletedByDpZeroInstanceIds"),
+      deletedLinkHostInstanceByLinkedInstanceId: {
+        ...trigger.deletedLinkHostInstanceByLinkedInstanceId,
+        ...into.deletedLinkHostInstanceByLinkedInstanceId,
+      },
       deletedByDpZero: into.deletedByDpZero === true || trigger.deletedByDpZero === true,
       deletedEffectiveColorsByInstanceId: {
         ...trigger.deletedEffectiveColorsByInstanceId,
@@ -671,6 +675,7 @@ export class GameEngine {
               deletedInstanceIds: trigger.deletedInstanceIds,
               deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
               deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
+              deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
               battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
             });
             return;
@@ -690,10 +695,12 @@ export class GameEngine {
           deletedInstanceIds: trigger.deletedInstanceIds,
           deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
           deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
+          deletedLinkHostInstanceByLinkedInstanceId: trigger.deletedLinkHostInstanceByLinkedInstanceId,
           battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
         });
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
+      prepareSubTrigger: (event, payload) => this.prepareSubTrigger(event, payload),
       resolveDeletionReactions: async (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
       effectiveColorsOf: (permanentId) => {
         const permanent = this.access.permanentById(permanentId);
@@ -1902,6 +1909,20 @@ export class GameEngine {
     const wasOutermostWindow = this.beginResolvingWindow();
     try {
       await this.recomputeContinuousEffects();
+      // A phase-boundary event has one fixed set of card sources: a Tamer played by an
+      // earlier start-of-turn/start-of-main effect did not exist when that boundary
+      // occurred and cannot retroactively trigger (BT24-082/Q5664, BT24-083/Q5667).
+      // Keep ordinary timing windows live because derived triggers and mid-window
+      // digivolutions intentionally join those resolution fixpoints.
+      const phaseBoundarySourceLocations =
+        timing === EffectTiming.OnStartTurn || timing === EffectTiming.OnStartMainPhase
+          ? new Map(
+              this.listCandidateInstances().map((instance) => [
+                instance.instanceId,
+                this.candidateSourceLocation(instance.instanceId),
+              ]),
+            )
+          : undefined;
       // GRANTED timed triggers fired at the same physical point as the matching window, and
       // therefore simultaneous with the printed effects it collects:
       //   - "[Start of Your Main Phase]" granted onto a permanent (BT23-056); the per-install
@@ -1919,7 +1940,17 @@ export class GameEngine {
           await runTiming(
             timing,
             this.effectEnvironment(trigger),
-            this.resolutionDeps(undefined, { outermost: wasOutermostWindow }),
+            this.resolutionDeps(
+              phaseBoundarySourceLocations === undefined
+                ? undefined
+                : () =>
+                    this.instancesById([...phaseBoundarySourceLocations.keys()]).filter(
+                      (instance) =>
+                        this.candidateSourceLocation(instance.instanceId) ===
+                        phaseBoundarySourceLocations.get(instance.instanceId),
+                    ),
+              { outermost: wasOutermostWindow },
+            ),
           );
           if (wasOutermostWindow) {
             await this.flushDeferredTimingWindows();
@@ -2146,6 +2177,28 @@ export class GameEngine {
     // A watcher body may have moved/deleted permanents; refresh the continuous tier so a
     // subsequent read sees the post-fire board (mirrors fireTiming's trailing recompute).
     await this.recomputeContinuousEffects();
+  }
+
+  /**
+   * Capture the watchers armed when an event occurs, then return a deferred activation.
+   * This is distinct from a nested timing deferral: combat deliberately resolves its
+   * System-A [When Attacking] window before the System-B watcher bus, but both systems
+   * observe the same attack declaration. A watcher installed by an earlier System-A
+   * effect therefore must not retroactively join that declaration (BT24-078/Q5775).
+   */
+  private prepareSubTrigger(event: SubTriggerEventName, payload: TriggerInfo): () => Promise<void> {
+    const boundPayload = { ...payload };
+    const subscriptions = [...this.subTriggers.subscriptionsFor(event)];
+    const contexts = new Map<number, EffectContext>();
+    for (const sub of subscriptions) {
+      const ctx = this.buildSubTriggerContext(sub, boundPayload);
+      if (ctx !== undefined) contexts.set(sub.id, ctx);
+    }
+    return async () => {
+      await this.withTriggeredMutations(async () => {
+        await this.fireSubTriggerSnapshot(subscriptions, boundPayload, contexts);
+      });
+    };
   }
 
   /**
@@ -4071,6 +4124,41 @@ export class GameEngine {
       if (player.resolvingOption !== undefined) out.push(player.resolvingOption);
     }
     return out;
+  }
+
+  /**
+   * Identify the exact effect-source role occupied by an instance. Phase-boundary
+   * windows snapshot this value so an instance that was merely present in a stack,
+   * linked slot, or loose zone cannot gain a newly available printed effect after it
+   * moves during resolution of that same physical boundary.
+   */
+  private candidateSourceLocation(instanceId: string): string | undefined {
+    for (const [seat, player] of this.state.players.entries()) {
+      if (player === undefined) continue;
+      const permanentLocation = (area: "battle" | "breeding", permanent: Permanent): string | undefined => {
+        if (permanent.topCard?.instanceId === instanceId) return `${seat}:${area}:${permanent.permanentId}:top`;
+        if (permanent.stack.some((card) => card.instanceId === instanceId)) {
+          return `${seat}:${area}:${permanent.permanentId}:stack`;
+        }
+        if (permanent.linked.some((card) => card.instanceId === instanceId)) {
+          return `${seat}:${area}:${permanent.permanentId}:linked`;
+        }
+        return undefined;
+      };
+      for (const permanent of player.battleArea) {
+        const location = permanentLocation("battle", permanent);
+        if (location !== undefined) return location;
+      }
+      if (player.breeding !== undefined) {
+        const location = permanentLocation("breeding", player.breeding);
+        if (location !== undefined) return location;
+      }
+      if (player.hand.some((card) => card.instanceId === instanceId)) return `${seat}:hand`;
+      if (player.trash.some((card) => card.instanceId === instanceId)) return `${seat}:trash`;
+      if (player.security.some((card) => card.instanceId === instanceId && card.faceUp)) return `${seat}:security`;
+      if (player.resolvingOption?.instanceId === instanceId) return `${seat}:resolvingOption`;
+    }
+    return undefined;
   }
 
   /** Push a permanent's top card, digivolution-stack cards, and linked cards. */

@@ -142,6 +142,36 @@ describe("BT24-078 Creepymon (X Antibody)", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
+  it("Q5775: does not join a when-attacking trigger window after an inherited effect trashes it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX10-009", as: "creepymon", under: ["EX9-059"] }],
+          hand: [{ card: "BT24-078", as: "creepymonX" }],
+        },
+        1: {
+          security: ["BT1-002", "BT1-003"],
+          trash: Array.from({ length: 10 }, () => "BT1-004"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("creepymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("creepymon").topCard.cardId).toBe("EX10-009");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("creepymonX").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it("digivolves an attacking Creepymon from trash for free and then trashes security at 10", async () => {
     const s = setupEngine(
       {

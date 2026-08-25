@@ -193,6 +193,12 @@ export interface TriggerInfo {
   deletedWasStackInstanceIds?: string[];
   /** Subset of deletedInstanceIds that were linked cards before their host left play. */
   deletedWasLinkedInstanceIds?: string[];
+  /**
+   * Deleted host top-card instance keyed by each linked card that left with it. A linked
+   * [On Deletion] effect stays pending for the host card, not the link card (BT24-036 Q5615),
+   * so the host must still be in trash when that pending effect would activate.
+   */
+  deletedLinkHostInstanceByLinkedInstanceId?: Record<string, string>;
   /** Battle opponent for each card instance deleted in a battle. */
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
   /** Why the cards in this deletion window left play. */
@@ -1211,6 +1217,13 @@ export interface Primitives {
     duration: EffectDuration,
     opts?: { trigger?: string; inheritedOnly?: boolean },
   ): void;
+  /** Read the currently active stack-effect conferrals (for effects that borrow another card's skills). */
+  stackEffectConferrals?(): readonly {
+    targetPermanentId: string;
+    stackInstanceId: string;
+    trigger?: string;
+    inheritedOnly?: boolean;
+  }[];
   /**
    * Also offer a permanent's `[On Deletion]` effects — its own printed ones AND the inherited
    * ones its digivolution cards provide — at the end of its own attack (BT16-015's "attach

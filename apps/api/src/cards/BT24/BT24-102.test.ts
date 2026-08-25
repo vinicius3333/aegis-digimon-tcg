@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -135,6 +135,88 @@ describe("BT24-102 Homeros", () => {
 
     expect(s.state.players[1]!.battleArea).toContain(s.perm("target"));
     expect(s.state.players[0]!.security).toHaveLength(3);
+  });
+
+  it("Q5721: may activate the On Play route of a combined effect while When Digivolving is disabled", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-102", as: "source" },
+            { card: "BT24-040", as: "venusmon" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-009", "BT1-010"] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    advance(s.engine).ledgers.continuous.addEffectTimingDisable(
+      s.perm("venusmon").permanentId,
+      ["whenDigivolving"],
+      EffectDuration.UntilOpponentTurnEnd,
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+
+    expect(s.perm("target").stack).toHaveLength(0);
+  });
+
+  it("Q6029: cannot reactivate a Once Per Turn lender effect whose budget is already spent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-102", as: "source" },
+            { card: "BT26-103", as: "wrathMode" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+          deck: ["BT1-003", "BT1-004", "BT1-005", "BT1-006"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("wrathMode"));
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("Q6945: may activate an On Play effect gained through Succession", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-102", as: "source" },
+            { card: "BT26-080", as: "bacchusmonX", under: [{ card: "BT25-077", as: "bacchusmon" }] },
+          ],
+          hand: [{ card: "BT24-009", as: "playTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("playTarget").instanceId,
+      ),
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("playTarget").instanceId,
+      ),
+    ).toBe(true);
   });
 
   it("plays itself from security without paying the cost", async () => {

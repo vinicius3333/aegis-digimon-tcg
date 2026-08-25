@@ -2360,6 +2360,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     changeEvoCost: true,
     changePlayCost: true,
     conferStackEffects: true,
+    stackEffectConferrals: true,
     declareWinner: true,
     deDigivolve: true,
     delayedDeletePlayed: true,

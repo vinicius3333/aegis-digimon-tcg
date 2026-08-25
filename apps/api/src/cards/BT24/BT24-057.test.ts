@@ -164,4 +164,28 @@ describe("BT24-057 Docmon", () => {
     expect(s.perm("target").stack).toHaveLength(0);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT24-051")).toBe(true);
   });
+
+  it("cancels the linked De-Digivolve when BT7-107 returns its deleted host first (Q5643)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-067", as: "host", linked: [{ card: "BT24-057", as: "docmon" }] }],
+          hand: [{ card: "BT7-107", as: "calling" }],
+        },
+        1: { battleArea: [{ card: "BT24-051", as: "target", under: ["BT24-050"] }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("calling").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("host").instanceId));
+
+    expect(s.perm("target").topCard.cardId).toBe("BT24-051");
+    expect(s.perm("target").stack).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("docmon").instanceId);
+  });
 });
