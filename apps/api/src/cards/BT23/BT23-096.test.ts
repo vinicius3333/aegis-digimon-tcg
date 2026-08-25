@@ -16,17 +16,23 @@ describe("BT23-096 Comet Hammer", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect((compiled.effects.find((effect) => effect.trigger === "Static") as any).actions[0].condition.filter.zone).toEqual([
-      "battleArea",
-      "breedingArea",
-    ]);
+    expect(
+      (compiled.effects.find((effect) => effect.trigger === "Static") as any).actions[0].condition.filter.zone,
+    ).toEqual(["battleArea", "breedingArea"]);
   });
 
   it("pays Delay and de-digivolves up to four cards from a realistic opposing stack", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-096", as: "option" }, { card: "BT23-006", as: "attacker" }] },
-        1: { battleArea: [{ card: "BT23-015", as: "target", under: ["BT23-010", "BT23-006", "BT23-005", "BT23-001"] }] },
+        0: {
+          battleArea: [
+            { card: "BT23-096", as: "option" },
+            { card: "BT23-006", as: "attacker" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT23-015", as: "target", under: ["BT23-010", "BT23-006", "BT23-005", "BT23-001"] }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

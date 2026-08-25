@@ -21,9 +21,7 @@ describe("BT23-074 Eater Legion", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Erika Mishima"], cost: 3, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Erika Mishima"], cost: 3, isAlternate: true }]);
   });
 
   it("plays up to 6 total cost of Eater Digimon only while Mother Eater is in breeding", async () => {

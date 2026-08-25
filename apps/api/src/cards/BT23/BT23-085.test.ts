@@ -35,12 +35,21 @@ describe("BT23-085 Ryuji Mishima", () => {
 
   it("grants the same Hudie opponent-DP immunity, Reboot, and Blocker", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT23-085", as: "ryuji" }, { card: "BT23-101", as: "hudie" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-085", as: "ryuji" },
+            { card: "BT23-101", as: "hudie" },
+          ],
+        },
+      },
       { autoSelectCards: true },
     );
-    await (s.engine as unknown as {
-      fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
-    }).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("ryuji").permanentId });
+    await (
+      s.engine as unknown as {
+        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
+      }
+    ).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("ryuji").permanentId });
     expect(observe(s.engine).isRestricted(s.perm("hudie"), "dpImmune")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("hudie"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("hudie"), "Blocker")).toBe(true);

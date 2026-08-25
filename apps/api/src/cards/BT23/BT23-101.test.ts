@@ -23,7 +23,12 @@ describe("BT23-101 Hudiemon", () => {
   it("mandatorily scales one opponent's DP by every friendly Hudie after optional play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-101", as: "source" }, { card: "BT23-101", as: "ally" }] },
+        0: {
+          battleArea: [
+            { card: "BT23-101", as: "source" },
+            { card: "BT23-101", as: "ally" },
+          ],
+        },
         1: { battleArea: [{ card: "BT23-101", as: "target" }] },
       },
       { autoAcceptOptional: false, autoSelectCards: true },

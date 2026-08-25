@@ -46,10 +46,7 @@ describe("BT23-011 Birdramon", () => {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
-              or: [
-                { colors: ["Red"] },
-                { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
-              ],
+              or: [{ colors: ["Red"] }, { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] }],
             },
             count: 1,
           },
@@ -95,7 +92,11 @@ describe("BT23-011 Birdramon", () => {
   it("deletes at the same exact boundary when digivolving through the off-color CS recipe", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT22-017", as: "csBase" }], hand: [{ card: "BT23-011", as: "birdramon" }], deck: ["BT1-009"] },
+        0: {
+          battleArea: [{ card: "BT22-017", as: "csBase" }],
+          hand: [{ card: "BT23-011", as: "birdramon" }],
+          deck: ["BT1-009"],
+        },
         1: { battleArea: [{ card: "BT1-009", dp: 4000, as: "target" }] },
       },
       { autoSelectCards: true },
@@ -130,7 +131,9 @@ describe("BT23-011 Birdramon", () => {
     s.state.memory = 2;
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tamer").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tamer").instanceId),
+    );
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.hand).toHaveLength(0);

@@ -65,9 +65,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
                 },
                 {
-                  nameOrTrait: [
-                    { tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" },
-                  ],
+                  nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
                   excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
                 },
               ],
@@ -94,9 +92,7 @@ export const compiled: CompiledCard = {
               or: [
                 { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
                 {
-                  nameOrTrait: [
-                    { tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" },
-                  ],
+                  nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
                   excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
                 },
               ],

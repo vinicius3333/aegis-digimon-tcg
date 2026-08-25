@@ -340,11 +340,7 @@ function alternateRequirementAvailable(
       opponent === undefined ||
       !opponent.battleArea.some((candidate) => {
         const top = candidate.topCard;
-        return (
-          top !== undefined &&
-          isDigimon(definitionOf(top.cardId)) &&
-          candidate.currentDP >= opponentDigimonDpMin
-        );
+        return top !== undefined && isDigimon(definitionOf(top.cardId)) && candidate.currentDP >= opponentDigimonDpMin;
       })
     ) {
       return false;

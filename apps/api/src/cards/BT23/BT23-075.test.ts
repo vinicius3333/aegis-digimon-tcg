@@ -21,9 +21,7 @@ describe("BT23-075 Eater EDEN", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Eater Legion"], cost: 3, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Eater Legion"], cost: 3, isAlternate: true }]);
   });
 
   it("returns exactly an opposing cost-6-or-lower Digimon or Tamer to deck bottom", async () => {

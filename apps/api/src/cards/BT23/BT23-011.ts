@@ -55,10 +55,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
-              or: [
-                { colors: ["Red"] },
-                { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
-              ],
+              or: [{ colors: ["Red"] }, { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] }],
             },
             count: 1,
           },

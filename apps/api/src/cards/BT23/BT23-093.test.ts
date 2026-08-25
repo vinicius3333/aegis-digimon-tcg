@@ -16,10 +16,9 @@ describe("BT23-093 Big Bang Punch", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect((compiled.effects.find((effect) => effect.trigger === "Static") as any).actions[0].condition.filter.zone).toEqual([
-      "battleArea",
-      "breedingArea",
-    ]);
+    expect(
+      (compiled.effects.find((effect) => effect.trigger === "Static") as any).actions[0].condition.filter.zone,
+    ).toEqual(["battleArea", "breedingArea"]);
   });
 
   it("pays intrinsic Delay and links only a Link-capable Appmon to the suspending subject", async () => {

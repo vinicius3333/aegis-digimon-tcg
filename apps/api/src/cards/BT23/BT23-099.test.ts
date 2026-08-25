@@ -22,7 +22,10 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT23-099", as: "option" }, { card: "ST12-04", as: "huckmon" }],
+          battleArea: [
+            { card: "BT23-099", as: "option" },
+            { card: "ST12-04", as: "huckmon" },
+          ],
           hand: [{ card: "BT23-076", as: "sistermon" }],
         },
       },
@@ -35,7 +38,9 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
       subjectPermanentId: s.perm("huckmon").permanentId,
     });
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === sistermonId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === sistermonId)).toBe(
+      true,
+    );
   });
 
   it("grants color waiving with Huckmon on the field and places itself after drawing", () => {

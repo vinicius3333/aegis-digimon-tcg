@@ -51,9 +51,7 @@ describe("BT23-012 Garudamon", () => {
             or: [
               { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
               {
-                nameOrTrait: [
-                  { tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" },
-                ],
+                nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
                 excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
               },
             ],
@@ -94,7 +92,9 @@ describe("BT23-012 Garudamon", () => {
           );
     s.state.memory = 7;
     if (mode === "play") {
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garuda").instanceId })).toEqual({ ok: true });
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garuda").instanceId })).toEqual({
+        ok: true,
+      });
     } else {
       expect(
         s.engine.applyIntent(0, {

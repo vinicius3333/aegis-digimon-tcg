@@ -26,7 +26,12 @@ describe("BT23-097 Seventh Penetration", () => {
           trash: [{ card: "BT23-097", as: "option" }],
           hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
         },
-        1: { battleArea: [{ card: "BT23-010", as: "level4" }, { card: "BT1-009", as: "level3" }] },
+        1: {
+          battleArea: [
+            { card: "BT23-010", as: "level4" },
+            { card: "BT1-009", as: "level3" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

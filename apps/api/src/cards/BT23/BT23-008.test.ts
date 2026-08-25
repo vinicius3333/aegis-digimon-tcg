@@ -94,7 +94,9 @@ describe("BT23-008 Greymon", () => {
         effectKey: mainEffectKey(s),
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gabumon").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gabumon").instanceId),
+    );
 
     expect(s.state.memory).toBe(4);
     expect(s.perm("greymon").topCard.instanceId).toBe(promotedId);
@@ -139,10 +141,10 @@ describe("BT23-008 Greymon", () => {
         effectKey: mainEffectKey(s),
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gabumon").instanceId));
     await settle(() =>
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("egg").instanceId),
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gabumon").instanceId),
     );
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("egg").instanceId));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === originalPermanentId)).toBe(false);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
@@ -175,10 +177,10 @@ describe("BT23-008 Greymon", () => {
         effectKey: mainEffectKey(s),
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gabumon").instanceId));
     await settle(() =>
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("muscle").instanceId),
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gabumon").instanceId),
     );
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("muscle").instanceId));
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("greymon").instanceId, s.inst("muscle").instanceId]),
     );

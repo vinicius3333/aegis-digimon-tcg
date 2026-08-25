@@ -153,11 +153,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return cost.target.upTo === true ? true : required > 0 && candidates.length >= required;
   }
-  if (
-    cost.kind === "return" &&
-    cost.target?.filter.isSelfRef === true &&
-    ctx.source.permanent() === undefined
-  ) {
+  if (cost.kind === "return" && cost.target?.filter.isSelfRef === true && ctx.source.permanent() === undefined) {
     return ctx.game.player(ctx.source.ownerSeat).trash.some((card) => card.instanceId === ctx.source.instanceId);
   }
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === undefined) {

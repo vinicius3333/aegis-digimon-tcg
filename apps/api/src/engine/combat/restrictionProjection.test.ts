@@ -99,7 +99,12 @@ describe("Permanent.securityAttack projection", () => {
     const p0 = s.state.players[0] as PlayerState;
     const perm = digimon(0, 5000, VANILLA_CARD);
     p0.battleArea.push(perm);
-    internalsOf(s.engine).continuous.addKeywordGrant(perm.permanentId, "SecurityAttack", EffectDuration.UntilEachTurnEnd, -3);
+    internalsOf(s.engine).continuous.addKeywordGrant(
+      perm.permanentId,
+      "SecurityAttack",
+      EffectDuration.UntilEachTurnEnd,
+      -3,
+    );
 
     await s.engine.recomputeContinuousEffects();
     expect(perm.securityAttack).toBe(0);

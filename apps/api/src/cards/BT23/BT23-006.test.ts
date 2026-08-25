@@ -19,8 +19,7 @@ describe("BT23-006 Huckmon", () => {
       types: ["Mini Dragon", "CS"],
       effectText:
         "[Digivolve] Lv.2 w/[CS]\u00a0trait: Cost 0 \n\n[On Play] Reveal the top 3 cards of your deck. Add 1 card with [Huckmon] or [Sistermon]\u00a0in its name and 1 card with the [Royal Knight]\u00a0trait among them to the hand. Return the rest to the bottom of the deck.",
-      inheritedEffectText:
-        "[Your Turn] [Once Per Turn] When any of your white Digimon are played, gain 1 memory.",
+      inheritedEffectText: "[Your Turn] [Once Per Turn] When any of your white Digimon are played, gain 1 memory.",
     });
     expect(compiled.effects[0]?.actions).toEqual([
       {
@@ -60,9 +59,7 @@ describe("BT23-006 Huckmon", () => {
       isInherited: true,
       frequency: "OncePerTurn",
     });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { level: 2, traits: ["CS"], cost: 0, isAlternate: true },
-    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["CS"], cost: 0, isAlternate: true }]);
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
   });
 
@@ -230,9 +227,11 @@ describe("BT23-006 Huckmon", () => {
     opponent.state.turnSeat = 1;
     opponent.state.memory = 10;
     await opponent.ready();
-    expect(opponent.engine.applyIntent(1, { type: "playCard", instanceId: opponent.inst("white").instanceId })).toEqual({
-      ok: true,
-    });
+    expect(opponent.engine.applyIntent(1, { type: "playCard", instanceId: opponent.inst("white").instanceId })).toEqual(
+      {
+        ok: true,
+      },
+    );
     await settle(() => opponent.state.players[1]!.battleArea.length === 1);
     expect(opponent.state.memory).toBe(7);
   });

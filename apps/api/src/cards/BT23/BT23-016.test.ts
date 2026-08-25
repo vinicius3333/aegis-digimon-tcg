@@ -153,9 +153,7 @@ describe("BT23-016 Dokamon", () => {
         targetPermanentId: s.perm("dokamon").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("dokamon").linked.some((card) => card.instanceId === s.inst("firstLink").instanceId),
-    );
+    await settle(() => s.perm("dokamon").linked.some((card) => card.instanceId === s.inst("firstLink").instanceId));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("eri").instanceId);
     expect(s.state.memory).toBe(4);
   });

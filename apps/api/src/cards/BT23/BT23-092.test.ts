@@ -17,9 +17,9 @@ describe("BT23-092 Ice Archery", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect((compiled.effects.find((effect) => effect.trigger === "Static") as any).actions[0].condition.filter.zone).toBe(
-      "field",
-    );
+    expect(
+      (compiled.effects.find((effect) => effect.trigger === "Static") as any).actions[0].condition.filter.zone,
+    ).toBe("field");
   });
 
   it("pays intrinsic Delay on a CS attack and restricts one opposing Digimon and Tamer", async () => {

@@ -7,18 +7,35 @@ import { compiled } from "./BT23-095.js";
 describe("BT23-095 Crescent Leaf", () => {
   it("matches every catalog field and complete compiled clause", () => {
     expect(getCardDefinition("BT23-095")).toMatchObject({
-      cardId: "BT23-095", nameEn: "Crescent Leaf", colors: ["Green"], kinds: ["Option"], playCost: 5, types: ["CS"],
+      cardId: "BT23-095",
+      nameEn: "Crescent Leaf",
+      colors: ["Green"],
+      kinds: ["Option"],
+      playCost: 5,
+      types: ["CS"],
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect((compiled.effects.find((effect) => effect.trigger === "Static") as any).actions[0].condition.filter.zone).toEqual(["battleArea", "breedingArea"]);
+    expect(
+      (compiled.effects.find((effect) => effect.trigger === "Static") as any).actions[0].condition.filter.zone,
+    ).toEqual(["battleArea", "breedingArea"]);
   });
 
   it("pays Delay and returns only a suspended opposing Digimon to deck bottom", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT23-095", as: "option" }, { card: "BT23-006", as: "attacker" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "suspended", suspended: true }, { card: "BT1-010", as: "active" }] },
+        0: {
+          battleArea: [
+            { card: "BT23-095", as: "option" },
+            { card: "BT23-006", as: "attacker" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "suspended", suspended: true },
+            { card: "BT1-010", as: "active" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
