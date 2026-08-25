@@ -1,0 +1,75 @@
+import { getCardDefinition } from "@aegis/shared";
+import type { CompiledCard } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+
+export function auditEffectlessDigimon({
+  cardId,
+  expected,
+  compiled,
+  validBase,
+  invalidBase,
+}: {
+  cardId: string;
+  expected: Record<string, unknown> & {
+    nameEn?: string;
+    playCost?: number;
+    evoCosts?: Array<{ memoryCost: number } & Record<string, unknown>>;
+  };
+  compiled: CompiledCard;
+  validBase: string;
+  invalidBase: string;
+}): void {
+  describe(`${cardId} ${String(expected.nameEn)}`, () => {
+    it("matches the complete effectless catalog and IR contract", () => {
+      expect(getCardDefinition(cardId)).toMatchObject(expected);
+      expect(compiled).toEqual({ effects: [], coverage: "full", residual: [] });
+    });
+    it("digivolves through the printed recipe and pays its exact cost", async () => {
+      const evolution = expected.evoCosts?.[0]!;
+      const s = setupEngine({
+        0: { battleArea: [{ card: validBase, as: "base" }], hand: [{ card: cardId, as: "evolving" }] },
+      });
+      s.state.memory = evolution.memoryCost;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("evolving").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+      expect(s.state.memory).toBe(0);
+    });
+    it("plays for the printed cost and reaches the battle area without opening an effect", async () => {
+      const playCost = expected.playCost!;
+      const s = setupEngine({ 0: { hand: [{ card: cardId, as: "played" }] } });
+      s.state.memory = playCost;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.length === 1);
+      expect(s.state.memory).toBe(0);
+      expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("played").instanceId);
+      expect(s.state.pendingDecision).toBeUndefined();
+    });
+    it("rejects a same-level base outside the printed color recipe", () => {
+      const evolution = expected.evoCosts?.[0]!;
+      const s = setupEngine({
+        0: { battleArea: [{ card: invalidBase, as: "base" }], hand: [{ card: cardId, as: "evolving" }] },
+      });
+      s.state.memory = evolution.memoryCost;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("evolving").instanceId,
+        }),
+      ).toEqual({ ok: false, reason: "invalid-evolution" });
+      expect(s.state.memory).toBe(evolution.memoryCost);
+      expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolving").instanceId)).toBe(
+        true,
+      );
+    });
+  });
+}

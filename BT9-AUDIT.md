@@ -169,3 +169,31 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-006.
+
+## BT9-007 — Minidekachimon — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red level-3 Digimon, `Rookie` form, `Data` attribute, `Mini Dragon` type, 3000 DP, common rarity, image identity, and four-copy limit were checked directly.
+2. **Effectless contract (1/1):** The catalog has no main, inherited, or Security text; the direct compiled module therefore contains exactly `effects: []` with full coverage and no residual clause.
+3. **Play cost (1/1):** A public play intent spends exactly 2 memory and puts Minidekachimon in the battle area.
+4. **No spurious behavior (1/1):** The completed play opens no decision or effect stack, proving the empty IR does not invent behavior.
+5. **Evolution level (1/1):** A realistic level-2 Digi-Egg stack accepts the level-3 evolution.
+6. **Evolution color (1/1):** A red Digi-Egg accepts the printed recipe while a same-level blue Digi-Egg is rejected without zone mutation.
+7. **Evolution cost (1/1):** The accepted evolution spends exactly 0 memory and preserves Minidekachimon as the observable top card.
+8. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT9-007` returns no rulings, errata, restrictions, or unresolved ambiguity.
+9. **Direct IR and registration (1/1):** `BT9-007.ts` registers the complete empty IR exactly once through `registerIrCard`; the set index imports it and neither file introduces `registerCard`.
+10. **Reproducible verification (1/1):** The independently focused suite passed 4/4; workspace typecheck, formatting, and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-007
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-007.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-007.test.ts --reporter=dot
+pnpm typecheck
+pnpm exec oxfmt --check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-007.ts apps/api/src/cards/BT9/BT9-007.test.ts apps/api/src/cards/BT9/effectlessAudit.testkit.ts apps/api/src/cards/BT9/index.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-007.
