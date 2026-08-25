@@ -65,6 +65,7 @@ export const compiled: CompiledCard = {
                   ],
                 },
                 count: 1,
+                bindAs: "yuukoProtectedDigimon",
               },
               immuneFrom: "opponentEffects",
               duration: "forTheTurn",
@@ -85,26 +86,11 @@ export const compiled: CompiledCard = {
             {
               kind: "ModifyDP",
               target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [
-                    {
-                      tokens: ["Greymon"],
-                      match: "name",
-                    },
-                    {
-                      tokens: ["CS"],
-                      match: "trait",
-                    },
-                  ],
-                },
+                fromSelectionRef: "yuukoProtectedDigimon",
                 count: 1,
               },
               amount: 3000,
               duration: "forTheTurn",
-              optional: true,
-              abortOnDecline: true,
             },
           ],
         },
