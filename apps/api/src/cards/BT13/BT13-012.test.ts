@@ -61,6 +61,36 @@ describe("BT13-012 GeoGreymon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
+  it("may decline an eligible security Tamer and therefore does not recover", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-008", as: "agumon" }],
+          hand: [{ card: "BT13-012", as: "geogreymon" }],
+          security: [{ card: "BT12-092", as: "marcus" }, "BT1-001"],
+          deck: ["BT1-002", "BT1-003"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("agumon").permanentId,
+        instanceId: s.inst("geogreymon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("agumon").topCard.cardId === "BT13-012");
+    await settle();
+
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("marcus").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+  });
+
   it("once per turn may delete a 3000-or-less opposing Digimon when an allied red/yellow Tamer suspends", async () => {
     const s = setupEngine(
       {
