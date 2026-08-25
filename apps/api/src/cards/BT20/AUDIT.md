@@ -119,3 +119,15 @@
 - Score: 10/10.
 - Ambiguity: none.
 - Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-010.test.ts`).
+
+## BT20-011 — ExVeemon
+
+- Catalog contract: red level 4 Free-attribute Mythical Dragon, play cost 4/4000 DP, red or purple level-3 evolution cost 2; On Play/When Digivolving deletes 1 opposing Digimon at 3000 DP or less, then on your turn optionally DNA digivolves 2 of your Digimon into a hand Digimon named Imperialdramon or with Free trait while paying cost; inherited your-turn +2000 DP.
+- Knowledge base: Q6017 confirms the activated effect finishes its “then” processing even if ExVeemon leaves the battle area during immediate processing caused by the first deletion.
+- Implementation evidence: the hand-fixed IR correctly shares one sequential body across both triggers, uses an exact 3000-DP deletion ceiling, then a condition-gated optional two-material `DnaDigivolve` with hand destination filtering and `payCost: true`; effect resolution contexts survive source relocation per Q6017. Registration is exclusively through `registerIrCard`.
+- Peer/stack evidence: playing ExVeemon beside a purple level-4 material deletes the 3000-DP target but preserves a 4000-DP peer, then merges both allied materials into Free-trait Paildramon and pays its recorded cost. An ExVeemon source under Paildramon observably grants +2000 only on its controller's turn.
+- Tests: `pnpm --filter @aegis/api exec vitest run src/cards/BT20/BT20-011.test.ts` — 3 passed.
+- Clause scores: stats/evolution 2/2; dual On Play/When Digivolving timing 2/2; deletion target/boundary 2/2; conditional optional paid two-material DNA and destination 2/2; inherited DP/stack and continued resolution 2/2.
+- Score: 10/10.
+- Ambiguity: none.
+- Commit: this card's atomic audit commit (resolve with `git log -- apps/api/src/cards/BT20/BT20-011.test.ts`).
