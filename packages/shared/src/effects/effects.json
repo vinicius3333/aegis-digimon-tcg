@@ -47084,6 +47084,7 @@
             },
             "from": ["hand"],
             "reduceCost": 1,
+            "payCost": true,
             "optional": true
           }
         ],
@@ -47095,6 +47096,7 @@
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
+            "leaveCause": "otherThanYourEffect",
             "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
