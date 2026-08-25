@@ -48,10 +48,21 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
+      isLinked: true,
       actions: [
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          optional: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: { controller: "mine", kind: ["Digimon"], zone: "linked", isSelfRef: true },
+              count: 1,
+            },
+            raw: "By trashing 1 of this Digimon's link cards",
+          },
           actions: [
             {
               kind: "SelectBind",
@@ -63,13 +74,6 @@ const compiled: CompiledCard = {
                 count: 1,
                 bindAs: "A",
               },
-              cost: {
-                kind: "trash",
-                target: { filter: { controller: "mine", kind: ["Digimon"], zone: "linked" }, count: 1 },
-                raw: "By trashing 1 of this Digimon's link cards",
-              },
-              optional: true,
-              abortOnDecline: true,
             },
             {
               kind: "Restrict",

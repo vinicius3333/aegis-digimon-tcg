@@ -15,12 +15,13 @@ const compiled: CompiledCard = {
           event: "whenOpponentAttacks",
           actions: [
             {
-              kind: "Prevent",
+              kind: "EndAttack",
               cost: {
-                kind: "TrashDigivolution",
+                kind: "trash",
                 target: {
                   filter: {
-                    controllerDefault: "mine",
+                    isSelfRef: true,
+                    zone: "digivolutionCards",
                     kind: ["Digimon"],
                     nameOrTrait: [
                       {
@@ -29,7 +30,7 @@ const compiled: CompiledCard = {
                       },
                     ],
                   },
-                  amount: 3,
+                  count: 3,
                 },
                 raw: "by trashing 3 [Mineral] or [Rock] trait cards from this Digimon's digivolution cards",
               },

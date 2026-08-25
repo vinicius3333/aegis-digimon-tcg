@@ -16,7 +16,10 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
             card: "BT1-009",
             as: "host",
             under: [{ card: "EX10-001", as: "flickmon" }],
-            linked: [{ card: "BT1-009", as: "linkCard" }],
+            linked: [
+              { card: "BT1-009", as: "linkCard" },
+              { card: "BT1-010", as: "secondLinkCard" },
+            ],
           },
         ],
       },
@@ -27,7 +30,13 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
 
     await s.engine.recomputeContinuousEffects();
     await primitivesOf(s).trash([link.instanceId]);
-    await settle(() => host.linked.length === 0 && s.state.memory === memoryBefore + 1);
+    await settle(() => host.linked.length === 1 && s.state.memory === memoryBefore + 1);
+
+    expect(host.linked).toHaveLength(1);
+    expect(s.state.memory).toBe(memoryBefore + 1);
+
+    await primitivesOf(s).trash([s.inst("secondLinkCard").instanceId]);
+    await settle(() => false, 30);
 
     expect(host.linked).toHaveLength(0);
     expect(s.state.memory).toBe(memoryBefore + 1);

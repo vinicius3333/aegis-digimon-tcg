@@ -9,19 +9,29 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Security",
+      timing: "endOfBattle",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              from: ["trash"],
+              payCost: false,
             },
-            count: 1,
-            isSelf: true,
-          },
-          payCost: false,
+          ],
         },
       ],
+      isSecurity: true,
     },
     {
       trigger: "OnPlay",
@@ -65,9 +75,42 @@ const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "WhenAttacking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -6000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "linked",
+                isSelfRef: true,
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 of this Digimon's link cards",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
 };
 
 export { compiled };

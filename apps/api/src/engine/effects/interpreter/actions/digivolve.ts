@@ -8,7 +8,7 @@ import {
 import type { EffectContext } from "../../EffectContext.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
-import { LooseCandidate, candidateLooseInstances, pickLoose } from "../targeting/loose.js";
+import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import type { Action, CardColor, Filter, Target, ZoneRef } from "@aegis/shared";
 
@@ -72,12 +72,18 @@ function legalIntoCandidates(
   return pool.filter((c) => {
     const intoDef = ctx.game.definitionOf({ cardId: c.cardId } as never);
     const ordinary = ignoreLevel ? matchingEvoCostIgnoringLevel(intoDef, baseDef) : matchingEvoCost(intoDef, baseDef);
+    const sourceZone = (["hand", "trash"] as const).find((zone) =>
+      looseCardsInZone(ctx, c.ownerSeat, zone).some(({ instanceId }) => instanceId === c.instanceId),
+    );
     // A virtual base is the complete requirement described by the resolving effect (for
     // example, "as if this Tamer is a level 5 blue Digimon"). Its original Tamer name,
     // traits and card kind must not also unlock an alternate or base-granted path.
     const alternate =
       virtualBase === undefined
-        ? matchingAlternateDigivolutionRequirement(intoDef, baseDef, ignoreLevel ? { ignoreLevel: true } : undefined)
+        ? matchingAlternateDigivolutionRequirement(intoDef, baseDef, {
+            ...(ignoreLevel ? { ignoreLevel: true } : {}),
+            ...(sourceZone === undefined ? {} : { sourceZone }),
+          })
         : undefined;
     const baseGranted =
       virtualBase === undefined && base

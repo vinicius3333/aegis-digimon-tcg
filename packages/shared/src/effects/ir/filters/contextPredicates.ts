@@ -11,6 +11,8 @@ export interface ContextPredicates {
   excludeLeavingSubject?: true;
   /** Share at least one color with the permanent stored by an earlier SelectBind. */
   sameColorAsSelectionRef?: string;
+  /** Share at least one color with the loose card paid by the current return cost. */
+  sameColorAsReturned?: boolean;
   /** Printed play-cost ceiling from the currently attacking Digimon. */
   playCostLteAttackerLevel?: boolean;
   /**

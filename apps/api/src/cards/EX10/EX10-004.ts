@@ -20,6 +20,8 @@ const compiled: CompiledCard = {
               kind: "Draw",
               controller: "mine",
               amount: 1,
+              optional: true,
+              abortOnDecline: true,
               cost: {
                 kind: "trash",
                 target: { filter: { controller: "mine", zone: "hand" }, count: 1 },

@@ -67,31 +67,26 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "SecurityManipulation",
-          op: "trashTop",
-          controller: "mine",
-          amount: 1,
-          cost: true,
+          kind: "CostGatedBlock",
+          cost: {
+            kind: "trash",
+            target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
+            raw: "By trashing your top security card",
+          },
           optional: true,
           abortOnDecline: true,
-          raw: "By trashing your top security card",
-        },
-        {
-          kind: "TrashTopDeck",
-          controller: "mine",
-          amount: 2,
-        },
-        {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
+          actions: [
+            { kind: "TrashTopDeck", controller: "mine", amount: 2 },
+            {
+              kind: "ModifyDP",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"] },
+                count: "all",
+              },
+              amount: -3000,
+              duration: "untilOpponentTurnEnd",
             },
-            count: "all",
-          },
-          amount: -3000,
-          duration: "untilOpponentTurnEnd",
+          ],
         },
       ],
     },
@@ -99,31 +94,26 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "SecurityManipulation",
-          op: "trashTop",
-          controller: "mine",
-          amount: 1,
-          cost: true,
+          kind: "CostGatedBlock",
+          cost: {
+            kind: "trash",
+            target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
+            raw: "By trashing your top security card",
+          },
           optional: true,
           abortOnDecline: true,
-          raw: "By trashing your top security card",
-        },
-        {
-          kind: "TrashTopDeck",
-          controller: "mine",
-          amount: 2,
-        },
-        {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
+          actions: [
+            { kind: "TrashTopDeck", controller: "mine", amount: 2 },
+            {
+              kind: "ModifyDP",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"] },
+                count: "all",
+              },
+              amount: -3000,
+              duration: "untilOpponentTurnEnd",
             },
-            count: "all",
-          },
-          amount: -3000,
-          duration: "untilOpponentTurnEnd",
+          ],
         },
       ],
     },

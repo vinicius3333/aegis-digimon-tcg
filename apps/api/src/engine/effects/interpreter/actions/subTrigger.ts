@@ -12,6 +12,8 @@ import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Cost, Filter } from "@aegis/shared";
 import { findLooseCandidateByInstance } from "../targeting/loose.js";
+import { canAttemptDigivolve } from "./digivolve.js";
+import { canAttemptLink } from "./link.js";
 
 /** Does this cost suspend the effect's OWN source ("by suspending this Tamer")? */
 function suspendsSelf(cost: Cost | undefined): boolean {
@@ -974,6 +976,18 @@ export async function runSubTrigger(
         const delaySource = subCtx.source.permanent();
         if (delaySource === undefined) return;
         if (delaySource.enterFieldTurnCount === subCtx.game.state.turnCount) return;
+        // Delay is optional processing, but it still cannot be activated when every declared
+        // digivolution payload has no legal base/card pair. Check while the Option remains on
+        // field so an impossible Q5183 target does not consume the Delay cost.
+        const digivolveActions = action.actions.filter(
+          (candidate): candidate is Extract<Action, { kind: "Digivolve" }> => candidate.kind === "Digivolve",
+        );
+        if (digivolveActions.length > 0 && !digivolveActions.some((candidate) => canAttemptDigivolve(subCtx, candidate)))
+          return;
+        const linkActions = action.actions.filter(
+          (candidate): candidate is Extract<Action, { kind: "Link" }> => candidate.kind === "Link",
+        );
+        if (linkActions.length > 0 && !linkActions.some((candidate) => canAttemptLink(subCtx, candidate))) return;
         const activate = await subCtx.ask.optional(
           subCtx,
           action.raw ?? "Trash this card to activate its ＜Delay＞ effect?",

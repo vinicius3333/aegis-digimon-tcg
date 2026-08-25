@@ -86,7 +86,7 @@ export const DIGIXROS_ZONE_EXPANDERS: Record<string, DigiXrosZoneExpander> = {
   // can also be placed" for each qualifying DigiXros play. The IR keyword registry exposes
   // the capability, while this expander entry supplies the live Tamer activation cost/path.
   "EX10-064": {
-    appliesTo: () => true,
+    appliesTo: (def) => hasAnyTrait(def, ["Bagra Army", "Twilight"]),
     underTamerMax: 1,
     trashMax: 1,
   },

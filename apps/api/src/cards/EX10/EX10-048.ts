@@ -10,6 +10,8 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldBePlayed",
+          mode: "reduceCost",
+          amount: 4,
           sourceFilter: {
             isSelfRef: true,
           },
@@ -30,8 +32,9 @@ const compiled: CompiledCard = {
               count: 1,
             },
             raw: "by deleting 1 of your Digimon with [Myotismon] in its text, reduce the play cost by 4",
-            reduceCostBy: 4,
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
@@ -113,6 +116,7 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "OnDeletion",
+      isInherited: true,
       actions: [
         {
           kind: "PlayWithoutCost",

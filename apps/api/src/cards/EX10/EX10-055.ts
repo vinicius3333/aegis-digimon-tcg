@@ -135,10 +135,11 @@ const compiled: CompiledCard = {
     {
       materials: [
         {
-          desc: "[Bagra Army] Digimon",
+          traits: ["Bagra Army"],
         },
       ],
       count: 2,
+      costReduction: 2,
     },
   ],
 };

@@ -27,11 +27,9 @@ export const compiled: CompiledCard = {
         {
           kind: "Digivolve",
           target: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "belphemonHost",
           },
           into: {
             controllerDefault: "mine",
@@ -56,6 +54,7 @@ export const compiled: CompiledCard = {
           },
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 isSelfRef: true,
@@ -77,6 +76,7 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
             host: "target",
+            bindHostAs: "belphemonHost",
           },
           abortOnDecline: true,
         },

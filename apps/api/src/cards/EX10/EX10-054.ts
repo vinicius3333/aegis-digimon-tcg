@@ -11,11 +11,11 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          mode: "reduceCost",
-          amount: 7,
-          raw: "play this card with the play cost reduced by 7",
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          from: ["trash"],
+          payCost: true,
+          reduceCostBy: 7,
           cost: {
             kind: "deleteOwn",
             target: {
@@ -34,8 +34,7 @@ const compiled: CompiledCard = {
             },
             raw: "By deleting 1 of your level 5 Digimon with [Myotismon] in its text",
           },
-          optional: true,
-          abortOnDecline: true,
+          raw: "play this card with the play cost reduced by 7",
         },
       ],
       isFromTrash: true,

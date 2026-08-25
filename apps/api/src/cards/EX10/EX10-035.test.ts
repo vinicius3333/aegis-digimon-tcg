@@ -9,6 +9,41 @@ import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harn
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./EX10-035.js"; // register the audited override so the real paths run
 
+describe("EX10-035 catalog and offensive timings", () => {
+  it("records the exact no-standard-evolution catalog", () => {
+    expect(getCardDefinition("EX10-035")).toMatchObject({
+      colors: ["Black"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Machine", "Dark Masters"],
+    });
+  });
+
+  it("On Play De-Digivolves exactly 2 opposing Digimon by 2", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX10-035", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-019", as: "first", under: ["BT1-009", "BT1-010"] },
+            { card: "BT1-019", as: "second", under: ["BT1-009", "BT1-010"] },
+            { card: "BT1-019", as: "third", under: ["BT1-009", "BT1-010"] },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.perm("first").topCard.cardId).not.toBe("BT1-019");
+    expect(s.perm("second").topCard.cardId).not.toBe("BT1-019");
+    expect(s.perm("third").topCard.cardId).toBe("BT1-019");
+  });
+});
+
 /**
  * A3 for EX10-035 — restricted-digivolve-target (digivolveExceptInto) + delayed-delete-played
  * GATED TO THE REDUCED-COST [Hand][Main] PLAY (KB Q5737).
@@ -214,6 +249,21 @@ describe("EX10-035 — delayed-delete-played gates to the reduced-cost [Hand][Ma
     // plain AD1-001 no longer counts against the gate) => `youHaveNone` holds => EX10-035 is
     // played => this assertion goes RED.
   });
+
+  it("Q5109 allows the hand Main effect with no Digimon", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "EX10-035", as: "inHand" }] } }, { autoAcceptOptional: true });
+    s.state.memory = 6;
+    const instance = s.inst("inHand");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: instance.instanceId,
+        effectKey: reducedCostPlayEffectKey(s, instance),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => onField(s, instance.instanceId));
+    expect(onField(s, instance.instanceId)).toBe(true);
+  });
 });
 
 describe("EX10-035 — deletion and face-up security clauses", () => {
@@ -248,5 +298,24 @@ describe("EX10-035 — deletion and face-up security clauses", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-027"));
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT15-027");
+  });
+
+  it("does not play the Dark Masters target when checked face down", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT5-082", as: "attacker" }] },
+        1: { hand: [{ card: "BT15-027", as: "target" }], security: [{ card: "EX10-035", faceUp: false }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("target").instanceId);
   });
 });

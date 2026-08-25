@@ -54,7 +54,13 @@ export const compiled: CompiledCard = {
           },
           cost: {
             kind: "return",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            target: {
+              filter: { isSelfRef: true, zone: "trash", controller: "mine" },
+              count: 1,
+              isSelf: true,
+              from: ["trash"],
+            },
+            to: "deckBottom",
             raw: "by returning this card to the bottom of the deck",
           },
           abortOnDecline: true,
@@ -62,14 +68,8 @@ export const compiled: CompiledCard = {
         {
           kind: "Attack",
           target: {
-            controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [
-              {
-                tokens: ["Lucemon"],
-                match: "name",
-              },
-            ],
+            filter: { controller: "mine", kind: ["Digimon"] },
+            count: 1,
           },
           withoutSuspending: true,
         },
@@ -93,6 +93,7 @@ export const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            bindAs: "lucemonBuffTarget",
           },
           keyword: {
             keyword: "Raid",
@@ -103,17 +104,9 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Lucemon"],
-                  match: "name",
-                },
-              ],
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "lucemonBuffTarget",
           },
           keyword: {
             keyword: "Piercing",
@@ -124,17 +117,9 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Lucemon"],
-                  match: "name",
-                },
-              ],
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "lucemonBuffTarget",
           },
           keyword: {
             keyword: "Blocker",
@@ -145,17 +130,9 @@ export const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Lucemon"],
-                  match: "name",
-                },
-              ],
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "lucemonBuffTarget",
           },
           amount: 3000,
           duration: "untilOpponentTurnEnd",

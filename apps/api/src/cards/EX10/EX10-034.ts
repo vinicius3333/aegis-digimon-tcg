@@ -23,7 +23,7 @@ const compiled: CompiledCard = {
           kind: "GainTriggeredEffect",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           gainedTrigger: "StartOfYourMainPhase",
-          gainedActions: [{ kind: "Attack", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
+          gainedActions: [{ kind: "Attack" }],
           duration: "untilOpponentTurnEnd",
         },
       ],

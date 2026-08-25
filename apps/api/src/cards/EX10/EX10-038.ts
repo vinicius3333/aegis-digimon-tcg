@@ -45,6 +45,32 @@ const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "WhenAttacking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Return",
+          to: "hand",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "trash",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+            },
+            count: 1,
+          },
+          cost: {
+            kind: "trash",
+            target: { filter: { controller: "mine", zone: "linked", isSelfRef: true }, count: 1 },
+            raw: "By trashing 1 of this Digimon's link cards",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
@@ -56,6 +82,7 @@ const compiled: CompiledCard = {
       isAlternate: true,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
 };
 
 registerIrCard("EX10-038", compiled);

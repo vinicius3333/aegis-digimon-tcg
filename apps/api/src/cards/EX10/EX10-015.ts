@@ -2,13 +2,20 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Q5044/Q5045: Save is matched in card text; the hand trash is a mandatory
-// shared cost for Draw 1 and suspending an opposing Digimon.
+// Q5044/Q5045: Save is matched in card text; choosing to pay the hand-trash
+// processing condition gates both Draw 1 and the opposing Digimon suspension.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnDeletion",
-      actions: [],
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
+          optional: true,
+        },
+      ],
       keywords: [{ keyword: "Save", raw: "＜Save＞" }],
     },
     {
@@ -23,24 +30,19 @@ const compiled: CompiledCard = {
             target: { filter: { controller: "mine", zone: "hand", textContains: "Save" }, count: 1 },
             raw: "By trashing 1 card with ＜Save＞ in its text from your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Suspend",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-          condition: { kind: "ifThisEffectActed", raw: "if you did" },
         },
       ],
     },
     {
-      trigger: "YourTurn",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
-          duration: "permanent",
-        },
-      ],
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
       isInherited: true,
     },
   ],
@@ -53,8 +55,7 @@ const compiled: CompiledCard = {
   digiXrosRequirement: [
     {
       materials: [{ kind: ["Digimon"], nameOrTrait: [{ tokens: ["Save"], match: "text" }] }],
-      count: 1,
-      costReduction: 2,
+      count: 2,
     },
   ],
 };

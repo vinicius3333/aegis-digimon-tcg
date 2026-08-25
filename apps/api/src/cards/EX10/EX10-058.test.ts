@@ -16,7 +16,7 @@ import {
   setupEngine as setup,
   settle,
 } from "../../engine/testkit/harness.js";
-import "./EX10-058.js";
+import { compiled } from "./EX10-058.js";
 
 // A3 for EX10-058 (Lilithmon).
 //
@@ -28,8 +28,7 @@ import "./EX10-058.js";
 //      turn loop: the grant fires on the RECIPIENT's OWN turn end (Q5159), not the
 //      granter's, and not immediately.
 //   2. [All Turns] "when any of your opponent's Digimon are ... deleted, by trashing 2
-//      digivolution cards, play 1 purple Lv.4-or-less Digimon from trash" (deleted half
-//      only — the played half remains genuinely gated off, see the card file).
+//      digivolution cards, play 1 purple Lv.4-or-less Digimon from trash".
 //
 // FAILS-WHEN-REVERTED: reverting the grant clause to `canActivate: () => false` makes
 // the recipient's Digimon survive test 1's second turn end (RED). Reverting the All
@@ -37,6 +36,27 @@ import "./EX10-058.js";
 // the combat deletion in test 2 (RED).
 
 let seq = 0;
+
+describe("EX10-058 Lilithmon exact contract", () => {
+  it("records the exact catalog, evolution route, and DigiXros recipe", () => {
+    expect(getCardDefinition("EX10-058")).toMatchObject({
+      colors: ["Purple"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 3 }],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Demon Lord", "Bagra Army"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ level: 5, colors: ["Purple"], cost: 3 }],
+      digiXrosRequirement: [{ materials: [{ traits: ["Bagra Army"] }], count: 2, costReduction: 2 }],
+    });
+  });
+});
 
 function instance2(cardId: string, seat: Seat, faceUp: boolean): CardInstance {
   seq += 1;
@@ -243,9 +263,9 @@ describe("EX10-058 [DigiXros -2] 2 Digimon cards w/[Bagra Army] trait", () => {
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 
-    const compiled = getCompiledCard("EX10-058");
-    expect(compiled).toBeDefined();
-    const requirement = compiled!.digiXrosRequirement?.[0];
+    const runtimeCompiled = getCompiledCard("EX10-058");
+    expect(runtimeCompiled).toBeDefined();
+    const requirement = runtimeCompiled!.digiXrosRequirement?.[0];
     expect(requirement, "EX10-058 must carry a compiled digiXrosRequirement").toBeDefined();
     expect(requirement!.count).not.toBe("∞"); // this card's recipe is a fixed per-material number
     const perMaterialReduction = requirement!.count as number;

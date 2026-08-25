@@ -43,7 +43,14 @@ export function registerWouldBePlayedSelfReducer(cardId: string, reducer: WouldB
   WOULD_BE_PLAYED_SELF_REDUCERS.set(cardId, [...withoutSameKey, reducer]);
 }
 
-const STRUCTURED_REDUCER_COSTS = new Set(["suspend", "unsuspend", "return", "trash", "trashBottomFaceDownUnderTamer"]);
+const STRUCTURED_REDUCER_COSTS = new Set([
+  "suspend",
+  "unsuspend",
+  "return",
+  "trash",
+  "deleteOwn",
+  "trashBottomFaceDownUnderTamer",
+]);
 
 /**
  * Cards whose "When THIS card would be played, by [structured cost], reduce the play cost by N"
@@ -58,6 +65,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT2-099", // self Option use cost -1 per yellow Tamer
   "BT2-112", // opponent has a 10000+ DP Digimon -> -6
   "EX8-074", // suspend 2 Digimon -> -4
+  "EX10-048", // delete 1 own Myotismon-text Digimon -> -4 (Q5130/Q5131)
   "BT17-068", // return 1 [Apocalymon] from trash -> -3
   "EX9-011", // trash 1 [Cyborg]/[Ver.1] from hand -> -2
   "EX9-018", // trash 1 [Cyborg]/[Ver.x] from hand -> -2

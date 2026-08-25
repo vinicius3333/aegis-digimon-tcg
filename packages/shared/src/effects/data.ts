@@ -771,7 +771,7 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   // BT5-111's named Omnimon shortcut is explicitly limited to the battle area (KB Q1385).
   "BT5-111": [{ cost: 3, isAlternate: true, names: ["Omnimon"], battleAreaOnly: true }],
   "BT7-017": [{ cost: 1, isAlternate: true, namesExact: ["Machinedramon"] }],
-  "BT7-111": [{ cost: 7, isAlternate: true, namesExact: ["Lucemon"] }],
+  "BT7-111": [{ cost: 7, isAlternate: true, namesExact: ["Lucemon"], sourceZones: ["hand"] }],
   "EX2-022": [
     {
       cost: 3,

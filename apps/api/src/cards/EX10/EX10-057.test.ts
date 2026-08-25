@@ -1,9 +1,39 @@
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import "./EX10-057.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./EX10-057.js";
+import "../index.js";
+
+const CARD_ID = "EX10-057";
 
 describe("EX10-057 Piedmon", () => {
+  it("records the exact catalog and complete executable contract", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      colors: ["Purple"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      evoCosts: [],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Wizard", "Dark Masters"],
+    });
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects?.find(({ trigger }) => trigger === "Main")).toMatchObject({
+      isFromHand: true,
+      condition: { kind: "youHaveNone" },
+      actions: [
+        { kind: "PlayWithoutCost", target: { isSelf: true }, from: ["hand"], payCost: true, reduceCostBy: 5 },
+        { kind: "DelayedDeletePlayed" },
+      ],
+      optional: true,
+    });
+    expect(compiled.effects?.find(({ trigger }) => trigger === "AllTurns")).toMatchObject({
+      actions: [{ kind: "Restrict", on: "digivolveTarget" }],
+    });
+  });
+
   it("plays itself from hand for 6 only when every controlled Digimon has Dark Masters in its text", async () => {
     const s = setupEngine(
       {
@@ -32,6 +62,40 @@ describe("EX10-057 Piedmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX10-057"));
     expect(s.state.memory).toBe(-6);
+  });
+
+  it("does not expose the hand Main activation while controlling a non-Dark-Masters-text Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "piedmon" }],
+          battleArea: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const entries = JSON.parse(s.inst("piedmon").activatableEffectsJson || "[]") as Array<{ instanceId: string }>;
+    expect(entries.some(({ instanceId }) => instanceId === s.inst("piedmon").instanceId)).toBe(false);
+  });
+
+  it("On Play deletes only 1 opposing unsuspended Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "piedmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "unsuspended" },
+            { card: "BT1-010", as: "suspended", suspended: true },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const suspendedId = s.perm("suspended").permanentId;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("piedmon"));
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([suspendedId]);
   });
 
   it("places itself face-up at the security bottom on deletion only with no face-up purple security", async () => {

@@ -18,6 +18,7 @@ const compiled: CompiledCard = {
           },
           optional: true,
           controller: "opponent",
+          allowCostWithoutTarget: true,
           cost: {
             kind: "trash",
             target: {
@@ -58,6 +59,7 @@ const compiled: CompiledCard = {
           },
           optional: true,
           controller: "opponent",
+          allowCostWithoutTarget: true,
           cost: {
             kind: "trash",
             target: {
@@ -106,15 +108,12 @@ const compiled: CompiledCard = {
               optional: true,
               controller: "opponent",
             },
+            {
+              kind: "Prevent",
+              mode: "leavePlay",
+              condition: { kind: "ifThisEffectDidNotDelete", raw: "this effect didn't delete" },
+            },
           ],
-        },
-        {
-          kind: "Prevent",
-          mode: "leavePlay",
-          condition: {
-            kind: "ifThisEffectDidNotDelete",
-            raw: "this effect didn't delete",
-          },
         },
       ],
       frequency: "OncePerTurn",

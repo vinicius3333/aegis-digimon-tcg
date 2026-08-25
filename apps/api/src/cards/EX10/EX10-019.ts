@@ -9,6 +9,7 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",
+      isLinked: true,
       actions: [
         {
           kind: "SubTrigger",
@@ -21,7 +22,10 @@ const compiled: CompiledCard = {
               count: 1,
               cost: {
                 kind: "trash",
-                target: { filter: { controller: "mine", kind: ["Digimon"], zone: "linked" }, count: 1 },
+                target: {
+                  filter: { controller: "mine", kind: ["Digimon"], zone: "linked", isSelfRef: true },
+                  count: 1,
+                },
                 raw: "By trashing 1 of this Digimon's link cards",
               },
               optional: true,
@@ -54,9 +58,12 @@ const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
+          recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           from: ["trash", "digivolutionCards"],
           payCost: false,
           optional: true,
@@ -76,9 +83,12 @@ const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
+          recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           from: ["trash", "digivolutionCards"],
           payCost: false,
           optional: true,
@@ -91,17 +101,28 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
-              kind: "Suspend",
+              kind: "SelectBind",
               target: {
                 filter: {
                   controller: "opponent",
                   kind: ["Digimon", "Tamer"],
                 },
                 count: 1,
+                bindAs: "warudamonTarget",
               },
               optional: true,
+              abortOnDecline: true,
+            },
+            {
+              kind: "Suspend",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+                count: 1,
+                fromSelectionRef: "warudamonTarget",
+              },
             },
             {
               kind: "Restrict",
@@ -109,10 +130,9 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "opponent",
                   kind: ["Digimon", "Tamer"],
-                  suspended: true,
                 },
                 count: 1,
-                sameTarget: true,
+                fromSelectionRef: "warudamonTarget",
               },
               restriction: "unsuspend",
               duration: "untilOpponentNextUnsuspendPhase",
@@ -131,6 +151,7 @@ const compiled: CompiledCard = {
       cost: 0,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
 
 export { compiled };

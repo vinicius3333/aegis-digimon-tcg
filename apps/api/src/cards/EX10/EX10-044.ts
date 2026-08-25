@@ -6,9 +6,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   under any of your Tamers, draw 1.
 //   - place cost: from: ["hand","trash"], underFilter: any of your Tamers.
 // [On Deletion]: You may play 1 [Tuwarmon] with play cost ≤7 from under your Tamers
-//   without paying the cost. Then, <Save> (mandatory: no "you may").
+//   without paying the cost. Then, <Save> (the keyword itself is optional).
 //   - PlayWithoutCost: from: ["underTamers"].
-//   - PlaceUnder: not optional.
+//   - PlaceUnder: optional, as defined by <Save>.
 // Inherited: whenTrashedFromDigivolutionCards → Draw 1.
 const compiled: CompiledCard = {
   effects: [
@@ -39,6 +39,7 @@ const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Tamer"],
             },
+            position: "bottom",
             raw: "By placing 1 [Bagra Army] trait Digimon card from your hand or trash under any of your Tamers",
           },
           optional: true,
@@ -83,15 +84,17 @@ const compiled: CompiledCard = {
             kind: ["Tamer"],
             excludeToken: true,
           },
+          optional: true,
         },
       ],
+      keywords: [{ keyword: "Save", raw: "＜Save＞" }],
     },
     {
       trigger: "Static",
       actions: [
         {
           kind: "SubTrigger",
-          event: "onDigivolutionCardDiscarded",
+          event: "onDigivolutionCardsDiscardedBatch",
           sourceFilter: {
             isSelfRef: true,
           },

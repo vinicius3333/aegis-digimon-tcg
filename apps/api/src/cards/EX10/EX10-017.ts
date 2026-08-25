@@ -9,6 +9,7 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",
+      isLinked: true,
       actions: [
         {
           kind: "SubTrigger",
@@ -21,7 +22,10 @@ const compiled: CompiledCard = {
               controller: "mine",
               cost: {
                 kind: "trash",
-                target: { filter: { controller: "mine", kind: ["Digimon"], zone: "linked" }, count: 1 },
+                target: {
+                  filter: { controller: "mine", kind: ["Digimon"], zone: "linked", isSelfRef: true },
+                  count: 1,
+                },
                 raw: "By trashing 1 of this Digimon's link cards",
               },
               optional: true,
@@ -58,6 +62,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "PlayWithoutCost",
@@ -77,11 +82,11 @@ const compiled: CompiledCard = {
               from: ["hand"],
               payCost: false,
               condition: {
-                kind: "youHave",
-                filter: {
-                  controllerDefault: "mine",
-                  kind: ["Tamer"],
-                },
+                kind: "permanentCount",
+                seat: "mine",
+                filter: { controller: "mine", kind: ["Tamer"] },
+                op: "lte",
+                value: 1,
                 raw: "you have 1 or fewer Tamers",
               },
               optional: true,
@@ -100,6 +105,7 @@ const compiled: CompiledCard = {
       cost: 0,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
 };
 
 export { compiled };

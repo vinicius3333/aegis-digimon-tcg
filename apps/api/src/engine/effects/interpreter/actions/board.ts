@@ -250,6 +250,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         preserveUnaffectableSelection:
           !ACTION_TYPE_KEYWORDS.has(kw) && kw !== "Piercing" && kw !== "Link" && kw !== "LinkMax",
       });
+      if (ids.length > 0 && action.target.bindAs !== undefined) {
+        ctx.selections ??= new Map();
+        ctx.selections.set(action.target.bindAs, ids[0]!);
+      }
       const grantProvenance = {
         sourceSeat: ctx.source.ownerSeat,
         sourceKinds: [...ctx.source.definition.kinds],
