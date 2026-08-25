@@ -281,7 +281,11 @@ function optionUseCandidates(
     candidates.push(candidate.instanceId);
   };
   for (const zone of zones) {
-    for (const candidate of looseCardsInZone(ctx, seat, zone)) {
+    const zoneCandidates =
+      action.target === undefined
+        ? looseCardsInZone(ctx, seat, zone)
+        : candidateLooseInstances(ctx, action.target, [zone]);
+    for (const candidate of zoneCandidates) {
       addIfEligible(candidate);
     }
   }

@@ -94944,19 +94944,23 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
+            "kind": "UseOptionWithoutCost",
             "target": {
               "filter": {
-                "orFilters": [
-                  { "trait": ["Three Musketeers"], "cardType": "Option" },
-                  { "trait": ["TS"], "cardType": "Option" }
+                "controller": "mine",
+                "kind": ["Option"],
+                "playCostLte": 99,
+                "nameOrTrait": [
+                  { "tokens": ["Three Musketeers"], "match": "trait" },
+                  { "tokens": ["TS"], "match": "trait" }
                 ]
               },
               "count": 1,
-              "from": "handOrDigivolution"
+              "source": "thisDigimon"
             },
+            "from": ["hand", "digivolutionCards"],
             "payCost": false,
-            "costReduction": 0,
+            "allowMultiColor": true,
             "optional": true
           }
         ],
@@ -94967,19 +94971,23 @@
         "trigger": "WhenAttacking",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
+            "kind": "UseOptionWithoutCost",
             "target": {
               "filter": {
-                "orFilters": [
-                  { "trait": ["Three Musketeers"], "cardType": "Option" },
-                  { "trait": ["TS"], "cardType": "Option" }
+                "controller": "mine",
+                "kind": ["Option"],
+                "playCostLte": 99,
+                "nameOrTrait": [
+                  { "tokens": ["Three Musketeers"], "match": "trait" },
+                  { "tokens": ["TS"], "match": "trait" }
                 ]
               },
               "count": 1,
-              "from": "handOrDigivolution"
+              "source": "thisDigimon"
             },
+            "from": ["hand", "digivolutionCards"],
             "payCost": false,
-            "costReduction": 0,
+            "allowMultiColor": true,
             "optional": true
           }
         ],
