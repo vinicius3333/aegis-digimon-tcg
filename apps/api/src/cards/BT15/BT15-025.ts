@@ -1,50 +1,21 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT15-025";
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    // ＜Rush＞ (non-inherited) + ＜Jamming＞ (inherited).
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/rush`,
-          description: "＜Rush＞ (This Digimon can attack the turn it comes into play.)",
-          isInherited: false,
-          when: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = ctx.source.permanent();
-            if (self !== undefined) {
-              ctx.fx.grantKeyword(self.permanentId, "Rush", EffectDuration.UntilEachTurnEnd);
-            }
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/jamming`,
-          description: "＜Jamming＞ [Inherited] (This Digimon can't be deleted in battles against Security Digimon.)",
-          isInherited: true,
-          when: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = ctx.source.permanent();
-            if (self !== undefined) {
-              ctx.fx.grantKeyword(self.permanentId, "Jamming", EffectDuration.UntilEachTurnEnd);
-            }
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+// The catalog feed retains only reminder text for the printed keyword symbols.
+const compiled: CompiledCard = {
+  effects: [
+    { trigger: "Static", actions: [], keywords: [{ keyword: "Rush", raw: "＜Rush＞" }] },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }],
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("BT15-025", compiled);
+export { compiled };

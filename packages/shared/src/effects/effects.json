@@ -28907,8 +28907,13 @@
   },
   "BT15-025": {
     "effects": [
-      { "trigger": "Static", "actions": [] },
-      { "trigger": "Static", "actions": [], "isInherited": true }
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Rush", "raw": "＜Rush＞" }] },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [{ "keyword": "Jamming", "raw": "＜Jamming＞" }],
+        "isInherited": true
+      }
     ],
     "coverage": "full",
     "residual": []
