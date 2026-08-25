@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-055.js";
 import "../index.js";
 
@@ -25,7 +25,7 @@ describe("BT26-055 Giromon", () => {
         expect.objectContaining({ kind: "Delete", target: { filter: { boundRef: "ownVer3ToDelete" }, count: 1 } }),
         expect.objectContaining({
           kind: "Delete",
-          target: { filter: expect.objectContaining({ lowestPlayCost: true }), count: "all" },
+          target: { filter: expect.objectContaining({ superlative: "lowestPlayCost" }), count: "all" },
         }),
       ]),
     );
@@ -57,6 +57,7 @@ describe("BT26-055 Giromon", () => {
           battleArea: [
             { card: "BT1-009", as: "lowA" },
             { card: "BT1-009", as: "lowB" },
+            { card: "BT1-082", as: "higher" },
           ],
         },
       },
@@ -67,7 +68,7 @@ describe("BT26-055 Giromon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giromon"));
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual([]);
-    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual([]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-082"]);
   });
 
   it("doesn't delete opposing Digimon when the combined deletion is declined", async () => {
@@ -84,5 +85,176 @@ describe("BT26-055 Giromon", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-055");
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT1-010");
+  });
+
+  it("may decline the hand placement and still accept the separate combined deletion", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-055", as: "source" },
+            { card: "BT26-055", as: "sacrifice" },
+          ],
+          hand: [{ card: "BT1-001", as: "keptInHand" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("sacrifice").permanentId);
+    const sacrificeId = s.perm("sacrifice").permanentId;
+    await s.ready();
+
+    const resolving = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const placementDecision = s.state.pendingDecision!.decisionId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placementDecision,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== placementDecision,
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("keptInHand").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(sacrificeId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("shares Once Per Turn between On Play and When Digivolving", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-055", as: "source" },
+            { card: "BT26-055", as: "sacrifice" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstOpponent" },
+            { card: "BT1-082", as: "higherOpponent" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("sacrifice").permanentId);
+    const higherOpponentId = s.perm("higherOpponent").permanentId;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(higherOpponentId);
+  });
+
+  it("uses Fragment 2 to survive battle by trashing exactly 2 digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-082", as: "attacker", dp: 12000 }] },
+        1: {
+          battleArea: [
+            {
+              card: "BT26-055",
+              as: "giromon",
+              dp: 7000,
+              suspended: true,
+              under: [
+                { card: "BT1-009", as: "fragmentOne" },
+                { card: "BT1-010", as: "fragmentTwo" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.perm("giromon").stack).toHaveLength(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("giromon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "respondCounter" })).toEqual({ ok: true });
+    await settle(() => s.perm("giromon").stack.length === 0);
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.perm("giromon").stack).toHaveLength(0);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("giromon").permanentId,
+    );
+    expect(s.events.filter((event) => event.kind === "cardsMoved")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          instanceIds: expect.arrayContaining([s.inst("fragmentOne").instanceId, s.inst("fragmentTwo").instanceId]),
+          to: "trash",
+        }),
+      ]),
+    );
+    const trashedIds = [...s.state.players[0]!.trash, ...s.state.players[1]!.trash].map(({ instanceId }) => instanceId);
+    expect(trashedIds).toEqual(
+      expect.arrayContaining([s.inst("fragmentOne").instanceId, s.inst("fragmentTwo").instanceId]),
+    );
+  });
+
+  it("Q7058: activates as the attack's only Counter and rejects a second Counter response", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 1000 }] },
+        1: { battleArea: [{ card: "BT26-055", as: "counterCard" }], security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counterWindowOpened not found");
+    const eligible = opened.eligibleCounters.find(
+      ({ instanceId }) => instanceId === s.perm("counterCard").topCard.instanceId,
+    );
+    expect(eligible).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectActivated"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }).ok,
+    ).toBe(false);
   });
 });

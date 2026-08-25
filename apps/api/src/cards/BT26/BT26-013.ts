@@ -6,6 +6,7 @@ const trashThenDelete = {
   kind: "Delete",
   optional: true,
   abortOnDecline: true,
+  allowCostWithoutTarget: true,
   target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } } },
   cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
 };

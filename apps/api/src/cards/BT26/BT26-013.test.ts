@@ -15,6 +15,10 @@ describe("BT26-013 Musyamon", () => {
       ["OnDeletion", undefined],
       ["YourTurn", true],
     ]);
+    expect(compiled.effects.slice(1, 3).map((effect) => effect.actions[0])).toEqual([
+      expect.objectContaining({ kind: "Delete", allowCostWithoutTarget: true }),
+      expect.objectContaining({ kind: "Delete", allowCostWithoutTarget: true }),
+    ]);
   });
 
   it("uses the exact Shambala/TS evolution requirement", () => {

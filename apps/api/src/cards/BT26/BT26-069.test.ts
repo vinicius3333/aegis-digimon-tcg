@@ -1,11 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-069.js";
 
 describe("BT26-069 Dobermon", () => {
   it("models hand-trash draw, hand-trash deletion cost, and inherited Titan evolution", () => {
+    expect(getCardDefinition("BT26-069")).toMatchObject({
+      nameEn: "Dobermon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 6000,
+      types: ["Dark Animal", "Titan", "TS"],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["TS"], cost: 2, isAlternate: true }]);
     expect(compiled.effects.find((effect) => effect.trigger === "Static")).toMatchObject({
       actions: [
@@ -56,6 +67,30 @@ describe("BT26-069 Dobermon", () => {
       ],
     });
     expect(JSON.stringify(compiled)).not.toContain("ignoreRequirements");
+  });
+
+  it("uses the cost-2 TS evolution path from a differently colored level 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-008", as: "redTsBase" }],
+        hand: [{ card: "BT26-069", as: "dobermon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redTsBase").permanentId,
+        instanceId: s.inst("dobermon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("redTsBase").topCard.cardId === "BT26-069");
+
+    expect(s.state.memory).toBe(0);
   });
 
   it("trashes a hand card to delete a level-4-or-lower Digimon on play", async () => {
@@ -138,7 +173,7 @@ describe("BT26-069 Dobermon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("digivolves its Titan host from trash when its controller's hand is trashed", async () => {
+  it("digivolves its Titan host when an opponent's effect trashes its controller's hand", async () => {
     const s = setupEngine(
       {
         0: {
@@ -151,9 +186,29 @@ describe("BT26-069 Dobermon", () => {
     s.state.memory = 2;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 1 });
     await settle(() => s.perm("host").topCard.cardId === "P-209");
 
     expect(s.state.memory).toBe(0);
+  });
+
+  it("does not trigger its inherited evolution when the opponent's hand is trashed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-069"] }],
+          trash: [{ card: "P-209", as: "titamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 0 });
+
+    expect(s.perm("host").topCard.cardId).toBe("BT26-074");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("P-209");
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
   });
 });

@@ -89,6 +89,8 @@ export interface GrantStaticAction extends ActionBase {
   tokens?: string[];
   /** The source filter for "effects". */
   filter?: Filter;
+  /** Copy only the highest matching digivolution card, as required by <Succession>. */
+  topmostOnly?: boolean;
   staticEffect?: { kind: string; [key: string]: unknown };
   duration?: EffectDurationRef;
   /**

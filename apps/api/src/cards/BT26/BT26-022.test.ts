@@ -20,7 +20,10 @@ describe("BT26-022 Sorcermon", () => {
       0: {
         battleArea: [{ card: "BT26-009", as: "tsBase" }],
         hand: [{ card: CARD_ID, as: "sorcermon" }],
-        deck: ["BT1-009"],
+        deck: [
+          { card: "BT1-009", as: "bonusDraw" },
+          { card: "BT1-010", as: "recovered" },
+        ],
       },
     });
     legal.state.memory = 2;
@@ -32,8 +35,18 @@ describe("BT26-022 Sorcermon", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => legal.perm("tsBase").topCard.cardId === CARD_ID);
+    await settle(
+      () => legal.perm("tsBase").topCard.cardId === CARD_ID && legal.state.players[0]!.security.length === 1,
+    );
     expect(legal.state.memory).toBe(0);
+    expect(legal.state.players[0]!.deck).toHaveLength(0);
+    expect(legal.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      legal.inst("bonusDraw").instanceId,
+    );
+    expect(legal.state.players[0]!.security[0]).toMatchObject({
+      instanceId: legal.inst("recovered").instanceId,
+      faceUp: false,
+    });
 
     const illegal = setupEngine({
       0: { battleArea: [{ card: "AD1-002", as: "plainRed" }], hand: [{ card: CARD_ID, as: "sorcermon" }] },

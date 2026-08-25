@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const clause = [
-  { kind: "Suspend", target: { count: 1, filter: { kind: ["Digimon"] } }, optional: true },
+  { kind: "Suspend", target: { count: 1, filter: { controller: "any", kind: ["Digimon"] } }, optional: true },
   {
     kind: "ModifyDP",
     target: {

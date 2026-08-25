@@ -1,15 +1,5 @@
-import {
-  CardColor,
-  CardKind,
-  EffectDuration,
-  EffectTiming,
-  digivolutionRequirementsFor,
-  type CardDefinition,
-  type CardInstance,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
-import { describe, expect, it, vi } from "vitest";
+import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -17,26 +7,6 @@ import { compiled } from "./BT26-042.js";
 import "../index.js";
 
 const CARD_ID = "BT26-042";
-
-function definition(overrides: Partial<CardDefinition> = {}): CardDefinition {
-  return {
-    cardId: overrides.cardId ?? "TEST",
-    set: overrides.set ?? "TEST",
-    nameEn: overrides.nameEn ?? "Fixture",
-    colors: overrides.colors ?? [CardColor.Green],
-    kinds: overrides.kinds ?? [CardKind.Digimon],
-    playCost: overrides.playCost ?? 0,
-    dp: overrides.dp ?? 1000,
-    evoCosts: overrides.evoCosts ?? [],
-    maxCountInDeck: overrides.maxCountInDeck ?? 4,
-    types: overrides.types ?? [],
-    ...overrides,
-  };
-}
-
-function card(instanceId: string, cardId: string): CardInstance {
-  return { instanceId, cardId, ownerSeat: 0 as Seat, faceUp: true } as CardInstance;
-}
 
 describe("BT26-042 Okuwamon", () => {
   it("uses exactly the Lv.4 [TS] alternate evolution for cost 3 and rejects a non-TS Lv.4", async () => {
@@ -137,6 +107,43 @@ describe("BT26-042 Okuwamon", () => {
     await resolving;
   });
 
+  it("locks a different card from the one it suspended (Q7031)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: CARD_ID, as: "okuwamon" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "suspendTarget" },
+          { card: "BT1-085", as: "lockOnly" },
+        ],
+      },
+    });
+
+    const resolving = advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("okuwamon"));
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    let pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("suspendTarget").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.decisionId !== pending.decisionId);
+    pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("lockOnly").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+
+    expect(s.perm("suspendTarget").isSuspended).toBe(true);
+    expect(s.perm("lockOnly").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("lockOnly"), "unsuspend")).toBe(true);
+  });
+
   it("encodes the Q&A-sensitive target and inherited clauses in IR", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "OnPlay",
@@ -158,84 +165,6 @@ describe("BT26-042 Okuwamon", () => {
       ],
     });
   });
-
-  /* legacy direct-module seam removed after IR migration
-  it("chooses the suspend and unsuspend-lock targets independently, including an unsuspended card (Q7031)", async () => {
-    const suspendTarget = {
-      permanentId: "suspend",
-      topCard: card("suspend-card", "DIGI"),
-      inBreeding: false,
-    } as Permanent;
-    const lockTarget = { permanentId: "lock", topCard: card("lock-card", "TAMER"), inBreeding: false } as Permanent;
-    const host = { permanentId: "host", topCard: card("host-card", CARD_ID), inBreeding: false } as Permanent;
-    const game = {
-      player: (seat: Seat) => ({ battleArea: seat === 0 ? [host] : [suspendTarget, lockTarget] }),
-      opponentOf: () => 1 as Seat,
-      definitionOf: (instance: CardInstance) =>
-        definition({ kinds: instance.cardId === "TAMER" ? [CardKind.Tamer] : [CardKind.Digimon] }),
-    } as unknown as GameAccess;
-    const chooseTargets = vi
-      .fn<(...args: any[]) => any>()
-      .mockResolvedValueOnce([suspendTarget.permanentId])
-      .mockResolvedValueOnce([lockTarget.permanentId]);
-    const suspend = vi.fn(async () => [suspendTarget.permanentId]);
-    const restrict = vi.fn();
-    const cardSource = source(host);
-    const ctx = {
-      source: cardSource,
-      game,
-      ask: { chooseTargets },
-      fx: { suspend, restrict } as unknown as Primitives,
-    } as unknown as EffectContext;
-
-    await module.effectsForTiming(EffectTiming.WhenDigivolving, cardSource)[0]!.resolve(ctx);
-    expect(suspend).toHaveBeenCalledWith([suspendTarget.permanentId]);
-    expect(restrict).toHaveBeenCalledWith(lockTarget.permanentId, "unsuspend", EffectDuration.UntilOpponentTurnEnd);
-  }); */
-
-  /* legacy direct-module seam removed after IR migration
-  it("targets exact Insectoid/Titan Digimon only, excluding near traits, Tamers, opponents, and breeding", async () => {
-    const make = (id: string, cardId: string, inBreeding = false): Permanent =>
-      ({ permanentId: id, topCard: card(`${id}-card`, cardId), inBreeding }) as Permanent;
-    const host = make("host", CARD_ID);
-    const insectoid = make("insectoid", "INSECTOID");
-    const titan = make("titan", "TITAN");
-    const near = make("near", "NEAR");
-    const tamer = make("tamer", "TAMER");
-    const breeding = make("breeding", "INSECTOID", true);
-    const opponent = make("opponent", "TITAN");
-    const definitions: Record<string, CardDefinition> = {
-      [CARD_ID]: definition({ types: ["Insectoid", "Titan", "TS"] }),
-      INSECTOID: definition({ types: ["Insectoid"] }),
-      TITAN: definition({ types: ["Titan"] }),
-      NEAR: definition({ types: ["Ancient Insect"] }),
-      TAMER: definition({ kinds: [CardKind.Tamer], types: ["Titan"] }),
-    };
-    const game = {
-      player: (seat: Seat) => ({
-        battleArea: seat === 0 ? [host, insectoid, titan, near, tamer, breeding] : [opponent],
-      }),
-      definitionOf: (instance: CardInstance) => definitions[instance.cardId]!,
-    } as unknown as GameAccess;
-    const chooseTargets = vi.fn(async (_ctx, opts: { candidates: string[] }) => {
-      expect(new Set(opts.candidates)).toEqual(new Set([host.permanentId, insectoid.permanentId, titan.permanentId]));
-      return [titan.permanentId];
-    });
-    const grantPierce = vi.fn();
-    const modifyDP = vi.fn();
-    const cardSource = source(host);
-    const ctx = {
-      source: cardSource,
-      game,
-      ask: { chooseTargets },
-      fx: { grantPierce, modifyDP } as unknown as Primitives,
-    } as unknown as EffectContext;
-    const effect = module.effectsForTiming(EffectTiming.OnAllyAttack, cardSource)[0]!;
-
-    await effect.resolve(ctx);
-    expect(grantPierce).toHaveBeenCalledWith(titan.permanentId, EffectDuration.UntilOpponentTurnEnd);
-    expect(modifyDP).toHaveBeenCalledWith(titan.permanentId, 3000, EffectDuration.UntilOpponentTurnEnd);
-  }); */
 
   it("shares the buff OPT between On Play and its own attack while keeping copies independent", async () => {
     const preferred: string[] = [];
@@ -272,20 +201,56 @@ describe("BT26-042 Okuwamon", () => {
   it("trashes the top security only for a surviving battle winner carrying Okuwamon as inherited (Q7032)", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-081", under: [{ card: CARD_ID, as: "inherited" }], as: "host" }],
+        battleArea: [{ card: "BT1-080", under: [{ card: CARD_ID, as: "inherited" }], as: "host", dp: 10000 }],
       },
-      1: { security: [{ card: "BT1-009", as: "topSecurity" }, "BT1-009"] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "victim", suspended: true, dp: 1000 }],
+        security: [{ card: "BT1-009", as: "topSecurity" }, "BT1-009"],
+      },
     });
     const topId = s.inst("topSecurity").instanceId;
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
-    await settle();
+    const victimId = s.perm("victim").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: victimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((instance) => instance.instanceId === topId)).toBe(true);
 
     expect(compiled.effects?.[4]).toMatchObject({ isInherited: true, frequency: "OncePerTurn" });
+  });
+
+  it("does not trash security when the inherited host is deleted in the same battle (Q7032)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-080", under: [CARD_ID], as: "host", dp: 5000 }] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "victim", suspended: true, dp: 5000 }],
+        security: [{ card: "BT1-009", as: "topSecurity" }],
+      },
+    });
+    const hostId = s.perm("host").permanentId;
+    const victimId = s.perm("victim").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: victimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === victimId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("does not trash security when a different Digimon wins the battle", async () => {

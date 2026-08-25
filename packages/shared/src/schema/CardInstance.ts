@@ -1,5 +1,8 @@
-import { Schema, ArraySchema, type } from "@colyseus/schema";
+import { Schema, ArraySchema, type, view } from "@colyseus/schema";
 import type { Seat } from "./enums.js";
+
+/** View tag that reveals a physical card's identity to an authorized viewer. */
+export const CARD_ID_VIEW_TAG = 2;
 
 /**
  * A specific physical card in the match. Static card facts (DP, cost, colors,
@@ -8,7 +11,7 @@ import type { Seat } from "./enums.js";
  */
 export class CardInstance extends Schema {
   @type("string") instanceId!: string; // unique within the match
-  @type("string") cardId!: string; // e.g. "BT7-089"; key into CardDefinition registry
+  @view(CARD_ID_VIEW_TAG) @type("string") cardId!: string; // e.g. "BT7-089"; key into CardDefinition registry
   @type("uint8") ownerSeat!: Seat; // who owns it (not necessarily who controls it)
   @type("boolean") faceUp = true; // false => redacted for opponents (see Visibility)
   /** Owner-visible activated abilities available while this loose card is in hand. */

@@ -55,14 +55,14 @@ describe("BT26-009 Hyokomon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 
-  it("pays the start-main hand-trash cost, then draws and gains 1 memory", async () => {
+  it("Q6963 pays with a card that mentions Chronomon only in inherited text, then draws and gains memory", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT26-009", as: "hyokomon" }],
           hand: [
-            { card: "BT26-016", as: "chronomon" },
+            { card: "BT26-001", as: "chronomonText" },
             { card: "BT1-009", as: "unrelated" },
           ],
           deck: [{ card: "BT1-010", as: "drawn" }],
@@ -70,12 +70,12 @@ describe("BT26-009 Hyokomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("chronomon").instanceId);
+    preferred.push(s.inst("chronomonText").instanceId);
 
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hyokomon"));
 
     expect(s.state.memory).toBe(1);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("chronomon").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("chronomonText").instanceId);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("unrelated").instanceId, s.inst("drawn").instanceId]),
     );

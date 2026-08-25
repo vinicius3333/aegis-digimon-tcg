@@ -1,12 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-066.js";
 import "../index.js";
 
 describe("BT26-066 Salamon", () => {
-  it("preserves normal evolution requirements and both Titan trash-digivolve windows", () => {
+  it("matches the catalog and preserves both Titan trash-digivolve windows", () => {
+    expect(getCardDefinition("BT26-066")).toMatchObject({
+      nameEn: "Salamon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      types: ["Mammal", "Titan", "TS"],
+    });
     expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["TS"], cost: 0, isAlternate: true }]);
     expect(compiled.effects).toEqual(
       expect.arrayContaining([
@@ -75,6 +84,30 @@ describe("BT26-066 Salamon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("does not offer the start-main evolution when the hand has 6 cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-042", as: "titanHost" },
+            { card: "BT26-066", as: "salamon" },
+          ],
+          trash: [{ card: "BT26-059", as: "trashTitan" }],
+          hand: Array.from({ length: 6 }, (_, index) => ({ card: "BT1-009", as: `hand${index}` })),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("salamon"));
+
+    expect(s.perm("titanHost").topCard.cardId).toBe("BT26-042");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-059");
+    expect(s.state.memory).toBe(5);
+  });
+
   it("allows the inherited trash evolution only when its host has the Titan trait", async () => {
     const titan = setupEngine(
       {
@@ -105,5 +138,92 @@ describe("BT26-066 Salamon", () => {
     await advance(nonTitan.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
     expect(nonTitan.perm("host").topCard.cardId).toBe("BT26-031");
     expect(nonTitan.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("P-209");
+  });
+
+  it("reacts when an opponent's effect trashes its controller's hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066"] }],
+          trash: [{ card: "P-209", as: "titamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 1 });
+
+    expect(s.perm("host").topCard.cardId).toBe("P-209");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("shares one inherited once-per-turn budget across repeated hand-trash events", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-069", as: "host", under: ["BT26-066"] }],
+          trash: [
+            { card: "BT26-074", as: "firstEvolution" },
+            { card: "P-209", as: "secondEvolution" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
+
+    expect(s.perm("host").topCard.cardId).toBe("BT26-074");
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("secondEvolution").instanceId,
+    );
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("Q7089 does not retroactively trigger Alliance after evolving during an attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT24-075",
+              as: "attacker",
+              under: ["BT26-066", "BT26-064"],
+            },
+            { card: "BT1-009", as: "alliancePartner" },
+          ],
+          trash: [{ card: "P-209", as: "titamon" }],
+          deck: [{ card: "BT1-010", as: "drawnAndTrashed" }],
+        },
+        1: { security: 3 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("attacker").topCard.cardId === "P-209" &&
+        s.state.players[1]!.security.length < 3 &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("alliancePartner").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("drawnAndTrashed").instanceId,
+    );
   });
 });

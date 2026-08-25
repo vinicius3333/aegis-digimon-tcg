@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../compiledCards.js";
 import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import { CardColor, CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
 import type { CardDefinition, Filter } from "@aegis/shared";
+import { staticTraitsOf } from "../../../cards/cardData.js";
 
 export interface DefinitionFacts {
   /** The card id; present on every real `CardDefinition`, used for registry lookups (DigiXros). */
@@ -287,7 +288,7 @@ export function matchNameOrTrait(
     ...(def.cardId ? effectiveStaticNames(def as CardDefinition).map(normalizeName) : []),
   ];
   const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
-  const traits = [...(def.types ?? []), ...(def.forms ?? []), ...(def.attributes ?? [])].map(normalizeTrait);
+  const traits = staticTraitsOf(def as CardDefinition).map(normalizeTrait);
   const text = [
     def.effectText,
     def.inheritedEffectText,

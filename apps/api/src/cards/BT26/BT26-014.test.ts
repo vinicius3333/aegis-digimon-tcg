@@ -171,6 +171,29 @@ describe("BT26-014 Darumamon", () => {
     );
   });
 
+  it("does not play a TB Digimon above 6000 DP or a low-DP Digimon without the TB trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-014", as: "self" }],
+          hand: [
+            { card: "BT26-014", as: "highTb" },
+            { card: "BT1-009", as: "lowNonTb" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("self").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("self").instanceId, s.inst("highTb").instanceId, s.inst("lowNonTb").instanceId]),
+    );
+  });
+
   it("may decline both optional On Deletion branches", async () => {
     const s = setupEngine(
       {

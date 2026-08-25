@@ -83,7 +83,7 @@ describe("BT26-012 Manekimon", () => {
     expect(compiled.effects).toMatchObject([
       { trigger: "Main", frequency: "OncePerTurn", actions: [{ kind: "Modal", choose: 1 }] },
       {
-        trigger: "OnAllyAttack",
+        trigger: "WhenAttacking",
         isInherited: true,
         frequency: "OncePerTurn",
         actions: [{ kind: "ModifyDP", amount: -2000 }],
@@ -206,15 +206,33 @@ describe("BT26-012 Manekimon", () => {
       1: { battleArea: [{ card: "BT24-023", as: "target" }] },
     });
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
     expect(s.perm("target").currentDP).toBe(5000);
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
     expect(s.perm("target").currentDP).toBe(5000);
+  });
+
+  it("does not trigger the inherited When Attacking effect for another allied Digimon's attack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-014", as: "host", under: [{ card: CARD_ID, as: "source" }] },
+          { card: "BT1-009", as: "ally" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT24-023", as: "target" }] },
+    });
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
+      attackerPermanentId: s.perm("ally").permanentId,
+    });
+
+    expect(s.perm("target").currentDP).toBe(7000);
   });
 
   it("offers only opponent Digimon, excluding Tamers and breeding, and lasts for the turn", async () => {
@@ -228,7 +246,7 @@ describe("BT26-012 Manekimon", () => {
         breeding: { card: "BT21-005", as: "egg" },
       },
     });
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
 

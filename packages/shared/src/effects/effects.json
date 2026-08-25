@@ -136565,7 +136565,8 @@
               "raw": "By deleting 1 of your Digimon"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "allowCostWithoutTarget": true
           }
         ]
       },
@@ -136588,7 +136589,8 @@
               "raw": "By deleting 1 of your Digimon"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "allowCostWithoutTarget": true
           }
         ]
       },
@@ -137956,10 +137958,34 @@
       { "traits": ["VB"], "cost": 5, "isAlternate": true, "level": 6 }
     ],
     "dnaDigivolveRequirement": [
-      { "cost": 0, "materials": [{ "color": "Red", "level": 6 }, { "color": "Black", "level": 6 }] },
-      { "cost": 0, "materials": [{ "color": "Red", "level": 6 }, { "color": "Purple", "level": 6 }] },
-      { "cost": 0, "materials": [{ "color": "Blue", "level": 6 }, { "color": "Black", "level": 6 }] },
-      { "cost": 0, "materials": [{ "color": "Blue", "level": 6 }, { "color": "Purple", "level": 6 }] }
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Red", "level": 6 },
+          { "color": "Black", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Red", "level": 6 },
+          { "color": "Purple", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 6 },
+          { "color": "Black", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 6 },
+          { "color": "Purple", "level": 6 }
+        ]
+      }
     ]
   },
   "EX2-001": {

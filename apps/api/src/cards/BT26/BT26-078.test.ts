@@ -1,13 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { irNode } from "../../engine/testkit/irNode.js";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-078.js";
 import "../index.js";
 
 describe("BT26-078 compiled behavior", () => {
   it("proves the TS evolution and delete-to-play effects with the Q7105 text/trait union", () => {
+    expect(getCardDefinition("BT26-078")).toMatchObject({
+      nameEn: "Cherubimon",
+      colors: ["Purple", "Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      types: ["Cherub", "Titan", "TS"],
+    });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["TS"], cost: 5, isAlternate: true }]);
@@ -79,7 +89,38 @@ describe("BT26-078 compiled behavior", () => {
         keyword: { keyword: "Execute" },
         duration: "untilEachTurnEnd",
       }),
+      expect.objectContaining({
+        kind: "GrantStatic",
+        target: expect.objectContaining({ sourceRef: "triggerSubject" }),
+        grant: "effects",
+        tokens: ["Execute"],
+        duration: "untilEachTurnEnd",
+      }),
     ]);
+  });
+
+  it("digivolves for 5 from an off-color level-5 TS Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-015", as: "redTsBase" }],
+        hand: [{ card: "BT26-078", as: "cherubimon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("redTsBase").permanentId,
+        instanceId: s.inst("cherubimon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("redTsBase").topCard.cardId === "BT26-078");
+
+    expect(s.state.memory).toBe(0);
   });
 
   it("publicly deletes itself to play a qualifying Titan from trash", async () => {
@@ -112,5 +153,164 @@ describe("BT26-078 compiled behavior", () => {
       battleArea: s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId),
       trash: s.state.players[0]!.trash.map(({ cardId }) => cardId),
     }).toEqual({ battleArea: ["BT26-056"], trash: ["BT26-078"] });
+  });
+
+  it("Q7105 plays a Tamer whose effect text mentions Chronomon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-078", as: "cherubimon" }],
+          trash: [{ card: "BT26-096", as: "chronomonTextTamer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherubimon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-096"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-078");
+  });
+
+  it("Q7108 keeps both the card-kind and play-cost limits on every branch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-078", as: "cherubimon" }],
+          trash: [
+            { card: "BT24-098", as: "pureTitanOption" },
+            { card: "BT25-019", as: "cost13TitanDigimon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherubimon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-078"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT24-098", "BT25-019"]),
+    );
+  });
+
+  it("Q7106/Q7107 returns itself from trash and grants Rush plus executable Execute at opponent memory 5", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          trash: [{ card: "BT26-078", as: "cherubimon" }],
+          battleArea: [{ card: "BT26-021", as: "playedTitan", enteredThisTurn: true }],
+          deck: [{ card: "BT1-001", as: "deckTop" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "executeTarget" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("executeTarget").permanentId);
+    s.state.memory = -5;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("playedTitan").permanentId });
+
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT26-078");
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT26-078");
+    expect(observe(s.engine).hasKeyword(s.perm("playedTitan"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("playedTitan"), "Execute")).toBe(true);
+    expect(observe(s.engine).customEffectGrants(s.perm("playedTitan"))).toEqual(
+      expect.arrayContaining([expect.objectContaining({ token: "Execute" })]),
+    );
+
+    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-021"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-021");
+  });
+
+  it("lets the newly played Digimon attack through the granted Rush", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          trash: [{ card: "BT26-078", as: "cherubimon" }],
+          battleArea: [{ card: "BT26-021", as: "playedTitan", enteredThisTurn: true }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -5;
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("playedTitan").permanentId });
+    s.state.memory = 0;
+    s.state.phase = Phase.Main;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("playedTitan").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("does not trigger from outside the trash or below the Q7107 memory threshold", async () => {
+    const onBoard = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-078", as: "cherubimon" },
+            { card: "BT26-021", as: "titan" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    onBoard.state.memory = -5;
+    await onBoard.ready();
+    await advance(onBoard.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: onBoard.perm("titan").permanentId,
+    });
+    expect(observe(onBoard.engine).hasKeyword(onBoard.perm("titan"), "Rush")).toBe(false);
+
+    const belowFive = setupEngine(
+      {
+        0: { trash: [{ card: "BT26-078", as: "cherubimon" }], battleArea: [{ card: "BT26-021", as: "titan" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    belowFive.state.memory = -4;
+    await belowFive.ready();
+    await advance(belowFive.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: belowFive.perm("titan").permanentId,
+    });
+    expect(belowFive.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-078");
+    expect(observe(belowFive.engine).hasKeyword(belowFive.perm("titan"), "Rush")).toBe(false);
+  });
+
+  it("Q7108 does not let a matching Tamer satisfy the Trash watcher's Digimon requirement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          trash: [{ card: "BT26-078", as: "cherubimon" }],
+          battleArea: [{ card: "BT26-096", as: "chronomonTextTamer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -5;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("chronomonTextTamer").permanentId,
+    });
+
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-078");
+    expect(observe(s.engine).hasKeyword(s.perm("chronomonTextTamer"), "Rush")).toBe(false);
   });
 });

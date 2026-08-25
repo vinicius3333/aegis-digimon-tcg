@@ -3,6 +3,7 @@ import { EffectTiming, Phase, digivolutionRequirementsFor } from "@aegis/shared"
 import { compiled } from "./BT26-035.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 describe("BT26-035 Morphomon", () => {
   it("models both printed suspend windows", () => {
@@ -57,21 +58,42 @@ describe("BT26-035 Morphomon", () => {
           ],
           hand: [{ card: "BT1-073", as: "evolution" }],
         },
+        1: {
+          battleArea: [
+            { card: "BT1-001", as: "allyVictim", suspended: true, dp: 1000 },
+            { card: "BT1-002", as: "hostVictim", suspended: true, dp: 1000 },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
     await s.ready();
+    const allyVictimId = s.perm("allyVictim").permanentId;
+    const hostVictimId = s.perm("hostVictim").permanentId;
 
-    await advance(s.engine).fireSubTrigger("whenBattleWon", {
-      attackerPermanentId: s.perm("ally").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "permanent", permanentId: allyVictimId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === allyVictimId),
+    );
     expect(s.perm("host").topCard.cardId).toBe("BT26-035");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolution").instanceId);
 
-    await advance(s.engine).fireSubTrigger("whenBattleWon", {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: hostVictimId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "BT1-073");
 
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("evolution").instanceId);

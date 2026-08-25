@@ -233,7 +233,19 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         ctx.fx.grantPlayerKeyword(seat, kw, duration, keyword.amount);
         return false;
       }
-      const ids = await resolvePermanentTargets(ctx, action.target);
+      // A keyword backed by the continuous ledger is attached even while the recipient is
+      // immune to the granting effect; immunity suppresses it at the consume site and it
+      // becomes live if immunity lapses (CR 15-15-5, BT26-047 Q7046-Q7049). Immediate
+      // action-keywords and the dedicated Piercing/Link stores keep ordinary filtering until
+      // those stores can retain equivalent source provenance.
+      const ids = await resolvePermanentTargets(ctx, action.target, {
+        preserveUnaffectableSelection:
+          !ACTION_TYPE_KEYWORDS.has(kw) && kw !== "Piercing" && kw !== "Link" && kw !== "LinkMax",
+      });
+      const grantProvenance = {
+        sourceSeat: ctx.source.ownerSeat,
+        sourceKinds: [...ctx.source.definition.kinds],
+      };
       // Follow-up clauses such as EX12-015's "that Digimon ... attacks" gate on whether
       // this optional grant actually chose a recipient. Preserve that outcome explicitly;
       // resolvePermanentTargets already binds the same physical recipient for sameTarget.
@@ -254,7 +266,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         const delta = keyword.amount ?? 1;
         for (const id of ids) ctx.fx.grantLinkMax(id, delta, duration);
         for (const extra of action.keywords ?? []) {
-          for (const id of ids) ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount);
+          for (const id of ids) ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount, grantProvenance);
         }
         return false;
       }
@@ -322,6 +334,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             ...(active === undefined ? {} : { active }),
             sourceCardId: ctx.source.cardId,
             sourceEffectText: ctx.activeEffectText,
+            ...grantProvenance,
           });
         }
         // A gained ＜Execute＞ is behavioral, not merely a keyword label. Printed Execute on a
@@ -330,8 +343,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         if (kw === "Execute") {
           const top = ctx.game.permanentById(id)?.topCard;
           if (top !== undefined && top.instanceId !== ctx.source.instanceId) {
-            ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, "__keyword/Execute/attack", duration);
-            ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, "__keyword/Execute/delete", duration);
+            ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, "Execute", duration);
           }
         }
       }
@@ -339,7 +351,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         if (extra.keyword === kw) continue;
         for (const id of ids) {
           if (extra.keyword === "Piercing") ctx.fx.grantPierce(id, duration);
-          else ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount);
+          else ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount, grantProvenance);
         }
       }
       // Some generated cards attach a second continuous grant to a keyword action. The legacy

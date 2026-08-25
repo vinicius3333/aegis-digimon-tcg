@@ -288,26 +288,26 @@ export function canDigivolveOntoWithAlternates(
   );
 }
 
+/** Static printed traits, including traits added by a [Rule] line in every zone. */
+export function staticTraitsOf(def: CardDefinition | string): string[] {
+  const d = resolve(def);
+  const ruleTraits = Array.from(
+    (d.effectText ?? "").matchAll(/\[Rule\]\s*Trait:\s*Has(?:\s+the)?\s*\[([^\]]+)\]/gi),
+    (match) => match[1]!.trim(),
+  );
+  return [...(d.forms ?? []), ...(d.attributes ?? []), ...(d.types ?? []), ...ruleTraits];
+}
+
 /**
- * True when `def` has `trait` anywhere in its forms, attributes, or types.
+ * True when `def` has `trait` anywhere in its forms, attributes, types, or rule-granted traits.
  * (the Digimon TCG "trait" = forms ∪ attributes ∪ types).
  */
 export function cardHasTrait(def: CardDefinition | string, trait: string): boolean {
-  const d = resolve(def);
   // Case-insensitive identity: printed text and card data occasionally disagree on the casing of
   // a trait token (e.g. text "[NSP]" vs data "NSp"). Trait values are whole-token identities, so a
   // case-folded equality cannot over-match (it never collapses "App" into "Appmon").
   const want = trait.toLowerCase();
-  const ruleTraits = Array.from(
-    (d.effectText ?? "").matchAll(/\[Rule\]\s*Trait:\s*Has(?:\s+the)?\s*\[([^\]]+)\]/gi),
-    (match) => match[1]!.trim().toLowerCase(),
-  );
-  return (
-    (d.forms ?? []).some((t) => t.toLowerCase() === want) ||
-    (d.attributes ?? []).some((t) => t.toLowerCase() === want) ||
-    (d.types ?? []).some((t) => t.toLowerCase() === want) ||
-    ruleTraits.includes(want)
-  );
+  return staticTraitsOf(def).some((candidate) => candidate.toLowerCase() === want);
 }
 
 /** Match a live permanent against its printed and continuously granted traits. */

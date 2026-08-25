@@ -2043,16 +2043,21 @@ export class GameEngine {
   }
 
   private async fireSubTrigger(event: SubTriggerEventName, payload: TriggerInfo = {}): Promise<void> {
+    const deletedPermanent =
+      payload.deletedPermanentId === undefined ? undefined : this.access.permanentById(payload.deletedPermanentId);
+    if (deletedPermanent !== undefined) {
+      payload = {
+        deletedControllerSeat: deletedPermanent.controllerSeat,
+        deletedTopCardId: deletedPermanent.topCard?.cardId,
+        deletedDigivolutionCardCount: deletedPermanent.stack.length,
+        ...payload,
+      };
+    }
     if (this.ruleProcessing) {
-      const deletedControllerSeat =
-        payload.deletedPermanentId === undefined
-          ? undefined
-          : this.access.permanentById(payload.deletedPermanentId)?.controllerSeat;
       this.deferredRuleSubTriggers.push({
         event,
         payload: {
           turnSeat: this.state.turnSeat,
-          ...(deletedControllerSeat === undefined ? {} : { deletedControllerSeat }),
           ...payload,
         },
       });
@@ -2340,6 +2345,7 @@ export class GameEngine {
       const sourceInstance = [srcPerm.topCard, ...srcPerm.stack, ...srcPerm.linked].find(
         (card) => card.instanceId === sub.sourceInstanceId,
       );
+      if (sub.sourceInstanceId !== undefined && sourceInstance === undefined) return undefined;
       return this.buildEffectContext(this.cardSourceOf(sourceInstance ?? srcPerm.topCard), payload);
     }
     if (sub.sourceInstanceId !== undefined) {
@@ -3626,6 +3632,9 @@ export class GameEngine {
       try {
         // EndGameProcess — any player at a loss condition ⇒ EndGame, then return.
         if (this.runEndGameProcess()) return;
+        // BT26-060 Q7082: peeling a Digimon stack down to a no-DP card trashes the invalid
+        // remnant at rule-check timing; a normally played Tamer remains a legal permanent.
+        await this.trashInvalidNoDpStackTops();
         // §17-1-3-2-1 TrashNoDPPermanentProcess — raw DP < 0 ⇒ trash via deletePermanent(byRule).
         await this.trashNoDpPermanents();
         // §17-1-3-1-1 DigimonLackDPProcess — raw DP == 0 Digimon ⇒ delete via deletePermanent(byRule).
@@ -3716,6 +3725,7 @@ export class GameEngine {
     if (this.state.gameOver) return false;
     return (
       this.anyPlayerLost() ||
+      this.anyInvalidNoDpStackTop() ||
       this.anyNegativeDpToTrash() ||
       this.anyZeroDpDigimon() ||
       this.anyBreedingNonDigimon() ||
@@ -3734,6 +3744,19 @@ export class GameEngine {
   /** Any player marked lost but not yet resolved into a game-over. */
   private anyPlayerLost(): boolean {
     return this.state.players.some((p) => p?.lost === true) && !this.state.gameOver;
+  }
+
+  /** A Digimon stack peeled by an effect until its new top has no Digimon DP (BT26-060 Q7082). */
+  private anyInvalidNoDpStackTop(): boolean {
+    return this.battleAreaPermanents().some((permanent) => permanent.invalidNoDpStackTop);
+  }
+
+  /** Trash invalid no-DP remnants before the ordinary DP and kind rule checks. */
+  private async trashInvalidNoDpStackTops(): Promise<void> {
+    const ids = this.battleAreaPermanents()
+      .filter((permanent) => permanent.invalidNoDpStackTop)
+      .map((permanent) => permanent.permanentId);
+    if (ids.length > 0) await this.primitives.trashPermanentByRule(ids);
   }
 
   /** All battle-area permanents across both players (top-card present). */
@@ -4112,8 +4135,8 @@ export class GameEngine {
           addedToSecuritySeat: info.seat,
           addedToSecurityInstanceIds: [info.instanceId],
         }),
-      resolveSecurityEffect: async (card, attackerPermanentId, wasFaceUp) =>
-        this.resolveSecurityEffect(card, attackerPermanentId, wasFaceUp),
+      resolveSecurityEffect: async (card, resolvingAttackerId, wasFaceUp) =>
+        this.resolveSecurityEffect(card, resolvingAttackerId, wasFaceUp),
       dpOf: (permanentId) => this.access.permanentById(permanentId)?.currentDP ?? 0,
       hasKeyword: (permanentId, keyword) => {
         const permanent = this.access.permanentById(permanentId);
@@ -4193,8 +4216,20 @@ export class GameEngine {
       return false;
     }
 
+    // A DUAL card's [Security] clause printed on its Digimon face resolves as a
+    // Digimon effect (BT26-075 Q7102), even though the physical card is also an
+    // Option for security-effect suppression (Q7103). Keep those two rule queries
+    // separate: the disable above reads the full definition, while effect provenance
+    // below uses only the face that owns the resolving clause.
+    const securityEffectSourceKinds =
+      def?.isDualCard === true && def.effectText?.includes("[Security]") === true
+        ? [CardKind.Digimon]
+        : [...(def?.kinds ?? source.definition.kinds)];
     for (const effect of securityEffects) {
-      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
+      const ctx = {
+        ...this.buildEffectContext(source, { securityWasFaceUp }),
+        effectSourceKinds: securityEffectSourceKinds,
+      };
       if (!canActivate(effect, ctx, this.tracker)) {
         log("[resolveSecurityEffect]", card.cardId, `canActivate=false for ${effect.effectKey}, skipping`);
         continue;
@@ -4204,7 +4239,12 @@ export class GameEngine {
         continue;
       }
       log("[resolveSecurityEffect]", card.cardId, `resolving ${effect.effectKey}`);
-      await effect.resolve(ctx);
+      ctx.fx.enterEffectResolution?.(source.ownerSeat, securityEffectSourceKinds);
+      try {
+        await effect.resolve(ctx);
+      } finally {
+        ctx.fx.leaveEffectResolution?.();
+      }
       this.tracker.register(source.instanceId, effect.effectKey);
     }
     log("[resolveSecurityEffect]", card.cardId, "returning true");
@@ -4747,8 +4787,8 @@ export class GameEngine {
 
       default: {
         // Exhaustiveness guard: a new Intent variant must be handled above.
-        const _exhaustive: never = intent;
-        void _exhaustive;
+        const exhaustive: never = intent;
+        void exhaustive;
         return { ok: false, reason: "unknown-intent" };
       }
     }
@@ -5619,8 +5659,8 @@ function mapPlayCardReason(reason: PlayCardRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5653,8 +5693,8 @@ function mapDigiXrosReason(reason: DigiXrosRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5685,8 +5725,8 @@ function mapAssemblyReason(reason: AssemblyRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5715,8 +5755,8 @@ function mapBreedingReason(reason: BreedingRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5747,8 +5787,8 @@ function mapDigivolveReason(reason: DigivolveRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5779,8 +5819,8 @@ function mapDnaDigivolveReason(reason: DnaDigivolveRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }
@@ -5811,8 +5851,8 @@ function mapLinkReason(reason: LinkCardRejection): RejectReason {
     case "game-over":
       return "illegal-target";
     default: {
-      const _exhaustive: never = reason;
-      void _exhaustive;
+      const exhaustive: never = reason;
+      void exhaustive;
       return "illegal-target";
     }
   }

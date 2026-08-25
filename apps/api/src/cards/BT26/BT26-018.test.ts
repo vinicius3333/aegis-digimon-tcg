@@ -4,9 +4,11 @@ import {
   EffectTiming,
   Phase,
   digivolutionRequirementsFor,
+  requireCardDefinition,
   type CardDefinition,
   type Seat,
 } from "@aegis/shared";
+import { definitionMatches } from "../../engine/effects/interpreter.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -54,11 +56,11 @@ describe("BT26-018 reveal movement boundaries", () => {
       { instanceId: "plain", cardId: "PLAIN" },
     ];
     const cardSource = source();
-    const selectCards = vi.fn(async () => ["aqua"]);
-    const orderCards = vi.fn(async (_ctx: EffectContext, request: { candidates: string[] }) =>
-      [...request.candidates].reverse(),
+    const selectCards = vi.fn<() => Promise<string[]>>(async () => ["aqua"]);
+    const orderCards = vi.fn<(_ctx: EffectContext, request: { candidates: string[] }) => Promise<string[]>>(
+      async (_ctx, request) => [...request.candidates].reverse(),
     );
-    const returnToDeck = vi.fn();
+    const returnToDeck = vi.fn<(ids: string[], options: { toTop: boolean }) => void>();
     const ctx = {
       source: cardSource,
       game: {
@@ -103,6 +105,13 @@ describe("BT26-018 reveal movement boundaries", () => {
 });
 
 describe("BT26-018 public engine behavior", () => {
+  it("matches its rule-granted Aquatic trait while it is a loose card", () => {
+    const sangomon = requireCardDefinition(CARD_ID);
+
+    expect(definitionMatches({ nameOrTrait: [{ tokens: ["Aquatic"], match: "trait" }] }, sangomon)).toBe(true);
+    expect(definitionMatches({ nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }] }, sangomon)).toBe(false);
+  });
+
   it("plays for 3, resolves reveal zones/order, then trashes the opponent's bottom source", async () => {
     const s = setupEngine(
       {

@@ -105,11 +105,17 @@ describe("BT26-025 Liollmon", () => {
         battleArea: [{ card: "BT26-027", as: "host", under: [{ card: "BT26-025" }] }],
         deck: [{ card: "BT1-010", as: "recovery" }],
       },
+      1: { security: ["BT1-001", "BT1-002"] },
     });
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1 && s.state.players[1]!.security.length === 1);
 
     expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("recovery").instanceId, faceUp: false });
   });

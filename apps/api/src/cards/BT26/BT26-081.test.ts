@@ -1,13 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-081.js";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-081 compiled behavior", () => {
   it("proves both evolution paths, Assembly, the cost-8 Iliad play budget, and scaled DP reduction", () => {
+    expect(getCardDefinition("BT26-081")).toMatchObject({
+      nameEn: "Mervamon",
+      colors: ["Purple", "Yellow", "Black"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      types: ["Shaman", "Olympos XII", "Iliad", "TS"],
+    });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.digivolutionRequirement).toEqual([
@@ -34,6 +43,75 @@ describe("BT26-081 compiled behavior", () => {
         ],
       });
     }
+  });
+
+  it("digivolves from Minervamon for 2 and from an off-color level-5 TS Digimon for 4", async () => {
+    const fromMinervamon = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-041", as: "minervamon" }],
+        hand: [{ card: "BT26-081", as: "mervamon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    fromMinervamon.state.memory = 2;
+    await fromMinervamon.ready();
+    expect(
+      fromMinervamon.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: fromMinervamon.perm("minervamon").permanentId,
+        instanceId: fromMinervamon.inst("mervamon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => fromMinervamon.perm("minervamon").topCard.cardId === "BT26-081");
+    expect(fromMinervamon.state.memory).toBe(0);
+
+    const fromTs = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-015", as: "redTs" }],
+        hand: [{ card: "BT26-081", as: "mervamon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    fromTs.state.memory = 4;
+    await fromTs.ready();
+    expect(
+      fromTs.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: fromTs.perm("redTs").permanentId,
+        instanceId: fromTs.inst("mervamon").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => fromTs.perm("redTs").topCard.cardId === "BT26-081");
+    expect(fromTs.state.memory).toBe(0);
+  });
+
+  it("declares Assembly with Minervamon and plays for 8", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-081", as: "mervamon" }],
+        trash: [{ card: "BT24-041", as: "minervamon" }],
+      },
+    });
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("mervamon").instanceId,
+        assembly: { materialInstanceIds: [s.inst("minervamon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-081"));
+
+    expect(s.state.memory).toBe(0);
+    expect(
+      s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT26-081")?.stack.map(
+        ({ cardId }) => cardId,
+      ),
+    ).toContain("BT24-041");
   });
 
   it("grants all four printed continuous effects only to Iliad Digimon", () => {
@@ -74,23 +152,40 @@ describe("BT26-081 compiled behavior", () => {
     expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-084")?.currentDP).toBe(3000);
   });
 
+  it("Q7115 still reduces DP when no card is played", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-081", as: "mervamon" }] },
+        1: { battleArea: [{ card: "BT1-084", as: "target", dp: 10000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mervamon"));
+
+    expect(s.perm("target").currentDP).toBe(6000);
+  });
+
   it("continuously grants Alliance, Reboot, Blocker, and 2000 DP only to Iliad Digimon", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT26-081", as: "mervamon" },
           { card: "BT26-080", as: "iliad" },
-          { card: "BT26-086", as: "nonIliad" },
+          { card: "BT26-079", as: "nonIliad" },
         ],
       },
     });
     await s.ready();
 
     for (const keyword of ["Alliance", "Reboot", "Blocker"]) {
+      expect(observe(s.engine).hasKeyword(s.perm("mervamon"), keyword)).toBe(true);
       expect(observe(s.engine).hasKeyword(s.perm("iliad"), keyword)).toBe(true);
-      if (keyword === "Alliance") expect(observe(s.engine).hasKeyword(s.perm("nonIliad"), keyword)).toBe(false);
+      expect(observe(s.engine).hasKeyword(s.perm("nonIliad"), keyword)).toBe(false);
     }
+    expect(s.perm("mervamon").currentDP).toBe(15000);
     expect(s.perm("iliad").currentDP).toBe(15000);
-    expect(s.perm("nonIliad").currentDP).toBe(14000);
+    expect(s.perm("nonIliad").currentDP).toBe(12000);
   });
 });

@@ -5,6 +5,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-032.js";
 import "./BT26-032.js";
 import "../BT25/BT25-077.js";
+import "../BT25/BT25-059.js";
+import "../BT3/BT3-056.js";
 
 describe("BT26-032 compiled fidelity", () => {
   it("matches the catalog and encodes both DUAL faces without residual behavior", () => {
@@ -38,7 +40,7 @@ describe("BT26-032 compiled fidelity", () => {
         condition: { kind: "allOf", conditions: [{ kind: "ifThisEffectActed" }, { kind: "isYourTurn" }] },
       },
     ]);
-    expect(card?.effects).toHaveLength(4);
+    expect(card?.effects).toHaveLength(5);
     expect(card?.effects?.[1]?.actions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: "GrantStatic", grant: "trait", tokens: ["Vegetation"] }),
@@ -46,15 +48,69 @@ describe("BT26-032 compiled fidelity", () => {
     );
     expect(card?.effects?.[2]).toMatchObject({
       trigger: "Static",
-      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave" } }],
+      actions: [{ kind: "GrantStatic", grant: "effects", topmostOnly: true }],
     });
     expect(card?.effects?.[3]).toMatchObject({
+      trigger: "Static",
+      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave" } }],
+    });
+    expect(card?.effects?.[4]).toMatchObject({
       trigger: "Main",
       actions: [
         { kind: "Suspend", target: { count: 2, upTo: true } },
         { kind: "Restrict", target: { count: 3 }, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
       ],
     });
+  });
+
+  it("gains the effects of its topmost Ceresmon digivolution card through Succession", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-032", as: "ceresmon", under: [{ card: "BT25-059", as: "successionSource" }] },
+            { card: "BT1-080", as: "suspendCost" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "penaltyTarget", dp: 10000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("suspendCost").permanentId, s.perm("penaltyTarget").permanentId);
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));
+
+    expect(s.perm("suspendCost").isSuspended).toBe(true);
+    expect(s.perm("penaltyTarget").currentDP).toBe(7000);
+  });
+
+  it("confers only the topmost matching Ceresmon and includes its printed keywords", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "BT26-032",
+            as: "ceresmon",
+            under: [
+              { card: "BT25-059", as: "lowerCeresmon" },
+              { card: "BT3-056", as: "topmostCeresmon" },
+            ],
+          },
+        ],
+      },
+    });
+    await s.ready();
+
+    const conferrals = (
+      s.engine as unknown as {
+        continuous: { listStackEffectConferrals: () => Array<{ stackInstanceId: string }> };
+      }
+    ).continuous.listStackEffectConferrals();
+    expect(conferrals.map(({ stackInstanceId }) => stackInstanceId)).toContain(s.inst("topmostCeresmon").instanceId);
+    expect(conferrals.map(({ stackInstanceId }) => stackInstanceId)).not.toContain(s.inst("lowerCeresmon").instanceId);
+    expect(s.perm("ceresmon").keywords).toContain("Digisorption");
   });
 
   it("publicly reduces every suspended opposing Digimon by 5000 on digivolution", async () => {

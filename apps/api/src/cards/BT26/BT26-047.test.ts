@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { assemblyRequirementFor, digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { assemblyRequirementFor, digivolutionRequirementsFor, EffectDuration, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-047.js";
 import "../index.js";
 
@@ -90,5 +91,142 @@ describe("BT26-047 TyrantKabuterimon", () => {
       }),
     ).toEqual({ ok: true });
     await resolving;
+  });
+
+  it("immediately battles and can delete an effect-immune opponent by the battle rules (Q7040-Q7041)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-047", as: "tyrant" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "immuneDefender" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const defender = s.perm("immuneDefender");
+    advance(s.engine).ledgers.continuous.addRestriction(defender.permanentId, "beAffected", EffectDuration.Permanent, {
+      fromSourceKind: ["Digimon"],
+      byOpponentEffectsOnly: true,
+    });
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("tyrant"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(defender.topCard.instanceId);
+  });
+
+  it("may suspend an opponent Digimon as its cost, then offers immune targets without affecting them (Q7042, Q7044-Q7045)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-047", as: "tyrant", suspended: true },
+            { card: "BT26-045", as: "otherImmune", suspended: true },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "costDigimon" },
+            { card: "BT1-087", as: "yellowSource" },
+          ],
+          hand: [{ card: "BT1-106", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("costDigimon").permanentId, s.perm("tyrant").permanentId);
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrant"));
+    expect(s.perm("costDigimon").isSuspended).toBe(true);
+    expect(s.perm("tyrant").currentDP).toBe(16000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("tyrant"), "beAffected", "Option")).toBe(true);
+
+    const before = s.perm("tyrant").currentDP;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-106"));
+
+    const optionTargetDecision = s.decisions
+      .filter(({ req }) => req.kind === "chooseTargets")
+      .find(({ req }) => req.options?.candidateInstanceIds?.includes(s.perm("tyrant").permanentId));
+    expect(optionTargetDecision?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("tyrant").permanentId, s.perm("otherImmune").permanentId]),
+    );
+    expect(s.perm("tyrant").currentDP).toBe(before);
+  });
+
+  it("stops an already-active opposing Option grant as soon as immunity is gained (Q7047)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-047", as: "tyrant" }] },
+        1: {
+          battleArea: [{ card: "BT1-087", as: "yellowSource" }],
+          hand: [{ card: "ST3-15", as: "grantOption" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("grantOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("tyrant"), "SecurityAttack") === -3);
+    expect(observe(s.engine).keywordAmount(s.perm("tyrant"), "SecurityAttack")).toBe(-3);
+
+    s.state.turnSeat = 0;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrant"));
+    expect(observe(s.engine).keywordAmount(s.perm("tyrant"), "SecurityAttack")).toBe(0);
+  });
+
+  it("retains opposing Option-granted effects while immune, suppresses their trigger, and activates them after immunity lapses (Q7046, Q7048-Q7049)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-047", as: "tyrant" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-087", as: "yellowSource" },
+            { card: "BT2-090", as: "purpleSource" },
+          ],
+          hand: [
+            { card: "ST3-15", as: "keywordOption" },
+            { card: "EX7-072", as: "triggerOption" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrant"));
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("keywordOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "ST3-15"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("triggerOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "EX7-072"));
+
+    expect(observe(s.engine).keywordAmount(s.perm("tyrant"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).subscriptions("endOfOpponentTurn", s.perm("tyrant").permanentId)).toHaveLength(1);
+    await advance(s.engine).fireSubTrigger("endOfOpponentTurn");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+
+    // End the immunity source's opponent-turn window without ending the longer grants.
+    advance(s.engine).ledgers.continuous.sweep(s.state, "opponentTurnEnd", 1);
+    expect(observe(s.engine).keywordAmount(s.perm("tyrant"), "SecurityAttack")).toBe(-3);
+
+    await advance(s.engine).fireSubTrigger("endOfOpponentTurn");
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });

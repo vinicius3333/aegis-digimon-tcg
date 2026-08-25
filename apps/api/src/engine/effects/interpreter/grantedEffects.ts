@@ -19,7 +19,9 @@ import type { Action, CardEffect } from "@aegis/shared";
  * recipient of the grant), so the granted ability fires through the same EffectTiming window
  * and trigger gate as a printed effect — never a parallel/inert path.
  *
- * Every token actually installed by a `ctx.fx.grantCustomEffect` call site (audited across
+ * A token normally resolves to one `CardEffect`; a keyword such as Execute can resolve to
+ * multiple timing effects that share one idempotent ledger entry. Every token actually
+ * installed by a `ctx.fx.grantCustomEffect` call site (audited across
  * `apps/api/src/cards/**`) MUST have an entry here — see `grantedTokenEffectsForTiming`'s
  * loud failure for an unknown token, added alongside this library so a new call site with a
  * typo'd or unregistered token is a crash, not a silent no-op (this class of bug: BT5-091's
@@ -115,12 +117,14 @@ import type { Action, CardEffect } from "@aegis/shared";
  * mechanism reaches the same instant, and the discrete library route needs no SubTrigger install
  * at all.
  */
-export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
-  "__keyword/Execute/attack": {
-    ...executeActivatedEffect(),
-    condition: { kind: "selfHasKeyword", keyword: "Execute" },
-  },
-  "__keyword/Execute/delete": executeDeleteEffect(),
+export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect | readonly CardEffect[]> = {
+  Execute: [
+    {
+      ...executeActivatedEffect(),
+      condition: { kind: "selfHasKeyword", keyword: "Execute" },
+    },
+    executeDeleteEffect(),
+  ],
   "[All Turns] When this Digimon becomes suspended, lose 1 memory.": {
     trigger: "AllTurns",
     actions: [
@@ -464,8 +468,8 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
  * actually becomes live, rather than leaving them silently inert forever.
  */
 export function grantedTokenEffectsForTiming(token: string, timing: EffectTiming, source: CardSource): Effect[] {
-  const effect = GRANTED_EFFECT_LIBRARY[token];
-  if (effect === undefined) {
+  const libraryEntry = GRANTED_EFFECT_LIBRARY[token];
+  if (libraryEntry === undefined) {
     throw new Error(
       `grantedTokenEffectsForTiming: unknown granted-effect token "${token}" (source ` +
         `${source.cardId}) — add it to GRANTED_EFFECT_LIBRARY in interpreter.ts, or fix the ` +
@@ -473,18 +477,21 @@ export function grantedTokenEffectsForTiming(token: string, timing: EffectTiming
         `into the ledger and silently never fire.`,
     );
   }
-  if (!timingsForTrigger(effect, false).includes(timing)) return [];
-  const build = builderForTrigger(effect);
-  return [
-    build({
-      source,
-      effectKey: `granted/${token}/${timing}`,
-      description: `[Granted] ${describeEffect(effect)}`,
-      optional: effect.optional ?? false,
-      when: turnOwnerGuard(effect.trigger),
-      resolve: async (ctx) => {
-        await runEffect(ctx, effect);
-      },
-    }),
-  ];
+  const effects: readonly CardEffect[] = Array.isArray(libraryEntry) ? libraryEntry : [libraryEntry as CardEffect];
+  return effects.flatMap((effect, index) => {
+    if (!timingsForTrigger(effect, false).includes(timing)) return [];
+    const build = builderForTrigger(effect);
+    return [
+      build({
+        source,
+        effectKey: `granted/${token}${effects.length > 1 ? `/${index}` : ""}/${timing}`,
+        description: `[Granted] ${describeEffect(effect)}`,
+        optional: effect.optional ?? false,
+        when: turnOwnerGuard(effect.trigger),
+        resolve: async (ctx) => {
+          await runEffect(ctx, effect);
+        },
+      }),
+    ];
+  });
 }

@@ -5,6 +5,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const anyDigimon = { filter: { kind: ["Digimon"] }, count: 1 };
 const ts = { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const bacchusmon = {
+  controller: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["Bacchusmon"], match: "name" }],
+};
 
 export const compiled: CompiledCard = {
   keywords: [
@@ -31,6 +36,19 @@ export const compiled: CompiledCard = {
         {
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Digimon"], sameOrientationAsSource: true }, count: 1 },
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: self,
+          grant: "effects",
+          filter: bacchusmon,
+          topmostOnly: true,
+          duration: "permanent",
         },
       ],
     },

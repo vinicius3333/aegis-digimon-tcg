@@ -222,6 +222,7 @@ export async function runReplacement(
       },
       preventCheck: async (subCtx) => {
         // "You may [pay cost] to prevent" — the cost is the gate. Decline => not prevented.
+        if (preventCost !== undefined && !canPayCost(subCtx, preventCost)) return false;
         if (action.optional !== false) {
           const yes = await subCtx.ask.optional(subCtx, `Prevent leaving the battle area? (${action.raw})`);
           if (!yes) return false;

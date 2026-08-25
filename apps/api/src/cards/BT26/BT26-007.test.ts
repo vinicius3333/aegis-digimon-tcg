@@ -59,6 +59,27 @@ describe("BT26-007 Swipemon", () => {
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("swipemon").instanceId]);
   });
 
+  it("does not take a Seven Code link card from another Digimon's digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-009", as: "host", under: [{ card: CARD_ID, as: "swipemon" }] },
+            { card: "BT21-009", as: "other", under: [{ card: "BT26-010", as: "otherSource" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.perm("other").stack.map((card) => card.instanceId)).toEqual([s.inst("otherSource").instanceId]);
+  });
+
   it("enforces Once Per Turn across repeated attack windows", async () => {
     const s = setupEngine(
       {

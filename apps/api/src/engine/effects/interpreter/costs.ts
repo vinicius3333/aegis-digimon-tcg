@@ -30,6 +30,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return required > 0 && candidates.length >= required;
   }
+  if (cost.kind === "trash" && cost.target?.filter.zone === "hand") {
+    const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    return cost.target.upTo === true ? true : required > 0 && candidates.length >= required;
+  }
   if (
     cost.kind === "trash" &&
     cost.target?.filter.zone === "digivolutionCards" &&
@@ -53,6 +58,10 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     return self !== undefined && (ctx.game.canDeclareAttack?.(self) ?? true);
   }
   if (cost.kind === "digivolveSelf") return ctx.source.permanent() !== undefined;
+  if (cost.kind === "placeOwnTopAtStackBottom") {
+    if (cost.target === undefined) return false;
+    return candidatePermanents(ctx, cost.target).some((permanent) => permanent.stack.length > 0);
+  }
   if (cost.kind === "reveal") {
     if (cost.target === undefined) return false;
     const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
