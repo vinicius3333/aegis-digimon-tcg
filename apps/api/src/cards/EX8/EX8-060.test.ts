@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { digivolutionRequirementsFor } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-060.js";
@@ -34,26 +34,124 @@ describe("EX8-060", () => {
         { kind: "Unsuspend", cost: { kind: "deleteOwn", target: { filter: { excludeSelf: true }, count: 1 } } },
       ],
     }));
-  it("unsuspends the exact host after deleting another Digimon as the inherited cost", async () => {
+  it("exposes the level-4 NSo evolution route for cost 3", () =>
+    expect(digivolutionRequirementsFor("EX8-060")).toContainEqual({
+      level: 4,
+      traits: ["NSo"],
+      cost: 3,
+      isAlternate: true,
+    }));
+
+  it("unsuspends only on the first attack after deleting exactly one other Digimon", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "AD1-001", as: "host", suspended: true, under: ["EX8-060"] },
-            { card: "BT1-009", as: "other" },
+            { card: "BT1-081", as: "host", under: ["EX8-060"] },
+            { card: "BT1-010", as: "otherA" },
+            { card: "BT1-011", as: "otherB" },
           ],
         },
+        1: { security: ["BT1-010", "BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const otherInstanceId = s.perm("other").topCard!.instanceId;
+    const otherIds = [s.perm("otherA").topCard.instanceId, s.perm("otherB").topCard.instanceId];
+    await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
-      subjectPermanentId: s.perm("host").permanentId,
-    });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === otherInstanceId));
-
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === otherInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.filter((card) => otherIds.includes(card.instanceId))).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[0]!.trash.filter((card) => otherIds.includes(card.instanceId))).toHaveLength(1);
+  });
+
+  it.each([
+    ["its own play", "play"],
+    ["its own evolution", "digivolve"],
+  ])("triggers from %s, DNA digivolves into NSo, and attacks (Q3941-Q3942)", async (_label, route) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-040", as: "blueLevel5" },
+            ...(route === "digivolve" ? [{ card: "EX8-059", as: "purpleLevel4" }] : []),
+          ],
+          hand: [
+            { card: "EX8-060", as: "myotismon" },
+            { card: "EX12-032", as: "dna" },
+          ],
+        },
+        1: { security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = route === "play" ? 7 : 3;
+    await s.ready();
+
+    const result =
+      route === "play"
+        ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("myotismon").instanceId })
+        : s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: s.perm("purpleLevel4").permanentId,
+            instanceId: s.inst("myotismon").instanceId,
+            useAlternateCost: true,
+          });
+    expect(result).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    const dna = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX12-032");
+    expect(dna).toBeDefined();
+    expect(dna!.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-040", "EX8-060"]));
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not declare the follow-up attack when DNA occurs during an existing attack (Q3943)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-060", as: "myotismon" },
+            { card: "BT1-040", as: "blueLevel5" },
+          ],
+          hand: [{ card: "EX12-032", as: "dna" }],
+          trash: ["BT26-062"],
+        },
+        1: { security: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("myotismon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-032"));
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 });
