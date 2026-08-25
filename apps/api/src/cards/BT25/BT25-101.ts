@@ -82,9 +82,22 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "Link",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          target: {
+            filter: { isSelfRef: true },
+            orFilters: [
+              {
+                controller: "mine",
+                zone: "trash",
+                nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+                hasLinkRequirement: true,
+              },
+            ],
+            count: 1,
+            isSelf: true,
+          },
           recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          from: ["hand"],
+          from: ["trash"],
+          allowBreedingRecipient: true,
           payCost: false,
           optional: true,
         },
