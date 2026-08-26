@@ -20,12 +20,17 @@ describe("ST2-08 WereGarurumon", () => {
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
             effect: {
               kind: "keyword",
-              keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+              keyword: { keyword: "SecurityAttack", amount: 1, raw: "<Security Attack +1>" },
             },
             while: {
               kind: "opponentHas",
-              filter: { digivolutionCards: "none", controllerDefault: "opponent", kind: ["Digimon"] },
-              raw: "your opponent has a Digimon with no digivolution cards",
+              filter: {
+                zone: "battleArea",
+                digivolutionCards: "none",
+                controllerDefault: "opponent",
+                kind: ["Digimon"],
+              },
+              raw: "your opponent has a battle-area Digimon with no digivolution cards",
             },
           },
         ],
