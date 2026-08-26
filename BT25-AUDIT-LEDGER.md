@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-041 (Murasamemon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-041 Murasamemon | Yellow level 5 Digimon; alternate level-4 `[Glowing Dawn]` evolution cost 3; Alliance; when digivolving/attacking once per turn during your turn, by adding top security or trashing a bottom face-down Tamer card, may play/use a Glowing Dawn card from hand at -3; inherited end-of-attack once per turn, by trashing a bottom face-down Tamer card, this Glowing Dawn Digimon unsuspends. | **Potential mandatory-cost gap in inherited effect.** The hand-authored main modal correctly preserves the two independent cost choices and the play-vs-Option branch, with pay-cost and -3 reduction. The inherited `EndOfAttack` unsuspend is modeled as `optional: true` with `abortOnDecline`; unlike the main effect, its printed clause has no “may”, so a controller with an available bottom face-down Tamer card can incorrectly decline the unsuspend. Alliance, turn gate, shared once-per-turn main budget, and alternate evolution are represented. | Structural proof only; no execution of cost-choice alternatives, play/use legality, reduction payment, no-security fallback, mandatory inherited payment, or End-of-Attack timing. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-041
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-041` (no entries).
+- Direct module and shared Modal cost-choice, security-to-hand/Tamer-trash costs, pay-cost
+  reduction, and EndOfAttack action optionality were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-040 (MagnaAngemon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
