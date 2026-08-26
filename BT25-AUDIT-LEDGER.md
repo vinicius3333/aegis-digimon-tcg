@@ -145,3 +145,30 @@ focused observable tests pass. No collection result is inferred from this ledger
   and effect-driven evolution requirements.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 rerun remains pending
   authorization.
+
+## Static diagnosis: BT25-034 through BT25-049
+
+| Card | Direct implementation diagnosis | Status |
+| --- | --- | --- |
+| BT25-034 | Ascension/Barrier, alternate TS evolution, and effect-trash-from-security optional hand play (level <=4 Angel/Iliad) are represented with the dedicated `OnDiscardSecurity` timing. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-035 | On Play/When Digivolving -3000 DP then optional free Glowing Dawn evolution, with the required cost of two bottom face-down cards under Tamers, and Barrier are represented. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-036 | App Fusion names/cost, Security end-of-battle play, and On Play/When Digivolving security-to-hand followed by Recovery +1 are represented. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-037 | Armor Purge, alternate Patamon/TS requirements, security-to-hand then optional top/bottom placement from the complete Angel-family/Iliad Digimon or TS Tamer pool are represented. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-038 | Optional hand/security placement, DNA-only both-player security trash, and once-per-turn security-added De-Digivolve / security-removed -4000 DP effects are represented. Existing source comments document prior unconditional-trigger and stray-option fixes. | No new card-specific causal mismatch found statically; structural proof only. |
+| BT25-039 | Security end-of-turn optional Ceresmon play with reduced cost and optional source placement, leave-play replacement, On Deletion security placement, opponent-turn attack redirection, and inherited Barrier are represented. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-040 | Ascension, effect-trash security play, top/bottom security trash cost for -8000 DP, and all-turn once-per-turn security-removed -4000 DP are represented. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-041 | Alliance, shared once-per-turn When Digivolving/When Attacking optional Glowing Dawn play/use with either security or Tamer-under-card cost, and End of Attack unsuspend cost are represented. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-042 | On Play/When Digivolving/When Attacking once-per-turn effect grants protection from opponent effects until their turn ends after security cost; security-removal trigger plays Angel/Iliad and grants Reboot/Blocker to two Digimon. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-043 | Glowing Dawn color waiver, shared once-per-turn Recovery/most-security trash/unsuspend windows, leave-play replacement for Glowing Dawn, and dual Main -8000/-5000 DP effect are represented. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-044 | Security-count play-cost reduction, On Play/When Digivolving placement of another Digimon then both-player security trash, and security-removal optional Angel/Iliad play are represented. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-045 | Your-turn once-per-turn link-cost reduction for Social/Tool/Game and linked DP bonus are represented. | Potential shared optional-declaration/consumption caveat already documented for BT25-004; no new card-specific mismatch proven. Structural proof only. |
+| BT25-046 | On Play distinct RevealAdd slots for Glowing Dawn and green BEATBREAK, bottom-deck remainder, and Piercing are represented. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-047 | On Play distinct RevealAdd slots for Vegetation/Shaman and TS, bottom-deck remainder, and your-turn +1000 DP are represented. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-048 | Your-turn TS evolution cost reduction, all-turn once-per-turn battle-win Draw 1, and alternate TS evolution are represented. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-049 | On Play/When Digivolving optional opponent suspension, your-turn option-use reduction by bottom face-down Tamer card, and Piercing are represented. | No card-specific causal mismatch found statically; structural proof only. |
+
+### Static validation record for BT25-034 through BT25-049
+
+- Catalog records, direct `registerIrCard` modules, and colocated tests were inspected for each card in this range; local KB queries were consulted for applicable entries (including BT25-034/035 rulings).
+- Relevant shared paths inspected included effect-only security discard timing, under-Tamer face-down costs, App Fusion, DNA security events, replacement effects, shared once-per-turn keys, RevealAdd distinct-slot handling, and link-cost reduction.
+- No tests or collection gate were run per assignment. All cards remain structural/static evidence only and below 10/10 until focused behavioral proof is executed; BT25-004 rerun remains pending authorization.
