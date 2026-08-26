@@ -24,7 +24,7 @@ describe("EX5-061 Cerberusmon (X Antibody)", () => {
           filter: {
             nameOrTrait: [
               { match: "name", tokens: ["Cerberusmon"] },
-              { match: "name", tokens: ["X Antibody"] },
+              { match: "trait", tokens: ["X Antibody"] },
             ],
           },
         },
