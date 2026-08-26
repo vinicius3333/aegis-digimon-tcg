@@ -97,3 +97,13 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Delay order and no-opponent negative, Security positive and over-2000 negative boundaries.
 - Those proofs remain deliberately unrun while PID 43774 holds the test slot, so LM-030 remains
   below 10/10.
+
+## LM-031 — Black Scramble — pending focused execution
+
+- Catalog and Q4053-Q4057 align with direct compiled IR: black Digimon-only ordinary legal hand
+  evolution at minus three, followed by self placement; this excludes altered evolution routes and
+  Tamers because the executable target is a black Digimon and `Digivolve` retains requirements.
+- The opponent-Digimon-gated Delay performs the mandatory black-trash deck-top return before its
+  optional 2000-DP-or-lower play; Security is the independent optional play followed by self hand
+  return. Existing behavioral fixtures prove those positive and no-opponent/over-2000 boundaries.
+- The focused fixtures remain unrun under PID 43774, so LM-031 remains below 10/10.
