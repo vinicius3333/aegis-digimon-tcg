@@ -131,7 +131,9 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 
 - Direct IR maps opponent suspension, no-unsuspended-opponent restriction, and once-per-turn
   security manipulation watcher. The watcher requires the host attacker to delete in battle and
-  retains host/controller identity; focused cases are unrun, so below 10/10.
+  retains host/controller identity. LM-012 has no local KB entries; catalog text, direct IR, and
+  focused fixtures show no new causal implementation gap. Focused cases are unrun, so LM-012
+  remains below 10/10 pending focused, mechanism, and collection gates.
 
 ## LM-013 — Diarbbitmon — pending focused execution
 
