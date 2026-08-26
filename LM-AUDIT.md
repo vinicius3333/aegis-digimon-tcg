@@ -11,6 +11,22 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Every entry remains below 10/10 until its focused proof, relevant mechanisms, and later
   collection gate run in the authorized serial slot.
 
+## Generated IR provenance reconciliation
+
+- `packages/shared/src/effects/effects.json` is a historical generated aggregate; direct LM
+  modules are the executable authority because each imports and registers its own compiled IR via
+  `registerIrCard`. During source reconciliation, nine aggregate records were found with stale
+  `RawUnparsed` actions and `coverage: "partial"` even though their direct modules register
+  `coverage: "full"` with no residual: LM-009, LM-017, LM-019, LM-020, LM-026, LM-048, LM-049,
+  LM-050, and LM-062.
+- The stale entries correspond to clauses now covered by direct IR (respectively: Rush on
+  suspension; effect-added-source reaction; leave-play replacement; Quantumon security/category
+  flow; numeric deletion ceiling; alternate color requirements; and Breathing Training's Delay
+  cost reduction). They are provenance discrepancies, not an authorization to preserve a second
+  card registration or to treat generated metadata as executable behavior.
+- This reconciliation is source-only evidence. It does not upgrade any card to 10/10; focused,
+  mechanism, and collection tests remain required.
+
 ## LM-001 — Siriusmon — focused proof green; pending mechanism and collection gates
 
 - Direct IR covers Blast Digivolve, On Play/When Digivolving stack placement, cost modification,
