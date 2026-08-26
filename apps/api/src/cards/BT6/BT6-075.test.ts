@@ -123,9 +123,36 @@ describe("BT6-075 Ginkakumon Promote", () => {
         instanceId: s.inst("promote").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea[0]!.stack.length === 1);
+    await settle(() =>
+      s.state.players[0]!.battleArea[0]!.stack.some((card) => card.instanceId === s.inst("onlyKinkakumon").instanceId),
+    );
 
     expect(s.state.players[0]!.battleArea[0]!.stack[0]!.instanceId).toBe(s.inst("onlyKinkakumon").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not offer placement when trash has no required exact name", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT6-075", as: "promote" }],
+        deck: [{ card: "BT1-009", as: "notDrawn" }],
+        trash: [{ card: "BT1-010", as: "unrelatedDigimon" }],
+      },
+    });
+    s.state.memory = 6;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("promote").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT6-075")).toBe(false);
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash[0]!.instanceId).toBe(s.inst("unrelatedDigimon").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.memory).toBe(0);
   });
