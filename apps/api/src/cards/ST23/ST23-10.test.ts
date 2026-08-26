@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST23-10.js";
 
-describe("ST23-10 Gatomon", () => {
+describe("ST23-10 Pristimon", () => {
   it("places an exact hand card face down under a Glowing Dawn Tamer and draws two", async () => {
     const s = setupEngine(
       {

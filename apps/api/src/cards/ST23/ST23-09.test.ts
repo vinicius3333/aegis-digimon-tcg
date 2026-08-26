@@ -4,7 +4,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST23-09.js";
 
-describe("ST23-09 Fenriloogamon", () => {
+describe("ST23-09 Atratusmon", () => {
   it("deletes the opponent's lowest-DP Digimon when digivolving", async () => {
     const s = setupEngine(
       {
