@@ -45,6 +45,9 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+          // The printed "by" processing condition may be performed even when no
+          // eligible opponent Digimon exists; the deletion then resolves to zero.
+          allowCostWithoutTarget: true,
         },
       ],
     },
@@ -89,6 +92,7 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+          allowCostWithoutTarget: true,
         },
       ],
     },
@@ -197,7 +201,7 @@ export const compiled: CompiledCard = {
       level: 4,
       traits: ["TS"],
       cost: 3,
-      isAlternate: false,
+      isAlternate: true,
     },
   ],
 };

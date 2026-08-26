@@ -322,3 +322,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-016.
+
+## BT25-017 — Flaremon — 10/10
+
+- Catalog evidence: Red level-5 Digimon, play cost 6, 7000 DP, `Ultimate`/`Vaccine`, `Beastkin`/`Iliad`/`TS`; standard red or blue level-4 evolution for 3 plus alternate level-4 `TS` evolution for 3; On Play/When Digivolving this Digimon may attack, then by trashing one hand card delete one opposing Digimon with 7000 DP or less; controller-turn blue play/evolution reaction into hand Apollomon at cost -2; inherited Security Attack +1.
+- Knowledge base: Q6265 says every friendly Digimon play/evolution event triggers but activation requires the resulting Digimon to be blue; Q6266 checks the post-evolution Digimon's color.
+- Implementation: both entry sequences preserve optional self-attack followed by the hand-trash processing condition and exact-boundary Delete. Both controller-turn watchers use the blue event-subject condition and pay Apollomon's remaining evolution cost after -2. The inherited keyword and `TS` special evolution are complete. The module has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-017", compiled)`.
+- Defects corrected: both entry deletions now allow paying the printed “by” condition with no eligible deletion target. The direct module's `[Digivolve] Lv.4 w/[TS]` requirement was incorrectly marked non-alternate; it now matches the already-correct shared record with `isAlternate: true`, preserving the route from off-color TS bases.
+- Behavioral proof: the focused suite covers exact 7000 deletion and 8000 exclusion, no-target cost payment, blue play into Apollomon with exact reduced-cost payment, non-blue rejection, legal evolution from an off-color green level-4 TS base, rejection of a green non-TS peer, and inherited Security Attack +1 from a realistic stack. The no-target and off-color assertions fail against the prior IR.
+- Verification: focused suite — 9 passed; targeted Oxfmt and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-017 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-017
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-017.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-017.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-017.ts apps/api/src/cards/BT25/BT25-017.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-017.
