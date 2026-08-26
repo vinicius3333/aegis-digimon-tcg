@@ -4,7 +4,7 @@
 // conditional + unconditional from single clause; only the conditional one is correct).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnDeletion",
@@ -52,7 +52,7 @@ const compiled: CompiledCard = {
       level: 2,
       traits: ["Xros Heart"],
       cost: 0,
-      isAlternate: false,
+      isAlternate: true,
     },
   ],
 };

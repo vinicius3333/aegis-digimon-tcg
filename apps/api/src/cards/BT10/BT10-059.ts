@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -12,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // DeDigivolve action. The reminder is just restating the keyword's own behavior (16-12-4:
 // De-Digivolve can't trash past level 3), so it belongs on the DeDigivolve action as
 // `stopAtLevel: 3`, not as a second action.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",

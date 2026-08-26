@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT8/BT8-008.js";
 import { compiled } from "./BT10-011.js";
 
 // BT10-011 Canoweissmon — documented behavior: the card behavior source
@@ -20,7 +21,7 @@ import { compiled } from "./BT10-011.js";
 // it is NEVER reachable at the Tamer-suspend event. This file pins the correct home.
 
 describe("BT10-011 Canoweissmon [Your Turn] suspend trigger", () => {
-  it("encodes both the suspend trigger and Gammamon effect conferral in IR", () => {
+  it("encodes the suspend trigger, both effect-conferral clauses, and alternate evolution", () => {
     expect(compiled.effects).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ trigger: "YourTurn", frequency: "OncePerTurn" }),
@@ -30,6 +31,53 @@ describe("BT10-011 Canoweissmon [Your Turn] suspend trigger", () => {
         }),
       ]),
     );
+    expect(compiled.effects.filter((effect) => effect.actions.some((action) => action.kind === "GrantStatic"))).toEqual(
+      [
+        expect.objectContaining({ trigger: "AllTurns" }),
+        expect.objectContaining({ trigger: "AllTurns", isInherited: true }),
+      ],
+    );
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, names: ["Gammamon"], cost: 3, isAlternate: true }]);
+  });
+
+  it("digivolves for 3 from an off-color level 4 with Gammamon in its name", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-050", as: "wezenGammamon" }],
+        hand: [{ card: "BT10-011", as: "canoweissmon" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wezenGammamon").permanentId,
+        instanceId: s.inst("canoweissmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("wezenGammamon").topCard.instanceId === s.inst("canoweissmon").instanceId);
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("confers a Gammamon main effect twice through its main and inherited clauses (Q1943)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-011", as: "host", under: ["BT10-011", "BT8-008"] }],
+        hand: [{ card: "BT8-086", as: "hiro" }],
+        deck: ["BT8-033", "BT8-034"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(advance(s.engine).ledgers.continuous.listStackEffectConferrals()).toHaveLength(2);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hiro").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    expect(s.state.players[0]!.hand).toHaveLength(2);
   });
 
   it("ignores an opponent's Tamer becoming suspended", async () => {

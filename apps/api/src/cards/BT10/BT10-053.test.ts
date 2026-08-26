@@ -1,11 +1,28 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-053.js";
+import { compiled } from "./BT10-053.js";
 import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT10-053 Ajatarmon", () => {
+  it("matches its catalog and exact Main plus inherited IR", () => {
+    const d = getCardDefinition("BT10-053")!;
+    expect([d.colors, d.level, d.playCost, d.dp]).toEqual([["Green"], 5, 8, 7000]);
+    expect(d.evoCosts).toEqual([{ color: "Green", level: 4, memoryCost: 3 }]);
+    expect([d.forms, d.attributes, d.types]).toEqual([["Ultimate"], ["Vaccine"], ["Vegetation"]]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "Main",
+        frequency: "OncePerTurn",
+        actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false, optional: true })],
+      }),
+      expect.objectContaining({ trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn" }),
+    ]);
+  });
+
   it("can suspend itself, exposes only legal hand cards, and plays only once per turn", async () => {
     const s = setupEngine(
       {
@@ -169,5 +186,20 @@ describe("BT10-053 Ajatarmon", () => {
     await advance(s.engine).verb.suspend([s.perm("secondAlly").permanentId]);
     expect(s.state.memory).toBe(memoryAfterAttack + 1);
     assertNoLoudGap(s);
+  });
+
+  it("does not gain inherited memory from an allied effect suspension off-turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-054", as: "host", under: ["BT10-053"] },
+          { card: "BT10-046", as: "ally" },
+        ],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await advance(s.engine).verb.suspend([s.perm("ally").permanentId]);
+    expect(s.state.memory).toBe(0);
   });
 });

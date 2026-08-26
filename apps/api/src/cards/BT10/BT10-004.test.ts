@@ -18,6 +18,9 @@ describe("BT10-004 Bosamon", () => {
     await advance(s.engine).verb.suspend([s.perm("ally").permanentId]);
     await advance(s.engine).verb.suspend([s.perm("opponent").permanentId]);
     expect(s.perm("host").currentDP).toBe(base + 1000);
+
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("host").currentDP).toBe(base);
   });
 
   it("arms two copies independently without duplicating either watcher on recompute", async () => {

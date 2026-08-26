@@ -2,6 +2,7 @@
 
 import type { CardSource } from "../../CardSource.js";
 import type { EffectContext } from "../../EffectContext.js";
+import { printedKeywordsOf } from "../../../combat/keywords.js";
 import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import { scaleFactor } from "../scaling.js";
 import { definitionMatches, matchNameOrTrait, textHasKeyword } from "./definition.js";
@@ -645,9 +646,9 @@ export function permanentMatchesFilter(
       return (
         ctx.game.hasKeyword?.(permanent.permanentId, token) === true ||
         granted.has(token) ||
-        textHasKeyword(def, token) ||
+        printedKeywordsOf(def.effectText).includes(token) ||
         permanent.stack.some((card) =>
-          textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, token),
+          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
         )
       );
     };
@@ -662,9 +663,9 @@ export function permanentMatchesFilter(
       return (
         ctx.game.hasKeyword?.(permanent.permanentId, token) === true ||
         granted.has(token) ||
-        textHasKeyword(def, token) ||
+        printedKeywordsOf(def.effectText).includes(token) ||
         permanent.stack.some((card) =>
-          textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, token),
+          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
         )
       );
     };

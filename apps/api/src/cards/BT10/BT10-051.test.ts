@@ -1,9 +1,26 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
-import "./BT10-051.js";
+import { compiled } from "./BT10-051.js";
 
 describe("BT10-051 SymbareAngoramon", () => {
+  it("matches its catalog and exact inherited once-per-turn watcher", () => {
+    const d = getCardDefinition("BT10-051")!;
+    expect([d.colors, d.level, d.playCost, d.dp]).toEqual([["Green"], 4, 5, 6000]);
+    expect(d.evoCosts).toEqual([{ color: "Green", level: 3, memoryCost: 2 }]);
+    expect([d.forms, d.attributes, d.types]).toEqual([["Champion"], ["Vaccine"], ["Beastkin"]]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenSuspended" })],
+      }),
+    ]);
+  });
+
   it("gains exactly 1 memory only on the first opposing Digimon suspension each turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT10-054", as: "host", under: ["BT10-051"] }] },

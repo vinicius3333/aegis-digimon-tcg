@@ -16,22 +16,29 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "ConditionalBranch",
-          condition: {
-            kind: "allOf",
-            conditions: [
-              { kind: "youHave", filter: kiriha },
-              { kind: "selfHasMinTrash", count: 1, filter: metalGreymon },
+          kind: "Modal",
+          choose: 1,
+          labels: ["Return 1 MetalGreymon from trash", "Reveal 4 cards"],
+          options: [
+            [{ kind: "Return", target: { filter: metalGreymon, count: 1 }, from: ["trash"], to: "hand" }],
+            [
+              {
+                kind: "RevealAdd",
+                revealCount: 4,
+                add: [{ filter: blueFlare, count: 2, to: "hand" }],
+                rest: "deckBottom",
+              },
             ],
-          },
-          ifTrue: [{ kind: "Return", target: { filter: metalGreymon, count: 1 }, from: ["trash"], to: "hand" }],
-          ifFalse: [
+          ],
+          optionConditions: [
             {
-              kind: "RevealAdd",
-              revealCount: 4,
-              add: [{ filter: blueFlare, count: 2, to: "hand" }],
-              rest: "deckBottom",
+              kind: "allOf",
+              conditions: [
+                { kind: "youHave", filter: kiriha },
+                { kind: "selfHasMinTrash", count: 1, filter: metalGreymon },
+              ],
             },
+            null,
           ],
         },
       ],

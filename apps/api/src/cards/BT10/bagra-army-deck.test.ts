@@ -83,7 +83,10 @@ describe("BT10 Bagra Army inherited-source package", () => {
       () => s.state.memory === 6 && s.state.players[0]!.trash.some((card) => card.instanceId === chuuChuumonId),
     );
 
-    expect(s.state.memory).toBe(6);
+    // The predicate above sees Troopmon's gain before the discarded
+    // ChuuChuumon's inherited effect resolves.  Both printed effects gain 1.
+    await settle(() => s.state.memory === 7);
+    expect(s.state.memory).toBe(7);
     expect(s.perm("troopmon").stack).toHaveLength(0);
 
     await advance(s.engine).verb.deletePermanent([troopmonId], "byEffect");
@@ -91,6 +94,8 @@ describe("BT10 Bagra Army inherited-source package", () => {
 
     expect(s.perm("yuu").stack.some((card) => card.instanceId === troopmonInstanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("yuuDraw").instanceId)).toBe(true);
-    expect(s.state.memory).toBe(5);
+    // Saving Troopmon under Yuu places a purple card under that Tamer, so
+    // Yuu's all-turns trigger supplies the final memory gain.
+    expect(s.state.memory).toBe(6);
   });
 });

@@ -2,9 +2,28 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-038.js";
+import { compiled } from "./BT10-038.js";
+import "./BT10-042.js";
 
 describe("BT10-038 Sanzomon", () => {
+  it("encodes both exact opponent debuffs and only the inherited one is once per turn", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "WhenDigivolving",
+        actions: [
+          expect.objectContaining({
+            kind: "GainKeyword",
+            target: expect.objectContaining({ count: 1, filter: expect.objectContaining({ controller: "opponent" }) }),
+            keyword: expect.objectContaining({ keyword: "SecurityAttack", amount: -1 }),
+            duration: "untilOpponentTurnEnd",
+          }),
+        ],
+      }),
+      expect.objectContaining({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn" }),
+    ]);
+  });
+
   it("gives exactly one chosen opposing Digimon Security Attack -1 when digivolving", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -79,7 +98,7 @@ describe("BT10-038 Sanzomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-051", as: "host", under: ["BT10-038"] }],
+          battleArea: [{ card: "BT10-042", as: "host", under: ["BT10-038"] }],
         },
         1: {
           battleArea: [

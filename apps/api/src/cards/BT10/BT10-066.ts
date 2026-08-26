@@ -1,11 +1,10 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -48,10 +47,30 @@ const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
+          optional: true,
           actions: [
+            {
+              kind: "Return",
+              target: {
+                source: ["thisDigimon"],
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Black"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
+                  },
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              to: "hand",
+            },
             {
               kind: "PlayWithoutCost",
               target: {
+                source: ["thisDigimon"],
                 filter: {
                   controller: "mine",
                   nameOrTrait: [
@@ -65,24 +84,7 @@ const compiled: CompiledCard = {
               },
               from: ["digivolutionCards"],
               payCost: false,
-              cost: {
-                kind: "return",
-                target: {
-                  filter: {
-                    controller: "mine",
-                    kind: ["Digimon"],
-                    colors: ["Black"],
-                    levelComparison: {
-                      op: "lte",
-                      value: 4,
-                    },
-                  },
-                  count: 1,
-                },
-                raw: "by returning 1 black level 4 or lower Digimon card from this Digimon's digivolution cards to its owner's hand",
-              },
               optional: true,
-              abortOnDecline: true,
             },
           ],
         },

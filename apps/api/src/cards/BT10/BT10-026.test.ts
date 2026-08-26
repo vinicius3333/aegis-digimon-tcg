@@ -2,9 +2,31 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-026.js";
+import { compiled } from "./BT10-026.js";
 
 describe("BT10-026 DeckerGreymon", () => {
+  it("encodes Armor Purge, exact DigiXros materials, and matching On Play/evolution sequences", () => {
+    expect(compiled.effects[0]?.keywords).toEqual([expect.objectContaining({ keyword: "Armor Purge" })]);
+    expect(compiled.digiXrosRequirement).toEqual([
+      { materials: [{ names: ["MetalGreymon"] }, { names: ["Deckerdramon"] }], count: 2 },
+    ]);
+    for (const effect of compiled.effects.slice(1)) {
+      expect(effect.actions).toEqual([
+        expect.objectContaining({
+          kind: "PlaceUnder",
+          from: ["hand", "underTamer"],
+          position: "bottom",
+          optional: true,
+        }),
+        expect.objectContaining({
+          kind: "Restrict",
+          restriction: "attackOrBlock",
+          condition: expect.objectContaining({ kind: "selfHasInDigivolutionCards" }),
+        }),
+      ]);
+    }
+  });
+
   it("DigiXroses with MetalGreymon and Deckerdramon for 5 memory", async () => {
     const s = setupEngine(
       {
@@ -129,6 +151,30 @@ describe("BT10-026 DeckerGreymon", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT10-020", "BT10-021"]);
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
+  });
+
+  it("uses the printed blue level 5 evolution route for 2", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-024", as: "base" }],
+          hand: [{ card: "BT10-026", as: "source" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("source").instanceId);
+
+    expect(s.state.memory).toBe(0);
   });
 
   it("does not take Blue Flare materials from trash or deck", async () => {

@@ -1,8 +1,25 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-054.js";
+import { compiled } from "./BT10-054.js";
 
 describe("BT10-054 Lamortmon", () => {
+  it("matches its catalog and exact three-clause IR", () => {
+    const d = getCardDefinition("BT10-054")!;
+    expect([d.colors, d.level, d.playCost, d.dp]).toEqual([["Green"], 5, 8, 9000]);
+    expect(d.evoCosts).toEqual([{ color: "Green", level: 4, memoryCost: 3 }]);
+    expect([d.forms, d.attributes, d.types]).toEqual([["Ultimate"], ["Vaccine"], ["Beast"]]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({ trigger: "WhenDigivolving", actions: [expect.objectContaining({ kind: "Suspend" })] }),
+      expect.objectContaining({ trigger: "YourTurn", frequency: "OncePerTurn" }),
+      expect.objectContaining({
+        trigger: "WhenAttacking",
+        actions: [expect.objectContaining({ kind: "GainMemory", amount: -2 })],
+      }),
+    ]);
+  });
+
   it("suspends an opposing Digimon when digivolving", async () => {
     const s = setupEngine(
       {

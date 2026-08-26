@@ -157,7 +157,7 @@ describe("BT10-009 Shoutmon X4", () => {
           battleArea: [
             { card: "BT10-009", as: "shoutmonX4", under: ["BT10-008", "BT10-049"] },
             { card: "BT10-087", as: "destinationTamer", suspended: true },
-            { card: "BT10-089", as: "unsuspendedTamer", suspended: true },
+            { card: "BT10-089", as: "otherTamer", suspended: true },
           ],
         },
         1: { security: ["BT1-001"] },
@@ -176,12 +176,18 @@ describe("BT10-009 Shoutmon X4", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("destinationTamer").stack.length === 2 && !s.perm("unsuspendedTamer").isSuspended, 5000);
+    await settle(() => s.perm("destinationTamer").stack.length === 2 && !s.perm("destinationTamer").isSuspended, 5000);
 
+    const unsuspendRequest = s.decisions.find(
+      ({ req }) => req.kind === "chooseTargets" && req.options?.targetFate === "unsuspend",
+    )!.req;
+    expect(unsuspendRequest.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("destinationTamer").permanentId, s.perm("otherTamer").permanentId]),
+    );
     expect(s.perm("destinationTamer").stack).toHaveLength(2);
     expect(s.perm("destinationTamer").isSuspended).toBe(false);
-    expect(s.perm("unsuspendedTamer").stack).toHaveLength(0);
-    expect(s.perm("unsuspendedTamer").isSuspended).toBe(true);
+    expect(s.perm("otherTamer").stack).toHaveLength(0);
+    expect(s.perm("otherTamer").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
 

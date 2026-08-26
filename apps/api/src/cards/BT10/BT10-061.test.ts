@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-061.js";
+import { compiled } from "./BT10-061.js";
 import "./BT10-066.js";
 
 describe("BT10-061 SkullKnightmon: Mighty Axe Mode", () => {
+  it("matches its catalog, two-material DigiXros, reveal, delete, and Rule IR", () => {
+    const d = getCardDefinition("BT10-061")!;
+    expect([d.colors, d.level, d.playCost, d.dp]).toEqual([["Black"], 4, 4, 5000]);
+    expect(d.evoCosts).toEqual([{ color: "Black", level: 3, memoryCost: 3 }]);
+    expect([d.forms, d.attributes, d.types]).toEqual([["Champion"], ["Virus"], ["Enhancement", "Twilight"]]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.digiXrosRequirement).toEqual([
+      { materials: [{ names: ["SkullKnightmon"] }, { names: ["DeadlyAxemon"] }], count: 1 },
+    ]);
+    expect(compiled.effects.map(({ trigger }) => trigger)).toEqual(["OnPlay", "Rule"]);
+  });
+
   it("adds an eligible card and trashes the rest of the top three", async () => {
     const s = setupEngine(
       {
@@ -61,6 +73,33 @@ describe("BT10-061 SkullKnightmon: Mighty Axe Mode", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.memory).toBe(2);
     assertNoLoudGap(s);
+  });
+
+  it("does not delete after DigiXrosing with only one material", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT10-061", as: "source" },
+            { card: "BT7-058", as: "material" },
+          ],
+          deck: ["BT10-062", "BT10-064", "BT10-065"],
+        },
+        1: { battleArea: [{ card: "BT7-058", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.trash.length === 3);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(1);
   });
 
   it("is treated as DeadlyAxemon in hand for DarkKnightmon's DigiXros rule", async () => {

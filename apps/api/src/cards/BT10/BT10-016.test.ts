@@ -3,9 +3,22 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-016.js";
+import { compiled } from "./BT10-016.js";
 describe("BT10-016 Jesmon (X Antibody)", () => {
-  it("plays a Sistermon and gives all of its Digimon +2000 DP when digivolving", async () => {
+  it("encodes Piercing, exact Jesmon evolution for 0, and the persistent played-Digimon watcher", () => {
+    expect(compiled.effects[0]?.keywords).toEqual([expect.objectContaining({ keyword: "Piercing" })]);
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Jesmon"], cost: 0, isAlternate: true }]);
+    expect(compiled.effects[1]?.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"], optional: true }),
+        expect.objectContaining({ kind: "ModifyDP", amount: 2000, duration: "untilOpponentTurnEnd" }),
+        expect.objectContaining({ kind: "GrantCanAttackUnsuspended", duration: "untilOpponentTurnEnd" }),
+        expect.objectContaining({ kind: "SubTrigger", event: "whenPlayed", playerScoped: true }),
+      ]),
+    );
+  });
+
+  it("plays a Sistermon and applies only one +2000 DP bonus when both gates match (Q1944)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -32,6 +45,7 @@ describe("BT10-016 Jesmon (X Antibody)", () => {
       s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === s.inst("sister").instanceId)?.currentDP,
     ).toBe(5000);
     expect(observe(s.engine).canAttackUnsuspended(s.perm("base"))).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("base"))).toBe(true);
   });
 
   it("does not digivolve onto another Jesmon (X Antibody) through its exact [Jesmon] requirement", () => {

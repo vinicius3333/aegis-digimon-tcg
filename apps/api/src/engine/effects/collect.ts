@@ -15,6 +15,8 @@ export interface CollectedEffect {
   triggerInfo?: TriggerInfo;
   /** Host that received this buried card's printed effect through a static conferral. */
   conferredToPermanentId?: string;
+  /** Physical source of this effect-conferral copy; distinguishes Q1943's stacked grants. */
+  conferralGranterInstanceId?: string;
 }
 
 /**
@@ -142,21 +144,33 @@ export function collectConferredEffects(
     trigger?: string;
     /** Collect only the stack card's INHERITED effects, not its own. */
     inheritedOnly?: boolean;
+    granterInstanceId?: string;
   }[],
   instanceById: (id: string) => CardSource | undefined,
-  makeContext: (source: CardSource, effect: Effect, conferredToPermanentId: string) => EffectContext,
+  makeContext: (
+    source: CardSource,
+    effect: Effect,
+    conferredToPermanentId: string,
+    conferralGranterInstanceId?: string,
+  ) => EffectContext,
   tracker: UseTracker,
 ): CollectedEffect[] {
   const collected: CollectedEffect[] = [];
-  for (const { targetPermanentId, stackInstanceId, trigger, inheritedOnly } of conferrals) {
+  for (const { targetPermanentId, stackInstanceId, trigger, inheritedOnly, granterInstanceId } of conferrals) {
     const source = instanceById(stackInstanceId);
     if (source === undefined) continue;
     for (const effect of effectsOf(timing, source)) {
       if (inheritedOnly === true && effect.isInherited !== true) continue;
       if (trigger !== undefined && effect.irTrigger !== trigger) continue;
-      const ctx = makeContext(source, effect, targetPermanentId);
+      const ctx = makeContext(source, effect, targetPermanentId, granterInstanceId);
       if (canTrigger(effect, ctx, tracker) && canActivate(effect, ctx, tracker)) {
-        collected.push({ source, effect, timing, conferredToPermanentId: targetPermanentId });
+        collected.push({
+          source,
+          effect,
+          timing,
+          conferredToPermanentId: targetPermanentId,
+          conferralGranterInstanceId: granterInstanceId,
+        });
       }
     }
   }

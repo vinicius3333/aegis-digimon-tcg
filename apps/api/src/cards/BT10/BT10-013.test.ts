@@ -4,7 +4,7 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { observe } from "../../engine/testkit/observe.js";
 import { digiXrosMatches } from "../../engine/combat/keywords.js";
 import "./BT10-008.js";
-import "./BT10-013.js";
+import { compiled } from "./BT10-013.js";
 import "./BT10-029.js";
 import "./BT10-034.js";
 import "./BT10-049.js";
@@ -12,9 +12,27 @@ import "./BT10-060.js";
 import "./BT10-087.js";
 
 describe("BT10-013 Shoutmon X5", () => {
-  it("does not treat Shoutmon X5 itself as a specified Material Save source", () => {
+  it("encodes all five DigiXros slots at -2 and all three static keywords", () => {
+    expect(compiled.digiXrosRequirement).toEqual([
+      {
+        materials: ["Shoutmon", "Ballistamon", "Dorulumon", "Starmons", "Sparrowmon"].map((name) => ({
+          names: [name],
+        })),
+        count: 2,
+      },
+    ]);
+    expect(compiled.effects[0]?.keywords).toEqual([
+      expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
+      expect.objectContaining({ keyword: "Blocker" }),
+      expect.objectContaining({ keyword: "MaterialSave", amount: 3 }),
+    ]);
+  });
+
+  it("does not treat Shoutmon X5 itself as any specified Material Save source (Q3068/Q3089/Q3094/Q3105)", () => {
+    for (const material of ["BT10-008", "BT10-049", "BT10-034", "BT10-029"]) {
+      expect(digiXrosMatches("BT10-013", material)).toBe(true);
+    }
     expect(digiXrosMatches("BT10-013", "BT10-013")).toBe(false);
-    expect(digiXrosMatches("BT10-013", "BT10-008")).toBe(true);
   });
 
   it("has Security Attack +1 and Blocker", async () => {
@@ -22,6 +40,27 @@ describe("BT10-013 Shoutmon X5", () => {
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("shoutmon"), "SecurityAttack")).toBe(1);
     expect(observe(s.engine).hasKeyword(s.perm("shoutmon"), "Blocker")).toBe(true);
+  });
+
+  it("digivolves from a black level 4 for the printed cost 4", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-062", as: "base" }],
+        hand: [{ card: "BT10-013", as: "shoutmonX5" }],
+      },
+    });
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shoutmonX5").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("shoutmonX5").instanceId);
+
+    expect(s.state.memory).toBe(0);
   });
 
   it("DigiXroses with all five Xros Heart materials for zero cost, then Material Saves exactly three", async () => {

@@ -2,9 +2,27 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-034.js";
+import { compiled } from "./BT10-034.js";
 
 describe("BT10-034 Dorulumon", () => {
+  it("encodes alternate evolution, conditional -3000 DP, Save, and global Security DP reduction", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 3, traits: ["Xros Heart"], cost: 2, isAlternate: true },
+    ]);
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "OnPlay",
+        actions: [expect.objectContaining({ kind: "ModifyDP", amount: -3000, duration: "untilOpponentTurnEnd" })],
+      }),
+      expect.objectContaining({ trigger: "OnDeletion", keywords: [expect.objectContaining({ keyword: "Save" })] }),
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        actions: [expect.objectContaining({ kind: "ModifySecurityDP", controller: "opponent", amount: -2000 })],
+      }),
+    ]);
+  });
+
   it("digivolves for 2 from an off-color level 3 with Xros Heart", async () => {
     const s = setupEngine({
       0: {

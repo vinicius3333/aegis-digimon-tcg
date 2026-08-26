@@ -1,10 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT9/BT9-047.js";
-import "./BT10-018.js";
+import { compiled } from "./BT10-018.js";
 
 describe("BT10-018 Gaossmon", () => {
+  it("encodes one optional suspended no-cost play with exact level and trait filters", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "OnDeletion",
+        actions: [
+          expect.objectContaining({
+            kind: "PlayWithoutCost",
+            from: ["hand"],
+            payCost: false,
+            suspended: true,
+            optional: true,
+            target: expect.objectContaining({
+              filter: expect.objectContaining({
+                levels: [4],
+                nameOrTrait: [{ tokens: ["Blue Flare"], match: "trait" }],
+              }),
+            }),
+          }),
+        ],
+      }),
+    ]);
+  });
+
   it("plays a Blue Flare level 4 from hand suspended on deletion", async () => {
     const s = setupEngine(
       {
@@ -20,6 +43,27 @@ describe("BT10-018 Gaossmon", () => {
       (permanent) => permanent.topCard.instanceId === s.inst("greymon").instanceId,
     );
     expect(played?.isSuspended).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("digivolves from a blue level 2 for the printed cost 0", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-002", as: "base" }],
+        hand: [{ card: "BT10-018", as: "gaossmon" }],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gaossmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("gaossmon").instanceId);
+
+    expect(s.state.memory).toBe(0);
   });
 
   it("respects effect-play floodgates without blocking a normal play (Q4661/Q4665)", async () => {

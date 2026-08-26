@@ -105,4 +105,23 @@ describe("BT10-069 — [When Digivolving] Return excludes its own name (non-[Dar
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === tamerId)).toBe(false);
     expect(s.perm("darkKnightX").isSuspended).toBe(false);
   });
+
+  it("optionally plays an exact DarkKnightmon from trash when it is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: DARKKNIGHTMON_XA, as: "darkKnightX" }],
+          trash: [{ card: DARKKNIGHTMON_BASE, as: "darkKnightmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const playedId = s.inst("darkKnightmon").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("darkKnightX").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === playedId));
+
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === playedId)).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(DARKKNIGHTMON_XA);
+  });
 });

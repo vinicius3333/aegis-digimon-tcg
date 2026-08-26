@@ -2,7 +2,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const _self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const compiled: CompiledCard = {
   effects: [
     {

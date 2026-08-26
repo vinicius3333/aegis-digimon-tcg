@@ -1,9 +1,8 @@
-// @ts-nocheck
 // Hand-authored audit fix: preserve the selected opponent binding and Lotosmon's granted effect.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
@@ -49,7 +48,12 @@ const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
               excludeSelf: true,
-              traits: ["Vegetation", "Plant", "Fairy"],
+              nameOrTrait: [
+                {
+                  tokens: ["Vegetation", "Plant", "Ancient Plant", "Carnivorous Plant", "Fairy"],
+                  match: "trait",
+                },
+              ],
             },
             count: "all",
           },

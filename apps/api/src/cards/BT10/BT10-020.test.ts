@@ -2,13 +2,31 @@ import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-020.js";
+import { compiled } from "./BT10-020.js";
 
 describe("BT10-020 Deckerdramon", () => {
+  it("encodes base Draw 1, opponent-Digimon scaling, Save, and inherited +1000 threshold", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "OnPlay",
+        actions: [
+          expect.objectContaining({ kind: "Draw", amount: 1 }),
+          expect.objectContaining({ kind: "Draw", amount: 1, scaling: expect.objectContaining({ per: 1 }) }),
+        ],
+      }),
+      expect.objectContaining({ trigger: "OnDeletion", keywords: [expect.objectContaining({ keyword: "Save" })] }),
+      expect.objectContaining({
+        trigger: "AllTurns",
+        isInherited: true,
+        actions: [expect.objectContaining({ kind: "Aura", while: expect.objectContaining({ count: 2 }) })],
+      }),
+    ]);
+  });
+
   it("draws one plus one for each opposing Digimon", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT10-020", as: "source" }], deck: ["BT10-017", "BT10-018", "BT10-019"] },
-      1: { battleArea: ["BT10-029", "BT10-030"] },
+      1: { battleArea: ["BT10-029", "BT10-030", "BT10-088"] },
     });
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 5;
@@ -40,6 +58,10 @@ describe("BT10-020 Deckerdramon", () => {
     s.state.turnSeat = 1;
     await s.ready();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.state.players[1]!.battleArea[0]!.permanentId])).toBe(1);
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
 
   it("may Save itself under a Tamer when deleted", async () => {

@@ -1,9 +1,24 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-044.js";
+import { compiled } from "./BT10-044.js";
 
 describe("BT10-044 Angoramon", () => {
+  it("matches its catalog identity and exact two-clause IR", () => {
+    const d = getCardDefinition("BT10-044")!;
+    expect([d.colors, d.level, d.playCost, d.dp]).toEqual([["Green"], 3, 3, 2000]);
+    expect(d.evoCosts).toEqual([{ color: "Green", level: 2, memoryCost: 0 }]);
+    expect([d.forms, d.attributes, d.types]).toEqual([["Rookie"], ["Vaccine"], ["Beast"]]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects).toHaveLength(2);
+    expect(compiled.effects.map((effect) => [effect.trigger, effect.isInherited, effect.frequency])).toEqual([
+      ["YourTurn", undefined, "OncePerTurn"],
+      ["YourTurn", true, "OncePerTurn"],
+    ]);
+  });
+
   it("draws only once when its controller plays green Tamers during their turn", async () => {
     const s = setupEngine({
       0: {

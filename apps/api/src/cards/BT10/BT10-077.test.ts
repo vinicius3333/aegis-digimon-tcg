@@ -87,4 +87,15 @@ describe("BT10-077 MadLeomon", () => {
 
     expect(s.state.memory).toBe(-1);
   });
+
+  it("uses Save to place itself under a friendly Tamer", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT10-077", as: "madleomon" }, { card: "BT10-093", as: "yuu" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const id = s.perm("madleomon").topCard.instanceId;
+    await advance(s.engine).verb.deletePermanent([s.perm("madleomon").permanentId], "byEffect");
+    await settle(() => s.perm("yuu").stack.some(({ instanceId }) => instanceId === id));
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === id)).toBe(false);
+  });
 });
