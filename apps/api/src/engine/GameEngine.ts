@@ -1015,8 +1015,8 @@ export class GameEngine {
     return source;
   }
 
-  /** Guards against re-entry when a prevention cost itself deletes a permanent. */
-  private preventReentryGuard = { active: false };
+  /** Guards each immediate prevention from reactivating during its own resolution. */
+  private preventReentryGuard = { activeReplacementKeys: new Set<string>() };
 
   /**
    * Consult active "prevent" leave/delete replacements for the permanents an effect is about to

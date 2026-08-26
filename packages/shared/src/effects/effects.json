@@ -10272,7 +10272,7 @@
                   "kind": "deleteOwn",
                   "target": {
                     "filter": {
-                      "controller": "mine",
+                      "controller": "any",
                       "excludeSelf": true,
                       "kind": ["Digimon"],
                       "nameOrTrait": [{ "tokens": ["Sukamon"], "match": "name" }]

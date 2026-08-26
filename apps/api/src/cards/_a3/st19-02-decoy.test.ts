@@ -171,7 +171,7 @@ describe("ST19-02 Decoy A3", () => {
       turnSeat: 1 as Seat,
     };
 
-    const reentryGuard = { active: false };
+    const reentryGuard = { activeReplacementKeys: new Set<string>() };
     const prevented = await consultLeavePrevention(
       leaveHost,
       [puppetPerm.permanentId],

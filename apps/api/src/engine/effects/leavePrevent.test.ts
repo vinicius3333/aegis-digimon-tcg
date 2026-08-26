@@ -61,7 +61,7 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
   const memory = new MemoryGauge(state, (e) => events.push(e));
   const subTriggers = new SubTriggerRegistry();
   let permanentSeq = 0;
-  const reentryGuard = { active: false };
+  const reentryGuard = { activeReplacementKeys: new Set<string>() };
   const optionalAnswers: boolean[] = [];
 
   const ask: SelectionPort = {

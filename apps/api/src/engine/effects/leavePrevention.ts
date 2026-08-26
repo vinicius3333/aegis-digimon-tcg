@@ -1,6 +1,11 @@
 import type { Permanent, Seat } from "@aegis/shared";
 import type { EffectContext, RemovalCause } from "./EffectContext.js";
-import type { SubTriggerRegistry } from "./subtriggers.js";
+import type { ReplacementSubscription, SubTriggerRegistry } from "./subtriggers.js";
+
+function replacementActivationKey(replacement: ReplacementSubscription): string {
+  const source = replacement.sourceInstanceId ?? replacement.sourcePermanentId ?? "unanchored";
+  return `${replacement.mode}:${replacement.event}:${source}:${replacement.description}`;
+}
 
 /**
  * The narrow seam the leave-prevention consult needs from its host engine
@@ -41,18 +46,18 @@ export interface LeavePreventionHost {
  *
  * `affectsAll` reactions ("they don't leave") pay once and then save every matching permanent
  * in the same consult; `affectsAll:false` ("1 of those doesn't leave") pays per saved
- * permanent. The shared `reentryGuard` stops a prevention cost that itself deletes a permanent
- * (e.g. BT25-039 "by deleting this Digimon") from recursively re-entering the consult.
+ * permanent. The shared `reentryGuard` suppresses only the replacement already resolving, so a
+ * prevention cost that deletes another protected permanent may activate that other permanent's
+ * distinct immediate effect while the original cannot recursively reactivate (BT11-040 Q2074).
  */
 export async function consultLeavePrevention(
   host: LeavePreventionHost,
   permanentIds: string[],
   cause: RemovalCause,
   resolvingSeat: Seat | undefined,
-  opts: { isBounce?: boolean; reentryGuard: { active: boolean } },
+  opts: { isBounce?: boolean; reentryGuard: { activeReplacementKeys: Set<string> } },
 ): Promise<Set<string>> {
   const prevented = new Set<string>();
-  if (opts.reentryGuard.active) return prevented;
   // wouldLeavePlay covers any leave (delete + hand/deck bounce); wouldBeDeleted watches
   // deletion ONLY — a bounce must NOT trigger a deletion-only reaction (BT9-044, RB1-016).
   // replacementsFor already excludes "reduceCost" (unrelated to leave/delete), leaving the
@@ -63,79 +68,89 @@ export async function consultLeavePrevention(
   ];
   if (replacements.length === 0) return prevented;
   const seat = resolvingSeat ?? (cause === "byEffect" ? host.turnSeat : undefined);
-  opts.reentryGuard.active = true;
-  try {
-    const firedAll = new Set<number>(); // affectsAll replacements that already paid this consult
-    for (const leavingId of permanentIds) {
-      if (prevented.has(leavingId)) continue;
-      if (host.permanentById(leavingId) === undefined) continue;
-      // "instead" pass: substitute side effects that do NOT gate the removal itself.
-      for (const repl of replacements) {
-        if (repl.mode !== "instead") continue;
-        if (repl.sourcePermanentId === undefined && repl.sourceInstanceId === undefined) continue;
-        if (repl.causeAllows && !repl.causeAllows(cause, seat, opts.isBounce === true)) continue;
-        const srcPerm = repl.sourcePermanentId === undefined ? undefined : host.permanentById(repl.sourcePermanentId);
-        if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
-        if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
-        if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
-        const ctx =
-          srcPerm !== undefined
-            ? host.buildContext(srcPerm, leavingId)
-            : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
-        if (ctx === undefined) continue;
-        if (repl.appliesTo && !repl.appliesTo(ctx, leavingId)) continue;
+  const firedAll = new Set<number>(); // affectsAll replacements that already paid this consult
+  for (const leavingId of permanentIds) {
+    if (prevented.has(leavingId)) continue;
+    if (host.permanentById(leavingId) === undefined) continue;
+    // "instead" pass: substitute side effects that do NOT gate the removal itself.
+    for (const repl of replacements) {
+      if (repl.mode !== "instead") continue;
+      const activationKey = replacementActivationKey(repl);
+      if (opts.reentryGuard.activeReplacementKeys.has(activationKey)) continue;
+      if (repl.sourcePermanentId === undefined && repl.sourceInstanceId === undefined) continue;
+      if (repl.causeAllows && !repl.causeAllows(cause, seat, opts.isBounce === true)) continue;
+      const srcPerm = repl.sourcePermanentId === undefined ? undefined : host.permanentById(repl.sourcePermanentId);
+      if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
+      if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
+      if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
+      const ctx =
+        srcPerm !== undefined
+          ? host.buildContext(srcPerm, leavingId)
+          : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
+      if (ctx === undefined) continue;
+      if (repl.appliesTo && !repl.appliesTo(ctx, leavingId)) continue;
+      opts.reentryGuard.activeReplacementKeys.add(activationKey);
+      try {
         await repl.apply(ctx);
-        // A true relocation replacement (BT22-007) removes the would-leave permanent from
-        // the battle area as its payload. Do not let the original removal continue against
-        // the now-relocated cards. Side-effect-only "instead" reactions such as Decode leave
-        // the permanent live here and therefore keep their established fall-through behavior.
-        if (host.permanentById(leavingId) === undefined) prevented.add(leavingId);
-        if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
+      } finally {
+        opts.reentryGuard.activeReplacementKeys.delete(activationKey);
       }
-      // "prevent" pass: the first successful reaction wins and stops the search.
-      for (const repl of replacements) {
-        if (repl.mode !== "prevent") continue;
-        if (repl.sourcePermanentId === undefined && repl.sourceInstanceId === undefined) continue;
-        if (repl.causeAllows && !repl.causeAllows(cause, seat, opts.isBounce === true)) continue;
-        const srcPerm = repl.sourcePermanentId === undefined ? undefined : host.permanentById(repl.sourcePermanentId);
-        if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
-        if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
-        const ctx =
-          srcPerm !== undefined
-            ? host.buildContext(srcPerm, leavingId)
-            : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
-        if (ctx === undefined) continue;
-        if (repl.protects && !repl.protects(ctx, leavingId)) continue;
-        if (repl.affectsAll && firedAll.has(repl.id)) {
-          prevented.add(leavingId); // one activation already prevented all matching
-          break;
-        }
-        // Once-per-turn cap (＜Barrier＞): a reaction that already prevented a removal this turn is
-        // spent — skip it (no prompt, no prevention) until the per-turn ledger resets. This check
-        // follows the affectsAll fast path so one activation protects every simultaneous match.
-        if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
-        const did = await repl.preventCheck(ctx, leavingId);
-        if (did) {
-          prevented.add(leavingId);
-          if (repl.affectsAll) {
-            firedAll.add(repl.id);
-            // "They don't leave" applies to every matching permanent in THIS simultaneous
-            // removal event. Determine that set from the activation context now: paying the
-            // shared cost may move or expose the replacement's own source card, so rebuilding
-            // its context for the second member would incorrectly make the already-activated
-            // replacement disappear mid-event (BT26-033 Q7005).
-            for (const simultaneousId of permanentIds) {
-              if (host.permanentById(simultaneousId) === undefined) continue;
-              if (repl.protects === undefined || repl.protects(ctx, simultaneousId)) prevented.add(simultaneousId);
-            }
+      // A true relocation replacement (BT22-007) removes the would-leave permanent from
+      // the battle area as its payload. Do not let the original removal continue against
+      // the now-relocated cards. Side-effect-only "instead" reactions such as Decode leave
+      // the permanent live here and therefore keep their established fall-through behavior.
+      if (host.permanentById(leavingId) === undefined) prevented.add(leavingId);
+      if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
+    }
+    // "prevent" pass: the first successful reaction wins and stops the search.
+    for (const repl of replacements) {
+      if (repl.mode !== "prevent") continue;
+      const activationKey = replacementActivationKey(repl);
+      if (opts.reentryGuard.activeReplacementKeys.has(activationKey)) continue;
+      if (repl.sourcePermanentId === undefined && repl.sourceInstanceId === undefined) continue;
+      if (repl.causeAllows && !repl.causeAllows(cause, seat, opts.isBounce === true)) continue;
+      const srcPerm = repl.sourcePermanentId === undefined ? undefined : host.permanentById(repl.sourcePermanentId);
+      if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
+      if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
+      const ctx =
+        srcPerm !== undefined
+          ? host.buildContext(srcPerm, leavingId)
+          : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
+      if (ctx === undefined) continue;
+      if (repl.protects && !repl.protects(ctx, leavingId)) continue;
+      if (repl.affectsAll && firedAll.has(repl.id)) {
+        prevented.add(leavingId); // one activation already prevented all matching
+        break;
+      }
+      // Once-per-turn cap (＜Barrier＞): a reaction that already prevented a removal this turn is
+      // spent — skip it (no prompt, no prevention) until the per-turn ledger resets. This check
+      // follows the affectsAll fast path so one activation protects every simultaneous match.
+      if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
+      opts.reentryGuard.activeReplacementKeys.add(activationKey);
+      let did: boolean;
+      try {
+        did = await repl.preventCheck(ctx, leavingId);
+      } finally {
+        opts.reentryGuard.activeReplacementKeys.delete(activationKey);
+      }
+      if (did) {
+        prevented.add(leavingId);
+        if (repl.affectsAll) {
+          firedAll.add(repl.id);
+          // "They don't leave" applies to every matching permanent in THIS simultaneous
+          // removal event. Determine that set from the activation context now: paying the
+          // shared cost may move or expose the replacement's own source card, so rebuilding
+          // its context for the second member would incorrectly make the already-activated
+          // replacement disappear mid-event (BT26-033 Q7005).
+          for (const simultaneousId of permanentIds) {
+            if (host.permanentById(simultaneousId) === undefined) continue;
+            if (repl.protects === undefined || repl.protects(ctx, simultaneousId)) prevented.add(simultaneousId);
           }
-          if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
-          break;
         }
+        if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
+        break;
       }
     }
-  } finally {
-    opts.reentryGuard.active = false;
   }
   return prevented;
 }
