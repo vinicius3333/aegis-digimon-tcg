@@ -20,11 +20,10 @@ if (effect !== undefined) {
             },
           ],
           rest: "trash",
+          optional: true,
         },
       ],
     },
   ];
 }
-const module = registerIrCard("BT12-071", compiled);
-
-export default module;
+export default registerIrCard("BT12-071", compiled);
