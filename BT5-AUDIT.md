@@ -1183,3 +1183,32 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   `primitives.test.ts`.
 - Remaining ambiguity: none identified.
+
+## BT5-027 — MarineDevimon — 10/10
+
+- Catalog evidence: Blue Lv.5 Ultimate Digimon, Virus/Aquabeast, play cost 6,
+  7000 DP, and blue Lv.4 evolution cost 2. It has no main, inherited, or
+  Security text.
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-027`
+  returns the card identity with no QA, errata, restriction, or ruling entries.
+  Because the card is vanilla, no effect-specific rule or ambiguity applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-027.ts` contains an empty effect
+  list with `coverage: "full"` and `residual: []`. It registers exclusively
+  through `registerIrCard("BT5-027", compiled)` and contains no duplicate
+  legacy registration.
+- Peer and stack evidence: BT5-013 and BT5-023 use the same residual-free
+  vanilla representation and tests. BT5-027 has no trait filter, inherited
+  effect, timing, choice, or stack-dependent behavior requiring an additional
+  evolution scenario; ordinary blue Lv.4-to-Lv.5 legality is catalog-driven.
+- Behavioral proof: the 2 existing focused tests prove unchanged base DP with
+  no continuous behavior and a defined runtime module with complete,
+  residual-free coverage. No additional test was necessary for a correct
+  vanilla implementation.
+- Defect corrected: none. No source or test file changed.
+- Verification: focused BT5-027 plus BT5-013 and BT5-023 vanilla peers — 3
+  files, 6 tests passed. `git diff --check` passed. Workspace
+  `pnpm typecheck` retains only the known unrelated API errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  `primitives.test.ts`.
+- Remaining ambiguity: none identified.
