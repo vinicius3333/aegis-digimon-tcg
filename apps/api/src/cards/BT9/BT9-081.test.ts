@@ -1,9 +1,25 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-081.js";
 import "./BT9-081.js";
 describe("BT9-081 DexDorugoramon", () => {
+  it("matches catalog values, alternate evolution, and Dex-inclusive deletion IR", () => {
+    expect(getCardDefinition("BT9-081")).toMatchObject({
+      colors: ["Purple", "Black"], level: 6, playCost: 13, dp: 13000,
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 5 }, { color: "Black", level: 5, memoryCost: 5 }],
+      types: ["Undead", "X Antibody"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Dorugoramon"], cost: 2, isAlternate: true }],
+      effects: [
+        { trigger: "WhenDigivolving", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", superlative: "lowestLevel" }, count: "all" }, condition: { kind: "anyOf" } }] },
+        { trigger: "OnDeletion", actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, target: { filter: { levels: [3], colors: ["Purple", "Black"] }, orFilters: [{ nameOrTrait: [{ tokens: ["DeathXmon"], match: "nameExact" }], ownerTrashNameCountGte: { count: 5, tokens: ["Dex", "DeathX"] } }] } }] },
+      ],
+    });
+  });
+
   it("does not prompt for an ineligible DeathXmon below the five-name threshold", async () => {
     const s = setupEngine({
       0: {
