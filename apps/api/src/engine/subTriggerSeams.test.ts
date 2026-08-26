@@ -445,6 +445,42 @@ describe("whenEffectAddsToHand / whenEffectAddsToOpponentHand — fx.draw and re
     expect(moved.length).toBe(1); // the bounce moved a battle-area permanent's top card to hand
     expect(trashFireCount).toBe(0); // origin was NOT trash => no fire
   });
+
+  it("Q2402/Q2404 count replacement-local Digi-Egg/token returns as moved without hand-return events", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const mother = permanentOf("EX2-007", 0, 15_000);
+    const token = permanentOf("TOKEN-Amon-of-Crimson-Flame", 0, 3000);
+    const watcher = permanentOf("BT1-009", 0, 3000);
+    p0.battleArea.push(mother, token, watcher);
+    p0.eggDeck.push(instance("BT1-001", 0, false));
+
+    let handAddFires = 0;
+    let digimonReturnFires = 0;
+    for (const event of ["whenEffectAddsToHand", "whenDigimonReturnsToHand"] as const) {
+      advance(s.engine).ledgers.subTriggers.subscribe({
+        event,
+        sourcePermanentId: watcher.permanentId,
+        once: false,
+        run: async () => {
+          if (event === "whenEffectAddsToHand") handAddFires += 1;
+          else digimonReturnFires += 1;
+        },
+        description: `test: replacement-local ${event} negative`,
+      });
+    }
+
+    const movedMother = await primitivesOf(s).returnToHand([mother.topCard!.instanceId]);
+    const movedToken = await primitivesOf(s).returnToHand([token.topCard!.instanceId]);
+
+    expect(movedMother).toHaveLength(1);
+    expect(movedToken).toHaveLength(1);
+    expect(p0.eggDeck.map((card) => card.cardId)).toEqual(["BT1-001", "EX2-007"]);
+    expect(p0.eggDeck.at(-1)?.faceUp).toBe(false);
+    expect(p0.hand).toHaveLength(0);
+    expect(handAddFires).toBe(0);
+    expect(digimonReturnFires).toBe(0);
+  });
 });
 
 describe("whenEffectAddsToDeck — the whenEffectAddsToHand sibling for deck-bound returns", () => {

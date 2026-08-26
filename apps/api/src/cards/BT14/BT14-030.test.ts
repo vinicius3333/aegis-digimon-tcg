@@ -136,7 +136,11 @@ describe("BT14-030", () => {
   it("Q2402 accepts Mother D-Reaper as the return cost but has no level for the follow-up", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX2-007", as: "mother" }], hand: [{ card: "BT14-030", as: "marine" }] },
+        0: {
+          battleArea: [{ card: "EX2-007", as: "mother" }],
+          hand: [{ card: "BT14-030", as: "marine" }],
+          eggDeck: ["BT1-001"],
+        },
         1: { battleArea: [{ card: "BT14-020", as: "opponent" }] },
       },
       { autoAcceptOptional: true },
@@ -157,9 +161,38 @@ describe("BT14-030", () => {
       throw new Error(
         JSON.stringify({ motherResponse, pending: s.state.pendingDecision, request: s.decisions.at(-1)?.req }),
       );
-    await settle(() => s.state.players[0]!.eggDeck.some((card) => card.cardId === "EX2-007"));
+    await settle(() => s.state.players[0]!.eggDeck.at(-1)?.cardId === "EX2-007");
+    expect(s.state.players[0]!.eggDeck.map((card) => card.cardId)).toEqual(["BT1-001", "EX2-007"]);
+    expect(s.state.players[0]!.eggDeck.at(-1)?.faceUp).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("EX2-007");
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT14-020");
+    assertNoLoudGap(s);
+  });
+
+  it("rejects an ordinary no-DP Digi-Egg as a Digimon return cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-001", as: "ordinaryEgg", dp: 1000 },
+            { card: "BT14-020", as: "validDigimon" },
+          ],
+          hand: [{ card: "BT14-030", as: "marine" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marine").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.state.pendingDecision;
+    if (decision?.kind !== "chooseTargets") throw new Error("return-cost selection did not open");
+    const request = s.decisions.at(-1)?.req;
+    if (request?.kind !== "chooseTargets") throw new Error("return-cost request was not captured");
+    expect(request.options?.candidateInstanceIds).toContain(s.perm("validDigimon").permanentId);
+    expect(request.options?.candidateInstanceIds).not.toContain(s.perm("ordinaryEgg").permanentId);
     assertNoLoudGap(s);
   });
 
@@ -188,6 +221,7 @@ describe("BT14-030", () => {
     await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.topCard.cardId !== TOKEN));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain(TOKEN);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain(TOKEN);
+    expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT14-020");
     assertNoLoudGap(s);
   });
@@ -231,5 +265,44 @@ describe("BT14-030", () => {
     await settle();
     expect(s.state.players[0]!.security).toHaveLength(1);
     assertNoLoudGap(s);
+  });
+
+  it("recovers for another own Digimon, excludes itself, and does not trigger on the opponent's turn", async () => {
+    const own = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT14-030", as: "marine" },
+          { card: "BT14-020", as: "other" },
+        ],
+        deck: ["BT1-001"],
+      },
+    });
+    own.state.turnSeat = 0;
+    await own.ready();
+    await advance(own.engine).verb.returnToHand([own.perm("other").topCard.instanceId]);
+    await settle(() => own.state.players[0]!.security.length === 1);
+    expect(own.state.players[0]!.security).toHaveLength(1);
+
+    const self = setupEngine({
+      0: { battleArea: [{ card: "BT14-030", as: "marine" }], deck: ["BT1-001"] },
+    });
+    self.state.turnSeat = 0;
+    await self.ready();
+    await advance(self.engine).verb.returnToHand([self.perm("marine").topCard.instanceId]);
+    await settle();
+    expect(self.state.players[0]!.security).toHaveLength(0);
+
+    const opponentTurn = setupEngine({
+      0: { battleArea: [{ card: "BT14-030", as: "marine" }], deck: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT14-020", as: "returned" }] },
+    });
+    opponentTurn.state.turnSeat = 1;
+    await opponentTurn.ready();
+    await advance(opponentTurn.engine).verb.returnToHand([opponentTurn.perm("returned").topCard.instanceId]);
+    await settle();
+    expect(opponentTurn.state.players[0]!.security).toHaveLength(0);
+    assertNoLoudGap(own);
+    assertNoLoudGap(self);
+    assertNoLoudGap(opponentTurn);
   });
 });
