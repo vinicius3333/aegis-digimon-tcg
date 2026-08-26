@@ -1391,3 +1391,57 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/targeting/loose.ts`, and the pre-existing primitive
   completeness omissions.
 - Remaining ambiguity: none identified.
+
+## BT5-032 — Hexeblaumon — 10/10
+
+- Catalog evidence: Blue Lv.6 Mega Digimon, Data/Magic Knight, play cost 12,
+  11000 DP, and blue Lv.5 evolution cost 3. On attack it trashes up to 2
+  digivolution cards from the bottom of 1 opposing Digimon, then gains
+  `<Jamming>` for the turn if the opponent has a Digimon with no
+  digivolution cards. During all turns, opposing Digimon with no
+  digivolution cards cannot attack or block.
+- Knowledge-base and rules evidence: Q1310 confirms the sequential timing:
+  trashing the last sources during the attack makes the subsequent Jamming
+  condition true for that same attack. Q1311 confirms that losing sources
+  after attack declaration does not stop an attack already in progress.
+  Q1312 confirms that a source-free Digimon appearing only after the When
+  Attacking effect resolved does not retroactively grant Jamming. CR §1-3-6
+  requires at least one choice for “up to” when an eligible card exists, so
+  the legal voluntary range here is 1–2 sources rather than 0–2.
+- Implementation: `apps/api/src/cards/BT5/BT5-032.ts` has a sequential
+  `WhenAttacking` `TrashDigivolution` from the bottom followed by conditional
+  self `GainKeyword` for the turn. The trash action now carries `upTo: true`,
+  matching the printed variable count. Two persistent opposing auras apply
+  attack and block restrictions to Digimon whose live stacks have no
+  digivolution cards. The module declares `coverage: "full"`, `residual: []`,
+  and registers exclusively through `registerIrCard("BT5-032", compiled)`.
+- Primitive, peer, and ruling evidence: the shared up-to source-trash seam
+  selects the required first bottom card and offers each additional bottom
+  card separately, preserving the bottom prefix and allowing the legal 1–2
+  range. Conditions are evaluated after the preceding action resolves, which
+  implements Q1310, while the keyword is a turn-duration grant rather than a
+  continuous aura, which implements Q1312. Attack/block restrictions are
+  consulted at declaration/selection time, so Q1311 does not rewind an attack
+  already underway. BT5-025 exercises the same variable-count bottom-source
+  mechanic, and BT1-101 covers source trashing from Security.
+- Behavioral proof: 4 focused tests prove two bottom sources are trashed and
+  immediately enable Jamming, a remaining third source prevents Jamming,
+  selecting only one of two sources preserves the upper source and does not
+  grant Jamming, and source-free opposing Digimon receive both restrictions
+  only while Hexeblaumon remains in play. The historical deck regression was
+  updated to accept the newly explicit optional continuation and remains
+  green.
+- Defect corrected: the IR used a fixed `amount: 2` despite the printed “up
+  to 2,” so the player could not legally stop after the first bottom source.
+  Adding `upTo: true` routes the card through the already-audited optional
+  continuation without changing bottom-order semantics. Tests now explicitly
+  accept or decline that continuation as appropriate.
+- Verification: focused BT5-032, historical deck, BT5-025, BT1-101,
+  primitive, and continuous suites — 6 files, 180 tests passed. The delegated
+  security/restriction conformance matrix also passed 41/41. Targeted Oxfmt
+  and `git diff --check` pass; Oxlint reports only the pre-existing
+  `no-explicit-any` warning in the historical test. Workspace typecheck
+  retains only the known unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.

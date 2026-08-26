@@ -22,7 +22,7 @@ describe("BT5-032 Hexeblaumon", () => {
           security: ["BT1-011"],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     expect(
       s.engine.applyIntent(0, {
@@ -62,7 +62,7 @@ describe("BT5-032 Hexeblaumon", () => {
           security: ["BT1-012"],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     expect(
       s.engine.applyIntent(0, {
@@ -72,6 +72,31 @@ describe("BT5-032 Hexeblaumon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").stack.length === 1);
+    expect(observe(s.engine).hasKeyword(s.perm("hexe"), "Jamming")).toBe(false);
+  });
+
+  it("allows choosing only one of two bottom sources", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT5-032", as: "hexe" }] },
+        1: {
+          battleArea: [{ card: "BT4-073", as: "target", under: ["BT1-009", "BT1-010"] }],
+          security: ["BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("hexe").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 1);
+
+    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(observe(s.engine).hasKeyword(s.perm("hexe"), "Jamming")).toBe(false);
   });
 });
