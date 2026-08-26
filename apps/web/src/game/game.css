@@ -4583,11 +4583,41 @@ button.side-panel__name:focus-visible {
     translate: -50% -50%;
   }
 
+  /* The memory band is one row, across the whole screen.
+
+     Between the two rails the band had 262px of a 393px screen, and the phase
+     pill took a third of that before the 21 chips were laid out — each came out
+     3px wide, a dotted line with no gauge left in it. The band bleeds over the
+     rails instead, which is what the clip margin on the zones allows: the rails
+     hold piles, not field, so nothing is covered.
+
+     `display: block` (from the phone block above) also dropped the end-turn orb
+     onto a second line, which cost the two battle rows another 32px of height. */
+  .game-battle-zones {
+    overflow: clip;
+    overflow-clip-margin: var(--game-rail);
+  }
+  .game-battle-zones > div:nth-child(2) {
+    display: flex;
+    align-items: center;
+    margin-inline: calc(var(--game-rail) * -1);
+  }
+  /* The phase is already printed in the status bar over the board, and its pill
+     is wider than a fifth of the chips it was crowding out. */
+  .game-memory-gauge__phase {
+    display: none;
+  }
+  /* Overrides the split-screen block's own `!important` padding. */
+  .game-memory-gauge {
+    gap: 0 !important;
+    padding: 0 !important;
+  }
+
   /* The orb's overhang rides the band's divider on a desktop board. Here the
      band is barely taller than the orb, so the half-rem hanging below it was
      the slice of the circle the player saw cut off: it sits inside instead. */
   .game-end-turn-orb {
-    margin: 0 0.5rem;
+    margin: 0 0.25rem;
   }
 }
 

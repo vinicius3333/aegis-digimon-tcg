@@ -415,7 +415,22 @@ describe("nothing on the portrait phone board paints past the screen edge", () =
     // The overhang rides the divider on a desktop board. Here the band is barely
     // taller than the orb, and the half-rem below it was the slice of the circle
     // the player saw cut off.
-    expect(phonePortraitRules).toMatch(/\.game-end-turn-orb \{\s*margin:\s*0 0\.5rem/);
+    expect(phonePortraitRules).toMatch(/\.game-end-turn-orb \{\s*margin:\s*0 0\.25rem/);
+  });
+
+  it("gives the memory band the whole screen, on one line", () => {
+    // Between the two rails the band had 262px of a 393px screen and the phase
+    // pill took a third of that, which left the 21 chips 3px wide each. It bleeds
+    // over the rails instead, and the orb rides the same line as the gauge —
+    // the phone block's `display: block` dropped it onto a second one.
+    expect(phonePortraitRules).toMatch(
+      /\.game-battle-zones \{[^}]*overflow:\s*clip[^}]*overflow-clip-margin:\s*var\(--game-rail\)/,
+    );
+    expect(phonePortraitRules).toMatch(
+      /\.game-battle-zones > div:nth-child\(2\) \{[^}]*display:\s*flex[^}]*margin-inline:\s*calc\(var\(--game-rail\) \* -1\)/,
+    );
+    expect(phonePortraitRules).toMatch(/\.game-memory-gauge__phase \{\s*display:\s*none/);
+    expect(phonePortraitRules).toMatch(/\.game-memory-gauge \{[^}]*padding:\s*0 !important/);
   });
 
   it("pulls the card sparkles inside the card they belong to", () => {
