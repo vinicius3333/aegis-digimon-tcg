@@ -145,3 +145,20 @@ Remaining work is behavioral proof of Q1670 and Delay/Security lifecycle boundar
 10. **Reproducible behavioral proof (0/1):** A colocated test exists but was not executed in this static-only pass; zero-source, multi-source, non-X rejection, deck-boundary, and Security behavior remain unproven.
 
 Remaining work is behavioral proof of selection and exact draw boundaries; this card is not formally complete at 10/10.
+
+## BT7-103 — Mugen — 8/10 (static audit; fidelity finding)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a Green Option costing 4 with Main suspend/restriction and Security suspend text.
+2. **Main suspend (1/1):** The Main effect suspends exactly one opponent Digimon.
+3. **Restriction duration (1/1):** The restriction uses `unsuspend` through the opponent's next unsuspend phase (`untilOpponentTurnEnd`).
+4. **Security behavior (1/1):** Security suspends exactly one opponent Digimon.
+5. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-103` reports no rulings or unresolved ambiguity.
+6. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-103", compiled)` registration are present.
+7. **Static primitive trace (1/1):** Controller, Digimon kind, exact count, restriction type, and duration are explicit.
+8. **Target identity fidelity (0/1):** The printed text says “That Digimon,” but the Restrict action has an independent opponent-Digimon selector rather than a bound reference to the Digimon suspended by the preceding action. Unless the shared sequential target semantics implicitly preserve identity (not established statically), the restriction can select a different Digimon.
+9. **Clause completeness (1/1):** Both Main and Security clauses are represented, subject to the identity concern above.
+10. **Reproducible behavioral proof (0/1):** Existing tests were not executed in this static-only pass; same-target enforcement, duration, and Security boundaries remain unproven.
+
+Remaining work is to bind the suspended target into the Restrict action (or establish an engine guarantee that sequential selectors preserve it), then add behavioral proof. This card is not formally complete at 10/10.
