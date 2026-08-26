@@ -479,7 +479,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   card-comment citations are corrected to Q4073/Q4074.
 - Static audit found no catalog, Q&A, direct-IR, registration, shared-primitive, or focused-fixture gap: the self-bound green alternative preserves the printed Purple requirement, the reveal filter is Purple-or-Green Digimon, and Main Delay/Security remain independent. Tests are deliberately unrun per coordinator instruction, so LM-038 remains below 10/10.
 
-## LM-039 — Valkyrimon — pending focused execution
+## LM-039 — Valkyrimon — static audit complete; pending focused authorization
 
 - Catalog maps directly to `registerIrCard`: the named Silphymon alternate evolution cost,
   digivolution Blitz, and one shared once-per-turn budget across the digivolving/attacking
@@ -488,7 +488,13 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - The permanent Your Turn restriction is self-bound and read by combat legality for attack-target
   changes. Existing focused fixtures prove bottom-deck destination, empty and above-threshold
   Security Attack fallback, shared budget, named-source digivolution, and restriction activation.
-- No local Q&A exists. The unrun focused proof under PID 82901 keeps LM-039 below 10/10.
+- No local Q&A exists. The direct module's executable IR uses the supported `ifThisEffectDidNotAct`
+  condition, but the committed `packages/shared/src/effects/effects.json` snapshot still encodes
+  both fallback conditions as `kind: "raw"`; the direct `registerIrCard` path overwrites that
+  snapshot when the card module is loaded, while an isolated shared-artifact consumer would not
+  preserve the fallback semantics. This shared-artifact mismatch is a static audit gap; the
+  focused fixture covers the direct module path, and tests remain deliberately unrun per
+  coordinator instruction, so LM-039 remains below 10/10.
 
 ## LM-040 — Vikemon — pending focused execution
 
