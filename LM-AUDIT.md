@@ -185,3 +185,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   search resolution, and Security. Shared Delay proof covers lifecycle behavior, and the stale
   card-comment citations are corrected to Q4073/Q4074.
 - Tests remain deliberately unrun under PID 43774, so LM-038 remains below 10/10.
+
+## LM-039 — Valkyrimon — pending focused execution
+
+- Catalog maps directly to `registerIrCard`: the named Silphymon alternate evolution cost,
+  digivolution Blitz, and one shared once-per-turn budget across the digivolving/attacking
+  windows. The return action uses opponent Digimon and an inclusive 8000-DP threshold, and the
+  interpreter's `ifThisEffectDidNotAct` evaluates the preceding return's actual move result.
+- The permanent Your Turn restriction is self-bound and read by combat legality for attack-target
+  changes. Existing focused fixtures prove bottom-deck destination, empty and above-threshold
+  Security Attack fallback, shared budget, named-source digivolution, and restriction activation.
+- No local Q&A exists. The unrun focused proof under PID 43774 keeps LM-039 below 10/10.
