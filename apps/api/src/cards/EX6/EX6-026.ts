@@ -56,7 +56,6 @@ export const compiled: CompiledCard = {
             raw: "＜Blocker＞",
           },
           duration: "untilOpponentTurnEnd",
-          optional: true,
           condition: {
             kind: "digiXrosCount",
           },
