@@ -1,10 +1,24 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-105.js";
 import "./BT9-105.js";
 
 describe("BT9-105 Soul Digitalization", () => {
+  it("matches catalog values and reveal-budget, then-placement, and security IR", () => {
+    expect(getCardDefinition("BT9-105")).toMatchObject({
+      colors: ["Black"], kinds: ["Option"], playCost: 5,
+      securityEffectText: "[Security] Activate this card's [Main] effect.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "Main", actions: [{ kind: "RevealChooseDeleteBudget", revealCount: 3, revealController: "mine", chooseFilter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] }, deleteCount: 1, returnRevealed: "trash" }, { kind: "PlaceUnder", target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } }, underFilter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+      ],
+    });
+  });
+
   it("uses the chosen revealed play cost, trashes the reveal, then places that X Antibody card", async () => {
     const s = setupEngine({
       0: {
