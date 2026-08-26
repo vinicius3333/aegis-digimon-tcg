@@ -113,7 +113,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-041 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Barrier and inherited optional free suspended Kudamon play from own hand or trash through exact-name, controller, zone, and deletion timing filters.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-041.test.ts` passed (7 tests): live Barrier/replacement cost, trash and hand play paths, refusal/non-Kudamon negatives, suspension, and evolution cost.
-- BT13-042 — Pending
+- BT13-042 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing own-turn optional level-5-or-lower Chessmon play on deletion, inherited static Reboot, and alternate level-4 Chessmon evolution across yellow/black with normal and invalid boundaries.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-042.test.ts` passed (6 tests): deletion play and level/turn negatives, inherited Reboot, alternate evolution on both colors, and normal/invalid requirements.
 - BT13-043 — Pending
 - BT13-044 — Pending
 - BT13-045 — Pending
