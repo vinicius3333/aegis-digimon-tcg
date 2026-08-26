@@ -362,3 +362,50 @@ git diff --check
 ```
 
 No unresolved card-text ambiguity remains. The audit added only card-specific behavioral cases and made no changes to the implementation module because it already faithfully compiled the complete contract.
+
+## BT26-009 — Hyokomon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-009` (`Hyokomon`), red level 3 Rookie Digimon, play cost 3, DP 2000, traits `Bird`, `Iliad`, and `TS`. Printed evolution is `[Digivolve] Lv.2 w/[TS] trait: Cost 0`. Main text is `[Start of Your Main Phase] By trashing 1 card with [Chronomon] in its text or the [Shaman] trait from your hand, ＜Draw 1＞ and gain 1 memory.` Inherited text is `[When Attacking] ＜Draw 1＞ Then, if your hand has 6 or more cards, return 1 card in your hand to the bottom of the deck.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-009`; it reports Q6963 and no erratum, restriction, or unresolved card-specific ruling. Q6963 defines “with [Chronomon] in its text” to include name, traits, effects, inherited effects, rules, and evolution/DNA/DigiXros/Burst/App Fusion/Link/Assembly requirements.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-009.ts` uses `coverage: "full"`, `residual: []`, and exactly one `registerIrCard("BT26-009", compiled)` registration. No legacy `registerCard` registration exists.
+- The `StartOfYourMainPhase` effect places the printed hand-trash cost on one `Draw 1` action, restricting the payer to the controller's hand and matching the union of Chronomon text and Shaman trait. `abortOnDecline` prevents the subsequent memory gain when the activation is declined or cannot be paid; this matches the standard optional activation semantics of a “By” cost. The following `GainMemory` adds exactly one memory after successful payment/draw.
+- The inherited `WhenAttacking` effect draws one for the watcher controller, then returns exactly one own-hand card to `deckBottom` only when the post-draw hand count is at least 6. The shared return primitive moves the selected card face-down to the deck bottom.
+- The alternate level-2 TS evolution requirement is supplied by the committed `generated-digivolve-overrides.json` catalog path and is verified through `digivolutionRequirementsFor` and real `digivolve` intents.
+- Relevant peers inspected: EX12-006 and BT24-026 for the same Start-of-Main “By trashing ... Draw 1 and gain 1 memory” cost sequencing; BT26-008/BT26-010 for neighboring TS evolution and inherited timing; BT26-015 and BT26-023 for deck-bottom return and hand-count boundaries. Their controller, cost, trigger, and zone conventions are consistent.
+
+### Behavioral proof
+
+Existing `apps/api/src/cards/BT26/BT26-009.test.ts` cases prove:
+
+- exact zero-cost Lv.2 `[TS]` evolution, including a legal TS egg stack and rejection of a near-match egg;
+- Q6963's Chronomon-text hand payment, including a card whose Chronomon mention is in inherited text, followed by Draw 1 and gain 1 memory;
+- the alternative Shaman-trait payment and rejection of an unrelated hand card;
+- the unpayable-cost negative path, which leaves hand/deck/memory unchanged;
+- optional refusal of the “By” activation, with no trash, draw, or memory gain;
+- inherited attack behavior from an actual evolution stack, including draw-first ordering, exactly-six post-draw boundary, one card to face-down deck bottom, and the five-card post-draw negative boundary.
+
+The focused suite is mutation-sensitive to both printed clauses, their filters, cost sequencing, inherited source, and the numeric hand boundary. No card-specific implementation or test change was necessary because the current compiled module and eight behavioral tests already prove the complete contract.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-009
+  PASS (Q6963; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-009.test.ts
+  PASS (8 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-009.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/subTriggerSeams.test.ts
+  PASS (4 files, 350 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-009.ts apps/api/src/cards/BT26/BT26-009.test.ts BT26-AUDIT.md
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved card-text ambiguity remains. No implementation or test change was required, no duplicate legacy registration exists, and this audit created no push. The audit evidence is delivered in the atomic commit for BT26-009.
