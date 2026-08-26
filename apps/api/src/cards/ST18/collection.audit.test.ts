@@ -26,7 +26,7 @@ describe("ST18 collection audit proof", () => {
     expect(st18Ids).toEqual(Array.from({ length: 15 }, (_, index) => `ST18-${String(index + 1).padStart(2, "0")}`));
   });
 
-  it("keeps every catalog card imported, behaviorally tested, and executable", () => {
+  it("keeps every catalog card imported, structurally backed by focused evidence, and executable", () => {
     for (const cardId of st18Ids) {
       const testSource = readFileSync(`${collectionDirectory}/${cardId}.test.ts`, "utf8");
 
@@ -34,11 +34,14 @@ describe("ST18 collection audit proof", () => {
         indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")),
         `${cardId} index import`,
       ).toHaveLength(1);
-      expect(testSource, `${cardId} test suite`).toMatch(/\bdescribe\s*\(/);
-      expect(testSource, `${cardId} runnable test`).toMatch(/\bit\s*\(/);
-      expect(testSource, `${cardId} engine harness`).toMatch(/\bsetupEngine\s*\(/);
-      expect(testSource, `${cardId} observable assertion`).toMatch(/\bexpect\s*\(/);
-      expect(testSource, `${cardId} skipped or pending test`).not.toMatch(/\b(?:describe|it|test)\.(?:skip|todo)\s*\(/);
+      expect(
+        testSource,
+        `${cardId} focused evidence suite`,
+      ).toMatch(new RegExp(`^describe\\s*\\(\\s*["']${cardId}(?=\\s|["'])`, "m"));
+      expect(testSource, `${cardId} runnable focused case`).toMatch(/\bit\s*\(/);
+      expect(testSource, `${cardId} focused engine harness`).toMatch(/\bsetupEngine\s*\(/);
+      expect(testSource, `${cardId} focused observable assertion`).toMatch(/\bexpect\s*\(/);
+      expect(testSource, `${cardId} skipped or pending focused case`).not.toMatch(/\b(?:describe|it|test)\.(?:skip|todo)\s*\(/);
       expect(getEffectModule(cardId), `${cardId} executable module`).toBeDefined();
     }
   });
