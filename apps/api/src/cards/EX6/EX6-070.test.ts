@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX6-070.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { getEffectModule } from "../../engine/registry.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "../index.js";
 
 describe("EX6-070 Phantom Pain", () => {
