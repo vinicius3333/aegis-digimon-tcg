@@ -35,6 +35,26 @@ describe("ST12-16 Quake! Blast! Fire! Father!", () => {
     });
   });
 
+  it("waives its color requirement with Sistermon and with a Royal Knight", async () => {
+    const sistermon = setupEngine(
+      { 0: { battleArea: ["ST12-12"], hand: [{ card: "ST12-16", as: "option" }] }, 1: { battleArea: ["ST12-10"] } },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    sistermon.state.memory = 7;
+    await sistermon.engine.recomputeContinuousEffects();
+    expect(sistermon.engine.applyIntent(0, { type: "playCard", instanceId: sistermon.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => sistermon.state.players[1]!.battleArea.length === 0);
+
+    const royalKnight = setupEngine(
+      { 0: { battleArea: ["ST12-10"], hand: [{ card: "ST12-16", as: "option" }] }, 1: { battleArea: ["ST12-04"] } },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    royalKnight.state.memory = 7;
+    await royalKnight.engine.recomputeContinuousEffects();
+    expect(royalKnight.engine.applyIntent(0, { type: "playCard", instanceId: royalKnight.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => royalKnight.state.players[1]!.battleArea.length === 0);
+  });
+
   it("does not delete a Digimon whose play cost is 14 or more", async () => {
     const s = setupEngine(
       {

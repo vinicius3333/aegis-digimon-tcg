@@ -26,6 +26,31 @@ describe("ST12-14 Aus Generics", () => {
     expect(observe(s.engine).hasPierce(s.perm("huckmon"))).toBe(true);
   });
 
+  it("can choose different Digimon for +2000 DP and Piercing (Q761)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST12-04", as: "huckmon" }, { card: "ST12-10", as: "jesmon" }],
+          hand: [{ card: "ST12-14", as: "option" }],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const dpTarget = s.state.pendingDecision!;
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: dpTarget.decisionId, response: { kind: "chooseTargets", instanceIds: [s.perm("huckmon").permanentId] } })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const piercingTarget = s.state.pendingDecision!;
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: piercingTarget.decisionId, response: { kind: "chooseTargets", instanceIds: [s.perm("jesmon").permanentId] } })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("huckmon").currentDP).toBe(s.perm("huckmon").baseDP + 2000);
+    expect(observe(s.engine).hasPierce(s.perm("huckmon"))).toBe(false);
+    expect(s.perm("jesmon").currentDP).toBe(s.perm("jesmon").baseDP);
+    expect(observe(s.engine).hasPierce(s.perm("jesmon"))).toBe(true);
+  });
+
   it("gains 1 memory and returns itself to hand from security", async () => {
     const s = setupEngine(
       { 0: { security: [{ card: "ST12-14", as: "option", faceUp: true }] } },

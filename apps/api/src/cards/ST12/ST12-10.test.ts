@@ -53,6 +53,22 @@ describe("ST12-10 Jesmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
+  it("may decline its attack-time Sistermon play without gaining the effect-play bonus", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "ST12-10", as: "jesmon" }], hand: [{ card: "ST12-12", as: "sister" }] }, 1: { security: ["BT1-001"] } },
+      { autoOrderTriggers: true },
+    );
+    const sisterId = s.inst("sister").instanceId;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("jesmon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const pending = s.state.pendingDecision!;
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pending.decisionId, response: { kind: "optional", accept: false } })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === sisterId)).toBe(true);
+    expect(s.perm("jesmon").currentDP).toBe(s.perm("jesmon").baseDP);
+    expect(observe(s.engine).keywordAmount(s.perm("jesmon"), "SecurityAttack")).toBe(0);
+  });
+
   it("ends the Main phase after its Blitz attack when memory has crossed", async () => {
     const s = setupEngine(
       {
