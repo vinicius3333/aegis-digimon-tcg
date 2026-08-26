@@ -36,4 +36,17 @@ describe("BT4-115 Lucemon", () => {
     await settle(() => player.security.some((card) => card.instanceId === recoveredId));
     expect(player.deck).toHaveLength(0);
   });
+
+  it("cannot digivolve into a non-Lucemon Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-115", as: "lucemon" }], hand: [{ card: "BT1-051", as: "nonLucemon" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("lucemon").permanentId,
+      instanceId: s.inst("nonLucemon").instanceId,
+    })).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
 });
