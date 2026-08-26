@@ -264,15 +264,18 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --pool=forks --poolOptions.forks.singleFork=true --fileParallelism=false`. LM-027 remains below
   10/10 pending relevant mechanism and refreshed collection gates.
 
-## LM-028 — Blue Scramble — pending focused execution
+## LM-028 — Blue Scramble — focused proof green; pending mechanism and collection gates
 
 - The direct IR is the blue-scoped analogue of the Scramble contract: ordinary legal blue
   hand evolution with cost reduced by three, battle-area placement, opponent-Digimon-gated
   Delay, mandatory blue-trash return before optional 2000-DP-or-lower revival, and Security
   play followed by self hand return. Q4038-Q4042 align with these paths.
 - Existing behavioral tests cover cost reduction and post-use placement, Delay ordering and
-  opponent absence, Security positive and above-2000 negative boundaries. They remain unrun
-  under PID 82901, so this card is below 10/10.
+  opponent absence, Security positive and above-2000 negative boundaries. The authorized
+  serialized focused command passed 1/1 file and 6/6 tests in 3.27s on 2026-08-26:
+  `vitest run src/cards/LM/LM-028.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-028 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
 ## LM-029 — Yellow Scramble — pending focused execution
 
