@@ -245,7 +245,10 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-085 — 10/10
   - Registration: exclusive `registerIrCard("BT13-085", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-085.test.ts` passed (3 tests): Tamer-gated trash digivolution and live inherited purple rescue on non-battle deletion are covered.
-- BT13-086 — Pending
+- BT13-086 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-086", compiled)`; no legacy registration.
+  - Correction: moved [On Play] Akihiro Kurata recursion out of the static replacement effect into its printed OnPlay timing.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-086.test.ts` passed (3 tests): level-4 cost replacement, static restrictions, deletion recursion, and live OnPlay Akihiro recursion.
 - BT13-087 — Pending
 - BT13-088 — Pending
 - BT13-089 — Pending

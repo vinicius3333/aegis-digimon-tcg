@@ -43,6 +43,11 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
         },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
         {
           kind: "PlayWithoutCost",
           target: {
