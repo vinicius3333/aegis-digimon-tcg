@@ -49,3 +49,10 @@
 - Implementation trace: `BT10-007.ts` exclusively calls `registerIrCard`; the compiled alternate requirement requires level 2, the Xros Heart trait, cost 0, and marks it `isAlternate`, while base catalog evolution remains separate.
 - Behavioral proof: `BT10-007.test.ts` evolves at zero memory from an off-color Xros Heart level 2 and rejects an off-color, same-level non-Xros Heart comparator. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-007.test.ts`.
 - Stack/trait evidence: BT10-003 is a valid blue Xros Heart level-2 base and BT1-003 is the same-color/level near-miss, proving the alternate route relies on the full trait requirement rather than color or level alone.
+
+## BT10-008 — Shoutmon — 10/10
+
+- Catalog and rules contract: alternate level-2 Xros Heart evolution; on play reveals three, adds one Xros Heart Digimon and one Xros Heart Tamer, then bottoms the rest; on deletion may Save; inherited Your Turn grants Rush while the host name contains Shoutmon. Q1932 requires the trait on each selected kind, Q1933 allows only one eligible kind, and Q1934 requires every possible eligible addition.
+- Implementation trace: `BT10-008.ts` exclusively registers compiled IR: a typed two-slot RevealAdd with deck-bottom remainder, optional self PlaceUnder Save, host-name-gated inherited Rush Aura, and the alternate evolution requirement.
+- Behavioral proof: `BT10-008.test.ts` exercises the full mandatory two-kind selection sequence and decline rejection (Q1934), single-kind and trait-filter boundaries (Q1932/Q1933), accepted and declined Save zones, plus the inherited name boundary. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-008.test.ts`.
+- Stack/ownership evidence: selection observations assert visible/candidate cards and source card ID; deletion tests follow the exact source instance into a controller's Tamer or trash; dual hosts prove inherited Rush binds to the evolving host name rather than Shoutmon's source identity.
