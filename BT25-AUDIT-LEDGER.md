@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-046 (Gekkomon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-046 Gekkomon | Green level 3 Digimon; alternate level-2 `[Glowing Dawn]` evolution cost 0; on play reveals top 3, adds 1 `[Glowing Dawn]` card and 1 green `[BEATBREAK]` card, then bottoms the rest; inherited Piercing. Local card query has no entries. | **No card-specific causal mismatch found statically.** RevealAdd expresses the Glowing Dawn slot and green-plus-BEATBREAK intersection, while shared taken-instance tracking prevents duplicate physical selection and bottoms all unselected cards. Evolution and Piercing are represented. | Structural test only; no execution of overlapping trait/color selection, missing-slot behavior, bottom-deck ordering, alternate evolution, or Piercing. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-046
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-046` (no entries).
+- Direct module and shared RevealAdd intersection, taken-instance exclusion, and deck-bottom
+  remainder handling were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-045 (Onmon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
