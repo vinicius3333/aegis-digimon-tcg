@@ -21,3 +21,25 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-001.
+
+## BT25-002 — Wanyamon — 10/10
+
+- Catalog evidence: Blue level-2 Digi-Egg, `In-Training` form, `Lesser` and `DATA SQUAD` traits, no evolution recipe, no main or Security text, and inherited `[Your Turn] [Once Per Turn] When you play a [DATA SQUAD] trait Tamer, both players draw 1 card`.
+- Knowledge base: `node tools/kb/query.mjs card BT25-002` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: `BT25-002.ts` installs an inherited `YourTurn`, `OncePerTurn` `whenPlayed` watcher, restricts the event subject to the controller's `DATA SQUAD` Tamer, then draws exactly 1 for `mine` and 1 for `opponent`. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-002", compiled)`.
+- Behavioral proof: the existing focused suite proves both players draw from the controller's first matching Tamer, a second matching Tamer does not retrigger that turn, and an opponent-owned matching Tamer does not trigger it. The audit found no defect, so no test or implementation change was needed.
+- Verification: focused suite — 2 passed; shared subtrigger regression — 23 passed; green-Tamer mechanism selection — 2 passed; `git diff --check` — passed. Workspace typecheck reports only the already-recorded unrelated pre-existing errors and no BT25-002 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-002
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-002.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-002.test.ts
+pnpm --filter @aegis/api exec vitest run src/engine/effects/subtriggers.test.ts
+pnpm --filter @aegis/api exec vitest run src/engine/mechanic.test.ts -t 'green Tamer'
+pnpm typecheck
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-002.
