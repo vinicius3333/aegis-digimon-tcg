@@ -7,8 +7,9 @@ import { compiled } from "./BT11-035.js";
 
 describe("BT11-035 ClearAgumon", () => {
   it("matches every catalog field and publishes an exact empty executable contract", () => {
-    expect(getCardDefinition("BT11-035")).toMatchObject({
+    expect(getCardDefinition("BT11-035")).toEqual({
       cardId: "BT11-035",
+      set: "BT11",
       nameEn: "ClearAgumon",
       colors: ["Yellow"],
       kinds: ["Digimon"],
@@ -19,21 +20,32 @@ describe("BT11-035 ClearAgumon", () => {
       forms: ["Rookie"],
       attributes: ["Vaccine"],
       types: ["Puppet"],
+      rarity: "C",
       maxCountInDeck: 4,
+      imageId: "BT11-035",
+      nameJp: "クリアアグモン",
     });
     expect(compiled).toEqual({ effects: [], coverage: "full", residual: [] });
     expect(compiledEffects["BT11-035"]).toEqual(compiled);
   });
 
-  it("evolves from a yellow level 2 for 0 and exposes the printed 4000 DP", async () => {
+  it("retains BT11-003, evolves for 0, and draws exactly one card", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT11-003", as: "base" }],
         hand: [{ card: "BT11-035", as: "clear" }],
-        deck: ["BT1-001"],
+        deck: [
+          { card: "BT1-001", as: "drawA" },
+          { card: "BT1-002", as: "drawB" },
+        ],
       },
     });
     s.state.memory = 3;
+    const baseInstanceId = s.inst("base").instanceId;
+    const initialDeckInstanceIds = s.state.players[0]!.deck.map(({ instanceId }) => instanceId);
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
 
     expect(
       s.engine.applyIntent(0, {
@@ -46,6 +58,16 @@ describe("BT11-035 ClearAgumon", () => {
 
     expect(s.state.memory).toBe(3);
     expect(s.perm("base").currentDP).toBe(4000);
+    expect(s.perm("base").stack).toHaveLength(1);
+    expect(s.perm("base").stack[0]).toMatchObject({ cardId: "BT11-003", instanceId: baseInstanceId });
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(
+      s.state.players[0]!.hand.filter(({ instanceId }) => initialDeckInstanceIds.includes(instanceId)),
+    ).toHaveLength(1);
+    expect(
+      s.state.players[0]!.deck.filter(({ instanceId }) => initialDeckInstanceIds.includes(instanceId)),
+    ).toHaveLength(1);
     expect(s.decisions).toHaveLength(0);
   });
 
