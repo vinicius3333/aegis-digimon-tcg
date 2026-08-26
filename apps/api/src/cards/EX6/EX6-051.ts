@@ -37,7 +37,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               zone: "hand",
-              controllerDefault: "mine",
+              controller: "opponent",
             },
             count: 1,
           },
