@@ -451,3 +451,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: Kokuwamon beneath a real green level-4 host defeats a suspended lower-DP Mushroomon through the complete attack/battle/deletion pipeline and gains memory. Controlled secondary event drives isolate once-per-turn, different-winner, and opponent-turn boundaries without substituting for the production-path proof.
 - Behavioral proof: five focused cases prove catalog/IR fidelity, real battle deletion and zone result, exact host identity, +1 amount, source frequency, other-winner negative, and owner-turn negative.
 - Verification: focused suite — 5 passed; battle-deletion production mechanism exercised; focused lint/format and `git diff --check` — passed.
+
+## BT10-046 — Palmon — 10/10
+
+- Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Vegetation`. On Play reveals four, mandatorily adds up to one Vegetation-or-Plant-trait card and up to one Fairy-trait card, then bottoms the rest.
+- Knowledge base: Q1971 includes compound Plant traits such as Ancient Plant and Carnivorous Plant. Q1972 allows the sole available category to be added. Q1973 makes both available category selections mandatory rather than optional. No errata, restriction, or unresolved ambiguity remains.
+- Implementation: one `RevealAdd` reveals exactly four and exposes two independent mandatory count-one buckets. The first accepts exact Vegetation plus Plant-containing trait variants; the second accepts Fairy; all unselected identities go to deck bottom. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-046", compiled)`.
+- Primitive trace: On Play snapshots the next four physical deck identities; each bucket selects at most one still-unclaimed matching identity, mandatory availability prevents declining a populated bucket, and the shared remainder router preserves all nonselected cards while moving them to deck bottom.
+- Cross-card and stack proof: Mushroomon and Darcmon prove the ordinary Vegetation/Fairy pair; Palmon accepts real Carnivorous Plant BT1-071 under Q1971. A reveal with only the Plant match proves Q1972 while the two-category fixtures prove Q1973 adds both.
+- Behavioral proof: four focused cases prove catalog/IR fidelity, exact reveal count, both independent buckets, compound Plant matching, mandatory dual addition, sole-category addition, and bottoming all other cards.
+- Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
