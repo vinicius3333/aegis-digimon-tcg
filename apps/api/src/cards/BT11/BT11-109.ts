@@ -1,6 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
@@ -32,6 +32,14 @@ const compiled: CompiledCard = {
           targetIsPermanent: true,
           underFilter: { controller: "opponent", kind: ["Digimon"] },
           optional: true,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
+            },
+          },
         },
       ],
     },
