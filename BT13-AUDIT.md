@@ -155,7 +155,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-055 — 10/10
   - Evidence: catalog and KB Q2298 reviewed; completed the preserved WIP using exclusive `registerIrCard`, correcting Ruli ownership gating and atomically binding the paid hand SymbareAngoramon bottom-source placement to the selected Angoramon hand evolution host.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-055.test.ts` passed (7 tests): full hand evolution, missing Ruli/Symbare negatives, exact bottom placement, inherited own-turn frequency, normal evolution, and Q2298 inherited-security-before-Piercing ordering.
-- BT13-056 — Pending
+- BT13-056 — 10/10
+  - Evidence: catalog and KB Q2299–Q2301 reviewed; compiled IR exclusively uses `registerIrCard`, shares the Once Per Turn key between evolution/Main cost-reduced green-or-Royal-Knight plays, and applies the all-turn Blocker grant to all qualifying current and subsequently played Digimon.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-056.test.ts` passed (3 tests): shared IR frequency/cost structure, live registration, and Q2301 existing/new green-Digimon Blocker persistence through the opponent turn.
 - BT13-057 — Pending
 - BT13-058 — Pending
 - BT13-059 — Pending
