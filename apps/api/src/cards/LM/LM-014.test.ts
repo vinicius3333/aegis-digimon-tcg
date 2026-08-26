@@ -27,7 +27,26 @@ describe("LM-014 Espimon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId).sort()).toEqual(["BT1-020", "BT1-024"]);
   });
 
-  it("adds nothing when the three revealed cards are neither Tamers nor Draw cards", async () => {
+  it("adds a revealed card with Blocker rather than treating Draw as the missing catalog icon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "LM-014", as: "espimon" }],
+          deck: ["BT1-031", "BT1-020", "BT1-024"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("espimon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-031"), 2000);
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-031")).toBe(true);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId).sort()).toEqual(["BT1-020", "BT1-024"]);
+  });
+
+  it("adds nothing when the three revealed cards are neither Tamers nor Blockers", async () => {
     const s = setupEngine(
       {
         0: {
