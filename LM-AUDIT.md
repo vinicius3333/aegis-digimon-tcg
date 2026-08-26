@@ -152,14 +152,21 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   lacks the `<Blocker>` filter. The direct `registerIrCard` module resolves the printed card as
   `<Blocker> or Tamer`, and its focused fixtures distinguish Blocker from the inherited Draw
   keyword; this provenance discrepancy is recorded rather than repaired in generated metadata.
+  The authorized single serialized run passed 1/1 file and 6/6 tests in 2.85s on 2026-08-26 using
+  `vitest run src/cards/LM/LM-014.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-014 remains below 10/10 pending mechanism and collection gates.
 
 - Direct On Play reveal/add and opponent-turn once-per-turn draw watcher map to the interpreter.
   Its six focused tests previously passed 6/6, but collection proof remains incomplete, so below 10/10.
 
 ## LM-015 — Ryudamon — pending attack/evolution proof
 
-- Direct attack evolution is Tamer-gated and the Your Turn aura depends on the named trait. Seven
-  focused cases exist but remain unrun in this serial campaign; no local ruling exists, so below 10/10.
+- The direct IR requires a controller Tamer, optionally digivolves the attacking self into a hand
+  Ginryumon without cost, and gates the inherited +1000 DP on the live X Antibody trait during the
+  controller's turn. The catalog has no local KB entry; multiple Ginryumon printings share the
+  name and the direct name filter correctly admits them, while the historical aggregate retains a
+  weaker raw inherited condition. Static catalog/direct-IR review found no new causal gap; seven
+  focused cases are unrun, so LM-015 remains below 10/10.
 
 ## LM-016 — Gammamon — pending focused execution
 
