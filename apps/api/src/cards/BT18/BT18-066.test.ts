@@ -5,6 +5,30 @@ import "./BT18-064.js";
 import "./BT18-066.js";
 
 describe("BT18-066 Sephirothmon", () => {
+  it("uses its normal black level-3 evolution route for 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT18-059", as: "base" }],
+        hand: [{ card: "BT18-066", as: "sephirothmon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("sephirothmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT18-066");
+    expect(s.state.memory).toBe(7);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain("BT18-059");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-001");
+    assertNoLoudGap(s);
+  });
+
   it("places a level-4 Hybrid from trash and activates that card's On Play effect", async () => {
     const preferredInstanceIds: string[] = [];
     const s = setupEngine(
