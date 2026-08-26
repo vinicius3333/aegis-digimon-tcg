@@ -1837,3 +1837,44 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-044 — Sakuyamon — 10/10
+
+- Catalog evidence: Yellow Lv.6 Mega Digimon, Data/Shaman, play cost 12,
+  11000 DP, and yellow Lv.5 evolution cost 3. During the opponent's turn,
+  when one of their Digimon moves from breeding to battle, that Digimon gains
+  `<Security Attack -3>` for the turn. During its controller's turn, all
+  opposing Security Digimon get -3000 DP.
+- Knowledge-base and rules evidence: Q1328 confirms the first effect triggers
+  during the breeding phase. Q1329 confirms a Security Digimon reduced to 0
+  still battles; Q1330 confirms its Security effect still resolves; Q1331
+  confirms the reduction is gone if that effect plays it. The latter three
+  are the -3000 counterparts of BT5-038 Q1322-Q1324.
+- Implementation: `apps/api/src/cards/BT5/BT5-044.ts` installs an
+  opponent-turn `whenMovedFromBreeding` watcher filtered to the opponent and
+  grants the trigger subject `SecurityAttack` amount -3 for the turn. A
+  separate `YourTurn` continuous action applies opponent Security DP -3000.
+  The module declares `coverage: "full"`, `residual: []`, and registers
+  exclusively through `registerIrCard("BT5-044", compiled)`.
+- Primitive, peer, and ruling evidence: the breeding move fires its watcher
+  during the breeding phase with the moved permanent as trigger subject;
+  duration cleanup removes the keyword at that turn's end. Watchers are
+  re-derived under the opponent-turn guard, so the same event on the
+  controller's turn is ignored. BT5-038 directly proves the shared Security
+  battle, Security effect, and played-card DP rulings; Security-DP and
+  subtrigger seam suites cover the two reusable mechanisms.
+- Behavioral proof: 3 focused tests prove Q1328 through a real
+  `moveFromBreeding` intent, exact -3 on only the moved Digimon, expiry after
+  the opponent's turn, no watcher on the controller's turn, exact opposing
+  Security -3000 on the controller's turn, and its absence on the opponent's
+  turn.
+- Defect corrected: none in the module. The implementation was already
+  faithful; the focused tests were strengthened for turn gating and actual
+  duration expiry.
+- Verification: focused BT5-044, exact ruling peer BT5-038, Security-DP, and
+  subtrigger seam suites — 4 files, 36 tests passed. Targeted Oxfmt, Oxlint,
+  and `git diff --check` pass. Workspace typecheck retains only the known
+  unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
