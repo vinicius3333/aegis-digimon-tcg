@@ -18,7 +18,7 @@ describe("EX6-058 Creepymon", () => {
         {
           kind: "PlaceUnder",
           target: { filter: { zone: "trash" } },
-          underFilter: { zone: "breedingArea", nameOrTrait: [{ match: "name", tokens: ["Gate of Deadly Sins"] }] },
+          underFilter: { zone: "breeding", nameOrTrait: [{ match: "name", tokens: ["Gate of Deadly Sins"] }] },
           position: "bottom",
         },
       ],

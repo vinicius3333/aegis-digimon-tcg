@@ -95,7 +95,7 @@ export const compiled: CompiledCard = {
               },
               underFilter: {
                 controller: "mine",
-                zone: "breedingArea",
+                  zone: "breeding",
                 nameOrTrait: [
                   {
                     tokens: ["Gate of Deadly Sins"],

@@ -13,7 +13,7 @@ describe("EX6-060 Belphemon: Sleep Mode", () => {
       kind: "Replacement",
       leaveCause: "otherThanBattle",
       actions: [
-        { kind: "PlaceUnder", target: { from: ["trash"] }, position: "bottom", underFilter: { zone: "breedingArea" } },
+        { kind: "PlaceUnder", target: { from: ["trash"] }, position: "bottom", underFilter: { zone: "breeding" } },
       ],
     }));
 });
