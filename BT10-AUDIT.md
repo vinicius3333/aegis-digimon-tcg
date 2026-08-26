@@ -472,6 +472,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: four focused cases prove catalog/IR fidelity, exact evolution cost and target ownership, real suspend/battle/delete/unsuspend flow, first-only frequency, -2 memory without a Tamer, and no loss with a Tamer.
 - Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-055 — Gryphonmon — 10/10
+
+- Catalog evidence: green/yellow level 6 Digimon, play cost 10, 13000 DP; evolves from either green or yellow level 5 for 3; form `Mega`, attribute `Data`, type `Mythical Beast`; it has no main, inherited, or Security effect text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-055` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct compiled module intentionally has an empty effect list with full coverage and no residual clauses, and registers exclusively through `registerIrCard("BT10-055", compiled)`. All executable behavior is catalog-driven ordinary play and its two color evolution recipes.
+- Primitive trace: evolution legality independently accepts either printed level-5 color, charges 3, performs the evolution draw, and retains the base as a source. Direct play charges printed cost 10 and creates a 13000-DP multicolor permanent without an effect window.
+- Cross-card and stack proof: green Lamortmon and yellow Weddinmon independently prove both catalog evolution routes with retained stacks, while a third physical Gryphonmon proves direct play.
+- Behavioral proof: two focused cases assert complete catalog identity, exact empty IR, both legal evolution colors and cost, direct play cost, final memory and zones, and absence of effect decisions.
+- Verification: focused suite — 2 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
