@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -10,7 +9,7 @@ describe("BT19-046 Chamblemon", () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine({
       0: { hand: [{ card: "BT19-046", as: "chamble" }], deck: ["BT19-030"] },
-      1: { battleArea: [
+      1: { deck: ["BT19-030", "BT19-031"], battleArea: [
         { card: "BT19-044", as: "nonData" },
         { card: "BT19-037", as: "chosenData" },
         { card: "BT1-068", as: "otherData" },
@@ -33,13 +32,17 @@ describe("BT19-046 Chamblemon", () => {
     expect(observe(s.engine).isRestricted(s.perm("chosenData"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("otherData"), "unsuspend")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("nearMatch"), "unsuspend")).toBe(false);
-    const unsuspendForActivePhase = (
-      s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> }
-    ).unsuspendForActivePhase.bind(s.engine);
-    const flipped = await unsuspendForActivePhase(1);
+    await advance(s.engine).runTurn(0);
     expect(s.perm("chosenData").isSuspended).toBe(true);
-    expect(flipped).not.toContain(s.perm("chosenData").permanentId);
-    advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 1);
+    expect(observe(s.engine).isRestricted(s.perm("chosenData"), "unsuspend")).toBe(true);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("chosenData").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("chosenData"), "unsuspend")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
     expect(observe(s.engine).isRestricted(s.perm("chosenData"), "unsuspend")).toBe(false);
   });
 
@@ -61,8 +64,39 @@ describe("BT19-046 Chamblemon", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-067"]);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT19-046")).toBe(false);
     expect(s.state.memory).toBe(3);
-    expect([s.perm("nonData"), s.perm("data")].filter((p) => p.isSuspended)).toHaveLength(1);
+    expect(s.perm("nonData").isSuspended).toBe(true);
+    expect(s.perm("data").isSuspended).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("data"), "unsuspend")).toBe(true);
+  });
+
+  it("still restricts Data when the preceding Suspend action has zero legal targets", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT19-046", as: "chamble" }], deck: ["BT19-030"] },
+      1: { battleArea: [
+        { card: "BT19-044", as: "already", suspended: true },
+        { card: "BT19-037", as: "data", suspended: true },
+      ] },
+    }, { autoSelectCards: true });
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, {
+      type: "playCard", instanceId: s.inst("chamble").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("data"), "unsuspend"));
+    expect(s.perm("already").isSuspended).toBe(true);
+    expect(s.perm("data").isSuspended).toBe(true);
+  });
+
+  it("still suspends an eligible Digimon when the following Data restriction has zero targets", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT19-046", as: "chamble" }], deck: ["BT19-030"] },
+      1: { battleArea: [{ card: "BT19-044", as: "nonData" }] },
+    }, { autoSelectCards: true });
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, {
+      type: "playCard", instanceId: s.inst("chamble").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("nonData").isSuspended);
+    expect(observe(s.engine).isRestricted(s.perm("nonData"), "unsuspend")).toBe(false);
   });
 
   it("does not offer an already-suspended Digimon for the first Suspend target", async () => {
