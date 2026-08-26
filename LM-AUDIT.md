@@ -105,13 +105,18 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 
 - Q3998/Q3999 require both source and destination Angoramon-text matching for suspend/cost
   replacement, and prevent post-evolution Rush from this source. Direct replacement/watcher IR
-  is pay-time and self-suspension-bound; focused cases are unrun, so LM-009 remains below 10/10.
+  is pay-time and self-suspension-bound. The authorized single serialized run passed 1/1 file and
+  7/7 tests in 12.97s on 2026-08-26 using
+  `vitest run src/cards/LM/LM-009.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-009 remains below 10/10 pending mechanism and collection gates.
 
 ## LM-010 — Chamblemon — pending focused execution
 
 - Direct IR maps Tamer suspension/restriction and the Tamer-count-dependent all-turn DP modifier.
   The restriction is a live opponent-seat filter and the DP count includes both owners' suspended
-  Tamers. Existing six focused cases are unrun, so LM-010 remains below 10/10.
+  Tamers. LM-010 has no local KB entries; source, direct IR, and focused fixtures currently show
+  no new causal implementation gap. Existing six focused cases are unrun, so LM-010 remains below
+  10/10.
 
 ## LM-011 — SymbareAngoramon — pending focused execution
 
