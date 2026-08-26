@@ -26,7 +26,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-012 — 10/10
   - Evidence: catalog and KB Q2270/Q2271 plus restriction reviewed; compiled IR exclusively uses `registerIrCard`, tracing alternate Agumon/Dinosaur evolution, private security selection, conditional recovery/shuffle, and inherited red-or-yellow Tamer deletion through targets, zones, optionality, and frequency.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-012.test.ts` passed (4 tests): alternate evolution/security play/recovery, Q2271 no-candidate result, decline result, and inherited DP boundary with once-per-turn limit.
-- BT13-013 — Pending
+- BT13-013 — 10/10
+  - Evidence: catalog and KB Q2272/Q2273 reviewed; compiled IR exclusively uses `registerIrCard`. Corrected the cost-replacement scope so it is armed only by the Sistermon-triggered evolution, not for unrelated normal evolutions; traced Sistermon name/controller timing, paid reduction, inherited source/frequency, and Q2272 trigger ordering.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-013.test.ts` passed (5 tests): Sistermon-triggered stack evolution at reduced cost, Q2272 no retroactive inherited trigger, decline, inherited once-per-turn, and normal-evolution full-cost negative.
 - BT13-014 — Pending
 - BT13-015 — Pending
 - BT13-016 — Pending
