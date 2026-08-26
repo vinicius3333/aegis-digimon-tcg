@@ -451,3 +451,9 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Catalog evidence: Tekkamon is a black level-5 Machine with one executable clause, Reboot: it unsuspends during its controller's opponent's unsuspend phase. The local knowledge base has no specific ruling or erratum.
 - Source audit correction: direct IR correctly represents Reboot as its static keyword alone, whose timing is owned by the phase rules. Shared IR additionally ran an immediate `Unsuspend` action in the static effect, which is neither printed nor the Reboot timing; that redundant action is removed.
 - Verification status: no focused test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; observable owner/opponent unsuspend-phase timing and direct/shared equality remain required.
+
+## BT11-067 — Gigadramon — source correction pending focused verification
+
+- Catalog evidence: Gigadramon has printed Jamming and an inherited Reboot keyword. The local knowledge base has no specific ruling or erratum.
+- Source audit correction: direct IR correctly uses static Jamming plus an inherited static Reboot keyword. Shared IR added an immediate Unsuspend action to the inherited static effect, bypassing the printed opponent-unsuspend-phase timing; that action is removed.
+- Verification status: no focused test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Jamming security-battle protection, inherited Reboot phase timing, stack persistence, and direct/shared equality remain required.
