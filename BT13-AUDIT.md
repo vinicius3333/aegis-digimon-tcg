@@ -252,7 +252,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-087 — 10/10
   - Registration: exclusive `registerIrCard("BT13-087", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-087.test.ts` passed (3 tests): reveal/add/trash clauses and the live Royal Knight play deletion watcher are covered.
-- BT13-088 — Pending
+- BT13-088 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-088", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-088.test.ts` passed (3 tests): Rage Mode placement, conditional immunity, and once-per-turn attack-end watcher are executable.
 - BT13-089 — Pending
 - BT13-090 — Pending
 - BT13-091 — Pending
