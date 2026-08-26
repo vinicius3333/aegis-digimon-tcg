@@ -196,3 +196,20 @@ Remaining work is focused behavioral proof of the Main/Delay/Security lifecycle;
 10. **Reproducible behavioral proof (0/1):** No test was executed in this static-only pass; qualifying/non-qualifying trait, no-target use, suspension, and Security return remain unproven.
 
 Remaining work is focused proof of Q1669's no-target boundary and trait matching; this card is not formally complete at 10/10.
+
+## BT7-100 — Qualialise Blast — 8/10 (static audit; fidelity finding)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a Yellow Option with variable hand-use cost, -3000 DP Main effect, Rasenmon Security Attack +1 grant, and Security return-to-hand.
+2. **Variable cost (0/1):** The IR models the hand cost from security count but includes `floor: 1`; Q1667 explicitly confirms an empty security stack makes the cost 0, so this floor is a likely fidelity bug.
+3. **DP effect (1/1):** Main selects one opponent Digimon and applies -3000 DP for the turn.
+4. **Rasenmon effect (1/1):** Main then selects one owner Digimon with `Rasenmon` in its name and grants Security Attack +1 for the turn.
+5. **Timing/ruling boundary (1/1):** The grant targets a Rasenmon already in play; Q1668 confirms a Rasenmon played later cannot receive it.
+6. **Security behavior (1/1):** Security uses `AddToHandSelf`.
+7. **Knowledge base (1/1):** The KB returns Q1501, Q1667, and Q1668; no ambiguity is surfaced beyond the cost-floor discrepancy.
+8. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-100", compiled)` registration are present.
+9. **Static primitive trace (1/1):** Security scaling, opponent target, Rasenmon name filter, amounts, and turn durations are explicit.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; empty-security cost, exact turn duration, target boundaries, and Q1668 timing remain unproven.
+
+Required follow-up: remove or justify the `floor: 1` cost clamp so an empty security stack can produce cost 0, then add behavioral proof. This card is not formally complete at 10/10.
