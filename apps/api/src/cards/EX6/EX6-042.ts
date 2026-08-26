@@ -27,7 +27,7 @@ export const compiled: CompiledCard = {
               { kind: "payMemory", memory: 2 },
               {
                 kind: "place",
-                target: { filter: { zone: "hand", controller: "mine", kind: ["Option"] }, count: 1, from: ["hand"] },
+                target: { filter: { isSelfRef: true }, count: 1, from: ["hand"] },
                 underFilter: { controller: "mine", kind: ["Digimon"], levels: [5] },
                 underOrFilters: [
                   { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Legend-Arms"], match: "trait" }] },
@@ -51,6 +51,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          sourceFilter: {
+            isSelfRef: true,
+          },
           actions: [
             {
               kind: "GainKeyword",
@@ -96,6 +99,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
+          leaveCause: "otherThanYourEffect",
           actions: [
             {
               kind: "Prevent",
@@ -103,8 +107,12 @@ export const compiled: CompiledCard = {
                 kind: "trash",
                 target: {
                   filter: {
-                    controllerDefault: "mine",
+                    controller: "mine",
                     kind: ["Digimon"],
+                    zone: "digivolutionCards",
+                    hostFilter: {
+                      isSelfRef: true,
+                    },
                     nameOrTrait: [
                       {
                         tokens: ["Legend-Arms"],
