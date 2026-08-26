@@ -282,3 +282,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-014.
+
+## BT25-015 — Garudamon — 10/10
+
+- Catalog evidence: Red/green level-5 Digimon, play cost 7, 7000 DP; alternate level-4 Giant Bird/TS evolution for 3; Raid and Fortitude; On Play/When Digivolving delete one opposing Digimon with 6000 DP or less; inherited `[All Turns] [Once Per Turn]` after this Digimon wins a battle, trash the opponent's top security.
+- Knowledge base: Q6261 rules that the inherited effect cannot activate when both battle participants are deleted at the same timing.
+- Implementation: the direct IR exposes executable Raid/Fortitude keyword markers, two exact-boundary Delete entry effects, the alternate evolution recipe, and an inherited once-per-turn `whenDeletesInBattle` watcher scoped to this Digimon that trashes exactly the opponent's top security. The battle-deletion dispatch only emits the winning-source event when the attacker survives, satisfying Q6261. The module has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-015", compiled)`.
+- Behavioral proof: the focused suite verifies the full compiled contract. The delegated audit ran the analogous BT20-034 plus Raid/Fortitude mechanism suites, covering live keyword behavior, DP boundary deletion, source identity, battle victory/survival, once-per-turn scope, security destination, and evolution-stack visibility. No defect was found, so no test or implementation change was needed.
+- Verification: focused suite — 2 passed; peer/mechanism regressions — 58 passed; `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-015 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-015
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-015.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-015.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-015.
