@@ -1,11 +1,32 @@
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type PlayerState } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT9-074.js";
+import { compiled } from "./BT9-091.js";
 import "./BT9-091.js";
 
 describe("BT9-091 Meiko Mochizuki", () => {
+  it("matches catalog values and the optional reveal, exact-color, and security IR", () => {
+    expect(getCardDefinition("BT9-091")).toMatchObject({
+      colors: ["Purple"], kinds: ["Tamer"], playCost: 3,
+      securityEffectText: "[Security] Play this card without paying its memory cost.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        {
+          trigger: "OnPlay",
+          actions: [{
+            kind: "RevealAdd", revealCount: 3, optional: true,
+            add: [{ filter: { kind: ["Digimon"], colors: ["Yellow", "Purple"] } }], rest: "trash",
+          }],
+        },
+        { trigger: "AllTurns", actions: [{ kind: "SubTrigger", event: "whenPlayed", sourceFilter: { multicolor: true, and: [{ colors: ["Purple"] }, { colors: ["Yellow"] }] }, actions: [{ kind: "GainMemory", amount: 1, optional: true, cost: { kind: "suspend" } }] }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
+      ],
+    });
+  });
+
   it("adds Meicoomon and trashes the other revealed cards", async () => {
     const s = setupEngine(
       {
