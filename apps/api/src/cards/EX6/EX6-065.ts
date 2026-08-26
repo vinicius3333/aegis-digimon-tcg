@@ -64,7 +64,6 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "PlaceInBattleAreaSelf",
-          optional: true,
         },
       ],
     },
@@ -72,30 +71,40 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldLeavePlay",
+          kind: "SubTrigger",
+          event: "whenDigimonWouldLeave",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
           },
           actions: [
             {
-              kind: "PlayWithoutCost",
+              kind: "GainKeyword",
               target: {
                 filter: {
-                  controllerDefault: "mine",
-                  nameOrTrait: [
-                    {
-                      tokens: ["Legend-Arms"],
-                      match: "trait",
-                    },
-                  ],
+                  isSelfRef: true,
                 },
                 count: 1,
+                isSelf: true,
               },
-              payCost: false,
+              keyword: { keyword: "Delay" },
+              duration: "permanent",
             },
           ],
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      keywords: [{ keyword: "Delay" }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { controller: "mine", zone: "digivolutionCards", sourceRef: "triggerSubject", nameOrTrait: [{ tokens: ["Legend-Arms"], match: "trait" }] }, count: 1 },
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+          requiresDelayArmed: true,
         },
       ],
     },
