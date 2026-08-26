@@ -213,3 +213,20 @@ Remaining work is focused proof of Q1669's no-target boundary and trait matching
 10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; empty-security cost, exact turn duration, target boundaries, and Q1668 timing remain unproven.
 
 Required follow-up: remove or justify the `floor: 1` cost clamp so an empty security stack can produce cost 0, then add behavioral proof. This card is not formally complete at 10/10.
+
+## BT7-099 — Electric Rush — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a Yellow Option costing 2 with Main +3000 DP and conditional unsuspend effects, plus Security return-to-hand.
+2. **DP effect (1/1):** Main grants exactly one owner Digimon +3000 DP for the turn.
+3. **Security-count condition (1/1):** The unsuspend branch requires exactly three cards in the owner's security stack.
+4. **Unsuspend target (1/1):** The branch unsuspends exactly one owner Digimon.
+5. **Ordering and duration (1/1):** The +3000 action precedes unsuspend, and the modifier uses `forTheTurn`.
+6. **Security behavior (1/1):** Security uses `AddToHandSelf`.
+7. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-099` reports no rulings or unresolved ambiguity.
+8. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-099", compiled)` registration are present.
+9. **Static primitive trace (1/1):** Owner controller, Digimon kind, exact counts, security zone, exact equality, amount, and duration are explicit.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; exact three-security boundary, target selection, duration, and Security behavior remain unproven.
+
+Remaining work is focused behavioral proof of the conditional boundary and turn duration; this card is not formally complete at 10/10.
