@@ -315,3 +315,20 @@ Required follow-up: bind the first selected Digimon for the second modifier (or 
 10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; zero/one/two target choices, exact 8000 boundary, and Security activation remain unproven.
 
 Remaining work is focused behavioral proof of the DP boundary and up-to count; this card is not formally complete at 10/10.
+
+## BT7-093 — Firedrake Strike — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red Option costing 4; Main chooses an owner Hybrid Digimon then deletes one opposing Digimon with DP no greater than the chosen Digimon's DP; Security optionally plays Takuya Kanbara from hand or trash for free.
+2. **Source selection (1/1):** `SelectBind` chooses exactly one owner Digimon with the Hybrid trait.
+3. **Relative DP target (1/1):** The deletion target is one opponent Digimon with `relativeTo` the bound selection's DP using `lte`.
+4. **Security behavior (1/1):** Security optionally plays one named Takuya Kanbara from hand or trash without cost.
+5. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-093` reports no rulings or unresolved ambiguity.
+6. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-093", compiled)` registration are present.
+7. **Static primitive trace (1/1):** Hybrid filter, owner/opponent controllers, bound selection identity, DP comparison, source zones, optionality, and free play are explicit.
+8. **Clause completeness (1/1):** Main and Security clauses are fully represented with correct sequencing and count.
+9. **Reference fidelity (1/1):** `selectionRef: "selected"` ensures the deletion threshold is computed from the chosen Digimon rather than a global or reselected source.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; exact equal-DP boundary, smaller/larger targets, Hybrid exclusion, and Security optional play remain unproven.
+
+Remaining work is focused behavioral proof of the relative DP boundary and Security branch; this card is not formally complete at 10/10.
