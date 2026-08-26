@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-103.js";
+import { compiled } from "./BT11-103.js";
 
 describe("BT11-103 Poison Powder", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-103")).toMatchObject({ cardId: "BT11-103", colors: ["Green"], kinds: ["Option"], playCost: 3 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
+      { trigger: "Main", actions: [{ kind: "GrantAuraToOpponents", event: "whenSuspended" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+    ]);
+  });
+
   it("makes every current opposing Digimon lose 1 memory when each becomes suspended", async () => {
     const s = setupEngine({
       0: { battleArea: ["BT1-088"], hand: [{ card: "BT11-103", as: "option" }] },
