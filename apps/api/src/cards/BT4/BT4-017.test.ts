@@ -79,4 +79,22 @@ describe("BT4-017 RizeGreymon", () => {
 
     expect(s.perm("target").currentDP).toBe(s.perm("target").baseDP - 2000);
   });
+
+  it("does not reduce DP from its inherited effect when you have no Tamer", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-018", as: "host", under: ["BT4-017"] }] },
+      1: { battleArea: [{ card: "BT1-019", as: "target" }], security: ["BT1-001"] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+
+    expect(s.perm("target").currentDP).toBe(s.perm("target").baseDP);
+  });
 });
