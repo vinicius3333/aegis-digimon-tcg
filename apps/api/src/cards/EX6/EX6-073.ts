@@ -15,7 +15,11 @@ export const compiled: CompiledCard = {
       .filter((action) => !(action.kind === "RawUnparsed" && action.text.includes("reduce the cards trashed by 1")))
       .map((action) => {
         if (action.kind === "PlaceUnder") {
-          return { ...action, trackCount: placedCountSource };
+          return {
+            ...action,
+            target: { ...action.target, distinctNames: true },
+            trackCount: placedCountSource,
+          };
         }
         if (action.kind === "Delete" && action.condition?.kind === "raw") {
           return {
@@ -30,12 +34,13 @@ export const compiled: CompiledCard = {
             cost:
               action.cost?.kind === "return"
                 ? {
-                    ...action.cost,
-                    position: "bottom",
-                    target: {
-                      ...action.cost.target,
-                      filter: { ...action.cost.target.filter, zone: "digivolutionCards", sameHost: true },
-                    },
+                      ...action.cost,
+                      position: "bottom",
+                      target: {
+                        ...action.cost.target,
+                        distinctNames: true,
+                        filter: { ...action.cost.target.filter, zone: "digivolutionCards", sameHost: true },
+                      },
                   }
                 : action.cost,
             trackCount: deletedCountSource,
