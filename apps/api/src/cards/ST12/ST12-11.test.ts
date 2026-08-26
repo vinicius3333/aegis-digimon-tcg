@@ -90,4 +90,20 @@ describe("ST12-11 [When Digivolving] plays Huckmon or Sistermon-name from trash 
     // The non-matching card should remain in trash.
     expect(p0.trash.some((c) => c.instanceId === otherId)).toBe(true);
   });
+
+  it("may decline the free play and leave a matching Huckmon in trash", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: LV5_BASE, as: "base" }], trash: [{ card: HUCKMON, as: "huckmon" }], hand: [{ card: GANKOOMON, as: "card" }] } },
+      { autoOrderTriggers: true },
+    );
+    const huckmonId = s.inst("huckmon").instanceId;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("card").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const pending = s.state.pendingDecision!;
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pending.decisionId, response: { kind: "optional", accept: false } })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === huckmonId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === huckmonId)).toBe(false);
+  });
 });

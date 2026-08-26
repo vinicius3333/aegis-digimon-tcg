@@ -142,7 +142,7 @@ describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight
         },
         1: { security: ["BT1-001"] },
       },
-      { autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     const sisterId = s.inst("sister").instanceId;
     expect(
@@ -152,60 +152,25 @@ describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => {
-      const latest = s.decisions.at(-1)?.req;
-      return latest?.kind === "optional" && latest.decisionId === s.state.pendingDecision?.decisionId;
-    });
-
-    const optional = s.decisions.at(-1)!.req;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: optional.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-
-    await settle(() => {
-      const latest = s.decisions.at(-1)?.req;
-      return latest?.kind === "selectCards" && latest.decisionId === s.state.pendingDecision?.decisionId;
-    });
-    const selection = s.decisions.at(-1)!.req;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: selection.decisionId,
-        response: { kind: "selectCards", instanceIds: [sisterId] },
-      }),
-    ).toEqual({ ok: false, reason: "decision-pending" });
-
-    await settle(() => {
-      const latest = s.decisions.at(-1)?.req;
-      return latest?.kind === "optional" && latest.decisionId === s.state.pendingDecision?.decisionId;
-    });
-    const blancCost = s.decisions.at(-1)!.req;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: blancCost.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: false, reason: "decision-pending" });
-
-    await settle(() => {
-      const latest = s.decisions.at(-1)?.req;
-      return latest?.kind === "selectCards" && latest.decisionId === s.state.pendingDecision?.decisionId;
-    });
-    const costSelection = s.decisions.at(-1)!.req;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: costSelection.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("cost").instanceId] },
-      }),
-    ).toEqual({ ok: false, reason: "decision-pending" });
-
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sisterId));
     expect(s.state.players[0]!.trash.some((c) => c.instanceId === sisterId)).toBe(false);
+  });
+
+  it("may decline the free play and leave the Sistermon in trash", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST12-10", as: "royal", under: ["ST12-08"] }], trash: [{ card: "ST12-12", as: "sister" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoOrderTriggers: true },
+    );
+    const sisterId = s.inst("sister").instanceId;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("royal").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const pending = s.state.pendingDecision!;
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pending.decisionId, response: { kind: "optional", accept: false } })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === sisterId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sisterId)).toBe(false);
   });
 });
