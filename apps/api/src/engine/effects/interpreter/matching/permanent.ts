@@ -624,7 +624,15 @@ export function permanentMatchesFilter(
     if (effective !== undefined) {
       const wanted = filter.kind.map((k) => KIND_MAP[k]);
       const tokenAsDigimon = filter.allowTokens === true && def.isToken === true && wanted.includes(CardKind.Digimon);
-      if (!tokenAsDigimon && !wanted.some((k) => effective.includes(k))) return false;
+      const liveDigimon =
+        permanent.topCard.faceUp !== false &&
+        wanted.includes(CardKind.Digimon) &&
+        (def.kinds.includes(CardKind.Digimon) ||
+          // A Digi-Egg card only forms a legal battle-area Digimon when its own definition
+          // supplies DP (EX2-007 Mother D-Reaper). Do not let synthetic/invalid battle-area
+          // fixtures turn an ordinary no-DP level-2 egg such as BT1-001 into an effect target.
+          (def.kinds.includes(CardKind.DigiEgg) && typeof def.dp === "number" && def.dp > 0));
+      if (!tokenAsDigimon && !liveDigimon && !wanted.some((k) => effective.includes(k))) return false;
       // Strip kind from filter so definitionMatches doesn't double-check against static def.kinds
       const { kind: _k, ...rest } = filter;
       filter = rest;

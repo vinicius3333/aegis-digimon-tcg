@@ -111,6 +111,22 @@ function digivolveIntoTarget(action: Extract<Action, { kind: "Digivolve" }>): Ta
       };
 }
 
+function filterToTriggeredSource(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Digivolve" }>,
+  candidates: LooseCandidate[],
+): LooseCandidate[] {
+  const instanceId =
+    action.source === "triggerSource"
+      ? ctx.source.instanceId
+      : action.source === "triggerTrashedFromHand"
+        ? ctx.trigger.trashedFromHandInstanceId
+        : undefined;
+  return action.source === undefined
+    ? candidates
+    : candidates.filter((candidate) => candidate.instanceId === instanceId);
+}
+
 /**
  * Synchronous preflight for an optional effect-driven digivolution. It mirrors the source
  * zones, destination filter and printed-requirement gate used by runDigivolve, but opens no
@@ -121,7 +137,7 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
   const intoTarget = digivolveIntoTarget(action);
   if (intoTarget === undefined) return false;
   const zones: ZoneRef[] = action.from ?? ["hand", "trash"];
-  let pool = candidateLooseInstances(ctx, intoTarget, zones);
+  let pool = filterToTriggeredSource(ctx, action, candidateLooseInstances(ctx, intoTarget, zones));
   if (action.amongPreviousSearch) {
     const searched = new Set((ctx.lastRevealedCards ?? []).map((card) => card.instanceId));
     pool = pool.filter((candidate) => searched.has(candidate.instanceId));
@@ -173,9 +189,7 @@ function visibleDigivolveSourceIds(
   zones: ZoneRef[],
 ): string[] {
   let visible = candidateLooseInstances(ctx, { filter: { controllerDefault: "mine" }, count: "all" }, zones);
-  if (action.source === "triggerSource") {
-    visible = visible.filter((candidate) => candidate.instanceId === ctx.source.instanceId);
-  }
+  visible = filterToTriggeredSource(ctx, action, visible);
   if (action.amongPreviousSearch) {
     const searched = new Set((ctx.lastRevealedCards ?? []).map((card) => card.instanceId));
     visible = visible.filter((candidate) => searched.has(candidate.instanceId));
@@ -234,7 +248,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
     const candidates = legalIntoCandidates(
       ctx,
       pid,
-      candidateLooseInstances(ctx, intoTarget, zones),
+      filterToTriggeredSource(ctx, action, candidateLooseInstances(ctx, intoTarget, zones)),
       !ignoreRequirements,
       intoTarget.filter.digivolutionCostMax,
       ignoreLevel,
@@ -308,10 +322,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
   /** The `into` pool as it stands right now, before any base-specific legality. */
   const intoPool = (): LooseCandidate[] => {
     if (intoTarget === undefined) return [];
-    let candidates = candidateLooseInstances(ctx, intoTarget, zones);
-    if (action.source === "triggerSource") {
-      candidates = candidates.filter((candidate) => candidate.instanceId === ctx.source.instanceId);
-    }
+    let candidates = filterToTriggeredSource(ctx, action, candidateLooseInstances(ctx, intoTarget, zones));
     if (action.amongPreviousSearch) {
       const searched = new Set((ctx.lastRevealedCards ?? []).map((card) => card.instanceId));
       candidates = candidates.filter((candidate) => searched.has(candidate.instanceId));

@@ -86,6 +86,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "Return" &&
     action.cost !== undefined &&
+    action.allowCostWithoutTarget !== true &&
     !returnsLooseCard &&
     !returnBoundProducedByCost &&
     action.target.filter.dpLessOrEqualToSuspendedDigimon !== true &&

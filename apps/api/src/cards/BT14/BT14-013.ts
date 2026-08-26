@@ -35,10 +35,17 @@ export const compiled: CompiledCard = {
           kind: "Attack",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           withoutSuspending: false,
+          drainTimingWindowDuringAttack: true,
           optional: true,
           condition: {
-            kind: "selfHasTrait",
-            filter: { nameOrTrait: [{ tokens: ["Tyrannomon", "Dinosaur", "Ceratopsian"], match: "trait" }] },
+            kind: "anyOf",
+            conditions: [
+              { kind: "selfHasNameContaining", names: ["Tyrannomon"] },
+              {
+                kind: "selfHasTrait",
+                filter: { nameOrTrait: [{ tokens: ["Dinosaur", "Ceratopsian"], match: "trait" }] },
+              },
+            ],
           },
         },
       ],

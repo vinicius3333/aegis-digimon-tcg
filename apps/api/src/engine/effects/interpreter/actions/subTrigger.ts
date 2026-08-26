@@ -299,6 +299,20 @@ export async function runSubTrigger(
       ? (subCtx: EffectContext): boolean =>
           subCtx.trigger.byEffectSeat !== undefined || subCtx.trigger.byEffectCardId !== undefined
       : undefined;
+  const digimonReturnsToHandGate =
+    event === "whenDigimonReturnsToHand"
+      ? (subCtx: EffectContext): boolean => {
+          const seat = subCtx.trigger.returnedDigimonToHandSeat;
+          const returnedIds = subCtx.trigger.returnedDigimonToHandInstanceIds ?? [];
+          if (seat === undefined || returnedIds.length === 0) return false;
+          const scope = sourceFilter?.controller ?? sourceFilter?.controllerDefault;
+          if (scope === "mine" && seat !== subCtx.source.ownerSeat) return false;
+          if (scope === "opponent" && seat === subCtx.source.ownerSeat) return false;
+          return sourceFilter?.excludeSelf === true
+            ? returnedIds.some((instanceId) => instanceId !== subCtx.source.instanceId)
+            : true;
+        }
+      : undefined;
   const requireByEffectGate =
     action.requireByEffect === true
       ? (subCtx: EffectContext): boolean =>
@@ -846,6 +860,7 @@ export async function runSubTrigger(
   const gates = [
     filterMatch,
     digivolutionTrashByEffectGate,
+    digimonReturnsToHandGate,
     requireByEffectGate,
     deletionSourceFilterGate,
     ownerMainPhaseGate,

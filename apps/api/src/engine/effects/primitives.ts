@@ -3493,7 +3493,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (card.instanceId === instanceId || collected.length === 1) {
           // A Digi-Egg selected by a generic "return ... to hand" effect cannot enter a hand;
           // it returns face-down to the bottom of its owner's Digi-Egg deck (KB BT25-080 Q6715).
-          if (requireCardDefinition(card.cardId).kinds.includes(CardKind.DigiEgg)) {
+          const definition = requireCardDefinition(card.cardId);
+          if (definition.isToken === true) {
+            // A token can pay a return-to-hand processing condition, but ceases to exist instead
+            // of entering any zone (BT14-030 Q2404). Keep it in `moved` as a successful leave
+            // receipt while deliberately excluding it from hand-addition trigger payloads.
+            moved.push(card);
+          } else if (definition.kinds.includes(CardKind.DigiEgg)) {
             card.faceUp = false;
             insertCard(player(card.ownerSeat), Zone.EggDeck, card);
             moved.push(card);
@@ -3932,6 +3938,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const faceUp = opts?.faceUp ?? false;
     const added: CardInstance[] = [];
     const trashedAttachments: CardInstance[] = [];
+    const overflowLeavers: CardInstance[] = [];
     for (const instanceId of instanceIds) {
       if (opts?.detachPermanentTop === true) {
         let permanent: Permanent | undefined;
@@ -3973,10 +3980,20 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         else insertCard(p, Zone.Security, detached);
         ledger.dropSourceInstances(state, [detached.instanceId]);
         added.push(detached);
+        overflowLeavers.push(detached);
         continue;
       }
+      const leavesBattleArea = state.players.some((owner) =>
+        owner.battleArea.some(
+          (permanent) =>
+            permanent.topCard?.instanceId === instanceId ||
+            permanent.stack.some((card) => card.instanceId === instanceId) ||
+            permanent.linked.some((card) => card.instanceId === instanceId),
+        ),
+      );
       const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
       if (collected === undefined) continue;
+      if (leavesBattleArea) overflowLeavers.push(...collected);
       for (const card of collected) {
         if (card.instanceId === instanceId || collected.length === 1) {
           card.faceUp = faceUp;
@@ -3992,7 +4009,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     }
     // <Overflow> (CR §4-18): a permanent moved to security is the same genuine leave as a
     // hand/deck bounce — security is neither the field nor under a card.
-    applyOverflow(engine.memory, [...added, ...trashedAttachments], state.turnSeat);
+    applyOverflow(engine.memory, overflowLeavers, state.turnSeat);
     if (trashedAttachments.length > 0) {
       engine.emit({
         kind: "cardsMoved",

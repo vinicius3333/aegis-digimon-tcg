@@ -4327,13 +4327,21 @@ export class GameEngine {
 
   /** Allocate a permanentId unique within the match (subsystem: play-card / digivolve). */
   private nextPermanentId(): string {
-    this.permanentSeq += 1;
-    return `perm-${this.permanentSeq}`;
+    let candidate: string;
+    do {
+      this.permanentSeq += 1;
+      candidate = `perm-${this.permanentSeq}`;
+    } while (this.access.permanentById(candidate) !== undefined);
+    return candidate;
   }
 
   private nextInstanceId(): string {
-    this.instanceSeq += 1;
-    return `inst-${this.instanceSeq}`;
+    let candidate: string;
+    do {
+      this.instanceSeq += 1;
+      candidate = `inst-${this.instanceSeq}`;
+    } while (this.findInstance(candidate) !== undefined);
+    return candidate;
   }
 
   /**
