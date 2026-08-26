@@ -191,7 +191,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-067 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard` for printed static Jamming and separately inherited static Reboot.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-067.test.ts` passed (2 tests): exact IR keyword registration and live Jamming observation.
-- BT13-068 — Pending
+- BT13-068 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, alternate level-3 Chessmon evolution at 2, and optional opponent-turn level-4-or-lower Chessmon hand play on deletion.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-068.test.ts` passed (2 tests): IR clause proof and live opponent-turn deletion play.
 - BT13-069 — Pending
 - BT13-070 — Pending
 - BT13-071 — Pending
