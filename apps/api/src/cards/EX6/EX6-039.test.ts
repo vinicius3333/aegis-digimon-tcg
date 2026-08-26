@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-039.js";
 
-describe("EX6-039 Diaboromon", () => {
+describe("EX6-039 Kurisarimon", () => {
   it("reduces its play cost by 3 by deleting an Unidentified Digimon", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "Replacement",
