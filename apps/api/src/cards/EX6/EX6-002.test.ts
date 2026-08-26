@@ -38,7 +38,7 @@ describe("EX6-002 Yokomon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await settle(
       () => s.perm("host").stack.some(({ instanceId }) => instanceId === s.inst("blueLevel3").instanceId),
       600,
@@ -56,7 +56,7 @@ describe("EX6-002 Yokomon", () => {
       { 0: { battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-002"] }], hand: [{ card: "BT12-021", as: "blueLevel3" }] } },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    await advance(declined.engine).fire(EffectTiming.WhenAttacking, declined.perm("host"));
+    await advance(declined.engine).fire(EffectTiming.OnUseAttack, declined.perm("host"));
     expect(declined.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
       declined.inst("blueLevel3").instanceId,
     );
@@ -64,7 +64,7 @@ describe("EX6-002 Yokomon", () => {
     const wrongColor = setupEngine({
       0: { battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-002"] }], hand: [{ card: "BT1-009", as: "redLevel3" }] },
     });
-    await advance(wrongColor.engine).fire(EffectTiming.WhenAttacking, wrongColor.perm("host"));
+    await advance(wrongColor.engine).fire(EffectTiming.OnUseAttack, wrongColor.perm("host"));
     expect(wrongColor.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
       wrongColor.inst("redLevel3").instanceId,
     );

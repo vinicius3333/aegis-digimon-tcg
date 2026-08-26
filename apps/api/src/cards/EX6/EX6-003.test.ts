@@ -44,7 +44,7 @@ describe("EX6-003 Cupimon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await settle(
       () => s.state.players[0]!.security.some(({ instanceId }) => instanceId === s.inst("angel").instanceId),
       600,
