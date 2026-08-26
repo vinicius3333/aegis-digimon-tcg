@@ -602,3 +602,53 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   and implicit `any`), `interpreter/targeting/loose.ts:336` (`sourceRef`), and
   `interpreter/effects/primitives.test.ts:2438` (missing new primitive keys).
 - Remaining ambiguity: none identified.
+
+## BT5-012 — Monochromon — 10/10
+
+- Catalog evidence: Red Lv.4 Champion Digimon, Data/Ankylosaur, play cost 6,
+  5000 DP, and a red Lv.3 evolution cost of 1. Its complete text is
+  `＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon
+  to force the opponent to attack it instead.) [When Attacking] Lose 2 memory.`
+  It has no inherited or Security text.
+- Knowledge base and rules evidence: `node tools/kb/query.mjs card BT5-012`
+  returns `Monochromon` with no knowledge-base entries, so the catalog text is
+  the governing card contract. `data/kb/rules/comprehensive.md` §16-5-1/2
+  defines Blocker as the persistent permission to block, while §15-8-3-1 and
+  §15-16-5-1 establish that `[When Attacking] Lose 2 memory` is a trigger-type
+  effect at attack declaration. §11-4-1 and §12-1-1 define the opponent's
+  Blocker timing and switching the attack target to the blocker.
+- Implementation: `apps/api/src/cards/BT5/BT5-012.ts` is compiled IR with one
+  static `Blocker` keyword and one `WhenAttacking` `GainMemory` action with
+  amount `-2`. It declares `coverage: "full"`, `residual: []`, and registers
+  exclusively through `registerIrCard("BT5-012", compiled)`.
+- Primitive and peer evidence: the static keyword is consumed by the shared
+  continuous keyword ledger and combat legality reader; `eligibleBlockers` and
+  `switchDefenderToBlocker` enforce the correct opponent-controlled, unsuspended
+  Digimon block boundary, suspension, and target replacement. The shared
+  `GainMemory` primitive applies the negative amount to the active game memory.
+  BT5-016 provides a nearby compiled Blocker-filter peer, while the combat
+  keyword, legality, and attack-integration suites cover printed and granted
+  Blocker behavior and the one-block-per-attack rule.
+- Behavioral proof: the two focused tests verify the keyword is observable,
+  the card loses exactly 2 memory when it attacks, and an opponent's attack can
+  be redirected by suspending Monochromon. The redirection assertion observes
+  the production block window and final suspension, proving the Blocker choice
+  changes the defender rather than merely exposing the keyword. The shared
+  conformance tests additionally prove a non-Blocker cannot block, Blocker is
+  persistent, and attack timing resolves before blocking.
+- Defect corrected: no card or engine defect. Existing source and tests already
+  provide reproducible 10/10 evidence; only this audit record was appended.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-012.test.ts --pool=forks
+  --poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 2 tests
+  passed. Affected mechanism/regression command covering Blocker legality,
+  keyword extraction, attack integration, comprehensive Blocker rules, and
+  When Attacking timing (`keywords.test.ts`, `legality.test.ts`,
+  `attackIntegration.test.ts`, `ch16a-security-blocker-draw.test.ts`, and
+  `ch15-04-continuous-and-static.test.ts`) — 5 files, 169 tests passed.
+  `pnpm typecheck` builds shared and web successfully but retains the same
+  unrelated pre-existing API errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and `interpreter/effects/primitives.test.ts`;
+  it reports no BT5-012 errors. `git diff --check` is clean.
+- Remaining ambiguity: none identified.
