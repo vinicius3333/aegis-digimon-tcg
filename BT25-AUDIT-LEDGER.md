@@ -126,3 +126,22 @@ focused observable tests pass. No collection result is inferred from this ledger
   BT25-027 and BT25-029 must be mandatory once the first optional return is accepted.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 rerun remains
   pending authorization.
+
+## Static diagnosis: BT25-031 through BT25-033
+
+| Card | Contract and direct implementation diagnosis | Status |
+| --- | --- | --- |
+| BT25-033 Aegiomon | Yellow level 4 Digimon; alternate level-3 `[TS]` evolution cost 2; `Barrier`; on play/when digivolving, by adding your top security card to hand, an opponent's Digimon gets -5000 DP for the turn; inherited `Barrier`. | **Causal IR gap.** The cost, opponent-Digimon target, DP amount/duration, both trigger windows, alternate requirement, and both Barrier keywords are represented, but both actions are marked `optional: true` with `abortOnDecline: true`. The printed effect has no “may”; once the effect resolves and the player has security and an eligible target, adding the top security card and applying -5000 DP is mandatory. The current IR permits an unjustified refusal and does not model the mandatory cost/effect sequence. | Structural test only; no execution of mandatory payment, zero-security/targetless fizzle boundaries, DP change, trigger windows, Barrier, or evolution proof. **Static diagnosis only; implementation and behavioral proof required.** |
+| BT25-032 Liollmon | Yellow level 3 Digimon; alternate level-2 `[Glowing Dawn]` evolution cost 0; on play reveals 3, adds 1 `[Glowing Dawn]` trait card and 1 yellow `[BEATBREAK]` trait card among them, then bottoms the rest; inherited `Barrier`. | **No card-specific causal mismatch found statically.** The two distinct RevealAdd slots, yellow color gate on BEATBREAK, Glowing Dawn filter, bottom-deck remainder, alternate requirement, and inherited Barrier are represented. The shared reveal implementation tracks taken card instances between slots. | Structural test only; no execution of distinct picks, overlap handling, bottom order, missing-slot behavior, alternate evolution, or inherited Barrier. **Static diagnosis only; behavioral proof required before 10/10.** |
+| BT25-031 Patamon | Yellow level 3 Digimon; alternate level-2 `[TS]` evolution cost 0; on play reveals 3, adds 1 `[Angel]`, `[Archangel]`, `[Three Great Angels]`, or `[Four Great Dragons]` trait card and 1 `[TS]` trait card among them, then bottoms the rest; inherited `Barrier`. | **No card-specific causal mismatch found statically.** The two distinct RevealAdd slots, complete four-trait first filter, TS second filter, bottom-deck remainder, alternate requirement, and inherited Barrier are represented. The shared reveal implementation prevents the same physical revealed card from filling both slots. | Structural test only; no execution of trait-pool matching, distinct picks, overlap handling, bottom order, missing-slot behavior, alternate evolution, or inherited Barrier. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-031 through BT25-033
+
+- Catalog records and local KB queries were inspected for BT25-031, BT25-032, and BT25-033;
+  no knowledge-base entries were returned.
+- Direct `registerIrCard` modules and colocated structural tests were read one card at a time.
+  Relevant shared paths inspected: RevealAdd distinct-slot tracking and bottom-deck remainder,
+  security-to-hand cost handling, optional versus mandatory action semantics, target filtering,
+  and effect-driven evolution requirements.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 rerun remains pending
+  authorization.
