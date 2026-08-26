@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dnaDigivolutionRequirementsFor, EffectTiming, requireCardDefinition } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { dnaDigivolutionRequirementsFor, requireCardDefinition } from "@aegis/shared";
 import { canPayCost } from "../../engine/effects/interpreter/costs.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-073.js";
@@ -59,13 +58,13 @@ describe("EX5-073 GraceNovamon", () => {
       leaveCause: "byOpponentEffect",
       actions: [
         {
-              kind: "Prevent",
-              optional: true,
-              abortOnDecline: true,
-              cost: {
-                kind: "trash",
-                target: { count: 2, filter: { zone: "digivolutionCards", isSelfRef: true, sameLevelPair: true } },
-              },
+          kind: "Prevent",
+          optional: true,
+          abortOnDecline: true,
+          cost: {
+            kind: "trash",
+            target: { count: 2, filter: { zone: "digivolutionCards", isSelfRef: true, sameLevelPair: true } },
+          },
         },
       ],
     });
@@ -98,7 +97,8 @@ describe("EX5-073 GraceNovamon", () => {
         state: s.state,
         player: (seat: 0 | 1) => s.state.players[seat]!,
         opponentOf: (seat: 0 | 1) => (seat === 0 ? 1 : 0),
-        permanentById: (id: string) => [...s.state.players[0]!.battleArea, ...s.state.players[1]!.battleArea].find((p) => p.permanentId === id),
+        permanentById: (id: string) =>
+          [...s.state.players[0]!.battleArea, ...s.state.players[1]!.battleArea].find((p) => p.permanentId === id),
         definitionOf: (card: { cardId: string }) => requireCardDefinition(card.cardId),
         linkMax: () => 1,
       },
@@ -107,7 +107,8 @@ describe("EX5-073 GraceNovamon", () => {
       selections: new Map(),
     } as never;
     const replacement = compiled.effects!.find((effect) => effect.trigger === "AllTurns")!.actions[0]!;
-    if (replacement.kind !== "Replacement" || replacement.actions[0]?.kind !== "Prevent") throw new Error("EX5-073 prevention missing");
+    if (replacement.kind !== "Replacement" || replacement.actions[0]?.kind !== "Prevent")
+      throw new Error("EX5-073 prevention missing");
 
     expect(canPayCost(ctx, replacement.actions[0].cost!)).toBe(false);
   });
@@ -123,7 +124,13 @@ describe("EX5-073 GraceNovamon", () => {
     await s.ready();
     const eligibleId = s.perm("eligible").permanentId;
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("grace"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("grace").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === eligibleId), 2000);
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === eligibleId)).toBe(false);
