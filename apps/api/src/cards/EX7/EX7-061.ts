@@ -11,17 +11,18 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
           sourceFilter: { isSelfRef: true },
+          condition: {
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [
+              { tokens: ["Lilithmon"], match: "name" },
+              { tokens: ["X Antibody"], match: "trait" },
+            ],
+          },
           actions: [
             {
               kind: "Prevent",
-              condition: {
-                kind: "selfHasInDigivolutionCards",
-                nameOrTrait: [
-                  { tokens: ["Lilithmon"], match: "name" },
-                  { tokens: ["X Antibody"], match: "trait" },
-                ],
-              },
               cost: {
                 kind: "deleteOwn",
                 target: {
@@ -43,7 +44,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
-          sourceFilter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"] },
+          sourceFilter: { excludeSelf: true, kind: ["Digimon"] },
           actions: [
             {
               kind: "PlayWithoutCost",
