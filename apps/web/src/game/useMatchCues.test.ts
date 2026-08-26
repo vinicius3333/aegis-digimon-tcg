@@ -392,6 +392,37 @@ describe("zone-change showcases", () => {
     expect(result.current.securityClash).not.toBeNull();
   });
 
+  it("announces the opponent's play in a side panel when the showcase is dropped", async () => {
+    // A hidden tab drains the queue, so the centre-stage hold never plays and the panel
+    // becomes the only thing that says the opponent played anything.
+    const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+    try {
+      const { result, rerender } = renderCues();
+      await advance(0);
+
+      rerender([OPP_PLAY]);
+      await advance(0);
+
+      expect(result.current.zoneShowcase).toBeNull();
+      expect(result.current.sidePanels).toEqual([
+        expect.objectContaining({ titleKey: "panel.playedCard", side: "opp" }),
+      ]);
+    } finally {
+      hidden.mockRestore();
+    }
+  });
+
+  it("leaves the play to the showcase alone while it can still play", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([OPP_PLAY]);
+    await advance(0);
+
+    expect(result.current.zoneShowcase).not.toBeNull();
+    expect(result.current.sidePanels).toEqual([]);
+  });
+
   it("fast-forwards the hold when the player clicks through it", async () => {
     const { result, rerender } = renderCues();
     await advance(0);

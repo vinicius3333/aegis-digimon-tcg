@@ -459,10 +459,13 @@ export function useMatchCues({
       let announcement: AttackAnnouncement | null = null;
       const opened: SidePanel[] = [];
       const raised: MatchNotice[] = [];
+      // The centre-stage showcase runs only in `live` mode, so under reduced motion or a
+      // hidden tab the panel is the only thing left to announce an opponent's arrival.
+      const showcasePlays = queue.getMode() === "live";
       for (const event of fresh) {
         sidePanelSequenceRef.current += 1;
         const id = `side-panel-${sidePanelSequenceRef.current}`;
-        const panel = sidePanelFromEvent(event, viewerSeat, sidePanelLookupRef.current, id, now);
+        const panel = sidePanelFromEvent(event, viewerSeat, sidePanelLookupRef.current, id, now, showcasePlays);
         if (panel) opened.push(panel);
         announcement = attackAnnouncementFromEvent(event, viewerSeat, id, now) ?? announcement;
         // A security card that resolves an effect owns the next notice, which is

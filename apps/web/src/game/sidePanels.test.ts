@@ -115,11 +115,24 @@ describe("sidePanelFromEvent", () => {
     expect(result?.ordered).toBe(true);
   });
 
-  it("announces only the opponent's played card", () => {
+  it("leaves a played card to the centre-screen showcase, for either seat", () => {
     const mine: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT1-030" };
     const theirs: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT1-031" };
-    expect(sidePanelFromEvent(mine, VIEWER, lookup({}, {}), "a", 0)).toBeNull();
-    expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0)?.titleKey).toBe("panel.playedCard");
+    expect(sidePanelFromEvent(mine, VIEWER, lookup({}, {}), "a", 0, true)).toBeNull();
+    expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0, true)).toBeNull();
+  });
+
+  it("announces the opponent's play when the showcase cannot play it", () => {
+    const theirs: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT1-031" };
+    const result = sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0, false);
+    expect(result?.titleKey).toBe("panel.playedCard");
+    expect(result?.side).toBe("opp");
+    expect(result?.cards).toEqual([{ cardId: "BT1-031", badge: 1 }]);
+  });
+
+  it("still leaves the viewer's own play unannounced without a showcase", () => {
+    const mine: ServerEvent = { kind: "cardPlayed", seat: 0, cardId: "BT1-030" };
+    expect(sidePanelFromEvent(mine, VIEWER, lookup({}, {}), "a", 0, false)).toBeNull();
   });
 
   it("announces only the opponent's digivolution", () => {
@@ -144,7 +157,8 @@ describe("sidePanelFromEvent", () => {
       mechanic: "normal",
       inBreeding: true,
     };
-    expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0)).toBeNull();
+    expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0, true)).toBeNull();
+    expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0, false)?.titleKey).toBe("panel.digivolutionCards");
   });
 });
 

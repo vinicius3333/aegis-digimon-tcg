@@ -1,8 +1,14 @@
 /* Timed side panels, ported from the reference client's right-hand stack.
    Whenever cards move in a way the player must see — discarded, deleted,
-   revealed, played, added to hand, put under a stack — the reference client
-   opens a small titled panel listing the cards and leaves it up long enough to
-   read, its border eroding clockwise as the clock runs out.
+   revealed, added to hand, put under a stack — the reference client opens a
+   small titled panel listing the cards and leaves it up long enough to read,
+   its border eroding clockwise as the clock runs out.
+
+   A play normally opens no panel: the opponent's played card is already held up
+   centre-screen by the zone showcase, so a panel only said the same thing again
+   in a corner the player had to look away to read. The showcase is pure motion,
+   though, so reduced motion and a hidden tab drop it — and there the panel is the
+   only thing that announces the play at all, which is what `showcasePlays` decides.
 
    This module is the pure half: it maps observed server events to panel
    descriptors and owns the titling, stacking, merging and expiry rules. Titles
@@ -149,6 +155,9 @@ function numbered(cardIds: readonly string[]): SidePanelCard[] {
 /**
  * The panel an event deserves, or null when the event opens none. A movement
  * whose cards cannot be identified yields null rather than an empty panel.
+ *
+ * `showcasePlays` is whether the centre-stage zone showcase will actually play for
+ * this viewer; it decides only whether a play needs announcing here instead.
  */
 export function sidePanelFromEvent(
   event: ServerEvent,
@@ -156,6 +165,7 @@ export function sidePanelFromEvent(
   lookup: SidePanelLookup,
   id: string,
   nowMs: number,
+  showcasePlays = true,
 ): SidePanel | null {
   switch (event.kind) {
     case "cardsMoved": {
@@ -191,6 +201,8 @@ export function sidePanelFromEvent(
     case "cardPlayed":
       // Only the opponent's play needs announcing; the viewer just made theirs.
       if (event.seat === viewerSeat) return null;
+      // The showcase, when it plays, already holds this card up centre-screen.
+      if (showcasePlays) return null;
       return {
         id,
         titleKey: "panel.playedCard",
@@ -201,9 +213,10 @@ export function sidePanelFromEvent(
       };
     case "digivolved":
       if (event.seat === viewerSeat) return null;
-      // A breeding digivolution is already held up centre-screen, which says everything
-      // this panel would; a battle-area one only changes a stack in place, so it keeps it.
-      if (event.inBreeding) return null;
+      // A breeding digivolution is held up centre-screen by the same showcase as a play,
+      // which says everything this panel would; a battle-area one only changes a stack in
+      // place, so it keeps its panel either way.
+      if (event.inBreeding && showcasePlays) return null;
       return {
         id,
         titleKey: "panel.digivolutionCards",
