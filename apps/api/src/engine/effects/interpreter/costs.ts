@@ -1683,10 +1683,6 @@ export async function payCost(
           }
         }
         if (hostPermId === undefined) return false;
-        if (cost.bindHostAs !== undefined) {
-          ctx.selections ??= new Map();
-          ctx.selections.set(cost.bindHostAs, hostPermId);
-        }
         let orderedPicked = picked;
         if (picked.length > 1 && /in any order/i.test(cost.raw ?? "") && ctx.ask.orderCards !== undefined) {
           orderedPicked = await ctx.ask.orderCards(ctx, {
@@ -1698,21 +1694,36 @@ export async function payCost(
             destination: "stackBottom",
           });
         }
+        const placedIds = new Set<string>();
         if (cost.position === "choice") {
           // "top or bottom" — prompt the controller per placed card via the shared
           // binary-choice helper ctx.ask.chooseOption (index 0 = top, 1 = bottom).
           for (const instanceId of orderedPicked) {
             const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
-            await ctx.fx.placeUnder(hostPermId, [instanceId], {
+            const placed = await ctx.fx.placeUnder(hostPermId, [instanceId], {
               belowTop: idx === 0,
               faceUp: cost.faceDown !== true,
             });
+            for (const card of placed) placedIds.add(card.instanceId);
           }
         } else {
-          await ctx.fx.placeUnder(hostPermId, orderedPicked, {
+          const placed = await ctx.fx.placeUnder(hostPermId, orderedPicked, {
             belowTop: cost.position !== "bottom",
             faceUp: cost.faceDown !== true,
           });
+          for (const card of placed) placedIds.add(card.instanceId);
+        }
+        // A placement cost is paid only when every selected card actually entered the
+        // requested digivolution stack.  The primitive is allowed to reject individual
+        // cards (for example, if a replacement or intervening effect makes one no longer
+        // movable), so a selection alone must not bind a target or unlock a dependent
+        // "if you did" action.
+        if (placedIds.size !== orderedPicked.length || orderedPicked.some((instanceId) => !placedIds.has(instanceId))) {
+          return false;
+        }
+        if (cost.bindHostAs !== undefined) {
+          ctx.selections ??= new Map();
+          ctx.selections.set(cost.bindHostAs, hostPermId);
         }
         if (cost.storeAs !== undefined && orderedPicked.length > 0) {
           const pickedCard = srcCandidates.find((c) => c.instanceId === picked[0]);
