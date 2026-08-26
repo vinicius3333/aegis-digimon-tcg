@@ -6,21 +6,13 @@ describe("BT13-092 BT13-092", () => {
   it("matches burst timing and the two When Digivolving clauses", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({
-      trigger: "Static",
-      actions: [
-        { kind: "Digivolve", into: { name: "Ravemon" }, payCost: false },
-        {
-          kind: "Return",
-          to: "hand",
-          target: {
-            filter: { controllerDefault: "mine", nameOrTrait: [{ match: "name", tokens: ["Keenan Crier"] }] },
-            count: 1,
-          },
-        },
-      ],
+    expect(compiled.digivolutionRequirement).toContainEqual({
+      names: ["Ravemon"],
+      cost: 0,
+      isAlternate: true,
+      burstDigivolve: { returnTamerNamesExact: ["Keenan Crier"] },
     });
-    expect(compiled.effects[1]).toMatchObject({
+    expect(compiled.effects[0]).toMatchObject({
       trigger: "EndOfYourTurn",
       actions: [
         {
@@ -31,7 +23,7 @@ describe("BT13-092 BT13-092", () => {
         },
       ],
     });
-    expect(compiled.effects[2]).toMatchObject({
+    expect(compiled.effects[1]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [
         { kind: "Trash", chooser: "opponent", target: { filter: { controller: "opponent", zone: "hand" }, count: 1 } },
@@ -43,7 +35,7 @@ describe("BT13-092 BT13-092", () => {
         },
       ],
     });
-    expect(compiled.effects[3]).toMatchObject({
+    expect(compiled.effects[2]).toMatchObject({
       trigger: "WhenAttacking",
       actions: [
         {

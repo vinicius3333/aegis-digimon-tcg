@@ -5,42 +5,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Static",
-      actions: [
-        {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          into: {
-            name: "Ravemon",
-          },
-          payCost: false,
-          reduceCost: 0,
-        },
-        {
-          kind: "Return",
-          target: {
-            filter: {
-              controllerDefault: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Keenan Crier"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
-          },
-          to: "hand",
-        },
-      ],
-    },
-    {
       trigger: "EndOfYourTurn",
       actions: [
         {
@@ -108,9 +72,10 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Ravemon", "Keenan Crier"],
+      names: ["Ravemon"],
       cost: 0,
       isAlternate: true,
+      burstDigivolve: { returnTamerNamesExact: ["Keenan Crier"] },
     },
   ],
 };
