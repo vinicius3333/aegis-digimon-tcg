@@ -756,3 +756,52 @@ git diff --check
 ```
 
 No card implementation change was necessary. Two focused tests were added to prove the positive When Digivolving and When Attacking paths. Only this BT26-016 ledger section and its focused test additions are left uncommitted for coordinator review; no commit or push was made.
+
+## BT26-017 — Zanbamon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-017` (`Zanbamon`), a red/purple level 6 Mega Digimon with 12000 DP, Virus attribute, and `Wizard`/`Shambala`/`TB`/`TS` traits. Its normal evolution requirements are red or purple Lv.5 for 4; its alternate requirement is `[Digivolve] Lv.5 w/[Shambala]/[TS] trait: Cost 3`. Its Assembly requirement is `[Assembly -4] 2 Lv.5 or lower [Shambala] trait cards w/different levels`. The printed effects are `＜Blocker＞`, `＜Retaliation＞`; `[On Play] [When Digivolving] 1 of your Digimon with the [Shambala] trait gains ＜Security A. +1＞ and ＜Progress＞ for the turn`; and `[On Deletion] You may play 1 [Shambala] or [TS] trait card with a play cost of 5 or less from your trash without paying the cost.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-017`; it reports Q6982 and no erratum, restriction, or unresolved card-text ambiguity. Q6982 confirms that multiple effects triggered by this card's deletion activate simultaneously and the player may choose their activation order.
+- Comprehensive Rules evidence: §7-3 defines Assembly's exact trash-material, level, distinct-level, and cost-reduction requirements; §15-8-3 defines simultaneous trigger activation and player-chosen ordering; §15-16-2–3 defines On Play and When Digivolving timing; §15-16-7 defines On Deletion timing; and §16-7/§16-13 define Retaliation and Blocker behavior.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-017.ts` is a complete IR module. Its Static effect publishes Blocker and Retaliation. The On Play and When Digivolving effects each select exactly one own Digimon with the Shambala trait, then grant SecurityAttack +1 and Progress with `forTheTurn` duration. The On Deletion effect is optional and selects exactly one own Digimon or Tamer card from the trash with either the Shambala or TS trait and printed play cost at most 5, then plays it without paying the cost. The target includes Tamer cards, as required by the printed “trait card” wording, and the inclusive cost boundary is enforced by `playCostLte: 5`.
+- Alternate evolution and Assembly requirements are supplied by the shared catalog/effect data: Lv.5 Shambala/TS at cost 3, and two Lv.5-or-lower Shambala cards with different levels for a flat 4-cost reduction. The shared Assembly validator enforces trash-only materials, exact count, level ceiling, trait, and different-level constraints.
+- Registration is exclusively `registerIrCard("BT26-017", compiled)`; no `registerCard` registration exists for this card. `coverage` is `full` and `residual` is empty.
+- Relevant peers inspected: BT26-012 for trait-card play including Tamers; BT26-014 for the adjacent Shambala On Deletion play path and inherited-deletion interaction; BT26-016 for adjacent TS evolution; BT26-018/BT26-021 for TS and Zanbamon interactions; and shared Assembly, filtered PlayWithoutCost, loose-card matching, temporary keyword, and deletion-trigger primitives. Their controller, zone, target, duration, and stack semantics are consistent with Zanbamon.
+
+### Behavioral proof
+
+The focused `apps/api/src/cards/BT26/BT26-017.test.ts` suite has 12 passing tests proving:
+
+- complete IR coverage, empty residuals, Static keywords, both printed trigger paths, and both alternate evolution/Assembly requirements;
+- legal Assembly with two different-level Shambala materials and rejection of equal-level materials;
+- SecurityAttack +1 and Progress granted to exactly one own Shambala Digimon on play, with both temporary keywords expiring at turn end;
+- the same temporary grants when digivolving through a legal Shambala stack, plus alternate evolution over a TS Lv.5 and rejection of a non-trait peer;
+- real Blocker and Retaliation behavior through security protection and battle deletion;
+- On Deletion play of a Shambala card from the own trash, acceptance of the TS-only branch, rejection of a non-trait card, and optional refusal without moving a candidate;
+- the inclusive play-cost-5 boundary and card-kind coverage by playing own `[Shambala]/[TS]` Tamer BT26-104 while leaving an identical opponent-trash card untouched; and
+- Q6982's simultaneous top-card and inherited On Deletion triggers exposing two distinct activation-order choices.
+
+The focused and affected regression suites resolve the full effect stack and assert observable battle-area/trash zones, controller ownership, temporary keyword duration, target boundaries, evolution transitions, Assembly memory/material behavior, keyword combat behavior, and pending trigger-order decisions. No unresolved card-text ambiguity remains.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-017
+  PASS (Q6982; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-017.test.ts
+  PASS (1 file, 12 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-017.test.ts src/cards/BT26/BT26-014.test.ts src/engine/cards/bt26Assembly.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts
+  PASS (6 files, 371 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-017.ts apps/api/src/cards/BT26/BT26-017.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No card implementation change was necessary. One focused test was added to prove the inclusive cost-5 Tamer branch and own-trash controller boundary. Only this BT26-017 ledger section and its focused test addition are left uncommitted for coordinator review; no commit or push was made.
