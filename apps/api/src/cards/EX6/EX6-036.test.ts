@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-036.js";
 
-describe("EX6-036 Kurisarimon", () => {
+describe("EX6-036 Keramon", () => {
   it("reveals three for Diaboromon text and Unidentified cards", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "RevealAdd",
