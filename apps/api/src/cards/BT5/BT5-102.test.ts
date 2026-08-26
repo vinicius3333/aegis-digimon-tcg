@@ -21,6 +21,7 @@ describe("BT5-102 Wisselen", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 8;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
@@ -57,6 +58,7 @@ describe("BT5-102 Wisselen", () => {
       },
       { autoSelectCards: true },
     );
+    await s.ready();
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(false);

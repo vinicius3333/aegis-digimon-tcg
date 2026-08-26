@@ -53,7 +53,7 @@ const compiled: CompiledCard = {
             upTo: true,
           },
           restriction: "attack",
-          duration: "permanent",
+          duration: "forTheTurn",
         },
         {
           kind: "GainMemory",
