@@ -36,7 +36,7 @@ const watch = (event: string) => ({
     },
   ],
 });
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: enter },
     { trigger: "WhenDigivolving", actions: enter },

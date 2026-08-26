@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { GameState, PlayerState, Permanent, CardInstance, Phase, type Seat, type DecisionRequest } from "@aegis/shared";
+import { getCardDefinition, GameState, PlayerState, Permanent, CardInstance, Phase, type Seat, type DecisionRequest } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import "../index.js";
+import { compiled } from "./BT11-088.js";
 
 // A3 for BT11-088 (Bagramon — Purple Lv.6 Digimon).
 //
@@ -90,6 +91,15 @@ async function settle(predicate: () => boolean, maxTicks = 800): Promise<void> {
 }
 
 describe("BT11-088 Bagramon [On Play] conditional effect", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-088")).toMatchObject({ cardId: "BT11-088", colors: ["Purple"], level: 6, playCost: 14, dp: 13000 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "OnPlay", actions: [{ kind: "Trash" }, { kind: "PlaceUnder" }] },
+      { trigger: "WhenDigivolving", actions: [{ kind: "Trash" }, { kind: "PlaceUnder" }] },
+      { trigger: "AllTurns", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger" }, { kind: "SubTrigger" }] },
+    ]);
+  });
+
   it("reacts when an effect adds cards under an opponent Digimon and shares its once-per-turn budget", async () => {
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
