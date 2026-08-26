@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-006.js";
 
@@ -22,5 +23,27 @@ describe("BT5-006 Gigimon", () => {
     await (s.engine as any).primitives.deletePermanent([s.perm("second").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(host.currentDP).toBe(before + 2000);
+  });
+
+  it("Q1283 deletes its 0-DP host before the inherited effect can protect it", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT4-048", as: "host", dp: 0, under: ["BT5-006"] },
+          { card: "BT1-009", as: "other", dp: 0 },
+        ],
+      },
+    });
+    await s.engine.recomputeContinuousEffects();
+
+    await advance(s.engine).verb.deletePermanent(
+      [s.perm("host").permanentId, s.perm("other").permanentId],
+      "byRule",
+    );
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("host").instanceId, s.inst("other").instanceId]),
+    );
   });
 });
