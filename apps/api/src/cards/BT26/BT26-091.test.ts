@@ -57,11 +57,8 @@ describe("BT26-091 compiled fidelity", () => {
         into: {
           filter: {
             kind: ["Digimon"],
-            orFilters: expect.arrayContaining([
-              { nameOrTrait: [{ tokens: ["Vegetation"], match: "trait" }] },
-              { nameOrTrait: [{ tokens: ["Fairy"], match: "trait" }] },
-              { nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] },
-            ]),
+            zone: "hand",
+            nameOrTrait: [{ tokens: ["Vegetation", "Fairy", "DATA SQUAD"], match: "trait" }],
           },
         },
       });
