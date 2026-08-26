@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { allCards, getCardDefinition } from "./registry.js";
-import { releaseDateForCard, releaseDateForSet } from "./cardPool.js";
+import { promoProductCardIds, releaseDateForCard, releaseDateForSet } from "./cardPool.js";
 
 function card(cardId: string) {
   const definition = getCardDefinition(cardId);
@@ -19,6 +19,10 @@ describe("release dates", () => {
     expect(releaseDateForCard(card("P-077"))).toBe("2022-07-29");
     expect(releaseDateForCard(card("P-078"))).toBe("2022-07-29");
     expect(releaseDateForCard(card("P-082"))).toBe("2024-05-01");
+  });
+
+  it("derives the ST11 Special Entry Pack inventory from the promo product mapping", () => {
+    expect(promoProductCardIds("ST11 Special Entry Pack")).toEqual(["P-065"]);
   });
 
   it("has release metadata for every non-token card in the registry", () => {
