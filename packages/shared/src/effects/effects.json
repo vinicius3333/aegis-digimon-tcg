@@ -5433,7 +5433,7 @@
               "kind": "youHave",
               "filter": {
                 "zone": "battleArea",
-                "controller": "any",
+                "controllerDefault": "mine",
                 "excludeSelf": true,
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["Xros Heart"], "match": "trait" }]
@@ -10507,7 +10507,7 @@
               "per": 1,
               "filter": {
                 "zone": "battleArea",
-                "controllerDefault": "mine",
+                "controller": "any",
                 "excludeSelf": true,
                 "kind": ["Digimon"],
                 "nameOrTrait": [{ "tokens": ["Sukamon"], "match": "name" }]
