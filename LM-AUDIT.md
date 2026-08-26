@@ -11,12 +11,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Every entry remains below 10/10 until its focused proof, relevant mechanisms, and later
   collection gate run in the authorized serial slot.
 
-## LM-001 — Siriusmon — pending focused execution
+## LM-001 — Siriusmon — focused proof green; pending mechanism and collection gates
 
 - Direct IR covers Blast Digivolve, On Play/When Digivolving stack placement, cost modification,
-  DP-based deletion, and the shared once-per-turn all-turns memory watcher. Existing eight focused
-  cases exercise placement ownership, dynamic color ceiling, optionality, and deletion identity;
-  they remain unrun, so it remains below 10/10.
+  DP-based deletion, and the shared once-per-turn all-turns memory watcher. Its eight focused
+  cases passed 8/8 on 2026-08-26 using the authorized serialized command
+  `vitest run src/cards/LM/LM-001.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --no-file-parallelism`; placement ownership, dynamic color ceiling, optionality, and deletion
+  identity are proven. LM-001 remains below 10/10 pending relevant mechanism and collection gates.
 
 ## LM-002 — Jellymon — pending focused execution
 

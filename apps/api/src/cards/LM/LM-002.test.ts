@@ -99,6 +99,33 @@ describe("LM-002 Jellymon", () => {
     expect(s.state.players[0]!.hand.length).toBeGreaterThanOrEqual(8);
   });
 
+  it("draws only once from two inherited copies at exactly seven cards, per Q3990", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-004", as: "host", under: ["LM-002", "LM-002"] }],
+          hand: [...sevenCards],
+          deck: ["BT1-027", "BT1-028"],
+        },
+        1: { security: 2 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length >= 8, 2000);
+
+    // The first inherited activation takes the hand from 7 to 8, making the second ineligible.
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+  });
+
   it("matches committed metadata and publishes fully covered compiled IR", () => {
     const definition = getCardDefinition("LM-002");
     const compiled = runtimeCompiledCard("LM-002");
