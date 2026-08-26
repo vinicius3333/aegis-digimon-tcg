@@ -151,6 +151,8 @@ export interface PrimitivesEngine {
    * played") before an effect-driven paid play charges memory.
    */
   finalizeEffectPlayCost?: (instanceId: string, baseCost: number, useAsOption?: boolean) => Promise<number>;
+  /** Read the effective hand-use cost for eligibility checks that must include automatic self reducers. */
+  effectiveLooseUseCost?: (instanceId: string, controllerSeat: Seat) => number | undefined;
   /** Resolve each newly linked physical card's own [When Linking] window. */
   fireWhenLinking?: (instanceIds: string[], targetPermanentId: string) => Promise<void>;
   /** Resolve the trashed card's own deck-trash trigger without requiring a field watcher. */
@@ -663,6 +665,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   };
 
   const effectiveLooseUseCost: NonNullable<Primitives["effectiveLooseUseCost"]> = (instanceId, controllerSeat) => {
+    const projected = engine.effectiveLooseUseCost?.(instanceId, controllerSeat);
+    if (projected !== undefined) return projected;
     const instance = peekLooseInstance(state, instanceId);
     if (instance === undefined) return undefined;
     const definition = requireCardDefinition(instance.cardId);
