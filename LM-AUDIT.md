@@ -205,7 +205,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --fileParallelism=false`. LM-023 remains below 10/10 pending relevant mechanism and refreshed
   collection gates.
 
-## LM-024 — Shivamon — pending focused execution
+## LM-024 — Shivamon — focused proof green; pending mechanism and collection gates
 
 - Catalog and Q4026: the direct `registerIrCard` IR independently applies the
   three-or-more suspend/own +3000 DP branch and the three-or-fewer suspended-opponent
@@ -215,9 +215,12 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Digimon-source-qualified `beAffected` restriction.
 - Existing focused behavioral cases cover security counts two, exactly three, and four; an
   own-Digimon suspension choice; and the suspension-to-unsuspension immunity transition.
-  They remain unrun while PID 82901 holds the test slot. The security-Digimon example in Q4027
-  is currently mechanism-traced rather than exercised as a card-level fixture, so this card
-  remains below 10/10.
+  The security-Digimon example in Q4027 is mechanism-traced rather than exercised as a
+  card-level fixture.
+- The authorized serialized focused command passed 1/1 file and 6/6 tests in 2.63s on 2026-08-26:
+  `vitest run src/cards/LM/LM-024.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-024 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
 ## LM-025 — Cyberdramon — pending focused execution
 
