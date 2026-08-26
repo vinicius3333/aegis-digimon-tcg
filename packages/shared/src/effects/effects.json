@@ -12953,7 +12953,7 @@
             "event": "whenOneOfYoursDigivolves",
             "sourceFilter": {
               "controllerDefault": "mine",
-              "nameOrTrait": [{ "tokens": ["Angewomon", "LadyDevimon"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["Angewomon"], "match": "name" }]
             },
             "actions": [
               {
@@ -12962,16 +12962,81 @@
                   "filter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Angewomon", "LadyDevimon"], "match": "name" }]
+                    "nameOrTrait": [{ "tokens": ["LadyDevimon"], "match": "name" }]
                   },
                   "count": 1
                 },
                 "from": ["hand"],
                 "payCost": false,
                 "condition": {
-                  "kind": "youHave",
-                  "filter": { "zone": "battleArea", "controllerDefault": "mine", "kind": ["Digimon"] },
-                  "raw": "you have 1 or fewer Digimon in play"
+                  "kind": "allOf",
+                  "conditions": [
+                    {
+                      "kind": "youHave",
+                      "filter": { "zone": "battleArea", "controllerDefault": "mine", "kind": ["Digimon"], "countMax": 1 },
+                      "raw": "you have 1 or fewer Digimon in play"
+                    },
+                    {
+                      "kind": "youHave",
+                      "filter": {
+                        "controller": "mine",
+                        "kind": ["Digimon"],
+                        "nameOrTrait": [{ "tokens": ["LadyDevimon"], "match": "name" }],
+                        "zone": "hand"
+                      },
+                      "raw": "you have [LadyDevimon] in your hand"
+                    }
+                  ]
+                },
+                "cost": {
+                  "kind": "suspend",
+                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                  "raw": "by suspending this Tamer"
+                },
+                "optional": true,
+                "abortOnDecline": true
+              }
+            ]
+          },
+          {
+            "kind": "SubTrigger",
+            "event": "whenOneOfYoursDigivolves",
+            "sourceFilter": {
+              "controllerDefault": "mine",
+              "nameOrTrait": [{ "tokens": ["LadyDevimon"], "match": "name" }]
+            },
+            "actions": [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Angewomon"], "match": "name" }]
+                  },
+                  "count": 1
+                },
+                "from": ["hand"],
+                "payCost": false,
+                "condition": {
+                  "kind": "allOf",
+                  "conditions": [
+                    {
+                      "kind": "youHave",
+                      "filter": { "zone": "battleArea", "controllerDefault": "mine", "kind": ["Digimon"], "countMax": 1 },
+                      "raw": "you have 1 or fewer Digimon in play"
+                    },
+                    {
+                      "kind": "youHave",
+                      "filter": {
+                        "controller": "mine",
+                        "kind": ["Digimon"],
+                        "nameOrTrait": [{ "tokens": ["Angewomon"], "match": "name" }],
+                        "zone": "hand"
+                      },
+                      "raw": "you have [Angewomon] in your hand"
+                    }
+                  ]
                 },
                 "cost": {
                   "kind": "suspend",
