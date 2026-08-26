@@ -74,3 +74,15 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Existing behavioral tests cover cost reduction and post-use placement, Delay ordering and
   opponent absence, Security positive and above-2000 negative boundaries. They remain unrun
   under PID 43774, so this card is below 10/10.
+
+## LM-029 — Yellow Scramble — pending focused execution
+
+- Catalog, direct IR, and existing behavioral fixtures agree on the yellow Scramble contract:
+  legal yellow evolution at minus three, placement, opponent-gated Delay with mandatory
+  yellow-trash return before optional low-DP play, and Security play/hand return.
+- KB Q4043-Q4047 match that contract. Q4737/Q4738 are indexed under LM-029 in the local KB but
+  describe an absent `[Your Turn]` Option-use/unsuspend clause; the same rulings and wording are
+  implemented for EX8-037, so this is a knowledge-base card-association conflict rather than
+  sufficient authority to add unprinted LM-029 behavior. It remains explicitly unresolved.
+- Existing focused scenarios are behavioral but unrun under PID 43774. The unresolved KB linkage
+  and absent authoritative printed clause keep LM-029 below 10/10.
