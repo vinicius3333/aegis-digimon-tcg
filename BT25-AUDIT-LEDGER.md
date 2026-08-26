@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-054 (GreatGrizzlymon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-054 GreatGrizzlymon | Green/black level 5; Blocker; on play/when digivolving, gives 1 opposing Digimon a temporary Start-of-Your-Main-Phase attack effect; all turns, when this Digimon wins a battle, may free-digivolve into Callismon or Marsmon; inherited all turns once per turn, when this Digimon deletes an opponent's Digimon in battle, trash their top security. Q6331-Q6336 define granted-effect timing and battle-win ordering; Q6337 excludes activation when source and opponent are deleted simultaneously. | **Causal inherited-trigger gaps.** The inherited watcher listens to `whenDeletesInBattle` without a self/source filter, so it can react to unrelated battle deletions rather than only this Digimon deleting an opponent. It also lacks the simultaneous-deletion survival gate required by Q6337 (e.g. `notSimultaneous`/equivalent), so it may activate when the host and opponent are deleted in the same batch. Main granted attack token, battle-win free evolution, Blocker, and alternate evolution are otherwise represented. | Structural proof only; no execution of source ownership, opponent deletion, simultaneous deletion, granted-effect immunity/timing, or Q6331-Q6337 ordering. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-054
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-054` (Q6331-Q6337).
+- Direct module and shared battle-deletion SubTrigger payload/source filtering, simultaneous
+  deletion gate, battle-win evolution, and token-effect grant handling were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-053 (Aegiochusmon: Green)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
