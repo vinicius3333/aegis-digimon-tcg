@@ -20,7 +20,11 @@ describe("EX5-065 Sayo & Koh", () => {
     } as never;
     const module = getEffectModule("EX5-065")!;
     const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn");
-    expect(watcher?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "onAddDigivolutionCards" });
+    expect(watcher?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "onAddDigivolutionCards",
+      requirePlacedOwnTopAtStackBottom: true,
+    });
     expect(module.effectsForTiming(EffectTiming.OnStartTurn, source)[0]?.description).toContain("DNA digivolve");
   });
   it("registers the mandatory security play effect", () => {
@@ -72,11 +76,31 @@ describe("EX5-065 Sayo & Koh", () => {
     await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
       subjectPermanentId: s.perm("host").permanentId,
       addedDigivolutionCardsPosition: "bottom",
+      placedOwnTopAtStackBottom: true,
       byEffectSeat: 0,
     });
     await settle(() => s.perm("sayo").isSuspended && s.state.memory === memoryBefore + 1, 2000);
 
     expect(s.perm("sayo").isSuspended).toBe(true);
     expect(s.state.memory).toBe(memoryBefore + 1);
+  });
+
+  it("does not trigger for ordinary digivolution-card addition, per Q3669", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX5-065", as: "sayo" }, { card: "BT1-080", as: "host", under: ["BT1-010"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const memoryBefore = s.state.memory;
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardsPosition: "bottom",
+      placedOwnTopAtStackBottom: false,
+      byEffectSeat: 0,
+    });
+
+    expect(s.perm("sayo").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(memoryBefore);
   });
 });

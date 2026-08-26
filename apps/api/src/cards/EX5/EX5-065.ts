@@ -50,6 +50,7 @@ if (yourTurn) {
       kind: "SubTrigger",
       event: "onAddDigivolutionCards",
       sourceFilter: { controller: "mine", kind: ["Digimon"] },
+      requirePlacedOwnTopAtStackBottom: true,
       actions: [
         {
           kind: "Suspend",

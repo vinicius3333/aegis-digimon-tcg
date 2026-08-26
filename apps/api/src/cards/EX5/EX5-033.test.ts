@@ -38,6 +38,7 @@ describe("EX5-033 Mitamamon", () => {
       kind: "GainKeyword",
       keyword: { keyword: "SecurityAttack", amount: -2 },
       duration: "untilOpponentTurnEnd",
+      target: { whileMatchesTargetFilter: true },
     });
   });
 
@@ -46,8 +47,8 @@ describe("EX5-033 Mitamamon", () => {
       0: { battleArea: [{ card: "EX5-033", as: "mitamamon" }], security: ["BT1-001", "BT1-002"] },
       1: {
         battleArea: [
-          { card: "BT1-058", as: "qualifying" },
-          { card: "BT1-020", as: "belowTotalSecurity" },
+          { card: "BT1-016", as: "qualifying" },
+          { card: "BT1-010", as: "belowTotalSecurity" },
         ],
         security: ["BT1-003", "BT1-004"],
       },
@@ -59,5 +60,11 @@ describe("EX5-033 Mitamamon", () => {
 
     expect(observe(s.engine).keywordAmount(s.perm("qualifying"), "SecurityAttack")).toBe(-2);
     expect(observe(s.engine).keywordAmount(s.perm("belowTotalSecurity"), "SecurityAttack")).toBe(0);
+
+    s.state.players[0]!.security.pop();
+    await settle(() => observe(s.engine).keywordAmount(s.perm("belowTotalSecurity"), "SecurityAttack") === -2, 2000);
+
+    expect(observe(s.engine).keywordAmount(s.perm("qualifying"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).keywordAmount(s.perm("belowTotalSecurity"), "SecurityAttack")).toBe(-2);
   });
 });

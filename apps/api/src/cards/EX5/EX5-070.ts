@@ -21,7 +21,10 @@ if (replacement?.kind === "Replacement") {
   replacement.actions = [
     {
       kind: "Return",
-      target: { filter: { zone: "digivolutionCards", controller: "mine", kind: ["Digimon"] }, count: 1 },
+      target: {
+        filter: { zone: "digivolutionCards", controller: "mine", kind: ["Digimon"], hostFilter: { isSelfRef: true } },
+        count: 1,
+      },
       to: "hand",
       optional: true,
     },
@@ -33,6 +36,7 @@ if (replacement?.kind === "Replacement") {
         filter: {
           zone: "digivolutionCards",
           controller: "mine",
+          hostFilter: { isSelfRef: true },
           // [X Antibody] is a named card reference here, not the broad [X Antibody] trait.
           nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }],
         },

@@ -58,10 +58,13 @@ describe("EX5-073 GraceNovamon", () => {
       leaveCause: "byOpponentEffect",
       actions: [
         {
-          kind: "Prevent",
-          optional: true,
-          abortOnDecline: true,
-          cost: { kind: "trash", target: { count: 2, filter: { zone: "digivolutionCards", sameLevelPair: true } } },
+              kind: "Prevent",
+              optional: true,
+              abortOnDecline: true,
+              cost: {
+                kind: "trash",
+                target: { count: 2, filter: { zone: "digivolutionCards", isSelfRef: true, sameLevelPair: true } },
+              },
         },
       ],
     });

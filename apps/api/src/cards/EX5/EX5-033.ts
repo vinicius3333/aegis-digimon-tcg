@@ -122,6 +122,7 @@ export const compiled: CompiledCard = {
               colors: ["Yellow"],
             },
             count: "all",
+            whileMatchesTargetFilter: true,
           },
           keyword: {
             keyword: "Barrier",

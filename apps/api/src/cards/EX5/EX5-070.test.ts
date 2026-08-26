@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { requireCardDefinition } from "@aegis/shared";
 import { permanentMatchesFilter } from "../../engine/effects/interpreter.js";
+import { candidateLooseInstances } from "../../engine/effects/interpreter/targeting/loose.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-070.js";
 import "./EX5-070.js";
@@ -45,7 +46,7 @@ describe("EX5-070 X Antibody Proto Form", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-010", as: "withProto", under: ["EX5-070"] },
+          { card: "BT1-010", as: "withProto", under: ["EX5-070", "BT1-009"] },
           { card: "BT1-010", as: "withoutProto", under: ["BT1-011"] },
         ],
       },
@@ -63,7 +64,7 @@ describe("EX5-070 X Antibody Proto Form", () => {
         cardId: "EX5-070",
         ownerSeat: 0,
         definition: requireCardDefinition("EX5-070"),
-        permanent: () => undefined,
+        permanent: () => s.perm("withProto"),
         isOnBattleArea: () => false,
         isOwnersTurn: () => true,
         hasColor: () => false,
@@ -85,5 +86,15 @@ describe("EX5-070 X Antibody Proto Form", () => {
 
     expect(permanentMatchesFilter(ctx, s.perm("withProto"), targetFilter.target.filter, ctx.source)).toBe(false);
     expect(permanentMatchesFilter(ctx, s.perm("withoutProto"), targetFilter.target.filter, ctx.source)).toBe(true);
+
+    const inherited = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
+    const replacement = inherited.actions.find((action) => action.kind === "Replacement")!;
+    if (replacement.kind !== "Replacement") throw new Error("EX5-070 inherited replacement missing");
+    const returnAction = replacement.actions.find((action) => action.kind === "Return")!;
+    if (returnAction.kind !== "Return") throw new Error("EX5-070 inherited return missing");
+
+    const returnCandidates = candidateLooseInstances(ctx, returnAction.target, ["digivolutionCards"]);
+    expect(returnCandidates.map((candidate) => candidate.hostPermanentId)).toEqual([s.perm("withProto").permanentId]);
+    expect(returnCandidates.map((candidate) => candidate.cardId)).toEqual(["BT1-009"]);
   });
 });
