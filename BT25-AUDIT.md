@@ -163,3 +163,23 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-008.
+
+## BT25-009 — Bearmon — 10/10
+
+- Catalog evidence: Red level-3 Digimon, play cost 3, 1000 DP, `Rookie`/`Vaccine`, `Beast`/`Iliad`/`TS`; standard red or green level-2 evolution for 0 plus alternate level-2 `TS` evolution for 0; `[Start of Your Main Phase] If you have 4 or less memory, this Digimon may digivolve without cost into a hand Digimon with Beast/Animal/Sovereign in any trait other than Sea Animal, or with TS`; inherited `[All Turns] +1000 DP`.
+- Knowledge base: Q6253 defines “while you have 4 or less memory” relative to the controller's side of the gauge: position 4 or farther right on that side.
+- Implementation: the start-main optional self-digivolution reads `memoryAtMost` from `controller: "mine"`, searches only hand Digimon, includes the three positive trait groups plus `TS`, explicitly excludes `Sea Animal`, and pays no evolution cost. The alternate evolution and inherited all-turn modifier are complete. The module has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-009", compiled)`.
+- Defect corrected: the generated condition omitted the controller perspective required by Q6253. The direct IR and committed shared effects record now both carry `controller: "mine"`, preventing consumers from interpreting the memory threshold as an unscoped gauge comparison.
+- Behavioral proof: the focused suite covers the exact 4-memory boundary, rejection above 4, opponent-turn timing exclusion, legal zero-cost `TS` evolution stack followed by the free Beast evolution, preserved stack sources, and inherited +1000 DP. The analogous BT25-062 mechanism regression remains green.
+- Verification: focused suite — 6 passed; BT25-062 comparison — 4 passed; `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-009 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-009
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-009.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-009.test.ts src/cards/BT25/BT25-062.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-009.

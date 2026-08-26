@@ -90170,7 +90170,7 @@
             "payCost": false,
             "from": ["hand"],
             "optional": true,
-            "condition": { "kind": "memoryAtMost", "value": 4 }
+            "condition": { "kind": "memoryAtMost", "value": 4, "controller": "mine" }
           }
         ]
       },
