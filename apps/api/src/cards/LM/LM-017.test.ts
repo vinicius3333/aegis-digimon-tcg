@@ -71,6 +71,7 @@ describe("LM-017 Regulusmon", () => {
     await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
       subjectPermanentId: s.perm("regulusmon").permanentId,
       addedDigivolutionCardInstanceIds: [],
+      byEffectSeat: 0,
     });
     await settle(
       () => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-016"),
@@ -79,6 +80,28 @@ describe("LM-017 Regulusmon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-016")).toBe(true);
+  });
+
+  it("does not react when an ordinary digivolution-card addition has no effect provenance", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-017", as: "regulusmon" }, { card: "BT1-009", as: "sacrifice" }],
+          trash: [{ card: "LM-016", as: "revive" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("regulusmon").permanentId,
+      addedDigivolutionCardInstanceIds: [],
+    });
+    await settle(() => s.state.pendingDecision === null);
+
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "LM-016")).toBe(true);
   });
 
   it("spends the source-add reaction only once per turn", async () => {
@@ -100,6 +123,7 @@ describe("LM-017 Regulusmon", () => {
     await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
       subjectPermanentId: s.perm("regulusmon").permanentId,
       addedDigivolutionCardInstanceIds: [],
+      byEffectSeat: 0,
     });
     await settle(() => s.state.players[0]!.trash.length === 1, 2000);
     const afterFirst = s.state.players[0]!.battleArea.length;
@@ -107,6 +131,7 @@ describe("LM-017 Regulusmon", () => {
     await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
       subjectPermanentId: s.perm("regulusmon").permanentId,
       addedDigivolutionCardInstanceIds: [],
+      byEffectSeat: 0,
     });
     await settle(() => s.state.pendingDecision === null);
 

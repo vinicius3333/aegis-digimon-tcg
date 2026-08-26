@@ -43,7 +43,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
           raw: "when an effect adds digivolution cards to this Digimon",
-          sourceFilter: { isSelfRef: true },
+          sourceFilter: { isSelfRef: true, byEffect: true },
           actions: [
             {
               kind: "PlayWithoutCost",

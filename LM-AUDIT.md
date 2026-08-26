@@ -108,7 +108,9 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 ## LM-017 — Regulusmon — pending focused execution
 
 - Direct IR maps Blast Digivolve, shared entrance trash/under placement, and once-per-turn reactive
-  free-play/deletion branch. Existing focused cases are unrun; no local ruling exists, so below 10/10.
+  free-play/deletion branch. The reaction now requires effect provenance on the add-digivolution
+  event, so ordinary digivolution cannot arm it; positive and negative focused cases are unrun,
+  and no local ruling exists, so below 10/10.
 
 ## LM-018 — Gyuukimon — pending focused execution
 
@@ -158,7 +160,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Digimon-source-qualified `beAffected` restriction.
 - Existing focused behavioral cases cover security counts two, exactly three, and four; an
   own-Digimon suspension choice; and the suspension-to-unsuspension immunity transition.
-  They remain unrun while PID 43774 holds the test slot. The security-Digimon example in Q4027
+  They remain unrun while PID 82901 holds the test slot. The security-Digimon example in Q4027
   is currently mechanism-traced rather than exercised as a card-level fixture, so this card
   remains below 10/10.
 
@@ -170,7 +172,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   once per turn.
 - Existing focused behavioral fixtures cover successful Tamer play plus Then De-Digivolve,
   the no-revealed-Tamer negative, free play at zero memory, and inherited once-per-turn use.
-- No local rulings add ambiguity. The focused suite is unrun while PID 43774 holds the serial
+- No local rulings add ambiguity. The focused suite is unrun while PID 82901 holds the serial
   slot, so this card remains below 10/10.
 
 ## LM-026 — Megidramon — pending focused execution
@@ -183,7 +185,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   DP-reference effects as Q4032 requires.
 - Existing behavioral focused cases cover the 11000 threshold, both Guilmon source zones and
   final stack order, the ChaosGallantmon alias, and modifier positive/negative boundaries.
-  They are deliberately unrun under PID 43774; the card remains below 10/10.
+  They are deliberately unrun under PID 82901; the card remains below 10/10.
 
 ## LM-027 — Red Scramble — pending focused execution
 
