@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-038.js";
 
 describe("EX6-038 Ludomon", () => {
-  it("pays 1 and places an Option under a level 3 or Legend-Arms Digimon for +2000 DP", () =>
+  it("pays 1 and places itself under a level 3 or Legend-Arms Digimon for +2000 DP", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
       kind: "ModifyDP",
       amount: 2000,
