@@ -433,3 +433,33 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-015.
+
+## BT9-016 — WarGreymon (X Antibody) — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red level-6 Digimon, play cost 12, 12000 DP, `Mega`/`Vaccine`, complete `Dragonkin`/`X Antibody` traits, standard red-level-5 evolution for 4, and all printed text were checked.
+2. **Alternate legal evolution (1/1):** Public intents build a complete red level-2-through-6 stack and exercise the exact WarGreymon alternate route for precisely 1 memory.
+3. **All-turn security watcher (1/1):** Removing a card from the opponent's security gains exactly 1 memory on either turn; removing the controller's own security does not.
+4. **Q1811 public security path (1/1):** A public player attack performs a real security check and the already-triggered watcher grants memory before the attack sequence finishes.
+5. **End-of-attack timing (1/1):** Public attacks, rather than only direct timing injection, reach and resolve the deletion after each attack.
+6. **Live-DP boundary (1/1):** A 12000-DP target is eligible while a 15000-DP peer remains, proving the relative-to-source threshold and exact boundary.
+7. **Once-per-turn identity (1/1):** After a second public attack in the same turn, one otherwise eligible 12000-DP target remains.
+8. **Q1810 exact names (1/1):** Exact `WarGreymon` and exact `X Antibody` card names qualify; the `X Antibody` trait on MetalGreymon X alone does not.
+9. **Direct IR and registration (1/1):** The full/no-residual module contains both effects and the alternate recipe, registers exactly once with `registerIrCard`, contains no legacy registration, and is imported by the set index.
+10. **Reproducible verification (1/1):** Focused proof passed 8/8; the shared security-removal and relative-DP mechanisms, workspace typecheck, focused formatting, and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-016
+rg -n 'Q1810|Q1811' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-016.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-016.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/engine/effects/subtriggers.test.ts src/engine/security/securityCheck.test.ts --reporter=dot
+pnpm typecheck
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-016.ts apps/api/src/cards/BT9/BT9-016.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-016.
