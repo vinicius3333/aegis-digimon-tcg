@@ -52,3 +52,15 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Existing behavioral focused cases cover the 11000 threshold, both Guilmon source zones and
   final stack order, the ChaosGallantmon alias, and modifier positive/negative boundaries.
   They are deliberately unrun under PID 43774; the card remains below 10/10.
+
+## LM-027 — Red Scramble — pending focused execution
+
+- Direct IR keeps ordinary red-Digimon evolution legality (`ignoreRequirements: false`), excludes
+  burst/DNA forms by using the ordinary hand Digivolve action, and places the resolved Option in
+  battle after the optional evolution attempt, matching Q4033-Q4035.
+- The opponent-Digimon start-turn gate arms Delay; its nonoptional trash-to-deck-top return runs
+  before the optional small red-trash play, matching Q4036/Q4037. Security independently performs
+  optional small-red play then returns Red Scramble to hand.
+- Existing behavioral cases cover cost reduction, Delay ordering, size cap, no-opponent gate,
+  empty-trash Q4036 activation, and Security follow-up. They remain unrun under PID 43774, so
+  this card is below 10/10.
