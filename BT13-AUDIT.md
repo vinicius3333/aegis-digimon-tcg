@@ -8,7 +8,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 
 ## Current revalidation queue
 
-- BT13-007 — Pending
+- BT13-007 — 10/10
+  - Evidence: catalog and KB Q2259–Q2265/Q2340/Q2369/Q2463 reviewed; direct compiled IR exclusively registers through `registerIrCard` and traces breeding restriction, optional scaled cost replacement, egg/Royal Knight placement, inherited Option trigger, ownership, and separate once-per-turn keys.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-007.test.ts` passed (5 tests): breeding evolution lock, reduction/decline and frequency, mandatory egg/Royal Knight placement with non-match retained, and inherited Royal Knight Option frequency.
 - BT13-008 — Pending
 - BT13-009 — Pending
 - BT13-010 — Pending
