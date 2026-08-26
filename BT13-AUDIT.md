@@ -77,7 +77,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-029 — 10/10
   - Evidence: catalog and KB Q2280 reviewed; compiled IR exclusively uses `registerIrCard`, correctly distinguishes the attack-target-switch restriction from only preventing Blocker and traces the inclusive opponent 8-card hand boundary, turn duration, inherited opponent-hand event, and once-per-turn source anchoring.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-029.test.ts` passed (4 tests): blocked target switching at 8, Blocker behavior at 7, opponent-only inherited event, and once-per-turn boundary.
-- BT13-030 — Pending
+- BT13-030 — 10/10
+  - Evidence: catalog and KB Q2281–Q2283 reviewed; compiled IR exclusively uses `registerIrCard`, tracing two-card-per-Royal-Knight-or-blue-Tamer scaling against exactly one opponent Digimon, empty-stack return filtering, self-play inclusion, shared once-per-turn use, and simultaneous-trigger ordering.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-030.test.ts` passed (7 tests): On Play/evolution scaling, Q2281 single target, blue-Tamer scaling, self/other play trigger frequency, Q2282/Q2283 ordering, and sourced-Digimon negative.
 - BT13-031 — Pending
 - BT13-032 — Pending
 - BT13-033 — Pending
