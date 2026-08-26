@@ -65,6 +65,35 @@ describe("BT26-024 Tinkermon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 
+  it("supports both printed yellow and green level-2 evolution requirements", async () => {
+    for (const [baseCard, as] of [
+      ["BT1-005", "yellowEgg"],
+      ["BT1-007", "greenEgg"],
+    ] as const) {
+      const s = setupEngine({
+        0: {
+          breeding: { card: baseCard, as },
+          hand: [{ card: CARD_ID, as: "tinkermon" }],
+          deck: ["BT1-009"],
+        },
+      });
+      s.state.memory = 3;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm(as).permanentId,
+          instanceId: s.inst("tinkermon").instanceId,
+          useAlternateCost: false,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm(as).topCard.cardId === CARD_ID);
+      expect(s.state.memory, `normal route from ${baseCard}`).toBe(3);
+      expect(s.perm(as).stack.map(({ cardId }) => cardId)).toEqual([baseCard]);
+    }
+  });
+
   it("publicly reacts to another trait Digimon's play and digivolves without paying memory", async () => {
     const s = setupEngine(
       {
@@ -179,25 +208,76 @@ describe("BT26-024 Tinkermon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("top"), "Barrier")).toBe(false);
   });
 
-  it("uses inherited Barrier to trash top security and prevent effect deletion", async () => {
+  it("uses inherited Barrier to trash top security and prevent battle deletion", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT26-027", as: "host", under: [{ card: CARD_ID }] }],
+        battleArea: [{ card: "BT26-027", as: "host", suspended: true, under: [{ card: CARD_ID }] }],
         security: [
           { card: "BT1-009", as: "barrierCost" },
           { card: "BT1-010", as: "remaining" },
         ],
       },
+      1: { battleArea: [{ card: "BT1-080", as: "attacker" }] },
     });
+    await s.ready();
+    s.state.turnSeat = 1;
     const hostId = s.perm("host").permanentId;
-    const deletion = advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
     expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
       ok: true,
     });
-    expect(await deletion).toBe(0);
+    await settle(() => s.state.players[0]!.security.length === 1);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("remaining").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("barrierCost").instanceId);
+  });
+
+  it("does not activate inherited Barrier against effect deletion", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-027", as: "host", under: [{ card: CARD_ID }] }],
+        security: [{ card: "BT1-009", as: "barrierCost" }],
+      },
+    });
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(1);
+    expect(s.events.some((event) => event.kind === "barrierPrompt")).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("digivolves only into the controller's hand, not an opponent's matching card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "tinkermon" }],
+          hand: [{ card: "BT26-034", as: "playedVegetation" }],
+        },
+        1: { hand: [{ card: "BT26-027", as: "opponentPetermon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedVegetation").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.perm("tinkermon").topCard.cardId).toBe(CARD_ID);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("opponentPetermon").instanceId,
+    );
   });
 });

@@ -1089,3 +1089,33 @@ git diff --check
 ```
 
 No unresolved card-text ambiguity remains. No implementation, shared-engine, or test changes were needed, and no commit or push was made, per the audit task instructions. Only this BT26-023 ledger section is left uncommitted for coordinator review.
+
+## BT26-024 — Tinkermon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-024` (`Tinkermon`), a yellow level 3 Rookie Digimon with 2000 DP, Virus attribute, and `Fairy`/`WG` traits. It has normal yellow Lv.2 and green Lv.2 evolution requirements, both cost 0, plus `[Digivolve] Lv.2 w/[WG] trait: Cost 0`. The main text is `[Your Turn] When any of your other Digimon with the [Vegetation], [Fairy] or [WG] trait are played, this Digimon may digivolve into a Digimon card with the [Vegetation], [Fairy] or [WG] trait in the hand without paying the cost.` The inherited text is `＜Barrier＞`.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-024 --json`; it returns `qa: []`, `banlist: null`, and `errata: null`. There are no card-specific rulings, errata, restrictions, or unresolved local KB entries.
+- Comprehensive Rules evidence: §2-3-5-1/2/3 defines normal and post-`[Digivolve]` requirements; §3-4-7-3 through 3-4-7-8 excludes breeding-area cards from ordinary effect triggers, activation, targeting, and information; §4-7-3/5/7/8/9/10 defines fixed stack order, face-up defaults, inherited information, and face-down visibility; §8-1-3-1/2/3 defines requirement selection, payment, stacking, and the digivolution draw; §15-4-1-2 preserves a resolving effect through source/card transitions; §15-4-2-2/3 covers trigger and pending-activation timing; §15-16-8-1 limits `[Your Turn]` to its owner's turn; and §16-25-1/2/3 defines Barrier as an optional security-trash replacement for battle deletion only.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-024.ts` is IR-only and registers exclusively through `registerIrCard("BT26-024", compiled)`; it contains no `registerCard` call. The alternate requirement is exact (`level: 2`, `traits: ["WG"]`, `cost: 0`, `isAlternate: true`), while catalog-generated normal yellow/green requirements remain available to the standard digivolve path.
+- The `[Your Turn]` effect installs a continuous `whenPlayed` SubTrigger. Its source filter is controller `mine`, kind `Digimon`, and an OR union of the exact `Vegetation`, `Fairy`, and `WG` traits, with `excludeSelf: true`; `withSubTriggerTurnScope` carries the owner-turn boundary to the watcher. The target is this Digimon, and the nested optional `Digivolve` selects exactly one own-hand Digimon matching the same trait union, with `payCost: false`. The explicit `controllerDefault: "mine"` on the destination filter is a required correction: without it, loose-card targeting enumerated the opponent's hand as well.
+- The inherited `Static` keyword marker publishes Barrier only when Tinkermon is under a host. Shared continuous keyword publication and the corrected Barrier seam restrict prevention to battle deletion; effect deletion proceeds without a Barrier prompt or security payment. No once-per-turn marker is present, matching the printed unlimited trigger frequency.
+- Shared seams inspected: `withSubTriggerTurnScope`, `runSubTrigger`/`matchingSubjectPermanentIds`, `candidateLooseInstances`/`seatsForController`, `runDigivolve`/`legalIntoCandidates`, `digivolveFromInstance`, continuous inherited keyword publication, and the battle-only Barrier replacement path. Relevant peers inspected: BT26-027 (same WG/Fairy filter and inherited Barrier), BT26-034 (Vegetation free digivolve), EX9-002 and EX9-042 (own-hand digivolution target conventions), plus the digivolution and Barrier conformance suites.
+
+### Behavioral proof
+
+The focused `apps/api/src/cards/BT26/BT26-024.test.ts` suite has 11 passing tests proving:
+
+- the exact WG alternate requirement and legal/illegal WG-base boundary;
+- both printed normal yellow Lv.2 and green Lv.2 evolution routes, with zero memory cost and the real stack transition;
+- matching Vegetation/Fairy/WG play triggering the optional free digivolution, while a nonmatching Digimon, an opponent's play, and opponent-turn timing do not trigger it;
+- optional refusal with no hand movement or additional memory payment;
+- destination ownership, including retention of a matching card in the opponent's hand;
+- inherited Barrier publication only under a host, security payment and survival from battle deletion, and no Barrier activation against effect deletion.
+
+The affected regression run passed 8 files and 213 tests: BT26-027, BT26-034, EX9-042, digivolution candidate legality, ch08 digivolution, ch16c deletion/advanced keywords, primitives, and BT26-024. `pnpm typecheck` passed the shared build plus shared/API/web typechecks. `pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-024.ts apps/api/src/cards/BT26/BT26-024.test.ts` and `git diff --check` both passed.
+
+One stale pre-audit assertion incorrectly expected Barrier to prevent effect deletion; it was corrected to the printed battle-only behavior and a separate negative effect-deletion assertion was added. No card-text ambiguity remains. Changes are intentionally uncommitted and unpushed for coordinator review.
