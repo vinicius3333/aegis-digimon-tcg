@@ -38,7 +38,9 @@ describe("ST16-12 MetalGarurumon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("costOne").instanceId, s.inst("drawnCost").instanceId]),
     );
-    expect(s.state.memory).toBe(10);
+    // The printed Purple Lv.5 digivolution costs 3 memory (10 → 7); exactly two cards
+    // are available after the draw, so the effect restores 2 (7 → 9).
+    expect(s.state.memory).toBe(9);
   });
 
   it("trashes one hand card and deletes the opponent's lowest-level Digimon when attacking", async () => {
