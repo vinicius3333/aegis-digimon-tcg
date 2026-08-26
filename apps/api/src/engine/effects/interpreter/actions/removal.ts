@@ -574,9 +574,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       }
       if (action.playCostCeiling !== undefined) {
         returnTarget = {
-          ...scaledTarget,
+          ...returnTarget,
           filter: {
-            ...scaledTarget.filter,
+            ...returnTarget.filter,
             playCostLte:
               action.playCostCeiling.base +
               Math.floor(
