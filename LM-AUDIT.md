@@ -420,10 +420,13 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   was corrected from Q4063/Q4064 to Q4065/Q4066.
 - Static review found no new causal gap: the self-bound `WaiveColorRequirement` preserves the
   printed blue requirement while admitting red Digimon/Tamers in battle or breeding, and the
-  Main, Delay, and Security effects remain independent. The focused suite remains unrun; LM-034
-  stays below 10/10 pending explicit authorization and the relevant mechanism/collection gates.
+  Main, Delay, and Security effects remain independent. The authorized serialized focused command
+  passed 1/1 file and 6/6 tests in 3.29s on 2026-08-26:
+  `vitest run src/cards/LM/LM-034.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-034 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
-## LM-035 — Amber Memory Boost! — pending focused execution
+## LM-035 — Amber Memory Boost! — static audit complete; pending focused authorization
 
 - Catalog and Q4067/Q4068 map to direct self-bound Static color alternative `purple`, which the
   executable legality path evaluates from either battle or breeding; it still rejects a player
@@ -432,7 +435,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Focused fixtures cover native yellow, alternate purple in battle and breeding, refusal, reveal
   result, and Security, while the shared Delay suite covers payment and payload. The stale Q&A
   references in both focused-test comments are corrected to their card-specific rulings.
-- All focused proof is intentionally unrun under PID 82901, so LM-035 remains below 10/10.
+- Static review found no new causal gap: the self-bound `WaiveColorRequirement` preserves the
+  printed yellow requirement while admitting purple Digimon/Tamers in battle or breeding, and the
+  Main, Delay, and Security effects remain independent. The focused suite remains unrun; LM-035
+  stays below 10/10 pending explicit authorization and the relevant mechanism/collection gates.
 
 ## LM-036 — Jade Memory Boost! — pending focused execution
 
