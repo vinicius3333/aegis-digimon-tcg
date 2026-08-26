@@ -1693,3 +1693,46 @@ git diff --check
 ```
 
 No unresolved BT26-037 ambiguity or unsupported printed clause remains. Only the card module and colocated focused test were changed; changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-037; the collection is not marked complete.
+
+## BT26-038 — Kuwagamon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-038` (`Kuwagamon`), a green level-4 Champion Digimon with play cost 5, 5000 DP, Virus attribute, and `Insectoid`/`Titan`/`TS` traits. Its normal evolution requirement is green Lv.3 for cost 2, and its alternate requirement is `[Digivolve] Lv.3 w/[TS] trait: Cost 2`. The main text is `[When Moving] [On Play] [When Digivolving] You may suspend 1 Digimon. Then, 1 of your Digimon with the [Insectoid] or [Titan] trait gets +3000 DP until your opponent's turn ends.` The inherited text is `[Your Turn] [Once Per Turn] When this Digimon wins a battle, 1 of your [Insectoid] or [Titan] trait Digimon may digivolve into an [Insectoid] or [Titan] trait Digimon card in the hand with the cost reduced by 1.` It has no Security text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-038 --json`; it returns Q7018–Q7023, with no erratum or banlist restriction. Q7018 confirms the suspend target may be either player's Digimon. Q7019–Q7023 establish that the inherited effect triggers after the battle win (including a Security Digimon battle), remains valid when deletion is prevented, and participates in the stated simultaneous-trigger ordering.
+- Comprehensive Rules evidence: §§2-3-5-1–3 and 8-1-1–3 define normal/alternate evolution requirements, requirement checking, payment, stack transition, and evolution draw; §§14-1–2 define battle winners, loser deletion, Security Digimon battles, and trigger timing; §§15-7-1–5 define optional processing; §§15-8-3-1–9 define trigger-type effects; §§15-14-1-1–5 define per-copy Once Per Turn activation and reset; §§15-16-2-1, 15-16-5-1, and 15-16-16-1 define On Play, When Attacking/battle processing, and When Moving. The modifier ledger's `UntilOpponentTurnEnd` mapping was also checked. No unresolved card-specific ambiguity remains.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-038.ts` is compiled IR with `coverage: "full"` and `residual: []`; it registers exactly once through `registerIrCard("BT26-038", compiled)`, with no `registerCard` registration.
+- The alternate evolution requirement is exact (`level: 3`, `traits: ["TS"]`, `cost: 2`, `isAlternate: true`); the shared evolution path supplies the normal green Lv.3/cost-2 route and preserves requirement validation, stack placement, and draw behavior.
+- The shared `clause` is installed independently for `OnPlay`, `WhenDigivolving`, and `WhenMoving`. Its first action is optional `Suspend` targeting exactly one Digimon with `controller: "any"`, implementing Q7018. Its following `ModifyDP` targets exactly one own Digimon and OR-matches the complete `Insectoid`/`Titan` trait set for 3000 DP with `untilOpponentTurnEnd`; it is not aborted when the optional suspension is declined.
+- The inherited action is a `[Your Turn]` persistent watcher with `frequency: "OncePerTurn"` and a `whenBattleWon` SubTrigger. `sourceFilter: { isSelfRef: true }` binds “this Digimon” to the host that won, while the target and hand destination each use the own-controller and OR trait filters. `payCost: true` plus `costDelta: -1` applies the printed one-memory reduction while shared digivolution legality remains authoritative.
+- Shared seams inspected: `actions/board.ts` and permanent targeting for any-controller suspension, actual transition results, OR trait matching, and DP modifiers; `duration.ts`/`modifiers.ts` for opponent-turn-end expiry; `actions/subTrigger.ts` and `matching/trigger.ts` for inherited host identity and turn scope; `actions/digivolve.ts` for hand source, requirement checks, cost delta, and stack transition; and combat/security dispatch for battle wins and Q7019–Q7023 boundaries. Relevant peers inspected: BT26-034–BT26-036, BT26-039, BT26-041, and BT26-042 for adjacent TS evolution, Insectoid/Titan targeting, inherited battle-win effects, and the same suspend/DP vocabulary.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-038.test.ts` now has 7 passing tests. The suite proves the full IR shape and exact alternate requirement; a real inherited battle-win evolution with one-memory reduction; host-source isolation when a different Digimon wins; Q7020's Security Digimon battle path; Q7018's any-controller suspend target through the positive opponent-target case; optional refusal while the `Then` buff still resolves; own-only and exact Insectoid/Titan trait boundaries; opponent-turn-end DP expiry; and legal/illegal alternate evolution bases.
+- The mixed-board refusal test uses an own Insectoid, an own non-matching Digimon, and an opponent Insectoid. It asserts that declining suspension leaves every target unsuspended, buffs only the preferred own Insectoid by exactly 3000 DP, leaves the non-matching/opponent cards unchanged, and clears the modifier at `opponentTurnEnd`.
+- The inherited tests use a real evolution stack carrying BT26-038, a separate ally that wins a battle, an eligible target, and a hand candidate. They assert the candidate's final stack instance and memory, reject the unrelated winner, and repeat the same proof against a Security Digimon. The alternate-evolution test performs a real Lv.3 TS transition and rejects a red non-TS Lv.3 base.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-038 --json
+  PASS (Q7018–Q7023; banlist: null; errata: null)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-038.test.ts
+  PASS (1 file, 7 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-034.test.ts src/cards/BT26/BT26-035.test.ts src/cards/BT26/BT26-036.test.ts src/cards/BT26/BT26-039.test.ts src/cards/BT26/BT26-041.test.ts src/cards/BT26/BT26-042.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts
+  PASS (9 files, 385 tests)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxlint apps/api/src/cards/BT26/BT26-038.ts apps/api/src/cards/BT26/BT26-038.test.ts
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-038.ts apps/api/src/cards/BT26/BT26-038.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-038 ambiguity or unsupported printed clause remains. Only the colocated focused test and this appended audit section were changed; the card implementation and shared engine required no correction. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-038; the collection is not marked complete.
