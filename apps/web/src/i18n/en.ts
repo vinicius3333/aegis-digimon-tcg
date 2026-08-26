@@ -392,6 +392,9 @@ export const en = {
   "overlay.isAttacking": "{name} is attacking",
   "overlay.attackIncoming": "An attack is incoming",
   "overlay.blockPrompt": "Choose a <Blocker> to redirect the attack, or take the hit.",
+  "overlay.blockForced": "Mandatory",
+  "overlay.blockForcedPrompt":
+    "The attacker has <Collision>: every Digimon you control can block, and you must block while one can. Choose the Digimon that takes the attack.",
   "overlay.noBlockers": "No eligible blockers.",
   "overlay.takeAttack": "Take the attack, no block",
   "overlay.dpBoost": "DP boost",

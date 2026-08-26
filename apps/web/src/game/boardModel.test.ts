@@ -92,7 +92,10 @@ describe("activeBlockWindow", () => {
     expect(activeBlockWindow([opened], false)).toEqual({
       attackerPermanentId: "attacker",
       eligibleBlockerIds: ["blanc"],
+      mustBlock: false,
     });
+    // ＜Collision＞ reaches the window as the compulsion the server enforces.
+    expect(activeBlockWindow([{ ...opened, mustBlock: true }], false)).toMatchObject({ mustBlock: true });
     expect(
       activeBlockWindow(
         [

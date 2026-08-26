@@ -1189,6 +1189,8 @@ export function describeEvent(
 export interface ActiveBlockWindow {
   attackerPermanentId: string;
   eligibleBlockerIds: string[];
+  /** ＜Collision＞: the block is compulsory, so the window offers no way out of it. */
+  mustBlock: boolean;
 }
 
 /** Derive a real, still-pending block response from the synchronized event stream. */
@@ -1203,6 +1205,7 @@ export function activeBlockWindow(events: readonly ServerEvent[], isViewerTurn: 
       return {
         attackerPermanentId: event.attackerPermanentId,
         eligibleBlockerIds: event.eligibleBlockerIds,
+        mustBlock: event.mustBlock === true,
       };
     }
     if (

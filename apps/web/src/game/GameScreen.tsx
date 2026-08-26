@@ -1825,6 +1825,7 @@ export function GameScreen({
             currentDP: findPermanentInState(state, pid)?.currentDP ?? 0,
             sourceCount: findPermanentInState(state, pid)?.stack.length ?? 0,
           }))}
+          mustBlock={blockWindow.mustBlock}
           onBlock={(pid) => (room ? intents.declareBlock(room, pid) : demoConnection?.acknowledgeBlockWindow?.(pid))}
           onDecline={() => (room ? intents.declineBlock(room) : demoConnection?.acknowledgeBlockWindow?.())}
         />

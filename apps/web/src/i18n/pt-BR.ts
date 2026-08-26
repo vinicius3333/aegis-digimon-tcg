@@ -397,6 +397,9 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.isAttacking": "{name} está atacando",
   "overlay.attackIncoming": "Um ataque está chegando",
   "overlay.blockPrompt": "Escolha um <Blocker> para redirecionar o ataque, ou aceite o golpe.",
+  "overlay.blockForced": "Obrigatório",
+  "overlay.blockForcedPrompt":
+    "O atacante tem <Collision>: todos os seus Digimon podem bloquear, e você precisa bloquear enquanto algum puder. Escolha o Digimon que recebe o ataque.",
   "overlay.noBlockers": "Nenhum bloqueador elegível.",
   "overlay.takeAttack": "Aceitar o ataque, sem bloquear",
   "overlay.dpBoost": "Bônus de DP",

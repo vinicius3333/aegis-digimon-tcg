@@ -177,14 +177,21 @@ export function MulliganOverlay({
 export function BlockOverlay({
   attackerCardId,
   blockers,
+  mustBlock = false,
   onBlock,
   onDecline,
 }: {
   attackerCardId?: string;
   blockers: { permanentId: string; cardId: string; currentDP: number; sourceCount: number }[];
+  /**
+   * ＜Collision＞ (§16-30): the block is compulsory while a Digimon can make it, so the
+   * window states the compulsion and drops the refusal the server would reject anyway.
+   */
+  mustBlock?: boolean;
   onBlock: (permanentId: string) => void;
   onDecline: () => void;
 }) {
+  const forced = mustBlock && blockers.length > 0;
   const { t } = useTranslation();
   return (
     <div
@@ -222,8 +229,35 @@ export function BlockOverlay({
           <Icons.Swords size={18} />
         </span>
         <div>
-          <div style={{ fontFamily: "var(--ds-font-display)", fontWeight: 700, fontSize: 17, color: "var(--ds-fg)" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontFamily: "var(--ds-font-display)",
+              fontWeight: 700,
+              fontSize: 17,
+              color: "var(--ds-fg)",
+            }}
+          >
             {t("overlay.blockWindow")}
+            {forced ? (
+              <span
+                style={{
+                  fontFamily: "var(--ds-font-mono)",
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: 0.4,
+                  textTransform: "uppercase",
+                  padding: "2px 7px",
+                  borderRadius: 999,
+                  background: "var(--ds-warning-surface)",
+                  color: "var(--ds-warning)",
+                }}
+              >
+                {t("overlay.blockForced")}
+              </span>
+            ) : null}
           </div>
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
             {attackerCardId ? (
@@ -238,7 +272,7 @@ export function BlockOverlay({
         </div>
       </div>
       <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 12 }}>
-        {t("overlay.blockPrompt")}
+        {t(forced ? "overlay.blockForcedPrompt" : "overlay.blockPrompt")}
       </div>
       {blockers.length ? (
         <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
@@ -282,9 +316,11 @@ export function BlockOverlay({
       ) : (
         <div style={{ fontSize: 12, color: "var(--ds-fg-muted)", marginBottom: 16 }}>{t("overlay.noBlockers")}</div>
       )}
-      <Button full variant="secondary" icon={Icons.Shield} onClick={onDecline}>
-        {t("overlay.takeAttack")}
-      </Button>
+      {forced ? null : (
+        <Button full variant="secondary" icon={Icons.Shield} onClick={onDecline}>
+          {t("overlay.takeAttack")}
+        </Button>
+      )}
     </div>
   );
 }

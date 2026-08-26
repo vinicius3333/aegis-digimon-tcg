@@ -81,7 +81,17 @@ export type ServerEvent =
       /** Public identity of a permanent target at declaration time. */
       targetCardId?: string;
     }
-  | { kind: "blockWindowOpened"; attackerPermanentId: string; eligibleBlockerIds: string[] }
+  | {
+      kind: "blockWindowOpened";
+      attackerPermanentId: string;
+      eligibleBlockerIds: string[];
+      /**
+       * ＜Collision＞ (§16-30): the defending player is forced to block whenever able, so
+       * declining is illegal while an eligible blocker exists. The server enforces it either
+       * way; the flag is what lets the client stop offering a choice it will reject.
+       */
+      mustBlock?: boolean;
+    }
   | { kind: "blocked"; blockerPermanentId: string }
   | { kind: "blockDeclined"; attackerPermanentId: string }
   // §11-3 Counter Timing: opened after When Attacking effects resolve and before block

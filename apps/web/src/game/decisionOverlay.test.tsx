@@ -2635,6 +2635,24 @@ describe("decision board preview", () => {
     expect(onBlock).toHaveBeenCalledWith("coredramon-permanent");
   });
 
+  it("drops the refusal when ＜Collision＞ forces the block", () => {
+    render(
+      <I18nProvider>
+        <BlockOverlay
+          attackerCardId="BT1-028"
+          blockers={[{ permanentId: "coredramon-permanent", cardId: "EX3-039", currentDP: 6000, sourceCount: 1 }]}
+          mustBlock
+          onBlock={vi.fn<(permanentId: string) => void>()}
+          onDecline={vi.fn<() => void>()}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.queryByRole("button", { name: "Take the attack, no block" })).toBeNull();
+    expect(screen.getByText(/you must block while one can/i)).toBeTruthy();
+    expect(screen.getByText("Mandatory")).toBeTruthy();
+  });
+
   it("shows an eligible sourced ExTyrannomon with its DP and source count", () => {
     const onBlock = vi.fn<(permanentId: string) => void>();
     render(
