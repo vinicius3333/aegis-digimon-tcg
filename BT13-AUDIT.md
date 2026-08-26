@@ -262,7 +262,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-090 — 10/10
   - Registration: exclusive `registerIrCard("BT13-090", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-090.test.ts` passed (3 tests): two return clauses and scaled opponent-attack memory watcher are covered.
-- BT13-091 — Pending
+- BT13-091 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-091", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-091.test.ts` passed (4 tests): start-main deletion and conditional buffs, end-of-attack unsuspend cost, and inherited Sleep Mode self-trash are covered.
 - BT13-092 — Pending
 - BT13-093 — Pending
 - BT13-094 — Pending
