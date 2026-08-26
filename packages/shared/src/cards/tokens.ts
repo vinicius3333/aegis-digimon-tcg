@@ -28,7 +28,7 @@ export const tokenDefinitions: readonly CardDefinition[] = [
   tok("AthoRenePor Token", { level: 6, dp: 6000, playCost: 6, colors: [CardColor.White] }),
   tok("Petrification Token", { dp: 3000, playCost: -1, colors: [CardColor.White] }),
   tok("Hinukamuy Token", { dp: 6000, playCost: -1, colors: [CardColor.White] }),
-  tok("Fujitsumon Token", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Blue] }),
+  tok("Fujitsumon Token", { level: 4, dp: 3000, playCost: 0, colors: [CardColor.Purple] }),
   tok("Uka no Mitama", {
     dp: 9000,
     playCost: -1,

@@ -202,9 +202,8 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
               }
               const trashed = await ctx.fx.deletePermanent([self.permanentId]);
               // A prevented/failed trash does not pay ＜Delay＞'s activation cost, so its
-              // payload cannot resolve (EX6-070).  Keep the off-field fallback used by the
-              // other Delay wrappers: a replacement may move the source before reporting a
-              // zero-like result while still having paid the cost.
+              // payload cannot resolve. A replacement may move the source before reporting
+              // a zero-like result while still having paid the cost.
               if (trashed <= 0 && ctx.source.permanent() !== undefined) return;
               // The source is the activation cost. Delete it before resolving the payload so
               // state observers cannot see the Delay reward while the paid card remains in play.

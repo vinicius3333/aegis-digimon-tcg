@@ -15,7 +15,7 @@ export const compiled: CompiledCard = {
           mode: "reduce",
           costType: "digivolve",
           amount: 2,
-          duration: "forTheTurn",
+          duration: "nextDigivolveThisTurn",
           cost: {
             kind: "trash",
             target: {

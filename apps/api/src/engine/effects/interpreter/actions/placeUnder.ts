@@ -4,6 +4,7 @@ import type { EffectContext } from "../../EffectContext.js";
 import { relocateByEffect } from "../costs.js";
 import { unsupported } from "../errors.js";
 import { matchNameOrTrait } from "../matching/definition.js";
+import { scaleFactor } from "../scaling.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import { EffectDuration } from "@aegis/shared";
@@ -527,7 +528,22 @@ export async function runTrashDigivolution(
   ctx: EffectContext,
   action: Extract<Action, { kind: "TrashDigivolution" }>,
 ): Promise<boolean> {
-  const amount = action.amount ?? 1;
+  const baseAmount = action.amount ?? 1;
+  // Pooled source selection still honors its printed per-source scaling.  A
+  // normal `digivolutionCards` scale reads the effect source's stack; here the
+  // printed pool is all matching own Digimon, so aggregate their sources.
+  const scale =
+    action.scaling?.unit === "digivolutionCards" && action.scope === "acrossDigimon"
+      ? Math.floor(
+          candidatePermanents(ctx, { filter: action.scaling.filter ?? {}, count: "all" } as Target).reduce(
+            (total, permanent) => total + permanent.stack.length,
+            0,
+          ) / Math.max(1, action.scaling.per),
+        )
+      : action.scaling === undefined
+        ? 1
+        : scaleFactor(ctx, action.scaling);
+  const amount = typeof baseAmount === "number" && action.scaling !== undefined ? baseAmount * scale : baseAmount;
   const fromTop = action.fromTop ?? true;
   const minimum = action.minAmount;
   const isDigiBurst = /Digi-?Burst/i.test(action.raw ?? "");

@@ -151,6 +151,10 @@ export function permanentMatchesFilter(
   source: CardSource,
 ): boolean {
   if (permanent.topCard === undefined) return false;
+  // Controller is a live permanent property, not part of the card definition. Keep
+  // watcher-side matching (for example, a later entrant to an opponent-only aura)
+  // subject to the same source-relative seat scope used during target enumeration.
+  if (!seatsForController(ctx, filter).includes(permanent.controllerSeat)) return false;
   // A permanent filter naming a field zone must distinguish the breeding area from
   // the battle area. Cost-modifier predicates receive both kinds of permanent directly,
   // so relying on the caller's candidate scan would let battle-area-only reducers apply
@@ -256,6 +260,25 @@ export function permanentMatchesFilter(
   // a battle-area Option permanent always satisfies this — a non-Option never does (Cap-E-006).
   if (filter.placedInBattleAreaByEffect === true && !def.kinds.includes(CardKind.Option)) {
     return false;
+  }
+
+  // Dynamic level bounds such as "level >= the total cards in both security stacks"
+  // carry their live counting filter as the comparison value. Resolve that count before
+  // delegating to definitionMatches; treating the object as a numeric bound silently rejects
+  // every candidate (EX5-033 / KB Q3597-Q3599).
+  const levelComparison = filter.levelComparison as
+    | { op?: Condition["op"]; value?: number | { kind?: string; filter?: Filter } }
+    | undefined;
+  const dynamicCount = levelComparison?.value;
+  if (typeof dynamicCount === "object" && dynamicCount !== null && dynamicCount.kind === "dynamicCount") {
+    const bound = scaleFactor(ctx, {
+      per: 1,
+      unit: "cards",
+      filter: dynamicCount.filter ?? {},
+    });
+    if (def.level === undefined || levelComparison?.op === undefined || !compareNumber(def.level, levelComparison.op, bound)) return false;
+    const { levelComparison: _levelComparison, ...rest } = filter;
+    filter = rest;
   }
 
   // DP threshold needs the live permanent, so it lives here (not in definitionMatches).
@@ -472,10 +495,18 @@ export function permanentMatchesFilter(
   // Digivolution-stack name/trait gate: unlike the ordinary `nameOrTrait` predicate (which
   // inspects the permanent's TOP card), this requires a matching card UNDER that top card.
   if (filter.digivolutionStackNameOrTrait && filter.digivolutionStackNameOrTrait.length > 0) {
-    const hit = permanent.stack.some((card) =>
-      definitionMatches({ nameOrTrait: filter.digivolutionStackNameOrTrait }, ctx.game.definitionOf(card)),
-    );
-    if (!hit) return false;
+    const refs = filter.digivolutionStackNameOrTrait;
+    const hit = permanent.stack.some((card) => {
+      const def = ctx.game.definitionOf(card);
+      return refs.some((ref) => definitionMatches({ nameOrTrait: [{ ...ref, negate: false }] }, def));
+    });
+    // A negated stack predicate means that NONE of the stacked cards may match the
+    // referenced name/trait (EX5-070: without [X Antibody] in its digivolution cards).
+    if (refs.every((ref) => ref.negate === true)) {
+      if (hit) return false;
+    } else if (!hit) {
+      return false;
+    }
   }
 
   // Digivolution-stack NAME exclusion ("[Diaboromon] without [Doomsday Clock] in its

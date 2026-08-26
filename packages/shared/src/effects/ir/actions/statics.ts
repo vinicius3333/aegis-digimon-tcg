@@ -33,6 +33,8 @@ export interface GrantAuraToOpponentsAction extends ActionBase {
   duration?: EffectDurationRef;
   /** Effect text for the aura, used by the GRANTEFFECT pattern. */
   effectText?: string;
+  /** Apply the same timed grant to matching opponents that enter after resolution. */
+  includeLaterEntrants?: boolean;
 }
 
 /** The timing windows a `DisableTimingEffect` can suppress. */

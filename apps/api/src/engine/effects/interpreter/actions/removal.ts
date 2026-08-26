@@ -569,6 +569,18 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           ? { ...action.target, count: action.target.count * scaleFactor(ctx, action.scaling) }
           : action.target;
       let returnTarget = scaledTarget;
+      if (action.dpCeilingScaling && returnTarget.filter.dp?.value !== undefined) {
+        returnTarget = {
+          ...returnTarget,
+          filter: {
+            ...returnTarget.filter,
+            dp: {
+              ...returnTarget.filter.dp,
+              value: returnTarget.filter.dp.value + scaleFactor(ctx, action.dpCeilingScaling) * action.dpCeilingScaling.amount,
+            },
+          },
+        };
+      }
       if (action.scaling?.levelCeilingAdd !== undefined && returnTarget.filter.levelComparison?.value !== undefined) {
         returnTarget = {
           ...returnTarget,

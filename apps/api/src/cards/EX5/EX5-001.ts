@@ -17,7 +17,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "AllTurns",
+      trigger: "YourTurn",
       actions: [
         {
           kind: "SubTrigger",

@@ -32,23 +32,6 @@ export const compiled: CompiledCard = {
           amount: 1,
         },
         {
-          kind: "TrashDigivolution",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          fromTop: true,
-          position: "top",
-          scope: "acrossDigimon",
-          condition: {
-            kind: "lastTargetCanTrashDigivolution",
-            raw: "If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards",
-          },
-        },
-        {
           kind: "Return",
           target: {
             filter: {
@@ -78,23 +61,6 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           amount: 1,
-        },
-        {
-          kind: "TrashDigivolution",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          fromTop: true,
-          position: "top",
-          scope: "acrossDigimon",
-          condition: {
-            kind: "lastTargetCanTrashDigivolution",
-            raw: "If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards",
-          },
         },
         {
           kind: "Return",

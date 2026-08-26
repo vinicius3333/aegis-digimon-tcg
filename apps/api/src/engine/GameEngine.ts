@@ -1678,6 +1678,10 @@ export class GameEngine {
               ...digivolveTrigger,
               entryCause: "digivolve",
             });
+            await this.fireSubTrigger("onEnterFieldAnyone", {
+              ...digivolveTrigger,
+              entryCause: "digivolve",
+            });
           },
         );
       },
@@ -3203,8 +3207,8 @@ export class GameEngine {
     }
     const entryPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
     await this.withPendingSubTriggers(
-      ["whenPlayed"],
-      this.playedTrigger(entryPermanentId),
+      ["whenPlayed", "onEnterFieldAnyone"],
+      { ...this.playedTrigger(entryPermanentId), entryCause: "play" },
       async () => {
         await this.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger);
         const playedPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
@@ -3213,7 +3217,12 @@ export class GameEngine {
           entryCause: "play",
         });
       },
-      { busTrigger: () => this.playedTrigger(this.findInstance(sourceInstanceId)?.permanent?.permanentId) },
+      {
+        busTrigger: () => ({
+          ...this.playedTrigger(this.findInstance(sourceInstanceId)?.permanent?.permanentId),
+          entryCause: "play",
+        }),
+      },
     );
   }
 
@@ -3279,8 +3288,19 @@ export class GameEngine {
         entryCause: "play",
         enteredByEffect: ownerSeat,
       });
+      await this.fireSubTrigger("onEnterFieldAnyone", {
+        subjectPermanentId,
+        entryCause: "play",
+        enteredByEffect: ownerSeat,
+      });
     } else if (timing === EffectTiming.WhenDigivolving) {
       await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
+        subjectPermanentId,
+        entryCause: "digivolve",
+        enteredByEffect: ownerSeat,
+        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
+      });
+      await this.fireSubTrigger("onEnterFieldAnyone", {
         subjectPermanentId,
         entryCause: "digivolve",
         enteredByEffect: ownerSeat,
@@ -5906,20 +5926,32 @@ export class GameEngine {
     if (!result.ok) return { ok: false, reason: mapBreedingReason(result.reason) };
     this.breeding.actionTaken(seat);
     const movedPermanentId = result.outcome.permanentId;
-    // The breeding -> battle move fires the OnMove timing (P-130's [Your Turn] reaction), then
-    // the two SubTrigger events below so reactive watchers execute (both fired unconditionally:
+    // The breeding -> battle move fires the OnMove timing, the broad entry timing/bus, then
+    // the two movement SubTrigger events below so reactive watchers execute (both fired unconditionally:
     // a watcher's sourceFilter (isSelfRef / controller matching) gates which side reacts):
     //   whenMovedFromBreeding         — "when one of YOUR Digimon moves from breeding" (BT16-082)
     //   whenOpponentMovedFromBreeding — "when your OPPONENT moves a Digimon from breeding" (BT5-044, BT11-087)
     // Fire-and-forget from this sync intent handler, mirroring the OnDraw fire in drawCards —
     // but unlike drawCards (which is itself awaited by its own caller), this handler must return
-    // its IntentResult synchronously, so the three fires are chained into one promise: sequential
+    // its IntentResult synchronously, so the fires are chained into one promise: sequential
     // internal ordering (each begins only after the previous settles) with a single .catch(logError)
     // so a thrown error surfaces as a log instead of an unhandled rejection. Un-awaited/uncaught
     // fires here previously risked exactly the race P-130's fix eliminated for movePermanentZone:
     // a nested fire clobbering the then-shared engine trigger field out of order (each window
     // now carries its own trigger payload in its environment).
     void this.fireTiming(EffectTiming.OnMove, { movedPermanentId })
+      .then(() =>
+        this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
+          subjectPermanentId: movedPermanentId,
+          entryCause: "move",
+        }),
+      )
+      .then(() =>
+        this.fireSubTrigger("onEnterFieldAnyone", {
+          subjectPermanentId: movedPermanentId,
+          entryCause: "move",
+        }),
+      )
       .then(() => this.fireSubTrigger("whenMovedFromBreeding", { subjectPermanentId: movedPermanentId }))
       .then(() => this.fireSubTrigger("whenOpponentMovedFromBreeding", { subjectPermanentId: movedPermanentId }))
       .catch((err) => {

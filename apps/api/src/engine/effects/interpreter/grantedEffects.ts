@@ -357,6 +357,15 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect | readonly CardEf
       } as Action,
     ],
   },
+  "[When Attacking] Lose 4 memory": {
+    trigger: "WhenAttacking",
+    actions: [
+      {
+        kind: "GainMemory",
+        amount: -4,
+      } as Action,
+    ],
+  },
   "[On Deletion] Trash 1 card in your hand.": {
     trigger: "OnDeletion",
     actions: [

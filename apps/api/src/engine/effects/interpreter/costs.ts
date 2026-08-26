@@ -1466,6 +1466,19 @@ export async function payCost(
       if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /\btop\s+(?:stacked\s+)?card/i.test(cost.raw)) {
         const selfPerm = ctx.source.permanent();
         if (selfPerm === undefined) return false;
+        // EX5-016's inherited payment names the HOST trait, not merely a top-card
+        // rotation. Do not let the generic self-restack shortcut pay it on another host.
+        if (/Night Claw.*Light Fang|Light Fang.*Night Claw/i.test(cost.raw)) {
+          const top = selfPerm.topCard;
+          if (
+            top === undefined ||
+            !definitionMatches(
+              { nameOrTrait: [{ tokens: ["Night Claw", "Light Fang"], match: "trait" }] },
+              ctx.game.definitionOf(top),
+            )
+          )
+            return false;
+        }
         const rotated = await ctx.fx.placeOwnTopAtStackBottom(selfPerm.permanentId);
         if (rotated && out) out.paidCount = 1;
         return rotated;

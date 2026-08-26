@@ -9,6 +9,22 @@ export const compiled: CompiledCard = structuredClone(generated);
 // The generated record already contains the printed play trigger; attach the
 // supported dynamic DP ceiling and retire its stale residual marker.
 const playTrigger = compiled.effects.find((effect) => effect.trigger === "YourTurn" && !effect.isInherited);
+for (const effect of compiled.effects ?? []) {
+  if (effect.trigger !== "Main" && effect.trigger !== "WhenDigivolving") continue;
+  effect.actions = effect.actions.filter((action) => action.kind !== "Replacement");
+  const play = effect.actions.find((action) => action.kind === "PlayWithoutCost");
+  if (play?.kind === "PlayWithoutCost") {
+    play.reduceCostBy = 4;
+    play.reduceCostByIf = {
+      amount: 3,
+      condition: {
+        kind: "selfDigivolutionStackHasTrait",
+        filter: { nameOrTrait: [{ tokens: ["Leopardmon"], match: "name" }, { tokens: ["X Antibody"], match: "trait" }] },
+        raw: "a card with [Leopardmon] in its name or [X Antibody] is in this Digimon's digivolution cards",
+      },
+    };
+  }
+}
 const playWatcher = playTrigger?.actions.find((action) => action.kind === "SubTrigger");
 if (playWatcher?.kind === "SubTrigger") {
   const bounce = playWatcher.actions.find((action) => action.kind === "Return");
