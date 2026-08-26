@@ -68,6 +68,7 @@ describe("＜Alliance＞ decision resolution", () => {
     await settle(() => ally.isSuspended && combat.hasOpenBlockWindow, 3000);
     expect(ally.isSuspended).toBe(true);
     expect(attacker.currentDP).toBe(13000); // 9000 + the ally's 4000 DP for the battle
+    expect(attacker.securityAttack).toBe(2);
 
     expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
   });

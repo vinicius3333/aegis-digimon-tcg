@@ -102,6 +102,7 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenAttacking",
           sourceFilter: {
+            controller: "any",
             kind: ["Digimon"],
           },
           actions: [
@@ -115,7 +116,7 @@ const compiled: CompiledCard = {
                 isSelf: true,
               },
               cost: {
-                kind: "addSecurityTopToHand",
+                kind: "securityToHand",
                 controller: "mine",
                 count: 1,
                 raw: "by adding the top card of your security stack to the hand",

@@ -205,6 +205,8 @@ export interface CombatHooks {
    * base behavior.
    */
   addDpModifier?: (permanentId: string, delta: number) => void;
+  /** Add Alliance's Security Attack +1 for this attack, independent of its source remaining active. */
+  addSecurityAttack?: (permanentId: string) => void;
   /**
    * Once-per-turn prevention ledger (＜Barrier＞). `barrierFired` returns true
    * when the given per-permanent key has already prevented a removal this turn;
@@ -608,6 +610,7 @@ export class CombatController {
               // Cost then benefit, with no yield between them (§16-24 is one effect).
               const allySuspended = this.suspendInCombat(ally);
               this.hooks.addDpModifier?.(attacker.permanentId, ally.currentDP);
+              this.hooks.addSecurityAttack?.(attacker.permanentId);
               await this.fireSuspended(ally, allySuspended);
             }
           }

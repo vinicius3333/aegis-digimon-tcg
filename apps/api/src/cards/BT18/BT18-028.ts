@@ -35,6 +35,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
+          whileMatchesTargetFilter: true,
         },
       ],
     },
@@ -66,6 +67,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
+          whileMatchesTargetFilter: true,
         },
       ],
     },
@@ -131,6 +133,9 @@ export const compiled: CompiledCard = {
       materials: [
         {
           names: ["Kumamon"],
+        },
+        {
+          names: ["Korikakumon"],
         },
       ],
       count: 2,

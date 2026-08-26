@@ -573,3 +573,12 @@ describe('isDigiEgg:false -> kind:["Digimon","Tamer","Option"] (BT23-017 non-Dig
     expect(definitionMatches(filter, facts({ kinds: [CardKind.DigiEgg], types: ["CS"] }))).toBe(false);
   });
 });
+
+describe("excludeCardIds exact card-number gate (BT18-034 Q4999)", () => {
+  it("rejects BT7-111 while accepting another Lucemon: Chaos Mode printing", () => {
+    const filter = filterWith("BT18-034", "excludeCardIds");
+    expect(filter.excludeCardIds).toEqual(["BT7-111"]);
+    expect(definitionMatches(filter, facts({ cardId: "BT7-111", nameEn: "Lucemon: Chaos Mode" }))).toBe(false);
+    expect(definitionMatches(filter, facts({ cardId: "BT18-082", nameEn: "Lucemon: Chaos Mode" }))).toBe(true);
+  });
+});

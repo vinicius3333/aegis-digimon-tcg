@@ -94,11 +94,18 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.playCostCeiling !== undefined ||
       action.scaling !== undefined ||
       action.target.filter?.playCostLteScaling !== undefined);
+  const costProducesDeleteTarget =
+    action.kind === "Delete" &&
+    action.cost?.kind === "place" &&
+    ((action.cost.storeAs !== undefined && action.target.filter.levelEq === action.cost.storeAs) ||
+      (action.cost.bindResultAs !== undefined &&
+        action.target.filter.levelComparison?.relativeTo === action.cost.bindResultAs));
   if (
     action.kind === "Delete" &&
     action.cost !== undefined &&
     action.allowCostWithoutTarget !== true &&
     !dynamicallyScaledDeleteTarget &&
+    !costProducesDeleteTarget &&
     candidatePermanents(ctx, action.target).length === 0
   ) {
     return action.abortOnDecline === true;

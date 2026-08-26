@@ -736,6 +736,8 @@ export class GameEngine {
         })(),
       addDpModifier: (permanentId, delta) =>
         this.modifiers.addDpModifier(this.state, permanentId, delta, EffectDuration.UntilEndBattle),
+      addSecurityAttack: (permanentId) =>
+        this.continuous.addKeywordGrant(permanentId, "SecurityAttack", EffectDuration.UntilEndAttack, 1),
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
       sweepEndOfAttack: () => this.sweepCombatDurations(),

@@ -32,6 +32,8 @@ export const compiled: CompiledCard = {
             raw: "By deleting 1 of your Digimon",
           },
           raw: "By deleting 1 of your Digimon, delete 1 of your opponent's Digimon with the lowest DP.",
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
@@ -60,6 +62,8 @@ export const compiled: CompiledCard = {
             raw: "By deleting 1 of your Digimon",
           },
           raw: "By deleting 1 of your Digimon, delete 1 of your opponent's Digimon with the lowest DP.",
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
@@ -92,21 +96,20 @@ export const compiled: CompiledCard = {
           },
           payCost: true,
           optional: true,
-          additionalMaterials: [
-            {
-              filter: {
-                zone: "trash",
-                controller: "mine",
-                nameOrTrait: [
-                  {
-                    tokens: ["Kimeramon"],
-                    match: "name",
-                  },
-                ],
-              },
-              count: 1,
+          looseMaterials: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Kimeramon"],
+                  match: "name",
+                },
+              ],
             },
-          ],
+            count: 1,
+            from: ["trash"],
+          },
           raw: "DNA digivolve 1 [Machinedramon] in play and 1 [Kimeramon] in your trash into [Millenniummon] in your hand.",
         },
       ],

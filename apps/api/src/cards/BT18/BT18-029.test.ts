@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-029.js";
 
@@ -33,5 +34,60 @@ describe("BT18-029 AncientMermaimon", () => {
     });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId));
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
+  });
+
+  it.each([
+    ["returns", 0, "hand"],
+    ["plays", 1, "battleArea"],
+  ])("%s a qualifying blue level 4 source when leaving play", async (_verb, optionIndex, destination) => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT18-029", as: "ancient", under: ["BT18-022"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: optionIndex },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("ancient").permanentId]);
+    await settle(() =>
+      destination === "hand"
+        ? s.state.players[0]!.hand.some((card) => card.cardId === "BT18-022")
+        : s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT18-022"),
+    );
+
+    const cards =
+      destination === "hand"
+        ? s.state.players[0]!.hand
+        : s.state.players[0]!.battleArea.map((permanent) => permanent.topCard);
+    expect(cards.some((card) => card.cardId === "BT18-022")).toBe(true);
+  });
+
+  it("DigiXroses with distinct Lanamon and Calmaramon slots for 2 less each", async () => {
+    expect(compiled.digiXrosRequirement).toEqual([
+      { materials: [{ names: ["Lanamon"] }, { names: ["Calmaramon"] }], count: 2 },
+    ]);
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT18-029", as: "ancient" },
+          { card: "BT18-023", as: "lanamon" },
+          { card: "BT18-024", as: "calmaramon" },
+        ],
+      },
+    });
+    s.state.memory = 12;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("ancient").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("lanamon").instanceId, s.inst("calmaramon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea[0]?.stack.length === 2);
+
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId).sort()).toEqual([
+      "BT18-023",
+      "BT18-024",
+    ]);
   });
 });

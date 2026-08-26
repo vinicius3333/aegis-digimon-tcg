@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-003.js";
 
@@ -29,7 +31,12 @@ describe("BT18-003 Wanyamon", () => {
             { card: "BT1-087", as: "tamer" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-030", as: "target" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-030", as: "target" },
+            { card: "BT1-030", as: "secondTarget" },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -44,5 +51,31 @@ describe("BT18-003 Wanyamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === baseDP - 2000);
     expect(s.perm("target").currentDP).toBe(baseDP - 2000);
+    expect(s.perm("secondTarget").currentDP).toBe(baseDP);
+
+    await advance(s.engine).fireForInstance(EffectTiming.OnUseAttack, s.perm("host").topCard!);
+    await settle();
+    expect(s.perm("secondTarget").currentDP).toBe(baseDP);
+  });
+
+  it("does not reduce DP without a yellow Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-030", as: "host", under: ["BT18-003"] }] },
+        1: { battleArea: [{ card: "BT1-030", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const baseDP = s.perm("target").baseDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("target").currentDP).toBe(baseDP);
   });
 });

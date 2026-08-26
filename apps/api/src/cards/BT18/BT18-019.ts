@@ -42,7 +42,8 @@ export const compiled: CompiledCard = {
             trackCount: "returnedDistinctLevels",
             raw: "by returning 1 of each Digimon card with different levels from your opponent's trash to the top of the deck",
           },
-          optional: false,
+          optional: true,
+          abortOnDecline: true,
           scaling: {
             per: 1,
             unit: "namedCount",
@@ -86,7 +87,8 @@ export const compiled: CompiledCard = {
             trackCount: "returnedDistinctLevels",
             raw: "by returning 1 of each Digimon card with different levels from your opponent's trash to the top of the deck",
           },
-          optional: false,
+          optional: true,
+          abortOnDecline: true,
           scaling: {
             per: 1,
             unit: "namedCount",
@@ -164,6 +166,9 @@ export const compiled: CompiledCard = {
       materials: [
         {
           names: ["Kimeramon"],
+        },
+        {
+          names: ["Machinedramon"],
         },
       ],
       count: 2,

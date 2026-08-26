@@ -389,6 +389,23 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
     );
     if (chosen.length === 0) continue;
     let useAlternateCost = action.useAlternateCost;
+    if (useAlternateCost === undefined) {
+      const base = ctx.game.permanentById(pid);
+      const chosenCandidate = candidates.find((candidate) => candidate.instanceId === chosen[0]);
+      const intoDef = chosenCandidate ? ctx.game.definitionOf({ cardId: chosenCandidate.cardId } as never) : undefined;
+      const baseDef = base?.topCard ? ctx.game.definitionOf(base.topCard) : undefined;
+      if (
+        intoDef !== undefined &&
+        baseDef !== undefined &&
+        matchingEvoCost(intoDef, baseDef) === undefined &&
+        matchingAlternateDigivolutionRequirement(intoDef, baseDef) !== undefined
+      ) {
+        // Effect-driven digivolution still uses a printed alternate requirement when it is
+        // the only legal route (notably Hybrid-over-Tamer). Leaving this undefined makes the
+        // legality pre-filter offer the Tamer, then the production verb silently reject it.
+        useAlternateCost = true;
+      }
+    }
     if (ignoreLevel && useAlternateCost === undefined) {
       const base = ctx.game.permanentById(pid);
       const chosenCandidate = candidates.find((candidate) => candidate.instanceId === chosen[0]);

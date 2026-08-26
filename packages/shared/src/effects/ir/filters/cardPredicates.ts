@@ -126,6 +126,8 @@ export interface CardPredicates {
   hasLevel?: boolean;
   /** "other than [DoruGreymon], [BurningGreymon], ...": excluded even if the rest matches. */
   excludeNames?: string[];
+  /** Exact card-number exclusion for rulings that distinguish same-name printings (BT18-034 Q4999). */
+  excludeCardIds?: string[];
   /**
    * Exclusion spanning name/trait/text (EX10-035), each ref carrying its own `match` mode.
    * `excludeNames` is name-substring only.
