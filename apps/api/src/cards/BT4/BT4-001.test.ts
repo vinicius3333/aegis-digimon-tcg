@@ -21,4 +21,23 @@ describe("BT4-001 Sakuttomon", () => {
 
     expect(s.state.memory).toBe(1);
   });
+
+  it("does not gain memory when its host is below level 7", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT3-111", as: "host", under: ["BT4-001"] }] },
+      1: { security: ["BT1-010"] },
+    });
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+
+    expect(s.state.memory).toBe(0);
+  });
 });
