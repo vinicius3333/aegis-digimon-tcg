@@ -15,7 +15,7 @@ export const compiled: CompiledCard = {
       .filter((action) => !(action.kind === "RawUnparsed" && action.text.includes("reduce the cards trashed by 1")))
       .map((action) => {
         if (action.kind === "PlaceUnder") {
-          return { ...action, trackCount: placedCountSource };
+          return { ...action, trackCount: placedCountSource, trackDistinctNames: placedCountSource };
         }
         if (action.kind === "Delete" && action.condition?.kind === "raw") {
           return {

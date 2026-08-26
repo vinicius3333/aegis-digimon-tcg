@@ -142,6 +142,8 @@ export interface PlaceUnderAction extends ActionBase {
    */
   underSelectionRef?: string;
   position?: string;
+  /** Store the number of distinct printed names actually placed by this action (EX6-073). */
+  trackDistinctNames?: string;
   /** Let the controller arrange multiple selected cards before they enter the stack. */
   order?: "any";
   /**
