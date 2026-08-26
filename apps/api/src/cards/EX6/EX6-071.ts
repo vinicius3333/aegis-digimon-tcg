@@ -13,6 +13,18 @@ export const compiled: CompiledCard = {
           ...effect,
           actions: [
             {
+              kind: "Trash",
+              target: { filter: { zone: "hand", controller: "opponent" }, count: 1 },
+              chooser: "opponent",
+              condition: {
+                kind: "zoneCount",
+                seat: "opponent",
+                zone: "hand",
+                op: "gte",
+                value: 5,
+              },
+            },
+            {
               kind: "Delete",
               target: {
                 filter: {
@@ -31,20 +43,7 @@ export const compiled: CompiledCard = {
                 },
                 count: 1,
               },
-              cost: {
-                kind: "trash",
-                target: { filter: { zone: "hand", controller: "opponent" }, count: 1, chooser: "opponent" },
-                raw: "your opponent trashes 1 card in their hand",
-              },
-              condition: {
-                kind: "zoneCount",
-                seat: "opponent",
-                zone: "hand",
-                op: "gte",
-                value: 5,
-                raw: "your opponent has 5 or more cards in their hand",
-              },
-              raw: "If your opponent has 5 or more cards in their hand, your opponent trashes 1 card in their hand. Then, delete 1 of your opponent's Digimon with a level greater than or equal to the cards in their hand.",
+              raw: "Then, delete 1 of your opponent's Digimon with a level greater than or equal to the cards in their hand.",
             },
           ],
         }
