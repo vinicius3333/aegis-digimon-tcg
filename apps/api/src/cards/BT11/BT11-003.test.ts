@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT11-003.js";
+import "../BT1/BT1-060.js";
 
 const HOST_CARD = "BT1-009";
 
@@ -53,7 +54,10 @@ describe("BT11-003 Tokomon", () => {
         0: {
           battleArea: [{ card: HOST_CARD, as: "host", under: ["BT11-003"] }],
           hand: [{ card: cardId, as: "played" }],
-          deck: ["BT1-001"],
+          // MagnaAngemon (the Archangel fixture) has [On Play] Recovery +1.
+          // Keep a second card so this inherited draw is observable with the
+          // complete card registry loaded, as it is in a real match.
+          deck: cardId === "BT1-060" ? ["BT1-001", "BT1-002"] : ["BT1-001"],
         },
       });
       s.state.memory = 20;
@@ -63,7 +67,7 @@ describe("BT11-003 Tokomon", () => {
       });
       await settle(() => s.state.players[0]!.deck.length === 0);
 
-      expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual(["BT1-001"]);
+      expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toEqual([cardId === "BT1-060" ? "BT1-002" : "BT1-001"]);
     });
   }
 
@@ -75,7 +79,7 @@ describe("BT11-003 Tokomon", () => {
           { card: "BT1-053", as: "angel" },
           { card: "BT1-060", as: "archangel" },
         ],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-001", "BT1-002", "BT1-003"],
       },
     });
     s.state.memory = 20;
