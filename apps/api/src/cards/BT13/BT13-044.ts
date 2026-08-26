@@ -8,6 +8,15 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      keywords: [
+        {
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
+    },
+    {
       trigger: "WhenDigivolving",
       actions: [
         {
@@ -33,13 +42,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing the top card of your security stack",
           },
-          optional: false,
-        },
-      ],
-      keywords: [
-        {
-          keyword: "Blocker",
-          raw: "＜Blocker＞",
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
