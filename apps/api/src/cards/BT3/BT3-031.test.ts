@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./BT3-021.js";
 import "./BT3-031.js";
 
 describe("BT3-031 Imperialdramon: Dragon Mode", () => {
