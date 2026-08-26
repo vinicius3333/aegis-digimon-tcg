@@ -81,7 +81,19 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 
 ## Validation queue
 
-All 74 individual focused files remain queued. Ten currently contain observable engine-harness or live-interpreter cases (EX5-025, EX5-033, EX5-037, EX5-040, EX5-062, EX5-063, EX5-065, EX5-070, EX5-073, and EX5-074); the other 64 currently prove compiled shape only, so a green focused run alone is not sufficient to award collection-wide 10/10 evidence. After the coordinator explicitly opens a serial test window, each must be run in an isolated single-fork process, then the structural-only high-risk clauses must be promoted to observable proof where no shared mechanism already proves them, followed by the coordinator-approved serial collection gate, typecheck, inventory recheck, and diff check. Until then this ledger is static evidence only, not a 10/10 closure claim.
+Pre-test closeout: all 74 direct EX5 modules contain exactly one matching `registerIrCard`, no `registerCard`, no final `RawUnparsed`, and an empty final `residual`; the seven generated-record residuals are retired in their card overrides. The main ledger and the direct-IR trace each contain one row for every ID EX5-001 through EX5-074. Runtime evidence remains pending, so none is rated 10/10 yet.
+
+When the coordinator opens one serial Vitest window, run exactly one focused file per process, with forks, `singleFork`, and no file parallelism, in this order. The groups retain a narrow failure surface while every EX5 focused file appears exactly once.
+
+| Order | Shared mechanism | Focused cards |
+| --- | --- | --- |
+| 1 | Corrected regression paths and unique proof gaps | EX5-025, EX5-033, EX5-065, EX5-070, EX5-073 |
+| 2 | Deva breeding play, name exclusion, and inherited trait auras | EX5-009, EX5-010, EX5-011, EX5-019, EX5-021, EX5-022, EX5-037, EX5-038, EX5-040, EX5-050, EX5-051, EX5-052 |
+| 3 | Stack placement/rotation, cost and replacement semantics | EX5-001, EX5-002, EX5-007, EX5-012, EX5-013, EX5-014, EX5-016, EX5-018, EX5-020, EX5-023, EX5-026, EX5-029, EX5-030, EX5-031, EX5-034, EX5-043, EX5-046, EX5-054, EX5-055, EX5-057, EX5-059, EX5-060, EX5-061, EX5-064, EX5-069, EX5-072, EX5-074 |
+| 4 | Reveal/search/security and effect-play watcher paths | EX5-008, EX5-015, EX5-017, EX5-027, EX5-028, EX5-035, EX5-041, EX5-042, EX5-044, EX5-045, EX5-053, EX5-056, EX5-058, EX5-062, EX5-063, EX5-066, EX5-067, EX5-068, EX5-071 |
+| 5 | Stateless auras, attack/deletion triggers, and remaining combat routes | EX5-003, EX5-004, EX5-005, EX5-006, EX5-024, EX5-032, EX5-036, EX5-039, EX5-047, EX5-048, EX5-049 |
+
+The queue is intentionally not authorization to run tests: wait for the coordinator’s explicit serial-window message. After all focused files, request approval for the one final collection gate, then typecheck, inventory recheck, and `git diff --check`.
 
 ## Direct IR clause trace (static pass)
 
