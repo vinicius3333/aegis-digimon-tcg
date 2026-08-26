@@ -95,7 +95,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-035 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing the own-turn optional Chessmon hand play, post-deletion 8-card trash count/level ceiling branch, card identity filters, and inherited static Reboot through both yellow/black evolution paths.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-035.test.ts` passed (7 tests): basic/deletion-count level ceilings, opponent-turn negative, inherited Reboot, and both evolution colors.
-- BT13-036 — Pending
+- BT13-036 — 10/10
+  - Evidence: catalog and KB Q2288 reviewed; compiled IR exclusively uses `registerIrCard`, tracing own-turn, own-security-removal memory gain with once-per-turn scope and inherited opponent-only -2000 DP at the inclusive combined-security-six boundary.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-036.test.ts` passed (6 tests): seat/turn/frequency security-removal paths, Q2288 combined-security boundaries, and yellow level-2 evolution.
 - BT13-037 — Pending
 - BT13-038 — Pending
 - BT13-039 — Pending
