@@ -3764,14 +3764,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
 
         const removableCount = Math.min(selected.length, completeStack.length - 1);
-        const removable = opts?.position === "bottom"
-          ? completeStack.slice(0, removableCount)
-          : completeStack.slice(-removableCount);
+        const removable =
+          opts?.position === "bottom" ? completeStack.slice(0, removableCount) : completeStack.slice(-removableCount);
         if (removableCount === 0 || removable.some((card) => !requested.has(card.instanceId))) continue;
 
-        const remaining = opts?.position === "bottom"
-          ? completeStack.slice(removableCount)
-          : completeStack.slice(0, -removableCount);
+        const remaining =
+          opts?.position === "bottom" ? completeStack.slice(removableCount) : completeStack.slice(0, -removableCount);
         const promoted = remaining.at(-1);
         if (promoted === undefined) continue;
         permanent.stack.splice(0, permanent.stack.length, ...remaining.slice(0, -1));
@@ -4408,13 +4406,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       oncePerTurnKey?: string;
     },
   ): void => {
-    continuous.addLinkCostReductionGrant(
-      permanentId,
-      amount,
-      traits,
-      durationForTarget(permanentId, duration),
-      { ...continuousOpt(), ...opts },
-    );
+    continuous.addLinkCostReductionGrant(permanentId, amount, traits, durationForTarget(permanentId, duration), {
+      ...continuousOpt(),
+      ...opts,
+    });
   };
 
   const cannotIgnoreDigivolution = (seat: Seat, duration: EffectDuration): void => {
@@ -5030,6 +5025,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     stackEffectConferrals,
     projectOnDeletionAtEndOfAttack,
     grantCustomEffect,
+    customEffectGrants: (permanentId) =>
+      continuous
+        .listCustomEffectGrants()
+        .filter((grant) => grant.instanceId === access.permanentById(permanentId)?.topCard?.instanceId),
     grantCustom,
     shuffleSecurity,
     revealCard,

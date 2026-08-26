@@ -1336,3 +1336,58 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and `primitives.test.ts`.
 - Remaining ambiguity: none identified.
+
+## BT5-031 — MetalGarurumon — 10/10
+
+- Catalog evidence: Blue Lv.6 Mega Digimon, Data/Cyborg, play cost 11,
+  11000 DP, and blue Lv.5 evolution cost 3. Its `[When Digivolving]`
+  effect requires a Digimon card with Garurumon in its name, other than
+  KendoGarurumon, in its digivolution cards; it then returns exactly 1
+  opposing Digimon with an `[On Deletion]` effect to the bottom of its
+  owner's deck and trashes all of that Digimon's digivolution cards. Its
+  inherited `[When Attacking][Once Per Turn]` effect gains 1 memory.
+- Knowledge-base and rules evidence: BT5-031 has no dedicated QA or errata,
+  so the catalog text is controlling. EX1-021 Q3208 answers the identical
+  “Digimon with an `[On Deletion]` effect” targeting question and confirms
+  that an inherited or externally gained `[On Deletion]` effect qualifies.
+  The inherited-effect, trigger-timing, once-per-turn, return-to-deck, and
+  source-disposal rules govern the remaining clauses.
+- Implementation: `apps/api/src/cards/BT5/BT5-031.ts` encodes the evolution
+  trigger as one deck-bottom `Return`, limited to an opposing Digimon whose
+  live text has `[On Deletion]`, and gates it on a Garurumon source with the
+  exact KendoGarurumon exclusion. The return primitive performs the required
+  source disposal. The inherited effect is a once-per-turn `WhenAttacking`
+  `GainMemory` action. The module declares `coverage: "full"`, an empty
+  `residual`, and registers exclusively through
+  `registerIrCard("BT5-031", compiled)`.
+- Primitive and peer evidence: live permanent text matching now includes
+  actual inherited effect headers and duration-scoped named effects granted
+  to the permanent, while preserving the OR semantics of mixed
+  `nameOrTrait` filters. The primitive exposes grants anchored to the live
+  top-card instance, so grants disappear with their host and cannot leak to
+  another permanent. EX1-021 exercises the same ruling family; BT15-068
+  provides a real external `[On Deletion] Lose 1 memory` grant. The canonical
+  return path places the top card at deck bottom and sends its sources to
+  trash.
+- Behavioral proof: 5 focused tests prove the ordinary printed-effect target
+  and source disposal, the exact KendoGarurumon-only negative, an inherited
+  `[On Deletion]` target, a real externally granted `[On Deletion]` target,
+  and the inherited memory effect. The attack case performs two attacks in
+  one turn after a canonical unsuspend and observes only one memory gain,
+  proving the per-turn budget rather than merely the first activation.
+- Defect corrected: the card IR was already structurally faithful, but live
+  target matching previously inspected only the top card's printed text and
+  therefore rejected inherited and gained `[On Deletion]` effects contrary
+  to Q3208. The audit added the smallest reusable live-text/grant lookup and
+  its primitive completeness registration, plus the missing behavioral
+  coverage in `BT5-031.test.ts`.
+- Verification: focused BT5-031, EX1-021 and BT15-068 peers, the complete
+  interpreter suite, and the primitive suite — 5 files, 328 tests passed.
+  Changed-file Oxlint completed with only the pre-existing `no-shadow`
+  warning in `permanent.ts:505`; `git diff --check` passed. Workspace
+  `pnpm typecheck` was rerun: shared and web pass, while API retains only the
+  known unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and the pre-existing primitive
+  completeness omissions.
+- Remaining ambiguity: none identified.

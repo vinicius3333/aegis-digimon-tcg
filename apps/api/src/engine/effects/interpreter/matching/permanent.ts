@@ -276,7 +276,12 @@ export function permanentMatchesFilter(
       unit: "cards",
       filter: dynamicCount.filter ?? {},
     });
-    if (def.level === undefined || levelComparison?.op === undefined || !compareNumber(def.level, levelComparison.op, bound)) return false;
+    if (
+      def.level === undefined ||
+      levelComparison?.op === undefined ||
+      !compareNumber(def.level, levelComparison.op, bound)
+    )
+      return false;
     const { levelComparison: _levelComparison, ...rest } = filter;
     filter = rest;
   }
@@ -619,6 +624,43 @@ export function permanentMatchesFilter(
         reference.match === "trait" && reference.tokens.some((token) => normalized.has(token.toLowerCase())),
     );
     if (matchesGrantedTrait) {
+      const { nameOrTrait: _nameOrTrait, ...rest } = filter;
+      filter = rest;
+    }
+  }
+
+  // Text-presence references such as "with an [On Deletion] effect" observe live
+  // inherited text and named effects granted by another card (EX1-021 Q3208), not
+  // merely the printed text of the permanent's top card.  Keep name/trait matching
+  // definition-based; a live text hit satisfies the whole OR-list.
+  if (filter.nameOrTrait?.some((reference) => reference.match === "text")) {
+    const textRefs = filter.nameOrTrait.filter((reference) => reference.match === "text");
+    const inheritedText = permanent.stack
+      .map((card) => ctx.game.definitionOf(card).inheritedEffectText ?? "")
+      .join("\n")
+      .toLowerCase();
+    const grantedTokens = ctx.fx.customEffectGrants?.(permanent.permanentId) ?? [];
+    const liveMatches = textRefs.some((reference) =>
+      reference.tokens.some((token) => {
+        const normalizedToken = token.toLowerCase().replace(/[\s-]+/g, "");
+        const inheritedHeader = new RegExp(
+          `(?:^|\\n)\\s*\\[${token.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\]`,
+          "i",
+        );
+        return (
+          inheritedHeader.test(inheritedText) ||
+          grantedTokens.some((grant) => {
+            const granted = grant.token.toLowerCase();
+            return (
+              granted.includes(`[${token.toLowerCase()}]`) || granted.replace(/[\s-]+/g, "").includes(normalizedToken)
+            );
+          })
+        );
+      }),
+    );
+    if (liveMatches) {
+      // nameOrTrait is a union (OR), so a live text hit satisfies the whole field;
+      // retaining non-text alternatives here would accidentally turn it into AND.
       const { nameOrTrait: _nameOrTrait, ...rest } = filter;
       filter = rest;
     }

@@ -502,12 +502,14 @@ export interface GameAccess {
   linkCostReductionGrant?(
     recipientId: string,
     cardTraits: readonly string[],
-  ): {
-    amount: number;
-    controllerSeat?: Seat;
-    optional?: boolean;
-    oncePerTurnKey?: string;
-  } | undefined;
+  ):
+    | {
+        amount: number;
+        controllerSeat?: Seat;
+        optional?: boolean;
+        oncePerTurnKey?: string;
+      }
+    | undefined;
   /**
    * A permanent's EFFECTIVE card kinds (static def.kinds ∪ continuous KindGrants).
    * A Tamer granted Digimon kind via grantKind is a Digimon for type-check gates
@@ -1229,6 +1231,8 @@ export interface Primitives {
    * parallel/inert path. Duration-scoped: lapses at its boundary or when the host leaves play.
    */
   grantCustomEffect?(instanceId: string, ownerSeat: Seat, token: string, duration: EffectDuration): void;
+  /** Active named effects granted to a permanent, for live text-presence filters. */
+  customEffectGrants?(permanentId: string): readonly { token: string }[];
   /**
    * Record a seat-level "can't ignore digivolution requirements" rule (documented behavior
    * `rule implementation`). Normal and effect-driven digivolve legality
