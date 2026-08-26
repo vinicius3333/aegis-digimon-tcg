@@ -576,3 +576,9 @@ root-worktree Vitest workload has cleared.
 - Catalog/KB evidence: Main places an Aqua/Sea Animal Digimon card from hand under a blue host, then returns all opponent Digimon at the placed card's level; Security returns all lowest-level opponent Digimon. Q3817 confirms the comparison is the placed card's level, not the blue host's.
 - Direct IR/primitive trace: the atomic place cost restricts the hand source by Aqua/Sea Animal and host by blue, stores `placedCardLevel`, and the subsequent all-target return consumes that binding. Security uses lowest-level all-target return. Full coverage, no residuals, and exclusive `registerIrCard("EX6-066", compiled)` registration are present.
 - Status: focused contract plus shared atomic cost/binding and superlative return proofs are mapped; execution is deferred while PID group 43774 persists, so not rated 10/10.
+
+## EX6-067 — Final Excalibur — evidence in progress
+
+- Catalog evidence: Main unsuspends one controller Angel/Archangel/Three Great Angels Digimon, or all such Digimon instead while the controller has Dominimon. Security gains Recovery +1 (Deck), then adds this card to hand.
+- Direct IR/primitive trace: mutually exclusive `youHaveNone`/`youHave` named-card gates select count one/all over the exact trait union; Security sequences the recovery keyword action before `AddToHandSelf`. Full coverage, no residual text, and exclusive `registerIrCard("EX6-067", compiled)` registration are present.
+- Proof/status: existing named-card condition, all-target unsuspend, recovery, and security add-to-hand mechanism tests cover the semantics; the focused test title now correctly identifies Final Excalibur. Execution remains deferred while PID group 43774 persists; not rated 10/10.
