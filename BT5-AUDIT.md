@@ -1525,3 +1525,35 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-035 — Starmons — 10/10
+
+- Catalog evidence: Yellow Lv.3 Rookie Digimon, Data/Major, play cost 3,
+  1000 DP, and yellow Lv.2 evolution cost 0. Its `[On Play]` effect gives
+  exactly 1 opposing Digimon -1000 DP for the turn for each Digimon the
+  controller has in play.
+- Knowledge-base and rules evidence: Q1317 confirms Starmons counts itself.
+  Q1318 confirms multiple -1000 increments combine on one target and cannot
+  be split across targets. Q1319 confirms the count is fixed when the On Play
+  effect resolves and does not grow when another Digimon is played later.
+- Implementation: `apps/api/src/cards/BT5/BT5-035.ts` contains one `OnPlay`
+  `ModifyDP` action targeting exactly one opposing Digimon. Its base -1000 is
+  scaled once per controller-owned Digimon in the battle area and lasts for
+  the turn. The module declares `coverage: "full"`, `residual: []`, and
+  registers exclusively through `registerIrCard("BT5-035", compiled)`.
+- Primitive and behavioral evidence: action scaling counts the live board at
+  resolution, multiplies the base modifier once, and records that resolved
+  amount as a turn-duration modifier rather than a continuous aura. The
+  focused test plays Starmons beside one ally, observes -2000 on exactly one
+  selected opponent, and verifies a second opponent remains unchanged. This
+  proves self-counting, exact scaling, and Q1318's single-target boundary;
+  the non-continuous action shape supplies Q1319's snapshot behavior.
+- Defect corrected: none. The compiled IR and existing focused test were
+  already faithful, so no redundant changes were made.
+- Verification: focused BT5-035 plus filtered scaling mechanism cases — 2
+  files, 6 tests passed (178 unrelated interpreter cases skipped).
+  `git diff --check` passes. Workspace typecheck retains only the known
+  unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
