@@ -15,7 +15,11 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             or: [
               { controller: "opponent", kind: ["Digimon"] },
-              { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }] },
+              {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }],
+              },
             ],
           },
           actions: [
@@ -31,7 +35,13 @@ export const compiled: CompiledCard = {
             {
               kind: "Delete",
               target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" }, count: 1 },
-              condition: { kind: "boardCountCompare", left: "opponent", right: "mine", op: "lte", filter: { kind: ["Digimon", "Tamer"] } },
+              condition: {
+                kind: "boardCountCompare",
+                left: "opponent",
+                right: "mine",
+                op: "lte",
+                filter: { kind: ["Digimon", "Tamer"] },
+              },
             },
           ],
         },
@@ -48,8 +58,20 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "PlaceUnder",
-              target: { filter: { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }] }, from: ["trash"], count: 1 },
-              underFilter: { controller: "mine", zone: "breeding", nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "name" }] },
+              target: {
+                filter: {
+                  controller: "mine",
+                  zone: "trash",
+                  nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }],
+                },
+                from: ["trash"],
+                count: 1,
+              },
+              underFilter: {
+                controller: "mine",
+                zone: "breeding",
+                nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "name" }],
+              },
               position: "bottom",
             },
           ],

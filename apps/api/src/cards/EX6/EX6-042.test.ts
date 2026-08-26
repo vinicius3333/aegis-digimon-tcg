@@ -11,7 +11,12 @@ describe("EX6-042 RaijiLudomon", () => {
         kind: "compound",
         costs: [
           { kind: "payMemory", memory: 2 },
-          { kind: "place", destination: "digivolutionStack", position: "bottom", target: { filter: { isSelfRef: true } } },
+          {
+            kind: "place",
+            destination: "digivolutionStack",
+            position: "bottom",
+            target: { filter: { isSelfRef: true } },
+          },
         ],
       },
     }));

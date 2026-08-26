@@ -4,7 +4,12 @@ import { compiled } from "./EX6-024.js";
 describe("EX6-024 Sagomon", () => {
   it("shares DigiXros Security Attack reduction and suspends an opposing Digimon or Tamer", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "GainKeyword", optional: true, target: { filter: { controller: "any" } }, keyword: { keyword: "SecurityAttack", amount: -1 } },
+      {
+        kind: "GainKeyword",
+        optional: true,
+        target: { filter: { controller: "any" } },
+        keyword: { keyword: "SecurityAttack", amount: -1 },
+      },
       { kind: "Restrict", restriction: "suspend", condition: { kind: "digiXrosCount", minimum: 1 } },
     ]);
   });

@@ -139,8 +139,12 @@ describe("EX6-073 [When Digivolving] places SGDL from trash; 4+ placed deletes 1
 
 describe("EX6-073 activation-local distinct-name contracts", () => {
   it("requires distinct names for placement and an exact self-stack seven-card payment", () => {
-    const placements = compiled.effects?.flatMap((effect) => effect.actions ?? []).filter((action) => action.kind === "PlaceUnder") ?? [];
-    const paidDelete = compiled.effects?.flatMap((effect) => effect.actions ?? []).find((action) => action.kind === "Delete" && action.cost?.kind === "return");
+    const placements =
+      compiled.effects?.flatMap((effect) => effect.actions ?? []).filter((action) => action.kind === "PlaceUnder") ??
+      [];
+    const paidDelete = compiled.effects
+      ?.flatMap((effect) => effect.actions ?? [])
+      .find((action) => action.kind === "Delete" && action.cost?.kind === "return");
 
     expect(placements).toHaveLength(2);
     for (const placement of placements) {
@@ -157,7 +161,12 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
       cost: {
         kind: "return",
         position: "bottom",
-        target: { count: 7, isSelfRef: true, distinctNames: true, filter: { zone: "digivolutionCards", sameHost: true } },
+        target: {
+          count: 7,
+          isSelfRef: true,
+          distinctNames: true,
+          filter: { zone: "digivolutionCards", sameHost: true },
+        },
       },
     });
   });
@@ -183,12 +192,21 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
       source: { ownerSeat: 0, instanceId: "ogudomon-top", permanent: () => self },
       game: {
         player: (seat: number) => ({
-          hand: [], trash: [], deck: [], security: [],
-          battleArea: seat === 0 ? [self, unrelated] : [], breeding: undefined,
+          hand: [],
+          trash: [],
+          deck: [],
+          security: [],
+          battleArea: seat === 0 ? [self, unrelated] : [],
+          breeding: undefined,
         }),
         opponentOf: () => 1,
         definitionOf: ({ cardId }: { cardId: string }) => ({
-          cardId, nameEn: names[cardId] ?? cardId, kinds: [], colors: [], types: ["Seven Great Demon Lords"], playCost: 0,
+          cardId,
+          nameEn: names[cardId] ?? cardId,
+          kinds: [],
+          colors: [],
+          types: ["Seven Great Demon Lords"],
+          playCost: 0,
         }),
       },
     } as never;
@@ -217,10 +235,21 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
       source: { ownerSeat: 0, instanceId: sourceCard.instanceId, permanent: () => undefined },
       game: {
         player: (seat: number) => ({
-          hand: seat === 0 ? [sourceCard, otherCard] : [], trash: [], deck: [], security: [], battleArea: [], breeding: undefined,
+          hand: seat === 0 ? [sourceCard, otherCard] : [],
+          trash: [],
+          deck: [],
+          security: [],
+          battleArea: [],
+          breeding: undefined,
         }),
         opponentOf: () => 1,
-        definitionOf: ({ cardId }: { cardId: string }) => ({ cardId, nameEn: cardId, kinds: [], colors: [], playCost: 0 }),
+        definitionOf: ({ cardId }: { cardId: string }) => ({
+          cardId,
+          nameEn: cardId,
+          kinds: [],
+          colors: [],
+          playCost: 0,
+        }),
       },
     } as never;
 

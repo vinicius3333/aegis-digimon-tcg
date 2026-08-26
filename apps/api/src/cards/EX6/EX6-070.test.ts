@@ -11,8 +11,16 @@ describe("EX6-070 Phantom Pain", () => {
     const text = JSON.stringify(runtime);
     expect(runtime).toMatchObject({ coverage: "full", residual: [] });
     expect(text).toContain("PlaceInBattleAreaSelf");
-    expect(runtime?.effects?.find((entry) => entry.trigger === "EndOfOpponentsTurn")?.actions[0]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "Delay" } });
-    expect(runtime?.effects?.filter((entry) => entry.trigger === "Main").at(-1)).toMatchObject({ keywords: [{ keyword: "Delay" }], actions: [{ kind: "Delete", optional: true, requiresDelayArmed: true, target: { filter: { unsuspended: true } } }] });
+    expect(runtime?.effects?.find((entry) => entry.trigger === "EndOfOpponentsTurn")?.actions[0]).toMatchObject({
+      kind: "GainKeyword",
+      keyword: { keyword: "Delay" },
+    });
+    expect(runtime?.effects?.filter((entry) => entry.trigger === "Main").at(-1)).toMatchObject({
+      keywords: [{ keyword: "Delay" }],
+      actions: [
+        { kind: "Delete", optional: true, requiresDelayArmed: true, target: { filter: { unsuspended: true } } },
+      ],
+    });
     expect(runtime?.effects?.filter((entry) => entry.trigger === "Main").at(-1)?.actions[0]?.cost).toBeUndefined();
     expect(runtime).toEqual(compiled);
   });
@@ -54,8 +62,15 @@ describe("EX6-070 Phantom Pain", () => {
         state: { turnCount: 1 },
         player: (seat: number) => players[seat]!,
         opponentOf: () => 1,
-        permanentById: (id: string) => [sourcePermanent, visibleOpponent].find((permanent) => permanent.permanentId === id),
-        definitionOf: ({ cardId }: { cardId: string }) => ({ cardId, nameEn: cardId, kinds: ["Digimon"], colors: [], playCost: 0 }),
+        permanentById: (id: string) =>
+          [sourcePermanent, visibleOpponent].find((permanent) => permanent.permanentId === id),
+        definitionOf: ({ cardId }: { cardId: string }) => ({
+          cardId,
+          nameEn: cardId,
+          kinds: ["Digimon"],
+          colors: [],
+          playCost: 0,
+        }),
       },
       fx: {
         grantedKeywords: () => [{ keyword: "Delay" }],

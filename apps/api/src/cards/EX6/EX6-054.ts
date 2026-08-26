@@ -129,7 +129,7 @@ export const compiled: CompiledCard = {
             },
             destination: "deck",
             position: "bottom",
-          raw: "by returning 1 [Lucemon] from this Digimon's digivolution cards or from your trash to the bottom of the deck",
+            raw: "by returning 1 [Lucemon] from this Digimon's digivolution cards or from your trash to the bottom of the deck",
           },
           actions: [
             {

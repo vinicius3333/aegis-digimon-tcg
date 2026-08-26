@@ -101,7 +101,15 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
-          target: { filter: { controller: "mine", zone: "digivolutionCards", hostFilter: { sourceRef: "triggerSubject" }, nameOrTrait: [{ tokens: ["Legend-Arms"], match: "trait" }] }, count: 1 },
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "digivolutionCards",
+              hostFilter: { sourceRef: "triggerSubject" },
+              nameOrTrait: [{ tokens: ["Legend-Arms"], match: "trait" }],
+            },
+            count: 1,
+          },
           from: ["digivolutionCards"],
           payCost: false,
           optional: true,

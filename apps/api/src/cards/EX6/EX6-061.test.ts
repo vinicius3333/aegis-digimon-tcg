@@ -6,7 +6,22 @@ describe("EX6-061 Leviamon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects).toHaveLength(2);
     expect(compiled.effects[0]).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn" });
-    expect(compiled.effects[0]?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenPlayed", sourceFilter: { or: expect.any(Array) }, actions: [{ kind: "ReturnTopDigivolutionCards", cardsPerTarget: 3, position: "bottom" }, { kind: "Delete", condition: { kind: "boardCountCompare", op: "lte" } }] });
-    expect(compiled.effects[1]?.actions[0]).toMatchObject({ kind: "Replacement", event: "wouldLeavePlay", leaveCause: "otherThanBattle", actions: [{ kind: "PlaceUnder", target: { from: ["trash"] }, underFilter: { zone: "breeding" }, position: "bottom" }] });
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenPlayed",
+      sourceFilter: { or: expect.any(Array) },
+      actions: [
+        { kind: "ReturnTopDigivolutionCards", cardsPerTarget: 3, position: "bottom" },
+        { kind: "Delete", condition: { kind: "boardCountCompare", op: "lte" } },
+      ],
+    });
+    expect(compiled.effects[1]?.actions[0]).toMatchObject({
+      kind: "Replacement",
+      event: "wouldLeavePlay",
+      leaveCause: "otherThanBattle",
+      actions: [
+        { kind: "PlaceUnder", target: { from: ["trash"] }, underFilter: { zone: "breeding" }, position: "bottom" },
+      ],
+    });
   });
 });

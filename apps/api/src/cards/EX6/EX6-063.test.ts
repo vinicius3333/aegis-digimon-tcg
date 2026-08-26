@@ -9,6 +9,9 @@ describe("EX6-063 T.K. Takaishi & Kari Kamiya", () => {
     expect(compiled.effects.filter((effect) => effect.trigger === "StartOfYourMainPhase")).toHaveLength(1);
     expect(compiled.effects.filter((effect) => effect.trigger === "YourTurn")).toHaveLength(1);
     expect(compiled.effects.filter((effect) => effect.trigger === "Security")).toHaveLength(1);
-    expect(compiled.effects.find((effect) => effect.trigger === "YourTurn")?.actions[0]).toMatchObject({ kind: "SubTrigger", actions: [{ kind: "GainMemory", condition: { kind: "triggerSubjectMatchesFilter" } }] });
+    expect(compiled.effects.find((effect) => effect.trigger === "YourTurn")?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      actions: [{ kind: "GainMemory", condition: { kind: "triggerSubjectMatchesFilter" } }],
+    });
   });
 });

@@ -34,7 +34,10 @@ export const compiled: CompiledCard = {
             {
               kind: "Digivolve",
               target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-              into: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Angewomon", "LadyDevimon"], match: "name" }] },
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Angewomon", "LadyDevimon"], match: "name" }],
+              },
               from: ["trash"],
               reduceCost: 1,
               optional: true,

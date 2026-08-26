@@ -53,7 +53,12 @@ describe("EX6-002 Yokomon", () => {
 
   it("may decline and cannot select a non-blue level 3", async () => {
     const declined = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-002"] }], hand: [{ card: "BT12-021", as: "blueLevel3" }] } },
+      {
+        0: {
+          battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-002"] }],
+          hand: [{ card: "BT12-021", as: "blueLevel3" }],
+        },
+      },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
     await advance(declined.engine).fire(EffectTiming.OnUseAttack, declined.perm("host"));
@@ -62,7 +67,10 @@ describe("EX6-002 Yokomon", () => {
     );
 
     const wrongColor = setupEngine({
-      0: { battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-002"] }], hand: [{ card: "BT1-009", as: "redLevel3" }] },
+      0: {
+        battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-002"] }],
+        hand: [{ card: "BT1-009", as: "redLevel3" }],
+      },
     });
     await advance(wrongColor.engine).fire(EffectTiming.OnUseAttack, wrongColor.perm("host"));
     expect(wrongColor.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(

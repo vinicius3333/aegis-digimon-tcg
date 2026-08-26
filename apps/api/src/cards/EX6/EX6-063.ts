@@ -14,14 +14,55 @@ const gainMemory = {
 };
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "StartOfYourMainPhase", actions: [{ kind: "GainKeyword", target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Yellow"] }, count: 1 }, keyword: { keyword: "Barrier" }, duration: "untilOpponentTurnEnd" }] },
-    { trigger: "OnPlay", actions: [{ kind: "GainKeyword", target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Yellow"] }, count: 1 }, keyword: { keyword: "Barrier" }, duration: "untilOpponentTurnEnd" }] },
-    { trigger: "YourTurn", actions: [
-      { kind: "SubTrigger", event: "whenPlayed", sourceFilter: { controller: "mine", kind: ["Digimon"] }, actions: [gainMemory] },
-      { kind: "SubTrigger", event: "whenOneOfYoursDigivolves", sourceFilter: { controller: "mine", kind: ["Digimon"] }, actions: [gainMemory] },
-    ] },
-    { trigger: "Security", actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }], isSecurity: true },
-  ], coverage: "full", residual: [],
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Yellow"] }, count: 1 },
+          keyword: { keyword: "Barrier" },
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Yellow"] }, count: 1 },
+          keyword: { keyword: "Barrier" },
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [gainMemory],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [gainMemory],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-063", compiled);

@@ -11,7 +11,13 @@ describe("EX6-038 Ludomon", () => {
         kind: "compound",
         costs: [
           { kind: "payMemory", memory: 1 },
-          { kind: "place", destination: "digivolutionStack", position: "bottom", bindHostAs: "placementTarget", target: { filter: { isSelfRef: true } } },
+          {
+            kind: "place",
+            destination: "digivolutionStack",
+            position: "bottom",
+            bindHostAs: "placementTarget",
+            target: { filter: { isSelfRef: true } },
+          },
         ],
       },
     }));

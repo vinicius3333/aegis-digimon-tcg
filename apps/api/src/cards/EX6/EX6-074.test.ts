@@ -15,16 +15,21 @@ describe("EX6-074 Mirei Mikagura", () => {
         kind: ["Digimon"],
         nameOrTrait: [{ tokens: ["Holy Beast", "Archangel", "Fallen Angel"], match: "trait" }],
       },
-      actions: [{ kind: "GainMemory", amount: 1, optional: true, abortOnDecline: true, cost: { kind: "suspend" } }, { kind: "Digivolve", from: ["trash"], reduceCost: 1, optional: true }],
+      actions: [
+        { kind: "GainMemory", amount: 1, optional: true, abortOnDecline: true, cost: { kind: "suspend" } },
+        { kind: "Digivolve", from: ["trash"], reduceCost: 1, optional: true },
+      ],
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn")).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{
-      kind: "DnaDigivolve",
-      optional: true,
-      payCost: true,
-      into: { hasDnaDigivolutionRequirement: true },
-    }],
+      actions: [
+        {
+          kind: "DnaDigivolve",
+          optional: true,
+          payCost: true,
+          into: { hasDnaDigivolutionRequirement: true },
+        },
+      ],
     });
   });
   it("plays itself without cost from security", () =>

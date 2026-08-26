@@ -49,7 +49,11 @@ export const compiled: CompiledCard = {
                   kind: ["Digimon"],
                   nameOrTrait: [{ tokens: ["Seven Great Demon Lords"], match: "trait" }],
                   zone: "digivolutionCards",
-                  hostFilter: { controller: "mine", zone: "breeding", nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "name" }] },
+                  hostFilter: {
+                    controller: "mine",
+                    zone: "breeding",
+                    nameOrTrait: [{ tokens: ["Gate of Deadly Sins"], match: "name" }],
+                  },
                 },
                 count: 1,
               },
