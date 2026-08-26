@@ -686,3 +686,43 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   API errors in `EX6-010.test.ts`, interpreter removal/runAction/targeting
   files, and `primitives.test.ts`; it reports no BT5-013 errors.
 - Remaining ambiguity: none identified.
+
+## BT5-014 — OmniShoutmon — 10/10
+
+- Catalog evidence: Red Lv.5 Ultimate Digimon, Data/Dragonkin, play cost 8,
+  7000 DP, and standard red Lv.4 evolution cost 3. Its main clause lets one of
+  your `[Shoutmon]` in the battle area digivolve into this card in hand for a
+  memory cost of 4, ignoring its printed evolution requirements. Its inherited
+  clause grants `<Security Attack +1>` during your turn while the host has
+  `<Blitz>`.
+- Knowledge-base and rules evidence: Q1291 excludes the breeding area from the
+  alternate evolution; Q1292 confirms the inherited bonus does not require an
+  attack declaration; Q1293 confirms the effect-driven evolution is legal by
+  its own stated requirements. Local glossary/manual evolution and inherited
+  effect rules provide the remaining timing and stack contract. No errata or
+  restriction changes the text.
+- Implementation: `apps/api/src/cards/BT5/BT5-014.ts` encodes the exact
+  `[Shoutmon]` battle-area alternate path, hand destination card, fixed cost 4,
+  and ignored printed requirements. Its inherited owner-turn aura grants one
+  Security Attack only while the live host has `Blitz`. It declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-014", compiled)`.
+- Primitive, peer, and stack evidence: shared effect-driven digivolution
+  targeting enforces controller, battle-area source, exact name, hand card,
+  fixed cost, and stack transition. Continuous keyword recomputation reads the
+  evolved host's current Blitz state and owner-relative turn. Shared
+  digivolution-lock and interpreter/action regressions cover legality and the
+  source-to-host transition; no breeding-area shortcut is admitted.
+- Behavioral proof: existing focused and mechanism coverage proves the cost-4
+  alternate evolution, breeding exclusion, exact Shoutmon gate, Q1292's
+  no-attack requirement, owner-turn gate, Blitz condition, and inherited
+  Security Attack amount. No optional refusal, deletion, or Security-zone
+  effect applies.
+- Defect corrected: none. Existing implementation and tests already provide
+  reproducible 10/10 evidence; only this audit record was added.
+- Verification: focused plus mechanism regressions — 4 files, 285 tests passed;
+  full BT5 regression — 121 files, 318 tests passed. Card formatting and
+  Oxlint passed, with one pre-existing `no-explicit-any` test warning.
+  `git diff --check` passed. Workspace `pnpm typecheck` builds shared and web
+  but retains only the known unrelated API errors outside BT5-014.
+- Remaining ambiguity: none identified.
