@@ -756,11 +756,19 @@ export async function runSubTrigger(
   // generic `filterMatch` uses for `sourceFilter` on other events.
   //   BT20-080: { isSelfRef: true } — fires only when cards are placed under THIS permanent.
   //   BT21-080: { kind: ["Digimon"], nameOrTrait: [...] } — receiver must be Gammamon/Hero trait.
+  // For suspension events, the event subject is the Digimon that was actually
+  // suspended; EX6-064 uses this to distinguish one of your Digimon from an
+  // opponent's Digimon without requiring that it be the Tamer itself.
   // For attack events (whenAttacking / whenOpponentAttacks) the event subject is the
   // ATTACKER, so the same subject-filter gate lets a watcher fire only when the attacker matches —
   // including relative gates like `digivolutionCardsCompareToSource` ("with as many or fewer
   // digivolution cards as this Digimon attacks", BT15-032 and AD1/BT16-family cards).
-  const SUBJECT_TRIGGER_FILTER_EVENTS = new Set(["whenAttacking", "whenOpponentAttacks", "whenLinked"]);
+  const SUBJECT_TRIGGER_FILTER_EVENTS = new Set([
+    "whenAttacking",
+    "whenOpponentAttacks",
+    "whenLinked",
+    "whenEffectSuspends",
+  ]);
   const triggerFilterGate =
     action.triggerFilter !== undefined &&
     (event === "onAddDigivolutionCards" || SUBJECT_TRIGGER_FILTER_EVENTS.has(event))

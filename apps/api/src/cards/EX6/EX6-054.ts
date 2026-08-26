@@ -112,15 +112,10 @@ export const compiled: CompiledCard = {
             kind: "return",
             target: {
               filter: {
-                or: [
-                  {
-                    zone: "digivolutionCards",
-                  },
-                  {
-                    zone: "trash",
-                  },
-                ],
                 controller: "mine",
+                // `source: thisDigimon` below narrows only the hosted branch while
+                // retaining the printed controller-trash alternative.
+                zone: ["trash", "digivolutionCards"],
                 kind: ["Digimon"],
                 nameOrTrait: [
                   {
@@ -130,10 +125,11 @@ export const compiled: CompiledCard = {
                 ],
               },
               count: 1,
+              source: "thisDigimon",
             },
             destination: "deck",
             position: "bottom",
-            raw: "by returning 1 [Lucemon] from this Digimon's digivolution cards or from your trash to the bottom of the deck",
+          raw: "by returning 1 [Lucemon] from this Digimon's digivolution cards or from your trash to the bottom of the deck",
           },
           actions: [
             {

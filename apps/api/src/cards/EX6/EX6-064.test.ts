@@ -9,10 +9,11 @@ describe("EX6-064 Shu-Chong Wong", () => {
       add: [{ count: 1, to: "hand" }],
       rest: "deckBottom",
     }));
-  it("suspends this Tamer to reduce a Beastkin/Holy Beast/Cherub evolution by two and plays from security", () => {
+  it("watches any own effect-suspended Digimon, then suspends this Tamer to reduce evolution by two", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenEffectSuspends",
+      triggerFilter: { controller: "mine", kind: ["Digimon"] },
       actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 2, cost: { kind: "suspend" } }],
     });
     expect(compiled.effects?.find((entry) => entry.isSecurity)?.actions[0]).toMatchObject({
