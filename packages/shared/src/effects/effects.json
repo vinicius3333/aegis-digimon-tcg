@@ -12143,7 +12143,7 @@
         "actions": [
           {
             "kind": "SubTrigger",
-            "event": "onDigivolutionCardDiscarded",
+            "event": "onDigivolutionCardsDiscardedBatch",
             "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "GainMemory", "amount": 1 }]
           }
@@ -12153,7 +12153,12 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [{ "materials": [{ "names": ["MadLeomon"] }], "count": 2 }]
+    "digiXrosRequirement": [
+      {
+        "materials": [{ "names": ["MadLeomon"] }, { "traits": ["Bagra Army"] }],
+        "count": 2
+      }
+    ]
   },
   "BT11-082": {
     "effects": [
