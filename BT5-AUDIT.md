@@ -1770,3 +1770,36 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-042 — Knightmon — 10/10
+
+- Catalog evidence: Yellow Lv.5 Ultimate Digimon, Data/Warrior, play cost 7,
+  7000 DP, and yellow Lv.4 evolution cost 3. Its sole clause is `[On Play]`
+  giving exactly 1 opposing Digimon -4000 DP for the turn. The card query has
+  no QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-042.ts` contains one `OnPlay`
+  `ModifyDP` action targeting one opponent-controlled Digimon, amount -4000,
+  duration `forTheTurn`. It declares `coverage: "full"`, `residual: []`, and
+  registers exclusively through `registerIrCard("BT5-042", compiled)`.
+- Primitive, trait, and peer evidence: the target resolver excludes the
+  controller's board and selects exactly one eligible opponent; the modifier
+  ledger records the fixed -4000 and sweeps it at the controller's turn end.
+  BT5-034 and BT5-037 select this real Warrior card while rejecting unrelated
+  cards, proving the committed trait identity; BT5-045 supplies the nearby
+  Holy Warrior boundary. BT5-041 exercises the adjacent yellow Lv.5 stack
+  context, while interpreter and capability suites cover On Play targeting,
+  DP modification, and duration plumbing.
+- Behavioral proof: the focused test plays Knightmon, observes exactly -4000
+  on one selected opposing Digimon, proves a second opponent and an own
+  Digimon remain at base DP, advances through the controller's turn using the
+  canonical turn helper, and confirms the selected target returns to base DP.
+- Defect corrected: none in the module. The implementation was already
+  faithful; the audit strengthened the focused proof for controller boundary
+  and actual end-of-turn expiry.
+- Verification: focused BT5-042, BT5-034/037/041/045 peers, interpreter, and
+  card-capability suites — 7 files, 202 tests passed. Targeted Oxfmt, Oxlint,
+  and `git diff --check` pass. Workspace typecheck retains only the known
+  unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
