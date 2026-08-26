@@ -299,6 +299,23 @@ Remaining work is behavioral proof of Q1655/Q1656 stack and duration boundaries;
 
 Remaining work is behavioral proof of Q1652–Q1654/Q3261 and the inherited threshold; this card is not formally complete at 10/10.
 
+## BT7-084 — Eosmon — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** White level-6 Mega Digimon with White/Green level-5 evolution recipes, Your Turn other-Eosmon +1000 DP, and optional On Deletion level-5-or-lower Eosmon hand play.
+2. **Your Turn aura (1/1):** `ModifyDP` targets all owner Eosmon by name while excluding self, with +1000 permanent duration under the Your Turn trigger.
+3. **On Deletion (1/1):** The effect optionally plays exactly one owner Eosmon of level 5 or lower from hand without cost.
+4. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-084` reports no rulings or unresolved ambiguity.
+5. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-084", compiled)` registration are present.
+6. **Static primitive trace (1/1):** Your Turn timing, exclude-self behavior, all-target count, Eosmon name filter, DP amount/duration, On Deletion timing, level ceiling, hand source, optionality, and free play are explicit.
+7. **Target/controller fidelity (1/1):** Both clauses use owner controller and exact Eosmon name matching; the aura does not buff this source itself.
+8. **Evolution contract (1/1):** The module leaves the catalog's White/Green level-5 evolution recipes to standard card data without introducing alternate requirements.
+9. **Clause completeness (1/1):** Your Turn and On Deletion text map directly to compiled effects.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; other-Eosmon exclusion, turn timing, level-5 boundary, optional refusal, and deletion trigger remain unproven.
+
+Remaining work is focused behavioral proof of the aura and On Deletion boundaries; this card is not formally complete at 10/10.
+
 ## BT7-101 — Thunder Laser — 9/10 (static audit)
 
 ### Clause-by-clause score
