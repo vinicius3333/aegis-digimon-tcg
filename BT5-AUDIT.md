@@ -1632,3 +1632,43 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-038 — Kyubimon — 10/10
+
+- Catalog evidence: Yellow Lv.4 Champion Digimon, Data/Mysterious Beast,
+  play cost 5, 4000 DP, and yellow Lv.3 evolution cost 2. Its only text is an
+  inherited `[Your Turn]` effect giving all opposing Security Digimon -1000
+  DP.
+- Knowledge-base and rules evidence: Q1322 states that a Security Digimon
+  reduced to 0 DP still performs its security battle rather than being deleted
+  beforehand. Q1323 states its `[Security]` effect still activates normally.
+  Q1324 states that if the Security effect plays that card, the reduction no
+  longer applies because it is no longer a Security Digimon.
+- Implementation: `apps/api/src/cards/BT5/BT5-038.ts` contains an inherited
+  `YourTurn` `ModifySecurityDP` action for the opponent, amount -1000, with a
+  continuously re-derived permanent duration. The module declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-038", compiled)`.
+- Primitive and ruling evidence: the Security DP ledger is consumed only by
+  the security-battle DP calculation; it does not run field-based 0-DP
+  deletion rules against the revealed loose card and does not suppress its
+  Security timing. If that effect plays the card, the new permanent uses its
+  ordinary printed/current DP because Security-only modifiers are not copied
+  into the battle area. Continuous recomputation also gates the inherited
+  modifier to the source controller's turn.
+- Behavioral proof: 4 focused tests prove the exact opponent-only -1000
+  modifier on the controller's turn and its absence on the opponent's turn;
+  Q1322 with a real 1000-DP Security Digimon whose resolution remains
+  `battle`; and Q1323/Q1324 with BT5-065 resolving its Security play effect and
+  entering the battle area at its full printed 5000 DP.
+- Defect corrected: none in the module. The implementation was already
+  faithful; the audit added the missing direct behavioral proofs for all
+  three card-specific rulings.
+- Verification: focused BT5-038 — 4/4 passed. Filtered shared
+  `ModifySecurityDP`/security-battle mechanism — 3/3 passed (115 unrelated
+  cases skipped). Targeted Oxfmt, Oxlint, and `git diff --check` pass.
+  Workspace typecheck retains only the known unrelated baseline errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
