@@ -146,7 +146,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-052 — 10/10
   - Evidence: catalog and KB Q2294 reviewed; compiled IR exclusively uses `registerIrCard`, tracing static Jamming separately from inherited +1000 DP when the opponent has no unsuspended Digimon, including zero-opponent and dynamic suspension states.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-052.test.ts` passed (5 tests): live-vs-inherited keyword separation, Q2294 zero-opponent condition, dynamic state boundaries, and evolution cost.
-- BT13-053 — Pending
+- BT13-053 — 10/10
+  - Evidence: catalog and KB Q2295–Q2297 reviewed; hand-fixed compiled IR exclusively uses `registerIrCard` and correctly separates the ≤7000-DP suspension target from unrestricted unsuspend prevention through opponent-turn end, with inherited once-per-turn -1 digivolution reduction.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-053.test.ts` passed (5 tests): corrected suspension behavior, Q2295 independent targets, Q2296/Q2297 unrestricted lock target, inherited source/frequency, and evolution cost.
 - BT13-054 — Pending
 - BT13-055 — Pending
 - BT13-056 — Pending
