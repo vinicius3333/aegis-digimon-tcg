@@ -200,7 +200,11 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
                 ctx.fx.revokeKeyword?.(self.permanentId, "Delay");
                 delayArmedConsumed = true;
               }
-              await ctx.fx.deletePermanent([self.permanentId]);
+              const trashed = await ctx.fx.deletePermanent([self.permanentId]);
+              // A prevented/failed trash does not pay ＜Delay＞'s activation cost, so its
+              // payload cannot resolve. A replacement may move the source before reporting
+              // a zero-like result while still having paid the cost.
+              if (trashed <= 0 && ctx.source.permanent() !== undefined) return;
               // The source is the activation cost. Delete it before resolving the payload so
               // state observers cannot see the Delay reward while the paid card remains in play.
               const outerEffectKey = ctx.activeEffectKey;
