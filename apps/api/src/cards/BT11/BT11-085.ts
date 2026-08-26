@@ -19,7 +19,7 @@ const playLevelThree: any = {
   optional: true,
 };
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [playLevelThree] },
     { trigger: "WhenDigivolving", actions: [playLevelThree] },
