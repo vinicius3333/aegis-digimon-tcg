@@ -62,21 +62,21 @@ describe("EX5-025 Dianamon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dianamon"));
-    await settle(() => observe(s.engine).isRestricted(s.perm("bare").permanentId, "suspend"), 2000);
-    expect(observe(s.engine).isRestricted(s.perm("bare").permanentId, "suspend")).toBe(true);
+    await settle(() => observe(s.engine).isRestricted(s.perm("bare").permanentId, "beSuspended"), 2000);
+    expect(observe(s.engine).isRestricted(s.perm("bare").permanentId, "beSuspended")).toBe(true);
 
     // A later source-less opponent enters the same live set (Q3586).
-    const later = structuredClone(s.perm("bare"));
+    const bare = s.perm("bare");
+    const later = s.putOnBoard(1, { card: "BT2-064", dp: bare.currentDP });
     later.permanentId = "PERM#later-bare";
-    later.topCard = makeInstance("BT2-064", 1, true);
-    later.stack = [];
-    s.state.players[1]!.battleArea.push(later);
+    expect(later.controllerSeat).toBe(1);
+    expect(later.stack).toHaveLength(0);
     await advance(s.engine).recompute();
-    expect(observe(s.engine).isRestricted(later.permanentId, "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(later.permanentId, "beSuspended")).toBe(true);
 
     s.perm("bare").stack.push(makeInstance("BT1-010", 1, true));
     await advance(s.engine).recompute();
 
-    expect(observe(s.engine).isRestricted(s.perm("bare").permanentId, "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("bare").permanentId, "beSuspended")).toBe(false);
   });
 });
