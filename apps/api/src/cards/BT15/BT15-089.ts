@@ -23,18 +23,8 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-        },
-        {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-          },
-          amount: -2000,
-          duration: "forTheTurn",
-          scaling: {
+          dpCeilingScaling: {
+            amount: -2000,
             per: 1,
             filter: {
               controller: "opponent",
