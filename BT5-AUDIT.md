@@ -767,3 +767,40 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `git diff --check` is clean. Workspace `pnpm typecheck` retains only the
   known unrelated API errors outside BT5-015.
 - Remaining ambiguity: none identified.
+
+## BT5-016 — WarGreymon — 10/10
+
+- Catalog evidence: Red Lv.6 Mega Digimon, Vaccine/Dragonkin, play cost 11,
+  11000 DP, and red Lv.5 evolution cost 3. `[When Digivolving]`, if its stack
+  contains a card named Greymon other than DoruGreymon, BurningGreymon, or
+  DexDoruGreymon, it deletes one opposing Digimon with `<Blocker>`. Its
+  inherited `[When Attacking]` deletes one opposing Digimon with 3000 DP or
+  less.
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-016`
+  returns no card-specific entries. Local glossary and comprehensive timing,
+  evolution-stack, Blocker, and inherited-effect rules govern both clauses.
+  No errata, restriction, or unresolved ambiguity applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-016.ts` encodes the qualifying
+  Greymon stack-name gate with all three exclusions, an exact opponent Blocker
+  delete target, and an inherited When Attacking delete target capped at DP
+  3000. It declares `coverage: "full"`, `residual: []`, and registers only
+  through `registerIrCard("BT5-016", compiled)`.
+- Primitive, peer, and stack evidence: the stack predicate reads named
+  digivolution sources and its exclusions; targeting applies opposing
+  controller, Digimon kind, keyword or inclusive DP boundary, and count one.
+  BT5-010 and BT5-015 cover the same positive/excluded Greymon vocabulary, and
+  shared combat keyword regressions cover Blocker identity and attack timing.
+- Behavioral proof: 8 focused cases prove full runtime registration, qualifying
+  source deletion of a Blocker, rejection of a non-Blocker, inherited deletion
+  at exactly 3000 DP, rejection at 3001 DP, and separate rejection of
+  DoruGreymon, BurningGreymon, and DexDoruGreymon stack sources.
+- Defect corrected: none in the IR or engine. The audit added only the missing
+  registration, target-boundary, DP-boundary, and complete exclusion matrix to
+  `BT5-016.test.ts`.
+- Verification: focused BT5-016 — 1 file, 8 tests passed. BT5-010, BT5-015,
+  and combat-keyword regressions — 3 files, 113 tests passed; combined run —
+  4 files, 121 tests passed. Targeted Oxfmt and `git diff --check` passed.
+  Workspace `pnpm typecheck` retains only the known unrelated API errors
+  outside BT5-016; repository-wide card formatting has unrelated baseline
+  findings, while the changed test formats cleanly.
+- Remaining ambiguity: none identified.
