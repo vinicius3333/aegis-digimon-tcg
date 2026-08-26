@@ -21,3 +21,10 @@
 - Implementation trace: `BT10-003.ts` exclusively registers compiled IR. Its inherited `WhenAttacking` action uses `selfHasTrait` with an exact `Xros Heart` trait token and draws one only for the source controller.
 - Behavioral proof: `BT10-003.test.ts` proves a draw for an Xros Heart host, no draw for a host without that trait, and no controller leak when the opponent attacks. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-003.test.ts`.
 - Peer/stack evidence: the positive host is BT10-009 (Xros Heart), while BT10-020 is a same-set nonmatching comparator; both carry Pickmons as an actual inherited source, proving trait matching on the evolving host rather than the source card.
+
+## BT10-004 — Bosamon — 10/10
+
+- Catalog and rules contract: errata dated 2022-10-28 adds `[Once Per Turn]`; `[Your Turn]` inherited effect grants the host +1000 DP for the turn whenever an effect suspends a Digimon. Q1930 confirms that suspending one of the controller's own Digimon qualifies.
+- Implementation trace: `BT10-004.ts` exclusively registers compiled IR. Its inherited `YourTurn` `SubTrigger(whenEffectSuspends)` accepts a Digimon source, targets only the host with `ModifyDP(+1000, forTheTurn)`, and has `OncePerTurn` frequency.
+- Behavioral proof: `BT10-004.test.ts` proves the errata frequency across own and opponent Digimon, independent arming of two inherited copies without duplicate watchers after recompute, and the opponent-turn negative case. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-004.test.ts`.
+- Stack/ownership evidence: the first case proves Q1930 from an actual Bosamon host stack; the dual-stack case confirms that controller-owned inherited sources each observe effect-driven suspension once, without recompute multiplying either trigger.
