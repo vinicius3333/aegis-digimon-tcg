@@ -1254,3 +1254,45 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and `primitives.test.ts`.
 - Remaining ambiguity: none identified.
+
+## BT5-029 — WereGarurumon: Sagittarius Mode — 10/10
+
+- Catalog evidence: Blue Lv.5 Ultimate Digimon, Vaccine/Beastkin, play cost
+  8, 8000 DP, with blue Lv.4 evolution cost 3 and blue Lv.5 evolution cost 1.
+  During its owner's turn it gains `<Jamming>` while a Digimon card with
+  WereGarurumon in its name is in its digivolution cards. Its inherited
+  `[All Turns]` effect gives the host +1000 DP while its name contains
+  Garurumon or Omnimon.
+- Knowledge-base and rules evidence: the card query returns no card-specific
+  QA, errata, restriction, or ruling entries. Local Your Turn, Jamming,
+  digivolution-source name-substring, inherited, All Turns, live host-name,
+  and continuous DP rules govern the clauses.
+- Implementation: `apps/api/src/cards/BT5/BT5-029.ts` has a YourTurn self Aura
+  granting Jamming while `selfDigivolutionStackHasTrait` matches a source name
+  containing WereGarurumon. Its inherited AllTurns self Aura adds 1000 DP
+  while the live top name contains Garurumon or Omnimon. It declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-029", compiled)`.
+- Primitive, peer, and stack evidence: the stack-name condition inspects
+  Digimon cards below the current top and uses substring matching, while the
+  inherited condition reads the current host name. A legal alternate stack
+  uses BT5-020 Gabumon, BT5-024 Garurumon, BT1-040 WereGarurumon, then the
+  printed blue Lv.5-to-Lv.5 cost-1 evolution into BT5-029. BT5-002 and BT5-024
+  cover the same Garurumon/Omnimon host-name vocabulary, and Jamming
+  conformance proves survival against a stronger Security Digimon.
+- Behavioral proof: 4 focused tests prove Jamming with a WereGarurumon source,
+  no Jamming with an absent or wrong-name source, removal on the opponent's
+  turn, the legal alternate evolution stack, inherited +1000 DP on both
+  Garurumon and Omnimon hosts across both turns, and an unrelated-name
+  negative.
+- Defect corrected: none in the IR or engine. The audit added only missing
+  alternate-stack, name-boundary, turn-boundary, Omnimon, and unrelated-host
+  assertions to `BT5-029.test.ts`.
+- Verification: focused BT5-029 plus BT5-002 and BT5-024 peers — 3 files, 14
+  tests passed. Targeted Jamming conformance and interpreter subsets — 4 tests
+  passed. Targeted Oxfmt and `git diff --check` passed. Workspace
+  `pnpm typecheck` retains only the known unrelated API errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  `primitives.test.ts`.
+- Remaining ambiguity: none identified.
