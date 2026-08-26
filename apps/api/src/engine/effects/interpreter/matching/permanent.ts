@@ -258,6 +258,25 @@ export function permanentMatchesFilter(
     return false;
   }
 
+  // Dynamic level bounds such as "level >= the total cards in both security stacks"
+  // carry their live counting filter as the comparison value. Resolve that count before
+  // delegating to definitionMatches; treating the object as a numeric bound silently rejects
+  // every candidate (EX5-033 / KB Q3597-Q3599).
+  const levelComparison = filter.levelComparison as
+    | { op?: Condition["op"]; value?: number | { kind?: string; filter?: Filter } }
+    | undefined;
+  const dynamicCount = levelComparison?.value;
+  if (typeof dynamicCount === "object" && dynamicCount !== null && dynamicCount.kind === "dynamicCount") {
+    const bound = scaleFactor(ctx, {
+      per: 1,
+      unit: "cards",
+      filter: dynamicCount.filter ?? {},
+    });
+    if (def.level === undefined || !compareNumber(def.level, levelComparison.op, bound)) return false;
+    const { levelComparison: _levelComparison, ...rest } = filter;
+    filter = rest;
+  }
+
   // DP threshold needs the live permanent, so it lives here (not in definitionMatches).
   // Strip dp from filter after evaluation so definitionMatches doesn't double-check using
   // the printed (static) dp, which may differ from currentDP after ModifyDP effects.

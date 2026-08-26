@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-033.js";
 
@@ -40,6 +41,12 @@ describe("EX5-033 Mitamamon", () => {
       duration: "untilOpponentTurnEnd",
       target: { whileMatchesTargetFilter: true },
     });
+    expect(
+      compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]?.target.filter.levelComparison,
+    ).toMatchObject({
+      op: "gte",
+      value: { kind: "dynamicCount", filter: { zone: "security", controller: "any" } },
+    });
   });
 
   it("gives every qualifying opposing Digimon Security Attack minus two during the opponent turn", async () => {
@@ -61,10 +68,12 @@ describe("EX5-033 Mitamamon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("qualifying"), "SecurityAttack")).toBe(-2);
     expect(observe(s.engine).keywordAmount(s.perm("belowTotalSecurity"), "SecurityAttack")).toBe(0);
 
-    s.state.players[0]!.security.pop();
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
     await settle(() => observe(s.engine).keywordAmount(s.perm("belowTotalSecurity"), "SecurityAttack") === -2, 2000);
 
-    expect(observe(s.engine).keywordAmount(s.perm("qualifying"), "SecurityAttack")).toBe(0);
+    // The level-4 Digimon remains qualified when the live threshold drops from 4 to 3;
+    // the level-3 Digimon newly joins it (KB Q3597-Q3599).
+    expect(observe(s.engine).keywordAmount(s.perm("qualifying"), "SecurityAttack")).toBe(-2);
     expect(observe(s.engine).keywordAmount(s.perm("belowTotalSecurity"), "SecurityAttack")).toBe(-2);
   });
 });
