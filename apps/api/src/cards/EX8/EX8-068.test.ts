@@ -82,4 +82,41 @@ describe("EX8-068", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ds").permanentId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-058")).toBe(false);
   });
+  it("moves bottom security to hand and places the exact option face-up at the new bottom", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT1-030"],
+        hand: [{ card: "EX8-068", as: "option" }],
+        security: [
+          { card: "BT1-001", as: "top" },
+          { card: "BT1-002", as: "bottom" },
+        ],
+      },
+    });
+    s.state.memory = 5;
+    const optionId = s.inst("option").instanceId;
+    const topId = s.inst("top").instanceId;
+    const bottomId = s.inst("bottom").instanceId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === optionId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === bottomId)).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([topId, optionId]);
+    expect(s.state.players[0]!.security[1]!.faceUp).toBe(true);
+  });
+
+  it("places itself face-up even when security is empty (Q3954-Q3955)", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "EX8-068", as: "option" }] } });
+    s.state.memory = 5;
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(optionId);
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
+  });
 });
