@@ -276,7 +276,7 @@ export function permanentMatchesFilter(
       unit: "cards",
       filter: dynamicCount.filter ?? {},
     });
-    if (def.level === undefined || !compareNumber(def.level, levelComparison.op, bound)) return false;
+    if (def.level === undefined || levelComparison?.op === undefined || !compareNumber(def.level, levelComparison.op, bound)) return false;
     const { levelComparison: _levelComparison, ...rest } = filter;
     filter = rest;
   }

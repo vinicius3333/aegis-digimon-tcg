@@ -215,6 +215,8 @@ export interface ReturnAction extends ActionBase {
     unit: Scaling["unit"];
     raw?: string;
   };
+  /** Raise a return target's DP ceiling by a live scaling amount. */
+  dpCeilingScaling?: Scaling & { amount: number };
 }
 
 /** Return Digi-Egg cards to the dedicated Digi-Egg deck (BT4-095). */
