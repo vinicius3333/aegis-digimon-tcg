@@ -60,9 +60,9 @@ describe("BT14-018", () => {
     const amon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === AMON)!;
     const umon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === UMON)!;
     expect(getCardDefinition(AMON)).toMatchObject({ nameEn: "Amon of Crimson Flame", dp: 6000, playCost: -1 });
-    expect(getCardDefinition(AMON).level).toBeUndefined();
+    expect(getCardDefinition(AMON)!.level).toBeUndefined();
     expect(getCardDefinition(UMON)).toMatchObject({ nameEn: "Umon of Blue Thunder", dp: 6000, playCost: -1 });
-    expect(getCardDefinition(UMON).level).toBeUndefined();
+    expect(getCardDefinition(UMON)!.level).toBeUndefined();
     expect(observe(s.engine).hasKeyword(amon, "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(umon, "Blocker")).toBe(true);
     assertNoLoudGap(s);

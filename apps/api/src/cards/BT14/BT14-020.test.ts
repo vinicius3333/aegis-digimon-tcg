@@ -76,7 +76,8 @@ describe("BT14-020", () => {
     const timing = advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
     await settle(() => s.decisions.some((decision) => decision.req.kind === "selectCards"));
     const decision = s.decisions.find((entry) => entry.req.kind === "selectCards")!;
-    expect(decision.req.options.candidateInstanceIds).toEqual(
+    if (decision.req.kind !== "selectCards") throw new Error("expected card-selection decision");
+    expect(decision.req.options!.candidateInstanceIds).toEqual(
       expect.arrayContaining([
         s.inst("bottom").instanceId,
         s.inst("chosen").instanceId,
@@ -101,7 +102,7 @@ describe("BT14-020", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.decisions.some((entry) => entry.req.kind === "declareBlock")).toBe(false);
+    expect(s.decisions.some((entry) => (entry.req as { kind: string }).kind === "declareBlock")).toBe(false);
     expect(s.perm("blocker").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });
@@ -121,7 +122,7 @@ describe("BT14-020", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.decisions.some((entry) => entry.req.kind === "declareBlock")).toBe(false);
+    expect(s.decisions.some((entry) => (entry.req as { kind: string }).kind === "declareBlock")).toBe(false);
     assertNoLoudGap(s);
   });
 

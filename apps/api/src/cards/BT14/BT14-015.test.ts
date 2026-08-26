@@ -65,7 +65,7 @@ describe("BT14-015", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveId)).toBe(true);
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("attacker"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveId)).toBe(true);
     assertNoLoudGap(s);

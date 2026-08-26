@@ -99,7 +99,7 @@ it("deletes exactly one 3000 DP target once from a legal Gizamon evolution stack
   await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === boundaryId));
 
   expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === overBoundaryId)).toBe(true);
-  await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("egg"));
+  await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("egg"));
   await settle();
   expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondBoundaryId)).toBe(true);
   assertNoLoudGap(s);
