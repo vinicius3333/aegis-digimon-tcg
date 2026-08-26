@@ -41,3 +41,13 @@ change.
 
 No BT24 Luna static causal gap was identified. This is a static audit only;
 focused or broad test execution was intentionally not run per task scope.
+
+## Follow-up causal/timing pass (newest to oldest)
+
+A second static pass reviewed the highest-risk timing vocabulary across
+BT24-102…BT24-001, including Delay/sub-triggers, security-removal seat
+filters, once-per-turn frequency placement, replacement effects, temporary
+durations, and evolution-stack top-card sourcing. No justified causal or
+timing finding was identified: the reviewed clauses have explicit IR timing,
+controller/seat boundaries, and source-zone constraints. This remains static
+evidence only; no tests were executed.
