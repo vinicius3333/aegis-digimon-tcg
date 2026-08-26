@@ -75,9 +75,9 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
         },
         1: {
           battleArea: [
-            { card: OPP_DIGIMON, dp: 1000 },
-            { card: OPP_DIGIMON, dp: 1000 },
-            { card: OPP_DIGIMON, dp: 1000 },
+            { card: OPP_DIGIMON, dp: 1000, as: "oppOne" },
+            { card: OPP_DIGIMON, dp: 1000, as: "oppTwo" },
+            { card: OPP_DIGIMON, dp: 1000, as: "oppThree" },
           ],
         },
       },
@@ -93,7 +93,9 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: ogudomon.permanentId,
-        target: { kind: "player" },
+        // Attack a permanent rather than the player: this isolates the effect's security
+        // trash from battle-security checks, so the Q3827 value is exact.
+        target: { kind: "permanent", permanentId: s.perm("oppOne").permanentId },
       }),
     ).toEqual({ ok: true });
 
@@ -110,7 +112,7 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
     expect(p1.battleArea.filter((p) => p.topCard?.cardId === OPP_DIGIMON).length).toBe(0);
     // The effect trashes (7 - 3) = 4 security cards.
     const totalTrash = secBefore - p1.security.length;
-    expect(totalTrash).toBeGreaterThanOrEqual(4);
+    expect(totalTrash).toBe(4);
   });
 });
 
@@ -131,5 +133,30 @@ describe("EX6-073 [When Digivolving] places SGDL from trash; 4+ placed deletes 1
     expect(compiled.coverage).toBe("full");
     expect(text).toContain("ex6-073-deleted");
     expect(text).toContain("Seven Great Demon Lords");
+  });
+});
+
+describe("EX6-073 activation-local distinct-name contracts", () => {
+  it("requires distinct names for placement and an exact self-stack seven-card payment", () => {
+    const placements = compiled.effects?.flatMap((effect) => effect.actions ?? []).filter((action) => action.kind === "PlaceUnder") ?? [];
+    const paidDelete = compiled.effects?.flatMap((effect) => effect.actions ?? []).find((action) => action.kind === "Delete" && action.cost?.kind === "return");
+
+    expect(placements).toHaveLength(2);
+    for (const placement of placements) {
+      expect(placement).toMatchObject({
+        target: { count: 7, upTo: true, distinctNames: true },
+        trackCount: "ex6-073-placed",
+        trackDistinctNames: "ex6-073-placed",
+      });
+    }
+    expect(paidDelete).toMatchObject({
+      optional: true,
+      abortOnDecline: true,
+      cost: {
+        kind: "return",
+        position: "bottom",
+        target: { count: 7, isSelfRef: true, distinctNames: true, filter: { zone: "digivolutionCards", sameHost: true } },
+      },
+    });
   });
 });

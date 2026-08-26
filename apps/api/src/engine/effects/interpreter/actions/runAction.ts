@@ -53,6 +53,16 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
 }
 
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
+  // A placement tally is scoped to this action's current resolution.  In particular, a
+  // declined/blocked optional placement must overwrite a prior activation's count rather
+  // than allowing a later conditional to borrow it (EX6-073 Q3825).
+  if (action.kind === "PlaceUnder") {
+    if (action.trackCount !== undefined || action.trackDistinctNames !== undefined) {
+      ctx.namedCounts ??= new Map();
+      if (action.trackCount !== undefined) ctx.namedCounts.set(action.trackCount, 0);
+      if (action.trackDistinctNames !== undefined) ctx.namedCounts.set(action.trackDistinctNames, 0);
+    }
+  }
   if (action.kind === "PlayWithoutCost" && action.target.filter?.sameColorAsReturned === true) {
     ctx.lastReturnedColors = undefined;
   }

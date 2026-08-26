@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
       actions: [{
         kind: "Delete",
         target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true }, count: 1 },
-        cost: { kind: "deleteOwn", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+        requiresDelayArmed: true,
         optional: true,
       }],
     },

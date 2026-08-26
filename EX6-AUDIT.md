@@ -598,7 +598,7 @@ root-worktree Vitest workload has cleared.
 ## EX6-070 — Phantom Pain — evidence in progress
 
 - Catalog/KB evidence: Main gives an opposing Digimon delayed end-turn self-deletion then places this Option in battle; at opponent end, a controller Lilithmon condition arms Delay to optionally delete an unsuspended opponent Digimon. Q3820/Q4255 cover target immunity expiry and breeding relocation timing.
-- Defect corrected: automatic Delete with a self-delete cost did not model an executable Delay. End-of-opponent-turn now grants Delay under the Lilithmon condition, and a Delay-keyword Main entry carries optional self-delete-costed unsuspended opponent deletion.
+- Defect corrected: automatic Delete with a self-delete cost did not model an executable Delay. End-of-opponent-turn now grants Delay under the Lilithmon condition, and a Delay-keyword Main entry carries optional armed-only unsuspended opponent deletion; its self-trash activation cost is paid once by the Delay wrapper, not again by the payload.
 - Status: focused contract is unexecuted while PID group 43774 persists; not rated 10/10.
 
 ## EX6-071 — Pandemonium Lost — evidence in progress
@@ -616,11 +616,12 @@ root-worktree Vitest workload has cleared.
 ## EX6-073 — Ogudomon — evidence in progress
 
 - Catalog/KB evidence: When Digivolving/Attacking it places up to seven distinct-named Seven Great Demon Lords cards from trash under itself; four or more placed in one activation enables deletion. Its attack cost returns seven qualifying cards from this Digimon's stack to deck bottom, then deletes up to seven opponent Digimon/Tamers and trashes opponent security for seven minus actual deletions. Q3823–Q3827 define name distinctions, per-activation Q3825, all-seven Q3826, and actual-delete scaling Q3827.
-- Defect corrected: placement now writes a per-action `trackDistinctNames` result, so the four-card gate evaluates only distinct names placed by the current activation. Attack-cost sources are self-stack scoped and bottom-returned; the security amount reads the actual deletion receipt.
-- Status: existing focused security-reduction fixture and strengthened IR paths remain unexecuted while PID group 43774 persists; not rated 10/10.
+- Defect corrected: each placement target itself requires distinct names, then overwrites both placement tallies with zero before every activation (including declined/blocked zero placement), so the four-card gate cannot reuse a prior activation. The paid attack deletes only after returning exactly seven distinct-named qualifying cards from this source Digimon's own stack to deck bottom (`isSelfRef` plus defensive `sameHost`); the security amount reads the actual deletion receipt.
+- Focused unrun proof: the security fixture now attacks a permanent to assert the exact Q3827 security count, and the contract fixture locks distinct placement, self-stack-only seven-card payment, and all-or-nothing optional payment. Duplicate-name, unrelated-stack, zero/blocked-delete, and repeated-activation cases remain explicitly queued for the focused runtime gate because PID group 43774 persists.
+- Status: strengthened source and focused fixtures are unexecuted while PID group 43774 persists; not rated 10/10.
 
 ## EX6-074 — Mirei Mikagura — evidence in progress
 
 - Catalog evidence: after a controller Holy Beast/Archangel/Fallen Angel Digimon is played, suspending this Tamer gains one memory, then one controller Digimon may digivolve into Angewomon/LadyDevimon from trash with cost reduced by one. End of turn once-per-turn offers normal-requirement DNA Digivolve; Security plays this Tamer.
-- Defect corrected: the reduced Digivolve was detached as a top-level Your Turn action. It is now nested after the qualifying-play watcher’s self-suspend GainMemory action, preserving the printed Then sequence and optional Digivolve boundary.
+- Defect corrected: the reduced Digivolve was detached as a top-level Your Turn action. It is now nested after the qualifying-play watcher’s optional, aborting self-suspend GainMemory head, preserving the printed Then sequence: a declined or unpayable Mirei cannot continue to the optional Digivolve, while the controller may decline activation.
 - Status: focused contract changes are unexecuted while PID group 43774 persists; not rated 10/10.

@@ -8,6 +8,8 @@ import type { ActionBase } from "./base.js";
 
 export interface DeleteAction extends ActionBase {
   kind: "Delete";
+  /** Require a previously granted, unconsumed Delay keyword before this payload resolves. */
+  requiresDelayArmed?: true;
   target: Target;
   /** Shorthand for controller-less targets. */
   controller?: Controller;
