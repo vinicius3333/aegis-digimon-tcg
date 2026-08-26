@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-016.js";
+import "./BT5-062.js";
 
 describe("BT5-016 WarGreymon", () => {
   it("deletes a Blocker with a qualifying Greymon source", async () => {
