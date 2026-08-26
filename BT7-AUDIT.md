@@ -230,3 +230,20 @@ Required follow-up: remove or justify the `floor: 1` cost clamp so an empty secu
 10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; exact three-security boundary, target selection, duration, and Security behavior remain unproven.
 
 Remaining work is focused behavioral proof of the conditional boundary and turn duration; this card is not formally complete at 10/10.
+
+## BT7-098 — Ultra Turbulence — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a Yellow Option costing 2 whose Main effect gives one opposing Digimon and all opposing Security Digimon -3000 DP for the turn.
+2. **Battle-area target (1/1):** The first Main action modifies exactly one opponent Digimon by -3000.
+3. **Security Digimon population (1/1):** The second Main action uses `ModifySecurityDP` for all opponent Security Digimon, preserving the printed “all” scope.
+4. **Duration and Security (1/1):** Both modifiers use `forTheTurn`; Security returns this card to its owner's hand.
+5. **Q&A boundary (1/1):** Q1666 confirms reducing a Security Digimon to 0 DP does not delete it outside a battle; the module applies only a DP modifier and does not invent deletion.
+6. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-098` returns Q1666 with no unresolved ambiguity.
+7. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-098", compiled)` registration are present.
+8. **Static primitive trace (1/1):** Opponent controller, Digimon kind, exact single target, all-security population, amount, and duration are explicit.
+9. **Clause completeness (1/1):** The hand-authored compiled override explicitly restores the Security Digimon clause that a prior declarative form omitted.
+10. **Reproducible behavioral proof (0/1):** Existing tests cover only the ordinary battle-area modifier and were not executed in this static-only pass; Security Digimon scope, duration, and Q1666 battle boundary remain unproven.
+
+Remaining work is behavioral proof of the all-Security-Digimon modifier and Q1666 interaction; this card is not formally complete at 10/10.
