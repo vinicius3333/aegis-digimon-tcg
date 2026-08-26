@@ -10398,6 +10398,7 @@
             },
             "count": 1,
             "to": "hand",
+            "searchZone": "security",
             "optional": true
           },
           {
@@ -10405,7 +10406,7 @@
             "op": "addTop",
             "controller": "mine",
             "source": "deck",
-            "condition": { "kind": "raw", "raw": "you added a card" },
+            "condition": { "kind": "ifThisEffectActed" },
             "amount": 1
           },
           { "kind": "SecurityManipulation", "op": "shuffle", "controller": "mine" }
