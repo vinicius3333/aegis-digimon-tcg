@@ -227,7 +227,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-079 — 10/10
   - Registration: exclusive `registerIrCard("BT13-079", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-079.test.ts` passed (3 tests): purple Retaliation grant and the inherited non-battle deletion opponent-hand trash execute through IR.
-- BT13-080 — Pending
+- BT13-080 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-080", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-080.test.ts` passed (4 tests): breeding-area cost replacement, on-play draw/trash order, anti-digivolution restriction, and optional deletion recursion cost are executable IR clauses.
 - BT13-081 — Pending
 - BT13-082 — Pending
 - BT13-083 — Pending
