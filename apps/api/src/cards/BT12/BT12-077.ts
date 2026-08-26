@@ -10,7 +10,11 @@ const draw = inherited?.actions[0];
 if (draw?.kind === "Draw") {
   draw.condition = { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Save"], match: "text" }] } };
 }
+const onDeletion = compiled.effects.find((effect) => effect.trigger === "OnDeletion");
+if (onDeletion !== undefined) {
+  onDeletion.keywords = [];
+  const mandatoryThen = onDeletion.actions[1];
+  if (mandatoryThen?.kind === "PlaceUnder") mandatoryThen.optional = false;
+}
 
-registerIrCard("BT12-077", compiled);
-
-export default compiled;
+export default registerIrCard("BT12-077", compiled);
