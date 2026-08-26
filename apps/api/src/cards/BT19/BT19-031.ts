@@ -26,7 +26,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              zone: "digivolutionCards",
+              zone: "underTamers",
               hostFilter: {
                 kind: ["Tamer"],
               },
@@ -39,6 +39,7 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
+          from: ["digivolutionCardsUnderTamers"],
           payCost: false,
           optional: true,
           abortOnDecline: true,

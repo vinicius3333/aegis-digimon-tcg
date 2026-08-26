@@ -12,7 +12,13 @@ describe("BT19-080 Takato Matsuki", () => {
         expect.objectContaining({ trigger: "StartOfYourTurn" }),
         expect.objectContaining({
           trigger: "AllTurns",
-          actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" })],
+          actions: [expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenOneOfYoursDigivolves",
+            actions: expect.arrayContaining([
+              expect.objectContaining({ kind: "Attack", target: expect.objectContaining({ sourceRef: "triggerSubject" }) }),
+            ]),
+          })],
         }),
         expect.objectContaining({ trigger: "Security", isSecurity: true }),
       ]),

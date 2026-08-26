@@ -30,6 +30,7 @@ const compiled: CompiledCard = {
           filter: {
             controller: "mine",
             kind: ["Option"],
+            colorCount: 1,
             playCostLte: 5,
           },
           payCost: false,
@@ -53,7 +54,14 @@ const compiled: CompiledCard = {
           actions: [
             {
               kind: "PlayToken",
-              tokens: ["Pipe Fox"],
+              tokens: [
+                {
+                  name: "Pipe Fox",
+                  color: "Yellow",
+                  dp: 6000,
+                  keywords: [{ keyword: "Blocker" }],
+                },
+              ],
               count: 1,
               payCost: false,
               raw: "play 1 [Pipe Fox] Token (Digimon/Yellow/6000 DP/<Blocker>)",

@@ -3,7 +3,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 describe("BT19-092 Wadatsumi Purification", () => {
-  it("requires a blue Decode Digimon for the upgraded return and falls back to level 4", () => {
+  it("requires any blue Digimon for the upgraded return and falls back to level 4", () => {
     const card = runtimeCompiledCard("BT19-092");
 
     expect(card).toMatchObject({ coverage: "full", residual: [] });
@@ -30,7 +30,6 @@ describe("BT19-092 Wadatsumi Purification", () => {
                   controller: "mine",
                   kind: ["Digimon"],
                   colors: ["Blue"],
-                  keywords: ["Decode"],
                 },
                 count: 1,
               },

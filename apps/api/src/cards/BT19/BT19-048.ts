@@ -35,12 +35,23 @@ const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldLeavePlay",
           mode: "prevent",
+          affectsAll: true,
           sourceFilter: {
             controller: "mine",
             excludeSelf: true,
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
             leaveReason: "effect",
+          },
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
+              leaveReason: "effect",
+            },
+            count: "all",
           },
           cost: {
             kind: "placeAsSecurity",

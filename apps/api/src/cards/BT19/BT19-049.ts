@@ -18,7 +18,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Henry Wong"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -31,6 +31,7 @@ const compiled: CompiledCard = {
             op: "lte",
             value: 1,
             filter: {
+              controller: "mine",
               kind: ["Tamer"],
             },
             raw: "you have 1 or fewer Tamers",
@@ -48,6 +49,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              suspended: false,
             },
             count: 1,
           },

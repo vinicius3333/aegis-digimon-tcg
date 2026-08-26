@@ -15,7 +15,7 @@ describe("BT19-067", () => {
             target: { filter: { kind: ["Tamer"], colors: ["Purple"], playCostLte: 4 } },
             from: ["trash"],
             payCost: false,
-            condition: { kind: "youHave", countMin: 0, countMax: 1, filter: { kind: ["Tamer"] } },
+            condition: { kind: "permanentCount", seat: "mine", op: "lte", value: 1, filter: { kind: ["Tamer"] } },
             optional: true,
           },
         ],

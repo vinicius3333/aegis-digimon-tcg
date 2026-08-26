@@ -94,15 +94,10 @@ const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          kind: "AddToDPDeleteBudget",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
+          kind: "DeletionMaxDpModifier",
           amount: 3000,
+          scope: "self",
+          duration: "permanent",
         },
       ],
       isInherited: true,

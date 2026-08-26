@@ -33,7 +33,8 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing the top card of your security stack",
           },
-          optional: false,
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "GainKeyword",
@@ -50,10 +51,6 @@ const compiled: CompiledCard = {
             raw: "＜Blocker＞",
           },
           duration: "untilOpponentTurnEnd",
-          condition: {
-            kind: "ifThisEffectActed",
-            raw: "if the security trash cost was paid",
-          },
         },
       ],
     },
@@ -83,7 +80,8 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing the top card of your security stack",
           },
-          optional: false,
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "GainKeyword",
@@ -100,10 +98,6 @@ const compiled: CompiledCard = {
             raw: "＜Blocker＞",
           },
           duration: "untilOpponentTurnEnd",
-          condition: {
-            kind: "ifThisEffectActed",
-            raw: "if the security trash cost was paid",
-          },
         },
       ],
     },

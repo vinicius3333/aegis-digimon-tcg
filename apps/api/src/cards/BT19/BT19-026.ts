@@ -10,9 +10,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    count check applies at the time of the condition resolution.
 // 2. OnDeletion PlayWithoutCost source zone: "from under your Tamers"
 //    (the filter currently lacks a zone restriction to underTamers).
-// 3. OnDeletion PlaceUnder (Save) must be mandatory after a successful play
-//    (text: "Then, <Save>"), not independently optional. The play is optional;
-//    if the player plays a card, Save is mandatory (abortOnDecline applies to play).
+// 3. OnDeletion PlaceUnder (Save) is a mandatory, independent post-Then clause.
+//    Declining the optional play must not abort Save.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -28,6 +27,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           amount: 2,
+          trackOpponentDigimonCountAs: "postDeDigivolveOpponentDigimonCount",
         },
         {
           kind: "Return",
@@ -40,15 +40,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           to: "hand",
-          condition: {
-            kind: "opponentHas",
-            countMin: 2,
-            filter: {
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
-            },
-            raw: "your opponent has 2 or more Digimon",
-          },
+          condition: { kind: "namedCountAtLeast", countSource: "postDeDigivolveOpponentDigimonCount", count: 2 },
         },
       ],
     },
@@ -65,6 +57,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           amount: 2,
+          trackOpponentDigimonCountAs: "postDeDigivolveOpponentDigimonCount",
         },
         {
           kind: "Return",
@@ -77,15 +70,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           to: "hand",
-          condition: {
-            kind: "opponentHas",
-            countMin: 2,
-            filter: {
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
-            },
-            raw: "your opponent has 2 or more Digimon",
-          },
+          condition: { kind: "namedCountAtLeast", countSource: "postDeDigivolveOpponentDigimonCount", count: 2 },
         },
       ],
     },
@@ -112,7 +97,6 @@ const compiled: CompiledCard = {
           from: ["underTamers"],
           payCost: false,
           optional: true,
-          abortOnDecline: true,
         },
         {
           kind: "PlaceUnder",

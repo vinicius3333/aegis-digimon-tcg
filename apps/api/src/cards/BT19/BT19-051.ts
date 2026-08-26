@@ -110,19 +110,16 @@ const compiled: CompiledCard = {
       trigger: "OpponentsTurn",
       actions: [
         {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
+          kind: "Aura",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          effect: {
+            kind: "keyword",
+            keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
           },
-          keyword: {
-            keyword: "Blocker",
-            raw: "＜Blocker＞",
+          while: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] },
           },
-          duration: "permanent",
         },
       ],
       isInherited: true,
@@ -135,7 +132,7 @@ const compiled: CompiledCard = {
       level: 4,
       traits: ["Xros Heart"],
       cost: 3,
-      isAlternate: false,
+      isAlternate: true,
     },
   ],
 };

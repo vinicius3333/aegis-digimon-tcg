@@ -2,9 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// Hand-fixed IR: executable Decode plus the ordered return/bound-level sequence.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -41,8 +39,52 @@ const compiled: CompiledCard = {
       ],
     },
     {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Blue"],
+                  levelComparison: { op: "eq", value: 5 },
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              playedByDecode: true,
+              allowDigiXros: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
       trigger: "EndOfYourTurn",
       actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          to: "deckBottom",
+          storeAs: "returnedDigimonLevel",
+          optional: true,
+          abortOnDecline: true,
+        },
         {
           kind: "Return",
           target: {
@@ -54,21 +96,6 @@ const compiled: CompiledCard = {
             count: 1,
           },
           to: "deckBottom",
-          cost: {
-            kind: "return",
-            target: {
-              filter: {
-                controller: "mine",
-                kind: ["Digimon"],
-              },
-              count: 1,
-            },
-            raw: "By returning 1 of your Digimon to the bottom of the deck",
-            to: "deckBottom",
-            storeAs: "returnedDigimonLevel",
-          },
-          optional: false,
-          abortOnDecline: false,
         },
       ],
       frequency: "OncePerTurn",

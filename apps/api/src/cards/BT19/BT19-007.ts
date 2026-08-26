@@ -32,20 +32,6 @@ const compiled: CompiledCard = {
     {
       trigger: "Static",
       isInherited: true,
-      condition: {
-        kind: "youHave",
-        filter: {
-          nameOrTrait: [
-            {
-              tokens: ["Calumon", "Takato Matsuki"],
-              match: "name",
-            },
-          ],
-          controller: "mine",
-        },
-        count: 1,
-        matchPredicate: "HasPermanentsCondition",
-      },
       actions: [
         {
           kind: "DeletionMaxDpModifier",

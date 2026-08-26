@@ -16,6 +16,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              suspended: false,
             },
             count: 1,
           },
@@ -26,7 +27,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              trait: ["Data"],
+              nameOrTrait: [{ tokens: ["Data"], match: "trait" }],
             },
             count: 1,
           },
@@ -44,6 +45,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              suspended: false,
             },
             count: 1,
           },
@@ -54,7 +56,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              trait: ["Data"],
+              nameOrTrait: [{ tokens: ["Data"], match: "trait" }],
             },
             count: 1,
           },

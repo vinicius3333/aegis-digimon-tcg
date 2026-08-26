@@ -66,6 +66,8 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              kind: ["Digimon"],
+              zone: "underTamers",
               nameOrTrait: [
                 {
                   tokens: ["ShootingStarmon"],
@@ -75,6 +77,7 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
+          from: ["underTamers"],
           payCost: false,
           optional: true,
         },
@@ -105,9 +108,11 @@ const compiled: CompiledCard = {
   digiXrosRequirement: [
     {
       materials: [
-        {
-          names: ["OmniShoutmon"],
-        },
+        { names: ["OmniShoutmon"] },
+        { names: ["ZeigGreymon"] },
+        { names: ["AtlurBallistamon"] },
+        { names: ["JaegerDorulumon"] },
+        { names: ["RaptorSparrowmon"] },
       ],
       count: 2,
     },

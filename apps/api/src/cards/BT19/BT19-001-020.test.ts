@@ -43,22 +43,28 @@ describe("BT19-001 through BT19-020 card-by-card audit", () => {
   it("BT19-006 returns a level 3 purple Digimon for effect deletion but not battle deletion", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT19-006", as: "egg" }], trash: ["BT10-071"] },
+        0: {
+          battleArea: [{ card: "BT19-067", as: "host", under: ["BT19-006"] }],
+          trash: ["BT10-071"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, s.perm("egg"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, s.perm("host"), {
       removalCause: "byEffect",
     });
     expect((s.state.players[0] as PlayerState).hand[0]?.cardId).toBe("BT10-071");
 
     const b = setupEngine(
       {
-        0: { battleArea: [{ card: "BT19-006", as: "egg" }], trash: ["BT10-071"] },
+        0: {
+          battleArea: [{ card: "BT19-067", as: "host", under: ["BT19-006"] }],
+          trash: ["BT10-071"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(b.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, b.perm("egg"), {
+    await advance(b.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, b.perm("host"), {
       removalCause: "byBattle",
     });
     await settle(() => false, 20);

@@ -21,6 +21,7 @@ const compiled: CompiledCard = {
           },
           grant: "name",
           tokens: ["Starmons"],
+          digiXrosOnly: true,
         },
       ],
     },

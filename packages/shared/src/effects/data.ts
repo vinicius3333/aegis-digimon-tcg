@@ -1155,6 +1155,34 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       count: 2,
     },
   ],
+  // BT19-013: Shoutmon X5 requires five distinct named slots. The generated aggregate retained
+  // only Shoutmon and a material count, allowing incomplete and duplicate-name recipes.
+  "BT19-013": [
+    {
+      materials: ["Shoutmon", "Ballistamon", "Dorulumon", "Starmons", "Sparrowmon"].map((name) => ({
+        names: [name],
+      })),
+      count: 2,
+    },
+  ],
+  // BT19-014: Shoutmon EX6 requires five distinct named slots; the generated aggregate retained
+  // only OmniShoutmon and otherwise accepted an incomplete recipe.
+  "BT19-014": [
+    {
+      materials: ["OmniShoutmon", "ZeigGreymon", "AtlurBallistamon", "JaegerDorulumon", "RaptorSparrowmon"].map(
+        (name) => ({ names: [name] }),
+      ),
+      count: 2,
+    },
+  ],
+  // BT19-025: [DigiXros -2] Blue [Greymon] x [MailBirdramon]. The generated aggregate
+  // retained only the first slot, allowing incomplete recipes and breaking Q3085 effect-play DigiXros.
+  "BT19-025": [
+    {
+      materials: [{ names: ["Greymon"], colors: ["Blue"] }, { names: ["MailBirdramon"] }],
+      count: 2,
+    },
+  ],
   // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
   "ST19-10": [
     {
@@ -1236,6 +1264,19 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
         { names: ["Dorulumon"] },
         { names: ["Starmons"] },
         { names: ["Sparrowmon"] },
+      ],
+      count: 2,
+    },
+  ],
+  // BT19-010: the generated aggregate retained only the first of the four printed slots.
+  // Preserve the full X4 recipe for the play subsystem and client material projection.
+  "BT19-010": [
+    {
+      materials: [
+        { names: ["Shoutmon"] },
+        { names: ["Ballistamon"] },
+        { names: ["Dorulumon"] },
+        { names: ["Starmons"] },
       ],
       count: 2,
     },
