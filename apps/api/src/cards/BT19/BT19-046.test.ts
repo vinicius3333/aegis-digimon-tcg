@@ -1,41 +1,87 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import type { Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT19-046 Chamblemon", () => {
-  it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
-    "%s suspends one opponent, then independently locks one Data Digimon",
-    async (timing) => {
-      const s = setupEngine({
-        0: { battleArea: [{ card: "BT19-046", as: "chamble" }] },
-        1: { battleArea: [{ card: "BT19-044", as: "nonData" }, { card: "BT19-037", as: "data" }] },
-      }, { autoSelectCards: true });
-      await s.ready();
-      await advance(s.engine).fireForPermanent(timing, s.perm("chamble"));
-      expect([s.perm("nonData"), s.perm("data")].filter((p) => p.isSuspended)).toHaveLength(1);
-      expect(observe(s.engine).isRestricted(s.perm("data"), "unsuspend")).toBe(true);
-      expect(observe(s.engine).isRestricted(s.perm("nonData"), "unsuspend")).toBe(false);
-      await advance(s.engine).verb.suspend([s.perm("data").permanentId]);
-      await advance(s.engine).verb.unsuspend([s.perm("data").permanentId]);
-      expect(s.perm("data").isSuspended).toBe(true);
-    },
-  );
-
-  it("keeps the Data lock through the owner's turn and expires at the opponent's turn end", async () => {
+  it("public play pays 4, suspends an unsuspended opponent, and selects one of multiple Data targets", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT19-046", as: "chamble" }], deck: ["BT19-030", "BT19-031"] },
-      1: { battleArea: [{ card: "BT19-037", as: "data" }], deck: ["BT19-030", "BT19-031"] },
-    }, { autoSelectCards: true });
+      0: { hand: [{ card: "BT19-046", as: "chamble" }], deck: ["BT19-030"] },
+      1: { battleArea: [
+        { card: "BT19-044", as: "nonData" },
+        { card: "BT19-037", as: "chosenData" },
+        { card: "BT1-068", as: "otherData" },
+        { card: "BT14-062", as: "nearMatch" },
+      ] },
+    }, { autoSelectCards: true, preferInstanceIds });
+    preferInstanceIds.push(s.perm("chosenData").permanentId, s.perm("chosenData").topCard!.instanceId);
+    s.state.memory = 4;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("chamble"));
-    await advance(s.engine).runTurn(0);
-    expect(observe(s.engine).isRestricted(s.perm("data"), "unsuspend")).toBe(true);
-    s.state.turnSeat = 1;
-    s.state.memory = -s.state.memory;
-    await advance(s.engine).runTurn(1);
-    expect(observe(s.engine).isRestricted(s.perm("data"), "unsuspend")).toBe(false);
+    expect(s.engine.applyIntent(0, {
+      type: "playCard", instanceId: s.inst("chamble").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("chosenData"), "unsuspend"));
+    const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT19-046");
+    expect(played?.stack.map((card) => card.cardId)).toEqual([]);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT19-046")).toBe(false);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("nonData").isSuspended).toBe(false);
+    expect(s.perm("chosenData").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("chosenData"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("otherData"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("nearMatch"), "unsuspend")).toBe(false);
+    const unsuspendForActivePhase = (
+      s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> }
+    ).unsuspendForActivePhase.bind(s.engine);
+    const flipped = await unsuspendForActivePhase(1);
+    expect(s.perm("chosenData").isSuspended).toBe(true);
+    expect(flipped).not.toContain(s.perm("chosenData").permanentId);
+    advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 1);
+    expect(observe(s.engine).isRestricted(s.perm("chosenData"), "unsuspend")).toBe(false);
   });
+
+  it("public green level-3 evolution pays 2, retains its source, and resolves When Digivolving", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-067", as: "base" }],
+        hand: [{ card: "BT19-046", as: "chamble" }], deck: ["BT19-030"],
+      },
+      1: { battleArea: [{ card: "BT19-044", as: "nonData" }, { card: "BT19-037", as: "data" }] },
+    }, { autoSelectCards: true });
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("chamble").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT19-046");
+    await settle(() => observe(s.engine).isRestricted(s.perm("data"), "unsuspend"));
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-067"]);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT19-046")).toBe(false);
+    expect(s.state.memory).toBe(3);
+    expect([s.perm("nonData"), s.perm("data")].filter((p) => p.isSuspended)).toHaveLength(1);
+    expect(observe(s.engine).isRestricted(s.perm("data"), "unsuspend")).toBe(true);
+  });
+
+  it("does not offer an already-suspended Digimon for the first Suspend target", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine({
+      0: { hand: [{ card: "BT19-046", as: "chamble" }], deck: ["BT19-030"] },
+      1: { battleArea: [
+        { card: "BT19-044", as: "already", suspended: true },
+        { card: "BT1-010", as: "fresh" },
+      ] },
+    }, { autoSelectCards: true, preferInstanceIds });
+    preferInstanceIds.push(s.perm("already").topCard!.instanceId);
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, {
+      type: "playCard", instanceId: s.inst("chamble").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("fresh").isSuspended);
+    expect(s.perm("already").isSuspended).toBe(true);
+    expect(s.perm("fresh").isSuspended).toBe(true);
+  });
+
 });
