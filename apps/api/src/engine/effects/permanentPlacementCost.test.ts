@@ -1,10 +1,16 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, type Cost } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import "../../cards/index.js";
 import { advance } from "../testkit/advance.js";
 import { setupEngine, settle } from "../testkit/harness.js";
 
 describe("permanent placement costs with named post-cost ceilings", () => {
+  const typedPermanentCost = {
+    kind: "place",
+    targetIsPermanent: true,
+    shedOwnCards: true,
+  } satisfies Cost;
+
   it("stores the material's level, sheds its prior attachments, and resolves Return only after relocation", async () => {
     const s = setupEngine(
       {
@@ -28,6 +34,7 @@ describe("permanent placement costs with named post-cost ceilings", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.inst("oldLink").ownerSeat = 1;
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
@@ -39,9 +46,9 @@ describe("permanent placement costs with named post-cost ceilings", () => {
       s.inst("material").instanceId,
       s.inst("existingBottom").instanceId,
     ]);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([s.inst("oldSource").instanceId, s.inst("oldLink").instanceId]),
-    );
+    expect(typedPermanentCost.shedOwnCards).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("oldSource").instanceId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("oldLink").instanceId);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("tooHigh").permanentId,
     );
