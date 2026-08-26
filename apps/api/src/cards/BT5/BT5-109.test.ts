@@ -39,6 +39,7 @@ describe("BT5-109 Mega Digimon Fusion!", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("level7").instanceId);
     expect(s.state.memory).toBe(2);
     await advance(s.engine).fireSubTrigger("endOfTurn");
+    await settle(() => s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("level7").instanceId));
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("level7").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([baseTopId, s.inst("source").instanceId]),
