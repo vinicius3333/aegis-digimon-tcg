@@ -347,3 +347,48 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   seam changed, so no mechanism regression suite was required. Typecheck,
   changed-file formatting, and `git diff --check` are run for delivery.
 - Remaining ambiguity: none identified.
+
+## BT5-007 — Agumon — 10/10
+
+- Catalog evidence: Red Lv.3 Rookie Digimon, Vaccine/Reptile, play cost 3,
+  2000 DP, red Lv.2 evolution cost 0, rarity C, and four-copy limit. Its sole
+  clause is `[On Play]` reveal the top 3 deck cards, add up to one Digimon
+  whose name contains `Greymon` except DoruGreymon/BurningGreymon/
+  DexDoruGreymon, and one Digimon whose name contains `Omnimon`, then place
+  every remaining revealed card at the bottom of the deck in any order.
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-007`
+  returns Q1284, confirming that when both families are not present, one
+  revealed card from either family may still be added. The local card-text
+  name rule (§2-3-1-3) defines bracketed name references as substring matches;
+  the On Play trigger and reveal/search timing are covered by the corresponding
+  glossary/comprehensive timing rules. No errata, restriction, or unresolved
+  ambiguity applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-007.ts` contains one `OnPlay`
+  `RevealAdd` action with `revealCount: 3`, two independent count-1 hand
+  dispositions, the exact three-name exclusion on the Greymon filter, and
+  `rest: "deckBottom"`. It declares `coverage: "full"`, `residual: []`, and
+  registers exclusively through `registerIrCard("BT5-007", compiled)`.
+- Primitive and peer evidence: `runRevealAdd` reveals from the source owner's
+  deck, evaluates each slot against the full revealed set, marks selected
+  instances taken so one card cannot satisfy both slots, returns selected cards
+  to hand, and returns all unselected revealed cards to deck bottom. The
+  neighboring BT5-001 and BT5-006 modules confirm the set's compiled-IR and
+  exclusive-registration conventions; no inherited, Security, once-per-turn,
+  optional, cost, or evolution-stack clause applies to BT5-007.
+- Behavioral proof: 3 focused tests pass. The positive case adds one Greymon
+  and one Omnimon and bottoms the unrelated card; Q1284's one-family case adds
+  the sole eligible Greymon and bottoms the two nonmatches; the boundary case
+  reveals BT7-064 DoruGreymon, BT4-013 BurningGreymon, and BT9-078 DexDoruGreymon
+  and proves none is added while all three return to the deck.
+- Defect corrected: none in the card module or shared engine. Added only the
+  missing explicit exclusion-boundary assertion to
+  `apps/api/src/cards/BT5/BT5-007.test.ts`.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-007.test.ts` — 1 file, 3 tests passed. No shared engine
+  seam changed, so no mechanism regression suite was required. Workspace
+  `pnpm typecheck` builds shared and passes web typecheck but retains
+  pre-existing unrelated API errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and `primitives.test.ts`; it reports no
+  BT5-007 errors. Changed-file formatting and `git diff --check` pass.
+- Remaining ambiguity: none identified.
