@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
             upTo: true,
           },
           underFilter: { controller: "mine", kind: ["Tamer"] },
+          condition: { kind: "ifThisEffectActed", raw: "if you added cards to your hand" },
         },
       ],
     },
