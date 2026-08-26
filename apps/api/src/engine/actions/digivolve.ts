@@ -786,6 +786,7 @@ export async function applyDigivolve(
     permanentId: permanent.permanentId,
     cardId: evolving.cardId,
     mechanic: digivolveMechanicOf(check),
+    inBreeding: permanent.inBreeding,
   });
 
   // (4b) Apply the Digisorption reduction paid at (0c) to the memory cost. Declining the

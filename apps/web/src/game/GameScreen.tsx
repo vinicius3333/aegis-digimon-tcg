@@ -462,6 +462,7 @@ export function GameScreen({
     securityBranch,
     securityBreak,
     securityClash,
+    securityRevealPending,
     securityHitSeat,
     sidePanels,
     turnTransition,
@@ -632,9 +633,12 @@ export function GameScreen({
       const br = b.getBoundingClientRect();
       const ar = a.getBoundingClientRect();
       const tr = opponentSecurityEl.getBoundingClientRect();
+      // Both ends sit at the middle of the card they name, the way the tracking
+      // arrow solves them: an edge anchor leaves the head floating off the pile
+      // and the tail hanging above the attacker rather than on it.
       setArrow({
-        from: { x: ar.left + ar.width / 2 - br.left, y: ar.top - br.top },
-        to: { x: tr.left + tr.width / 2 - br.left, y: tr.bottom - br.top },
+        from: { x: ar.left + ar.width / 2 - br.left, y: ar.top + ar.height / 2 - br.top },
+        to: { x: tr.left + tr.width / 2 - br.left, y: tr.top + tr.height / 2 - br.top },
       });
     };
     measure();
@@ -862,7 +866,9 @@ export function GameScreen({
   // These drive the highlights and the hint that stand in for the old modal.
   const canHatchEgg = you.eggDeckCount > 0 && !you.breeding;
   const canMoveOutOfBreeding = canMoveFromBreeding(you.breeding);
-  const breedingActionsOpen = breedingWindow && !decision && !securityClash && !state.gameOver;
+  // The clash is a pointer-transparent overlay, so the breeding actions stay live
+  // underneath it: only an open decision or the end of the match takes them away.
+  const breedingActionsOpen = breedingWindow && !decision && !state.gameOver;
   const memory = displayMemory(state, viewerSeat);
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
   const youColor = identityColor;
@@ -955,7 +961,7 @@ export function GameScreen({
             const definition = getCardDefinition(permanent.topCard.cardId);
             return !definition?.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(definition.nameEn);
           })
-            ? reqs[0]?.maxMaterials ?? 0
+            ? (reqs[0]?.maxMaterials ?? 0)
             : 0;
         setDigiXrosPick({
           instanceId,
@@ -1001,12 +1007,6 @@ export function GameScreen({
       playSound("confirm");
       if (room) intents.respondDecision(room, decision.decisionId, response);
       acknowledgeDecision?.(decision.decisionId);
-      // No server event narrates what the viewer picked, so the panel is raised
-      // from the answer itself, in the order the cards were chosen.
-      const revealed = new Map(decision.options?.visibleCards?.map((card) => [card.instanceId, card.cardId]));
-      cues.showSelection(
-        picks.flatMap((id) => [instanceIndex.get(id) ?? revealed.get(id)].filter((c) => c !== undefined)),
-      );
     }
     setPicks([]);
   };
@@ -1503,7 +1503,12 @@ export function GameScreen({
   // ----- the open decision, and where it is answered -----
   // Everything below reads the server's decision payload; the client adds no
   // legality of its own, it only decides which surface the payload renders on.
-  const viewerDecision = decision && decision.seat === viewerSeat ? decision : undefined;
+  // A security card's question arrives with the event that revealed it, well before the
+  // centre-stage scene has shown the card. Asking it first reads as the board answering
+  // for a card the viewer never saw, so the prompt waits for the reveal (spec §4b step
+  // 10b). Only the presentation waits — the decision itself is untouched, and the hold
+  // is released by the scene it belongs to.
+  const viewerDecision = decision && decision.seat === viewerSeat && !securityRevealPending ? decision : undefined;
   const allPermanents = [...you.battleArea, ...opp.battleArea];
   const handInstanceIds = handEntries.map((entry) => entry.instanceId);
   const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;

@@ -18,9 +18,10 @@ import {
   type SecurityClashScene,
 } from "./securityClash";
 
-const CLASH_CARD_WIDTH = 116;
+/* The narrow blocks in game.css override both widths, so these are the pointer sizes. */
+const CLASH_CARD_WIDTH = 158;
 
-const BRANCH_CARD_WIDTH = 122;
+const BRANCH_CARD_WIDTH = 150;
 
 const RESOLUTION_LABEL_KEYS = {
   battle: "overlay.securityBattle",

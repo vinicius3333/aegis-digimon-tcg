@@ -16,21 +16,22 @@ import type { ZoneShowcase as ZoneShowcaseModel } from "./showcases";
 
 const SHOWCASE_CARD_WIDTH = 190;
 
-const CAPTION_KEY = "showcase.opponentPlayed";
-
 export function ZoneShowcase({ showcase }: { showcase: ZoneShowcaseModel }) {
   const { t } = useTranslation();
   const cardName = getCardDefinition(showcase.cardId)?.nameEn ?? showcase.cardId;
+  const digivolving = showcase.kind === "digivolve";
   return (
     <div className="battle-showcase" data-testid="zone-showcase" role="status">
       <figure className="battle-showcase__frame">
         <span className="battle-showcase__halo" aria-hidden="true">
-          <CardBurst variant="play" color={showcase.color} />
+          <CardBurst variant={digivolving ? "evolve" : "play"} color={showcase.color} />
         </span>
         <div className="battle-showcase__art">
           <CardFull cardId={showcase.cardId} width={SHOWCASE_CARD_WIDTH} />
         </div>
-        <figcaption className="battle-showcase__caption">{t(CAPTION_KEY, { card: cardName })}</figcaption>
+        <figcaption className="battle-showcase__caption">
+          {t(digivolving ? "showcase.opponentDigivolved" : "showcase.opponentPlayed", { card: cardName })}
+        </figcaption>
       </figure>
     </div>
   );

@@ -52,9 +52,7 @@ describe("memory cost preview", () => {
   });
 
   it("prices nothing for an unpriced route, such as a DNA digivolution", () => {
-    expect(
-      memoryCostPreview({ heldCard: playable, dropTarget: { kind: "permanent", digivolve: {} } }),
-    ).toBeUndefined();
+    expect(memoryCostPreview({ heldCard: playable, dropTarget: { kind: "permanent", digivolve: {} } })).toBeUndefined();
   });
 
   it("prices nothing over the breeding area when it offers no route — hatching spends none", () => {
@@ -62,9 +60,9 @@ describe("memory cost preview", () => {
   });
 
   it("prices the breeding digivolution the server offered, never the card's play cost", () => {
-    expect(
-      memoryCostPreview({ heldCard: playable, dropTarget: { kind: "breeding", digivolve: { cost: 3 } } }),
-    ).toEqual({ kind: "digivolve", cost: 3 });
+    expect(memoryCostPreview({ heldCard: playable, dropTarget: { kind: "breeding", digivolve: { cost: 3 } } })).toEqual(
+      { kind: "digivolve", cost: 3 },
+    );
   });
 
   it("prices nothing over an area that would refuse the drop", () => {

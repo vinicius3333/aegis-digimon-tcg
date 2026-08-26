@@ -20,6 +20,8 @@ export interface ZoneShowcase {
   key: number;
   cardId: string;
   seat: Seat;
+  /** What the hold announces: a card arriving from hand or one digivolving in breeding. */
+  kind: "play" | "digivolve";
   /** Card colour, so the halo behind the card matches the card. */
   color: ColorName;
 }
@@ -44,19 +46,21 @@ export function burstColorFor(cardId: string): ColorName {
 /**
  * The centre-screen showcase an event earns, or null when it earns none.
  *
- * Only the opponent playing a card is announced this way: the viewer dragged
- * their own card and already watched it leave their hand, so their play keeps
- * the field burst and skips the hold. A digivolution is read off the board
- * itself — the stack changes where it stands, under its own burst — so it is
- * never held up centre-screen.
+ * Only the opponent's arrivals are announced this way: the viewer dragged their
+ * own card and already watched it leave their hand, so their move keeps the
+ * field burst and skips the hold. A battle-area digivolution is read off the
+ * board itself — the stack changes where it stands, under its own burst — but a
+ * breeding digivolution happens in a corner slot the viewer is not watching, so
+ * the opponent's is held centre-screen like a play.
  */
 export function zoneShowcaseFromEvent(event: ServerEvent, viewerSeat: Seat, key: number): ZoneShowcase | null {
-  if (event.kind !== "cardPlayed") return null;
+  if (event.kind !== "cardPlayed" && !(event.kind === "digivolved" && event.inBreeding)) return null;
   if (event.seat === viewerSeat) return null;
   return {
     key,
     cardId: event.cardId,
     seat: event.seat,
+    kind: event.kind === "digivolved" ? "digivolve" : "play",
     color: burstColorFor(event.cardId),
   };
 }
@@ -93,7 +97,7 @@ export function permanentBurstFromEvent(event: ServerEvent, key: number): Perman
         permanentId: event.permanentId,
         variant: "evolve",
         color: burstColorFor(event.cardId),
-        inBreeding: false,
+        inBreeding: event.inBreeding ?? false,
       };
     case "hatched":
       return {

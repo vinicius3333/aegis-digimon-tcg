@@ -15,7 +15,7 @@ import {
   type SidePanelSide,
 } from "./sidePanels";
 
-const PANEL_CARD_WIDTH = 56;
+const PANEL_CARD_WIDTH = 78;
 
 function SidePanelView({
   panel,
@@ -31,7 +31,7 @@ function SidePanelView({
   return (
     <section className="side-panel" data-side={panel.side} data-testid="side-panel">
       {/* The clock a player can see: the border erodes clockwise over exactly the
-          time this panel has left, so a short-lived one reads as short-lived. */}
+          time this panel has left, which nothing else on the board can shorten. */}
       <span className="side-panel__erode" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
       <header className="side-panel__header">
         <h3 className="side-panel__title">{title}</h3>
@@ -83,7 +83,7 @@ function SidePanelColumn({
         <SidePanelView
           key={panel.id}
           panel={panel}
-          remainingMs={sidePanelRemaining(panels, panel, nowMs)}
+          remainingMs={sidePanelRemaining(panel, nowMs)}
           onDismiss={onDismiss}
         />
       ))}

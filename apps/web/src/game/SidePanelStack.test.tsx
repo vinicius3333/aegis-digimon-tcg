@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { AttackAnnouncementBanner, SidePanelStack } from "./SidePanelStack";
-import { SIDE_PANEL_CROWDED_LIFETIME_MS, SIDE_PANEL_LIFETIME_MS, type SidePanel } from "./sidePanels";
+import { SIDE_PANEL_LIFETIME_MS, type SidePanel } from "./sidePanels";
 
 afterEach(cleanup);
 
@@ -60,7 +60,7 @@ describe("SidePanelStack", () => {
     expect(columns).toEqual(["opp", "you"]);
   });
 
-  it("erodes a shared column faster than a lone panel", () => {
+  it("keeps a panel's eroding border on its own clock when another joins the column", () => {
     const { rerender } = renderStack([panel({ id: "a" })]);
     const durationOf = () =>
       (screen.getAllByTestId("side-panel")[0]!.querySelector(".side-panel__erode") as HTMLElement).style
@@ -75,7 +75,7 @@ describe("SidePanelStack", () => {
         />
       </I18nProvider>,
     );
-    expect(durationOf()).toBe(`${SIDE_PANEL_CROWDED_LIFETIME_MS}ms`);
+    expect(durationOf()).toBe(`${SIDE_PANEL_LIFETIME_MS}ms`);
   });
 
   it("dismisses a panel through its close button", () => {

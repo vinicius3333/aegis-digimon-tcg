@@ -23,15 +23,28 @@ const DIGIVOLVED: ServerEvent = {
 
 describe("centre-screen showcase", () => {
   it("announces the opponent's play", () => {
-    expect(zoneShowcaseFromEvent(PLAYED, VIEWER, 1)).toMatchObject({ key: 1, cardId: "BT1-010" });
+    expect(zoneShowcaseFromEvent(PLAYED, VIEWER, 1)).toMatchObject({ key: 1, cardId: "BT1-010", kind: "play" });
   });
 
   it("stays out of the way of the viewer's own play", () => {
     expect(zoneShowcaseFromEvent({ ...PLAYED, seat: VIEWER }, VIEWER, 1)).toBeNull();
   });
 
-  it("leaves a digivolution to the board, which shows the stack change in place", () => {
+  it("leaves a battle-area digivolution to the board, which shows the stack change in place", () => {
     expect(zoneShowcaseFromEvent(DIGIVOLVED, VIEWER, 1)).toBeNull();
+  });
+
+  it("holds up the opponent's breeding digivolution, which happens off where the viewer looks", () => {
+    expect(zoneShowcaseFromEvent({ ...DIGIVOLVED, inBreeding: true }, VIEWER, 1)).toMatchObject({
+      key: 1,
+      cardId: "BT1-011",
+      seat: OPPONENT,
+      kind: "digivolve",
+    });
+  });
+
+  it("stays out of the way of the viewer's own breeding digivolution", () => {
+    expect(zoneShowcaseFromEvent({ ...DIGIVOLVED, seat: VIEWER, inBreeding: true }, VIEWER, 1)).toBeNull();
   });
 
   it("announces nothing for an event that changes no zone", () => {
@@ -50,6 +63,10 @@ describe("field burst", () => {
 
   it("burns over an evolution and opens in the breeding slot for a hatch", () => {
     expect(permanentBurstFromEvent(DIGIVOLVED, 1)).toMatchObject({ variant: "evolve", inBreeding: false });
+    expect(permanentBurstFromEvent({ ...DIGIVOLVED, inBreeding: true }, 1)).toMatchObject({
+      variant: "evolve",
+      inBreeding: true,
+    });
     expect(
       permanentBurstFromEvent({ kind: "hatched", seat: VIEWER, permanentId: "perm-egg", cardId: "ST1-01" }, 1),
     ).toMatchObject({ variant: "hatch", inBreeding: true });

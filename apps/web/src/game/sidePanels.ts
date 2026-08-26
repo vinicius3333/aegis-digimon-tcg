@@ -9,7 +9,11 @@
    come from the movement's zones alone — the client reads no rules to decide
    what a movement meant. Card identities and ownership are supplied by the
    caller through `SidePanelLookup`, because `cardsMoved` carries only instance
-   ids. */
+   ids.
+
+   Every panel gets the same fixed reading time, exactly as the reference client
+   does: the clock a panel starts with is never shortened by anything that
+   happens afterwards, so a panel always leaves on its own schedule. */
 
 import type { GameState, Seat, ServerEvent } from "@aegis/shared";
 import type { TranslationKey } from "../i18n";
@@ -21,12 +25,6 @@ import { TIMINGS } from "./timings";
  * is started without being awaited, so the panel never blocks the game.
  */
 export const SIDE_PANEL_LIFETIME_MS = TIMINGS.sidePanelLifetime;
-
-/** A column holding more than one panel erodes each of them on this shorter clock. */
-export const SIDE_PANEL_CROWDED_LIFETIME_MS = TIMINGS.sidePanelCrowdedLifetime;
-
-/** A crowded column is two panels or more. */
-export const SIDE_PANEL_CROWDED_AT = 2;
 
 /**
  * the reference client has no attack banner at all — it announces an attack with outlines, a
@@ -203,6 +201,9 @@ export function sidePanelFromEvent(
       };
     case "digivolved":
       if (event.seat === viewerSeat) return null;
+      // A breeding digivolution is already held up centre-screen, which says everything
+      // this panel would; a battle-area one only changes a stack in place, so it keeps it.
+      if (event.inBreeding) return null;
       return {
         id,
         titleKey: "panel.digivolutionCards",
@@ -214,19 +215,6 @@ export function sidePanelFromEvent(
     default:
       return null;
   }
-}
-
-/** A panel the viewer's own selection raised, which no server event narrates. */
-export function selectionPanel(cardIds: readonly string[], id: string, nowMs: number): SidePanel | null {
-  if (cardIds.length === 0) return null;
-  return {
-    id,
-    titleKey: "panel.selectedCards",
-    side: "you",
-    cards: numbered(cardIds),
-    ordered: true,
-    createdAt: nowMs,
-  };
 }
 
 /** The attack call-out an event deserves, for either seat. */
@@ -272,30 +260,20 @@ export function pushSidePanel(
   return [...panels.filter((panel) => panel !== dropped), incoming];
 }
 
-/** How long a panel gets to be read, given how many share its column. */
-export function sidePanelLifetime(columnSize: number): number {
-  return columnSize >= SIDE_PANEL_CROWDED_AT ? SIDE_PANEL_CROWDED_LIFETIME_MS : SIDE_PANEL_LIFETIME_MS;
-}
-
-function columnSizeFor(panels: readonly SidePanel[], side: SidePanelSide): number {
-  return panels.filter((panel) => panel.side === side).length;
-}
-
-/** Milliseconds left on a panel's clock, never negative. */
-export function sidePanelRemaining(panels: readonly SidePanel[], panel: SidePanel, nowMs: number): number {
-  const lifetime = sidePanelLifetime(columnSizeFor(panels, panel.side));
-  return Math.max(0, panel.createdAt + lifetime - nowMs);
+/** Milliseconds left on a panel's own clock, never negative. */
+export function sidePanelRemaining(panel: SidePanel, nowMs: number): number {
+  return Math.max(0, panel.createdAt + SIDE_PANEL_LIFETIME_MS - nowMs);
 }
 
 /** Drop panels whose reading time has elapsed. */
 export function expireSidePanels(panels: readonly SidePanel[], nowMs: number): SidePanel[] {
-  return panels.filter((panel) => sidePanelRemaining(panels, panel, nowMs) > 0);
+  return panels.filter((panel) => sidePanelRemaining(panel, nowMs) > 0);
 }
 
 /** The soonest a panel in the stack will expire, or null when the stack is empty. */
 export function nextSidePanelExpiry(panels: readonly SidePanel[], nowMs: number): number | null {
   if (panels.length === 0) return null;
-  return Math.min(...panels.map((panel) => sidePanelRemaining(panels, panel, nowMs)));
+  return Math.min(...panels.map((panel) => sidePanelRemaining(panel, nowMs)));
 }
 
 export function dismissSidePanel(panels: readonly SidePanel[], id: string): SidePanel[] {

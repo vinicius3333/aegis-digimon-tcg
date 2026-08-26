@@ -58,7 +58,17 @@ export type ServerEvent =
        * battle-area top card a moment ago, so this reveals nothing new. */
       sourceCardIds?: string[];
     }
-  | { kind: "digivolved"; seat: Seat; permanentId: string; cardId: string; mechanic: DigivolveMechanic }
+  | {
+      kind: "digivolved";
+      seat: Seat;
+      permanentId: string;
+      cardId: string;
+      mechanic: DigivolveMechanic;
+      /** Present and true when the digivolution happened in the breeding area; absent means
+       * the battle area. The client announces a breeding digivolution differently, because
+       * the corner slot is not where the viewer is looking. */
+      inBreeding?: boolean;
+    }
   | { kind: "hatched"; seat: Seat; permanentId: string; cardId: string }
   | { kind: "movedFromBreeding"; seat: Seat; permanentId: string; cardId: string }
   | { kind: "memoryChanged"; from: number; to: number; reason: string }

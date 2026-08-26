@@ -978,12 +978,16 @@ button.opponent-action-feed__current:focus-visible {
   --battle-cyan: #27d6e8;
   --battle-attack: #ff2d1f;
   --battle-attack-glow: rgb(255 64 32 / 35%);
-  /* The target arrow is drawn in one of two vocabularies: red for a declared
-     attack, amber for an effect picking what it will reach. */
-  --battle-arrow-attack: var(--battle-attack);
-  --battle-arrow-attack-glow: var(--battle-attack-glow);
-  --battle-arrow-effect: #f08a24;
-  --battle-arrow-effect-glow: rgb(240 138 36 / 35%);
+  /* The declared attack is a bright cyan beam, as in the reference client — the
+     one hue neither player's half of the board uses, which is why it survives the
+     red field a red arrow used to disappear into. An effect keeps its own amber
+     vocabulary. Both are cased in near-black: the beam crosses card art of every
+     possible brightness. */
+  --battle-arrow-attack: #79e7ff;
+  --battle-arrow-attack-glow: rgb(39 214 232 / 60%);
+  --battle-arrow-effect: #ffa63d;
+  --battle-arrow-effect-glow: rgb(240 138 36 / 55%);
+  --battle-arrow-casing: rgb(3 8 20 / 88%);
   --battle-panel: #101b30;
   --battle-panel-border: #3b5c9e;
   /* The amber the reference client numbers ordered picks and offers "Use" in. */
@@ -2019,11 +2023,11 @@ button.opponent-action-feed__current:focus-visible {
 /* The attacker leans at the shield it declared on. `translate` is used rather
    than `transform` so the permanent's inline highlight offset still applies. */
 .game-permanent-lunge--up {
-  animation: battle-lunge-up var(--t-attack-lunge, 300ms) ease-out both;
+  animation: battle-lunge-up var(--t-attack-lunge, 240ms) ease-out both;
 }
 
 .game-permanent-lunge--down {
-  animation: battle-lunge-down var(--t-attack-lunge, 300ms) ease-out both;
+  animation: battle-lunge-down var(--t-attack-lunge, 240ms) ease-out both;
 }
 
 @keyframes battle-lunge-up {
@@ -2084,7 +2088,7 @@ button.opponent-action-feed__current:focus-visible {
    defender's edge of the screen. */
 
 .game-security-shield--armed {
-  animation: battle-security-arm var(--t-security-arm, 220ms) ease-in-out both;
+  animation: battle-security-arm var(--t-security-arm, 120ms) ease-in-out both;
 }
 
 @keyframes battle-security-arm {
@@ -2206,7 +2210,7 @@ button.opponent-action-feed__current:focus-visible {
   z-index: calc(var(--ds-z-dialog) - 5);
   left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
   pointer-events: none;
-  animation: battle-security-branch var(--t-security-branch, 1940ms) ease-out both;
+  animation: battle-security-branch var(--t-security-branch, 1340ms) ease-out both;
 }
 
 .battle-security-branch__frame {
@@ -2292,6 +2296,33 @@ button.opponent-action-feed__current:focus-visible {
   }
 }
 
+/* The beam is drawn three times over: a soft coloured glow, a dark casing, and the
+   bright core that carries the head. The widths are properties rather than SVG
+   attributes so one breakpoint retunes all three — a pointer screen sits far
+   enough away that the phone-sized arrow reads as a hairline over card art. */
+.game-attack-arrow {
+  --arrow-core-width: 6;
+  --arrow-casing-width: 10;
+  --arrow-glow-width: 14;
+}
+
+.game-attack-arrow__stroke--core {
+  stroke-width: var(--arrow-core-width);
+}
+
+.game-attack-arrow__stroke--casing {
+  stroke-width: var(--arrow-casing-width);
+}
+
+.game-attack-arrow__stroke--glow {
+  stroke-width: var(--arrow-glow-width);
+  filter: drop-shadow(0 0 6px var(--battle-arrow-attack-glow));
+}
+
+.game-attack-arrow--effect .game-attack-arrow__stroke--glow {
+  filter: drop-shadow(0 0 6px var(--battle-arrow-effect-glow));
+}
+
 /* TargetArrow.cs:118-157 — the arrow extends over 85ms, holds 70ms, and repeats
    once before it locks on. `pathLength` is normalised to 100 in the SVG. */
 .game-attack-arrow__stroke {
@@ -2361,7 +2392,7 @@ button.opponent-action-feed__current:focus-visible {
   border-bottom: 1px solid rgb(255 255 255 / 30%);
   /* The reference client's banner is ~620ms end to end (ShowTurnPlayerObject.cs: 300ms hold plus
      the in/out clips). 1s keeps it readable in a browser without stalling. */
-  animation: battle-banner var(--t-turn-banner, 1000ms) ease-in-out both;
+  animation: battle-banner var(--t-turn-banner, 620ms) ease-in-out both;
 }
 
 .game-turn-banner span {
@@ -2372,7 +2403,7 @@ button.opponent-action-feed__current:focus-visible {
   text-shadow:
     0 2px 0 rgb(11 13 16 / 55%),
     0 0 18px rgb(11 13 16 / 45%);
-  animation: battle-banner-text var(--t-turn-banner, 1000ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: battle-banner-text var(--t-turn-banner, 620ms) cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* The reference client's two exact band colours (ShowTurnPlayerObject.cs:24, :31),
@@ -2552,7 +2583,7 @@ button.opponent-action-feed__current:focus-visible {
   z-index: calc(var(--ds-z-dialog) - 5);
   right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
   display: flex;
-  width: min(15rem, calc(100% - var(--ds-space-8)));
+  width: min(20rem, calc(100% - var(--ds-space-8)));
   gap: var(--ds-space-2);
   pointer-events: none;
 }
@@ -2576,7 +2607,7 @@ button.opponent-action-feed__current:focus-visible {
   position: relative;
   overflow: hidden;
   border: 1px solid var(--battle-panel-border);
-  border-radius: 0.5rem;
+  border-radius: 0.65rem;
   background: var(--battle-panel);
   box-shadow: 0 10px 28px rgb(4 14 31 / 55%);
   pointer-events: auto;
@@ -2584,8 +2615,8 @@ button.opponent-action-feed__current:focus-visible {
   animation: side-panel-in var(--t-side-panel-in, 230ms) ease-out;
 }
 
-/* The clock the player can see: a ring that erodes clockwise over whatever time
-   the panel has left, which is shorter when it shares its column. */
+/* The clock the player can see: a ring that erodes clockwise over the fixed
+   reading time the panel was opened with. */
 .side-panel__erode,
 .match-notice__erode {
   position: absolute;
@@ -2606,7 +2637,7 @@ button.opponent-action-feed__current:focus-visible {
   position: relative;
   z-index: 1;
   display: grid;
-  padding: 0.3rem 0.35rem 0.3rem 0.6rem;
+  padding: 0.42rem 0.5rem 0.42rem 0.8rem;
   grid-template-columns: minmax(0, 1fr) auto auto;
   gap: var(--ds-space-2);
   align-items: center;
@@ -2616,7 +2647,7 @@ button.opponent-action-feed__current:focus-visible {
 .side-panel__title {
   overflow: hidden;
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #fff;
   text-overflow: ellipsis;
@@ -2624,7 +2655,7 @@ button.opponent-action-feed__current:focus-visible {
 }
 
 .side-panel__owner {
-  font-size: 0.62rem;
+  font-size: 0.78rem;
   color: rgb(255 255 255 / 62%);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -2651,12 +2682,20 @@ button.opponent-action-feed__current:focus-visible {
   background: rgb(255 255 255 / 24%);
 }
 
+/* After the shared rule so the panel's larger chrome wins, while the notices
+   this file also draws keep the compact button. */
+.side-panel__close {
+  width: 1.7rem;
+  height: 1.7rem;
+  font-size: 1.2rem;
+}
+
 .side-panel__cards {
   display: flex;
-  padding: 0.45rem;
+  padding: 0.6rem;
   margin: 0;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.55rem;
   list-style: none;
 }
 
@@ -2668,12 +2707,12 @@ button.opponent-action-feed__current:focus-visible {
 /* The reference client numbers each card in the panel with a blue circle at its top-left. */
 .side-panel__badge {
   position: absolute;
-  top: -0.25rem;
-  left: -0.25rem;
+  top: -0.3rem;
+  left: -0.3rem;
   display: grid;
-  width: 1.05rem;
-  height: 1.05rem;
-  font-size: 0.6rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 1;
   color: #fff;
@@ -2934,9 +2973,11 @@ button.opponent-action-feed__current:focus-visible {
    must be retimed together:
      0ms      attacker slides in from its own half        (150ms)
      150ms    revealed card plays the 233ms EnterSecurity clip
-     383ms    both hold, readable                         (1600ms)
-     1983ms   outcome beat, per resolution                (350ms)
-     2333ms   scene fades out                             (200ms) */
+     383ms    both hold, readable                         (900ms)
+     1283ms   outcome beat, per resolution                (350ms)
+     1633ms   scene fades out                             (160ms)
+   Everything from 1283ms on is a separate, skippable queue step: a click through
+   the scene takes the board back at the outcome rather than at the fade. */
 .battle-clash {
   position: absolute;
   z-index: calc(var(--ds-z-dialog) - 5);
@@ -2947,7 +2988,11 @@ button.opponent-action-feed__current:focus-visible {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  animation: battle-clash-scene var(--t-clash-total, 2803ms) linear both;
+  /* The board underneath is bright card art on a coloured field, and the scene has
+     to win against it. The dim travels with the scene's own fade, and the layer
+     stays pointer-transparent, so nothing under it stops being clickable. */
+  background: radial-gradient(ellipse at center, rgb(4 8 20 / 74%) 0%, rgb(4 8 20 / 58%) 55%, rgb(4 8 20 / 28%) 100%);
+  animation: battle-clash-scene var(--t-clash-total, 1793ms) linear both;
 }
 
 .battle-clash__badge {
@@ -2984,7 +3029,9 @@ button.opponent-action-feed__current:focus-visible {
 .battle-clash__art {
   overflow: hidden;
   border-radius: var(--ds-radius-sm);
-  box-shadow: 0 10px 26px rgb(6 12 28 / 55%);
+  box-shadow:
+    0 0 0 2px rgb(255 255 255 / 22%),
+    0 12px 34px rgb(4 8 20 / 75%);
 }
 
 .battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
@@ -3004,13 +3051,13 @@ button.opponent-action-feed__current:focus-visible {
 .battle-clash[data-resolution="effect"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
     battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-glow var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+    battle-clash-glow var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
 }
 
 .battle-clash[data-resolution="trashed"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
     battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-fall var(--t-clash-outcome, 620ms) cubic-bezier(0.32, 0, 0.67, 0) var(--t-clash-outcome-at, 1983ms)
+    battle-clash-fall var(--t-clash-outcome, 350ms) cubic-bezier(0.32, 0, 0.67, 0) var(--t-clash-outcome-at, 1283ms)
       both;
 }
 
@@ -3019,44 +3066,44 @@ button.opponent-action-feed__current:focus-visible {
 .battle-clash[data-resolution="battle"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
   animation:
     battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-impact var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
 }
 
 .battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
   animation:
     battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
-    battle-clash-impact var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
 }
 
 .battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="opp"] .battle-clash__art {
   animation:
     battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
-    battle-clash-impact var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
 }
 
 .battle-clash__caption {
   display: flex;
-  width: 11rem;
+  width: 13rem;
   flex-direction: column;
   gap: 0.1rem;
   color: #fff;
-  text-shadow: 0 1px 4px rgb(6 12 28 / 85%);
+  text-shadow: 0 1px 5px rgb(4 8 20 / 95%);
 }
 
 .battle-clash__role {
-  font-size: 0.68rem;
+  font-size: 0.76rem;
   color: var(--battle-marker);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .battle-clash__name {
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   line-height: 1.2;
 }
 
 .battle-clash__dp {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--battle-cyan);
   font-variant-numeric: tabular-nums;
@@ -3065,10 +3112,10 @@ button.opponent-action-feed__current:focus-visible {
 .battle-clash__mark {
   position: relative;
   display: grid;
-  width: 2.4rem;
-  height: 2.4rem;
+  width: 3rem;
+  height: 3rem;
   color: #fff;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 900;
   font-style: normal;
   letter-spacing: 0.04em;
@@ -3085,28 +3132,31 @@ button.opponent-action-feed__current:focus-visible {
   inset: -0.6rem;
   border-radius: 50%;
   background: radial-gradient(circle, rgb(255 255 255 / 90%) 0%, var(--battle-attack) 45%, transparent 70%);
-  animation: battle-clash-burst var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+  animation: battle-clash-burst var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
 }
 
 .battle-clash__outcome {
   margin: 0;
-  padding: 0.2rem 0.8rem;
+  padding: 0.3rem 1rem;
   color: #fff;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 700;
   border: 1px solid var(--battle-panel-border);
   border-radius: 0.5rem;
   background: var(--battle-panel);
+  box-shadow: 0 4px 18px rgb(4 8 20 / 70%);
 }
 
+/* Percentages of the 1793ms scene: up at 150ms with the attacker (8%), and starting to
+   go at 1633ms, where the outcome beat ends and `clashExit` begins (91%). */
 @keyframes battle-clash-scene {
   0% {
     opacity: 0;
   }
-  6% {
+  8% {
     opacity: 1;
   }
-  92% {
+  91% {
     opacity: 1;
   }
   100% {
@@ -3217,7 +3267,7 @@ button.opponent-action-feed__current:focus-visible {
 @media (width <= 780px) {
   .side-panel-stack {
     right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
-    width: min(11rem, calc(100% - var(--ds-space-4)));
+    width: min(14rem, calc(100% - var(--ds-space-4)));
   }
   .side-panel-stack[data-side="opp"] {
     top: calc(11.5rem + env(safe-area-inset-top, 0px));
@@ -4293,6 +4343,12 @@ button.opponent-action-feed__current:focus-visible {
     max-height: 7rem;
     overflow: hidden;
   }
+  /* A card panel is one thumbnail tall plus its heading, so its band has to be
+     deeper than a notice's band of text. 9rem is the most the two bands can each
+     take before they meet in the middle of a tall phone. */
+  .side-panel-stack {
+    max-height: 9rem;
+  }
   .side-panel-stack[data-side="opp"] {
     top: calc(17rem + env(safe-area-inset-top, 0px));
   }
@@ -4652,7 +4708,7 @@ button.opponent-action-feed__current:focus-visible {
   .match-notice-stack {
     right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
     left: auto;
-    width: min(18rem, 40vw);
+    width: min(22rem, 45vw);
   }
   .side-panel-stack[data-side="opp"] {
     top: calc(3.75rem + env(safe-area-inset-top, 0px));
@@ -4789,6 +4845,13 @@ button.opponent-action-feed__current:focus-visible {
   }
   .match-notice-stack[data-anchor^="bottom-"] {
     bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
+  }
+  /* A pointer screen is looked at from further away and carries a much longer
+     board, so the phone-sized arc reads as a hairline across it. */
+  .game-attack-arrow {
+    --arrow-core-width: 9;
+    --arrow-casing-width: 14.5;
+    --arrow-glow-width: 22;
   }
 }
 
@@ -6180,7 +6243,7 @@ button.opponent-action-feed__current:focus-visible {
      while the two of them are still being read. `forwards` rather than `both`: the
      backwards fill would light them up through the whole delay. */
   opacity: 0;
-  animation: battle-clash-shatter-in var(--t-clash-outcome, 620ms) steps(1, end) var(--t-clash-outcome-at, 1983ms)
+  animation: battle-clash-shatter-in var(--t-clash-outcome, 350ms) steps(1, end) var(--t-clash-outcome-at, 1283ms)
     forwards;
 }
 
@@ -6199,8 +6262,8 @@ button.opponent-action-feed__current:focus-visible {
 .battle-clash[data-resolution="battle"] .battle-clash__card[data-spent="true"] .battle-clash__art {
   animation:
     battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
-    battle-clash-impact var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both,
-    battle-clash-spent var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
 }
 
 @keyframes battle-clash-spent {
@@ -6217,7 +6280,7 @@ button.opponent-action-feed__current:focus-visible {
 
 /* The beaten side dims behind its claw; the side that stands is lit for a beat. */
 .battle-clash__card[data-fate="beaten"] {
-  animation: battle-clash-beaten var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+  animation: battle-clash-beaten var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
 }
 
 @keyframes battle-clash-beaten {
@@ -6233,7 +6296,7 @@ button.opponent-action-feed__current:focus-visible {
 }
 
 .battle-clash__card[data-fate="stands"] {
-  animation: battle-clash-stands var(--t-clash-outcome, 620ms) ease-out var(--t-clash-outcome-at, 1983ms) both;
+  animation: battle-clash-stands var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
 }
 
 @keyframes battle-clash-stands {
@@ -6251,31 +6314,34 @@ button.opponent-action-feed__current:focus-visible {
 /* The claw waits for the outcome beat. Its own per-tine stagger is kept, so the
    three gashes still land one behind the other. */
 .battle-clash__card[data-fate="beaten"] .game-claw__tine {
-  animation-delay: calc(var(--t-clash-outcome-at, 1983ms) + var(--claw-index) * 24ms);
+  animation-delay: calc(var(--t-clash-outcome-at, 1283ms) + var(--claw-index) * 24ms);
 }
 
 /* The loser is knocked about under its claw (`Effects.cs:2143` shakes every loser
    for the same 0.25 s the claw takes to land). */
 .battle-clash__card[data-fate="beaten"] .battle-clash__frame {
-  animation: battle-clash-hit var(--t-clash-outcome, 620ms) linear var(--t-clash-outcome-at, 1983ms) both;
+  animation: battle-clash-hit var(--t-clash-outcome, 350ms) linear var(--t-clash-outcome-at, 1283ms) both;
 }
 
+/* Percentages of the 350ms outcome beat: the shake is the reference client's 0.25s
+   (`--t-card-shake`, so 71%) and the rest is its 0.1s settle. They have to be restated
+   whenever `clashOutcome` moves — `timings.test.ts` pins the 71% to the two numbers. */
 @keyframes battle-clash-hit {
   0%,
-  40%,
+  71%,
   100% {
     translate: 0 0;
   }
-  8% {
+  14% {
     translate: -6px 3px;
   }
-  16% {
+  29% {
     translate: 5px -3px;
   }
-  24% {
+  43% {
     translate: -4px -2px;
   }
-  32% {
+  57% {
     translate: 2px 2px;
   }
 }

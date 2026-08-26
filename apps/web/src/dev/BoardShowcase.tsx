@@ -326,7 +326,7 @@ const PANEL_CASES: { label: string; panels: SidePanel[] }[] = [
     ],
   },
   {
-    label: "both columns, crowded (borders erode faster)",
+    label: "both columns, each border on its own clock",
     panels: [
       showcasePanel({ id: "crowd-1", titleKey: "panel.revealedCards", side: "opp", cardIds: [CARDS.opponentChampion] }),
       showcasePanel({
@@ -425,7 +425,11 @@ function showcaseBurst(variant: PermanentBurst["variant"], overrides: Partial<Pe
 const ZONE_SHOWCASES: { label: string; showcase: ZoneShowcaseModel }[] = [
   {
     label: "opponent played a card",
-    showcase: { key: 1, cardId: CARDS.opponentChampion, seat: 1, color: "Blue" },
+    showcase: { key: 1, cardId: CARDS.opponentChampion, seat: 1, kind: "play", color: "Blue" },
+  },
+  {
+    label: "opponent digivolved in breeding",
+    showcase: { key: 2, cardId: CARDS.opponentChampion, seat: 1, kind: "digivolve", color: "Blue" },
   },
 ];
 
@@ -919,7 +923,7 @@ export function BoardShowcase() {
       <Section
         id="showcase-side-panels"
         title="timed side panels"
-        note="Opponent-origin panels stack down from the top-right, the viewer's up from the bottom-right. The cyan ring around each panel erodes clockwise over the time it has left, and a crowded column erodes faster."
+        note="Opponent-origin panels stack down from the top-right, the viewer's up from the bottom-right. The cyan ring around each panel erodes clockwise over the fixed reading time it opened with, which nothing else on the board shortens."
         stacked
       >
         {PANEL_CASES.map(({ label, panels }) => (

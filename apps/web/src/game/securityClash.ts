@@ -56,7 +56,7 @@ export interface SecurityClashScene {
 /**
  * Timeline of the scene, in the order the beats play. The reveal and the outcome
  * beat mirror the reference client (a 233 ms `EnterSecurity` clip, then a 250 ms
- * claw slash plus a 100 ms settle); the hold is longer than the reference's
+ * claw slash plus a 100 ms settle); the hold is still longer than the reference's
  * 170 + 300 ms because a web client has to stay readable without a camera cut.
  */
 export const SECURITY_CLASH_TIMINGS = {

@@ -31,15 +31,19 @@ export const TIMINGS = {
   /** The attack arrow drawing itself from attacker to target. */
   attackArrow: 380,
   /** The attacker leaning at the security stack it declared on. */
-  attackLunge: 300,
-  /** How long the attack call-out stays up. */
-  attackAnnounce: 1200,
+  attackLunge: 240,
+  /** How long the attack call-out stays up. Long enough to read a card name, and no longer. */
+  attackAnnounce: 800,
   /** The call-out fading in. */
   attackAnnounceIn: 140,
   /** The security shield flashing when a card is actually checked. */
   securityHit: 350,
-  /** The defender's shield arming — the blue glass the reference client switches to. */
-  securityArm: 220,
+  /**
+   * The defender's shield arming — the blue glass the reference client switches to.
+   * It arms at the declaration there (`AttackProcess.cs:134`), not at the check, so
+   * this is only the beat the web needs for the change of glass to register.
+   */
+  securityArm: 120,
   /** The glass pane shattering (the reference client's `SecurityBreakGlass`, 250 ms). */
   shieldBreak: 250,
   /** The light that washes in from the defender's edge of the screen as the shield breaks. */
@@ -48,8 +52,8 @@ export const TIMINGS = {
   securityBreakHold: 330,
   /** The revealed security card sliding out to its own side of the screen. */
   securityBranchIn: 220,
-  /** How long the revealed card holds there while its effect notice reads. */
-  securityBranchHold: 1500,
+  /** How long the revealed card holds there while its effect notice reads. The notice outlives it. */
+  securityBranchHold: 900,
   /** The card leaving for the trash or the field. */
   securityBranchOut: 220,
   /** The security counter popping as it decrements. */
@@ -64,12 +68,12 @@ export const TIMINGS = {
   clashAttackerEnter: 150,
   /** The revealed security card growing into place. */
   clashReveal: 233,
-  /** How long the two cards stay readable before they resolve. */
-  clashHold: 1600,
-  /** The outcome beat: the claw and shake on the loser, then its card breaking apart. */
-  clashOutcome: 620,
-  /** The scene fading back out. */
-  clashExit: 200,
+  /** How long the two cards stay readable before they resolve. The reference client holds 170 + 300ms. */
+  clashHold: 900,
+  /** The outcome beat: the reference client's parallel 250ms claw and shake, then its 100ms settle (`Effects.cs:2039-2160`). */
+  clashOutcome: 350,
+  /** The scene fading back out, on the turn banner's 160ms wipe. */
+  clashExit: 160,
   /** The centre-screen card growing in on a zone change. */
   showcaseIn: 160,
   /** How long the announced card is held centre-screen before the board takes over. */
@@ -80,8 +84,8 @@ export const TIMINGS = {
   cardBurst: 800,
   /** The starburst at the hand slot where a turn-start draw lands. */
   drawBurst: 600,
-  /** The full-width turn banner. */
-  turnBanner: 1000,
+  /** The full-width turn banner: the reference client's 160ms in, 300ms hold and 160ms out. */
+  turnBanner: 620,
   /** How long a framed notice stays readable on its own. */
   noticeLifetime: 2800,
   /** A crowded notice stack disperses on this shorter clock instead. */
@@ -92,10 +96,8 @@ export const TIMINGS = {
   feedAction: 3600,
   /** A feed entry carrying effect text to read is held longer than a bare title. */
   feedEffect: 5600,
-  /** How long a side panel stays readable on its own. */
+  /** How long a side panel stays readable. Nothing on the board shortens it. */
   sidePanelLifetime: 5000,
-  /** A side panel sharing its column with another erodes on this clock instead. */
-  sidePanelCrowdedLifetime: 2600,
   /** Cards moved within this window join the panel already open. */
   sidePanelMergeWindow: 1500,
   /** A side panel opening. */

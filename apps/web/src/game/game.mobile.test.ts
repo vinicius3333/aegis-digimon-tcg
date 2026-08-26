@@ -270,6 +270,8 @@ describe("floating chrome keeps clear of the hand and the memory band", () => {
     expect(phonePortraitRules).toMatch(
       /\.match-notice-stack,\s*\.side-panel-stack \{[^}]*max-height:\s*7rem[^}]*overflow:\s*hidden/,
     );
+    // The card panels take the deeper of the two bands: a thumbnail plus a heading.
+    expect(phonePortraitRules).toMatch(/\.side-panel-stack \{[^}]*max-height:\s*9rem/);
     expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="opp"\] \{[^}]*top:\s*calc\(17rem/);
     expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="you"\] \{[^}]*bottom:\s*calc\(17rem/);
     // The notices keep the corner they already had.

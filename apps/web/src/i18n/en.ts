@@ -626,6 +626,7 @@ export const en = {
   "feed.openCard": "Open {card}",
 
   "showcase.opponentPlayed": "Opponent played {card}",
+  "showcase.opponentDigivolved": "Opponent digivolved into {card}",
 
   "panel.discardedCards": "Discarded cards",
   "panel.cardsAddedToHand": "Cards added to hand",

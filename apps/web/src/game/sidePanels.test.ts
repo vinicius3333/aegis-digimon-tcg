@@ -7,12 +7,9 @@ import {
   MAX_VISIBLE_SIDE_PANELS,
   nextSidePanelExpiry,
   pushSidePanel,
-  selectionPanel,
   sidePanelColumn,
   sidePanelFromEvent,
-  sidePanelLifetime,
   sidePanelRemaining,
-  SIDE_PANEL_CROWDED_LIFETIME_MS,
   SIDE_PANEL_LIFETIME_MS,
   titleForMovement,
   type SidePanel,
@@ -137,25 +134,17 @@ describe("sidePanelFromEvent", () => {
     expect(sidePanelFromEvent(mine, VIEWER, lookup({}, {}), "a", 0)).toBeNull();
     expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0)?.titleKey).toBe("panel.digivolutionCards");
   });
-});
 
-describe("selectionPanel", () => {
-  it("numbers the viewer's picks in the order they were made", () => {
-    expect(selectionPanel(["BT1-001", "BT1-002"], "s", 3)).toEqual({
-      id: "s",
-      titleKey: "panel.selectedCards",
-      side: "you",
-      cards: [
-        { cardId: "BT1-001", badge: 1 },
-        { cardId: "BT1-002", badge: 2 },
-      ],
-      ordered: true,
-      createdAt: 3,
-    });
-  });
-
-  it("opens nothing for an empty selection", () => {
-    expect(selectionPanel([], "s", 0)).toBeNull();
+  it("leaves the opponent's breeding digivolution to the centre-screen showcase", () => {
+    const theirs: ServerEvent = {
+      kind: "digivolved",
+      seat: 1,
+      permanentId: "p",
+      cardId: "BT1-041",
+      mechanic: "normal",
+      inBreeding: true,
+    };
+    expect(sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0)).toBeNull();
   });
 });
 
@@ -223,23 +212,17 @@ describe("pushSidePanel", () => {
 });
 
 describe("side panel lifetimes", () => {
-  it("gives a lone panel its full reading time and a crowded column less", () => {
-    expect(sidePanelLifetime(1)).toBe(SIDE_PANEL_LIFETIME_MS);
-    expect(sidePanelLifetime(2)).toBe(SIDE_PANEL_CROWDED_LIFETIME_MS);
-    expect(SIDE_PANEL_CROWDED_LIFETIME_MS).toBeLessThan(SIDE_PANEL_LIFETIME_MS);
-  });
-
-  it("erodes a panel faster once a second one joins its column", () => {
+  it("gives every panel the same reading time, however busy the board is", () => {
     const alone = panel({ id: "a", createdAt: 0 });
-    expect(sidePanelRemaining([alone], alone, 0)).toBe(SIDE_PANEL_LIFETIME_MS);
-    const crowded = [alone, panel({ id: "b", titleKey: "panel.deletedCards", createdAt: 0 })];
-    expect(sidePanelRemaining(crowded, alone, 0)).toBe(SIDE_PANEL_CROWDED_LIFETIME_MS);
+    expect(sidePanelRemaining(alone, 0)).toBe(SIDE_PANEL_LIFETIME_MS);
+    expect(sidePanelRemaining(alone, 1000)).toBe(SIDE_PANEL_LIFETIME_MS - 1000);
   });
 
-  it("leaves the other column's clock alone", () => {
-    const mine = panel({ id: "a", side: "you", createdAt: 0 });
-    const theirs = panel({ id: "b", side: "opp", createdAt: 0 });
-    expect(sidePanelRemaining([mine, theirs], mine, 0)).toBe(SIDE_PANEL_LIFETIME_MS);
+  it("counts a panel's clock from when it opened, not from the stack around it", () => {
+    const older = panel({ id: "a", createdAt: 0 });
+    const newer = panel({ id: "b", titleKey: "panel.deletedCards", createdAt: 2000 });
+    expect(sidePanelRemaining(older, 2000)).toBe(SIDE_PANEL_LIFETIME_MS - 2000);
+    expect(sidePanelRemaining(newer, 2000)).toBe(SIDE_PANEL_LIFETIME_MS);
   });
 
   it("keeps a panel for its full reading time and drops it after", () => {

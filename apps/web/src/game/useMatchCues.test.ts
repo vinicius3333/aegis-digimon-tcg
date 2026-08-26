@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import {
+  CLASH_OUTCOME_AT_MS,
   CLASH_TOTAL_MS,
   SECURITY_BRANCH_TOTAL_MS,
   SECURITY_BREAK_TOTAL_MS,
@@ -154,12 +155,51 @@ describe("match cues", () => {
     await advance(SECURITY_BREAK_TOTAL_MS);
     expect(result.current.securityBranch).toBeNull();
 
-    await advance(CLASH_TOTAL_MS);
+    // Strictly after: the card is never held to the side while it is still centre stage,
+    // which is what a branch on a clock of its own could not promise.
+    await advance(CLASH_TOTAL_MS - 1);
+    expect(result.current.securityClash).not.toBeNull();
+    expect(result.current.securityBranch).toBeNull();
+
+    await advance(1);
     expect(result.current.securityClash).toBeNull();
     expect(result.current.securityBranch).toMatchObject({ cardId: "BT1-010", side: "you" });
 
     await advance(SECURITY_BRANCH_TOTAL_MS);
     expect(result.current.securityBranch).toBeNull();
+  });
+
+  it("owes the screen a reveal from the check until the scene has played it", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+    expect(result.current.securityRevealPending).toBe(false);
+
+    // Set in the same pass that observes the check, so a decision arriving with it has
+    // nowhere to render before the card does.
+    rerender([EFFECT_CHECK]);
+    await advance(0);
+    expect(result.current.securityRevealPending).toBe(true);
+
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS - 1);
+    expect(result.current.securityRevealPending).toBe(true);
+
+    await advance(1);
+    expect(result.current.securityRevealPending).toBe(false);
+  });
+
+  it("gives the screen back at the outcome when the player clicks through the scene", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([EFFECT_CHECK]);
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS);
+    // The outcome beat is decoration, so a click takes the board back from it — and
+    // the branch and the reveal hold move up with it rather than waiting it out.
+    act(() => result.current.skipAnimations());
+    await advance(0);
+    expect(result.current.securityClash).toBeNull();
+    expect(result.current.securityRevealPending).toBe(false);
+    expect(result.current.securityBranch).not.toBeNull();
   });
 
   it("leaves a plain check with no branch to hold", async () => {
@@ -402,8 +442,43 @@ describe("notices", () => {
     await advance(0);
 
     rerender([{ kind: "securityChecked", seat: 0, revealedCardId: "BT1-010", resolution: "effect" }, EFFECT]);
-    await advance(0);
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS);
     expect(result.current.notices[0]?.fromSecurity).toBe(true);
+  });
+
+  // The reported bug: the card's effect was read out while the card itself was still
+  // behind the shield, so the viewer was told what a card they had not seen just did.
+  it("says nothing about the revealed card until the card has been shown", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([EFFECT_CHECK, EFFECT]);
+    await advance(0);
+    expect(result.current.notices).toEqual([]);
+
+    // Still nothing while the shield is breaking and while the two cards are held.
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS - 1);
+    expect(result.current.notices).toEqual([]);
+    expect(result.current.securityBranch).toBeNull();
+
+    await advance(1);
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.securityBranch).not.toBeNull();
+  });
+
+  it("still says what a superseded check did before the next one takes the screen", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([EFFECT_CHECK, EFFECT]);
+    await advance(TIMINGS.securityArm);
+    expect(result.current.notices).toEqual([]);
+
+    // A second strike replaces the centre of the screen. A dropped animation is a
+    // shrug; a dropped effect description is information the viewer never gets back.
+    rerender([EFFECT_CHECK, EFFECT, SECOND_CHECK]);
+    await advance(0);
+    expect(result.current.notices).toHaveLength(1);
   });
 
   it("lets the showcase finish before an On Play notice talks over it", async () => {
@@ -454,15 +529,6 @@ describe("notices", () => {
 
     act(() => result.current.raiseRejection("Not enough memory."));
     expect(result.current.notices[0]?.body).toEqual({ variant: "rejection", reason: "Not enough memory." });
-  });
-
-  it("opens the selection panel from the viewer's own answer", async () => {
-    const { result } = renderCues();
-    await advance(0);
-
-    act(() => result.current.showSelection(["BT1-001", "BT1-002"]));
-    expect(result.current.sidePanels[0]?.titleKey).toBe("panel.selectedCards");
-    expect(result.current.sidePanels[0]?.cards).toHaveLength(2);
   });
 });
 

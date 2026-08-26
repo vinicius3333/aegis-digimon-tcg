@@ -32,7 +32,6 @@ import {
   expireSidePanels,
   nextSidePanelExpiry,
   pushSidePanel,
-  selectionPanel,
   sidePanelFromEvent,
   type AttackAnnouncement,
   type SidePanel,
@@ -83,6 +82,7 @@ import { phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
 import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
 import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } from "./freezePulse";
 import {
+  CLASH_OUTCOME_AT_MS,
   CLASH_TOTAL_MS,
   COMBAT_IMPACT_TOTAL_MS,
   cutInTotalMs,
@@ -138,6 +138,7 @@ const UNSUSPEND_SWEEP_MS = TIMINGS.suspendRotate + UNSUSPEND_SWEEP_SLOTS * TIMIN
  * showcase was mid-flight rather than painting over it.
  */
 const CENTER_STAGE_TRACK = "centerStage";
+
 export type TurnTransitionCue = { endingSeat: number; nextSeat: number; turnCount: number };
 
 /** The board elements a draw flight is measured between. */
@@ -160,8 +161,6 @@ export interface MatchCueAnchors {
 export interface MatchCues {
   sidePanels: readonly SidePanel[];
   dismissPanel: (id: string) => void;
-  /** Opens the "Selected Cards" panel for a selection the viewer just confirmed. */
-  showSelection: (cardIds: readonly string[]) => void;
   notices: readonly MatchNotice[];
   dismissNotice: (id: string) => void;
   /** Raises a notice for a refused action, which no server event narrates for the viewer. */
@@ -173,6 +172,13 @@ export interface MatchCues {
   securityBreak: SecurityBreakCue | null;
   /** The revealed card, held to the side while its effect resolves. */
   securityBranch: SecurityBranchScene | null;
+  /**
+   * True from the moment a security check is queued until the centre-stage scene has
+   * finished showing the revealed card. Nothing that speaks for that card — its effect
+   * notice, its branch, the decision it asks the viewer — may be presented while it is
+   * set (battle-animation-spec.md §4b: the reveal is steps 6–9, the effect is step 10b).
+   */
+  securityRevealPending: boolean;
   /** The player whose board the unsuspend phase is currently sweeping. */
   unsuspendSweep: UnsuspendSweep | null;
   /** Bursts left where permanents were deleted, in board coordinates. */
@@ -305,6 +311,8 @@ export function useMatchCues({
   const [securityClash, setSecurityClash] = useState<SecurityClashScene | null>(null);
   const [securityBreak, setSecurityBreak] = useState<SecurityBreakCue | null>(null);
   const [securityBranch, setSecurityBranch] = useState<SecurityBranchScene | null>(null);
+  // The check whose reveal the screen still owes the viewer, by clash key.
+  const [pendingRevealKey, setPendingRevealKey] = useState<number | null>(null);
   const [unsuspendSweep, setUnsuspendSweep] = useState<UnsuspendSweep | null>(null);
   const [deleteBursts, setDeleteBursts] = useState<readonly DeleteBurst[]>([]);
   const [attackLunge, setAttackLunge] = useState<AttackLunge | null>(null);
@@ -333,6 +341,10 @@ export function useMatchCues({
   // A security card that resolves an effect moves its notice out of the panels'
   // half of the screen; the flag is set by the check and spent by the effect.
   const securityEffectPendingRef = useRef(false);
+  // Notices a check handed to its centre-stage sequence and that the sequence has not
+  // read out yet. A newer check replaces that track, so they are flushed rather than
+  // dropped with it — a lost animation is a shrug, a lost effect description is not.
+  const heldNoticesRef = useRef<readonly MatchNotice[]>([]);
   // `cardsMoved` names only instance ids, so the panels need the board's current
   // identity and ownership index to name the cards that just moved.
   const sidePanelLookupRef = useRef<SidePanelLookup>({ cardId: () => undefined, seat: () => undefined });
@@ -408,6 +420,14 @@ export function useMatchCues({
     setNotices((stack) => pushNotice(expireNotices(stack, notice.createdAt), notice));
   }
 
+  /** Raises whatever a security check has still not said, on the clock it is raised at. */
+  function flushHeldNotices() {
+    const held = heldNoticesRef.current;
+    if (held.length === 0) return;
+    heldNoticesRef.current = [];
+    for (const notice of held) openNotice({ ...notice, createdAt: Date.now() });
+  }
+
   useEffect(() => {
     const previous = lastCueEventRef.current;
     const fresh = eventsAfter(events, previous);
@@ -425,6 +445,10 @@ export function useMatchCues({
     // Replayed steps still run, so their state lands in the right place — they
     // just run with every wait collapsed, which is no animation at all.
     const enqueue = (step: AnimationStep) => queue.enqueue(replayingHistory ? { ...step, mode: "replay" } : step);
+    // Notices a security check owns. They read as what the revealed card did, so they
+    // are handed to the centre-stage sequence below instead of being raised here, where
+    // they would talk over — or ahead of — the reveal they describe.
+    let heldNotices: readonly MatchNotice[] = [];
 
     if (!replayingHistory) {
       for (const event of fresh) {
@@ -559,7 +583,9 @@ export function useMatchCues({
       // An On Play / When Digivolving notice reads as the consequence of the card
       // that was just announced, so it waits for the reveal instead of talking
       // over the showcase. Its clock starts when it is finally raised.
-      if (showcased && raised.length > 0) {
+      if (securityCheck && raised.length > 0) {
+        heldNotices = raised;
+      } else if (showcased && raised.length > 0) {
         enqueue({
           id: `showcase-notices-${showcaseKeyRef.current}`,
           track: CENTER_STAGE_TRACK,
@@ -634,25 +660,61 @@ export function useMatchCues({
         viewerSeat,
       });
       // The whole check runs on the one centre-screen track, in the reference client's
-      // order: the shield arms, its glass breaks, the card is revealed, and only a card
-      // that resolves an effect detours to the side of the screen afterwards. The break
-      // carries the `replace`, so a check still cancels whatever showcase was mid-flight.
+      // order (battle-animation-spec.md §4b): the shield arms, its glass breaks, the card
+      // is revealed and held, and only then does what the card *did* reach the screen —
+      // its notice, its detour to the side, the decision it asks for. Serial order is what
+      // guarantees that: a parallel track with a fixed lead-in cannot know when this one
+      // actually gets to the reveal, so it can and does run ahead of it. The break carries
+      // the `replace`, so a check still cancels whatever showcase was mid-flight.
+      // Whatever the check it cancels had not said yet is said now, before it goes.
+      flushHeldNotices();
       enqueue(shieldBreakStep(breakScene));
+      // Everything the check will present is held back from here until the reveal has
+      // been seen. Cleared by the outcome step below, and by the queue going idle in
+      // case a newer cue took the centre of the screen before the scene got there.
+      if (!replayingHistory) setPendingRevealKey(key);
+      // The scene is two steps, not one, so a click through it collapses the half
+      // that is only spectacle. Up to the outcome the cards have to stay legible,
+      // motion preference or not; the blow, the shatter and the fade after it are
+      // decoration the board can be taken back from at any time.
       enqueue({
         id: `security-clash-${key}`,
         track: CENTER_STAGE_TRACK,
-        // The revealed card has to stay readable, motion preference or not.
         skippable: false,
         async run(context) {
+          setSecurityClash(scene);
+          await context.wait(CLASH_OUTCOME_AT_MS);
+          if (context.cancelled) setSecurityClash((current) => (current?.key === scene.key ? null : current));
+        },
+      });
+      enqueue({
+        id: `security-clash-outcome-${key}`,
+        track: CENTER_STAGE_TRACK,
+        async run(context) {
           try {
-            setSecurityClash(scene);
-            await context.wait(CLASH_TOTAL_MS);
+            await context.wait(CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
           } finally {
             setSecurityClash((current) => (current?.key === scene.key ? null : current));
+            setPendingRevealKey((current) => (current === key ? null : current));
           }
         },
       });
+      if (heldNotices.length > 0) {
+        heldNoticesRef.current = heldNotices;
+        // Step 10b: the card has been shown, so now it can be read out. The clock on
+        // each notice starts here rather than when the server named it.
+        enqueue({
+          id: `security-notices-${key}`,
+          track: CENTER_STAGE_TRACK,
+          skippable: false,
+          run() {
+            flushHeldNotices();
+          },
+        });
+      }
       if (branch) {
+        // The card detours to the half of the screen the side panels leave free, next
+        // to the notice raised a beat earlier, and the centre of the board is given back.
         enqueue({
           id: `security-branch-${key}`,
           track: CENTER_STAGE_TRACK,
@@ -667,6 +729,11 @@ export function useMatchCues({
             }
           },
         });
+      }
+      // A cue that never reached the screen must not leave the check's presentation
+      // held back for good, so the flag is dropped at the latest when nothing is running.
+      if (!replayingHistory) {
+        void queue.idle().then(() => setPendingRevealKey((current) => (current === key ? null : current)));
       }
     }
     // A permanent that lost a battle takes the claw and the shake first, and its
@@ -1140,12 +1207,6 @@ export function useMatchCues({
   return {
     sidePanels,
     dismissPanel: (id: string) => setSidePanels((panels) => dismissSidePanel(panels, id)),
-    showSelection: (cardIds: readonly string[]) => {
-      sidePanelSequenceRef.current += 1;
-      const panel = selectionPanel(cardIds, `side-panel-${sidePanelSequenceRef.current}`, Date.now());
-      if (!panel) return;
-      setSidePanels((panels) => pushSidePanel(expireSidePanels(panels, panel.createdAt), panel));
-    },
     notices,
     dismissNotice: (id: string) => setNotices((stack) => dismissNotice(stack, id)),
     raiseRejection: (reason: string) => {
@@ -1157,6 +1218,7 @@ export function useMatchCues({
     securityClash,
     securityBreak,
     securityBranch,
+    securityRevealPending: pendingRevealKey !== null,
     unsuspendSweep,
     deleteBursts,
     zoneShowcase,
