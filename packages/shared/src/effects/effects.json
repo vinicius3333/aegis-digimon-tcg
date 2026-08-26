@@ -29394,7 +29394,7 @@
               "count": 1
             },
             "from": ["hand"],
-            "toTop": false,
+            "position": "choice",
             "condition": { "kind": "youHave", "filter": { "controllerDefault": "mine" }, "raw": "you have 2 or fewer" },
             "optional": true
           }

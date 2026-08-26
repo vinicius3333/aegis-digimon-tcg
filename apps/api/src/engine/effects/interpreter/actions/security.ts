@@ -286,6 +286,10 @@ export async function runSecurityManipulation(
       ctx.lastEffectActed = ctx.fx.flipSecurityFaceUp(seat, { fromTop: true });
       return;
     case "placeAsSecurity": {
+      const placementToTop = async (): Promise<boolean> =>
+        action.position === "choice"
+          ? (await ctx.ask.chooseOption(ctx, ["Top of security", "Bottom of security"])) === 0
+          : (action.toTop ?? action.position !== "bottom");
       // Place cards onto the security stack. Two source shapes:
       //  - LOOSE source ("place 1 card from your hand/trash/deck as security"): resolve
       //    the candidate loose instances by filter across the stated zones, prompt the
@@ -329,14 +333,14 @@ export async function runSecurityManipulation(
           }
         }
         if (chosen.length > 0)
-          await ctx.fx.addSecurity(seat, chosen, { toTop: action.toTop ?? true, faceUp: action.faceUp });
+          await ctx.fx.addSecurity(seat, chosen, { toTop: await placementToTop(), faceUp: action.faceUp });
         return;
       }
       if (action.source === undefined) {
         // Self form: the resolving card becomes security (common on [Security] effects).
         const selfInstanceId = ctx.source.permanent()?.topCard?.instanceId ?? ctx.source.instanceId;
         await ctx.fx.addSecurity(seat, [selfInstanceId], {
-          toTop: action.toTop ?? true,
+          toTop: await placementToTop(),
           faceUp: action.faceUp,
         });
         return;
@@ -357,7 +361,7 @@ export async function runSecurityManipulation(
           const top = permanent?.topCard;
           if (permanent === undefined || top === undefined) continue;
           await ctx.fx.addSecurity(top.ownerSeat, [top.instanceId], {
-            toTop: action.toTop ?? true,
+            toTop: await placementToTop(),
             faceUp: action.faceUp,
             detachPermanentTop: action.detachPermanentTop,
           });
@@ -365,7 +369,7 @@ export async function runSecurityManipulation(
         return;
       }
       await ctx.fx.addSecurity(seat, ids, {
-        toTop: action.toTop ?? true,
+        toTop: await placementToTop(),
         faceUp: action.faceUp,
         detachPermanentTop: action.detachPermanentTop,
       });
