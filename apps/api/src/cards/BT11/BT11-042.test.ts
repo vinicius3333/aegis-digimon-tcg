@@ -117,7 +117,7 @@ describe("BT11-042 Angewomon", () => {
     expect(s.state.memory).toBe(4);
   });
 
-  it("uses each printed evolution color and only gains memory once for LadyDevimon or Mirei", async () => {
+  it("uses each printed evolution color and gains memory only once across two Mirei plays", async () => {
     for (const base of ["BT11-039", "BT11-080"] as const) {
       const s = setupEngine({
         0: {
@@ -142,17 +142,17 @@ describe("BT11-042 Angewomon", () => {
       0: {
         battleArea: [{ card: "BT11-042", as: "angewomon" }],
         hand: [
-          { card: "BT11-083", as: "lady" },
-          { card: "BT11-094", as: "mirei" },
+          { card: "BT11-094", as: "firstMirei" },
+          { card: "BT11-094", as: "secondMirei" },
         ],
       },
     });
-    s.state.memory = 20;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lady").instanceId })).toEqual({ ok: true });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstMirei").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mirei").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondMirei").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 3);
-    expect(s.state.memory).toBe(20 - 7 - 3 + 1);
+    expect(s.state.memory).toBe(10 - 5 + 1 - 5);
   });
 
   it("inherited effect grants Blocker to Angel-family Digimon on the opponent's turn while a purple Digimon is in play", async () => {
@@ -175,7 +175,7 @@ describe("BT11-042 Angewomon", () => {
       0: {
         battleArea: [
           { card: "BT11-038", as: "host", under: ["BT11-042"] },
-          { card: "BT11-037", as: "nonFamily" },
+          { card: "BT1-010", as: "nonFamily" },
         ],
       },
     });
