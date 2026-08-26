@@ -22,4 +22,20 @@ describe("BT4-025 Lobomon", () => {
     expect(s.perm("tamer").topCard?.cardId).toBe("BT4-025");
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
   });
+
+  it("cannot use a non-blue Tamer as its alternate digivolution base", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-085", as: "tamer" }], hand: [{ card: "BT4-025", as: "lobo" }] },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tamer").permanentId,
+        instanceId: s.inst("lobo").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("tamer").topCard?.cardId).toBe("BT1-085");
+  });
 });
