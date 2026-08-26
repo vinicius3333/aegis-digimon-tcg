@@ -24,7 +24,10 @@ describe("ST13-05 Durandamon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-02"));
-    expect(s.state.players[0]!.deck.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
+    // The played Zubamon resolves its own On Play effect, revealing BT1-009
+    // and adding it to hand after it is placed beneath Durandamon.
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
   });
 
   it("may decline the revealed play and puts every revealed card on the deck bottom", async () => {
