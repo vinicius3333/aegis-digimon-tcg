@@ -12,7 +12,7 @@ describe("BT7-027 Whamon", () => {
             { card: "BT7-027", as: "whamon" },
             { card: "BT1-027", as: "blueFromHand" },
           ],
-          battleArea: [{ card: "BT1-020", as: "host", under: [{ card: "BT1-027", as: "stackLv3" }] }],
+          battleArea: [{ card: "BT1-020", as: "host", suspended: true, under: [{ card: "BT1-027", as: "stackLv3" }] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
