@@ -3745,10 +3745,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
 
         const removableCount = Math.min(selected.length, completeStack.length - 1);
-        const removable = completeStack.slice(-removableCount);
+        const removable = opts?.position === "bottom"
+          ? completeStack.slice(0, removableCount)
+          : completeStack.slice(-removableCount);
         if (removableCount === 0 || removable.some((card) => !requested.has(card.instanceId))) continue;
 
-        const remaining = completeStack.slice(0, -removableCount);
+        const remaining = opts?.position === "bottom"
+          ? completeStack.slice(removableCount)
+          : completeStack.slice(0, -removableCount);
         const promoted = remaining.at(-1);
         if (promoted === undefined) continue;
         permanent.stack.splice(0, permanent.stack.length, ...remaining.slice(0, -1));

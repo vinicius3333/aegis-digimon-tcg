@@ -961,7 +961,7 @@ export interface Primitives {
    */
   returnStackTopsToDeck(
     instanceIds: string[],
-    opts?: { byEffectSeat?: Seat; byEffectCardId?: string },
+    opts?: { byEffectSeat?: Seat; byEffectCardId?: string; position?: "top" | "bottom" },
   ): Promise<CardInstance[]>;
   /** Return loose cards to the bottom of their owners' Digi-Egg decks, face-down. */
   returnToEggDeck?(instanceIds: string[]): Promise<CardInstance[]>;

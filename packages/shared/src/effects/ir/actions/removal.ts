@@ -33,6 +33,8 @@ export interface ReturnTopDigivolutionCardsAction extends ActionBase {
   target: Target;
   /** Number of cards removed from the top of each complete Digimon stack, always leaving one. */
   cardsPerTarget: number;
+  /** Bottom-stack return keeps the current top card in play (EX6-061). */
+  position?: "top" | "bottom";
   order?: "any";
 }
 

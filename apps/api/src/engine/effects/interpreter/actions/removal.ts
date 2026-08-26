@@ -29,9 +29,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       const cards = targetIds.flatMap((id) => {
         const permanent = ctx.game.permanentById(id);
         if (permanent?.topCard === undefined) return [];
-        return [...Array.from(permanent.stack), permanent.topCard].slice(
-          -Math.min(action.cardsPerTarget, permanent.stack.length),
-        );
+        return action.position === "bottom"
+          ? Array.from(permanent.stack).slice(0, action.cardsPerTarget)
+          : [...Array.from(permanent.stack), permanent.topCard].slice(-Math.min(action.cardsPerTarget, permanent.stack.length));
       });
       if (cards.length === 0) return false;
       let ordered = cards.map((card) => card.instanceId);
@@ -41,6 +41,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       await ctx.fx.returnStackTopsToDeck(ordered, {
         byEffectSeat: ctx.source.ownerSeat,
         byEffectCardId: ctx.source.cardId,
+        position: action.position,
       });
       ctx.lastEffectActed = true;
       return false;
