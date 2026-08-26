@@ -4371,13 +4371,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     amount: number,
     traits: string[],
     duration: EffectDuration,
+    opts?: {
+      sourceInstanceId?: string;
+      controllerSeat?: Seat;
+      optional?: boolean;
+      oncePerTurnKey?: string;
+    },
   ): void => {
     continuous.addLinkCostReductionGrant(
       permanentId,
       amount,
       traits,
       durationForTarget(permanentId, duration),
-      continuousOpt(),
+      { ...continuousOpt(), ...opts },
     );
   };
 
@@ -4982,6 +4988,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     revokeKeyword,
     grantLinkMax,
     grantLinkCostReduction,
+    linkCostReductionUsed: (key) => engine.barrierFired?.(`link-cost/${key}`) ?? false,
+    markLinkCostReductionUsed: (key) => engine.markBarrierFired?.(`link-cost/${key}`),
     cannotIgnoreDigivolution,
     isDigivolutionRequirementIgnoreBlocked,
     addColorGrant,

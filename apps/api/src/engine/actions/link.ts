@@ -93,6 +93,10 @@ export interface LinkCardDeps {
    * rule check can never drift apart.
    */
   linkRequirementSatisfied(hostDefinition: CardDefinition, linkedCard: CardInstance): boolean;
+  /** Largest currently available recipient reduction, used by declaration legality. */
+  linkCostReduction(targetPermanentId: string, cardTraits: readonly string[]): number;
+  /** Offer and consume the matching optional once-per-turn reduction at declaration. */
+  resolveLinkCostReduction(targetPermanentId: string, cardTraits: readonly string[]): Promise<number>;
   /**
    * Plug `instanceIds` into `targetPermanentId` (the existing Link primitive —
    * effects/primitives.ts's `link`). Handles the actual state move, DP
@@ -129,7 +133,7 @@ export function validateLinkCard(
   state: GameState,
   seat: Seat,
   intent: LinkCardIntent,
-  deps: Pick<LinkCardDeps, "maxAffordable" | "linkRequirementSatisfied">,
+  deps: Pick<LinkCardDeps, "maxAffordable" | "linkRequirementSatisfied" | "linkCostReduction">,
 ): LinkCardCheck {
   // 1. Game state gates.
   if (state.gameOver) return { ok: false, reason: "game-over" };
@@ -165,7 +169,8 @@ export function validateLinkCard(
   }
 
   // 5. §10-1-3-2: the printed link cost must be affordable.
-  const cost = linkCostOf(definition, 0);
+  const cardTraits = [...(definition.types ?? []), ...(definition.forms ?? []), ...(definition.attributes ?? [])];
+  const cost = linkCostOf(definition, -deps.linkCostReduction(intent.targetPermanentId, cardTraits));
   if (deps.maxAffordable(state, seat) < cost) {
     return { ok: false, reason: "insufficient-memory" };
   }
@@ -187,8 +192,15 @@ export async function applyLinkCard(
   const check = validateLinkCard(state, seat, intent, deps);
   if (!check.ok) return check;
 
-  if (check.cost > 0) {
-    deps.payMemory(state, seat, check.cost);
+  const cardTraits = [
+    ...(check.definition.types ?? []),
+    ...(check.definition.forms ?? []),
+    ...(check.definition.attributes ?? []),
+  ];
+  const reduction = await deps.resolveLinkCostReduction(intent.targetPermanentId, cardTraits);
+  const cost = linkCostOf(check.definition, -reduction);
+  if (cost > 0) {
+    deps.payMemory(state, seat, cost);
   }
 
   const linked = await deps.link(intent.targetPermanentId, [intent.instanceId]);
@@ -201,7 +213,7 @@ export async function applyLinkCard(
     outcome: {
       permanentId: intent.targetPermanentId,
       linkedInstanceIds: linked.map((c) => c.instanceId),
-      cost: check.cost,
+      cost,
     },
   };
 }

@@ -974,6 +974,13 @@ export class GameEngine {
       (permanentId, printedTraits) => effectiveTraits(this.continuous, permanentId, printedTraits),
       (permanentId, printedKinds) => effectiveKinds(this.continuous, permanentId, printedKinds),
       (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
+      undefined,
+      (id, traits) =>
+        this.continuous.linkCostReductionGrant(
+          id,
+          traits,
+          (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
+        ),
     );
     return this.gameAccess;
   }
@@ -5738,6 +5745,32 @@ export class GameEngine {
       payMemory: mem.payMemory,
       linkRequirementSatisfied: (hostDefinition, linkedCard) =>
         this.linkRequirementSatisfied(hostDefinition, linkedCard),
+      linkCostReduction: (targetPermanentId, traits) =>
+        this.continuous.linkCostReductionGrant(
+          targetPermanentId,
+          traits,
+          (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
+        )?.amount ?? 0,
+      resolveLinkCostReduction: async (targetPermanentId, traits) => {
+        const grant = this.continuous.linkCostReductionGrant(
+          targetPermanentId,
+          traits,
+          (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
+        );
+        if (grant === undefined) return 0;
+        if (grant.optional === true) {
+          const response = await this.decisions.request({
+            seat: grant.controllerSeat ?? this.state.turnSeat,
+            kind: "optional",
+            promptText: `Reduce this Link cost by ${grant.amount}?`,
+          });
+          if (response.kind !== "optional" || !response.accept) return 0;
+        }
+        if (grant.oncePerTurnKey !== undefined) {
+          this.tracker.register(`link-cost/${grant.oncePerTurnKey}`, "replacement");
+        }
+        return grant.amount;
+      },
       link: (targetPermanentId, instanceIds) => this.primitives.link(targetPermanentId, instanceIds),
       ruleProcess: () => this.ruleProcess(),
     };

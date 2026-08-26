@@ -496,6 +496,15 @@ export interface GameAccess {
    * live engine always supplies it via createGameAccess from the continuous ledger.
    */
   linkCostReduction?(recipientId: string, cardTraits: readonly string[]): number;
+  linkCostReductionGrant?(
+    recipientId: string,
+    cardTraits: readonly string[],
+  ): {
+    amount: number;
+    controllerSeat?: Seat;
+    optional?: boolean;
+    oncePerTurnKey?: string;
+  } | undefined;
   /**
    * A permanent's EFFECTIVE card kinds (static def.kinds ∪ continuous KindGrants).
    * A Tamer granted Digimon kind via grantKind is a Digimon for type-check gates
@@ -1169,7 +1178,20 @@ export interface Primitives {
    * `rule implementation`): while active, a card carrying one of `traits` that would link
    * to this permanent has its link cost reduced by `amount`. `runLink`/`linkCostOf` read it.
    */
-  grantLinkCostReduction(permanentId: string, amount: number, traits: string[], duration: EffectDuration): void;
+  grantLinkCostReduction(
+    permanentId: string,
+    amount: number,
+    traits: string[],
+    duration: EffectDuration,
+    opts?: {
+      sourceInstanceId?: string;
+      controllerSeat?: Seat;
+      optional?: boolean;
+      oncePerTurnKey?: string;
+    },
+  ): void;
+  linkCostReductionUsed?(key: string): boolean;
+  markLinkCostReductionUsed?(key: string): void;
   /**
    * Grant a card kind to a permanent for a duration ("this Tamer is also treated as
    * a Digimon"). Recorded on the ContinuousEffectLedger; the permanent's effective

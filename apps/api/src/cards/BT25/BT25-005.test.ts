@@ -24,8 +24,10 @@ describe("BT25-005 Pagumon", () => {
     expect((watcher as { actions?: unknown[] }).actions?.[0]).toMatchObject({
       kind: "Digivolve",
       reduceCost: 2,
+      payCost: true,
       from: ["hand"],
       optional: true,
+      preserveOncePerTurnOnDecline: true,
     });
   });
 });

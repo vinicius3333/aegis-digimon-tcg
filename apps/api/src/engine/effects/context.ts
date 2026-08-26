@@ -136,6 +136,10 @@ export function createGameAccess(
   ) => import("@aegis/shared").CardKind[],
   baseGrantedDigivolve?: (seat: Seat, base: Permanent, evolving: CardDefinition) => { cost: number } | undefined,
   effectiveDP?: (permanentId: string) => number,
+  linkCostReductionGrant?: (
+    recipientId: string,
+    cardTraits: readonly string[],
+  ) => { amount: number; controllerSeat?: Seat; optional?: boolean; oncePerTurnKey?: string } | undefined,
 ): GameAccess {
   const player = (seat: Seat): PlayerState => {
     const p = state.players[seat];
@@ -157,6 +161,7 @@ export function createGameAccess(
     // resolver is supplied (guard-only contexts) the reduction is 0, leaving the base link cost.
     linkCostReduction: (recipientId: string, cardTraits: readonly string[]): number =>
       (linkCostReduction ?? (() => 0))(recipientId, cardTraits),
+    linkCostReductionGrant,
     hasKeyword: (permanentId: string, keyword: string): boolean => (hasKeyword ?? (() => false))(permanentId, keyword),
     canDeclareAttack,
     digivolvedThisTurn: (seat: Seat): boolean => (digivolvedThisTurn ?? (() => false))(seat),
@@ -430,6 +435,9 @@ export function gatherTriggeredEffects(
         permanent?.topCard === undefined ? printedKinds : requireCardDefinition(permanent.topCard.cardId).kinds,
       );
     },
+    undefined,
+    undefined,
+    (id, traits) => env.continuous.linkCostReductionGrant(id, traits),
   );
   const lookup = createCardStateLookup(env.state);
 

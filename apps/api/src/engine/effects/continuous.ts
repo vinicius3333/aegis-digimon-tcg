@@ -213,7 +213,7 @@ interface LinkMaxGrant {
  * matching grant rather than their sum. Real authoritative state, never client-supplied; cleared
  * and re-derived each continuous-recompute pass (CR-01) like every other continuous grant.
  */
-interface LinkCostReductionGrant {
+export interface LinkCostReductionGrant {
   /** The link recipient the reduction is installed on. */
   permanentId: string;
   /** Magnitude of the reduction (positive). */
@@ -222,6 +222,10 @@ interface LinkCostReductionGrant {
   traits: string[];
   duration: EffectDuration;
   continuous?: boolean;
+  sourceInstanceId?: string;
+  controllerSeat?: Seat;
+  optional?: boolean;
+  oncePerTurnKey?: string;
 }
 
 interface KindGrant {
@@ -1137,7 +1141,13 @@ export class ContinuousEffectLedger {
     amount: number,
     traits: string[],
     duration: EffectDuration,
-    opts?: { continuous?: boolean },
+    opts?: {
+      continuous?: boolean;
+      sourceInstanceId?: string;
+      controllerSeat?: Seat;
+      optional?: boolean;
+      oncePerTurnKey?: string;
+    },
   ): void {
     this.linkCostReductionGrants.push({
       permanentId,
@@ -1145,6 +1155,10 @@ export class ContinuousEffectLedger {
       traits: traits.map((t) => t.toLowerCase()),
       duration,
       continuous: opts?.continuous,
+      sourceInstanceId: opts?.sourceInstanceId,
+      controllerSeat: opts?.controllerSeat,
+      optional: opts?.optional,
+      oncePerTurnKey: opts?.oncePerTurnKey,
     });
   }
 
@@ -1155,13 +1169,23 @@ export class ContinuousEffectLedger {
    * no `traits` (empty) applies to any would-link card.
    */
   linkCostReduction(recipientId: string, cardTraits: readonly string[]): number {
+    return this.linkCostReductionGrant(recipientId, cardTraits)?.amount ?? 0;
+  }
+
+  /** Highest matching declaration-time grant that has not been consumed. */
+  linkCostReductionGrant(
+    recipientId: string,
+    cardTraits: readonly string[],
+    used: (key: string) => boolean = () => false,
+  ): LinkCostReductionGrant | undefined {
     const lowered = cardTraits.map((t) => t.toLowerCase());
-    let best = 0;
+    let best: LinkCostReductionGrant | undefined;
     for (const g of this.linkCostReductionGrants) {
       if (g.permanentId !== recipientId) continue;
+      if (g.oncePerTurnKey !== undefined && used(g.oncePerTurnKey)) continue;
       const traitOk = g.traits.length === 0 || g.traits.some((t) => lowered.includes(t));
       if (!traitOk) continue;
-      if (g.amount > best) best = g.amount;
+      if (best === undefined || g.amount > best.amount) best = g;
     }
     return best;
   }

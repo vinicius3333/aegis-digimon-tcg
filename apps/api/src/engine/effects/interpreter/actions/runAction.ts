@@ -266,7 +266,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // player may choose to USE the card; asking again while recomputing a hand
     // card makes the permission inert in continuous contexts (EX1-071, BT6 Options).
     action.kind !== "WaiveColorRequirement" &&
-    action.optional
+    action.optional && action.cost?.optional !== true
   ) {
     if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
       return action.abortOnDecline === true;
@@ -460,7 +460,14 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ) {
     if (action.cost.optional) {
       const willPay = await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`);
-      if (willPay) await payCost(ctx, action.cost, costPayment);
+      if (willPay) {
+        const paid = await payCost(ctx, action.cost, costPayment);
+        if (!paid) return action.abortOnDecline === true;
+      } else if (action.abortOnDecline === true) {
+        // A clause may make only its processing condition optional; refusal skips
+        // the remaining effect even when the payload itself is not optional.
+        return true;
+      }
     } else {
       const deferSuspendTriggers = action.kind === "Attack" && action.cost.kind === "suspend";
       const paid = await payCost(ctx, action.cost, costPayment, { deferSuspendTriggers });
@@ -480,6 +487,15 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         const isSecurityTrashCost = action.cost.kind === "trash" && action.cost.target?.filter.zone === "security";
         return action.abortOnDecline === true || isDigiBurstCost || isSecurityTrashCost;
       }
+    }
+  }
+  // When both the processing condition and payload are optional, pay the former
+  // first, then offer the payload choice (e.g. Q6255: trash, then decline return).
+  if (action.optional && action.cost?.optional === true) {
+    const yes = await ctx.ask.optional(ctx, describeAction(action));
+    if (!yes) {
+      ctx.lastEffectActed = false;
+      return action.abortOnDecline === true;
     }
   }
   if (
