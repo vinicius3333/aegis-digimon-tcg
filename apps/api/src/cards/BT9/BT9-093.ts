@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q1896: cannot ignore digivolution requirements.
 // Fixes: into filter was raw string — replaced with proper Filter struct; payCost:true;
 // ignoreRequirements:false (explicit per KB).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
