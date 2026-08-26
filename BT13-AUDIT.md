@@ -152,7 +152,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-054 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing optional free exact-name Yoshino hand play on evolution and inherited own-turn Security Attack +1 only while an opponent Digimon is suspended.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-054.test.ts` passed (5 tests): Yoshino positive/refusal/wrong-Tamer paths, dynamic suspension/turn aura boundaries, and evolution cost.
-- BT13-055 — Pending
+- BT13-055 — 10/10
+  - Evidence: catalog and KB Q2298 reviewed; completed the preserved WIP using exclusive `registerIrCard`, correcting Ruli ownership gating and atomically binding the paid hand SymbareAngoramon bottom-source placement to the selected Angoramon hand evolution host.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-055.test.ts` passed (7 tests): full hand evolution, missing Ruli/Symbare negatives, exact bottom placement, inherited own-turn frequency, normal evolution, and Q2298 inherited-security-before-Piercing ordering.
 - BT13-056 — Pending
 - BT13-057 — Pending
 - BT13-058 — Pending
