@@ -1,8 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-096.js";
+import { compiled } from "./BT11-096.js";
 
 describe("BT11-096 Magma Bomb", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-096")).toMatchObject({ cardId: "BT11-096", colors: ["Red"], kinds: ["Option"], playCost: 6 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
+      { trigger: "Main", actions: [{ kind: "Delete" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+    ]);
+  });
+
   it("costs 1 less with a red Tamer and deletes only a lowest-DP Digimon", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
