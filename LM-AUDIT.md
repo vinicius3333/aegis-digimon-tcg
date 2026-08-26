@@ -107,3 +107,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   optional 2000-DP-or-lower play; Security is the independent optional play followed by self hand
   return. Existing behavioral fixtures prove those positive and no-opponent/over-2000 boundaries.
 - The focused fixtures remain unrun under PID 43774, so LM-031 remains below 10/10.
+
+## LM-032 — Purple Scramble — pending focused execution
+
+- Catalog and Q4058-Q4062 align with the direct IR: purple Digimon-only ordinary legal hand
+  evolution reduced by three and self placement, excluding altered routes and Tamers; the
+  opponent-Digimon-gated Delay mandates a purple-trash return before optional small-purple play.
+- Security's optional 2000-DP-or-lower purple revival and self hand return are separately
+  compiled. Existing behavioral tests cover the positive paths plus no-opponent and over-2000
+  negative boundaries.
+- The focused suite is intentionally unrun while PID 43774 holds the test slot, so LM-032 remains
+  below 10/10.
