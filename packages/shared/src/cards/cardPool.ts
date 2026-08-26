@@ -116,7 +116,13 @@ const PRODUCT_RELEASES: Readonly<Record<string, ProductRelease>> = {
  * before the product they shipped with. Nothing resolves differently today because these
  * dates only order and label products, but a promo audit is still owed.
  */
-const PROMO_PRODUCTS: ReadonlyArray<Readonly<{ date: ReleaseDate; cardIds: string }>> = [
+interface PromoProduct {
+  date: ReleaseDate;
+  cardIds: string;
+  label?: string;
+}
+
+const PROMO_PRODUCTS: ReadonlyArray<Readonly<PromoProduct>> = [
   { date: "2020-11-16", cardIds: "001 002 003 004 005 006" }, // Promotion Pack Ver. 0.0
   { date: "2021-02-12", cardIds: "007 008 009 010 011 012" }, // Special Box Promotion Pack
   { date: "2021-02-01", cardIds: "013 014 015 016 017 018 019 020" }, // Tournament Pack Vol. 1
@@ -128,7 +134,7 @@ const PROMO_PRODUCTS: ReadonlyArray<Readonly<{ date: ReleaseDate; cardIds: strin
   { date: "2022-02-04", cardIds: "047 048" }, // Next Adventure pre-release
   { date: "2022-02-11", cardIds: "049 050 051 052 053 054 055 056 057" }, // BT7/TP Vol. 4
   { date: "2022-03-11", cardIds: "058 059 060 061 062 063 064" }, // BT8/TP Vol. 5
-  { date: "2022-10-14", cardIds: "065" }, // ST11 Special Entry Pack
+  { date: "2022-10-14", cardIds: "065", label: "ST11 Special Entry Pack" },
   { date: "2023-04-28", cardIds: "066 067 068 069 070 071" }, // BT12 Limited Card Pack
   { date: "2022-07-29", cardIds: "072 073 074 075 076 077 078" }, // BT9 Update Pack
   { date: "2023-02-15", cardIds: "079 080 081" }, // Tamer Party Vol. 7
@@ -180,6 +186,12 @@ export function releaseDateForCard(card: CardReference): ReleaseDate | undefined
     return PROMO_RELEASE_DATES[card.cardId];
   }
   return PRODUCT_RELEASES[card.set]?.date;
+}
+
+/** The committed promo-card inventory for a named product, in catalog order. */
+export function promoProductCardIds(productLabel: string): string[] {
+  const product = PROMO_PRODUCTS.find(({ label }) => label === productLabel);
+  return product?.cardIds.split(" ").map((number) => `P-${number}`) ?? [];
 }
 
 /** Every non-promo product, oldest release first. */
