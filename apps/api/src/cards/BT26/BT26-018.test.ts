@@ -14,7 +14,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, Primitives } from "../../engine/effects/EffectContext.js";
-import "./BT26-018.js";
+import { compiled } from "./BT26-018.js";
 import "../index.js";
 
 const CARD_ID = "BT26-018";
@@ -108,6 +108,57 @@ describe("BT26-018 reveal movement boundaries", () => {
 });
 
 describe("BT26-018 public engine behavior", () => {
+  it("models the printed Rule trait and the Aqua/Sea Animal substring filters", () => {
+    expect(compiled.effects.find((effect) => effect.trigger === "Rule")).toMatchObject({
+      actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Aquatic"] }],
+    });
+    const add = compiled.effects.find((effect) => effect.trigger === "OnPlay")!.actions[0]! as {
+      kind: string;
+      add: { filter: { nameOrTrait?: { tokens: string[]; match: string }[] }; orFilters?: unknown[] }[];
+    };
+    expect(add.add[0]!.filter.nameOrTrait).toEqual([{ tokens: ["Aqua"], match: "traitContains" }]);
+    expect(add.add[0]!.orFilters).toEqual([
+      { nameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }] },
+      { nameOrTrait: [{ tokens: ["DS"], match: "trait" }] },
+    ]);
+    expect(definitionMatches(add.add[0]!.filter as never, requireCardDefinition("BT15-025"))).toBe(true);
+    expect(definitionMatches(add.add[0]!.filter as never, requireCardDefinition("BT1-033"))).toBe(false);
+    expect(definitionMatches(add.add[0]!.orFilters![0] as never, requireCardDefinition("BT1-033"))).toBe(true);
+    expect(definitionMatches(add.add[0]!.orFilters![0] as never, requireCardDefinition("BT1-009"))).toBe(false);
+  });
+
+  it("adds a card with the Aqua substring and leaves the other revealed cards on the deck bottom", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "sangomon" }],
+          deck: [
+            { card: "BT15-025", as: "aquatic" },
+            { card: "BT1-009", as: "plainOne" },
+            { card: "BT1-010", as: "plainTwo" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-083", as: "target", under: [{ card: "BT1-001", as: "bottom" }] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sangomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").stack.length === 0 && s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("aquatic").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("plainOne").instanceId,
+      s.inst("plainTwo").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("bottom").instanceId);
+  });
+
   it("matches its rule-granted Aquatic trait while it is a loose card", () => {
     const sangomon = requireCardDefinition(CARD_ID);
 

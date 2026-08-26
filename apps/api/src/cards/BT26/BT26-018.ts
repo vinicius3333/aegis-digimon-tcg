@@ -8,9 +8,9 @@ const revealAndTrash = [
     revealCount: 3,
     add: [
       {
-        filter: { nameOrTrait: [{ tokens: ["Aqua"], match: "trait" }] },
+        filter: { nameOrTrait: [{ tokens: ["Aqua"], match: "traitContains" }] },
         orFilters: [
-          { nameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
+          { nameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }] },
           { nameOrTrait: [{ tokens: ["DS"], match: "trait" }] },
         ],
         count: 1,
@@ -33,7 +33,7 @@ export const compiled: CompiledCard = {
     { trigger: "WhenMoving", actions: revealAndTrash },
     { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }] },
     {
-      trigger: "Static",
+      trigger: "Rule",
       actions: [
         {
           kind: "GrantStatic",

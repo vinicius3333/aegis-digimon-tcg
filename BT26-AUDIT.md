@@ -805,3 +805,53 @@ git diff --check
 ```
 
 No card implementation change was necessary. One focused test was added to prove the inclusive cost-5 Tamer branch and own-trash controller boundary. Only this BT26-017 ledger section and its focused test addition are left uncommitted for coordinator review; no commit or push was made.
+
+## BT26-018 — Sangomon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-018` (`Sangomon`), a blue level 3 Rookie Digimon with 1000 DP, Data attribute, and `Mollusk`/`DS` traits. Its normal evolution requirement is blue Lv.2 for 0; its alternate requirement is `[Digivolve] Lv.2 w/[DS] trait: Cost 0`. The printed effects are `[When Moving] [On Play] Reveal the top 3 cards of your deck. Add 1 card with [Aqua] or [Sea Animal] in any of its traits or 1 card with the [DS] trait among them to the hand. Return the rest to the bottom of the deck. Then, trash the bottom digivolution card of 1 of your opponent's Digimon`; `[Rule] Trait: Has [Aquatic] Type`; and inherited `＜Jamming＞`.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-018`; it reports no knowledge-base entries, errata, restrictions, or unresolved card-specific rulings. The applicable comprehensive/manual rules cover exact effect ordering, mandatory processing, private deck state and bottom-deck ordering, On Play/When Moving timing, inherited effects, and bottom digivolution-card processing.
+- Comprehensive Rules evidence: §15-1-2/§15-1-4/§15-1-5 establish printed processing order and mandatory processing; §15-3-1/§15-3-2 establish inherited-effect activation by a host Digimon; §15-16-2 and the movement timing rules establish On Play and movement triggers; §3-1/§3-2 and the manual's “Returning Revealed Cards to the Deck” ruling establish revealed-card ordering and face-down private deck placement; and the digivolution-stack rules establish the bottom card as the first card in stack order.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-018.ts` is an IR-only module. The shared `revealAndTrash` body is attached to both `OnPlay` and `WhenMoving`, revealing exactly three cards, selecting exactly one from the union of the `[Aqua]`/`[Sea Animal]` substring branches and the `[DS]` exact-trait branch, returning every unselected revealed card to the deck bottom in controller-selected order, then trashing exactly one bottom digivolution card from exactly one opposing Digimon. The `[Aqua]` and `[Sea Animal]` branches use `traitContains`, matching the printed “in any of its traits” semantics and the repository's Aquatic/Aqua precedent; `[DS]` remains exact trait matching.
+- The alternate evolution requirement is represented as level 2, `[DS]`, cost 0, alternate. `[Rule] Trait: Has [Aquatic] Type` is represented by a `Rule` `GrantStatic` action, and inherited Jamming is represented as an inherited static keyword. The module declares `coverage: "full"` with an empty residual list.
+- Registration is exclusively `registerIrCard("BT26-018", compiled)`; `rg` found no `registerCard("BT26-018"` registration. Relevant peers inspected included BT18-020/BT18-023, BT19-017/BT19-024, EX6-013, EX8-029, and BT26-019/BT26-020, plus the shared RevealAdd, TrashDigivolution, trait-matching, deck, and inherited-keyword seams.
+
+### Behavioral proof
+
+The focused `apps/api/src/cards/BT26/BT26-018.test.ts` suite has 9 passing tests proving:
+
+- the RevealAdd union and the exact/substring distinction for Aqua, Sea Animal, DS, and a non-matching card;
+- the printed Rule trait shape and runtime Aquatic trait visibility;
+- actual On Play reveal of an Aquatic card through the `[Aqua]` substring branch, bottom-deck return of the two remaining cards, and subsequent trashing of the opponent's bottom stack card;
+- actual DS-branch hand addition, remainder ordering, memory payment, and opposing bottom-card trash;
+- the shared When Moving body firing only for movement from breeding while processing the follow-up trash clause;
+- inherited Jamming applying only when Sangomon is a host's evolution card, with a real losing security battle surviving, while a top-card Sangomon does not gain Jamming;
+- the exact alternate Lv.2 DS evolution path at cost 0 and rejection of a non-DS base; and
+- no self/opponent leakage in trait or target handling.
+
+The focused and regression suites resolve the full effect stack and assert observable hand/deck/trash/stack state, controller ownership, bottom-card boundaries, evolution transitions, keyword inheritance, and public trait matching. No unresolved card-text ambiguity remains.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-018
+  PASS (no knowledge-base entries; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-018.test.ts
+  PASS (1 file, 9 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-018.test.ts src/cards/BT18/BT18-023.test.ts src/cards/BT19/BT19-024.test.ts
+  PASS (3 files, 18 tests)
+pnpm --filter @aegis/api exec vitest run src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/conformance/ch02-card-information.test.ts
+  PASS (3 files, 343 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-018.ts apps/api/src/cards/BT26/BT26-018.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+The card implementation and focused tests were adjusted to correct the Aqua/Sea Animal substring matching and to encode the printed Rule line as a Rule effect. Only this BT26-018 section and its focused proof additions are left uncommitted for coordinator review; no commit or push was made.
