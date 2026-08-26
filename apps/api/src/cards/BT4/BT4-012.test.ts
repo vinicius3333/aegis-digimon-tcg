@@ -32,4 +32,31 @@ describe("BT4-012 GeoGreymon", () => {
     expect(s.state.players[0]!.battleArea).toContain(geo);
     expect(s.state.players[0]!.trash).toHaveLength(2);
   });
+
+  it("cannot delete an opposing Digimon with more than 4000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT4-012", as: "geo", under: ["BT1-001", "BT4-008"] }] },
+        1: { battleArea: [{ card: "BT1-009", dp: 5000, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const geo = s.perm("geo");
+    const targetId = s.perm("target").permanentId;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(geo.topCard!)).find((e) =>
+      e.effectKey.startsWith("BT4-012/"),
+    )?.effectKey;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: geo.topCard!.instanceId,
+        effectKey: effectKey!,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => geo.stack.length === 0, 5000);
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(2);
+  });
 });
