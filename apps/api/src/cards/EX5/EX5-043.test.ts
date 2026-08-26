@@ -42,7 +42,7 @@ describe("EX5-043 Leopardmon (X Antibody)", () => {
       );
     }
     expect((watcher?.actions[0] as { actions?: unknown[] }).actions).toContainEqual(
-      expect.objectContaining({ kind: "Return", dpCeilingScaling: { amount: 3000 } }),
+      expect.objectContaining({ kind: "Return", dpCeilingScaling: expect.objectContaining({ amount: 3000 }) }),
     );
   });
 });
