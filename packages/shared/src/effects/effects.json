@@ -11219,7 +11219,7 @@
   "BT11-063": {
     "effects": [
       {
-        "trigger": "Static",
+        "trigger": "Rule",
         "actions": [
           {
             "kind": "GrantStatic",
