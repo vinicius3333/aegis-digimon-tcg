@@ -162,3 +162,20 @@ Remaining work is behavioral proof of selection and exact draw boundaries; this 
 10. **Reproducible behavioral proof (0/1):** Existing tests were not executed in this static-only pass; same-target enforcement, duration, and Security boundaries remain unproven.
 
 Remaining work is to bind the suspended target into the Restrict action (or establish an engine guarantee that sequential selectors preserve it), then add behavioral proof. This card is not formally complete at 10/10.
+
+## BT7-102 — Dino Memory Boost! — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a Green Option costing 3 with Main suspend→placement, Delay gain-2-memory, and Security placement.
+2. **Main suspend and ordering (1/1):** Main suspends exactly one opponent Digimon, then places this card in its battle area.
+3. **Delay lifecycle (1/1):** The Delay branch deletes this card from its battle area before gaining 2 memory and is marked with the Delay keyword.
+4. **Security behavior (1/1):** Security places this card in its owner's battle area.
+5. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-102` reports no rulings or unresolved ambiguity.
+6. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-102", compiled)` registration are present.
+7. **Static primitive trace (1/1):** Opponent Digimon filter, exact count, self-placement, self-delete, gain amount, and Delay keyword are explicit.
+8. **Clause completeness (1/1):** All printed Main, Delay, and Security clauses map to direct actions.
+9. **Shared-use identity (1/1):** The Delay branch uses a stable `sharedUseKey`, preserving the once-per-card activation identity expected by the engine's Delay lifecycle.
+10. **Reproducible behavioral proof (0/1):** No test was executed in this static-only pass; suspend ordering, placement, same-turn Delay lockout, memory gain, and Security behavior remain unproven.
+
+Remaining work is focused behavioral proof of the Main/Delay/Security lifecycle; this card is not formally complete at 10/10.
