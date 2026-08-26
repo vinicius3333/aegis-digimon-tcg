@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-104.js";
+import { compiled } from "./BT11-104.js";
 
 describe("BT11-104 Buster Dive", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-104")).toMatchObject({ cardId: "BT11-104", colors: ["Green"], kinds: ["Option"], playCost: 4 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
+      { trigger: "Main", actions: [{ kind: "SelectBind" }, { kind: "ModifyDP", amount: 5000 }, { kind: "Attack" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "AddToHandSelf" }] },
+    ]);
+  });
+
   it("gives one own Digimon +5000 DP and Rush", async () => {
     const s = setupEngine(
       {
