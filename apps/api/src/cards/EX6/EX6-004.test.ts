@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-004.js";
 
 describe("EX6-004 Kokomon", () => {
@@ -24,5 +26,22 @@ describe("EX6-004 Kokomon", () => {
         },
       ],
     });
+  });
+
+  it("gains +2000 DP once when one of its controller's effects suspends a Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX6-007", as: "host", under: ["EX6-004"] },
+          { card: "BT1-009", as: "subject" },
+        ],
+      },
+    });
+    await s.ready();
+    const before = s.perm("host").currentDP;
+
+    await advance(s.engine).verb.suspend([s.perm("subject").permanentId], 0);
+    expect(s.perm("subject").isSuspended).toBe(true);
+    expect(s.perm("host").currentDP).toBe(before + 2000);
   });
 });

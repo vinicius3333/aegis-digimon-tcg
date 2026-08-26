@@ -72,6 +72,8 @@ export type SubTriggerEvent =
 export interface SubTriggerAction extends ActionBase {
   kind: "SubTrigger";
   event: SubTriggerEvent;
+  /** Restrict a leave-play watcher by the cause of the departure. */
+  leaveCause?: "opponentEffect" | "byOpponentEffect" | "otherThanYourEffect" | "byEffect" | "byBattle" | "otherThanBattle" | "any";
   /** For whenHandTrashed, select whose hand must have been trashed. Defaults to mine. */
   handTrashedController?: "mine" | "opponent";
   /**

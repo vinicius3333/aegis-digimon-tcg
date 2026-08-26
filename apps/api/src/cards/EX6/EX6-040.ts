@@ -70,6 +70,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          sourceFilter: {
+            isSelfRef: true,
+          },
           actions: [
             {
               kind: "GainKeyword",

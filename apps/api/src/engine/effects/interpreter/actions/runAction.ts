@@ -53,6 +53,16 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
 }
 
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
+  // A placement tally is scoped to this action's current resolution.  In particular, a
+  // declined/blocked optional placement must overwrite a prior activation's count rather
+  // than allowing a later conditional to borrow it (EX6-073 Q3825).
+  if (action.kind === "PlaceUnder") {
+    if (action.trackCount !== undefined || action.trackDistinctNames !== undefined) {
+      ctx.namedCounts ??= new Map();
+      if (action.trackCount !== undefined) ctx.namedCounts.set(action.trackCount, 0);
+      if (action.trackDistinctNames !== undefined) ctx.namedCounts.set(action.trackDistinctNames, 0);
+    }
+  }
   if (action.kind === "PlayWithoutCost" && action.target.filter?.sameColorAsReturned === true) {
     ctx.lastReturnedColors = undefined;
   }
@@ -101,15 +111,22 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.playCostCeiling !== undefined ||
       action.scaling !== undefined ||
       action.target.filter?.playCostLteScaling !== undefined);
+  const placementCosts = [
+    ...(action.cost?.kind === "place" ? [action.cost] : []),
+    ...(action.additionalCost?.kind === "place" ? [action.additionalCost] : []),
+    ...((action.additionalCosts ?? []).filter((cost): cost is Cost => cost.kind === "place")),
+  ];
   const placeCostProducesDeleteTarget =
     action.kind === "Delete" &&
-    action.cost?.kind === "place" &&
-    ((action.cost.storeAs !== undefined && action.target.filter.levelEq === action.cost.storeAs) ||
-      (action.cost.storeAs !== undefined &&
-        action.target.filter.levelComparison?.scaling?.unit === "namedCount" &&
-        action.target.filter.levelComparison.scaling.countSource === action.cost.storeAs) ||
-      (action.cost.bindResultAs !== undefined &&
-        action.target.filter.levelComparison?.relativeTo === action.cost.bindResultAs));
+    placementCosts.some(
+      (cost) =>
+        (cost.storeAs !== undefined && action.target.filter.levelEq === cost.storeAs) ||
+        (cost.storeAs !== undefined &&
+          action.target.filter.levelComparison?.scaling?.unit === "namedCount" &&
+          action.target.filter.levelComparison.scaling.countSource === cost.storeAs) ||
+        (cost.bindHostAs !== undefined && action.target.filter.relativeTo?.selectionRef === cost.bindHostAs) ||
+        (cost.bindResultAs !== undefined && action.target.filter.levelComparison?.relativeTo === cost.bindResultAs),
+    );
   // A "by deleting 1 of your Digimon, delete 1 with a level no higher than it" target
   // cannot be matched until the deleteOwn cost captures `lastDeletedLevel`.  Preflighting
   // it before payment makes the target set look empty and silently skips the whole action.

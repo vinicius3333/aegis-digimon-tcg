@@ -82,6 +82,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "opponent",
+                unsuspended: true,
                 kind: ["Digimon"],
                 levelComparison: {
                   op: "lte",
@@ -135,7 +136,7 @@ export const compiled: CompiledCard = {
               },
               underFilter: {
                 controller: "mine",
-                zone: "breedingArea",
+                zone: "breeding",
                 nameOrTrait: [
                   {
                     tokens: ["Gate of Deadly Sins"],

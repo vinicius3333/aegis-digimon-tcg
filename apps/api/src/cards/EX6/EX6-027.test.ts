@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-027.js";
 
-describe("EX6-027 Angewomon", () => {
+describe("EX6-027 Ophanimon", () => {
   it("has Blast Digivolve and gates an -8000 DP effect behind trashing security", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Counter")?.keywords?.[0]?.keyword).toBe(
       "BlastDigivolve",

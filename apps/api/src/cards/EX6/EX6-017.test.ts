@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-017.js";
 
-describe("EX6-017 Salamon", () => {
+describe("EX6-017 Luxmon", () => {
   it("reveals three and adds up to Angel/Archangel and Three Great Angels cards", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "RevealAdd",

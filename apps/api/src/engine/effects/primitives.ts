@@ -2925,7 +2925,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
         });
         // whenLeavesPlay is the superset event (delete + bounce); deletion is one path.
-        await engine.fireSubTrigger("whenLeavesPlay", { deletedPermanentId: permanentId });
+        await engine.fireSubTrigger("whenLeavesPlay", {
+          deletedPermanentId: permanentId,
+          deletedControllerSeat: deleted.controllerSeat,
+          removalCause: cause,
+          ...(cause === "byEffect" ? { byEffectSeat: effectSeatStack.at(-1) ?? engine.controllerSeat() } : {}),
+        });
         // whenTrashedByEffect (CAP-E8): fires only when this deletion was effect-driven.
         // The permanent is still live here so the watcher's sourceFilter.isSelfRef can match.
         if (cause === "byEffect") {
@@ -3413,7 +3418,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * `collectForReturn` removes the permanent and tears down its subscriptions, so every
    * hand/deck/egg-deck/security destination must cross this awaited boundary first.
    */
-  const fireWhenReturnedPermanentsLeave = async (instanceIds: string[]): Promise<void> => {
+  const fireWhenReturnedPermanentsLeave = async (
+    instanceIds: string[],
+    opts?: { byEffectSeat?: Seat },
+  ): Promise<void> => {
     if (engine.fireSubTrigger === undefined) return;
     const fired = new Set<string>();
     for (const instanceId of instanceIds) {
@@ -3424,7 +3432,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       }
       if (permanent === undefined || fired.has(permanent.permanentId)) continue;
       fired.add(permanent.permanentId);
-      await engine.fireSubTrigger("whenLeavesPlay", { deletedPermanentId: permanent.permanentId });
+      const byEffectSeat = opts?.byEffectSeat ?? effectSeatStack.at(-1);
+      await engine.fireSubTrigger("whenLeavesPlay", {
+        deletedPermanentId: permanent.permanentId,
+        deletedControllerSeat: permanent.controllerSeat,
+        removalCause: byEffectSeat === undefined ? "byRule" : "byEffect",
+        ...(byEffectSeat === undefined ? {} : { byEffectSeat }),
+      });
     }
   };
 
@@ -3466,7 +3480,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (targetedPermanentId === undefined) return true;
       return access.permanentById(targetedPermanentId)?.topCard?.instanceId === instanceId;
     });
-    await fireWhenReturnedPermanentsLeave(instanceIds);
+    await fireWhenReturnedPermanentsLeave(instanceIds, opts);
     // Record which of the requested instances start in TRASH before the move, for
     // whenCardReturnsFromTrashToHand (BT15-082/BT16-011: "a card returns from your trash to
     // your hand") — the move itself is zone-agnostic, so the origin must be captured now.
@@ -3628,7 +3642,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (host !== undefined) stackReturns.push({ ...host, instanceId });
       }
     }
-    await fireWhenReturnedPermanentsLeave(instanceIds);
+    await fireWhenReturnedPermanentsLeave(instanceIds, opts);
     // Collect the entire batch before reinserting any card. Some callers order cards that are
     // already in the destination deck (RevealAdd keeps revealed cards face-up in place); a
     // collect-and-insert loop mutates that deck between removals and can invert the requested
@@ -3739,10 +3753,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
 
         const removableCount = Math.min(selected.length, completeStack.length - 1);
-        const removable = completeStack.slice(-removableCount);
+        const removable = opts?.position === "bottom"
+          ? completeStack.slice(0, removableCount)
+          : completeStack.slice(-removableCount);
         if (removableCount === 0 || removable.some((card) => !requested.has(card.instanceId))) continue;
 
-        const remaining = completeStack.slice(0, -removableCount);
+        const remaining = opts?.position === "bottom"
+          ? completeStack.slice(removableCount)
+          : completeStack.slice(0, -removableCount);
         const promoted = remaining.at(-1);
         if (promoted === undefined) continue;
         permanent.stack.splice(0, permanent.stack.length, ...remaining.slice(0, -1));
@@ -3767,7 +3785,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const deck = definition.kinds.includes(CardKind.DigiEgg)
         ? player(card.ownerSeat).eggDeck
         : player(card.ownerSeat).deck;
-      deck.unshift(card);
+      if (opts?.position === "bottom") deck.push(card);
+      else deck.unshift(card);
     }
     if (moved.length === 0) return [];
 

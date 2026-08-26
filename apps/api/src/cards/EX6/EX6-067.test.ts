@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-067.js";
 
-describe("EX6-067 Dominimon", () => {
+describe("EX6-067 Final Excalibur", () => {
   it("unsuspends one Angel-family Digimon without Dominimon, or all with Dominimon", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions).toMatchObject([
       { kind: "Unsuspend", target: { count: 1 }, condition: { kind: "youHaveNone" } },

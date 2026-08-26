@@ -395,6 +395,16 @@ export async function runPlaceUnder(
     if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
     ctx.namedCounts.set(action.trackCount, chosen.length);
   }
+  if (action.trackDistinctNames !== undefined) {
+    const names = new Set(
+      chosen.map((instanceId) => {
+        const candidate = candidates.find((entry) => entry.instanceId === instanceId);
+        return candidate === undefined ? instanceId : ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn;
+      }),
+    );
+    ctx.namedCounts ??= new Map();
+    ctx.namedCounts.set(action.trackDistinctNames, names.size);
+  }
 }
 
 /**

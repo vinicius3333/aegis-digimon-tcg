@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { PlayerState, Zone } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { candidateLooseInstances, pickLoose } from "../../engine/effects/interpreter/targeting/loose.js";
 import { compiled } from "./EX6-073.js";
 import "../index.js";
 
@@ -75,9 +76,9 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
         },
         1: {
           battleArea: [
-            { card: OPP_DIGIMON, dp: 1000 },
-            { card: OPP_DIGIMON, dp: 1000 },
-            { card: OPP_DIGIMON, dp: 1000 },
+            { card: OPP_DIGIMON, dp: 1000, suspended: true, as: "oppOne" },
+            { card: OPP_DIGIMON, dp: 1000, as: "oppTwo" },
+            { card: OPP_DIGIMON, dp: 1000, as: "oppThree" },
           ],
         },
       },
@@ -93,7 +94,9 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: ogudomon.permanentId,
-        target: { kind: "player" },
+        // Attack a permanent rather than the player: this isolates the effect's security
+        // trash from battle-security checks, so the Q3827 value is exact.
+        target: { kind: "permanent", permanentId: s.perm("oppOne").permanentId },
       }),
     ).toEqual({ ok: true });
 
@@ -110,7 +113,7 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
     expect(p1.battleArea.filter((p) => p.topCard?.cardId === OPP_DIGIMON).length).toBe(0);
     // The effect trashes (7 - 3) = 4 security cards.
     const totalTrash = secBefore - p1.security.length;
-    expect(totalTrash).toBeGreaterThanOrEqual(4);
+    expect(totalTrash).toBe(4);
   });
 });
 
@@ -131,5 +134,130 @@ describe("EX6-073 [When Digivolving] places SGDL from trash; 4+ placed deletes 1
     expect(compiled.coverage).toBe("full");
     expect(text).toContain("ex6-073-deleted");
     expect(text).toContain("Seven Great Demon Lords");
+  });
+});
+
+describe("EX6-073 activation-local distinct-name contracts", () => {
+  it("requires distinct names for placement and an exact self-stack seven-card payment", () => {
+    const placements =
+      compiled.effects?.flatMap((effect) => effect.actions ?? []).filter((action) => action.kind === "PlaceUnder") ??
+      [];
+    const paidDelete = compiled.effects
+      ?.flatMap((effect) => effect.actions ?? [])
+      .find((action) => action.kind === "Delete" && action.cost?.kind === "return");
+
+    expect(placements).toHaveLength(2);
+    for (const placement of placements) {
+      expect(placement).toMatchObject({
+        target: { count: 7, upTo: true, distinctNames: true },
+        trackCount: "ex6-073-placed",
+        trackDistinctNames: "ex6-073-placed",
+      });
+    }
+    expect(paidDelete).toMatchObject({
+      optional: true,
+      abortOnDecline: true,
+      target: { count: 7 },
+      cost: {
+        kind: "return",
+        position: "bottom",
+        target: {
+          count: 7,
+          isSelfRef: true,
+          distinctNames: true,
+          filter: { zone: "digivolutionCards", sameHost: true },
+        },
+      },
+    });
+  });
+
+  it("resolves only this Digimon's stack and deduplicates a hostile duplicate-name selection", async () => {
+    const self = {
+      permanentId: "ogudomon-host",
+      stack: [
+        { instanceId: "self-a", cardId: "A", ownerSeat: 0, faceUp: true },
+        { instanceId: "self-b", cardId: "B", ownerSeat: 0, faceUp: true },
+      ],
+      linked: [],
+      topCard: { instanceId: "ogudomon-top", cardId: OGUDOMON, ownerSeat: 0 },
+    };
+    const unrelated = {
+      permanentId: "other-host",
+      stack: [{ instanceId: "other-a", cardId: "C", ownerSeat: 0, faceUp: true }],
+      linked: [],
+      topCard: { instanceId: "other-top", cardId: OPP_DIGIMON, ownerSeat: 0 },
+    };
+    const names: Record<string, string> = { A: "Belphemon", B: "Leviamon", C: "Lilithmon", D: "Belphemon" };
+    const ctx = {
+      source: { ownerSeat: 0, instanceId: "ogudomon-top", permanent: () => self },
+      game: {
+        player: (seat: number) => ({
+          hand: [],
+          trash: [],
+          deck: [],
+          security: [],
+          battleArea: seat === 0 ? [self, unrelated] : [],
+          breeding: undefined,
+        }),
+        opponentOf: () => 1,
+        definitionOf: ({ cardId }: { cardId: string }) => ({
+          cardId,
+          nameEn: names[cardId] ?? cardId,
+          kinds: [],
+          colors: [],
+          types: ["Seven Great Demon Lords"],
+          playCost: 0,
+        }),
+      },
+    } as never;
+    const target = {
+      filter: { controller: "mine", zone: "digivolutionCards", isSelfRef: true },
+      count: 7,
+    } as never;
+
+    const selfStack = candidateLooseInstances(ctx, target, ["digivolutionCards"]);
+    expect(selfStack.map((card) => card.instanceId)).toEqual(["self-a", "self-b"]);
+
+    const deduped = await pickLoose(
+      ctx,
+      { filter: { distinctNames: true }, count: 2, upTo: true } as never,
+      [...selfStack, { instanceId: "duplicate-a", cardId: "D", ownerSeat: 0 }],
+      undefined,
+      { selectCards: async () => ["self-a", "duplicate-a"] } as never,
+    );
+    expect(deduped).toEqual(["self-a"]);
+  });
+
+  it("keeps ordinary self references scoped to the source loose card outside hosted zones", () => {
+    const sourceCard = { instanceId: "source-in-hand", cardId: "A", ownerSeat: 0 };
+    const otherCard = { instanceId: "other-in-hand", cardId: "B", ownerSeat: 0 };
+    const ctx = {
+      source: { ownerSeat: 0, instanceId: sourceCard.instanceId, permanent: () => undefined },
+      game: {
+        player: (seat: number) => ({
+          hand: seat === 0 ? [sourceCard, otherCard] : [],
+          trash: [],
+          deck: [],
+          security: [],
+          battleArea: [],
+          breeding: undefined,
+        }),
+        opponentOf: () => 1,
+        definitionOf: ({ cardId }: { cardId: string }) => ({
+          cardId,
+          nameEn: cardId,
+          kinds: [],
+          colors: [],
+          playCost: 0,
+        }),
+      },
+    } as never;
+
+    const resolved = candidateLooseInstances(
+      ctx,
+      { filter: { controller: "mine", zone: "hand", isSelfRef: true }, count: 1 } as never,
+      ["hand"],
+    );
+    expect(resolved.map((card) => card.instanceId)).toEqual(["source-in-hand"]);
   });
 });

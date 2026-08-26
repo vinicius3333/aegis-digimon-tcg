@@ -8,18 +8,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Main",
-      actions: [
-        {
-          kind: "PlayToken",
-          tokens: ["Diaboromon"],
-          count: 1,
-          payCost: false,
-          optional: true,
-        },
-      ],
-    },
-    {
       trigger: "StartOfYourMainPhase",
       actions: [
         {

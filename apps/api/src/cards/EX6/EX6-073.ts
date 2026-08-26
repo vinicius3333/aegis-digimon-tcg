@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
             ...action,
             target: { ...action.target, distinctNames: true },
             trackCount: placedCountSource,
+            trackDistinctNames: placedCountSource,
           };
         }
         if (action.kind === "Delete" && action.condition?.kind === "raw") {
@@ -30,17 +31,18 @@ export const compiled: CompiledCard = {
         if (action.kind === "Delete") {
           return {
             ...action,
-            target: { ...action.target, upTo: true },
+            target: action.target,
             cost:
               action.cost?.kind === "return"
                 ? {
-                      ...action.cost,
-                      position: "bottom",
-                      target: {
-                        ...action.cost.target,
-                        distinctNames: true,
-                        filter: { ...action.cost.target.filter, zone: "digivolutionCards", sameHost: true },
-                      },
+                    ...action.cost,
+                    position: "bottom",
+                    target: {
+                      ...action.cost.target,
+                      isSelfRef: true,
+                      distinctNames: true,
+                      filter: { ...action.cost.target.filter, zone: "digivolutionCards", sameHost: true },
+                    },
                   }
                 : action.cost,
             trackCount: deletedCountSource,
