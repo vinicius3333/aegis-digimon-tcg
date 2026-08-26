@@ -298,3 +298,20 @@ Required follow-up: bind one chosen host stack (or establish the engine guarante
 10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; same-target enforcement, attack eligibility, duration, and Security behavior remain unproven.
 
 Required follow-up: bind the first selected Digimon for the second modifier (or establish sequential same-target semantics), then add behavioral proof. This card is not formally complete at 10/10.
+
+## BT7-094 — Giga Storm — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red Option costing 7 with Main deletion of up to two opposing Digimon at 8000 DP or less and Security Main activation.
+2. **Target controller/kind (1/1):** The target is restricted to opponent Digimon.
+3. **DP boundary (1/1):** `dp: { op: "lte", value: 8000 }` matches the printed upper bound.
+4. **Count/optionality (1/1):** `count: 2` with `upTo: true` permits zero, one, or two targets.
+5. **Security behavior (1/1):** Security uses `ActivateMain` and is marked as a Security effect.
+6. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-094` reports no rulings or unresolved ambiguity.
+7. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-094", compiled)` registration are present.
+8. **Static primitive trace (1/1):** Opponent controller, Digimon kind, DP comparison, exact maximum, and up-to semantics are explicit.
+9. **Clause completeness (1/1):** All printed Main and Security clauses map directly to compiled effects.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; zero/one/two target choices, exact 8000 boundary, and Security activation remain unproven.
+
+Remaining work is focused behavioral proof of the DP boundary and up-to count; this card is not formally complete at 10/10.
