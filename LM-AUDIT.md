@@ -4,6 +4,14 @@ This ledger records source and focused-proof evidence for the LM collection. A c
 is not 10/10 until its focused test has been run in the authorized serial test slot,
 its applicable mechanism coverage is green, and collection evidence is refreshed.
 
+## Collection invariant — incomplete
+
+- All 62 catalog LM modules currently have one direct `registerIrCard("LM-…")` registration,
+  no module-level legacy `registerCard`, and a colocated focused test file.
+- This ledger currently contains source evidence only for LM-023 through LM-062 (40 entries).
+  LM-001 through LM-022 require their historical audit evidence to be reconstructed here before
+  the collection can be called reproducibly complete; their absence is not a 10/10 claim.
+
 ## LM-023 — Sakuyamon: Maid Mode — pending focused execution
 
 - Catalog and Q4024/Q4025: yellow Tamer or single-color Option placement is optional,
