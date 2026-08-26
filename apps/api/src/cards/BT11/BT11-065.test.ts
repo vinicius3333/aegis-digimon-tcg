@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { type PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import "../index.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT11-065.js";
 
 // A3 for BT11-065 (Snatchmon) — the inherited Vemmon-return clause.
 //
@@ -22,6 +23,20 @@ const NON_VEMMON = "BT1-009"; // any non-Vemmon card
 const TOP = "BT1-009"; // the host's top Digimon (any)
 
 describe("BT11-065 inherited: Vemmon returned from this Digimon's stack to deck bottom unsuspends it", () => {
+  it("maps catalog facts and both printed effects to IR", () => {
+    expect(getCardDefinition("BT11-065")).toMatchObject({
+      cardId: "BT11-065",
+      colors: ["Black"],
+      level: 4,
+      playCost: 6,
+      dp: 6000,
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "WhenDigivolving", actions: [{ kind: "PlaceUnder" }, { kind: "Return", to: "hand" }] },
+      { trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger" }] },
+    ]);
+  });
+
   it("returning a [Vemmon] to the deck bottom unsuspends the host", async () => {
     const s = setupEngine(
       {

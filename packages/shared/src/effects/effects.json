@@ -8708,7 +8708,7 @@
               "count": 1,
               "from": ["hand", "trash"]
             },
-            "underFilter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "underFilter": { "isSelfRef": true },
             "optional": true
           },
           {
