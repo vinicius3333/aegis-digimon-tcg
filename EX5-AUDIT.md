@@ -16,7 +16,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-010 | Sandiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-011 | Pajiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-012 | Flaremon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-013 | Zhuqiaomon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-013 | Zhuqiaomon | 1 | Q3550 confirms the payment can delete either player's eligible Digimon; direct IR uses an unrestricted Deva-or-DP≤6000 `deleteOwn` cost, and shared cost selection preserves that scope before the shared Once Per Turn SEC+ grant. | Pending focused proof |
 | EX5-014 | Apollomon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-015 | Gabumon (X Antibody) | 3 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-016 | Lunamon | 5 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
@@ -26,7 +26,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-020 | Crescemon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-021 | Majiramon | 11 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-022 | Mihiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-023 | WereGarurumon (X Antibody) | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-023 | WereGarurumon (X Antibody) | 1 | Direct IR orders the mandatory two-card hand trash before optional source-gated return and self-unsuspend; the shared `selfDigivolutionStackHasTrait` condition reads the live stack and inherited attack route has its own Once Per Turn. | Pending focused proof |
 | EX5-024 | Azulongmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-025 | Dianamon | 4 | Catalog Q3584-Q3587, direct IR, and live player restriction primitive reviewed. Corrected the all/no-source suspend lock to re-evaluate entrants and source changes; shared Once Per Turn trigger verified structurally. | Pending focused proof |
 | EX5-026 | MetalGarurumon (X Antibody) | 3 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
@@ -37,7 +37,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-031 | Chirinmon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-032 | LoaderLeomon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-033 | Mitamamon | 3 | Catalog/KB/direct IR/test reviewed; duration corrected in 716a766c8. | Pending |
-| EX5-034 | BanchoLeomon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-034 | BanchoLeomon | 1 | Q3600 total-security threshold is represented by the static hand-play replacement; the All Turns watcher binds one optional opponent target once, then applies both −4000 DP and SEC−1 through that binding until opponent-turn end. | Pending focused proof |
 | EX5-035 | Hawkmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-036 | Aquilamon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-037 | Vajramon | 11 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
@@ -58,7 +58,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-052 | Makuramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-053 | Baihumon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-054 | MetalEtemon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-055 | HeavyLeomon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-055 | HeavyLeomon | 1 | Direct IR repeats the De-Digivolve → top-source trash → ≤6000 bottom-deck sequence for evolution/deletion; shared `lastTargetCanTrashDigivolution` stops the chain at level 3/no source, and bound end-attack return controls the fallback unsuspend. | Pending focused proof |
 | EX5-056 | Syakomon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-057 | Labramon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-058 | Octomon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
@@ -72,16 +72,16 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-066 | Phoebus Blow | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-067 | Good Night Moon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-068 | Flashy Boss Punch | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-069 | Biting Crush | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-070 | X Antibody Proto Form | 5 | Direct module resolves generated residual; two target/source fixes in d2d784068 and 3579dc8ff. | Pending rerun |
+| EX5-069 | Biting Crush | 6 | Q3674-Q3678 watcher conditions are direct: effect-driven opponent Digimon entry only, not breeding/Tamer/manual play; shared Delay wrapper requires an armed grant, consumes it before the free Leviamon play, and leaves decline unconsumed. | Pending focused proof |
+| EX5-070 | X Antibody Proto Form | 5 | Direct override uses stack-name exclusion and named-card security source (not trait); new live harness/filter proof covers Q3679, where Proto Form itself under the target excludes that stack. | Pending focused run |
 | EX5-071 | Loyalty Deeper than the Sea | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-072 | Holy Beasts Great Cardinal Positions | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-073 | GraceNovamon | 4 | Direct IR corrected: deletion, DNA route, and static keywords in b71c3e880, 2ee9a5a5b, f1692074d. | Pending rerun |
+| EX5-073 | GraceNovamon | 4 | Direct IR corrected deletion, DNA route, and static keywords; new attack-window harness proof covers Q3687/Q3688: eligible deletion remains available without DNA digivolving, while only the trash clause is DNA-gated. | Pending focused run |
 | EX5-074 | Fanglongmon | 2 | Direct module resolves generated residual; exclusive IR registration and existing behavior evidence. | Pending rerun |
 
 ## Validation queue
 
-All 74 individual focused files remain queued. Eight currently contain observable engine-harness cases (EX5-025, EX5-033, EX5-037, EX5-040, EX5-062, EX5-063, EX5-065, and EX5-074); the other 66 currently prove compiled shape only, so a green focused run alone is not sufficient to award collection-wide 10/10 evidence. After PID group 11091 clears, each must be run in an isolated single-fork process, then the structural-only high-risk clauses must be promoted to observable proof where no shared mechanism already proves them, followed by the coordinator-approved serial collection gate, typecheck, inventory recheck, and diff check. Until then this ledger is static evidence only, not a 10/10 closure claim.
+All 74 individual focused files remain queued. Ten currently contain observable engine-harness or live-interpreter cases (EX5-025, EX5-033, EX5-037, EX5-040, EX5-062, EX5-063, EX5-065, EX5-070, EX5-073, and EX5-074); the other 64 currently prove compiled shape only, so a green focused run alone is not sufficient to award collection-wide 10/10 evidence. After the coordinator explicitly opens a serial test window, each must be run in an isolated single-fork process, then the structural-only high-risk clauses must be promoted to observable proof where no shared mechanism already proves them, followed by the coordinator-approved serial collection gate, typecheck, inventory recheck, and diff check. Until then this ledger is static evidence only, not a 10/10 closure claim.
 
 ## Direct IR clause trace (static pass)
 
