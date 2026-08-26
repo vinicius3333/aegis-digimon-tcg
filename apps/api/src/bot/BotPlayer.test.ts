@@ -1,6 +1,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Phase, type DecisionRequest, type GameState, type Intent, type ServerEvent } from "@aegis/shared";
-import { BotPlayer, DEFAULT_MAX_ACTION_DELAY_MS, DEFAULT_MIN_ACTION_DELAY_MS } from "./BotPlayer.js";
+import {
+  Phase,
+  SECURITY_CHECK_NARRATION_MS,
+  type DecisionRequest,
+  type GameState,
+  type Intent,
+  type ServerEvent,
+} from "@aegis/shared";
+import {
+  BotPlayer,
+  COMBAT_REFLEX_MAX_MS,
+  COMBAT_REFLEX_MIN_MS,
+  DEFAULT_MAX_ACTION_DELAY_MS,
+  DEFAULT_MIN_ACTION_DELAY_MS,
+} from "./BotPlayer.js";
 
 /**
  * Pacing and wiring tests for the bot seat.
@@ -282,6 +295,73 @@ describe("BotPlayer action pacing and player attacks", () => {
 
     await advance(DEFAULT_MAX_ACTION_DELAY_MS - DEFAULT_MIN_ACTION_DELAY_MS + 1);
     expect(intents).toHaveLength(1);
+  });
+
+  // The engine holds the whole attack on this answer and the attacking client holds its
+  // target arrow up for the same window, so a think time here is a visible stall between
+  // the arrow reaching security and the battle animation.
+  it("answers a block window on a reflex rather than a think time", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
+
+    bot.onEvent({
+      kind: "blockWindowOpened",
+      attackerPermanentId: "atk",
+      eligibleBlockerIds: ["large"],
+    } as ServerEvent);
+    await advance(COMBAT_REFLEX_MIN_MS - 1);
+    expect(intents).toEqual([]);
+
+    await advance(COMBAT_REFLEX_MAX_MS - COMBAT_REFLEX_MIN_MS + 1);
+    expect(intents).toHaveLength(1);
+  });
+
+  // The check owns the centre of the opposing screen until its scene fades. A second
+  // action inside that window is played over a board the human is still watching.
+  it("waits out the security narration before acting again after an attack", async () => {
+    vi.useFakeTimers();
+    const { state, attackers } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        if (intent.type === "attack") {
+          const attacker = attackers.find((candidate) => candidate.permanentId === intent.attackerPermanentId);
+          if (attacker) {
+            attacker.isSuspended = true;
+            attacker.canAttackPlayer = false;
+          }
+        }
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
+
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    await advance(2_000);
+    expect(intents).toHaveLength(1);
+
+    bot.onEvent({ kind: "securityChecked", seat: 0, revealedCardId: "BT1-013", resolution: "trashed" } as ServerEvent);
+    bot.onActionSettled("attack");
+    // Longer than the think time the same seat would otherwise have taken.
+    await advance(SECURITY_CHECK_NARRATION_MS - 1);
+    expect(intents).toHaveLength(1);
+
+    await advance(1);
+    expect(intents).toHaveLength(2);
   });
 
   it("ignores combat prompts aimed at permanents it does not control", async () => {

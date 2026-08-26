@@ -2,8 +2,17 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ATTACK_ANNOUNCE_MS, SIDE_PANEL_LIFETIME_MS, SIDE_PANEL_MERGE_WINDOW_MS } from "./sidePanels";
 import { NOTICE_CROWDED_LIFETIME_MS, NOTICE_LIFETIME_MS } from "./notices";
+import { SECURITY_CHECK_NARRATION_MS, SECURITY_EFFECT_NARRATION_MS } from "@aegis/shared";
 import { SECURITY_CLASH_TIMINGS, SECURITY_CLASH_TOTAL_MS } from "./securityClash";
-import { BATTLE_TIMING_STYLE, BATTLE_TIMING_VARIABLES, CLASH_OUTCOME_AT_MS, CLASH_TOTAL_MS, TIMINGS } from "./timings";
+import {
+  BATTLE_TIMING_STYLE,
+  BATTLE_TIMING_VARIABLES,
+  CLASH_OUTCOME_AT_MS,
+  CLASH_TOTAL_MS,
+  SECURITY_BRANCH_TOTAL_MS,
+  SECURITY_BREAK_TOTAL_MS,
+  TIMINGS,
+} from "./timings";
 
 const gameCss = readFileSync(new URL("./game.css", import.meta.url), "utf8");
 
@@ -70,6 +79,15 @@ describe("battle timings", () => {
     const percents = keyframePercents("battle-clash-scene");
     expect(percents).toContain(percentOf(TIMINGS.clashAttackerEnter, CLASH_TOTAL_MS));
     expect(percents).toContain(percentOf(CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome, CLASH_TOTAL_MS));
+  });
+
+  // The server paces an automated seat behind this budget, so a check that outgrew it
+  // would let the bot play its next card over a clash still on screen.
+  it("keeps the security check inside the narration budget the server paces bots behind", () => {
+    expect(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS).toBeLessThanOrEqual(SECURITY_CHECK_NARRATION_MS);
+    expect(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS).toBeLessThanOrEqual(
+      SECURITY_EFFECT_NARRATION_MS,
+    );
   });
 
   it("derives the side panel timings from the table", () => {

@@ -1,5 +1,7 @@
 import {
   Phase,
+  SECURITY_CHECK_NARRATION_MS,
+  SECURITY_EFFECT_NARRATION_MS,
   type DecisionRequest,
   type GameState,
   type Intent,
@@ -18,6 +20,14 @@ import { buildBotView, type BotView } from "./view.js";
    entry all have to be readable before the next action displaces them. */
 export const DEFAULT_MIN_ACTION_DELAY_MS = 2_000;
 export const DEFAULT_MAX_ACTION_DELAY_MS = 2_800;
+
+/* Combat windows are reflexes, not plans. The engine blocks the whole attack on the
+   answer, and the attacking client holds its target arrow on the board until it lands,
+   so a main-phase think time here reads as the game hanging between the arrow reaching
+   security and the battle that follows. Long enough to look like a choice, short enough
+   that nobody waits for it. */
+export const COMBAT_REFLEX_MIN_MS = 300;
+export const COMBAT_REFLEX_MAX_MS = 650;
 
 /** Safety valve: the most actions the bot will take in one Main phase. */
 const MAX_MAIN_PHASE_ACTIONS = 40;
@@ -42,7 +52,8 @@ export interface BotOptions {
  * hop, and it shares the engine's state reference with the room that hosts it. Every
  * "what should I do" question is delegated to a {@link BotPolicy}; this class only
  * decides WHEN to ask (phase transitions, decision requests, combat windows) and paces
- * the answers behind a think delay so play feels human.
+ * the answers so play feels human: a think delay for its own actions, a reflex for the
+ * combat windows the opponent is waiting on.
  *
  * The engine's combat windows (block / counter / alliance / evade / barrier) block on a
  * promise until the seat responds, so all five are answered here — a seat that answers
@@ -58,7 +69,9 @@ export class BotPlayer {
   private readonly minThinkMs: number;
   private readonly maxThinkMs: number;
   private readonly policy: BotPolicy;
-  private readonly delay: () => Promise<void>;
+  /** Narration the opposing client still owes the last attack, in milliseconds. */
+  private pendingNarrationMs = 0;
+  private readonly pause: (minMs: number, maxMs: number) => Promise<void>;
 
   constructor(
     private readonly seat: Seat,
@@ -71,13 +84,11 @@ export class BotPlayer {
     const seed = options.seed ?? 0x5eed;
     this.policy = options.policy ?? createEvaluationPolicy({ profile: resolveBotProfile(options.profile), seed });
     const random = createBotRandom(seed ^ 0x9e37);
-    this.delay =
-      options.thinkDelay ??
-      (() => {
-        const span = this.maxThinkMs - this.minThinkMs;
-        const ms = this.minThinkMs + Math.floor(random.next() * (span + 1));
-        return new Promise<void>((resolve) => setTimeout(resolve, ms));
-      });
+    const injected = options.thinkDelay;
+    this.pause = injected
+      ? () => injected()
+      : (minMs, maxMs) =>
+          new Promise<void>((resolve) => setTimeout(resolve, minMs + Math.floor(random.next() * (maxMs - minMs + 1))));
   }
 
   /** Which policy this seat is running — surfaced for benchmark reporting. */
@@ -110,6 +121,12 @@ export class BotPlayer {
         break;
       case "attackDeclared":
         this.pendingAttackTargetsPlayer = event.target.kind === "player";
+        break;
+      case "securityChecked":
+        // Each check is its own centre-stage scene, and the client plays them one
+        // after another, so a multi-check attack owes the sum of them.
+        this.pendingNarrationMs +=
+          event.resolution === "effect" ? SECURITY_EFFECT_NARRATION_MS : SECURITY_CHECK_NARRATION_MS;
         break;
       case "blockWindowOpened":
         if (this.state.turnSeat !== this.seat) {
@@ -167,10 +184,11 @@ export class BotPlayer {
    * Answer a combat window. Every one of these blocks the engine on an unresolved promise
    * until this seat responds, so a path that returns without sending anything wedges the
    * match — which is why an unreadable view falls back to the passive answer rather than
-   * staying silent.
+   * staying silent. Answered on a reflex rather than a think time: the attack is frozen
+   * on the attacker's screen until it lands.
    */
   private respondWithView(choose: (view: BotView) => Intent, fallback: Intent): void {
-    void this.afterThinking(() => {
+    void this.reflex().then(() => {
       const view = this.view();
       this.act(view === undefined ? fallback : choose(view));
     });
@@ -190,6 +208,9 @@ export class BotPlayer {
   private onOwnPhase(phase: Phase, turnCount: number): void {
     if (turnCount !== this.lastTurnStarted) {
       this.lastTurnStarted = turnCount;
+      // Whatever the previous turn's checks still owed was narrated while this seat
+      // was not acting, so it must not be charged against its first action here.
+      this.pendingNarrationMs = 0;
       this.policy.onTurnStart();
     }
     switch (phase) {
@@ -246,7 +267,7 @@ export class BotPlayer {
       waitStep = 0;
       actionStep++;
 
-      await this.delay();
+      await this.nextActionDelay();
       // The delay can outlast the window we planned in (combat resolved, a decision
       // arrived); re-validate before acting and let the loop re-evaluate if so.
       if (!this.isMyMainPhase() || this.state.pendingDecision !== undefined) continue;
@@ -280,6 +301,28 @@ export class BotPlayer {
   /** Run `action` after a short think-delay. */
   private afterThinking(action: () => void): Promise<void> {
     return this.delay().then(action);
+  }
+
+  private delay(): Promise<void> {
+    return this.pause(this.minThinkMs, this.maxThinkMs);
+  }
+
+  /** The answer to a combat window, which the engine and the attacker are both waiting on. */
+  private reflex(): Promise<void> {
+    return this.pause(COMBAT_REFLEX_MIN_MS, COMBAT_REFLEX_MAX_MS);
+  }
+
+  /**
+   * The beat before the next main-phase action. Ordinarily the think time, but an attack
+   * that spent security leaves the opposing client narrating the check for longer than
+   * that, so the wait is stretched to cover it: the next card is played once the clash
+   * has handed the board back, never on top of it.
+   */
+  private nextActionDelay(): Promise<void> {
+    const narration = this.pendingNarrationMs;
+    this.pendingNarrationMs = 0;
+    if (narration === 0) return this.delay();
+    return this.pause(Math.max(this.minThinkMs, narration), Math.max(this.maxThinkMs, narration));
   }
 }
 
