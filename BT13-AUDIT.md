@@ -230,7 +230,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-080 — 10/10
   - Registration: exclusive `registerIrCard("BT13-080", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-080.test.ts` passed (4 tests): breeding-area cost replacement, on-play draw/trash order, anti-digivolution restriction, and optional deletion recursion cost are executable IR clauses.
-- BT13-081 — Pending
+- BT13-081 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-081", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-081.test.ts` passed (3 tests): on-play/on-deletion level-3 deletion plus inherited draw/trash timing are executable and live.
 - BT13-082 — Pending
 - BT13-083 — Pending
 - BT13-084 — Pending
