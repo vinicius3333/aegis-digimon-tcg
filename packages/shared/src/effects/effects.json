@@ -13194,22 +13194,32 @@
             }
           },
           {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): activate 1 of the [On Deletion] effects of 1 of your red Digimon with [Vaccine] in its traits",
+            "kind": "ActivateEffect",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "colors": ["Red"],
+                "nameOrTrait": [{ "tokens": ["Vaccine"], "match": "trait" }]
+              },
+              "count": 1
+            },
+            "effectType": "OnDeletion",
+            "count": 1,
             "condition": {
               "kind": "youHave",
               "filter": { "zone": "battleArea", "controllerDefault": "mine", "kind": ["Tamer"], "colors": ["Red"] },
               "raw": "you have a red Tamer in play"
-            }
+            },
+            "optional": true,
+            "useLenderAsSource": true
           }
         ]
       },
       { "trigger": "Security", "actions": [{ "kind": "ActivateMain" }], "isSecurity": true }
     ],
-    "coverage": "partial",
-    "residual": [
-      "missing-primitive(unaudited): activate 1 of the [On Deletion] effects of 1 of your red Digimon with [Vaccine] in its traits"
-    ]
+    "coverage": "full",
+    "residual": []
   },
   "BT11-098": {
     "effects": [
