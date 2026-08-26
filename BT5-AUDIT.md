@@ -1445,3 +1445,47 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-033 — Cutemon — 10/10
+
+- Catalog evidence: Yellow Lv.3 Rookie Digimon, Vaccine/Fairy, play cost 3,
+  3000 DP, and yellow Lv.2 evolution cost 0. Its only effect is
+  `[Opponent's Turn] Your opponent can't reduce digivolution costs.` It has
+  no inherited or Security text.
+- Knowledge-base and rules evidence: Q1313 defines the prohibition as
+  blocking effects that reduce the memory cost, including Digisorption and
+  BT3-103 Hidden Potential Discovered!, so the printed evolution cost must be
+  paid. Q1314 specifically confirms Digisorption cannot provide its reduction.
+  Q1315 distinguishes an effect that ignores requirements and specifies a
+  cost, such as BT2-111 Beelzemon: that is not a cost reduction and remains
+  legal.
+- Implementation: `apps/api/src/cards/BT5/BT5-033.ts` contains one
+  `OpponentsTurn` effect applying `RestrictCostReduction` to the opponent,
+  scoped only to `digivolve` costs. Its persistent action is re-derived only
+  while the timing guard is active. The module declares `coverage: "full"`,
+  `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-033", compiled)`.
+- Primitive and peer evidence: the continuous cost-reduction block is queried
+  by the normal evolution-cost, interactive reduction, replacement reduction,
+  and intrinsic reduction paths. It does not block play-cost changes or fixed
+  cost overrides. BT5-021 Syakomon has identical printed text and identical
+  compiled IR; its audited tests prove a real Digisorption evolution pays the
+  full cost, the restriction lapses on the controller's turn, a buried copy is
+  inactive, and a fixed-cost effect evolution remains allowed.
+- Behavioral proof: the focused Cutemon test proves the opponent-seat
+  digivolution block is active on the opponent's turn while controller-seat
+  digivolution and opponent play-cost reduction remain unaffected. The four
+  exact-peer tests supply the real-action and ruling boundaries without
+  duplicating already sufficient card tests.
+- Defect corrected: none. The module and its existing focused test were
+  already faithful; in accordance with the audit instruction, no redundant
+  code or tests were added.
+- Verification: focused BT5-033 and exact-peer BT5-021 — 2 files, 5 tests
+  passed. Filtered `RestrictCostReduction` and action-kind mechanism tests —
+  2/2 passed. The unfiltered IR tier suite was also attempted; its other 14
+  cases pass and only the unrelated pre-existing BT1-093 Security assertion
+  fails. `git diff --check` passes. Workspace typecheck retains only the known
+  unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
