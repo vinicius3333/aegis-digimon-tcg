@@ -2,5 +2,5 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = { effects: [], coverage: "full", residual: [] };
+export const compiled: CompiledCard = { effects: [], coverage: "full", residual: [] };
 registerIrCard("BT11-075", compiled);
