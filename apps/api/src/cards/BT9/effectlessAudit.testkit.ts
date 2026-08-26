@@ -30,11 +30,18 @@ export function auditEffectlessDigimon({
     it("digivolves through the printed recipe and pays its exact cost", async () => {
       const evolution = expected.evoCosts?.[0]!;
       const baseEvolutionCost = validEgg === undefined ? 0 : getCardDefinition(validBase)?.evoCosts?.[0]?.memoryCost;
+      const directBaseIsEgg =
+        validEgg === undefined && getCardDefinition(validBase)?.kinds.includes("DigiEgg" as never);
       if (baseEvolutionCost === undefined) throw new Error(`${validBase} has no catalog evolution recipe`);
       const s = setupEngine({
         0:
           validEgg === undefined
-            ? { battleArea: [{ card: validBase, as: "base" }], hand: [{ card: cardId, as: "evolving" }] }
+            ? {
+                ...(directBaseIsEgg
+                  ? { breeding: { card: validBase, as: "base" } }
+                  : { battleArea: [{ card: validBase, as: "base" }] }),
+                hand: [{ card: cardId, as: "evolving" }],
+              }
             : {
                 breeding: { card: validEgg, as: "base" },
                 hand: [
@@ -81,8 +88,14 @@ export function auditEffectlessDigimon({
     });
     it("rejects a same-level base outside the printed color recipe", () => {
       const evolution = expected.evoCosts?.[0]!;
+      const invalidBaseIsEgg = getCardDefinition(invalidBase)?.kinds.includes("DigiEgg" as never);
       const s = setupEngine({
-        0: { battleArea: [{ card: invalidBase, as: "base" }], hand: [{ card: cardId, as: "evolving" }] },
+        0: {
+          ...(invalidBaseIsEgg
+            ? { breeding: { card: invalidBase, as: "base" } }
+            : { battleArea: [{ card: invalidBase, as: "base" }] }),
+          hand: [{ card: cardId, as: "evolving" }],
+        },
       });
       s.state.memory = evolution.memoryCost;
       expect(

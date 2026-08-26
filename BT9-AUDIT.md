@@ -523,3 +523,34 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-018.
+
+## BT9-019 — Crabmon — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog number/name (1/1):** `BT9-019` and English name `Crabmon` match the committed catalog.
+2. **Card class/color (1/1):** Blue level-3 Digimon identity is asserted exactly.
+3. **Costs/stats (1/1):** Play cost 2, 3000 DP, and blue level-2 evolution for 0 are asserted exactly.
+4. **Form/attribute/trait (1/1):** `Rookie`, `Data`, and complete `Crustacean` type are asserted.
+5. **Effectless contract (1/1):** Catalog and KB contain no effect or ruling; direct IR is exactly `effects: []`, `coverage: full`, `residual: []`.
+6. **Legal breeding evolution (1/1):** A public digivolve intent evolves Crabmon from blue Upamon in the breeding area for exactly 0 memory; the shared proof no longer injects a Digi-Egg into the battle area.
+7. **Wrong-color rejection (1/1):** The same public intent rejects evolution from yellow Kyaromon without moving the card or spending memory.
+8. **Public play behavior (1/1):** A public `playCard` intent pays exactly 2, creates the battle-area permanent, and opens no effect decision.
+9. **Direct registration/index (1/1):** The dedicated module registers exactly once with `registerIrCard`, has no legacy registration, and is explicitly imported by the BT9 index.
+10. **Reproducible verification (1/1):** Crabmon proof passes 4/4; the strengthened level-3 and level-4 effectless regressions pass 8/8, with typecheck, formatting, and `git diff --check` clean.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-019
+rg -n '"cardId": "BT9-019"' packages/shared/src/cards/data/cards.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-019.ts
+rg -n 'BT9-019' apps/api/src/cards/BT9/index.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-019.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-007.test.ts src/cards/BT9/BT9-010.test.ts --reporter=dot
+pnpm typecheck
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-019.ts apps/api/src/cards/BT9/BT9-019.test.ts apps/api/src/cards/BT9/effectlessAudit.testkit.ts apps/api/src/cards/BT9/index.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-019.
