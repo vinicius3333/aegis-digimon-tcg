@@ -326,4 +326,6 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-111 — 10/10
   - Registration: exclusive `registerIrCard("BT13-111", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-111.test.ts` passed (7 tests): combined-trash cost reduction, Rush, fallback deletion, play/digivolve/attack timing all execute.
-- BT13-112 — Pending
+- BT13-112 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-112", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-112.test.ts` passed (6 tests): both modal branches, distinct-name Royal Knight play, breeding deletion/Rush, decline, and digivolution trigger are live.
