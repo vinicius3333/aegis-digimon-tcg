@@ -82,6 +82,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "opponent",
+                unsuspended: true,
                 kind: ["Digimon"],
                 levelComparison: {
                   op: "lte",
