@@ -3,6 +3,13 @@ import { dnaDigivolutionRequirementsFor } from "@aegis/shared";
 import { compiled } from "./EX5-073.js";
 
 describe("EX5-073 GraceNovamon", () => {
+  it("has its printed Security Attack plus one and Blocker keywords", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.keywords).toEqual([
+      { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+      { keyword: "Blocker", raw: "＜Blocker＞" },
+    ]);
+  });
+
   it("requires the printed zero-cost Apollomon plus Dianamon DNA route", () => {
     expect(dnaDigivolutionRequirementsFor("EX5-073")).toEqual([
       {
