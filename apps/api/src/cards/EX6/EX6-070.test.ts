@@ -18,7 +18,27 @@ describe("EX6-070 Phantom Pain", () => {
   });
 
   it("does not execute the armed Delete when Delay source trash is prevented", async () => {
-    const sourcePermanent = { permanentId: "phantom-pain", enterFieldTurnCount: 0 };
+    const sourcePermanent = {
+      permanentId: "phantom-pain",
+      enterFieldTurnCount: 0,
+      controllerSeat: 0,
+      isSuspended: false,
+      inBreeding: false,
+      stack: [],
+      topCard: { instanceId: "phantom-pain-card", cardId: "EX6-070", ownerSeat: 0 },
+    };
+    const visibleOpponent = {
+      permanentId: "visible-unsuspended-opponent",
+      controllerSeat: 1,
+      isSuspended: false,
+      inBreeding: false,
+      stack: [],
+      topCard: { instanceId: "visible-opponent-card", cardId: "BT1-024", ownerSeat: 1 },
+    };
+    const players = [
+      { hand: [], trash: [], deck: [], security: [], battleArea: [sourcePermanent], breeding: undefined },
+      { hand: [], trash: [], deck: [], security: [], battleArea: [visibleOpponent], breeding: undefined },
+    ];
     const source = {
       cardId: "EX6-070",
       instanceId: "phantom-pain-card",
@@ -30,7 +50,13 @@ describe("EX6-070 Phantom Pain", () => {
     const ctx = {
       source,
       activeEffectKey: undefined,
-      game: { state: { turnCount: 1 } },
+      game: {
+        state: { turnCount: 1 },
+        player: (seat: number) => players[seat]!,
+        opponentOf: () => 1,
+        permanentById: (id: string) => [sourcePermanent, visibleOpponent].find((permanent) => permanent.permanentId === id),
+        definitionOf: ({ cardId }: { cardId: string }) => ({ cardId, nameEn: cardId, kinds: ["Digimon"], colors: [], playCost: 0 }),
+      },
       fx: {
         grantedKeywords: () => [{ keyword: "Delay" }],
         revokeKeyword: () => undefined,
@@ -44,5 +70,6 @@ describe("EX6-070 Phantom Pain", () => {
     expect(effect).toBeDefined();
     await effect!.resolve(ctx);
     expect(deleted).toEqual([["phantom-pain"]]);
+    expect(players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual(["visible-unsuspended-opponent"]);
   });
 });

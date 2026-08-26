@@ -208,4 +208,26 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
     );
     expect(deduped).toEqual(["self-a"]);
   });
+
+  it("keeps ordinary self references scoped to the source loose card outside hosted zones", () => {
+    const sourceCard = { instanceId: "source-in-hand", cardId: "A", ownerSeat: 0 };
+    const otherCard = { instanceId: "other-in-hand", cardId: "B", ownerSeat: 0 };
+    const ctx = {
+      source: { ownerSeat: 0, instanceId: sourceCard.instanceId, permanent: () => undefined },
+      game: {
+        player: (seat: number) => ({
+          hand: seat === 0 ? [sourceCard, otherCard] : [], trash: [], deck: [], security: [], battleArea: [], breeding: undefined,
+        }),
+        opponentOf: () => 1,
+        definitionOf: ({ cardId }: { cardId: string }) => ({ cardId, nameEn: cardId, kinds: [], colors: [], playCost: 0 }),
+      },
+    } as never;
+
+    const resolved = candidateLooseInstances(
+      ctx,
+      { filter: { controller: "mine", zone: "hand", isSelfRef: true }, count: 1 } as never,
+      ["hand"],
+    );
+    expect(resolved.map((card) => card.instanceId)).toEqual(["source-in-hand"]);
+  });
 });
