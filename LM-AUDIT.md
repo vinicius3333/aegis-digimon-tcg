@@ -86,3 +86,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   sufficient authority to add unprinted LM-029 behavior. It remains explicitly unresolved.
 - Existing focused scenarios are behavioral but unrun under PID 43774. The unresolved KB linkage
   and absent authoritative printed clause keep LM-029 below 10/10.
+
+## LM-030 — Green Scramble — pending focused execution
+
+- Catalog and Q4048-Q4052 align with the direct `registerIrCard` IR: ordinary legal green
+  hand evolution at minus three and self placement, followed by opponent-Digimon-gated Delay
+  whose mandatory green-trash-to-deck-top return precedes the optional small-green revival.
+- Security independently offers the optional 2000-DP-or-lower green play, then returns Green
+  Scramble to hand. Existing behavioral fixtures cover the legal cost reduction and placement,
+  Delay order and no-opponent negative, Security positive and over-2000 negative boundaries.
+- Those proofs remain deliberately unrun while PID 43774 holds the test slot, so LM-030 remains
+  below 10/10.
