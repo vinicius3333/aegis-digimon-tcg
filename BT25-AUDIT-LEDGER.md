@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-037 (Pegasusmon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-037 Pegasusmon | Yellow/blue level 4 Armor Form; alternate `[Patamon]` or level-3 `[TS]` evolution cost 2; Armor Purge; on play/when digivolving add top security to hand, then may place 1 Angel/Archangel/Three Great Angels/Iliad trait Digimon or 1 TS trait Tamer from hand as top or bottom security. Q6304 confirms activation at zero security and placement of the selected card. | **No card-specific causal mismatch found statically.** Both trigger windows perform security-to-hand first, then optionally choose one hand card from the printed Digimon-trait union or TS Tamer alternative and place it top/bottom security. The source filters enforce the kind split, and Armor Purge plus both alternate evolution paths are represented. | Structural test only; no execution of zero-security placement, top/bottom choice, union overlap, optional refusal, security ordering, Armor Purge, or alternate evolution. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-037
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-037` (Q6304).
+- Direct module and shared security-to-hand plus add-top-or-bottom source union/kind filtering
+  were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-036 (Craftmon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
