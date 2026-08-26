@@ -463,3 +463,33 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-016.
+
+## BT9-017 — Gallantmon (X Antibody) — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red level-6 Digimon, play cost 12, 12000 DP, `Mega`/`Virus`, complete `Holy Warrior`/`Royal Knight`/`X Antibody` traits, standard red-level-5 evolution for 4, and all printed text were checked.
+2. **Alternate legal evolution (1/1):** Public intents build a complete red breeding chain through Gallantmon and exercise the exact-name alternate route for precisely 1 memory.
+3. **Lowest-DP mandatory deletion (1/1):** With valid targets, exactly one lowest-DP opponent is deleted and the suspended source remains suspended, proving Q1813's mandatory branch.
+4. **Q1812 no-deletion branch (1/1):** With no target, and separately with a chosen deletion-immune target, the failed deletion causes the source to unsuspend.
+5. **Q1814 tied immune choice (1/1):** When an immune and deletable Digimon tie for lowest DP, the preferred immune candidate is a legal choice; both remain and the source unsuspends.
+6. **Your-turn deletion watcher (1/1):** Deleting an opponent Digimon trashes exactly the top opposing security card.
+7. **Once-per-turn identity (1/1):** Two separate qualifying deletions during the same turn trash only one security card.
+8. **Q1815 exact-name boundary (1/1):** Exact Gallantmon and exact X Antibody card-name sources qualify; MetalGreymon X's trait alone does not.
+9. **Q2146 cross-card legality and registration (1/1):** BT12-016's public no-deletion branch can effect-digivolve into BT9-017, while the full/no-residual direct module registers exactly once with `registerIrCard`, has no legacy registration, and is indexed.
+10. **Reproducible verification (1/1):** Focused proof passed 9/9; affected deletion/immunity/effect-digivolution regressions, workspace typecheck, focused formatting, and `git diff --check` passed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-017
+rg -n 'Q1812|Q1813|Q1814|Q1815|Q2146' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-017.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-017.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/engine/effects/restrictionEnforcement.test.ts src/cards/BT12/BT12-016.test.ts --reporter=dot
+pnpm typecheck
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-017.ts apps/api/src/cards/BT9/BT9-017.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-017.
