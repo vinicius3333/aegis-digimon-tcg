@@ -456,7 +456,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       });
       if (candidates.length === 0) {
         // No legal host; return to deck bottom (the effect can't fire without a valid host).
-        await ctx.fx.returnToDeck([instanceId], { toTop: false });
+        await ctx.fx.returnToDeck([instanceId], { toTop: false, suppressWhenEffectAddsToDeck: true });
         continue;
       }
       let hostPermanentId = candidates[0]!.permanentId;
@@ -485,7 +485,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         (p) => underFilter === undefined || permanentMatchesFilter(ctx, p, underFilter, ctx.source),
       );
       if (candidates.length === 0) {
-        await ctx.fx.returnToDeck([instanceId], { toTop: false });
+        await ctx.fx.returnToDeck([instanceId], { toTop: false, suppressWhenEffectAddsToDeck: true });
         continue;
       }
       let hostPermanentId = candidates[0]!.permanentId;
@@ -522,7 +522,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       const toTop = choice === 0;
       await ctx.fx.returnToDeck(
         toTop ? [...rest].reverse() : action.reverseBottomOrder === true ? [...rest].reverse() : rest,
-        { toTop },
+        { toTop, suppressWhenEffectAddsToDeck: true },
       );
     } else {
       if (rest.length > 1) {
@@ -538,7 +538,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       const toTop = action.rest === "deckTop";
       await ctx.fx.returnToDeck(
         toTop ? [...rest].reverse() : action.reverseBottomOrder === true ? [...rest].reverse() : rest,
-        { toTop },
+        { toTop, suppressWhenEffectAddsToDeck: true },
       );
     }
   };
@@ -693,10 +693,16 @@ export async function runRevealChooseDeleteBudget(
   } else if (action.returnRevealed === "deckTopOrBottom") {
     const choice = await ctx.ask.chooseOption(ctx, ["Top of deck", "Bottom of deck"]);
     const toTop = choice === 0;
-    await ctx.fx.returnToDeck(toTop ? [...ordered].reverse() : ordered, { toTop });
+    await ctx.fx.returnToDeck(toTop ? [...ordered].reverse() : ordered, {
+      toTop,
+      suppressWhenEffectAddsToDeck: true,
+    });
   } else {
     const toTop = action.returnRevealed === "deckTop";
-    await ctx.fx.returnToDeck(toTop ? [...ordered].reverse() : ordered, { toTop });
+    await ctx.fx.returnToDeck(toTop ? [...ordered].reverse() : ordered, {
+      toTop,
+      suppressWhenEffectAddsToDeck: true,
+    });
   }
 }
 

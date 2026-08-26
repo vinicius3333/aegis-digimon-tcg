@@ -3585,7 +3585,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    */
   const returnToDeck = async (
     instanceIds: string[],
-    opts?: { toTop?: boolean; byEffectSeat?: Seat; byEffectCardId?: string },
+    opts?: {
+      toTop?: boolean;
+      byEffectSeat?: Seat;
+      byEffectCardId?: string;
+      suppressWhenEffectAddsToDeck?: boolean;
+    },
   ): Promise<CardInstance[]> => {
     instanceIds = filterLockedStackReturns(instanceIds, opts?.byEffectSeat ?? effectSeatStack.at(-1));
     instanceIds = await filterBouncePrevented(instanceIds);
@@ -3682,14 +3687,18 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         to: toTop ? Zone.Deck : DECK_BOTTOM,
       });
       // The whenEffectAddsToHand sibling for deck-bound returns (BT26-015). Fire once per
-      // distinct recipient seat, mirroring returnToHand's own-hand fire above.
-      const recipientSeats = new Set(moved.map((c) => c.ownerSeat));
-      for (const seat of recipientSeats) {
-        await engine.fireSubTrigger?.("whenEffectAddsToDeck", {
-          effectAddedToDeckSeat: seat,
-          effectAddedToDeckBySeat: effectSeatStack.at(-1) ?? engine.controllerSeat(),
-          ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
-        });
+      // distinct recipient seat, mirroring returnToHand's own-hand fire above. Revealed cards
+      // being restored use the explicit suppression flag because Q6949 says that restoration
+      // is not an "add to deck" trigger.
+      if (opts?.suppressWhenEffectAddsToDeck !== true) {
+        const recipientSeats = new Set(moved.map((c) => c.ownerSeat));
+        for (const seat of recipientSeats) {
+          await engine.fireSubTrigger?.("whenEffectAddsToDeck", {
+            effectAddedToDeckSeat: seat,
+            effectAddedToDeckBySeat: effectSeatStack.at(-1) ?? engine.controllerSeat(),
+            ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
+          });
+        }
       }
     }
     const movedIds = new Set(moved.map((c) => c.instanceId));

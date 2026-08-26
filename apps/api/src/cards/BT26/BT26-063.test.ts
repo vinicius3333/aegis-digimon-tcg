@@ -402,6 +402,7 @@ describe("BT26-063 Tellermon", () => {
     expect(returnToHand).toHaveBeenCalledWith(["attribute-match"]);
     expect(returnToDeck).toHaveBeenCalledWith(toTop ? ["nonmatch", "form-match"] : ["form-match", "nonmatch"], {
       toTop,
+      suppressWhenEffectAddsToDeck: true,
     });
   });
 
@@ -431,6 +432,9 @@ describe("BT26-063 Tellermon", () => {
     await watcher.run(ctx);
 
     expect(selectCards).not.toHaveBeenCalled();
-    expect(returnToDeck).toHaveBeenCalledWith(["near", "plain-a", "plain-b"], { toTop: false });
+    expect(returnToDeck).toHaveBeenCalledWith(["near", "plain-a", "plain-b"], {
+      toTop: false,
+      suppressWhenEffectAddsToDeck: true,
+    });
   });
 });

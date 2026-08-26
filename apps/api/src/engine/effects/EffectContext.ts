@@ -951,7 +951,12 @@ export interface Primitives {
   returnToHand(instanceIds: string[], opts?: { silent?: boolean; byEffectSeat?: Seat }): Promise<CardInstance[]>;
   returnToDeck(
     instanceIds: string[],
-    opts?: { toTop?: boolean; byEffectSeat?: Seat; byEffectCardId?: string },
+    opts?: {
+      toTop?: boolean;
+      byEffectSeat?: Seat;
+      byEffectCardId?: string;
+      suppressWhenEffectAddsToDeck?: boolean;
+    },
   ): Promise<CardInstance[]>;
   /**
    * Return the named top cards of one or more Digimon stacks to their owners' deck tops while

@@ -100,7 +100,10 @@ describe("BT26-018 reveal movement boundaries", () => {
         destination: "deckBottom",
       }),
     );
-    expect(returnToDeck).toHaveBeenCalledWith(["plain", "ds", "sea"], { toTop: false });
+    expect(returnToDeck).toHaveBeenCalledWith(["plain", "ds", "sea"], {
+      toTop: false,
+      suppressWhenEffectAddsToDeck: true,
+    });
   });
 });
 
