@@ -164,7 +164,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-058 — 10/10
   - Evidence: catalog and KB Q2303 reviewed; hand-fixed compiled IR exclusively uses `registerIrCard`, correctly represents evolution suspension plus unsuspend prevention, optional attack self-unsuspend paid by another own Digimon, mandatory end-of-your-turn self top-card trash, all-own-Digimon unsuspend, and Leopardmon alternate evolution.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-058.test.ts` passed (2 tests): IR clause proof and live registration; the mandatory end-turn action has no optional branch, satisfying Q2303.
-- BT13-059 — Pending
+- BT13-059 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, traces DNA materials/cost, duplicated On Play/evolution suspension with the same-target unsuspend restriction, and the all-turn opponent-suspension once-per-turn optional modal.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-059.test.ts` passed (2 tests): IR clause proof and live On Play suspension/restriction behavior.
 - BT13-060 — Pending
 - BT13-061 — Pending
 - BT13-062 — Pending
