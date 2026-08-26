@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { PlayerState, Zone } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { candidateLooseInstances, pickLoose } from "../../engine/effects/interpreter/targeting/loose.js";
 import { compiled } from "./EX6-073.js";
 import "../index.js";
 
@@ -158,5 +159,53 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
         target: { count: 7, isSelfRef: true, distinctNames: true, filter: { zone: "digivolutionCards", sameHost: true } },
       },
     });
+  });
+
+  it("resolves only this Digimon's stack and deduplicates a hostile duplicate-name selection", async () => {
+    const self = {
+      permanentId: "ogudomon-host",
+      stack: [
+        { instanceId: "self-a", cardId: "A", ownerSeat: 0, faceUp: true },
+        { instanceId: "self-b", cardId: "B", ownerSeat: 0, faceUp: true },
+      ],
+      linked: [],
+      topCard: { instanceId: "ogudomon-top", cardId: OGUDOMON, ownerSeat: 0 },
+    };
+    const unrelated = {
+      permanentId: "other-host",
+      stack: [{ instanceId: "other-a", cardId: "C", ownerSeat: 0, faceUp: true }],
+      linked: [],
+      topCard: { instanceId: "other-top", cardId: OPP_DIGIMON, ownerSeat: 0 },
+    };
+    const names: Record<string, string> = { A: "Belphemon", B: "Leviamon", C: "Lilithmon", D: "Belphemon" };
+    const ctx = {
+      source: { ownerSeat: 0, instanceId: "ogudomon-top", permanent: () => self },
+      game: {
+        player: (seat: number) => ({
+          hand: [], trash: [], deck: [], security: [],
+          battleArea: seat === 0 ? [self, unrelated] : [], breeding: undefined,
+        }),
+        opponentOf: () => 1,
+        definitionOf: ({ cardId }: { cardId: string }) => ({
+          cardId, nameEn: names[cardId] ?? cardId, kinds: [], colors: [], types: ["Seven Great Demon Lords"], playCost: 0,
+        }),
+      },
+    } as never;
+    const target = {
+      filter: { controller: "mine", zone: "digivolutionCards", isSelfRef: true },
+      count: 7,
+    } as never;
+
+    const selfStack = candidateLooseInstances(ctx, target, ["digivolutionCards"]);
+    expect(selfStack.map((card) => card.instanceId)).toEqual(["self-a", "self-b"]);
+
+    const deduped = await pickLoose(
+      ctx,
+      { filter: { distinctNames: true }, count: 2, upTo: true } as never,
+      [...selfStack, { instanceId: "duplicate-a", cardId: "D", ownerSeat: 0 }],
+      undefined,
+      { selectCards: async () => ["self-a", "duplicate-a"] } as never,
+    );
+    expect(deduped).toEqual(["self-a"]);
   });
 });

@@ -198,7 +198,11 @@ export function zoneList(zone: ZoneRef | ZoneRef[] | undefined): ZoneRef[] {
 }
 
 export function candidateLooseInstances(ctx: EffectContext, target: Target, zones: ZoneRef[]): LooseCandidate[] {
-  if (target.filter.isSelfRef === true) {
+  // For a loose card in hand/trash/security, `this card` is the source instance.  In a
+  // hosted-card zone, though, "this Digimon's digivolution cards" means every stack card
+  // whose HOST is the source permanent (EX6-073), not the source's top-card instance.
+  const hostedZone = zones.length > 0 && zones.every((zone) => zone === "digivolutionCards" || zone === "linked");
+  if (target.filter.isSelfRef === true && !hostedZone) {
     const self = findLooseCandidateByInstance(ctx, ctx.source.instanceId);
     if (
       self === undefined ||
