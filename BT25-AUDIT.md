@@ -301,3 +301,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-015.
+
+## BT25-016 — GrapLeomon — 10/10
+
+- Catalog evidence: Red/green level-5 Digimon, play cost 7, 7000 DP, `Ultimate`/`Vaccine`, `Beastkin`/`Iliad`/`TS`; alternate level-4 `TS` evolution for 3; On Play/When Digivolving give one friendly Digimon +3000 DP for the turn, then another independently chosen friendly Digimon may attack; all-turn reaction to either player's 13000+ DP attacker, optionally evolve this Digimon into Marsmon/Callismon from hand without cost; inherited Security Attack +1.
+- Knowledge base: Q6262 includes DP gained simultaneously from suspension in the attack-time threshold; Q6263 excludes DP gained later by `[When Attacking]`; Q6264 allows either controller's attacking Digimon to trigger the effect.
+- Implementation: entry sequences keep independent boost and attack selections, the all-turn watcher accepts any-controller Digimon at the inclusive 13000 boundary and offers free self-evolution into the two printed names, the alternate evolution and inherited keyword are complete. The module has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-016", compiled)`.
+- Defect corrected: attack watchers previously evaluated live DP after `[When Attacking]` effects, violating Q6263. Combat now captures `attackerDPAtDeclaration` after suspension watchers/recomputation (therefore including Q6262) and before OnUseAttack/OnAllyAttack effects; attack-subtrigger DP filters consume that snapshot while retaining every non-DP filter.
+- Behavioral proof: the focused suite covers metadata/evolution, inherited Security Attack +1 on a realistic stack, independent entry targets and optional attack, legal alternate evolution plus entry resolution, opponent 13000 boundary, rejection of a 12000 attacker boosted only by When Attacking, and acceptance of a 12000 attacker whose suspension-time inherited modifier makes it 13000. The Q6263 regression fails against the prior live-DP matcher.
+- Verification: focused suite — 10 passed; interpreter/subtrigger regressions — 206 passed; mechanism suite — 322 passed with two unrelated pre-existing failures; `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated errors and no BT25-016 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-016
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-016.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-016.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-016.test.ts apps/api/src/engine/combat/controller.ts apps/api/src/engine/effects/EffectContext.ts apps/api/src/engine/effects/interpreter/matching/trigger.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-016.

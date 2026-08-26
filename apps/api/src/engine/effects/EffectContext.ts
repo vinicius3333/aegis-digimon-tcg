@@ -176,6 +176,8 @@ export interface TriggerInfo {
   /** Whether the pay-time declaration is using the card as an Option rather than playing a permanent. */
   wouldBePlayedAsOption?: boolean;
   attackerPermanentId?: string;
+  /** Attacker's effective DP immediately after declaration/suspension, before [When Attacking] effects. */
+  attackerDPAtDeclaration?: number;
   /** Stable identity for this attack across all reactive attack sub-trigger fires. */
   attackSequence?: number;
   /** Named attack procedure that caused the current attack watcher, when applicable. */
@@ -502,12 +504,14 @@ export interface GameAccess {
   linkCostReductionGrant?(
     recipientId: string,
     cardTraits: readonly string[],
-  ): {
-    amount: number;
-    controllerSeat?: Seat;
-    optional?: boolean;
-    oncePerTurnKey?: string;
-  } | undefined;
+  ):
+    | {
+        amount: number;
+        controllerSeat?: Seat;
+        optional?: boolean;
+        oncePerTurnKey?: string;
+      }
+    | undefined;
   /**
    * A permanent's EFFECTIVE card kinds (static def.kinds ∪ continuous KindGrants).
    * A Tamer granted Digimon kind via grantKind is a Digimon for type-check gates

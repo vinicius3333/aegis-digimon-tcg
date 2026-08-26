@@ -566,6 +566,7 @@ export class CombatController {
       };
       const attackSubTriggerPayload: TriggerInfo = {
         attackerPermanentId: attacker.permanentId,
+        attackerDPAtDeclaration: attacker.currentDP,
         attackSequence,
         ...(attackTrigger.defenderPermanentId !== undefined
           ? { defenderPermanentId: attackTrigger.defenderPermanentId }
