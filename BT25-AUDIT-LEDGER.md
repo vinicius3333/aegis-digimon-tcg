@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-051 (Grizzlymon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-051 Grizzlymon | Green/black level 4 Digimon; alternate level-3 `[TS]` evolution cost 2; Blocker; on play/when digivolving, 1 own Digimon with Beast/Animal/Sovereign other than Sea Animal, or Shaman/TS, gets +3000 DP until opponent's turn ends; inherited all turns once per turn, when this Digimon wins a battle, draw 1. Q6323-Q6327 define win timing, Security battles, deletion ordering, and activation despite deletion prevention. | **Potential exclusion-scope gap.** The target filter applies `excludeNameOrTrait: Sea Animal` globally to both trait branches. The printed punctuation attaches “other than [Sea Animal]” to the Beast/Animal/Sovereign branch, while the separate Shaman/TS branch may still qualify a Sea Animal+TS card (the catalog contains BT24-029 Whamon with `[Sea Animal]` and `[TS]`). Thus the implementation may incorrectly reject a Shaman/TS-eligible Sea Animal card. The +3000 duration, target count, Blocker, alternate evolution, and battle-win watcher are otherwise represented. | Structural test only; no execution of mixed trait/exclusion candidates, duration, win timing, Security battle, or Q6323-Q6327 ordering. **Static diagnosis only; wording scope remains to be confirmed behaviorally/rules-wise.** |
+
+### Static validation record for BT25-051
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-051` (Q6323-Q6327).
+- Direct module, catalog trait corpus, and shared exclusion matching were inspected. BT24-029
+  confirms a concrete Sea Animal+TS near-match relevant to the punctuation scope.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-050 (Kiwimon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
