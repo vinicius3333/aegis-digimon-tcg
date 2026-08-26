@@ -39,6 +39,7 @@ import {
 } from "./sidePanels";
 import {
   dismissNotice,
+  dismissOwnEffectNotices,
   effectNoticeFromEvent,
   expireNotices,
   keywordNoticeFromEvent,
@@ -167,6 +168,11 @@ export interface MatchCues {
   dismissPanel: (id: string) => void;
   notices: readonly MatchNotice[];
   dismissNotice: (id: string) => void;
+  /**
+   * Drops the viewer's own effect notice for a card whose decision dialog is now open —
+   * the dialog already names the card and prints the clause the notice would repeat.
+   */
+  dismissOwnEffectNotice: (cardId: string) => void;
   /** Raises a notice for a refused action, which no server event narrates for the viewer. */
   raiseRejection: (reason: string) => void;
   attackAnnouncement: AttackAnnouncement | null;
@@ -1297,6 +1303,12 @@ export function useMatchCues({
     dismissPanel: (id: string) => setSidePanels((panels) => dismissSidePanel(panels, id)),
     notices,
     dismissNotice: (id: string) => setNotices((stack) => dismissNotice(stack, id)),
+    dismissOwnEffectNotice: (cardId: string) => {
+      heldNoticesRef.current = heldNoticesRef.current.filter(
+        (notice) => !(notice.side === "you" && notice.body.variant === "effect" && notice.body.cardId === cardId),
+      );
+      setNotices((stack) => dismissOwnEffectNotices(stack, cardId));
+    },
     raiseRejection: (reason: string) => {
       noticeSequenceRef.current += 1;
       openNotice(rejectionNotice(reason, `notice-${noticeSequenceRef.current}`, Date.now()));

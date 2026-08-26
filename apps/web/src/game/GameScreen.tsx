@@ -449,6 +449,15 @@ export function GameScreen({
     },
     onActionRejected: (reason) => ping(rejectionMessage(reason, t)),
   });
+  // The dialog that asks the viewer whether to activate their own effect already names the
+  // card and prints its clause, so the matching corner notice would only repeat it.
+  const decisionSourceCardId = decision?.sourceCardId;
+  const dismissOwnEffectNoticeRef = useRef(cues.dismissOwnEffectNotice);
+  dismissOwnEffectNoticeRef.current = cues.dismissOwnEffectNotice;
+  useEffect(() => {
+    if (decisionSourceCardId === undefined) return;
+    dismissOwnEffectNoticeRef.current(decisionSourceCardId);
+  }, [decisionSourceCardId]);
   const {
     attackAnnouncement,
     attackLunge,
