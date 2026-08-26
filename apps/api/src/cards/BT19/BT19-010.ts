@@ -52,7 +52,7 @@ const compiled: CompiledCard = {
         { names: ["Dorulumon"] },
         { names: ["Starmons"] },
       ],
-      cost: 2,
+      count: 2,
     },
   ],
 };

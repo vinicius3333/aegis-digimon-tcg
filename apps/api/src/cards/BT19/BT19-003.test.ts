@@ -1,32 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-describe("BT19-003 Plug-In Runner", () => {
-  it("returns one Plug-In Option from trash once per turn as an inherited effect", () => {
-    const card = runtimeCompiledCard("BT19-003");
-    expect(card).toMatchObject({ coverage: "full", residual: [] });
-    expect(card?.effects).toMatchObject([
+describe("BT19-003 Viximon", () => {
+  it("returns exactly one Plug-In Option from trash at end of turn and only once", async () => {
+    const s = setupEngine(
       {
-        trigger: "EndOfYourTurn",
-        isInherited: true,
-        frequency: "OncePerTurn",
-        actions: [
-          {
-            kind: "Return",
-            to: "hand",
-            target: {
-              filter: {
-                zone: "trash",
-                controller: "mine",
-                kind: ["Option"],
-                nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }],
-              },
-              count: 1,
-            },
-          },
-        ],
+        0: {
+          battleArea: [{ card: "BT19-030", as: "host", under: ["BT19-003"] }],
+          trash: ["BT1-102", "P-095", "P-095"],
+        },
       },
-    ]);
+      { autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    await settle(() => (s.state.players[0] as PlayerState).hand.length === 1);
+
+    expect((s.state.players[0] as PlayerState).hand.map((card) => card.cardId)).toEqual(["P-095"]);
+    expect((s.state.players[0] as PlayerState).trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-102", "P-095"]),
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    await settle(() => false, 20);
+
+    expect((s.state.players[0] as PlayerState).hand.map((card) => card.cardId)).toEqual(["P-095"]);
   });
 });

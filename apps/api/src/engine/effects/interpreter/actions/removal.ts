@@ -17,7 +17,7 @@ import {
   resolveTotalPlayCostBudgetTargets,
   topInstanceIds,
 } from "../targeting/permanents.js";
-import type { Action, Target } from "@aegis/shared";
+import type { Action, Permanent, Target } from "@aegis/shared";
 import { definitionMatches } from "../matching/definition.js";
 import { COLOR_MAP } from "../maps.js";
 
@@ -711,6 +711,18 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           ctx.boundPlayed.set(action.bindResultAs, new Set());
         }
         return false;
+      }
+      if (action.storeAs !== undefined) {
+        let selected: Permanent | undefined;
+        for (const player of ctx.game.state.players) {
+          selected = player.battleArea.find((permanent) => permanent.topCard?.instanceId === ids[0]);
+          if (selected !== undefined) break;
+        }
+        const level = selected?.topCard === undefined ? undefined : ctx.game.definitionOf(selected.topCard).level;
+        if (level !== undefined) {
+          ctx.namedCounts ??= new Map();
+          ctx.namedCounts.set(action.storeAs, level);
+        }
       }
       const movedResult =
         action.to === "hand"

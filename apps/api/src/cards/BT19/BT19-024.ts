@@ -31,7 +31,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Aqua", "Sea Animal"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },
@@ -59,7 +59,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Aqua", "Sea Animal"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },
@@ -98,6 +98,7 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
           sourceFilter: {
             isSelfRef: true,
           },
@@ -141,7 +142,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Aqua", "Sea Animal"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },

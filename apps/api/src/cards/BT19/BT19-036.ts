@@ -24,19 +24,13 @@ const compiled: CompiledCard = {
           amount: 1,
           source: "hand",
           filter: {
+            kind: ["Option"],
             playCostLte: 5,
             colors: ["Yellow", "Purple"],
           },
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Wizardmon", "X Antibody"],
-                  match: "name",
-                },
-              ],
-            },
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [{ tokens: ["Wizardmon", "X Antibody"], match: "name" }],
             raw: "[Wizardmon]/[X Antibody] is in this Digimon's digivolution cards",
           },
           optional: true,
@@ -60,19 +54,13 @@ const compiled: CompiledCard = {
           amount: 1,
           source: "hand",
           filter: {
+            kind: ["Option"],
             playCostLte: 5,
             colors: ["Yellow", "Purple"],
           },
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Wizardmon", "X Antibody"],
-                  match: "name",
-                },
-              ],
-            },
+            kind: "selfHasInDigivolutionCards",
+            nameOrTrait: [{ tokens: ["Wizardmon", "X Antibody"], match: "name" }],
             raw: "[Wizardmon]/[X Antibody] is in this Digimon's digivolution cards",
           },
           optional: true,
@@ -85,36 +73,25 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          leaveCause: "opponentEffect",
           sourceFilter: {
             controllerDefault: "mine",
             kind: ["Digimon"],
             colors: ["Yellow"],
             nameOrTrait: [
-              {
-                tokens: ["Data", "Witchelny"],
-                match: "trait",
-              },
+              { tokens: ["Data"], match: "trait" },
+              { tokens: ["Witchelny"], match: "trait", orPrevious: true },
             ],
           },
-          actions: [
-            {
-              kind: "Prevent",
-              mode: "leavePlay",
-              cost: {
-                kind: "trash",
-                target: {
-                  filter: {
-                    controller: "mine",
-                    zone: "security",
-                  },
-                  count: 1,
-                },
-                raw: "by trashing your top security card",
-              },
-              optional: true,
-              abortOnDecline: true,
+          actions: [],
+          cost: {
+            kind: "trash",
+            target: {
+              filter: { controller: "mine", zone: "security", position: "top" },
+              count: 1,
             },
-          ],
+            raw: "by trashing your top security card, it doesn't leave",
+          },
         },
       ],
       isInherited: true,

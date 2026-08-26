@@ -15,7 +15,7 @@ describe("BT19-060", () => {
             target: { filter: { nameOrTrait: [{ tokens: ["Ryo Akiyama"] }] } },
             from: ["hand"],
             payCost: false,
-            condition: { kind: "permanentCount", op: "lte", value: 1, filter: { kind: ["Tamer"] } },
+            condition: { kind: "permanentCount", seat: "mine", op: "lte", value: 1, filter: { kind: ["Tamer"] } },
             optional: true,
           },
         ],

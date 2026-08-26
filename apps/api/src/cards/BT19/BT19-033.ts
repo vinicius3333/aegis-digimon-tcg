@@ -28,20 +28,22 @@ const compiled: CompiledCard = {
               },
             ],
           },
-          onto: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-            },
-            count: 1,
-          },
+          from: ["digivolutionCardsUnderTamers"],
+          payCost: false,
           optional: true,
         },
       ],
     },
     {
       trigger: "OnDeletion",
-      actions: [],
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
+          optional: true,
+        },
+      ],
       keywords: [
         {
           keyword: "Save",
@@ -53,19 +55,13 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
+          kind: "Aura",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          effect: { kind: "keyword", keyword: { keyword: "Piercing", raw: "＜Piercing＞" } },
+          while: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] },
           },
-          keyword: {
-            keyword: "Piercing",
-            raw: "＜Piercing＞",
-          },
-          duration: "permanent",
         },
       ],
       isInherited: true,

@@ -50,6 +50,14 @@ const compiled = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    {
+      levelMin: 5,
+      names: ["Lucemon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT19-043", compiled);

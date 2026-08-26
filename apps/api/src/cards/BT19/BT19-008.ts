@@ -35,6 +35,7 @@ const compiled: CompiledCard = {
           },
           optional: true,
           payCost: false,
+          from: ["underTamers"],
         },
       ],
     },

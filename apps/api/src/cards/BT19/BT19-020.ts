@@ -46,7 +46,6 @@ const compiled: CompiledCard = {
             raw: "you have 1 or fewer Tamers",
           },
           optional: true,
-          abortOnDecline: true,
         },
         {
           kind: "PlaceUnder",

@@ -28,6 +28,7 @@ const compiled: CompiledCard = {
           payCost: false,
           condition: {
             kind: "permanentCount",
+            seat: "mine",
             op: "lte",
             value: 1,
             filter: {
