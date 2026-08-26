@@ -2150,7 +2150,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "sourceFilter": { "controller": "any", "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "Suspend",
@@ -11506,7 +11506,11 @@
                 "op": "trashTop",
                 "controller": "opponent",
                 "amount": 1,
-                "condition": { "kind": "raw", "raw": "this Digimon has [Greymon] or [Omnimon] in its name" }
+                "condition": {
+                  "kind": "selfHasNameContaining",
+                  "names": ["Greymon", "Omnimon"],
+                  "raw": "this Digimon has [Greymon] or [Omnimon] in its name"
+                }
               }
             ]
           }
