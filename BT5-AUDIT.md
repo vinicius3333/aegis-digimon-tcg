@@ -1145,3 +1145,41 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   `primitives.test.ts`.
 - Remaining ambiguity: none identified.
+
+## BT5-026 — Coelamon — 10/10
+
+- Catalog evidence: Blue Lv.4 Champion Digimon, Data/Ancient Fish, play cost
+  6, 5000 DP, and blue Lv.3 evolution cost 1. It has the static `<Blocker>`
+  keyword and `[When Attacking] Lose 2 memory.` It has no inherited or
+  Security text.
+- Knowledge-base and rules evidence: the card query returns no card-specific
+  QA, errata, restriction, or ruling entries. Comprehensive §15-16-5-1 makes
+  When Attacking trigger on this card's attack declaration; §16-5 and §12-1
+  define Blocker's optional attack-target switch, eligibility, suspension,
+  and one-block processing.
+- Implementation: `apps/api/src/cards/BT5/BT5-026.ts` exposes a static Blocker
+  keyword and a `WhenAttacking` GainMemory action with amount -2. It declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-026", compiled)`.
+- Primitive, peer, and combat evidence: the continuous keyword reader makes
+  only an unsuspended Blocker eligible; accepting the block suspends Coelamon
+  and changes the attack target, while declining preserves the player target.
+  The When Attacking action is sourced from Coelamon itself, so an opponent's
+  attack into its Blocker window cannot apply the -2 memory. BT5-012 is the
+  same Blocker-plus-memory-loss peer, and the chapter 11, 12, and 16a
+  conformance suites prove the shared declaration, decline, suspension,
+  redirection, and security boundaries.
+- Behavioral proof: the 2 focused tests prove Coelamon has Blocker, loses
+  exactly 2 memory on its own attack, can accept an opponent's block window,
+  becomes suspended, redirects combat away from security, and does not lose
+  memory merely because the opponent attacked. The audit only added the final
+  observable redirection/security/memory assertions to the existing test;
+  redundant new cases were unnecessary because shared conformance covers them.
+- Defect corrected: none in the IR or engine.
+- Verification: focused BT5-026, BT5-012 peer, and three combat conformance
+  files — 5 files, 43 tests passed. Targeted Oxfmt and `git diff --check`
+  passed. Workspace `pnpm typecheck` retains only the known unrelated API
+  errors in `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  `primitives.test.ts`.
+- Remaining ambiguity: none identified.
