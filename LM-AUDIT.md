@@ -304,7 +304,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --fileParallelism=false`. LM-030 remains below 10/10 pending relevant mechanism and refreshed
   collection gates.
 
-## LM-031 — Black Scramble — pending focused execution
+## LM-031 — Black Scramble — focused proof green; pending mechanism and collection gates
 
 - Catalog and Q4053-Q4057 align with direct compiled IR: black Digimon-only ordinary legal hand
   evolution at minus three, followed by self placement; this excludes altered evolution routes and
@@ -312,7 +312,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - The opponent-Digimon-gated Delay performs the mandatory black-trash deck-top return before its
   optional 2000-DP-or-lower play; Security is the independent optional play followed by self hand
   return. Existing behavioral fixtures prove those positive and no-opponent/over-2000 boundaries.
-- The focused fixtures remain unrun under PID 82901, so LM-031 remains below 10/10.
+- The authorized serialized focused command passed 1/1 file and 6/6 tests in 12.59s on 2026-08-26:
+  `vitest run src/cards/LM/LM-031.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-031 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
 ## LM-032 — Purple Scramble — pending focused execution
 
