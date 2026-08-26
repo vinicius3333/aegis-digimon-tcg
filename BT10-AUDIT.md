@@ -502,6 +502,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: six focused cases prove catalog/IR fidelity, optional suspension, compound-trait counting, exact memory, threshold unsuspend and Piercing, below-threshold negative, UI keyword publication, two-unit DP/Security scaling, self-counting, and opponent-turn expiry.
 - Verification: focused Bloomlordmon suite — 6 passed; Lotosmon compound-Plant regression — 3 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-058 — Monitamon — 10/10
+
+- Catalog evidence: black level 3 Digimon, play cost 3, 2000 DP; evolves from black level 2 for 0; form `Rookie`, attribute `Data`, types `CRT`, `Twilight`, and `Xros Heart`. On Play reveals four, mandatorily adds up to one Twilight-trait card and up to one black card whose name contains Knightmon or DeadlyAxemon, then bottoms the rest.
+- Knowledge base: Q1983 bottoms every unadded reveal in chosen order. Q1984 adds the sole available category. Q1985 makes populated slots mandatory but permits a dual-qualified card to be assigned to the Twilight slot, potentially leaving the black-name slot empty and adding only that one card. No errata, restriction, or unresolved ambiguity remains.
+- Implementation: the former pooled count-two filter was corrected to two ordered mandatory count-one buckets: Twilight first, then black Knightmon/DeadlyAxemon name. That ordering exposes Q1985's role choice while preventing one physical card from filling both slots. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-058", compiled)`.
+- Primitive trace: reveal snapshots four identities; the first decision exposes all Twilight candidates, removes the chosen physical identity from later availability, and the second bucket evaluates black color plus name only. Mandatory min/max tracks the number available in each slot, and all unclaimed identities route to deck bottom.
+- Cross-card and stack proof: SkullKnightmon: Mighty Axe Mode and DarkKnightmon prove two dual-eligible cards can fill separate roles. Selecting the first dual-eligible card for Twilight beside ordinary Twilight Monimon leaves no black-name identity and therefore adds only one under Q1985; yellow Knightmon proves the black-color boundary.
+- Behavioral proof: four focused cases prove catalog/IR fidelity, separate slots, mandatory two-card addition, visible versus eligible reveals, Q1985 dual-role assignment, sole-slot Q1984 behavior, color/name near-match rejection, and exact remainder counts.
+- Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
