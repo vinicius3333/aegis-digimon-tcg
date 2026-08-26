@@ -14,13 +14,22 @@ describe("EX6-029 Mastemon", () => {
       target: { filter: { levelComparison: { op: "lte", value: 5 } } },
     });
   });
-  it("during DNA digivolving places a security card under a Digimon and trashes security until four remain", () =>
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions.slice(1)).toMatchObject([
+  it("during DNA digivolving mandatorily places a Digimon into security and trashes until four remain", () => {
+    const tail = compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions.slice(1);
+    expect(tail).toMatchObject([
       {
         kind: "PlaceUnder",
         condition: { kind: "isDnaDigivolving" },
         underFilter: { zone: "security", position: "bottom" },
       },
-      { kind: "SecurityManipulation", op: "trashTop", leaveCount: 4, condition: { kind: "isDnaDigivolving" } },
-    ]));
+      {
+        kind: "SecurityManipulation",
+        op: "trashTop",
+        leaveCount: 4,
+        condition: { kind: "isDnaDigivolving" },
+      },
+    ]);
+    expect(tail?.[0]).not.toHaveProperty("optional");
+    expect(tail?.[1]).not.toHaveProperty("optional");
+  });
 });

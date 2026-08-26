@@ -67,7 +67,6 @@ export const compiled: CompiledCard = {
             kind: "isDnaDigivolving",
             raw: "DNA digivolving",
           },
-          optional: true,
         },
         {
           kind: "SecurityManipulation",
@@ -78,7 +77,6 @@ export const compiled: CompiledCard = {
             kind: "isDnaDigivolving",
             raw: "DNA digivolving",
           },
-          optional: true,
         },
       ],
     },
@@ -127,7 +125,6 @@ export const compiled: CompiledCard = {
             kind: "isDnaDigivolving",
             raw: "DNA digivolving",
           },
-          optional: true,
         },
         {
           kind: "SecurityManipulation",
@@ -138,7 +135,6 @@ export const compiled: CompiledCard = {
             kind: "isDnaDigivolving",
             raw: "DNA digivolving",
           },
-          optional: true,
         },
       ],
     },
