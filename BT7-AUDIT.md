@@ -197,6 +197,23 @@ Remaining work is focused behavioral proof of the Main/Delay/Security lifecycle;
 
 Remaining work is behavioral proof of Q1665's evolution-stack boundary and On Play/Security ordering; this card is not formally complete at 10/10.
 
+## BT7-090 — Kota Domoto — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Black Tamer costing 4 with Start of Your Turn memory setting, On Play top-4 X-Antibody search/bottom-deck remainder, and Security self-play.
+2. **Start-of-turn condition (1/1):** `SetMemory` to 3 is gated by owner memory at most 2.
+3. **Reveal/search (1/1):** On Play reveals 4 and adds one matching X-Antibody card to hand.
+4. **Remainder placement (1/1):** Unselected revealed cards go to deck bottom via `rest: "deckBottom"`.
+5. **Security behavior (1/1):** Security plays this card without cost through a self-reference target.
+6. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-090` reports no rulings or unresolved ambiguity.
+7. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-090", compiled)` registration are present.
+8. **Static primitive trace (1/1):** Start-turn timing, memory threshold/value, reveal count, trait filter, hand destination, deck-bottom remainder, and free Security play are explicit.
+9. **Clause completeness (1/1):** All printed clauses map directly to compiled effects without omitted duration or controller scope.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; memory threshold, no-match search, bottom ordering, and Security behavior remain unproven.
+
+Remaining work is focused behavioral proof of the Start-of-Turn boundary and top-4 search/remainder behavior; this card is not formally complete at 10/10.
+
 ## BT7-101 — Thunder Laser — 9/10 (static audit)
 
 ### Clause-by-clause score
