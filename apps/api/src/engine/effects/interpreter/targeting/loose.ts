@@ -226,7 +226,13 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
   }
   // `orFilters`: a card qualifies if it matches the primary filter OR any alternative
   // ("play 1 [X] or 1 [Y]", BT17-074). Union the controller scope across all alternatives.
-  const allFilters = [target.filter, ...(target.orFilters ?? []), ...(target.filter.orFilters ?? [])];
+  // `filter.or` carries branch-specific context as well as definition predicates. Flatten it
+  // into common+branch filters so a branch's hostFilter is evaluated for the same candidate;
+  // calling definitionMatches on the unflattened parent loses which OR branch matched.
+  const { or: nestedOr, ...commonFilter } = target.filter;
+  const primaryFilters =
+    nestedOr && nestedOr.length > 0 ? nestedOr.map((branch) => ({ ...commonFilter, ...branch })) : [target.filter];
+  const allFilters = [...primaryFilters, ...(target.orFilters ?? []), ...(target.filter.orFilters ?? [])];
   const seatSet = new Set<Seat>();
   for (const f of allFilters) for (const s of seatsForController(ctx, f)) seatSet.add(s);
   const seats = [...seatSet];
@@ -259,6 +265,13 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
         }
         const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
         const branchMatches = (filter: Filter): boolean => {
+          const branchZones =
+            filter.zone === undefined ? undefined : Array.isArray(filter.zone) ? filter.zone : [filter.zone];
+          if (branchZones !== undefined && !branchZones.includes(zone)) return false;
+          // A union branch qualified by its host can only match a hosted-card zone. Without
+          // this gate, BT13-019's Royal Knight-from-breeding branch also admitted Royal
+          // Knights from trash merely because definitionMatches ignores hostFilter.
+          if (filter.hostFilter !== undefined && zone !== "digivolutionCards" && zone !== "linked") return false;
           // `isSelfRef` belongs to the individual union branch, not the primary filter.
           // EX11-027 can link either this resolving card OR a Maquinamon from hand; applying
           // the primary branch's self gate to the whole union incorrectly removes the hand

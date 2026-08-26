@@ -114,4 +114,28 @@ describe("BT13-008 Agumon", () => {
     await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("marcus").permanentId });
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
+
+  it("does not trigger when a Tamer outside the red-or-yellow color boundary suspends", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-015", as: "host", under: ["BT13-008"] },
+            { card: "BT13-097", as: "blueTamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-012", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenSuspended", {
+      subjectPermanentId: s.perm("blueTamer").permanentId,
+    });
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("target").permanentId,
+    );
+  });
 });

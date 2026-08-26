@@ -34,6 +34,37 @@ describe("BT13-015 RizeGreymon", () => {
     expect(s.state.memory).toBe(7);
   });
 
+  it("may decline to play Marcus Damon when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-012", as: "geo" }],
+          hand: [
+            { card: "BT13-015", as: "rize" },
+            { card: "BT12-092", as: "marcus" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("geo").permanentId,
+        instanceId: s.inst("rize").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("geo").topCard.cardId === "BT13-015");
+    await settle();
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("marcus").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(7);
+  });
+
   it("places the deleted Marcus Damon itself from trash face down on top of security (Q2274)", async () => {
     const s = setupEngine(
       {

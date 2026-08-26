@@ -28,7 +28,7 @@ export const compiled: CompiledCard = {
                 kind: "youHave",
                 filter: {
                   zone: "trash",
-                  controllerDefault: "mine",
+                  controller: "mine",
                   kind: ["Digimon"],
                   nameOrTrait: [
                     {

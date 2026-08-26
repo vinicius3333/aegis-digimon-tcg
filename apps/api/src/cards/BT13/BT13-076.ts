@@ -14,7 +14,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onDeletionOf",
           sourceFilter: {
-            controllerDefault: "mine",
+            controller: "any",
             kind: ["Digimon"],
             excludeSelf: true,
             nameOrTrait: [
@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
                 filter: {
                   controller: "opponent",
                   kind: ["Digimon"],
+                  excludeLeavingSubject: true,
                 },
                 count: 1,
               },
@@ -43,6 +44,7 @@ export const compiled: CompiledCard = {
                 filter: {
                   controller: "opponent",
                   kind: ["Digimon"],
+                  excludeLeavingSubject: true,
                 },
                 count: 1,
               },

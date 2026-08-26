@@ -55,4 +55,101 @@ describe("BT13-034 Kudamon", () => {
     );
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT1-009");
   });
+
+  it("does not add an off-color Vaccine or a yellow non-Vaccine Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-034", as: "kudamon" }],
+          deck: [
+            { card: "BT1-015", as: "rest-red" },
+            { card: "BT13-035", as: "rest-yellow" },
+            { card: "BT13-098", as: "tamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: false },
+    );
+    const resolution = advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("kudamon"));
+    await settle(() => s.decisions.some(({ req }) => req.kind === "orderCards"));
+    const order = s.decisions.find(({ req }) => req.kind === "orderCards")!.req;
+    expect(order.options?.visibleCards?.map(({ cardId }) => cardId).sort()).toEqual(["BT1-015", "BT13-035"].sort());
+    const exactOrder = [s.inst("rest-yellow").instanceId, s.inst("rest-red").instanceId];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderCards", order: exactOrder },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT13-098"]);
+    expect(s.state.players[0]!.deck.slice(-2).map(({ cardId }) => cardId)).toEqual(["BT13-035", "BT1-015"]);
+  });
+
+  it("the inherited effect sums both security stacks, debuffs an opponent, and is once per turn (Q2287)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-034"] }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: {
+          battleArea: [{ card: "BT13-031", as: "target" }],
+          security: ["BT1-004", "BT1-005", "BT1-006"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const baseDP = s.perm("target").currentDP;
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
+    await settle(() => s.perm("target").currentDP === baseDP - 2000);
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
+
+    expect(s.perm("target").currentDP).toBe(baseDP - 2000);
+    expect(s.perm("host").currentDP).toBe(3000);
+  });
+
+  it("the inherited debuff does not fire when the combined security total exceeds six", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-034"] }],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        },
+        1: {
+          battleArea: [{ card: "BT13-031", as: "target" }],
+          security: ["BT1-005", "BT1-006", "BT1-007"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const baseDP = s.perm("target").currentDP;
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
+
+    expect(s.perm("target").currentDP).toBe(baseDP);
+  });
+
+  it("normally digivolves from a yellow level 2 for 0 memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-006", as: "cupimon" }],
+        hand: [{ card: "BT13-034", as: "kudamon" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("cupimon").permanentId,
+        instanceId: s.inst("kudamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("cupimon").topCard.cardId === "BT13-034");
+    expect(s.state.memory).toBe(3);
+  });
 });

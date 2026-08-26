@@ -32,28 +32,30 @@ export const compiled: CompiledCard = {
               controller: "mine",
               amount: 1,
             },
-          ],
-        },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Veemon"],
-                  match: "name",
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  or: [
+                    {
+                      zone: "hand",
+                      nameOrTrait: [{ tokens: ["Veemon"], match: "name" }],
+                    },
+                    {
+                      zone: "digivolutionCards",
+                      nameOrTrait: [{ tokens: ["Veemon"], match: "name" }],
+                      hostFilter: { isSelfRef: true },
+                    },
+                  ],
                 },
-              ],
-              hostFilter: {
-                isSelfRef: true,
+                count: 1,
               },
+              from: ["hand", "digivolutionCards"],
+              payCost: false,
+              optional: true,
             },
-            count: 1,
-          },
-          from: ["hand", "digivolutionCards"],
-          payCost: false,
-          optional: true,
+          ],
         },
       ],
     },

@@ -3354,10 +3354,11 @@ export class GameEngine {
     const crossWatchers = this.crossPermanentPlayReducerWatchers(instance, source.ownerSeat);
     const residentEffects = this.residentPlayCostEffects(source.ownerSeat);
     const breeding = this.state.players[source.ownerSeat]?.breeding;
-    const breedingResidentEffects = Array.from(breeding?.stack ?? []).flatMap((card) => {
+    const breedingResidentEffects = [breeding?.topCard, ...Array.from(breeding?.stack ?? [])].flatMap((card, index) => {
+      if (card === undefined) return [];
       const residentSource = this.cardSourceOf(card);
       return effectsOf(EffectTiming.BeforePayCost, residentSource)
-        .filter((effect) => effect.isInherited)
+        .filter((effect) => index === 0 || effect.isInherited)
         .map((effect) => ({ effect, source: residentSource }));
     });
     if (
@@ -3441,7 +3442,11 @@ export class GameEngine {
       source.definition,
       undefined,
       (sourcePermanentId, sourceInstanceId) => {
-        const resident = this.access.permanentById(sourcePermanentId);
+        const resident =
+          this.access.permanentById(sourcePermanentId) ??
+          (this.state.players[source.ownerSeat]?.breeding?.permanentId === sourcePermanentId
+            ? this.state.players[source.ownerSeat]?.breeding
+            : undefined);
         return resident?.topCard === undefined
           ? undefined
           : this.buildEffectContext(

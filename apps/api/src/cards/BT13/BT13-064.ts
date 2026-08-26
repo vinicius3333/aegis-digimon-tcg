@@ -8,6 +8,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
+    },
+    {
       trigger: "OnDeletion",
       actions: [
         {
@@ -53,12 +58,6 @@ export const compiled: CompiledCard = {
             raw: "it's your opponent's turn",
           },
           optional: true,
-        },
-      ],
-      keywords: [
-        {
-          keyword: "Blocker",
-          raw: "＜Blocker＞",
         },
       ],
     },

@@ -55,6 +55,52 @@ describe("BT13-013 BaoHuckmon", () => {
     expect(s.state.memory).toBe(6);
   });
 
+  it("may decline the Sistermon-triggered SaviorHuckmon digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-013", as: "bao" }],
+          hand: [
+            { card: "BT6-082", as: "sistermon" },
+            { card: "BT13-016", as: "savior" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sistermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    await settle();
+
+    expect(s.perm("bao").topCard.cardId).toBe("BT13-013");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("savior").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(7);
+  });
+
+  it("does not reduce a normal digivolution that was not initiated by its Sistermon trigger", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT13-013", as: "bao" }],
+        hand: [{ card: "BT13-016", as: "savior" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("bao").permanentId,
+      instanceId: s.inst("savior").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("bao").topCard.cardId === "BT13-016");
+    expect(s.state.memory).toBe(7);
+  });
+
   it("its inherited effect gains memory only once per turn for allied Sistermon plays", async () => {
     const s = setupEngine({
       0: {

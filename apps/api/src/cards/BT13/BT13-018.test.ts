@@ -79,4 +79,23 @@ describe("BT13-018 ShineGreymon", () => {
     await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("marcus").permanentId });
     expect(s.state.players[1]!.battleArea.map((p) => p.currentDP).sort()).toEqual([1000, 7000]);
   });
+
+  it("does not reduce DP when a blue-only Tamer suspends", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT13-018", as: "shine" },
+          { card: "BT13-097", as: "blueTamer" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-021", as: "target" }] },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenSuspended", {
+      subjectPermanentId: s.perm("blueTamer").permanentId,
+    });
+
+    expect(s.perm("target").currentDP).toBe(7000);
+  });
 });

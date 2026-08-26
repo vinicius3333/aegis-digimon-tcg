@@ -2,14 +2,18 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-064.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 describe("BT13-064 PawnChessmon", () => {
   it("keeps Blocker, opponent-turn restriction, and the eight-card level ceiling", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({
-      trigger: "OnDeletion",
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")).toMatchObject({
+      trigger: "Static",
       keywords: [expect.objectContaining({ keyword: "Blocker" })],
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "OnDeletion")).toMatchObject({
+      trigger: "OnDeletion",
       actions: [
         {
           kind: "CostModifier",
@@ -45,6 +49,12 @@ describe("BT13-064 PawnChessmon", () => {
         }),
       ],
     });
+  });
+
+  it("exposes Blocker as a static keyword", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-064", as: "pawn" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("pawn"), "Blocker")).toBe(true);
   });
 
   it("plays a level-3 Chessmon from hand when deleted during the opponent's turn", async () => {

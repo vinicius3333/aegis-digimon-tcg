@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [{ tokens: ["Angoramon"], match: "name" }],
             },
             count: 1,
+            fromSelectionRef: "lamortHost",
           },
           into: {
             controllerDefault: "mine",
@@ -29,27 +30,39 @@ export const compiled: CompiledCard = {
           costOverride: 3,
           ignoreRequirements: true,
           optional: true,
-          additionalCosts: [
-            {
-              kind: "place",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["SymbareAngoramon"], match: "name" }],
-                },
-                count: 1,
-                from: ["hand"],
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["SymbareAngoramon"], match: "name" }],
               },
-              destination: "digivolutionStack",
-              position: "bottom",
-              host: "target",
-              raw: "by placing 1 [SymbareAngoramon] from your hand as 1 of your [Angoramon]'s bottom digivolution card",
+              count: 1,
+              from: ["hand"],
             },
-          ],
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Angoramon"], match: "name" }],
+            },
+            bindHostAs: "lamortHost",
+            raw: "by placing 1 [SymbareAngoramon] from your hand as 1 of your [Angoramon]'s bottom digivolution card",
+          },
         },
       ],
       isFromHand: true,
+      condition: {
+        kind: "youHave",
+        filter: {
+          controllerDefault: "mine",
+          kind: ["Tamer"],
+          nameOrTrait: [{ tokens: ["Ruli Tsukiyono"], match: "name" }],
+        },
+      },
     },
     {
       trigger: "YourTurn",

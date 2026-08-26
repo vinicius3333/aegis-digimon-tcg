@@ -24,6 +24,7 @@ import {
 import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
 import { canAttemptDigivolve } from "./actions/digivolve.js";
+import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
 import { canAttemptLink } from "./actions/link.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost } from "./costs.js";
@@ -554,7 +555,20 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     }
     return;
   }
-  if (effect.trigger === "Static") {
+  // A continuous record may carry both resident keywords and executable actions. Do not
+  // drop the keywords merely because the action list is non-empty (BT13-027 combines
+  // opponent-turn Blocker with a when-opponent-attacks subscription).
+  if (
+    effect.trigger === "Static" ||
+    effect.trigger === "Rule" ||
+    effect.trigger === "YourTurn" ||
+    effect.trigger === "OpponentsTurn" ||
+    effect.trigger === "AllTurns"
+  ) {
+    const duration =
+      effect.trigger === "Static" || effect.trigger === "Rule" || effect.trigger === "YourTurn"
+        ? "permanent"
+        : "forTheTurn";
     for (const keyword of effect.keywords ?? []) {
       if (keyword.keyword === "Reboot" || ACTION_TYPE_KEYWORDS.has(keyword.keyword)) continue;
       await runAction(ctxWithSelections, {
@@ -564,7 +578,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
           keyword: keyword.keyword,
           ...(keyword.amount !== undefined ? { amount: keyword.amount } : {}),
         },
-        duration: "permanent",
+        duration,
       });
     }
   }
@@ -644,6 +658,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   const isGated = (action: ParsedAction) =>
     action.kind === "Digivolve" ||
     action.kind === "DnaDigivolve" ||
+    action.kind === "PlaceUnder" ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
     action.cost !== undefined ||
     action.additionalCost !== undefined ||
@@ -669,6 +684,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
         action.cost.bindHostAs === action.target.fromSelectionRef;
       return costProducedTarget || canAttemptDigivolve(ctx, action);
     }
+    if (action.kind === "PlaceUnder") return canAttemptPlaceUnder(ctx, action);
     return action.kind === "DnaDigivolve"
       ? canAttemptDnaDigivolve(ctx, action)
       : action.kind !== "Link" || canAttemptLink(ctx, action);

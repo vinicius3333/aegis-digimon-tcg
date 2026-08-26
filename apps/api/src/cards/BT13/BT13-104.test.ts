@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-104.js";
+import "./BT13-095.js";
 
 describe("BT13-104 Final Shining Burst", () => {
   it("reduces one opposing Digimon by 12000 through the opponent's turn, then may play Marcus Damon", () => {
