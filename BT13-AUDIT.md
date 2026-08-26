@@ -218,7 +218,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-076 — 10/10
   - Registration: exclusive `registerIrCard("BT13-076", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-076.test.ts` passed (4 tests): full IR clause proof, own and opposing Etemon-deletion reactions (Q2314), and exclusion of the leaving deletion subject from the chosen debuff target.
-- BT13-077 — Pending
+- BT13-077 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-077", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-077.test.ts` passed (3 tests): both triggered clauses, Blocker/immunity duration, and the opponent end-turn redirect target are covered by executable IR and live effect resolution.
 - BT13-078 — Pending
 - BT13-079 — Pending
 - BT13-080 — Pending
