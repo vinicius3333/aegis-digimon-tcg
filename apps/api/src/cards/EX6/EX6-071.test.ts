@@ -7,7 +7,18 @@ describe("EX6-071 Pandemonium Lost", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions).toMatchObject([
       { kind: "Trash", chooser: "opponent", condition: { kind: "zoneCount", value: 5 } },
-      { kind: "Delete", condition: undefined },
+      {
+        kind: "Delete",
+        condition: undefined,
+        target: {
+          filter: {
+            levelComparison: {
+              op: "gte",
+              scaling: { filter: { zone: "hand", controller: "opponent" }, unit: "cards", levelCeilingAdd: 1 },
+            },
+          },
+        },
+      },
     ]);
     expect(text).toContain("ActivateMain");
   });
