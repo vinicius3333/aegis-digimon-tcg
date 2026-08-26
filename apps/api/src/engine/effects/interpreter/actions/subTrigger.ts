@@ -412,14 +412,17 @@ export async function runSubTrigger(
     event === "whenSecurityBattleEnded"
       ? (subCtx: EffectContext): boolean => subCtx.trigger.securityInstanceId === ctx.source.instanceId
       : undefined;
-  // `whenEffectSuspends` without an explicit sourceFilter is the printed self-scoped form:
+  // `whenEffectSuspends` without an explicit subject/source filter is the printed self-scoped form:
   // "when an effect suspends THIS Digimon" (EX3-038 and its family). The bus broadcasts every
   // effect-suspension, including the opponent Digimon suspended by the watcher's own body, so
   // leaving this ungated makes every copy react to every Digimon and recursively suspend the
-  // opponent's entire board. Filtered forms ("when your effect suspends a Tamer") deliberately
-  // keep their broader subject gate above.
+  // opponent's entire board. Filtered forms ("when your effect suspends a Tamer" or EX6-064's
+  // "one of your Digimon") deliberately keep their broader subject gate above.
   const effectSuspendsSelfGate =
-    event === "whenEffectSuspends" && sourceFilter === undefined && anchorPermanentId !== undefined
+    event === "whenEffectSuspends" &&
+    sourceFilter === undefined &&
+    action.triggerFilter === undefined &&
+    anchorPermanentId !== undefined
       ? (subCtx: EffectContext): boolean => subCtx.trigger.suspendedPermanentId === anchorPermanentId
       : undefined;
   // `whenSuspended` is a board-wide bus. The single-card payload historically carries only
