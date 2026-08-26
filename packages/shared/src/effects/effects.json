@@ -162972,7 +162972,15 @@
     "residual": [
       "missing-primitive(unaudited): Activate 1 [When Digivolving] effect of 1 Digimon card with [Justimon] in its name in this Digimon's digivolution cards as if was this Digimon's effect"
     ],
-    "digivolutionRequirement": [{ "level": 6, "names": ["Justimon"], "cost": 1, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 6,
+        "names": ["Justimon"],
+        "excludeTraits": ["X Antibody"],
+        "cost": 1,
+        "isAlternate": true
+      }
+    ]
   },
   "EX8-055": {
     "effects": [
@@ -163518,6 +163526,12 @@
     "digivolutionRequirement": [{ "names": ["Barbamon"], "cost": 1, "isAlternate": true }]
   },
   "EX8-064": {
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [{ "names": ["Piedmon"] }, { "names": ["Myotismon"] }]
+      }
+    ],
     "effects": [
       {
         "trigger": "WhenDigivolving",

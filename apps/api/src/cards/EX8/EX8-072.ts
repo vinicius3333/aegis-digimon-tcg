@@ -6,11 +6,6 @@ const opponentHand = { zone: "hand", controller: "opponent" };
 const opponentDigimon = {
   controller: "opponent",
   kind: ["Digimon"],
-  levelComparison: {
-    op: "lte",
-    value: 7,
-    scaling: { per: 3, unit: "cards", filter: opponentHand, levelCeilingAdd: -1 },
-  },
 };
 
 export const compiled: CompiledCard = {
@@ -29,7 +24,14 @@ export const compiled: CompiledCard = {
           },
           raw: "when your Digimon digivolves into [Barbamon (X Antibody)]",
           actions: [
-            { kind: "Return", to: "deckBottom", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+            {
+              kind: "Return",
+              to: "deckBottom",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              from: ["trash"],
+              optional: true,
+              abortOnDecline: true,
+            },
             { kind: "ActivateMain" },
           ],
         },
@@ -44,7 +46,17 @@ export const compiled: CompiledCard = {
           target: { filter: opponentHand, count: 1 },
           condition: { kind: "zoneCount", seat: "opponent", zone: "hand", op: "gte", value: 5 },
         },
-        { kind: "Delete", target: { filter: opponentDigimon, count: 1 } },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              ...opponentDigimon,
+              levelComparison: { op: "lte", value: 7 },
+            },
+            count: 1,
+          },
+          scaling: { per: 3, unit: "cards", filter: opponentHand, levelCeilingAdd: -1 },
+        },
       ],
     },
     { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },

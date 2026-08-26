@@ -45,6 +45,24 @@ describe("EX8-048", () => {
     expect(player.hand.some((card) => card.instanceId === s.inst("close").instanceId)).toBe(false);
   });
 
+  it("does not play Close when its controller has two Tamers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-048", as: "source" },
+            { card: "BT1-087", as: "one" },
+            { card: "EX8-067", as: "two" },
+          ],
+          hand: [{ card: "EX8-067", as: "close" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("close").instanceId)).toBe(true);
+  });
+
   it("deletes an opposing low-cost Digimon when trashed from a qualifying host", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX8-048", as: "host", under: [{ card: "EX8-048", as: "discarded" }] }] },

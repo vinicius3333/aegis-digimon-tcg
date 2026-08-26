@@ -2,6 +2,20 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+const stackGate = {
+  kind: "anyOf",
+  conditions: [
+    {
+      kind: "selfDigivolutionStackMatchesFilter",
+      filter: { nameOrTrait: [{ tokens: ["Gallantmon"], match: "name" }] },
+    },
+    {
+      kind: "selfDigivolutionStackHasTrait",
+      filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+    },
+  ],
+};
+
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
@@ -21,18 +35,7 @@ export const compiled: CompiledCard = {
           },
           amount: 4000,
           duration: "untilOpponentTurnEnd",
-          condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Gallantmon", "X Antibody"],
-                  match: "name",
-                },
-              ],
-            },
-            raw: "[Gallantmon]/[X Antibody] is in this Digimon's digivolution cards",
-          },
+          condition: stackGate,
         },
         {
           kind: "ModifyDP",
@@ -45,17 +48,7 @@ export const compiled: CompiledCard = {
           },
           amount: -4000,
           duration: "untilOpponentTurnEnd",
-          condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Gallantmon", "X Antibody"],
-                  match: "name",
-                },
-              ],
-            },
-          },
+          condition: stackGate,
         },
       ],
     },
@@ -73,18 +66,7 @@ export const compiled: CompiledCard = {
           },
           amount: 4000,
           duration: "untilOpponentTurnEnd",
-          condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Gallantmon", "X Antibody"],
-                  match: "name",
-                },
-              ],
-            },
-            raw: "[Gallantmon]/[X Antibody] is in this Digimon's digivolution cards",
-          },
+          condition: stackGate,
         },
         {
           kind: "ModifyDP",
@@ -97,17 +79,7 @@ export const compiled: CompiledCard = {
           },
           amount: -4000,
           duration: "untilOpponentTurnEnd",
-          condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Gallantmon", "X Antibody"],
-                  match: "name",
-                },
-              ],
-            },
-          },
+          condition: stackGate,
         },
       ],
     },

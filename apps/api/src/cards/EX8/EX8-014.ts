@@ -21,24 +21,17 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenSuspended",
-          sourceFilter: { isSelfRef: true },
-          actions: [
-            {
-              kind: "Delete",
-              target: {
-                filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } },
-                count: 1,
-              },
-              condition: { kind: "selfIsSuspended", raw: "if this Digimon is suspended" },
-            },
-          ],
-        },
-        {
           kind: "Suspend",
           target: { filter: { controllerDefault: "any", kind: ["Digimon"] }, count: 1 },
           optional: true,
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } },
+            count: 1,
+          },
+          condition: { kind: "selfIsSuspended", raw: "if this Digimon is suspended" },
         },
       ],
     },
@@ -46,24 +39,17 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenSuspended",
-          sourceFilter: { isSelfRef: true },
-          actions: [
-            {
-              kind: "Delete",
-              target: {
-                filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } },
-                count: 1,
-              },
-              condition: { kind: "selfIsSuspended", raw: "if this Digimon is suspended" },
-            },
-          ],
-        },
-        {
           kind: "Suspend",
           target: { filter: { controllerDefault: "any", kind: ["Digimon"] }, count: 1 },
           optional: true,
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } },
+            count: 1,
+          },
+          condition: { kind: "selfIsSuspended", raw: "if this Digimon is suspended" },
         },
       ],
     },

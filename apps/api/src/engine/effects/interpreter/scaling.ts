@@ -115,6 +115,16 @@ function countColors(ctx: EffectContext, filter: Filter): number {
     }
     return colors.size;
   }
+  if (zones.includes("digivolutionCards")) {
+    const self = ctx.source.permanent();
+    if (self === undefined) return 0;
+    for (const card of self.stack) {
+      const definition = ctx.game.definitionOf(card);
+      if (!definitionMatches(filter, definition)) continue;
+      for (const color of definition.colors) colors.add(color);
+    }
+    return colors.size;
+  }
   for (const seat of seats) {
     for (const permanent of ctx.game.player(seat).battleArea) {
       if (!permanentMatchesFilter(ctx, permanent, filter, ctx.source)) continue;

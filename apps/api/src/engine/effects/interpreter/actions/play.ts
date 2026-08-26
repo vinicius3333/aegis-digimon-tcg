@@ -8,9 +8,15 @@ import { countMatching, scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { runPlayPerLevel } from "./dna.js";
 import { CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
-import type { Action, Seat, Target } from "@aegis/shared";
+import type { Action, Scaling, Seat, Target } from "@aegis/shared";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
 import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
+
+export function playCostScalingDelta(scaling: Scaling, factor: number): number {
+  if (scaling.subtract !== undefined) return -scaling.subtract * factor;
+  if (scaling.bonus !== undefined) return scaling.bonus * factor;
+  return factor;
+}
 
 export function applyPlayCostCeiling(
   ctx: EffectContext,
@@ -296,11 +302,25 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                     : playTarget.filter.levelComparison,
               },
             };
+      const playCostScaling = levelCeilingAdjustedTarget.filter.playCostLteScaling;
+      const scaledCostAdjustedTarget =
+        playCostScaling === undefined
+          ? levelCeilingAdjustedTarget
+          : {
+              ...levelCeilingAdjustedTarget,
+              filter: {
+                ...levelCeilingAdjustedTarget.filter,
+                playCostLte:
+                  (levelCeilingAdjustedTarget.filter.playCostLte ?? 0) +
+                  playCostScalingDelta(playCostScaling, scaleFactor(ctx, playCostScaling)),
+                playCostLteScaling: undefined,
+              },
+            };
       // playCostCeiling: dynamically raise the playCostLte ceiling before resolving candidates.
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
-      const playCostAdjustedTarget = applyPlayCostCeiling(ctx, action, levelCeilingAdjustedTarget);
+      const playCostAdjustedTarget = applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget);
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       let candidates = candidateLooseInstances(ctx, playCostAdjustedTarget, zones);
       if (action.fromTriggerHandTrash === true) {

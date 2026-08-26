@@ -20,8 +20,13 @@ describe("EX8-044", () => {
       kind: "SubTrigger",
       event: "whenSuspended",
       actions: [
-        { kind: "GainKeyword", keyword: { keyword: "Piercing" } },
-        { kind: "ModifyDP", amount: 3000 },
+        { kind: "SelectBind", target: { bindAs: "suspensionBuffTarget" } },
+        {
+          kind: "GainKeyword",
+          keyword: { keyword: "Piercing" },
+          target: { filter: { boundRef: "suspensionBuffTarget" } },
+        },
+        { kind: "ModifyDP", amount: 3000, target: { filter: { boundRef: "suspensionBuffTarget" } } },
       ],
     }));
 
@@ -51,6 +56,7 @@ describe("EX8-044", () => {
     expect(s.perm("freshOpponent").isSuspended).toBe(true);
   });
   it("grants Piercing and +3000 DP when it becomes suspended", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -60,11 +66,14 @@ describe("EX8-044", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.perm("ally").permanentId);
     await advance(s.engine).verb.suspend([s.perm("hercules").permanentId]);
-    await settle(() => observe(s.engine).hasPierce(s.perm("hercules")));
-    expect(observe(s.engine).hasPierce(s.perm("hercules"))).toBe(true);
-    expect(s.perm("hercules").currentDP).toBe(14000);
+    await settle(() => observe(s.engine).hasPierce(s.perm("ally")));
+    expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(true);
+    expect(s.perm("ally").currentDP).toBe(8000);
+    expect(observe(s.engine).hasPierce(s.perm("hercules"))).toBe(false);
+    expect(s.perm("hercules").currentDP).toBe(11000);
   });
 });

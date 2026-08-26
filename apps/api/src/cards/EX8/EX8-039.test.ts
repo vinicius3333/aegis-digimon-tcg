@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./index.js";
 import { compiled } from "./EX8-039.js";
 
@@ -47,5 +48,14 @@ describe("EX8-039", () => {
     expect(player.hand.some((card) => card.instanceId === s.inst("insectoid").instanceId)).toBe(true);
     expect(player.hand.some((card) => card.instanceId === s.inst("nsp").instanceId)).toBe(true);
     expect(player.deck.at(-1)?.cardId).toBe("AD1-001");
+  });
+
+  it("grants the inherited DP only during its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-039"] }] } });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(7000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(5000);
   });
 });

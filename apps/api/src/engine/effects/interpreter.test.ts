@@ -350,6 +350,36 @@ describe("new typed RAW-elimination conditions", () => {
 });
 
 describe("Return result bindings", () => {
+  it("aborts an ordered tail when an accepted self Return moves no card", async () => {
+    const source = makeSource({ cardId: "X-RETURN-COST" });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ source, recorder, optionalAnswer: true });
+    const module = irCardModule("X-RETURN-COST", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "Return",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              to: "deckBottom",
+              optional: true,
+              abortOnDecline: true,
+            },
+            { kind: "ActivateMain" },
+          ],
+        },
+      ],
+    });
+
+    await module.effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+
+    expect(recorder.calls.some((call) => call.verb === "returnToDeck")).toBe(true);
+    expect(recorder.calls.some((call) => call.verb === "resolveCardEffect")).toBe(false);
+  });
+
   it("does not satisfy an if-you-did branch when the selected permanent was not moved", async () => {
     const target = makeFakePermanent({
       permanentId: "TARGET",

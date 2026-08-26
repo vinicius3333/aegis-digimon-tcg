@@ -49,6 +49,7 @@ export const compiled: CompiledCard = {
           sourceFilter: { controller: "opponent", kind: ["Digimon"] },
           raw: "when any of your opponent's Digimon is deleted",
           actions: [{ kind: "GainMemory", amount: 1 }],
+          fireCondition: { kind: "selfIsInBattleArea" },
         },
       ],
     },

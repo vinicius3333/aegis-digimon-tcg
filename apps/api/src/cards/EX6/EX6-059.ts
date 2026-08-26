@@ -43,7 +43,6 @@ export const compiled: CompiledCard = {
               ],
               raw: "When a card is trashed from your opponent's hand, you may play 1 purple card with a play cost of 10 or less from your trash without paying the cost",
             },
-            ...effect.actions.filter((action) => action.kind === "Replacement"),
           ],
         }
       : effect,

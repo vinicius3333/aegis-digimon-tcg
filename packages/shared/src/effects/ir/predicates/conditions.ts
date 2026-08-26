@@ -123,6 +123,7 @@ export interface Condition {
     | "permanentCount" // `seat`'s permanents matching `filter`; with `filter.distinctNames`, distinct names only (BT21-010)
     | "selfHasMinTrash" // honors a `filter` on the counted trash cards, unlike `zoneCount` (BT2-111)
     | "selfHasTrait" // the LIVE top card's trait union, unlike selfDigivolutionStackHasTrait (EX12-004)
+    | "selfIsInBattleArea" // the source permanent still exists on the field (EX8-009 Q3874)
     | "selfHasKeyword" // live server-authoritative keyword state, including mechanics such as Piercing
     | "selfHasOnPlayEffect"
     | "youDigivolvedThisTurn"

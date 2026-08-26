@@ -35,4 +35,32 @@ describe("EX8-036", () => {
     expect(player.security).toHaveLength(2);
     expect(player.deck).toHaveLength(0);
   });
+
+  it("uses the NSo route and plays a qualifying Digimon from trash for free", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-033", as: "base" }],
+          hand: [{ card: "EX8-036", as: "skull" }],
+          trash: [{ card: "EX8-030", as: "tapirmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("skull").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("tapirmon").instanceId,
+      ),
+    );
+    expect(s.state.memory).toBe(0);
+  });
 });

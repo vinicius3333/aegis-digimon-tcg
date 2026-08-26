@@ -19,6 +19,8 @@ export const compiled: CompiledCard = {
             target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: 1 },
             raw: "By deleting 1 of your other Digimon",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
       isInherited: true,

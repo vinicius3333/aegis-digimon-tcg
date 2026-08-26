@@ -89,12 +89,17 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              kind: "SelectBind",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+                bindAs: "suspensionBuffTarget",
+              },
+            },
+            {
               kind: "GainKeyword",
               target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
+                filter: { boundRef: "suspensionBuffTarget" },
                 count: 1,
               },
               keyword: {
@@ -106,10 +111,7 @@ export const compiled: CompiledCard = {
             {
               kind: "ModifyDP",
               target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
+                filter: { boundRef: "suspensionBuffTarget" },
                 count: 1,
               },
               amount: 3000,

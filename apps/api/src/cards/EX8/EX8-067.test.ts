@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PlayerState } from "@aegis/shared";
+import { EffectTiming, PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-067.js";
@@ -78,5 +79,44 @@ describe("EX8-067", () => {
       expect.arrayContaining(["EX8-047", "EX8-049", "EX8-050"]),
     );
     expect(s.state.players[0]!.trash.some((card) => ["EX8-049", "EX8-050"].includes(card.cardId))).toBe(false);
+  });
+  it("sets memory across the printed boundary without reducing a higher value", async () => {
+    const low = setupEngine({ 0: { battleArea: [{ card: "EX8-067", as: "tamer" }] } });
+    low.state.memory = 2;
+    await advance(low.engine).fire(EffectTiming.StartOfYourTurn, low.perm("tamer"));
+    expect(low.state.memory).toBe(3);
+
+    const high = setupEngine({ 0: { battleArea: [{ card: "EX8-067", as: "tamer" }] } });
+    high.state.memory = 4;
+    await advance(high.engine).fire(EffectTiming.StartOfYourTurn, high.perm("tamer"));
+    expect(high.state.memory).toBe(4);
+  });
+
+  it("places a Rock Digi-Egg and Rock Digimon but leaves a nonmatching card in trash (Q3953)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-047", as: "base" },
+            { card: "EX8-067", as: "tamer" },
+          ],
+          hand: [{ card: "EX8-048", as: "evolving" }],
+          trash: ["BT9-005", "BT13-061", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some((card) => card.cardId === "BT9-005"));
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT9-005", "BT13-061"]));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-010");
   });
 });
