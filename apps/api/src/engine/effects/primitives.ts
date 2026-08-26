@@ -3868,6 +3868,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const faceUp = opts?.faceUp ?? false;
     const added: CardInstance[] = [];
     const trashedAttachments: CardInstance[] = [];
+    const overflowLeavers: CardInstance[] = [];
     for (const instanceId of instanceIds) {
       if (opts?.detachPermanentTop === true) {
         let permanent: Permanent | undefined;
@@ -3909,10 +3910,20 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         else insertCard(p, Zone.Security, detached);
         ledger.dropSourceInstances(state, [detached.instanceId]);
         added.push(detached);
+        overflowLeavers.push(detached);
         continue;
       }
+      const leavesBattleArea = state.players.some((owner) =>
+        owner.battleArea.some(
+          (permanent) =>
+            permanent.topCard?.instanceId === instanceId ||
+            permanent.stack.some((card) => card.instanceId === instanceId) ||
+            permanent.linked.some((card) => card.instanceId === instanceId),
+        ),
+      );
       const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
       if (collected === undefined) continue;
+      if (leavesBattleArea) overflowLeavers.push(...collected);
       for (const card of collected) {
         if (card.instanceId === instanceId || collected.length === 1) {
           card.faceUp = faceUp;
@@ -3928,7 +3939,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     }
     // <Overflow> (CR §4-18): a permanent moved to security is the same genuine leave as a
     // hand/deck bounce — security is neither the field nor under a card.
-    applyOverflow(engine.memory, [...added, ...trashedAttachments], state.turnSeat);
+    applyOverflow(engine.memory, overflowLeavers, state.turnSeat);
     if (trashedAttachments.length > 0) {
       engine.emit({
         kind: "cardsMoved",
