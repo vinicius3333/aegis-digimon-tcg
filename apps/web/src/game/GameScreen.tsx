@@ -438,6 +438,9 @@ export function GameScreen({
     state,
     viewerSeat,
     mulliganOpen: decision?.kind === "mulligan",
+    // A security check the server stopped to ask the viewer something cannot close until it
+    // is answered, so the cue sequence needs to know a question is waiting.
+    decisionPending: decision?.seat === viewerSeat && decision.kind !== "mulligan",
     anchors: {
       board: boardRef,
       permanentCenter: (permanentId) => permCentersRef.current[permanentId],

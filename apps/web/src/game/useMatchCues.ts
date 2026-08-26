@@ -305,6 +305,7 @@ export function useMatchCues({
   state,
   viewerSeat,
   mulliganOpen,
+  decisionPending = false,
   anchors,
   onActionRejected,
 }: {
@@ -313,6 +314,12 @@ export function useMatchCues({
   viewerSeat: Seat;
   /** The opening hand and a mulligan redeal are dealt, not drawn. */
   mulliganOpen: boolean;
+  /**
+   * The server is waiting on an answer from the viewer. A check the server stopped
+   * mid-resolution to ask something can only be closed once that answer is given, so the
+   * question is what releases a presentation still holding the screen (see below).
+   */
+  decisionPending?: boolean;
   anchors: MatchCueAnchors;
   onActionRejected: (reason: string) => void;
 }): MatchCues {
@@ -737,8 +744,8 @@ export function useMatchCues({
       });
     }
 
-    /** Reads out what the check has to say, then hands the board back to the player. */
-    function presentSecurityReveal(key: number) {
+    /** Reads out what the check has to say, beside the card it is about. */
+    function readOutSecurityNotices(key: number) {
       // The clock on each notice starts here rather than when the server named it.
       enqueue({
         id: `security-notices-${key}`,
@@ -748,10 +755,15 @@ export function useMatchCues({
           flushHeldNotices();
         },
       });
-      // The check has now said everything it has to say: the card was revealed, it fought
-      // or took its place at the side, and its clause is on screen. Only here do the
-      // decisions that effect asks for get a surface. Clearing this at the outcome beat
-      // instead opened a prompt over a card that had not reached the side yet.
+    }
+
+    /**
+     * Hands the board back. The check has now said everything it has to say: the card was
+     * revealed, it fought or took its place at the side, and its clause is on screen. Only
+     * here do the decisions it asks for get a surface. Clearing this at the outcome beat
+     * instead opened a prompt over a card that had not reached the side yet.
+     */
+    function releaseSecurityPresentation(key: number) {
       enqueue({
         id: `security-presented-${key}`,
         track: CENTER_STAGE_TRACK,
@@ -765,6 +777,12 @@ export function useMatchCues({
       if (!replayingHistory) {
         void queue.idle().then(() => setPendingRevealKey((current) => (current === key ? null : current)));
       }
+    }
+
+    /** Reads out what the check has to say, then hands the board back to the player. */
+    function presentSecurityReveal(key: number) {
+      readOutSecurityNotices(key);
+      releaseSecurityPresentation(key);
     }
 
     if (securityReveal?.kind === "securityRevealed") {
@@ -785,8 +803,13 @@ export function useMatchCues({
       revealOnStageRef.current = { key, scene: settled };
       heldNoticesRef.current = [...heldNoticesRef.current, ...heldNotices];
       // With the close still outstanding, the card stays on stage and everything it causes
-      // queues behind it: the notices it earns, and the decisions its effect asks for.
-      if (!closingCheck) presentSecurityReveal(key);
+      // queues behind it: the notices it earns, and the decisions its effect asks for. The
+      // board is NOT given back here — the check is still running, and a reaction that the
+      // removal armed ("when your opponent's security stack is removed from") would open its
+      // prompt over a card mid-check. It is handed back at the close, or, for a check the
+      // server stops to ask the viewer something, by the question itself (see the effect
+      // below), which is the one release a close cannot wait for.
+      if (!closingCheck) readOutSecurityNotices(key);
     }
     if (securityCheck?.kind === "securityChecked") {
       const staged = revealOnStageRef.current;
@@ -857,9 +880,11 @@ export function useMatchCues({
           },
         });
       }
-      // A reveal already presented has read out its notices and given the board back; only
-      // a scene staged straight from the close still owes both.
+      // A reveal already on stage has read out its notices; only a scene staged straight
+      // from the close still owes them. The board comes back either way: a check that ran
+      // long has been holding it since the reveal.
       if (closesFreshReveal || staging) presentSecurityReveal(key);
+      else releaseSecurityPresentation(key);
       if (branch) {
         // The card holds next to its notice, then the centre of the board is given back.
         enqueue({
@@ -1006,8 +1031,12 @@ export function useMatchCues({
       securityAttackerRef.current = undefined;
       securityEffectPendingRef.current = false;
       // No check survives its turn: anything still held has no reveal left to wait
-      // for. A check observed this pass still owns its queued flush, so it keeps it.
-      if (!securityCheck) flushHeldNotices();
+      // for, and no close left to hand the board back. A check observed this pass still
+      // owns its queued flush and its own release, so it keeps both.
+      if (!securityCheck) {
+        flushHeldNotices();
+        setPendingRevealKey(null);
+      }
       const transition: TurnTransitionCue = {
         endingSeat: turnEnd.endingSeat,
         nextSeat: turnEnd.nextSeat,
@@ -1028,6 +1057,28 @@ export function useMatchCues({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events]);
+
+  // A check the server has not closed yet keeps the board: its card is on stage and what it
+  // did is still being read out. The server can stop in the middle of one to ask the viewer
+  // something — the revealed card's own [Security] effect, or a reaction the removal armed,
+  // which activates between the removal and the battle — and that question cannot wait for a
+  // close that only arrives once it is answered. So the question itself hands the board back,
+  // and it queues behind the check's own beats: the card is on screen and its clause has been
+  // read out before the prompt for it opens.
+  useEffect(() => {
+    if (!decisionPending || pendingRevealKey === null) return;
+    const key = pendingRevealKey;
+    queue.enqueue({
+      id: `security-decision-${key}`,
+      track: CENTER_STAGE_TRACK,
+      skippable: false,
+      run() {
+        flushHeldNotices();
+        setPendingRevealKey((current) => (current === key ? null : current));
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decisionPending, pendingRevealKey, queue]);
 
   // One step for the whole column, holding for the soonest expiry. A second panel
   // joining shortens every remaining time, so the step is simply re-enqueued with

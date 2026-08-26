@@ -85,6 +85,23 @@ function renderCues(initialEvents: readonly ServerEvent[] = [], onActionRejected
   return { ...view, onActionRejected };
 }
 
+/** The same hook, with the question the server is waiting on as a second input. */
+function renderCuesAwaitingAnswer() {
+  return renderHook(
+    ({ events, decisionPending }: { events: readonly ServerEvent[]; decisionPending: boolean }) =>
+      useMatchCues({
+        events,
+        state: undefined,
+        viewerSeat: VIEWER,
+        mulliganOpen: false,
+        decisionPending,
+        anchors,
+        onActionRejected: vi.fn(),
+      }),
+    { initialProps: { events: [] as readonly ServerEvent[], decisionPending: false } },
+  );
+}
+
 /** Lets the queue's promise chain run out under fake timers. */
 async function advance(ms: number) {
   await act(async () => {
@@ -183,9 +200,10 @@ describe("match cues", () => {
     expect(result.current.securityClash).toBeNull();
   });
 
-  // The decision a [Security] effect asks for arrives long before the check closes, so
-  // waiting for the close would have left the prompt open over an unrevealed card.
-  it("gives the board back once the reveal has played, without waiting for the close", async () => {
+  // A reaction the removal arms — "when your opponent's security stack is removed from" —
+  // activates between the removal and the battle, so its prompt would otherwise open over a
+  // card the check has not finished with. The check keeps the board until it closes.
+  it("keeps the board through a check the server has not closed", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
@@ -193,6 +211,26 @@ describe("match cues", () => {
     await advance(0);
     expect(result.current.securityRevealPending).toBe(true);
 
+    await advance(REVEAL_SHOWN_AT_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS);
+    expect(result.current.securityRevealPending).toBe(true);
+    expect(result.current.securityClash?.resolution).toBe("pending");
+
+    rerender([REVEAL, CHECK]);
+    await advance(CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS);
+    expect(result.current.securityRevealPending).toBe(false);
+  });
+
+  // The question a check stops to ask cannot wait for a close that only arrives once it is
+  // answered, so the question is what gives the board back — never before the reveal.
+  it("gives the board back for a question the check stopped to ask", async () => {
+    const { result, rerender } = renderCuesAwaitingAnswer();
+    await advance(0);
+
+    rerender({ events: [REVEAL], decisionPending: false });
+    await advance(0);
+    expect(result.current.securityRevealPending).toBe(true);
+
+    rerender({ events: [REVEAL], decisionPending: true });
     await advance(REVEAL_SHOWN_AT_MS - 1);
     expect(result.current.securityRevealPending).toBe(true);
 
