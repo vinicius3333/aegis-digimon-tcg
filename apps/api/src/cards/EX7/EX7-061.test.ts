@@ -1,27 +1,54 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./EX7-061.js";
+import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
+import { compiled } from "./EX7-061.js";
 
-describe("EX7-061", () => {
-  const source = {
-    instanceId: "source",
-    cardId: "EX7-061",
-    ownerSeat: 0,
-    definition: {},
-    permanent: () => undefined,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => true,
-  } as never;
-  it("registers two all-turns effects with once-per-turn protection and deletion response", () => {
-    const effects = getEffectModule("EX7-061")!.effectsForTiming(EffectTiming.None, source);
-    expect(effects).toHaveLength(2);
-    expect(effects.map((effect) => effect.maxPerTurn)).toEqual([1, 1]);
+describe("EX7-061 Lilithmon (X Antibody)", () => {
+  it("registers its own complete IR record", () => {
+    expect(hasRegisteredCompiledCard("EX7-061")).toBe(true);
+    expect(compiled.residual).toEqual([]);
   });
-  it("keeps both compiled all-turns protections registered", () => {
-    const effects = getEffectModule("EX7-061")!.effectsForTiming(EffectTiming.None, source);
-    expect(effects[0]!.description).toContain("Replacement");
-    expect(effects[1]!.description).toContain("Sub trigger");
-  });
+
+  it("requires Lilithmon or X Antibody in its own evolution stack before the optional prevention", () =>
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          actions: [
+            {
+              kind: "Prevent",
+              condition: {
+                kind: "selfHasInDigivolutionCards",
+                nameOrTrait: [
+                  { tokens: ["Lilithmon"], match: "name" },
+                  { tokens: ["X Antibody"], match: "trait" },
+                ],
+              },
+              cost: { kind: "deleteOwn", target: { filter: { excludeSelf: true }, count: 1 } },
+            },
+          ],
+        },
+      ],
+    }));
+
+  it("keeps the turn-dependent once-per-turn deletion response", () =>
+    expect(compiled.effects?.[1]).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          actions: [{ kind: "PlayWithoutCost", condition: { kind: "isYourTurn" } }],
+        },
+        {
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          condition: { kind: "isOpponentsTurn" },
+        },
+      ],
+    }));
 });

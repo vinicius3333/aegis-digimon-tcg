@@ -211,8 +211,8 @@ export interface ReturnAction extends ActionBase {
     base: number;
     raise: number;
     per: number;
-    filter: Filter;
-    unit: "cards" | "digivolutionCards" | "digivolutionCardsOfFiltered";
+    filter?: Filter;
+    unit: Scaling["unit"];
     raw?: string;
   };
 }
