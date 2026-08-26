@@ -179,10 +179,15 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --fileParallelism=false`. LM-021 remains below 10/10 pending relevant mechanism and refreshed
   collection gates.
 
-## LM-022 — Gabumon - Bond of Friendship — pending focused execution
+## LM-022 — Gabumon - Bond of Friendship — focused proof green; pending mechanism and collection gates
 
 - Q4019-Q4023 require live ≤2-security named evolution legality, including Blast/Delay timing.
-  Direct IR and six focused cases cover return and Tamer-gated unsuspend paths but are unrun, so below 10/10.
+  Direct IR compares each target's live digivolution-card count to the source stack, returns exactly
+  two eligible targets to deck bottom when available, and gates its self-unsuspend on a Tamer.
+- The authorized serialized focused command passed 1/1 file and 6/6 tests in 4.66s on 2026-08-26:
+  `vitest run src/cards/LM/LM-022.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-022 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
 ## LM-023 — Sakuyamon: Maid Mode — pending focused execution
 
