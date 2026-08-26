@@ -14989,7 +14989,8 @@
                 "digivolutionCards": "none",
                 "zone": "battleArea",
                 "controller": "opponent",
-                "kind": ["Digimon"]
+            "kind": ["Digimon"],
+            "byEffect": true
               },
               "count": 2
             },
