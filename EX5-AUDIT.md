@@ -36,7 +36,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-030 | Liamon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-031 | Chirinmon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-032 | LoaderLeomon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-033 | Mitamamon | 3 | Catalog/KB/direct IR/test reviewed; duration corrected in 716a766c8. | Pending |
+| EX5-033 | Mitamamon | 3 | Q3599 opponent-turn SEC−2 now re-evaluates live total-security threshold (`whileMatchesTargetFilter`); corrected focused fixture distinguishes level 4 at total 4 from level 3 after total falls to 3. | Pending focused run |
 | EX5-034 | BanchoLeomon | 1 | Q3600 total-security threshold is represented by the static hand-play replacement; the All Turns watcher binds one optional opponent target once, then applies both −4000 DP and SEC−1 through that binding until opponent-turn end. | Pending focused proof |
 | EX5-035 | Hawkmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-036 | Aquilamon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
@@ -68,15 +68,15 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-062 | Anubismon | 5 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-063 | Leviamon | 8 | Catalog/KB/direct IR/test reviewed; existing observable deletion-memory evidence. | Pending rerun |
 | EX5-064 | Koh & Sayo | 4 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-065 | Sayo & Koh | 2 | Direct module resolves generated residual; exclusive IR registration and no executable residual. | Pending |
+| EX5-065 | Sayo & Koh | 2 | Add-source watcher now requires placing the owner’s top card at a stack bottom (Q3669), not ordinary digivolution; positive and negative event fixtures remain queued. | Pending focused run |
 | EX5-066 | Phoebus Blow | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-067 | Good Night Moon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-068 | Flashy Boss Punch | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-069 | Biting Crush | 6 | Q3674-Q3678 watcher conditions are direct: effect-driven opponent Digimon entry only, not breeding/Tamer/manual play; shared Delay wrapper requires an armed grant, consumes it before the free Leviamon play, and leaves decline unconsumed. | Pending focused proof |
-| EX5-070 | X Antibody Proto Form | 5 | Direct override uses stack-name exclusion and named-card security source (not trait); new live harness/filter proof covers Q3679, where Proto Form itself under the target excludes that stack. | Pending focused run |
+| EX5-070 | X Antibody Proto Form | 5 | Direct override uses stack-name exclusion and named-card security source (not trait); Q3679 live proof excludes Proto Form itself, and Q4260 return/security selection is now bound to the inherited host stack. | Pending focused run |
 | EX5-071 | Loyalty Deeper than the Sea | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-072 | Holy Beasts Great Cardinal Positions | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-073 | GraceNovamon | 4 | Direct IR corrected deletion, DNA route, and static keywords; new attack-window harness proof covers Q3687/Q3688: eligible deletion remains available without DNA digivolving, while only the trash clause is DNA-gated. | Pending focused run |
+| EX5-073 | GraceNovamon | 4 | Direct IR corrected deletion, DNA route, and static keywords; Q3687/Q3688 attack proof remains queued, and the leave-play payment is now restricted to this Digimon’s own same-level sources. | Pending focused run |
 | EX5-074 | Fanglongmon | 2 | Direct module resolves generated residual; exclusive IR registration and existing behavior evidence. | Pending rerun |
 
 ## Validation queue
