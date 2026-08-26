@@ -141,10 +141,17 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 
 - Q4001 maps to delayed end-of-opponent-turn return-top/trash-under behavior after free play of an
   Angoramon-text Digimon. Direct delayed IR binds the played permanent rather than its source;
-  catalog, KB, direct IR, and focused fixtures show no new causal implementation gap. Focused Q4001
-  stack-return proof is unrun, so LM-013 remains below 10/10.
+  catalog, KB, direct IR, and focused fixtures show no new causal implementation gap. The
+  authorized single serialized run passed 1/1 file and 6/6 tests in 4.40s on 2026-08-26 using
+  `vitest run src/cards/LM/LM-013.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-013 remains below 10/10 pending mechanism and collection gates.
 
 ## LM-014 — Espimon — pending focused execution
+
+- The catalog omits the icon in the On Play search clause and the historical aggregate consequently
+  lacks the `<Blocker>` filter. The direct `registerIrCard` module resolves the printed card as
+  `<Blocker> or Tamer`, and its focused fixtures distinguish Blocker from the inherited Draw
+  keyword; this provenance discrepancy is recorded rather than repaired in generated metadata.
 
 - Direct On Play reveal/add and opponent-turn once-per-turn draw watcher map to the interpreter.
   Its six focused tests previously passed 6/6, but collection proof remains incomplete, so below 10/10.
