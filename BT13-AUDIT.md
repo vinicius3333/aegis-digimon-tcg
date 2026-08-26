@@ -1,692 +1,116 @@
 # BT13 Card Implementation Revalidation
 
-This ledger records a fresh, ascending-ID revalidation against the committed catalog, local knowledge base, direct compiled IR, shared interpreter primitives, peer/evolution interactions exercised by the focused suites, and observable game state. Historical merged audit work was treated only as input; every score below was recalculated from the current branch.
-
-## BT13-001 — Pinamon — 10/10
-
-- Catalog evidence: Red DigiEgg level 2, play cost -1, DP 0; forms In-Training; traits/types Bird; evolution requirements none; printed clauses: [On Deletion] Delete 1 of your opponent's Digimon with 2000 DP or less..
-- Knowledge base: `node tools/kb/query.mjs card BT13-001` reviewed; no card-specific entries; no unresolved ambiguity remains.
-- Implementation and primitive trace: direct module has triggers OnDeletion and actions Delete; each action was traced through the shared interpreter dispatch, target/filter resolution, cost/choice handling, zone movement, duration/use ledger, and relevant combat/evolution/event primitive. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-001", compiled)`.
-- Behavioral proof: isolated file `BT13-001.test.ts` passed 2 tests in its own Vitest process. Observable cases: deletes an opposing Digimon with exactly 2000 DP when its evolved stack is deleted; does not delete an opposing Digimon above 2000 DP. Peer modules explicitly imported by the suite and realistic stacks/trait boundaries were reviewed where applicable.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-002 — Chapmon — 10/10
-
-- Catalog evidence: Blue DigiEgg level 2, play cost -1, DP 0; forms In-Training; traits/types Lesser; evolution requirements none; printed clauses: [Opponent's Turn] While you have another Digimon, this Digimon gets +1000 DP..
-- Knowledge base: `node tools/kb/query.mjs card BT13-002` reviewed; no card-specific entries; no unresolved ambiguity remains.
-- Implementation and primitive trace: direct module has triggers OpponentsTurn and actions Aura, modifyDP, youHave; each action was traced through the shared interpreter dispatch, target/filter resolution, cost/choice handling, zone movement, duration/use ledger, and relevant combat/evolution/event primitive. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-002", compiled)`.
-- Behavioral proof: isolated file `BT13-002.test.ts` passed 4 tests in its own Vitest process. Observable cases: gives its evolved stack +1000 DP during the opponent's turn while you have another Digimon; does not give the bonus during its controller's turn; does not count its own evolved stack as another Digimon; does not count a Digimon in the breeding area as another Digimon. Peer modules explicitly imported by the suite and realistic stacks/trait boundaries were reviewed where applicable.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-003 — Kyaromon — 10/10
-
-- Catalog evidence: Yellow DigiEgg level 2, play cost -1, DP 0; forms In-Training; traits/types Lesser; evolution requirements none; printed clauses: [Your Turn][Once Per Turn] When a card is removed from your security stack, 1 of your Digimon gains ＜Jamming＞ for the turn..
-- Knowledge base: `node tools/kb/query.mjs card BT13-003` reviewed; no card-specific entries; no unresolved ambiguity remains.
-- Implementation and primitive trace: direct module has triggers YourTurn and actions SubTrigger, triggerRemovedSecuritySeat, GainKeyword; each action was traced through the shared interpreter dispatch, target/filter resolution, cost/choice handling, zone movement, duration/use ledger, and relevant combat/evolution/event primitive. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-003", compiled)`.
-- Behavioral proof: isolated file `BT13-003.test.ts` passed 3 tests in its own Vitest process. Observable cases: grants Jamming when its controller's security is removed and expires at turn end; grants Jamming only once across two own-security removal events in the same turn; does not trigger when the opponent's security is removed. Peer modules explicitly imported by the suite and realistic stacks/trait boundaries were reviewed where applicable.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-004 — Budmon — 10/10
-
-- Catalog evidence: Green DigiEgg level 2, play cost -1, DP 0; forms In-Training; traits/types Vegetation; evolution requirements none; printed clauses: [Your Turn] While your opponent has a suspended Digimon, this Digimon gets +1000 DP..
-- Knowledge base: `node tools/kb/query.mjs card BT13-004` reviewed; applicable entries Q2257; no unresolved ambiguity remains.
-- Implementation and primitive trace: direct module has triggers YourTurn and actions Aura, modifyDP, opponentHas; each action was traced through the shared interpreter dispatch, target/filter resolution, cost/choice handling, zone movement, duration/use ledger, and relevant combat/evolution/event primitive. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-004", compiled)`.
-- Behavioral proof: isolated file `BT13-004.test.ts` passed 4 tests in its own Vitest process. Observable cases: gives its evolved stack +1000 DP during its turn while the opponent has a suspended Digimon; does not give the bonus while every opposing Digimon is unsuspended; does not give the bonus during the opponent's turn; applies the bonus after an opposing Blocker suspends and before their battle (Q2257). Peer modules explicitly imported by the suite and realistic stacks/trait boundaries were reviewed where applicable.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-005 — Dorimon — 10/10
-
-- Catalog evidence: Black DigiEgg level 2, play cost -1, DP 0; forms In-Training; traits/types Lesser, X Antibody; evolution requirements none; printed clauses: [When Attacking] If this Digimon has 4 or more digivolution cards, ＜Draw 1＞. (Draw 1 card from your deck.).
-- Knowledge base: `node tools/kb/query.mjs card BT13-005` reviewed; no card-specific entries; no unresolved ambiguity remains.
-- Implementation and primitive trace: direct module has triggers WhenAttacking and actions Draw, selfDigivolutionCountAtLeast; each action was traced through the shared interpreter dispatch, target/filter resolution, cost/choice handling, zone movement, duration/use ledger, and relevant combat/evolution/event primitive. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-005", compiled)`.
-- Behavioral proof: isolated file `BT13-005.test.ts` passed 2 tests in its own Vitest process. Observable cases: draws 1 when its evolved stack attacks with exactly 4 digivolution cards; does not draw when its evolved stack attacks with only 3 digivolution cards. Peer modules explicitly imported by the suite and realistic stacks/trait boundaries were reviewed where applicable.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-006 — Kapurimon — 10/10
-
-- Catalog evidence: Purple DigiEgg level 2, play cost -1, DP 0; forms In-Training; traits/types Lesser; evolution requirements none; printed clauses: [On Deletion] By trashing 1 card in your hand, delete 1 of your opponent's level 3 Digimon..
-- Knowledge base: `node tools/kb/query.mjs card BT13-006` reviewed; applicable entries Q2258; no unresolved ambiguity remains.
-- Implementation and primitive trace: direct module has triggers OnDeletion and actions Delete, trash; each action was traced through the shared interpreter dispatch, target/filter resolution, cost/choice handling, zone movement, duration/use ledger, and relevant combat/evolution/event primitive. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-006", compiled)`.
-- Behavioral proof: isolated file `BT13-006.test.ts` passed 3 tests in its own Vitest process. Observable cases: trashes 1 hand card to delete an opposing level 3 when its evolved stack is deleted; may decline without trashing a hand card or deleting the level 3; may trash the hand cost even when there is no opposing level 3 (Q2258). Peer modules explicitly imported by the suite and realistic stacks/trait boundaries were reviewed where applicable.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-007 — King Drasil_7D6 — 10/10
-
-- Catalog evidence: White Digi-Egg, no level or payable play cost, 0 DP; Mega form; Unknown attribute; `9000` type; no evolution requirements. Printed clauses independently checked: the breeding-area own-turn digivolution lock; the optional once-per-turn Royal Knight Digimon play-cost reduction of 4 plus 1 per source; the mandatory Start of Main top Digi-Egg and all allied battle-area Royal Knight placement under this card; and the inherited breeding-area once-per-turn memory gain when a Royal Knight Option enters the battle area.
-- Knowledge base: `node tools/kb/query.mjs card BT13-007` reviewed Q2259-Q2265, Q2340, Q2369, and Q2463. The suite proves the card's mandatory processing and bottom-placement behavior; Q2259-Q2261 establish that the restriction includes DNA/Burst and Tamers temporarily treated as Digimon, but not a Tamer using a requirement that evolves directly from a Tamer. No unresolved card-specific ambiguity remains.
-- Implementation and primitive trace: `BT13-007.ts` maps the clauses to breeding-resident `Restrict`, nested `Replacement` cost reduction with `digivolutionCards` scaling, `PlaceUnder` from the Digi-Egg deck, whole-permanent Royal Knight relocation, and inherited `SubTrigger(whenOptionPlayed)` plus `GainMemory`. Traced through the breeding timing guard, continuous restriction store and digivolve legality consumer, replacement subscription/once-per-turn budget, `placeUnderFromEggDeck`, `relocatePermanentByEffect`, trait/controller targeting, Option-play event dispatch, and memory primitive. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-007", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: EX6-006 confirms the same breeding Start-of-Main egg-deck seam; BT13-110 supplies the real Royal Knight Option interaction. The focused mixed board distinguishes AD1-008 Royal Knight from BT1-015 non-Royal-Knight, uses a two-card source stack for the exact scaled reduction, retains the nonmatching permanent, verifies controller ownership, and exercises both shared once-per-turn keys independently.
-- Behavioral proof: isolated `BT13-007.test.ts` passed 5 tests in its own Vitest process: blocks an allied Digimon's digivolution only while King Drasil supplies the breeding restriction; reduces exactly one Royal Knight play by 6 and charges the second at full cost; permits declining the optional reduction; places the face-down top Digi-Egg and every matching Royal Knight under the host while leaving a nonmatching Digimon in battle; and gains memory only once across two Royal Knight Options. Reverting the card's restriction, scaling, egg/permanent placement, trait filter, or frequency paths makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-## BT13-008 — Agumon — 10/10
-
-- Catalog evidence: Red/Yellow level 3 Digimon, play cost 3, 2000 DP; Rookie/Vaccine/Dinosaur; evolves from red or yellow level 2 for 1 and alternatively from Koromon for 0. Printed clauses independently checked: once-per-turn Main treatment of one Marcus Damon as a 3000 DP Digimon that cannot digivolve for the turn, and the inherited own-turn once-per-turn optional deletion of an opposing 3000-DP-or-less Digimon when an allied red or yellow Tamer suspends.
-- Knowledge base: `node tools/kb/query.mjs card BT13-008` reviewed Q2266, Q2267, and Q5981-Q5985. The implementation preserves both Tamer and Digimon identity, supplies the 3000 base DP and attack legality, retains Tamer-effect provenance, and leaves ordinary same-turn attack restrictions to the shared combat rules. No unresolved card-specific ambiguity remains.
-- Implementation and primitive trace: `BT13-008.ts` maps the alternate evolution requirement directly and maps Main to duration-scoped `GrantStatic(kinds)`, `SetBaseDP`, and `Restrict(digivolve)` actions over one allied Marcus Damon. Its inherited `SubTrigger(whenSuspended)` filters controller, Tamer kind, and red/yellow colors before an optional DP-bounded `Delete`. Traced through alternate-evolution matching, activatable Main/frequency identity, target selection, kind/base-DP duration ledgers, continuous legality readers, suspension subject matching, optional targeting, DP filtering, deletion, ownership, and turn/frequency gates. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-008", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT12-092 provides the realistic Marcus Damon Tamer interaction and inherited-effect host behavior; BT13-097 supplies a blue-only near-match that must not trigger. The stack test evolves from a real Koromon at zero cost, the Main proof observes the selected Marcus as attack-legal with 3000 DP and a digivolve restriction, and the inherited fixture preserves a 4000-DP non-target while consuming its once-per-turn budget on only one eligible target.
-- Behavioral proof: isolated `BT13-008.test.ts` passed 5 tests in its own Vitest process: uses the Koromon alternate requirement for 0 memory; turns Marcus into an attack-legal 3000 DP Digimon that cannot digivolve; deletes exactly one eligible opposing Digimon and not a 4000-DP Digimon, then refuses a second same-turn trigger; permits declining the optional deletion; and ignores a blue-only Tamer suspension. Reverting the card-specific alternate requirement, kind/DP/restriction grants, color filter, DP boundary, optionality, or frequency makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-009 — Huckmon — 10/10
-
-- Catalog evidence: Red level 3 Digimon, play cost 3, 2000 DP; Rookie/Data/Mini Dragon; evolves from red level 2 for 0. Printed clauses independently checked: during its controller's turn, an allied Sistermon-name Digimon play may evolve this Digimon into BaoHuckmon from hand without paying the cost; its inherited own-turn once-per-turn effect gains 1 memory from the same allied Sistermon play event.
-- Knowledge base: `node tools/kb/query.mjs card BT13-009` reviewed Q2268. The Sistermon's On Play effect and Huckmon's reaction trigger simultaneously and remain player-orderable through the shared triggered-effect ordering seam; neither clause is incorrectly nested behind the other. No unresolved card-specific ambiguity remains.
-- Implementation and primitive trace: `BT13-009.ts` maps both clauses to own-turn `SubTrigger(whenPlayed)` watchers with allied Digimon and Sistermon-name subject filters. The first performs an optional self-targeted hand `Digivolve` into BaoHuckmon with `payCost: false`; the inherited watcher performs `GainMemory` under a once-per-turn budget. Traced through play-event emission, subject controller/kind/name matching, trigger ordering, optional resolution, hand candidate selection, self-stack evolution, zero-cost payment, evolution event processing, inherited-source anchoring, memory gain, and use-ledger frequency. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-009", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-013 uses the same Sistermon reaction vocabulary for the next realistic Huckmon-family evolution step, while BT6-082 supplies a real Sistermon and BT13-013 a real BaoHuckmon. The positive fixture retains Huckmon as an evolution source, the decline fixture preserves BaoHuckmon in hand, the inherited stack uses Huckmon under a legal host, and the non-Sistermon Digimon fixture proves the name boundary. Controller and own-turn guards are supplied by the watcher and timing builder; the second matching play proves the inherited once-per-turn budget is shared only for that source.
-- Behavioral proof: isolated `BT13-009.test.ts` passed 4 tests in its own Vitest process: may evolve into BaoHuckmon from hand for 0 memory after an allied Sistermon play; may decline and leave both Huckmon and BaoHuckmon unchanged; gains memory on only the first of two allied Sistermon plays in the turn; and does not trigger for a Digimon without Sistermon in its name. Reverting the subject filter, optional evolution, free-cost flag, inherited anchoring, memory action, or frequency makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-010 — Biyomon — 10/10
-
-- Catalog evidence: Red level 3 Digimon, play cost 3, 1000 DP; Rookie/Vaccine/Bird; evolves from red level 2 for 0. Printed clauses independently checked: On Play, only when played by an effect, may return one allied Kristy Damon to hand and then evolve this Digimon into a Garudamon in hand while ignoring requirements and paying no evolution cost; inherited On Deletion draws 1.
-- Knowledge base: `node tools/kb/query.mjs card BT13-010` reviewed Q2269. Paying the Kristy return cost is legal even when no Garudamon candidate exists, so the implementation correctly keeps the cost and optional evolution outcome separable. No unresolved card-specific ambiguity remains.
-- Implementation and primitive trace: `BT13-010.ts` maps On Play to a self-targeted optional `Digivolve` from hand with `triggerEnteredByEffect`, `payCost: false`, and `ignoreRequirements: true`, plus an allied Kristy-name return cost and decline abort. The inherited clause is `OnDeletion` plus owner `Draw 1`. Traced through effect-entry provenance production/condition reading, optional/cost ordering, permanent return-to-hand movement, hand name selection, requirement bypass, free evolution and stack transition, On Deletion source preservation, deck draw, ownership, and empty-candidate behavior. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-010", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT15-088 provides a real Security effect that plays Biyomon by effect; BT13-094 is the exact Kristy Damon cost; BT13-014 supplies a real Garudamon and its When Digivolving replay demonstrates that the returned Kristy actually changed zones before evolution. The normal hard-play negative proves provenance gating, while the inherited stack deletion proves correct source/controller retention after the host leaves play. No printed once-per-turn limit applies.
-- Behavioral proof: isolated `BT13-010.test.ts` passed 4 tests in its own Vitest process: a real Security effect plays Biyomon, returns Kristy, evolves to Garudamon for free ignoring requirements, and retains Biyomon underneath; Q2269 returns Kristy even with no Garudamon in hand; a normal play neither returns Kristy nor evolves; and deletion of a host carrying Biyomon draws exactly one card. Reverting entry provenance, return-cost ordering, free/ignore flags, target names, or inherited deletion draw makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-011 — Aquilamon — 10/10
-
-- Catalog evidence: Red level 4 Digimon, play cost 5, 5000 DP; Champion/Free/Giant Bird; evolves from red level 3 for 2. Printed clauses independently checked: both On Play and When Digivolving delete one opposing Digimon with 3000 DP or less; inherited On Deletion draws 1.
-- Knowledge base: `node tools/kb/query.mjs card BT13-011` reviewed; no card-specific entries exist and the printed thresholds and timings are unambiguous.
-- Implementation and primitive trace: `BT13-011.ts` carries distinct On Play and When Digivolving records with identical opponent/Digimon/DP-at-most-3000 single-target `Delete` actions, plus inherited On Deletion owner `Draw 1`. Traced through timing registration and source anchoring, opponent ownership, effective DP matching at the inclusive boundary, target selection, deletion/leave processing, inherited-effect survival into the deletion window, and deck-to-hand draw. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-011", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: the focused evolution stack uses a real red level 3 base and preserves it under Aquilamon after paying the catalog cost; the mixed opponent board distinguishes the eligible 3000-DP Digimon from an ineligible 4000-DP Digimon. BT13-008 and BT13-012 use the same inclusive 3000-DP deletion vocabulary, confirming consistent filter semantics. Neither printed effect is optional or frequency-limited.
-- Behavioral proof: isolated `BT13-011.test.ts` passed 3 tests in its own Vitest process: On Play deletes the 3000-DP opposing Digimon and preserves the 4000-DP near-match; a real evolution fires the independent When Digivolving deletion and leaves Aquilamon atop its base; and deletion of a host carrying Aquilamon draws exactly one card. Reverting either timing record, the DP/controller boundary, deletion primitive, or inherited draw makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-012 — GeoGreymon — 10/10
-
-- Catalog evidence: Red/Yellow level 4 Digimon, play cost 5, 5000 DP; Champion/Vaccine/Dinosaur; evolves from red or yellow level 3 for 3 and alternatively from a level 3 with Agumon in its name and Dinosaur trait for 2. Printed clauses independently checked: When Digivolving privately searches security, may play one red/yellow Tamer free, recovers from deck only if it played one, then shuffles security; inherited own-turn once-per-turn may delete one opposing 3000-DP-or-less Digimon when an allied red/yellow Tamer suspends. The catalog restriction to one deck copy was also noted.
-- Knowledge base: `node tools/kb/query.mjs card BT13-012` reviewed Q2270-Q2271. Security search is private; if no eligible card is chosen, recovery does not occur and security still shuffles. The focused proof separately covers accepting, declining, and having no eligible Tamer. No unresolved card-specific ambiguity remains.
-- Implementation and primitive trace: `BT13-012.ts` directly records the Agumon-name plus Dinosaur-trait alternate requirement and maps When Digivolving to optional security `PlayWithoutCost`, conditional deck-to-security `SecurityManipulation(addTop)` gated by `ifThisEffectActed`, then security shuffle. Its inherited `SubTrigger(whenSuspended)` filters allied red/yellow Tamers before optional opponent/Digimon/DP-at-most-3000 deletion under a once-per-turn budget. Traced through alternate requirement matching, security candidate privacy and selection, free play/zone transition, acted-result binding, recovery ordering, shuffle, suspension subject filtering, deletion, ownership, turn, and frequency. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-012", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-008 is a real matching Agumon/Dinosaur base and shares the inherited red/yellow Tamer deletion vocabulary; BT12-092 supplies the eligible multicolor Marcus Tamer; BT13-015 supplies the next realistic GeoGreymon evolution step. Mixed opponent targets preserve a 4000-DP near-match, and the second suspension proves the inherited once-per-turn budget. The optional security branch now proves both consent outcomes with the same eligible card.
-- Behavioral proof: isolated `BT13-012.test.ts` passed 4 tests in its own Vitest process: evolves through the alternate requirement for 2, plays Marcus from security free, recovers, and leaves correct memory/security/deck state; Q2271 does not recover with no eligible Tamer; declining an eligible Marcus leaves it in security and does not recover; and the inherited effect deletes only one eligible 3000-DP target across two same-turn suspension events while preserving a 4000-DP Digimon. Reverting the alternate name/trait gate, security color/kind filter, optionality, acted binding, recovery/shuffle ordering, DP filter, or frequency makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-013 — BaoHuckmon — 10/10
-
-- Catalog evidence: Red level 4 Digimon, play cost 5, 5000 DP; Champion/Data/Dinosaur; evolves from red level 3 for 2. Printed clauses independently checked: during its controller's turn, an allied Sistermon-name Digimon play may evolve this Digimon into SaviorHuckmon from hand for its evolution cost, reduced by exactly 2 for this effect; inherited own-turn once-per-turn gains 1 memory from an allied Sistermon play.
-- Knowledge base: `node tools/kb/query.mjs card BT13-013` reviewed Q2272-Q2273. The inherited effect acquired after the triggering Sistermon play cannot trigger retroactively, and the Sistermon On Play and BaoHuckmon reaction are simultaneous effects whose order remains player-chosen. No unresolved card-specific ambiguity remains.
-- Implementation and primitive trace: `BT13-013.ts` maps the allied Sistermon play to an own-turn `SubTrigger(whenPlayed)` whose optional self-targeted `Digivolve` selects SaviorHuckmon from hand with normal cost payment. A same-record `Replacement(wouldDigivolve)` scopes a nested `reduceCost` amount 2 to self; the inherited watcher maps the same play subject to `GainMemory` under a once-per-turn budget. Traced through subject controller/kind/name matching, simultaneous trigger ordering, optional refusal, hand evolution selection, self-scoped replacement subscription, cost calculation/payment, evolution stack transition, inherited source timing, non-retroactivity, memory gain, and frequency. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-013", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-009 is the preceding Huckmon-family Sistermon reaction and BT13-016 is the real SaviorHuckmon evolution target; BT6-082 supplies the matching Sistermon. The positive stack retains BaoHuckmon under SaviorHuckmon and proves an exact one-memory evolution payment after the 2 reduction; the refusal path leaves SaviorHuckmon in hand; the inherited host sees two Sistermon plays but gains memory only from the first. Q2272 is exercised in a realistic newly evolved stack.
-- Behavioral proof: isolated `BT13-013.test.ts` passed 4 tests in its own Vitest process: evolves to SaviorHuckmon after a Sistermon play and pays the catalog cost reduced by exactly 2; does not gain the newly acquired inherited memory for that already-triggered play; may decline and preserve both BaoHuckmon and SaviorHuckmon with no evolution payment; and gains inherited memory only once across two allied Sistermon plays. Reverting the subject filter, optionality, self scope, replacement amount, payment path, inherited timing, or frequency makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-014 — Garudamon — 10/10
-
-- Catalog evidence: Red level 5 Digimon, play cost 7, 7000 DP; Ultimate/Vaccine/Birdkin; evolves from red level 4 for 3. Printed clauses independently checked: both On Play and When Digivolving may play one red Tamer with play cost 3 or less from hand without paying; inherited On Deletion deletes one opposing Digimon with 6000 DP or less.
-- Knowledge base: `node tools/kb/query.mjs card BT13-014` reviewed Q2615 and its BT16-011/BT13-065 interaction. If an externally granted trigger condition ceases to be met before activation, the queued effect cannot activate; the shared timing/activation guard owns that cross-card rule. No unresolved behavior remains in BT13-014's direct clauses.
-- Implementation and primitive trace: `BT13-014.ts` has separate On Play and When Digivolving records with optional hand `PlayWithoutCost` targeting one allied red Tamer at `playCostLte: 3`, plus inherited On Deletion opponent/Digimon/DP-at-most-6000 `Delete`. Traced through both timing builders, hand controller/kind/color/cost filtering, optional refusal, free-play zone transition and On Play processing, inherited source anchoring after host deletion, effective DP matching, target selection, and deletion ownership. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-014", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-010 supplies a realistic Biyomon-to-Garudamon effect evolution and returned Kristy interaction; BT13-011 is a legal red level 4 base; BT13-094 is the exact eligible cost-3 red Tamer, while BT1-085 is a cost-4 red near-match. The inherited mixed board distinguishes the inclusive 6000-DP target from 7000 DP. Neither clause has a printed frequency limit.
-- Behavioral proof: isolated `BT13-014.test.ts` passed 4 tests in its own Vitest process: On Play plays a cost-3 red Tamer free while preserving the cost-4 red near-match; real evolution fires the independent When Digivolving branch and pays only the evolution cost; optional refusal leaves the eligible Tamer in hand and pays only Garudamon's play cost; and deletion of a host carrying Garudamon deletes the 6000-DP opponent while preserving 7000 DP. Reverting either timing, the red/Tamer/cost filter, optionality, free-play flag, inherited anchor, or DP boundary makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-015 — RizeGreymon — 10/10
-
-- Catalog evidence: Red/Yellow level 5 Digimon, play cost 7, 7000 DP; Ultimate/Vaccine/Cyborg; evolves from red or yellow level 4 for 4 and alternatively from GeoGreymon for 3. Printed clauses independently checked: When Digivolving may play one Marcus Damon from hand free; both the main and inherited all-turns once-per-turn watchers place one Marcus Damon from trash face down on top of own security when an allied red/yellow Tamer is deleted.
-- Knowledge base: `node tools/kb/query.mjs card BT13-015` reviewed Q2274. When the deleted qualifying Tamer is Marcus Damon, that exact just-deleted card is already a legal trash candidate and may be placed into security. No unresolved card-specific ambiguity remains.
-- Implementation and primitive trace: `BT13-015.ts` directly records the GeoGreymon alternate evolution and optional hand `PlayWithoutCost` for a Marcus Damon name. Its main and inherited All Turns records each install `SubTrigger(onDeletionOf)` filtered to allied red/yellow Tamers and resolve trash `SecurityManipulation(placeAsSecurity)` for one Marcus Damon with `toTop: true` under independent once-per-turn source budgets. Traced through alternate matching/cost payment, optional free play, deletion event subject/controller/kind/color matching, post-deletion trash availability, name selection, trash extraction, face-down top-security insertion, source anchoring, all-turn timing, and frequency. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-015", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-012 supplies the real GeoGreymon base, BT13-018 supplies the next RizeGreymon family evolution, BT12-092 and BT13-094 provide red/yellow Tamer deletion subjects, and BT13-008's treat-as-Digimon path makes Marcus deletable by DP while retaining Tamer identity. The direct Q2274 fixture asserts exact instance identity and face-down/top ordering; the inherited stack fires once across two qualifying deletions.
-- Behavioral proof: isolated `BT13-015.test.ts` passed 4 tests in its own Vitest process: evolves from GeoGreymon for 3 and plays Marcus free; may decline and leave Marcus in hand while paying only the evolution cost; deletes a Marcus treated as a Digimon and moves that exact instance from trash face down to the top of security; and provides the same security placement as an inherited effect only once across two qualifying deletions. Reverting the alternate route, optionality, free-play flag, deletion filter, trash timing, exact name selection, face state/top position, inherited anchoring, or frequency makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-016 — SaviorHuckmon — 10/10
-
-- Catalog evidence: Red level 5 Digimon, play cost 8, 8000 DP; Ultimate/Data/Dragonkin; evolves from red level 4 for 3. Printed clauses independently checked: during its controller's turn, an allied Sistermon-name Digimon play may evolve this Digimon into a Jesmon-name Digimon in hand for its evolution cost reduced by exactly 2; inherited When Attacking once per turn, only when the host has Royal Knight, may play one Sistermon-name Digimon from hand or trash free.
-- Knowledge base: `node tools/kb/query.mjs card BT13-016` reviewed Q2275. The triggering Sistermon's On Play and SaviorHuckmon's evolution reaction are simultaneous and remain player-orderable through the shared trigger ordering seam. No unresolved card-specific ambiguity remains.
-- Implementation and primitive trace: `BT13-016.ts` maps allied Sistermon play to an own-turn `SubTrigger(whenPlayed)` with optional self `Digivolve` into a hand Digimon whose name contains Jesmon and normal cost payment, plus a self-scoped nested `Replacement(wouldDigivolve/reduceCost: 2)`. Its inherited When Attacking action condition checks the live host's Royal Knight trait, then optionally `PlayWithoutCost`s one allied Sistermon-name Digimon from hand or trash under a once-per-turn budget. Traced through subject matching/order, optional refusal, hand evolution and cost replacement/payment, live stack trait evaluation, attack source anchoring, mixed-zone candidate selection/extraction, free play, On Play handling, ownership, and frequency. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-016", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-013 is the preceding paid/reduced Sistermon reaction; BT13-017 supplies both the real Jesmon evolution target and Royal Knight inherited host; BT6-082 supplies matching hand/trash Sistermon cards. A non-Royal-Knight BT1-021 host proves the trait boundary, and two attack windows prove the inherited once-per-turn budget. Separate refusal fixtures cover both printed optional clauses.
-- Behavioral proof: isolated `BT13-016.test.ts` passed 5 tests in its own Vitest process: evolves into Jesmon after a Sistermon play with the cost reduced by exactly 2; may decline and preserve SaviorHuckmon/Jesmon; a Royal Knight host plays one Sistermon from trash free across two attacks; a non-Royal-Knight host cannot play one; and a qualifying Royal Knight host may decline the inherited hand play. Reverting the Sistermon/Jesmon name filters, optionality, self-scoped replacement, reduction amount, Royal Knight condition, hand/trash sources, free-play flag, inherited anchor, or frequency makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-017 — Jesmon — 10/10
-
-- Catalog evidence: Red level 6 Digimon, play cost 11, 11000 DP; Mega/Data/Holy Warrior and Royal Knight; evolves from red level 5 for 3. Printed clauses independently checked: On Play and When Digivolving may delete any number of opposing Digimon whose combined DP is at most 6000 plus 2000 for each other allied Digimon; during all turns, every allied Digimon gets +1000 DP for each other allied Sistermon-name or Royal Knight-trait Digimon.
-- Knowledge base: `node tools/kb/query.mjs card BT13-017` reviewed; no card-specific entries exist and the aggregate budget, self-exclusion, inclusive cap, and aura scaling are unambiguous.
-- Implementation and primitive trace: `BT13-017.ts` maps both activation timings to `DeleteByDPBudget` over opposing Digimon with base 6000 and a 2000-per-other-allied-Digimon scale. Its All Turns `ModifyDP` targets all allied Digimon and scales by other allied Digimon matching Sistermon name or Royal Knight trait. Traced through timing registration, live DP candidate ordering, aggregate optional selection and budget enforcement, self-excluding allied count, multi-delete/leave handling, continuous re-derivation, trait/name OR matching, all-recipient DP modification, ownership, and source exclusion. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-017", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-016 is the realistic SaviorHuckmon base; BT6-082 and BT13-040 provide distinct Sistermon-name and Royal Knight-trait aura scalers, while BT1-012 is a nonmatching allied recipient. Mixed deletion fixtures prove exact 10000/11000 and 8000/9000 scaled boundaries, two-target combined selection at the unscaled 6000 cap, and zero-target refusal. Jesmon's own Royal Knight trait is correctly excluded from both scaling counts.
-- Behavioral proof: isolated `BT13-017.test.ts` passed 4 tests in its own Vitest process: On Play adds exactly 2000 per two other allies and deletes 10000 but not 11000 DP; When Digivolving applies the same exact scaled boundary in a real stack; the base budget deletes two 3000-DP targets together and permits choosing none; and one Sistermon plus one other Royal Knight gives every allied Digimon, including nonmatching recipients, exactly +2000 DP. Reverting either timing, aggregate selection, base/bonus amounts, ownership/self filters, name/trait matching, aura recipients, or continuous scaling makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-018 — ShineGreymon — 10/10
-
-- Catalog evidence: Red/Yellow level 6 Digimon, play cost 12, 12000 DP; Mega/Vaccine/Light Dragon; evolves from red or yellow level 5 for 4 and alternatively from a level 5 with RizeGreymon in its name for 3. Printed clauses independently checked: at Start of Main and When Digivolving, until the end of the opponent's turn one allied Marcus Damon is also a 3000 DP Digimon, cannot digivolve, and gains Blocker; all turns once per turn, an allied red/yellow Tamer suspension gives one opposing Digimon -6000 DP for the turn.
-- Knowledge base: `node tools/kb/query.mjs card BT13-018` reviewed Q2276 and Q5986-Q5991. Marcus remains both Tamer and Digimon, gains inherited effects, observes ordinary same-turn attack restrictions, is deleted by rule processing at 0 DP, has later base-DP treatments overwrite earlier ones, and its effects retain both Tamer/Digimon provenance. These are shared treat-as-kind/base-DP semantics with no unresolved card-specific ambiguity.
-- Implementation and primitive trace: `BT13-018.ts` records the RizeGreymon alternate requirement and parallel Start-of-Main/When-Digivolving action groups: selected allied Marcus Tamer receives duration-scoped Digimon kind plus base 3000 DP, digivolve restriction, and Blocker through the end of the opponent's turn. An All Turns `SubTrigger(whenSuspended)` filters allied red/yellow Tamers before one opposing Digimon receives -6000 DP for the turn under a once-per-turn budget. Traced through timing/source collection, selection identity across three actions, kind/base-DP/keyword/restriction duration ledgers, effective dual-kind reads, suspension subject color/ownership matching, DP modification/rule processing, and frequency. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-018", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-008 uses the same Marcus treat-as-Digimon primitives for a shorter duration; BT13-015 is the realistic RizeGreymon base; BT13-020 consumes ShineGreymon in the next Burst evolution. BT12-092 supplies the matching Marcus and BT13-097 a blue-only Tamer near-match. Both printed grant timings are exercised independently, and two suspension events prove one DP reduction per turn.
-- Behavioral proof: isolated `BT13-018.test.ts` passed 4 tests in its own Vitest process: Start of Main makes Marcus exactly 3000 DP with Blocker and a digivolve restriction; a real alternate evolution from RizeGreymon for 3 applies the same complete grant set; the first red/yellow Tamer suspension gives exactly one of two opposing Digimon -6000 DP and the second cannot repeat; and a blue-only Tamer suspension leaves the target's DP unchanged. Reverting either timing, alternate requirement, target identity, kind/DP/restriction/Blocker grant, duration, color/ownership filter, amount, or frequency makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-019 — Gankoomon — 10/10
-
-- Catalog evidence: Red/Black level 6 Digimon, play cost 13, 13000 DP; Mega/Data/Holy Warrior and Royal Knight; evolves from red or black level 5 for 5; Blocker. Printed On Play and When Digivolving clauses independently checked: optionally play one Sistermon-name Digimon from trash or one Royal Knight-trait Digimon from the digivolution cards of the controller's breeding-area Digimon without paying, but not a Digimon whose exact name is Omnimon or Gankoomon.
-- Knowledge base: `node tools/kb/query.mjs card BT13-019` reviewed Q2277. Omnimon X Anti-body and Gankoomon (X Antibody) are legal because the printed exclusions apply only to the exact base names. The prior substring exclusion incorrectly rejected these variants and was corrected to `nameExact`. No unresolved card-specific ambiguity remains.
-- Implementation and primitive trace: `BT13-019.ts` shares one `PlayWithoutCost` action across On Play and When Digivolving: an OR filter ties Sistermon-name candidates to trash and Royal Knight candidates to a breeding host, applies exact Omnimon/Gankoomon exclusions, selects up to one optionally, and pays no cost; both records expose Blocker. Traced through keyword observation, timing registration, loose-zone enumeration, common-plus-OR-branch matching, host permanent/breeding validation, exact-name exclusion, optional selection/refusal, stack-card extraction, free play, and On Play processing. The reusable loose-target seam was corrected to flatten `filter.or` with common constraints and retain the matching branch's `hostFilter`, preventing Royal Knights in trash from qualifying through the breeding branch. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-019", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-007 provides the realistic breeding-area King Drasil stack and BT13-110 uses the same Royal Knight-from-breeding vocabulary; BT10-085 supplies a trash Sistermon; BT5-111 is the Q2277 allowed Omnimon X variant; exact BT5-086 Omnimon and BT13-019 Gankoomon remain under breeding. Both timing records share identical behavior, no printed frequency applies, and separate source/decline fixtures prove ownership and zone boundaries.
-- Behavioral proof: isolated `BT13-019.test.ts` passed 5 tests in its own Vitest process: both compiled timings expose Blocker and the same two-zone action; On Play plays Sistermon Ciel from trash free; the optional play may be declined; Q2277 plays Omnimon X from King Drasil's breeding digivolution cards and removes that exact instance from the stack; and exact Omnimon/Gankoomon remain excluded in the same breeding source zone. Reverting exact-name matching, branch-host preservation, either source, optionality, free-play behavior, or Blocker makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-020 — ShineGreymon: Burst Mode — 10/10
-
-- Catalog evidence: Red/Yellow level 7 Digimon, play cost 15, 15000 DP; Mega/Vaccine/Light Dragon; evolves normally from red or yellow level 6 for 5. Its curated Burst Digivolve requirement evolves from ShineGreymon for 0 by returning one exact Marcus Damon Tamer, then schedules the prior top stacked card for end-of-turn trash. Printed clauses independently checked: When Digivolving may play one Marcus Damon from hand free and, for the turn, that played Tamer is also a 12000 DP Digimon that cannot digivolve and gains Rush; own-turn once per turn, an allied Tamer suspension trashes the opponent's top security card.
-- Knowledge base: `node tools/kb/query.mjs card BT13-020` reviewed Q2278-Q2279, Q3677, and Q5992-Q5996. The played Marcus enters as a Tamer and only afterward becomes a Digimon, so Digimon-play reactions such as the cited Delay do not trigger; it remains both kinds, retains dual effect provenance, obeys 0-DP rule deletion, and later base-DP treatments overwrite earlier ones while additional effects such as Rush remain. No unresolved card-specific ambiguity remains.
-- Implementation and primitive trace: `BT13-020.ts` maps When Digivolving to a Marcus `whenPlayed` watcher that binds the just-played permanent and grants duration-scoped Digimon kind, 12000 base DP, Rush, and digivolve restriction, followed by optional hand `PlayWithoutCost`. The curated digivolution-requirement seam supplies the true Burst base/Tamer-return cost, mechanic event, and pending end-of-turn top-stack trash. The security watcher was corrected from `AllTurns` to printed `YourTurn`; it filters allied Tamers and performs opponent `trashTop` under a once-per-turn budget. Traced through Burst validation/payment, exact Tamer return, draw/stack transition, pending processing, play-before-treatment ordering, trigger-source binding, kind/base-DP/keyword/restriction duration ledgers, suspension ownership/turn gate, security top-trash, and frequency. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-020", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-018 supplies the realistic ShineGreymon base and shared Marcus-treatment semantics; BT12-092 supplies both the returned field Tamer and played hand Tamer. The Burst fixture proves zero memory cost, exact return/play identities, previous-top placement, and end-turn trash; a normal evolution proves the printed cost-5 route and optional refusal. Own-turn and opponent-turn suspension fixtures prove timing ownership and once-per-turn frequency independently.
-- Behavioral proof: isolated `BT13-020.test.ts` passed 7 tests in its own Vitest process: verifies complete IR plus curated Burst metadata; traces the played-Marcus binding; requires a printed own-turn once-per-turn watcher; executes Burst Digivolve, returns one Marcus, plays another as a 12000 DP Digimon with Rush and a digivolve restriction, then trashes the prior top at end of turn; permits declining Marcus after a normal cost-5 evolution; trashes only one top opposing security across two own-turn Tamer suspensions; and never trashes security for that suspension on the opponent's turn. Reverting Burst metadata/payment/pending processing, ordering/binding, optionality, treatment grants, own-turn gate, security ownership/top position, or frequency makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-021 — Gaomon — 10/10
-
-- Catalog evidence: Blue level 3 Digimon, play cost 3, 1000 DP; Rookie/Data/Beast; evolves from blue level 2 for 0. Printed clauses independently checked: When Attacking once per turn both players draw 1; inherited All Turns, while the opponent has at least 8 hand cards, the host gets +1000 DP.
-- Knowledge base: `node tools/kb/query.mjs card BT13-021` reviewed; no card-specific entries exist and the bilateral draw order, inclusive hand threshold, controller perspective, and continuous duration are unambiguous.
-- Implementation and primitive trace: `BT13-021.ts` maps When Attacking to sequential owner and opponent `Draw 1` actions under one source once-per-turn key. The inherited All Turns record maps a self `Aura(modifyDP +1000)` to a live opponent-hand `zoneCount >= 8` condition. Traced through attack timing/source anchoring, per-source use ledger, each player's deck-to-hand movement and empty-deck tolerance, inherited host resolution, opponent seat selection, live zone counting, continuous aura re-derivation/removal, and DP calculation. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-021", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-025 inherits the identical opponent-hand aura and is the next realistic GaoGamon evolution; the focused stack carries Gaomon under a real blue host. Separate attack timing windows prove the once-per-turn identity, while seven/eight-card fixtures prove the exact threshold and dynamic activation. Both seats have independent decks and observable hand changes.
-- Behavioral proof: isolated `BT13-021.test.ts` passed 5 tests in its own Vitest process: verifies the complete draw/aura IR; a real attack draws exactly one for each player; two same-turn attack timings still draw only once per player; an inherited host gains exactly +1000 DP at eight opposing hand cards; and it has no bonus at seven but gains it immediately when an eighth card enters the opponent's hand. Reverting either draw/controller, the frequency key, inherited self anchor, opponent seat, threshold, aura amount, or continuous recomputation makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-022 — Kamemon — 10/10
-
-- Catalog evidence: Blue level 3 Digimon, play cost 3, 2000 DP; Rookie/Data/Cyborg; evolves from blue level 2 for 0. Its only printed executable clause is Blocker: during an opposing Digimon's attack, Kamemon may suspend to become the attack target.
-- Knowledge base: `node tools/kb/query.mjs card BT13-022` reviewed; no card-specific entries exist. The reminder text agrees with the shared Blocker rule and introduces no separate effect.
-- Implementation and primitive trace: `BT13-022.ts` represents the printed keyword as a Static IR effect with `keywords: [{ keyword: "Blocker" }]`, no actions, `coverage: "full"`, and an empty residual. Traced through static keyword installation, public continuous-ledger observation, `eligibleBlockers`, the defending-seat block window, `declareBlock`, suspension, defender switching, battle resolution, and deletion/security routing. Registration is exclusively `registerIrCard("BT13-022", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-068 is a same-set printed-Blocker peer using the identical keyword primitive; the comprehensive chapter-12 suites independently exercise that shared mechanism. Kamemon has no name/trait targeting, alternate evolution, inherited text, ownership ambiguity, or frequency key. The proof uses the opponent's attack timing, defending-seat intent, an unsuspended battle-area Kamemon, and its catalog DP.
-- Behavioral proof: isolated `BT13-022.test.ts` passed 3 tests: exact full-coverage IR shape; public observer exposure; and a real player-directed attack where Kamemon is offered, declared by its controller, suspended, becomes the defender, loses the 5000-vs-2000 battle, and is deleted while security remains untouched. Reverting the keyword, static installation, controller/zone eligibility, block-window target switch, suspension, or battle routing makes an observable focused assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-023 — Jellymon — 10/10
-
-- Catalog evidence: Blue level 3 Digimon, play cost 3, 1000 DP; Rookie/Data/Mollusk; evolves from blue level 2 for 0. Printed clauses checked independently: Evade on Jellymon itself, and inherited When Attacking trash the bottom digivolution card of 1 opposing Digimon.
-- Knowledge base: `node tools/kb/query.mjs card BT13-023` reviewed; no card-specific entries exist. The bottom-of-stack direction, opponent ownership, one-target count, inherited source, and optional Evade prevention are explicit in the catalog/rules.
-- Implementation and primitive trace: `BT13-023.ts` maps Evade to a Static keyword record. Its inherited When Attacking action is `TrashDigivolution` with an opponent Digimon/has-sources/count-1 filter, `amount: 1`, and `fromTop: false`. Traced through static keyword installation, deletion interception, controller decision and suspension cost, inherited host/source discovery, attack trigger dispatch, opponent-only candidate resolution, bottom-card detachment, and owner trash routing. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-023", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT26-020 and BT24-050 use the same Evade ledger and decision seam; the chapter-16c suite covers the shared rule. The attack proof places Jellymon under a real host and gives only the opponent an eligible stack, showing inherited timing and controller perspective; the host's own Jellymon source remains attached. Neither clause is once per turn, and there is no alternate evolution or trait/name selector.
-- Behavioral proof: isolated `BT13-023.test.ts` passed 3 tests: exact full-coverage IR; a real inherited attack that removes only the opponent's bottom source to that owner's trash while preserving the top source and the attacking host's stack; and a real effect-deletion attempt where Jellymon's controller accepts Evade, Jellymon suspends, the deletion count is zero, and it remains in play. Reverting Evade installation, decision ownership/cost, inherited anchoring, attack timing, opponent filter, bottom direction, amount, or trash routing makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-024 — Gawappamon — 10/10
-
-- Catalog evidence: Blue level 4 Digimon, play cost 4, 5000 DP; Champion/Data/Cyborg; evolves from blue level 3 for 2. Its only executable text is Blocker, allowing it to suspend during an opposing Digimon's attack and redirect that attack to itself.
-- Knowledge base: `node tools/kb/query.mjs card BT13-024` reviewed; no card-specific entries exist. The reminder text is the standard shared Blocker rule and adds no residual clause.
-- Implementation and primitive trace: `BT13-024.ts` carries one Static effect with the `Blocker` keyword, no actions, `coverage: "full"`, and no residual. Traced through static keyword installation, continuous-ledger observation, `eligibleBlockers`, defending-seat block-window publication and validation, suspension, target replacement, DP battle, deletion, and security suppression. Registration is exclusively `registerIrCard("BT13-024", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-022 is the immediate same-color/same-set Blocker peer using identical IR, while this proof independently uses Gawappamon's printed 5000 DP to exercise the opposite battle outcome. There is no name/trait selector, alternate evolution, inherited effect, or frequency key; timing and ownership are fixed to the opponent's attack and Gawappamon's controller.
-- Behavioral proof: isolated `BT13-024.test.ts` passed 3 tests: exact full-coverage IR; public observer exposure; and a real player attack where the defending player declares Gawappamon, it suspends and redirects the attack, survives against a 4000 DP attacker, deletes that attacker, and prevents a security check. Reverting keyword installation, ownership/zone eligibility, block timing, suspension, target switching, or combat/security routing makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-025 — GaoGamon — 10/10
-
-- Catalog evidence: Blue level 4 Digimon, play cost 5, 5000 DP; Champion/Data/Beast; evolves from blue level 3 for 2. Printed clauses checked independently: optional When Digivolving play 1 Thomas H. Norstein from hand without cost only if its controller has none, and inherited All Turns +1000 DP while the opponent has at least 8 hand cards.
-- Knowledge base: `node tools/kb/query.mjs card BT13-025` reviewed; no card-specific entries exist. The exact Thomas name, controller-scoped absence condition, hand origin, optionality, free play, inherited self anchor, opponent hand perspective, and inclusive threshold are explicit.
-- Implementation and primitive trace: `BT13-025.ts` maps When Digivolving to optional `PlayWithoutCost` from hand with a Thomas name filter and `youHaveNone` condition, then maps the inherited All Turns clause to a self `Aura(modifyDP +1000)` under opponent `zoneCount(hand) >= 8`. Traced through evolution legality/payment and timing, source/controller condition evaluation, optional decision, hand candidate selection, Tamer permanent creation without play cost, inherited host resolution, live zone counting, continuous re-derivation, and DP calculation. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-025", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-021 carries the identical inherited hand-size aura and is a valid blue level-3 predecessor; its independent proof corroborates the shared primitive without substituting for this card. BT13-097 is the exact Tamer candidate. Positive, existing-Tamer, and refusal fixtures isolate condition/ownership/optionality; a seven-to-eight transition isolates the threshold. Neither clause is once per turn.
-- Behavioral proof: isolated `BT13-025.test.ts` passed 5 tests: full IR; a real legal evolution that plays Thomas from hand for free; an existing controlled Thomas prevents a second copy from leaving hand; explicit refusal leaves Thomas in hand; and an inherited host remains at 5000 DP with seven opposing hand cards then becomes 6000 immediately at eight. Reverting timing, exact-name/controller condition, origin, optionality, free play, inherited anchor, opponent seat, threshold, amount, or continuous refresh makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-026 — TeslaJellymon — 10/10
-
-- Catalog evidence: Blue level 4 Digimon, play cost 5, 5000 DP; Champion/Data/Mollusk; evolves from blue level 3 for 2. Printed clauses independently checked: When Attacking Draw 1, and inherited When Attacking trash the bottom digivolution card of 1 opposing Digimon.
-- Knowledge base: `node tools/kb/query.mjs card BT13-026` reviewed; no card-specific entries exist. Draw ownership/amount, the absence of a once-per-turn marker, inherited anchoring, opponent ownership, one-target count, and bottom direction are explicit.
-- Implementation and primitive trace: `BT13-026.ts` maps the main When Attacking clause to owner `Draw 1` and the inherited clause to `TrashDigivolution` with opponent Digimon/has-sources/count-1 filtering, `amount: 1`, and `fromTop: false`. Traced through attack timing/source anchoring, repeated trigger dispatch without a frequency ledger, deck-to-hand movement, inherited host/source discovery, opponent candidate resolution, bottom detachment, and owner-trash routing. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-026", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-023 is the same-set inherited bottom-source peer, while BT13-021 supplies a contrasting once-per-turn attack draw. TeslaJellymon's test uses real attack flow for the printed draw, two direct attack timings for the non-once-per-turn distinction, and a real inherited stack with only the opponent eligible; its own source remains attached. There are no trait/name conditions or alternate evolution routes.
-- Behavioral proof: isolated `BT13-026.test.ts` passed 4 tests: exact full IR; a real attack moves the controller's top deck card to hand; two same-turn attack timings draw twice; and an inherited attack removes only the opponent's bottom source to that owner's trash while retaining the opponent's top source and the host's own stack. Reverting timing, draw controller/amount/frequency, inherited anchoring, opponent filter, bottom direction, amount, or trash ownership makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-027 — Shaujinmon — 10/10
-
-- Catalog evidence: Blue level 5 Digimon, play cost 7, 7000 DP; Ultimate/Virus/Wizard; evolves from blue level 4 for 3. Printed clauses checked independently: Blocker, and during the opponent's turn when an opposing Digimon attacks, optionally play 1 level 4 or lower Digimon from this Digimon's sources without cost.
-- Knowledge base: `node tools/kb/query.mjs card BT13-027` reviewed; no card-specific entries exist. Opponent-turn duration, attack ownership, optionality, source-local origin, Digimon kind, inclusive level cap, and free play are explicit.
-- Implementation and primitive trace: `BT13-027.ts` maps the opponent-turn record to the Blocker keyword plus a `whenOpponentAttacks` SubTrigger whose optional `PlayWithoutCost` selects one controlled Digimon of level at most 4 from its own digivolution stack. Traced through continuous turn-condition installation/removal, attack event publication, watcher source/controller identity, optional decision, source candidate filtering, detachment, permanent creation without cost, and remaining-stack preservation. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-027", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-024 independently corroborates the shared Blocker seam, while BT13-026 is a realistic level-4 source and BT13-028 is the level-5 negative boundary. Opponent-turn and own-turn recomputes isolate duration; opposing attack and refusal fixtures isolate event ownership and optionality. The attack watcher is not once per turn and can resolve on each qualifying attack while Shaujinmon remains present.
-- Behavioral proof: isolated `BT13-027.test.ts` passed 4 tests: exact full IR; an opposing attack plays the eligible level-4 TeslaJellymon for free, removes it from Shaujinmon's stack, and leaves an ineligible level-5 source attached; explicit refusal keeps the eligible source attached and creates no permanent; and the public observer reports Blocker absent on its controller's turn but present on the opponent's turn. Reverting duration, Blocker, event ownership, optionality, origin, kind/level filter, payment, detachment, or stack routing makes a focused observable assertion fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-028 — Thetismon — 10/10
-
-- Catalog evidence: Blue level 5 Digimon, play cost 7, 7000 DP; Ultimate/Data/Aquabeast; evolves from blue level 4 for 3. Printed clauses checked independently: Hand/Main requires controlled Kiyoshiro, places exact TeslaJellymon from hand at the bottom of exact Jellymon's sources as the activation cost, then that same Digimon evolves into this hand card for cost 3 ignoring requirements; inherited End of Attack once per turn optionally returns exactly 3 Jellymon-text cards from own trash to the deck bottom to unsuspend the host.
-- Knowledge base: `node tools/kb/query.mjs card BT13-028` reviewed; no card-specific entries exist. Exact bracketed names, Kiyoshiro ownership, hand residency, cost-before-effect ordering, same-host binding, cost 3, requirement waiver, Jellymon full-text matching, own-trash/deck ownership, deck-bottom destination, optionality, and once-per-turn frequency are explicit.
-- Implementation and primitive trace: the generated single `Digivolve` with `additionalCosts/host: "target"` was inert for a hand source and omitted Kiyoshiro. `BT13-028.ts` now uses the supported two-step IR: Kiyoshiro `youHave` gate; exact Tesla `PlaceUnder` from hand with exact Jellymon `underFilter`, bottom position, and `bindHostAs`; then trigger-source Thetismon `Digivolve` onto that binding for 3 ignoring requirements. The inherited action remains optional self `Unsuspend` gated by a return-3 own-trash/Jellymon-text cost. The activation preflight now treats `PlaceUnder` as gated through `canAttemptPlaceUnder`, so unpaid declarations are not surfaced. Traced through hand-resident projection, condition/placement feasibility, selection binding, memory payment, evolution mutation/timing, full-text loose filtering, cost selection, trash-to-deck-bottom routing, self unsuspension, and frequency ledger. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-028", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT23-065 uses the same place-bind-then-evolve primitive seam; BT13-023 and BT13-026 are the exact destination/material, while BT9-086 is the controlled Kiyoshiro. Negative fixtures exclude missing Kiyoshiro, missing material, and TeslaJellymon-as-host substring confusion. The inherited proof uses a real attack plus repeated direct end-of-attack timings to distinguish cost routing and once-per-turn use.
-- Behavioral proof: isolated `BT13-028.test.ts` passed 7 tests: exact full IR; a hand activation produces the ordered Tesla/Jellymon/Thetismon stack and pays exactly 3 memory; missing Kiyoshiro rejects activation with no movement/payment; missing Tesla suppresses activation; TeslaJellymon is not accepted as exact Jellymon; a real attack returns three matching own-trash cards to the deck bottom and unsuspends; and a second same-turn end-of-attack timing neither returns the remaining three nor unsuspends again. Reverting any gate, exact match, zone/owner, binding, order, payment/waiver, text filter, destination, optional cost, self anchor, or frequency makes focused observable evidence fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-029 — MachGaogamon — 10/10
-
-- Catalog evidence: Blue level 5 Digimon, play cost 7, 7000 DP; Ultimate/Data/Cyborg; evolves from blue level 4 for 3. Printed clauses independently checked: When Attacking, at 8 or more opposing hand cards this Digimon's attack target can't be switched for the turn; inherited All Turns once per turn, when an effect adds cards to the opponent's hand, unsuspend the host.
-- Knowledge base: `node tools/kb/query.mjs card BT13-029` reviewed Q2280. It confirms `attackTargetChange` is broader than can't-be-blocked: it prevents both Blocker and effect-driven target switches. The opponent-hand threshold, effect-only event, inherited self, all-turn duration, and once-per-turn frequency remain as printed.
-- Implementation and primitive trace: `BT13-029.ts` maps When Attacking to a for-turn `attackTargetChange` restriction under opponent `zoneCount(hand) >= 8`; its generated broad friendly target was corrected to exact self. The inherited All Turns record installs `whenEffectAddsToOpponentHand`, then self-unsuspends under one source once-per-turn key. Traced through attack timing, live opponent hand count, restriction ledger and combat Blocker/redirect consumers, inherited host/source discovery, effect-add payload seat qualification, suspension mutation, continuous watcher reinstallation, and frequency tracking. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-029", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-024 supplies the realistic Blocker boundary; engine combat legality covers the same Q2280 restriction consumer. Eight- and seven-card fixtures prove the inclusive threshold, while own-seat and opponent-seat hand-add payloads prove inherited perspective. Repeated qualifying opponent events prove once-per-turn use; the effect is active on both turns and has no name/trait or alternate-evolution branch.
-- Behavioral proof: isolated `BT13-029.test.ts` passed 4 tests, with 29 shared combat-legality tests also green: exact full IR; at eight opposing hand cards a real attack applies the restriction to MachGaogamon itself, opens no Blocker window, leaves the opposing Blocker unsuspended, and reaches security; at seven, the same Blocker legally redirects the attack and security remains; and the inherited host ignores an effect addition to its controller's hand, unsuspends for the opponent-seat event, then remains suspended on a second same-turn event. Reverting self anchoring, timing, seat/zone/threshold, duration, restriction type, event ownership, inherited anchoring, or frequency makes focused observable evidence fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-030 — UlforceVeedramon — 10/10
-
-- Catalog evidence: Blue level 6 Digimon, play cost 11, 11000 DP; Mega/Vaccine/Holy Warrior/Royal Knight; evolves from blue level 5 for 3. Printed clauses checked independently: On Play and When Digivolving, choose 1 opposing Digimon and trash its top 2 sources for each controlled Royal Knight Digimon and blue Tamer; Your Turn once per turn, when a controlled Royal Knight Digimon or blue Tamer is played, return 1 opposing Digimon with no sources to hand.
-- Knowledge base: `node tools/kb/query.mjs card BT13-030` reviewed Q2281-Q2283. Q2281 requires all scaled source trashing to one target, not distribution. Q2282 says UlforceVeedramon's own play triggers its resident play watcher. Q2283 says its On Play and Your Turn effects trigger simultaneously and the controller chooses their order.
-- Implementation and primitive trace: the paired On Play/When Digivolving records use one opponent-Digimon target, top-source `TrashDigivolution amount 2`, and a card-count scale over controlled Royal Knight Digimon or blue Tamers. To preserve Q2282/Q2283 in the engine's timing model, self-play now has a separate Your-Turn-conditioned On Play return record; the persistent `whenPlayed` watcher excludes self and handles later qualifying plays. Both return paths share one once-per-turn use key and the no-sources opponent filter. Traced through simultaneous trigger collection/order decisions, trait/color/kind scaling, same-target selection, top detachment and owner trash routing, play versus evolution timing, played-subject filters, empty-stack eligibility, return-to-owner-hand mutation, and shared frequency accounting. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-030", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-040 supplies a Royal Knight peer, BT9-086/BT13-097 are blue Tamers, and BT13-029 is a legal blue level-5 predecessor. Two-target and six-source evolution fixtures isolate Q2281 and scaling without the play watcher; self-play and manual order projection isolate Q2282/Q2283. Later Tamer plays prove subject ownership and the shared once-per-turn budget; a sourced opponent Digimon is an explicit target negative.
-- Behavioral proof: isolated `BT13-030.test.ts` passed 7 tests with 31 shared trigger-stack tests: exact full IR; self-play trashes two sources and then returns the newly emptied target; an evolution with two qualifying cards trashes all four sources from only one of two targets and leaves both Digimon in play; Royal Knight plus blue Tamer plus Ulforce scales to exactly six top sources; two same-turn blue-Tamer plays return only one empty-stack Digimon; self-play exposes two BT13-030 triggers in one `orderTriggers` decision; and a sourced opposing Digimon is not returned. Reverting scaling count/unit, one-target ownership, top direction, play/evolution timing, Q2282 self handling, Q2283 simultaneity, source filters, empty-stack gate, hand routing, or shared frequency makes focused observable evidence fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-031 — MirageGaogamon — 10/10
-
-- Catalog evidence: Blue level 6 Digimon, play cost 12, 12000 DP; Mega/Data/Beast Knight; evolves from blue level 5 for 4. Printed clauses independently checked: Evade; When Digivolving return 1 opposing Tamer to hand; All Turns once per turn, when an effect adds cards to the opponent's hand, optionally play exact Thomas H. Norstein from hand without cost.
-- Knowledge base: `node tools/kb/query.mjs card BT13-031` reviewed; no card-specific entries exist. Opponent-Tamer kind/ownership, Thomas exact bracketed name and hand origin, event effect provenance and opponent perspective, all-turn duration, optionality, free play, and once-per-turn frequency are explicit.
-- Implementation and primitive trace: `BT13-031.ts` maps Evade to a Static keyword, evolution timing to an opponent-Tamer `Return` to hand, and All Turns to a once-per-turn `whenEffectAddsToOpponentHand` watcher with optional exact-name `PlayWithoutCost` from hand. The generated broad Thomas name match was tightened to `nameExact`. Traced through keyword installation and effect-deletion interception, controller Evade decision/suspension, evolution legality/payment/timing, Tamer-only permanent selection and owner-hand routing, hand-add event seat qualification, all-turn watcher installation, optional candidate selection, free Tamer creation, and frequency tracking. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-031", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-029 is a legal blue level-5 predecessor and shares the opponent-hand event seam; BT13-097 is the exact Thomas candidate, while BT9-086 supplies an opposing Tamer target. Own-hand and opponent-hand payloads isolate perspective, opponent-turn execution proves All Turns, repeated events prove once-per-turn, and refusal proves optionality. No alternate evolution or trait selector exists.
-- Behavioral proof: isolated `BT13-031.test.ts` passed 7 tests with 30 shared advanced-keyword tests: exact full IR; on the opponent's turn an own-hand effect event is ignored and an opponent-hand event plays Thomas for free; a legal evolution pays 4 and returns only the opposing Tamer while leaving a Digimon; accepted Evade suspends MirageGaogamon and prevents effect deletion; two qualifying events play only one of two Thomas cards; refusal leaves Thomas in hand; and the public observer exposes Evade. Reverting keyword behavior, timing, target kind/owner, hand routing, event perspective/duration, exact name, origin/payment, optionality, or frequency makes focused observable evidence fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-032 — JumboGamemon — 10/10
-
-- Catalog evidence: Blue/black level 6 Digimon, play cost 13, 13000 DP; Mega/Data/Cyborg; evolves from either blue or black level 5 for 5. Its printed clauses are Blocker and, during the opponent's turn when an opposing Digimon attacks, optionally play 1 level 5 or lower Digimon from this Digimon's sources without cost.
-- Knowledge base: `node tools/kb/query.mjs card BT13-032` reviewed; no card-specific entries exist. Opponent-turn duration, opposing attack ownership, source-local origin, Digimon kind, inclusive level-5 cap, optionality, free play, and both printed evolution colors/costs are explicit.
-- Implementation and primitive trace: `BT13-032.ts` maps the opponent-turn continuous record to the Blocker keyword plus a `whenOpponentAttacks` SubTrigger whose optional `PlayWithoutCost` selects one controlled Digimon of level at most 5 from its own source stack. Traced through conditional keyword/action installation, Blocker eligibility and target switching, attack event publication, source/controller anchoring, optional decision, source candidate filtering, detachment, free permanent creation, remaining-stack preservation, catalog evolution legality, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-032", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-027 is the level-4 same-mechanism peer; BT13-031 and BT13-027 provide level-6 negative and level-5 positive stack boundaries. Real blue AD1-011 and black BT10-013 level-5 bases prove both normal evolution routes. The opponent-attack watcher is not once per turn, has no name/trait condition, and can resolve on each attack while JumboGamemon remains present.
-- Behavioral proof: isolated `BT13-032.test.ts` passed 5 tests with 4 peer tests: exact full IR; an opposing attack plays the level-5 source for free while leaving the level-6 source attached; refusal leaves the eligible source and board unchanged; real Blocker activation suspends JumboGamemon, redirects a player attack, deletes the weaker attacker, and preserves security; and separate legal blue/black evolutions each consume exactly 5 memory. Reverting duration, keyword, attack ownership, optionality, source origin, level/kind filter, payment, detachment, Blocker routing, evolution color, or cost makes focused observable evidence fail.
-- Revalidation result: 10/10; no remaining card-specific queue.
-
-## BT13-033 — MirageGaogamon: Burst Mode — 10/10
-
-- Catalog: `cards.json` reviewed directly. Blue level 7, 15000 DP, Mega/Data/Beast Knight, normal blue level-6 evolution for 5, alternate Burst Digivolve for 0 from `[MirageGaogamon]` by returning `[Thomas H. Norstein]`, end-of-turn prior-top trash, evolution bounce plus memory per four opposing hand cards, and the nine-card attack threshold/excess-to-eight bottom-deck/unsuspend sequence all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-033` reviewed. Q2284 proves Burst Digivolve can return only the controller's Tamer; Q2285 proves the activating player selects and orders the opponent's hidden cards; Q2286 proves those cards remain hidden from the activating player while their owner may inspect them. Those ownership, hidden-information, exact-count, and ordering constraints are explicit in the IR and cost interpreter.
-- Implementation and primitive trace: `BT13-033.ts` now separates `WhenDigivolving` from `WhenAttacking`, declares the exact alternate Burst requirement, returns one opposing Digimon, scales memory from the opponent's post-bounce hand, and pays the optional attack effect by returning exactly the excess over eight hidden opponent-hand cards to the deck bottom before unsuspending self. Shared return-cost support adds `leaveInZone`, `selectionHidden`, and `ownerInspectsSelection`; the interpreter derives the exact dynamic count, gives the activator only opaque selectable positions, privately addresses the selected identities to the hand owner for acknowledgement, returns to an identity-hidden activator ordering prompt, and moves the instances in that exact order. Traced through alternate evolution validation/payment, controller-only Tamer selection, pending Burst cleanup, trigger sequencing, target routing, zone counting, cost preflight/payment, seat-scoped private decision projection, hidden selection, owner inspection, hidden ordering, and unsuspension. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-033", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-031 is the direct normal-evolution base and BT13-097 the exact Burst-return Tamer; the shared Burst evolution seam supplies the end-of-turn cleanup. The evolution effect is mandatory and resolves once per evolution; its memory count uses the opponent's hand after the bounced Digimon arrives there. The attack effect is optional, has no once-per-turn marker, checks the opponent's hand on every attack, returns all excess cards to eight as its cost, and unsuspends only after that cost is accepted and paid.
-- Behavioral proof: isolated `BT13-033.test.ts` passed 7 tests: exact full IR; zero-cost Burst evolution returns the controller's Thomas and trashes the prior top at end of turn; an opponent-owned Thomas cannot pay the Burst requirement; normal evolution pays 5, bounces the opponent's Digimon, then gains memory from the resulting hand size; and an attack against eleven distinct hidden cards proves the activator receives no identities, chooses three opaque positions, the owner alone receives those three exact identities and acknowledges them, the activator orders the same opaque positions without identities, the deck bottom preserves the requested distinct-card order, and only then the attacker unsuspends. Refusal against ten cards changes neither hand nor suspension, and eight cards do not meet the threshold. Reverting the timing split, normal/alternate evolution requirements, ownership, cleanup, bounce target, post-bounce count, threshold, optionality, dynamic excess count, seat-scoped owner inspection, activator-hidden selection/order, exact ordering, payment-before-effect, or unsuspend target makes focused observable evidence fail.
-
-## BT13-034 — Kudamon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow level 3, 1000 DP, Rookie/Vaccine/Holy Beast, yellow level-2 evolution for 0, the three-card yellow Vaccine plus yellow Tamer search, arbitrary bottom order, and inherited combined-security attack debuff all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-034` reviewed. Q2287 explicitly defines "total cards in both players' security stacks" as the sum of both stacks, so the encoded `totalSecurityCount <= 6` predicate—not either player's individual count—is required and behaviorally proven at the inclusive boundary.
-- Implementation and primitive trace: `BT13-034.ts` maps On Play to one `RevealAdd` with two independently capped slots, strict yellow Digimon/Vaccine-trait and yellow Tamer filters, and arbitrary ordered deck-bottom placement for every unchosen reveal. Its inherited `WhenAttacking` action applies -2000 DP to one opposing Digimon for the turn behind the combined-security predicate and shared once-per-turn tracker. Traced through reveal extraction, definition matching across color/kind/trait, independent slot consumption, controller selection, order decision, deck-bottom movement, inherited-source collection, attack timing, summed private-zone counts, opposing target routing, modifier duration, and source-host frequency. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-034", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-036 is the direct same inherited security-count/-2000 line peer; BT13-046/098/099 share the same combined-security primitive. BT13-036 and BT13-098 are positive search peers for the Vaccine Digimon and Tamer slots, while yellow Virus BT13-035 and red Vaccine BT1-015 prove both trait/color exclusions. The search is mandatory on play but each category adds only an available match; the inherited effect belongs to its evolved host, targets only the opponent, lasts for the turn, and can resolve only once per host per turn.
-- Behavioral proof: isolated `BT13-034.test.ts` passed 6 tests with 207 reveal/evolution/interpreter mechanism tests (213 total): exact full IR; a yellow Vaccine and yellow Tamer are added from the top three; an off-color Vaccine and yellow non-Vaccine remain excluded while the controller reverses their exact bottom order; at exactly three plus three security the inherited effect debuffs an opposing high-DP Digimon once across two attack windows; a four-plus-three total blocks it; and a real yellow level-2 evolves into Kudamon for exactly 0. Reverting reveal count, either category's color/kind/trait, independent caps, bottom destination/order, inherited provenance, attack timing, ownership, inclusive summed threshold, DP amount/duration, frequency, or evolution color/level/cost makes focused observable evidence fail.
-
-## BT13-035 — PawnChessmon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow/black level 3, 1000 DP, Rookie/Virus/Puppet, separate yellow and black level-2 evolution routes for 1, own-turn optional On Deletion free play of a level-3-or-lower Chessmon, threshold increase to level 5 at eight trashed Chessmon Digimon, and inherited Reboot all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-035` reviewed; no card-specific entries exist. The source is already in trash when its On Deletion effect resolves, so it contributes to the eight-card threshold when it is a Chessmon Digimon. Turn ownership, hand origin, name/kind/level filtering, optionality, free payment, and inherited keyword timing are explicit.
-- Implementation and primitive trace: `BT13-035.ts` was corrected from an inert targetless level `CostModifier` record to a direct `ConditionalBranch`: the live trash predicate selects an otherwise-identical level-5 or level-3 optional `PlayWithoutCost` action. This represents the printed ceiling increase without depending on a modifier path that exits before recording targetless level changes. The inherited Static record installs Reboot on its evolved host. Traced through post-removal source collection, loose-trash definition counting, branch evaluation, own-turn gate, hand candidate matching, optional decision, free permanent creation, inherited-source collection, keyword installation, opponent active-phase unsuspension, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-035", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-064 is the parallel black/yellow PawnChessmon with the same threshold structure, while BT13-039/042/045 and BT13-068/070/073 provide level-4/5/6 Chessmon boundaries. The deletion effect is not once per turn, belongs to the deleted card's owner, and resolves only on that owner's turn; every separately deleted PawnChessmon may offer one play. Reboot belongs to the evolved host and acts during the opponent's unsuspend phase, not immediately after the host attacks.
-- Behavioral proof: isolated `BT13-035.test.ts` passed 7 tests with 222 interpreter/evolution/Reboot mechanism tests (229 total): exact full branch IR and inherited keyword; an own-turn deletion plays a level-3 PawnChessmon for free; seven existing trashed Chessmon plus the deleted source reach eight and play level-5 BishopChessmon; six plus the source stay below threshold and leave BishopChessmon in hand; opponent-turn deletion opens no optional decision; inherited Reboot unsuspends a suspended real host during the opponent's active phase; and real yellow and black level-2 bases each evolve for exactly 1. Reverting source-inclusive trash counting, name/kind/level filters, either branch ceiling, turn ownership, hand origin/payment, optionality, Reboot provenance/timing, or either evolution route makes focused observable evidence fail.
-
-## BT13-036 — Liollmon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow level 3, 1000 DP, Rookie/Vaccine/Holy Beast, yellow level-2 evolution for 0, own-turn once-per-turn memory gain when its controller's security is removed, and the inherited combined-security attack debuff all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-036` reviewed. Q2288 explicitly defines the inherited effect's count as the sum of both players' security stacks. The live condition therefore uses the inclusive `totalSecurityCount <= 6` predicate; security-removal ownership and turn perspective remain independently gated by the resident watcher.
-- Implementation and primitive trace: `BT13-036.ts` installs an own-turn `whenSecurityRemoved` SubTrigger whose body gains 1 memory and whose outer source frequency is once per turn. Its inherited `WhenAttacking` action selects one opposing Digimon, applies -2000 DP for the turn, checks the summed-security boundary, and tracks once-per-turn use on the evolved host. Traced through turn-conditional watcher installation, security movement event publication and seat payload, source/controller qualification, watcher frequency, memory mutation, inherited-source collection, attack timing, summed zone count, opponent target routing, modifier lifetime, host frequency, catalog evolution validation, and zero memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-036", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-034 is the direct same inherited line and Q2287/Q2288 pair; BT13-046/098/099 share the combined-security predicate. The main effect cares only about removal from its controller's security during its controller's turn, regardless of which effect caused it, and can gain memory once per turn. The inherited effect belongs to its host, targets only an opponent's Digimon, lasts for the turn, and independently resolves once per host per turn.
-- Behavioral proof: isolated `BT13-036.test.ts` passed 6 tests with 207 interpreter/evolution mechanism tests (213 total): exact full IR; effect-driven opponent-security removal gains no memory while the first own-security removal gains 1 and a second gains none; own-security removal on the opponent's turn gains none; exactly three plus three security permits one inherited -2000 debuff across two attack windows; four plus three blocks the debuff; and a real yellow level-2 base evolves for exactly 0. Reverting turn or security ownership, event subscription, memory amount, either frequency scope, inherited provenance, opposing target, DP amount/duration, inclusive summed threshold, or evolution color/level/cost makes focused observable evidence fail.
-
-## BT13-037 — Liamon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow level 4, 4000 DP, Champion/Vaccine/Holy Beast, yellow level-3 evolution for 2, optional When Attacking top-security trash cost for an opposing -4000 DP turn debuff, and inherited once-per-turn combined-security -2000 DP attack line all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-037` reviewed. Q2289 defines the inherited condition as the sum of both security stacks, requiring the inclusive `totalSecurityCount <= 6` predicate. The main effect's top position, controller ownership, cost-before-effect ordering, optionality, opponent target, and turn duration are explicit.
-- Implementation and primitive trace: `BT13-037.ts` maps the main attack clause to an optional `ModifyDP` whose structured trash cost selects the controller's top security card; cost preflight suppresses the offer when security is empty, payment routes through `trashFromSecurity`, and only successful acceptance proceeds to the opposing -4000 modifier. Its inherited action uses the shared summed-security condition, opposing Digimon target, -2000 turn modifier, and host-local frequency. Traced through attack collection, optional/cost feasibility, deterministic top selection, security-to-trash movement, payment-before-target effect, opponent routing, DP modifier lifetime, inherited-source collection, summed count, frequency, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-037", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-036 is the direct evolutionary and security-removal-event peer; BT13-034/036/038 share the inherited Q2287-Q2290 line. The main effect is optional and not once per turn, so each attack may pay one own top-security card if available. The inherited effect is independently once per host per turn and targets only the opponent; neither effect applies to Tamers or persists beyond the turn.
-- Behavioral proof: isolated `BT13-037.test.ts` passed 7 tests with the independently green BT13-036 peer and 207 interpreter/evolution mechanism tests (220 total): exact full IR; acceptance moves the exact aliased top security instance to trash and applies -4000 to an opposing high-DP Digimon; refusal preserves security and DP; empty security produces no optional prompt or debuff; exactly three plus three security allows only one inherited -2000 application across two attack windows; four plus three blocks it; and real BT13-036 evolves into Liamon for exactly 2. Reverting cost zone/position/owner, feasibility, optionality, payment ordering, target owner/kind, either DP amount/duration, inherited provenance/frequency, inclusive summed threshold, or evolution color/level/cost makes focused observable evidence fail.
-
-## BT13-038 — Reppamon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow level 4, 4000 DP, Champion/Vaccine/Holy Beast, yellow level-3 evolution for 2, optional When Attacking top-security trash cost granting an opposing Digimon Security Attack -2 through the opponent's turn, and inherited once-per-turn combined-security -2000 DP attack line all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-038` reviewed. Q2290 defines the inherited condition as the sum of both security stacks, requiring the inclusive `totalSecurityCount <= 6` predicate. The main clause's own top-security cost, opponent-only Digimon target, numeric keyword amount, and `untilOpponentTurnEnd` duration are explicit.
-- Implementation and primitive trace: `BT13-038.ts` maps the main attack clause to an optional `GainKeyword` whose structured cost preflights and trashes the controller's top security card before granting Security Attack -2 to one opposing Digimon. The modifier ledger retains the numeric keyword through the opponent's turn. Its inherited action shares the summed-security predicate, opposing -2000 DP turn modifier, and host-local frequency. Traced through attack collection, cost feasibility, optional response, deterministic top movement, payment-before-grant ordering, opposing target selection, numeric keyword ledger/duration, inherited-source collection, summed count, frequency, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-038", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-037 is the direct same-cost -4000 DP peer; BT13-034/036/037 share the inherited Q2287-Q2290 line. The main effect is optional and repeatable on each attack while security remains, targets only an opponent's Digimon, and persists longer than a `forTheTurn` modifier. The inherited effect is independently once per host per turn and never targets a Tamer.
-- Behavioral proof: isolated `BT13-038.test.ts` passed 7 tests with 215 interpreter/evolution/security-strike mechanism tests (222 total): exact full IR; acceptance moves the exact aliased own top-security card to trash and observably grants -2 to the opposing Digimon's live Security Attack ledger; refusal preserves security and grants nothing; empty security produces no optional prompt or keyword; exactly three plus three security permits only one inherited -2000 application across two attack windows; four plus three blocks it; and real BT13-036 evolves into Reppamon for exactly 2. Reverting cost zone/position/owner, feasibility, optionality, payment ordering, target owner/kind, keyword/amount/duration, inherited provenance/frequency, inclusive summed threshold, or evolution color/level/cost makes focused observable evidence fail.
-
-## BT13-039 — KnightChessmon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow/black level 4, 4000 DP, Champion/Virus/Puppet, normal yellow or black level-3 evolution for 3, alternate level-3 Chessmon-name evolution for 2, own-turn optional On Deletion free play of a level-4-or-lower Chessmon Digimon from hand, and inherited Reboot all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-039` reviewed; no card-specific entries exist. Exact level, name, kind, hand origin, controller turn, optionality, payment waiver, alternate-name requirement, and inherited timing are explicit.
-- Implementation and primitive trace: `BT13-039.ts` maps deletion to an own-turn optional `PlayWithoutCost` with mine/Digimon/name/level filters and hand origin; the alternate digivolution requirement is independently encoded as level 3 plus Chessmon name for 2, while catalog requirements preserve both normal colors for 3. The inherited Static record installs Reboot on its host. Traced through post-removal source collection, turn gate, loose-hand definition matching, candidate preflight, optional selection, free creation, alternate versus catalog evolution validation/payment, inherited-source collection, keyword installation, and opponent active-phase unsuspension. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-039", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-035/064 are the two-color level-3 alternate bases; BT13-039/068 are level-4 positive play boundaries and BT13-042 is a level-5 negative boundary. The deletion effect is not once per turn and belongs to the deleted card's controller, but is offered only during that controller's turn. Reboot belongs to the evolved host and does not unsuspend it immediately after attacking.
-- Behavioral proof: isolated `BT13-039.test.ts` passed 8 tests with 210 interpreter/evolution/Reboot mechanism tests (218 total): exact full IR; own-turn deletion plays another level-4 KnightChessmon for free; level-5 BishopChessmon produces no offer and remains in hand; opponent-turn deletion produces no offer; inherited Reboot unsuspends a real host during the opponent's active phase; both yellow and black PawnChessmon bases use the alternate route for exactly 2; non-Chessmon yellow and black level-3 bases use normal evolution for exactly 3; and a non-Chessmon base is rejected when the alternate route is explicitly requested. Reverting turn ownership, hand/name/kind/level filters, optionality/payment, Reboot provenance/timing, alternate name/level/cost, or either normal color/cost makes focused observable evidence fail.
-
-## BT13-040 — Magnamon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow/blue level 4, 7000 DP, Armor Form/Free/Holy Warrior/Royal Knight, normal yellow level-3 evolution for 4, alternate Veemon-name evolution for 3, Blocker, and the all-turn would-leave draw followed by an optional free Veemon play from hand or this Digimon's sources all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-040` reviewed; no card-specific entries exist. The leave reaction does not prevent departure: it observes the would-leave window, draws mandatorily, then offers one controller-owned Veemon from exactly the hand or leaving host's digivolution cards, without cost. Ordering, source anchoring, optionality, and departure continuation are explicit.
-- Implementation and primitive trace: `BT13-040.ts` keeps `PlayWithoutCost` nested after `Draw` inside the same self-scoped `wouldLeavePlay` reaction and now encodes origin-aware OR branches: a plain mine/Veemon hand branch and a mine/Veemon digivolution-card branch scoped by `hostFilter.isSelfRef`. The loose-card matcher now honors a union branch's explicit zone before definition/host matching; this preserves hand eligibility while rejecting Veemon sources under other hosts. The mode-less reaction installs the shared non-preventing `instead` observer, runs both ordered actions while the source stack still exists, then permits removal. Traced through continuous installation without execution, leave consult, draw movement, live post-draw candidate recomputation, origin-aware union matching, self-host scoping, optional selection, source detachment, free creation, departure continuation, Blocker, and both evolution paths. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-040", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT12-021 is a real Veemon positive base/source/hand candidate and BT13-036 a non-Veemon normal-evolution/alternate-negative peer. The reaction has no once-per-turn marker but the permanent can ordinarily leave only once; it triggers for any leave cause and belongs to Magnamon's controller. The optional play is evaluated after the draw, so a newly drawn Veemon may also qualify. Blocker remains resident only while Magnamon is in the battle area.
-- Behavioral proof: isolated `BT13-040.test.ts` passed 10 tests with 217 interpreter/evolution and origin-union peer tests (227 total): exact nested origin-OR IR; live Blocker; continuous recomputation never draws/offers/plays; deletion draws, plays self-source Veemon, and still trashes Magnamon; a pre-existing hand Veemon is eligible; a Veemon drawn by the mandatory preceding draw is eligible; a Veemon under another host is ineligible and produces no offer; declining preserves hand Veemon while draw/departure still occur; real Veemon uses the alternate route for 3 while a yellow non-Veemon uses normal evolution for 4; and explicit alternate evolution rejects the non-Veemon. Reverting nesting/order, either origin branch, zone-aware union matching, self-host exclusion, live post-draw eligibility, non-prevention, optionality/payment, Blocker, or evolution requirements makes focused evidence fail.
-
-## BT13-041 — Chirinmon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow level 5, 7000 DP, Ultimate/Vaccine/Holy Beast, yellow level-4 evolution for 3, Barrier, and inherited On Deletion optional free suspended Kudamon play from hand or trash all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-041` reviewed; no card-specific entries exist. Barrier's controller/security ownership and prevention payment, inherited-source provenance, Kudamon name, hand/trash origins, suspended entry, optionality, and payment waiver are explicit.
-- Implementation and primitive trace: `BT13-041.ts` installs Barrier as a resident Static keyword and maps the inherited deletion clause to one optional `PlayWithoutCost` with exact Kudamon-name filtering, controller ownership, hand/trash origins, free payment, and suspended entry. Traced through keyword installation, would-delete Barrier prompt, controller response, exact top-security payment, prevention result, inherited effect collection from a deleted source stack, loose-zone candidate matching, optional decision, zone detachment, suspended permanent creation, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-041", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-034 is the exact Kudamon positive candidate; BT13-036 is a same-trait non-Kudamon negative; BT13-038 is a real yellow level-4 base. Barrier is a replacement keyword consulted for each would-delete event while security can pay it. The inherited effect belongs to the deleted evolved host's stack, is not once per turn, and may resolve once for each separate host deletion.
-- Behavioral proof: isolated `BT13-041.test.ts` passed 7 tests with 237 interpreter/evolution/advanced-keyword mechanism tests (244 total): exact full IR; live Barrier exposure; accepted Barrier moves the exact aliased top security card to trash and preserves Chirinmon; inherited deletion plays Kudamon from trash suspended without memory; a hand Kudamon can be either accepted and played suspended or declined and retained; a non-Kudamon produces no optional offer; and real Reppamon evolves into Chirinmon for exactly 3. Reverting Barrier installation/payment/prevention, inherited provenance, name/owner/origins, optionality, free payment, suspended entry, or evolution color/level/cost makes focused observable evidence fail.
-
-## BT13-042 — BishopChessmon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow/black level 5, 7000 DP, Ultimate/Virus/Puppet, normal yellow or black level-4 evolution for 4, alternate level-4 Chessmon-name evolution for 3, own-turn optional On Deletion free play of a level-5-or-lower Chessmon Digimon from hand, and inherited Reboot all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-042` reviewed; no card-specific entries exist. Turn ownership, hand/name/kind/level filters, optionality, free payment, inherited timing, alternate requirement, and both normal colors are explicit.
-- Implementation and primitive trace: `BT13-042.ts` maps deletion to the own-turn optional hand `PlayWithoutCost`, installs inherited Reboot, and declares the level-4 Chessmon alternate route for 3 while catalog legality supplies yellow/black normal routes for 4. Traced through deletion source collection, turn gate, candidate preflight, definition matching, optional free creation, inherited keyword installation/opponent active-phase unsuspension, alternate versus normal evolution validation, and payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-042", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-039/068 are positive two-color level-4 alternate bases; BT13-042 is the level-5 positive play boundary and BT13-045 the level-6 negative. The deletion effect is repeatable per separately deleted BishopChessmon but only on its controller's turn. Reboot belongs to the evolved host.
-- Behavioral proof: isolated `BT13-042.test.ts` passed 6 tests with 210 interpreter/evolution/Reboot mechanism tests (216 total): exact full IR; own-turn deletion plays level-5 BishopChessmon for free; level-6 KingChessmon and opponent-turn deletion each produce no offer; inherited Reboot unsuspends its host during the opponent's active phase; yellow and black KnightChessmon bases use the alternate route for exactly 3; and non-Chessmon yellow and black level-4 bases reject the alternate route but use normal evolution for exactly 4. Reverting turn/name/kind/level/origin/payment gates, Reboot, alternate level/name/cost, or either normal color/cost makes focused evidence fail.
-
-## BT13-043 — LoaderLeomon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow level 5, 7000 DP, Ultimate/Vaccine/Machine, yellow level-4 evolution for 3, printed Barrier, and inherited Barrier all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-043` reviewed; no card-specific entries exist. Both keyword provenances, controller-only top-security payment, optional prevention response, empty-security feasibility, and evolution requirements are explicit.
-- Implementation and primitive trace: `BT13-043.ts` carries separate Static Barrier records for the top card and inherited source. Traced through keyword collection/installation, host provenance, would-delete consult, prompt routing to the controller, exact top-security trash payment, accepted prevention, declined continuation, empty-cost suppression, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-043", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-041 is the direct printed Barrier peer; LoaderLeomon uniquely proves the same keyword also transfers from the source stack. Each would-delete event may offer Barrier while the controller has security; acceptance consumes one top security card, while decline or an empty stack permits deletion.
-- Behavioral proof: isolated `BT13-043.test.ts` passed 7 tests with 237 interpreter/evolution/advanced-keyword mechanism tests (244 total): exact dual full IR; live printed Barrier; accepted printed Barrier trashes the exact aliased top security card and preserves LoaderLeomon; decline deletes it and preserves security; inherited Barrier is exposed on a real evolved host and prevents deletion with payment; no security produces no prompt and no prevention; and real Reppamon evolves into LoaderLeomon for exactly 3. Reverting either provenance, prompt owner, top-security payment, response handling, feasibility, prevention, or evolution color/level/cost makes focused evidence fail.
-
-## BT13-044 — BanchoLeomon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow level 6, 11000 DP, Mega/Vaccine/Beastkin/Boss, yellow level-5 evolution for 3, Blocker, optional When Digivolving top-security payment for an opposing Digimon's -6000 DP through the end of the opponent's turn, and the own-security-removal once-per-turn optional free yellow Tamer play from hand all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-044` reviewed; no card-specific entries exist. Static keyword lifetime, optional cost/decline behavior, exact top-security/controller ownership, DP duration, security-event ownership, Tamer color/origin, free payment, and once-per-turn frequency are explicit.
-- Implementation and primitive trace: `BT13-044.ts` now installs Blocker in its own Static effect instead of incorrectly coupling it to When Digivolving. The evolution action uses the established optional security-cost contract (`optional: true`, `abortOnDecline: true`) with exact mine/security/top selection, then applies one opponent Digimon -6000 until opponent-turn end. The All Turns observer reacts to own `whenSecurityRemoved`, offers one yellow Tamer from hand without cost, and consumes its once-per-turn allowance. Traced through resident keyword installation, optional response, top-security movement, security-removal dispatch, candidate preflight, free permanent creation, DP modifier duration, frequency tracking, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-044", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-037/038 are direct optional top-security-cost peers; BT13-041 is a real yellow level-5 evolution base; BT13-098 and BT13-095 are yellow Tamer positives while BT13-097 is a non-yellow negative. Blocker is continuously available in the battle area. The evolution cost is optional and controller-owned; paying it also generates the controller's own security-removal event. The Tamer reaction ignores opponent security, is optional, and resolves at most once per turn even across multiple own removals.
-- Behavioral proof: isolated `BT13-044.test.ts` passed 7 tests with 183 interpreter/Blocker mechanism tests (190 total): exact full IR; live Blocker; accepted evolution payment trashes the top security card, gives one opponent Digimon -6000, and can trigger a free yellow Tamer play without memory; declining preserves security and DP; empty security cannot produce the debuff; opponent security removal is ignored; two own removals play only one of two eligible yellow Tamers; a non-yellow Tamer remains in hand; and a real yellow level-5 base evolves for exactly 3. Reverting static Blocker placement, optional/abort semantics, top-security ownership, DP amount/duration/target, security-event ownership, Tamer color/origin/payment, once-per-turn tracking, or evolution requirements makes focused observable evidence fail.
-
-## BT13-045 — KingChessmon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow/black level 6, 11000 DP, Mega/Virus/Puppet, normal yellow or black level-5 evolution for 4, alternate level-5 Chessmon-name evolution for 3, own-hand play-cost reduction by 8 at eight trashed Chessmon-name Digimon cards, and identical On Play/When Digivolving optional delete-another-Digimon costs to free-play a non-King Chessmon Digimon from hand all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-045` reviewed; no card-specific entries exist. Self-only play-cost scope, controller trash ownership, Digimon/name/count threshold, both trigger timings, other-Digimon deletion, optionality, KingChessmon exclusion, hand origin, waived payment, and evolution routes are explicit.
-- Implementation and primitive trace: `BT13-045.ts` retains one self-scoped `wouldBePlayed` reducer and the two equivalent optional `PlayWithoutCost` trigger records. Its threshold filter now uses explicit `controller: "mine"`, and the verified self-reducer registry now admits BT13-045 so the conditional IR is collected while the card is still in hand and applied in the pay-time window. Traced through card-local reducer registration, pre-payment condition evaluation against loose trash cards, cost delta/memory payment, optional cost preflight, exclude-self permanent deletion, post-cost hand candidate selection, free permanent creation, trigger routing, alternate/normal evolution validation, and payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-045", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: AD1-017/018 are direct conditional self-play-reducer peers; BT13-035/042 are positive Chessmon play/evolution candidates, BT13-044 is a non-Chessmon negative, BT13-041 is a yellow normal base, and BT11-041 is a black normal base. The reducer counts only the prospective card owner's trash and applies only to KingChessmon's own hand play. Each On Play or When Digivolving resolution independently offers its cost; KingChessmon cannot delete itself or be the free-play result, and neither trigger is once per turn.
-- Behavioral proof: isolated `BT13-045.test.ts` passed 7 tests with 185 interpreter/conditional-self-reducer peer tests (192 total): exact full IR; eight own trashed PawnChessmon cards reduce the observed hand-play memory payment from 13 to 5; seven own Chessmon plus a non-Chessmon (despite eight opponent Chessmon) pays the full 13; On Play deletes the exact other Digimon, plays PawnChessmon free, and preserves the expected paid memory; When Digivolving deletes another Digimon, plays BishopChessmon free, leaves KingChessmon/non-Chessmon hand cards ineligible, and spends no memory; with no other Digimon and only KingChessmon/non-Chessmon candidates no cost or play occurs; the alternate Chessmon level-5 route costs 3; and real non-Chessmon yellow and black level-5 bases reject that route but normally evolve for 4. Reverting the self-reducer registry, controller/count/kind/name condition, either trigger, other/self exclusion, result name/origin/payment, optionality, or evolution route makes focused observable evidence fail.
-
-## BT13-046 — Kentaurosmon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Yellow level 6, 13000 DP, Mega/Vaccine/Holy Warrior/Royal Knight, yellow level-5 evolution for 5, mandatory On Play/When Digivolving effects at six or fewer combined security that gain 3 memory and reveal one hand card (placing yellow cards face down atop security and returning non-yellow cards), plus the optional top-security attack cost that unsuspends itself and gives one opponent Digimon -7000 DP for the turn once per turn all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-046` reviewed Q2291-Q2293. The threshold totals both players' security; the reveal is mandatory when the threshold holds even without a yellow card; and a multicolor card including yellow goes to security rather than hand. Controller ownership, top placement/face-down state, attack-cost optionality, self target, DP target/duration, and frequency are explicit.
-- Implementation and primitive trace: `BT13-046.ts` shares one `totalSecurityCount <= 6` condition across the ordered memory and `HandRevealAdd` actions at both triggers. The reveal selects from the controller's hand and tests yellow membership before exact face-down top-security movement; a non-match remains in hand. The attack record couples optional exact top-security trash to self-unsuspend with abort-on-decline, then applies the -7000 modifier, and carries once-per-turn tracking. Traced through combined-security evaluation, mandatory hand selection, definition color matching, security insertion, security-removal dispatch, optional cost response/payment, self resolution, DP selection/modifier lifetime, frequency tracking, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-046", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-095 is a real red/yellow positive proving inclusive multicolor matching; BT13-047/036 are non-yellow reveal negatives; BT13-037/038 are optional top-security-cost peers; BT13-041 is a real yellow level-5 base. Both entry triggers are mandatory and independently usable, while the attack effect belongs to Kentaurosmon's controller and is once per turn. Declining or inability to pay aborts both unsuspend and debuff; acceptance removes the controller's exact top security card and the DP modifier lasts only for that turn.
-- Behavioral proof: isolated `BT13-046.test.ts` passed 7 tests with 187 interpreter/security-cost peer tests (194 total): exact full IR; at exactly six combined security On Play gains 3 and moves a selected red/yellow Marcus face down above the prior top card; When Digivolving at the threshold requires a hand selection but leaves selected non-yellow cards in hand while still gaining 3; at seven combined security neither memory nor reveal selection/movement occurs; accepted attack payment trashes the exact aliased top security card, unsuspends Kentaurosmon, and applies -7000 once across two attempts; declining preserves security, suspension, and DP; and a real yellow level-5 base evolves for exactly 5 with the entry threshold deliberately disabled. Reverting threshold aggregation, mandatory reveal, inclusive yellow matching, face/top disposition, either entry trigger, attack cost/abort/self target, DP amount/target/duration, once-per-turn tracking, or evolution requirements makes focused observable evidence fail.
-
-## BT13-047 — Angoramon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Green level 3, 1000 DP, Rookie/Vaccine/Beast, green level-2 evolution for 0, printed Blocker, and inherited All Turns +1000 DP while the opponent has no unsuspended Digimon all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-047` reviewed Q5997: having no opposing Digimon satisfies the “no unsuspended Digimon” condition. Top-card versus inherited provenance, opponent ownership, suspended-state polarity, all-turn timing, dynamic removal/restoration, and evolution requirements are explicit.
-- Implementation and primitive trace: `BT13-047.ts` installs Blocker in a Static top-card record and maps the inherited clause to a self-targeted +1000 DP Aura gated by `opponentHasNone` with an opponent/unsuspended/Digimon filter. Traced through keyword installation, inherited-source collection, opponent permanent matching, continuous condition recomputation, aura contribution removal/restoration, host DP calculation, catalog evolution validation, and zero memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-047", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-044 is a printed Blocker peer; BT13-036 is a real opposing Digimon state toggle; BT13-004 is a real green level-2 base. Blocker belongs only to Angoramon as the top card and is not inherited. The DP effect belongs only to the evolved host, applies during both turns, is satisfied by zero opposing Digimon or only suspended opposing Digimon, and is suppressed by any unsuspended opposing Digimon; it is continuous rather than frequency-limited.
-- Behavioral proof: isolated `BT13-047.test.ts` passed 5 tests with 185 interpreter/continuous-aura/Blocker mechanism tests (190 total): exact full IR; the inherited host gains +1000 with no opposing Digimon (Q5997); printed Angoramon exposes live Blocker while a host with Angoramon underneath does not inherit Blocker but does inherit the DP aura; an unsuspended opposing Digimon suppresses the bonus, suspension restores it, and unsuspension removes it again; and a real green level-2 base evolves for zero memory. Reverting keyword provenance, inherited provenance, opponent/unsuspended/kind polarity, self targeting, DP amount, continuous recomputation, or evolution color/level/cost makes focused observable evidence fail.
-
-## BT13-048 — Salamon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Green level 3, 1000 DP, Rookie/Vaccine/Mammal, green level-2 evolution for 0, On Play top-three reveal that separately adds one non-Sea-Animal Beast/Animal/Sovereign Digimon and one Royal Knight Digimon then bottoms the rest, and inherited own-turn +2000 DP for either qualifying trait group all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-048` reviewed; no card-specific entries exist. The two independent add slots, Sea Animal exclusion scope, Digimon kind, reveal/rest disposition, arbitrary bottom order, inherited host provenance, trait OR semantics, turn ownership, and evolution requirements are explicit.
-- Implementation and primitive trace: `BT13-048.ts` uses one `RevealAdd` with two count-one hand slots and deck-bottom remainder handling. The first slot excludes Sea Animal while matching Beast/Animal/Sovereign; the Royal Knight slot is independent. The inherited Aura now mirrors that grammar: the Sea Animal negation applies only to the first trait branch, while Royal Knight is a separate sufficient branch. Traced through top-three reveal isolation, filtered slot selection without double-taking, hand movement, bottom placement, inherited-source collection, self-trait evaluation, own-turn continuous installation/removal, host DP calculation, catalog evolution validation, and zero payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-048", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-047 is a Beast positive, BT13-046 a Royal Knight positive, BT1-033 a Sea Animal exclusion negative, BT13-049 an unrelated-trait negative, and BT13-004 a real green level-2 base. Search slots can each take one distinct revealed card and leave all unmatched/rest cards for bottom ordering. The inherited bonus belongs to the evolved host only during its controller's turn and continuously tracks its current top-card traits; it is not once per turn.
-- Behavioral proof: isolated `BT13-048.test.ts` passed 5 tests: exact full IR; the top-three reveal adds the exact Beast and Royal Knight cards while placing the excluded Sea Animal at deck bottom; real Beast and Royal Knight hosts each gain +2000 on their controller's turn and lose it on the opponent's turn; Sea Animal and unrelated hosts receive no bonus; and a real green level-2 base evolves for zero memory. Reverting either search slot, Digimon/name/trait filters, Sea Animal exclusion scope, reveal count/rest disposition, inherited provenance, trait OR, turn gate, DP amount, or evolution color/level/cost makes focused observable evidence fail.
-
-## BT13-049 — Lalamon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Green level 3, 1000 DP, Rookie/Data/Vegetation, green level-2 evolution for 0, On Play top-three reveal that separately adds one Vegetation/Plant/Fairy Digimon and one Yoshino Fujieda then bottoms the rest, and inherited own-turn once-per-turn digivolution-cost reduction by 1 while its controller has a green Tamer all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-049` reviewed; no card-specific entries exist. Independent add slots, Digimon/name/trait filtering, reveal/rest disposition, inherited host provenance, controller-owned green Tamer condition, own-turn timing, once-per-turn frequency, and evolution requirements are explicit.
-- Implementation and primitive trace: `BT13-049.ts` uses one `RevealAdd` with two count-one hand slots and deck-bottom remainder handling. Its inherited Your Turn replacement watches only its own host's would-digivolve event, conditionally installs a -1 reducer when an own green Tamer exists, and carries once-per-turn tracking. Traced through top-three reveal isolation, filtered slot selection without double-taking, hand/bottom movement, inherited-source collection, continuous replacement installation, pay-time digivolution reduction, Tamer definition/color/controller matching, tracker consumption, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-049", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-050 is a Vegetation positive, BT13-100 is the exact Yoshino/green-Tamer positive, BT13-047 is a reveal nonmatch, and BT13-004 is a real green level-2 base. The search slots are independent and may take two distinct revealed cards. The reducer belongs to the evolved host, only on its controller's turn, requires that controller's green Tamer rather than the opponent's, and can reduce only one digivolution per turn.
-- Behavioral proof: isolated `BT13-049.test.ts` passed 5 tests: exact full IR; the top-three reveal adds the exact Vegetation Digimon and Yoshino while bottoming the nonmatch; an evolved host with its own Yoshino pays 1 instead of 2 to evolve; an opponent-owned Yoshino does not satisfy the condition and the host pays the full 2; and a real green level-2 base evolves into Lalamon for zero memory. The dedicated conditional-reducer peer suite also proves the nested condition installs no reduction without a green Tamer. Reverting either search slot, kind/name/trait filters, reveal count/rest disposition, inherited/self/turn provenance, Tamer color/controller gate, amount/frequency, or evolution color/level/cost makes focused observable evidence fail.
-
-## BT13-050 — Sunflowmon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Green level 4, 3000 DP, Champion/Data/Vegetation, green level-3 evolution for 2, optional Main suspension cost to evolve one own Digimon into a hand Fairy for its evolution cost reduced by 2, and inherited own-turn once-per-turn -1 evolution cost while its controller has a green Tamer all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-050` reviewed; no card-specific entries exist. Activation timing, source suspension payment, own-base/Fairy-hand eligibility, printed requirement enforcement, paid cost and fixed reduction scope, optional decline, inherited host provenance, Tamer ownership/color, and frequency are explicit.
-- Implementation and primitive trace: `BT13-050.ts` now encodes the Main clause as one coherent `Digivolve` action with `payCost: true` and `reduceCost: 2`; the generated sibling replacement ran after the digivolution and could not scope the reduction, while omission of `payCost` waived the entire evolution cost. The inherited replacement retains its self-host conditional -1 once per turn. Traced through Main activation routing, optional feasibility/response, self-suspend payment, legal own-base and hand-Fairy pairing, printed requirement/cost lookup, fixed cost delta, memory payment, digivolution movement/draw/When Digivolving, inherited replacement installation, Tamer condition, and frequency tracking. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-050", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-054 is a real green Fairy evolution result, BT13-051 a distinct own green level-4 base, BT10-054 a non-Fairy negative, BT13-100 the exact own green Tamer positive, and BT13-049 a real green level-3 base. Main is an optional activated effect and cannot pay by suspending an already suspended source; its -2 applies only to the evolution performed by that resolution. The inherited -1 belongs to the evolved host, only on its controller's turn, and is once per turn.
-- Behavioral proof: isolated `BT13-050.test.ts` passed 6 tests: exact coherent full IR; Main suspends Sunflowmon, evolves a distinct own level-4 into hand Lilamon, and pays exactly 1 from the printed 3 after reduction by 2; without a Fairy candidate it neither offers useful resolution nor suspends/moves; declining preserves source and hand; the inherited effect with own Yoshino reduces a normal 2-cost evolution to 1; and Sunflowmon normally evolves from a real green level-3 for exactly 2. Reverting Main timing, suspension payment, target/origin/Fairy gates, requirement enforcement, `payCost`, fixed reduction scope, optionality, inherited provenance/Tamer gate/frequency, or normal evolution requirements makes focused observable evidence fail.
-
-## BT13-051 — Mikemon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Green level 4, 4000 DP, Champion/Data/Beast, green level-3 evolution for 2, On Play grant of Piercing to one own Digimon for the turn, and inherited own-turn +2000 DP for a non-Sea-Animal Beast/Animal/Sovereign host or a Royal Knight host all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-051` reviewed; no card-specific entries exist. Piercing recipient ownership/count/duration, inherited host provenance, Sea Animal exclusion scope, trait OR semantics, own-turn timing, and evolution requirements are explicit.
-- Implementation and primitive trace: `BT13-051.ts` grants one mine/Digimon target temporary Piercing through the dedicated pierce store. Its inherited Aura now mirrors the printed grammar: Sea Animal negates only the Beast/Animal/Sovereign branch, while Royal Knight is a separate sufficient branch. Traced through On Play target selection, owner/kind filtering, temporary pierce grant/consumption lifetime, inherited-source collection, self-trait evaluation, own-turn continuous installation/removal, host DP calculation, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-051", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-048 is the direct inherited-aura wording peer; BT13-047 is a Beast positive, BT13-046 a Royal Knight positive, BT1-033 a Sea Animal negative, BT13-049 an unrelated negative and real level-3 base. Piercing may target Mikemon or another own Digimon but never an opponent's and expires with the granting turn. The inherited bonus belongs to the evolved host only during its controller's turn and is continuous rather than frequency-limited.
-- Behavioral proof: isolated `BT13-051.test.ts` passed 5 tests: exact full IR; On Play grants Piercing to exactly one of two own Digimon while the opposing Digimon receives none; real Beast and Royal Knight inherited hosts gain +2000 on their controller's turn and lose it on the opponent's turn; Sea Animal and unrelated hosts receive no bonus; and a real green level-3 base evolves for exactly 2. Reverting recipient ownership/count/kind, Piercing/duration, inherited provenance, trait OR, Sea Animal exclusion scope, turn gate, DP amount, or evolution color/level/cost makes focused observable evidence fail.
-
-## BT13-052 — SymbareAngoramon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Green level 4, 5000 DP, Champion/Vaccine/Beastkin, green level-3 evolution for 2, printed Jamming, and inherited All Turns +1000 DP while the opponent has no unsuspended Digimon all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-052` reviewed Q2294: having no opposing Digimon satisfies the “no unsuspended Digimon” condition. Keyword versus inherited provenance, opponent ownership, suspended-state polarity, all-turn timing, dynamic recomputation, and evolution requirements are explicit.
-- Implementation and primitive trace: `BT13-052.ts` installs Jamming in a Static top-card record and maps the inherited clause to a self-targeted +1000 DP Aura gated by `opponentHasNone` with an opponent/unsuspended/Digimon filter. Traced through keyword installation/consumption, inherited-source collection, opponent permanent matching, continuous condition recomputation, aura contribution removal/restoration, host DP calculation, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-052", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-047 is the exact inherited-aura wording peer; BT13-051 is a real host, BT13-047 an opposing state toggle, and BT13-049 a real green level-3 base. Jamming belongs only to SymbareAngoramon as the top card and is not inherited. The DP effect belongs only to the evolved host, applies during both turns, is satisfied by zero opposing Digimon or only suspended opposing Digimon, and is suppressed by any unsuspended opposing Digimon; it is continuous rather than frequency-limited.
-- Behavioral proof: isolated `BT13-052.test.ts` passed 5 tests: exact full IR; live top-card Jamming; a host with SymbareAngoramon underneath does not inherit Jamming but gains +1000 with no opponent Digimon (Q2294); an unsuspended opponent suppresses the bonus, suspension restores it, and unsuspension removes it; and a real green level-3 base evolves for exactly 2. Reverting Jamming placement, inherited provenance, opponent/unsuspended/kind polarity, self targeting, DP amount, continuous recomputation, or evolution color/level/cost makes focused observable evidence fail.
-
-## BT13-053 — Mihiramon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Green level 5, 7000 DP, Ultimate/Data/Holy Beast/Deva, green level-4 evolution for 3, On Play suspension of one opponent Digimon at 7000 DP or less followed by an independently chosen opponent Digimon's unsuspend lock through the end of the opponent's turn, and inherited own-turn once-per-turn -1 evolution cost all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-053` reviewed Q2295-Q2297. The suspend and lock targets may differ; the lock may target an unsuspended Digimon and does not itself suspend it; and the lock target has no 7000-DP ceiling. Target ownership, duration, inherited self-host scope, timing, and frequency are explicit.
-- Implementation and primitive trace: `BT13-053.ts` performs separate opponent target resolutions for Suspend and the `unsuspend` Restrict. The inherited replacement now uses `sourceFilter.isSelfRef` rather than incorrectly reducing any own Digimon's evolution. Traced through first target DP filtering/effect suspension, independent second target selection, restriction installation/active-phase consumption/duration, inherited-source collection, self-host would-digivolve matching, pay-time cost adjustment, once-per-turn tracking, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-053", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-111 is a >7000 DP lock-only positive, BT13-053 itself is the exact 7000 suspend boundary, BT13-051 is a real green level-4 base, and BT13-054/057 form a real two-step evolution chain. On Play is mandatory and its second target is independent. The inherited reducer belongs only to the evolved host, only on its controller's turn, and applies to its first evolution each turn; unrelated own Digimon pay normally.
-- Behavioral proof: isolated `BT13-053.test.ts` passed 5 tests: exact full IR; ordinary On Play suspends and keeps an eligible opponent suspended; Q2295-Q2297 proof auto-suspends the sole 7000-DP target then separately selects an unsuspended 13000-DP target for the lock without suspending it; a host with Mihiramon underneath pays 2 instead of 3 for its first evolution, pays the full 3 for its second same-turn evolution, and an unrelated own stack also pays the full 3; and Mihiramon normally evolves from a real green level-4 for exactly 3. Reverting independent selection, first-target DP ceiling, second-target unrestricted DP/state, lock duration, inherited self scope, turn/frequency/amount, or normal evolution requirements makes focused observable evidence fail.
-
-## BT13-054 — Lilamon — 10/10
-
-- Catalog: `cards.json` reviewed directly. Green level 5, 7000 DP, Ultimate/Data/Fairy, green level-4 evolution for 3, optional When Digivolving free Yoshino Fujieda play from hand, and inherited own-turn Security Attack +1 while the opponent has a suspended Digimon all match the executable definition.
-- Knowledge base: `node tools/kb/query.mjs card BT13-054` reviewed; no card-specific entries exist. Exact-name/hand/controller filtering, optionality, payment waiver, inherited host provenance, opponent ownership/suspended state, own-turn timing, dynamic keyword lifetime, and evolution requirements are explicit.
-- Implementation and primitive trace: `BT13-054.ts` maps the entry effect to one optional hand `PlayWithoutCost` with exact Yoshino name and waived cost. Its inherited Aura grants Security Attack +1 to the self host while an opponent/suspended/Digimon match exists on its controller's turn. Traced through trigger collection, candidate preflight, optional response, exact-name loose selection, free permanent creation, inherited-source collection, opponent-state condition evaluation, continuous numeric-keyword grant removal/restoration, catalog evolution validation, and memory payment. Coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("BT13-054", compiled)`.
-- Peers, traits, evolution, timing, ownership, and frequency: BT13-100 is the exact Yoshino/green Tamer positive, BT13-098 a wrong-name yellow Tamer negative, BT13-047 an opposing suspension toggle, BT13-053 a real inherited host, and BT13-051 a real green level-4 base. The play is optional and not once per turn but occurs once per separate digivolution event. The inherited keyword belongs to the evolved host, tracks opposing suspension dynamically, and exists only on the host controller's turn.
-- Behavioral proof: isolated `BT13-054.test.ts` passed 5 tests: exact full IR; When Digivolving plays Yoshino free without changing memory; decline preserves Yoshino; a different Tamer creates no optional offer; inherited Security Attack is absent with an unsuspended opponent, becomes +1 after suspension, and disappears on the opponent's turn; and a real green level-4 base evolves for exactly 3. Reverting exact name/origin/owner/payment, optionality, inherited provenance, opponent/suspended condition, turn gate, keyword amount/lifetime, or evolution color/level/cost makes focused observable evidence fail.
-
-## BT13-055 — Lamortmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-056 — Leopardmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-057 — Rosemon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-058 — Leopardmon: Leopard Mode — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-059 — Examon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-060 — Rosemon: Burst Mode — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-061 — Gotsumon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-062 — Chuumon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-063 — Dorumon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-064 — PawnChessmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-065 — PlatinumSukamon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-066 — Dorugamon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-067 — Gladimon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-068 — KnightChessmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-069 — KingSukamon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-070 — RookChessmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-071 — Giromon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-072 — DoruGreymon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-073 — QueenChessmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-074 — PrinceMamemon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-075 — Alphamon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-076 — KingEtemon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-077 — Craniamon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-078 — Phascomon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-079 — Falcomon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-080 — ProtoGizmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-081 — Porcupamon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-082 — Peckmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-083 — Gizmon: AT — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-084 — Astamon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-085 — Crowmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-086 — Gizmon: XT — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-087 — Dynasmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-088 — Belphemon: Sleep Mode — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-089 — Ravemon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-090 — LordKnightmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-091 — Belphemon: Rage Mode — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-092 — Ravemon: Burst Mode — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-093 — Omekamon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-094 — Kristy Damon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-095 — Marcus Damon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-096 — Homer Yushima — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-097 — Thomas H. Norstein — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-098 — Richard Sampson — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-099 — Spencer Damon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-100 — Yoshino Fujieda — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-101 — Miki Kurosaki & Megumi Shirakawa — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-102 — Keenan Crier — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-103 — Akihiro Kurata — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-104 — Final Shining Burst — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-105 — Full Moon Meteor Impact — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-106 — Odin's Breath — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-107 — Vulcan Crusher — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-108 — Waltz's End — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-109 — Gift of Darkness — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-110 — Royal Knights of the Purge — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-111 — Gallantmon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
-
-## BT13-112 — Omnimon — Pending
-
-- Status: Pending independent card-by-card revalidation. Prior batch structural and test evidence is input only and does not establish a score.
+This ledger records only independently reproduced, card-scoped verification. Historical batch output, prior ledger entries, and green collection tests are inputs only and do not establish a score.
+
+## Verified before this pass
+
+- BT13-001 through BT13-006: 10/10, retained from the accepted prior audit evidence.
+
+## Current revalidation queue
+
+- BT13-007 — Pending
+- BT13-008 — Pending
+- BT13-009 — Pending
+- BT13-010 — Pending
+- BT13-011 — Pending
+- BT13-012 — Pending
+- BT13-013 — Pending
+- BT13-014 — Pending
+- BT13-015 — Pending
+- BT13-016 — Pending
+- BT13-017 — Pending
+- BT13-018 — Pending
+- BT13-019 — Pending
+- BT13-020 — Pending
+- BT13-021 — Pending
+- BT13-022 — Pending
+- BT13-023 — Pending
+- BT13-024 — Pending
+- BT13-025 — Pending
+- BT13-026 — Pending
+- BT13-027 — Pending
+- BT13-028 — Pending
+- BT13-029 — Pending
+- BT13-030 — Pending
+- BT13-031 — Pending
+- BT13-032 — Pending
+- BT13-033 — Pending
+- BT13-034 — Pending
+- BT13-035 — Pending
+- BT13-036 — Pending
+- BT13-037 — Pending
+- BT13-038 — Pending
+- BT13-039 — Pending
+- BT13-040 — Pending
+- BT13-041 — Pending
+- BT13-042 — Pending
+- BT13-043 — Pending
+- BT13-044 — Pending
+- BT13-045 — Pending
+- BT13-046 — Pending
+- BT13-047 — Pending
+- BT13-048 — Pending
+- BT13-049 — Pending
+- BT13-050 — Pending
+- BT13-051 — Pending
+- BT13-052 — Pending
+- BT13-053 — Pending
+- BT13-054 — Pending
+- BT13-055 — Pending
+- BT13-056 — Pending
+- BT13-057 — Pending
+- BT13-058 — Pending
+- BT13-059 — Pending
+- BT13-060 — Pending
+- BT13-061 — Pending
+- BT13-062 — Pending
+- BT13-063 — Pending
+- BT13-064 — Pending
+- BT13-065 — Pending
+- BT13-066 — Pending
+- BT13-067 — Pending
+- BT13-068 — Pending
+- BT13-069 — Pending
+- BT13-070 — Pending
+- BT13-071 — Pending
+- BT13-072 — Pending
+- BT13-073 — Pending
+- BT13-074 — Pending
+- BT13-075 — Pending
+- BT13-076 — Pending
+- BT13-077 — Pending
+- BT13-078 — Pending
+- BT13-079 — Pending
+- BT13-080 — Pending
+- BT13-081 — Pending
+- BT13-082 — Pending
+- BT13-083 — Pending
+- BT13-084 — Pending
+- BT13-085 — Pending
+- BT13-086 — Pending
+- BT13-087 — Pending
+- BT13-088 — Pending
+- BT13-089 — Pending
+- BT13-090 — Pending
+- BT13-091 — Pending
+- BT13-092 — Pending
+- BT13-093 — Pending
+- BT13-094 — Pending
+- BT13-095 — Pending
+- BT13-096 — Pending
+- BT13-097 — Pending
+- BT13-098 — Pending
+- BT13-099 — Pending
+- BT13-100 — Pending
+- BT13-101 — Pending
+- BT13-102 — Pending
+- BT13-103 — Pending
+- BT13-104 — Pending
+- BT13-105 — Pending
+- BT13-106 — Pending
+- BT13-107 — Pending
+- BT13-108 — Pending
+- BT13-109 — Pending
+- BT13-110 — Pending
+- BT13-111 — Pending
+- BT13-112 — Pending
