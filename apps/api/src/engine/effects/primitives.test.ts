@@ -676,6 +676,42 @@ describe("primitives: trash / delete / suspend", () => {
     expect(h.ledger.dpDeltaOf(permanent.permanentId)).toBe(0);
   });
 
+  it("deletePermanent narrates the move to trash exactly once for the whole batch", async () => {
+    const h = harness({
+      board: {
+        0: {
+          battleArea: [
+            { card: DIGIMON, as: "p1", dp: 5000, under: [{ card: TAMER, as: "evo" }] },
+            battleDigimon("p2", 4000),
+          ],
+        },
+      },
+    });
+    const first = h.s.perm("p1");
+    const second = h.s.perm("p2");
+
+    await h.fx.deletePermanent([first.permanentId, second.permanentId]);
+
+    expect(h.events.filter(({ kind }) => kind === "cardsMoved")).toEqual([
+      {
+        kind: "cardsMoved",
+        instanceIds: [h.s.inst("evo").instanceId, first.topCard.instanceId, second.topCard.instanceId],
+        from: "battleArea",
+        to: "trash",
+      },
+    ]);
+  });
+
+  it("deletePermanent narrates a breeding deletion from the breeding area", async () => {
+    const h = harness({ board: { 0: { breeding: { card: DIGIMON, as: "hatched" } } } });
+
+    await h.fx.deletePermanent([h.s.perm("hatched").permanentId]);
+
+    expect(h.events.filter(({ kind }) => kind === "cardsMoved")).toEqual([
+      expect.objectContaining({ from: "breeding", to: "trash" }),
+    ]);
+  });
+
   it("applies source-kind-qualified beAffected restrictions to hand-written mutations", async () => {
     const digimonSource = harness({
       board: { 0: { battleArea: [battleDigimon("target", 5000)] } },
@@ -866,6 +902,21 @@ describe("primitives: reveal / searchDeck / addSecurity", () => {
     expect(h.state.players[0]!.deck[0]!.faceUp).toBe(true);
     expect(h.state.players[0]!.deck[2]!.faceUp).toBe(false); // third not revealed
     expect(h.state.players[0]!.deck).toHaveLength(3); // stays in deck
+  });
+
+  it("reveal publishes one cardRevealed per card, because a face-up deck card is still private state", async () => {
+    const h = harness({ board: { 0: { deck: [DIGIMON, TAMER, OPTION] } } });
+    await h.fx.reveal(0, 2);
+    expect(h.events.filter(({ kind }) => kind === "cardRevealed")).toEqual([
+      { kind: "cardRevealed", seat: 0, cardId: DIGIMON },
+      { kind: "cardRevealed", seat: 0, cardId: TAMER },
+    ]);
+  });
+
+  it("reveal publishes nothing for an empty deck", async () => {
+    const h = harness({ board: { 0: { deck: [] } } });
+    await h.fx.reveal(0, 2);
+    expect(h.events.filter(({ kind }) => kind === "cardRevealed")).toEqual([]);
   });
 
   it("searchDeck adds the controller's chosen matching card to hand and re-hides the deck", async () => {

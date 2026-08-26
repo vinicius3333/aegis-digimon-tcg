@@ -351,7 +351,7 @@ export interface SelectionPort {
  */
 export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const state = engine.state;
-  const access = new GameStateAccess(state, engine.memory);
+  const access = new GameStateAccess(state, engine.memory, (event) => engine.emit(event));
   const ledger = engine.modifiers;
   const continuous = engine.continuous ?? new ContinuousEffectLedger();
   const decoyCostPermanentIds = new Set<string>();
@@ -2787,7 +2787,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
               matchingHolders.map((holder) => holder.topCard.instanceId),
               0,
               1,
-              "＜Decoy＞: excluir este Digimon para impedir que o outro Digimon seja excluído?",
+              "＜Decoy＞: delete this Digimon to prevent the other Digimon's deletion?",
               {
                 sourceCardId,
                 timing: "Static",
@@ -3080,14 +3080,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         deletedEffectiveColorsByInstanceId[instanceId] = effectiveColorsByPermanent[i]!;
       }
     }
-    if (allMoved.length > 0) {
-      engine.emit({
-        kind: "cardsMoved",
-        instanceIds: allMoved,
-        from: Zone.BattleArea,
-        to: Zone.Trash,
-      });
-    }
+    // `deletePermanentsBatched` narrates the movement itself — it is the single layer every
+    // deletion path shares, so this one must not narrate it a second time.
     // WhenPermanentWouldBeDeleted fired BEFORE movement (would-be-deleted); now that the
     // survivors of that window have actually left the field, fire OnDestroyedAnyone over
     // the deleted set (is-deleted). source stacks ONE OnDestroyedAnyone window over the
@@ -3842,6 +3836,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       card.faceUp = true;
       revealed.push(card);
     }
+    // A deck card flipped face-up stays inside a view-tagged private zone, so the opponent's
+    // synchronized state never carries its identity — the event is the only channel that makes
+    // the reveal public. Security reveals narrate through `revealCard` at their own call sites
+    // and never route through here, so nothing is announced twice.
+    for (const card of revealed) engine.emit({ kind: "cardRevealed", seat, cardId: card.cardId });
     return revealed;
   };
 

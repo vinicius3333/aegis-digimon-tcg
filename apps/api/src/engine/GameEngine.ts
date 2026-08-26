@@ -656,7 +656,7 @@ export class GameEngine {
         definition: { kinds } as CardDefinition,
       });
     });
-    this.access = new GameStateAccess(this.state, this.memory);
+    this.access = new GameStateAccess(this.state, this.memory, this.hooks.emit);
     this.win = new WinCheck(this.state, this.hooks.emit);
     this.tracker = new UseTracker();
     this.modifiers = new ModifierLedger();

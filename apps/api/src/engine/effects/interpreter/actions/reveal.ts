@@ -6,7 +6,7 @@ import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
-import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
+import { type LooseCandidate, candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
@@ -15,6 +15,23 @@ import type { Action, Filter, Target } from "@aegis/shared";
 export function revealedDefinition(ctx: EffectContext, card: import("@aegis/shared").CardInstance): DefinitionFacts {
   const def = ctx.game.definitionOf(card) as DefinitionFacts;
   return card.cardId === "BT17-068" ? { ...def, level: 6 } : def;
+}
+
+/**
+ * Announce the hand cards a reveal exposed. A hand card is never synchronized to the
+ * opponent, and it performs no zone movement here, so the event is the only thing that
+ * makes the reveal public. Deck reveals narrate inside `fx.reveal` instead, which is the
+ * one primitive every deck reveal goes through.
+ */
+function narrateHandReveal(
+  ctx: EffectContext,
+  candidates: readonly LooseCandidate[],
+  chosenInstanceIds: readonly string[],
+): void {
+  for (const instanceId of chosenInstanceIds) {
+    const card = candidates.find((candidate) => candidate.instanceId === instanceId);
+    if (card !== undefined) ctx.fx.revealCard(card.ownerSeat, card.cardId, ctx.source.cardId);
+  }
 }
 
 /**
@@ -30,7 +47,8 @@ export async function runReveal(ctx: EffectContext, action: Extract<Action, { ki
 
   if (target !== undefined && targetZone === "hand") {
     const candidates = candidateLooseInstances(ctx, target, ["hand"]);
-    await pickLoose(ctx, target, candidates);
+    const chosen = await pickLoose(ctx, target, candidates);
+    narrateHandReveal(ctx, candidates, chosen);
     return;
   }
 
@@ -64,6 +82,7 @@ export async function runHandRevealAdd(
   if (chosen.length === 0) return;
   const card = candidates.find((candidate) => candidate.instanceId === chosen[0]);
   if (card === undefined) return;
+  narrateHandReveal(ctx, candidates, chosen);
   const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
   if (definitionMatches(action.securityFilter, definition)) {
     await ctx.fx.addSecurity(ctx.source.ownerSeat, chosen, { toTop: action.toTop ?? true, faceUp: false });

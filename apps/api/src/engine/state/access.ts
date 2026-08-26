@@ -5,6 +5,7 @@ import {
   type Permanent,
   type CardInstance,
   type Seat,
+  type ServerEvent,
   CardKind,
   Zone,
   getCardDefinition,
@@ -19,6 +20,19 @@ import {
  */
 interface OverflowMemoryPort {
   addMemoryForSeat(seat: Seat, amount: number, reason?: string): void;
+}
+
+/**
+ * The narration channel, in the same shape `MemoryGauge` and `WinCheck` take it: a plain
+ * function, so a caller that only mutates state (most unit tests) constructs this class
+ * without one and simply narrates nothing.
+ */
+type EventPort = (event: ServerEvent) => void;
+
+/** A permanent's cards on their way to trash, with the field zone they left. */
+interface DeletionMove {
+  cards: CardInstance[];
+  from: Zone.BattleArea | Zone.Breeding;
 }
 
 /**
@@ -223,6 +237,7 @@ export class GameStateAccess {
   constructor(
     private readonly state: GameState,
     private readonly memory?: OverflowMemoryPort,
+    private readonly emit?: EventPort,
   ) {}
 
   get game(): GameState {
@@ -312,9 +327,10 @@ export class GameStateAccess {
    * `deletePermanent`) can collect every leaving card across the whole batch first and apply
    * Overflow ONCE, turn-player-first (CR §4-18-5), instead of once per permanent in whatever
    * order the batch happens to be processed. Returns the leaving `CardInstance`s (not yet
-   * Overflow-charged) so the caller can batch them.
+   * Overflow-charged) so the caller can batch them, together with the field zone they left
+   * so the narration can tell a battle-area deletion from a breeding one.
    */
-  private moveDeletedPermanentCardsToTrash(permanentId: string): CardInstance[] {
+  private moveDeletedPermanentCardsToTrash(permanentId: string): DeletionMove {
     for (const player of this.state.players) {
       const index = player.battleArea.findIndex((p) => p.permanentId === permanentId);
       const permanent = index >= 0 ? player.battleArea[index] : undefined;
@@ -339,9 +355,26 @@ export class GameStateAccess {
       } else {
         extractPermanentAt(player, index);
       }
-      return cards;
+      return { cards, from: inBreeding ? Zone.Breeding : Zone.BattleArea };
     }
-    return [];
+    return { cards: [], from: Zone.BattleArea };
+  }
+
+  /**
+   * Narrate a deletion as one `cardsMoved` per origin zone across the whole batch. Grouping
+   * here rather than per permanent keeps a simultaneous deletion one notice on the client
+   * instead of one per Digimon, and this is the only place a deletion is narrated: every
+   * deletion path in the engine — a battle death, a rule process, an effect — moves its cards
+   * through this class, so callers add no `cardsMoved` of their own.
+   */
+  private narrateDeletion(moves: readonly DeletionMove[]): void {
+    if (this.emit === undefined) return;
+    for (const from of [Zone.BattleArea, Zone.Breeding] as const) {
+      const instanceIds = moves
+        .filter((move) => move.from === from)
+        .flatMap((move) => move.cards.map((card) => card.instanceId));
+      if (instanceIds.length > 0) this.emit({ kind: "cardsMoved", instanceIds, from, to: Zone.Trash });
+    }
   }
 
   /**
@@ -354,7 +387,8 @@ export class GameStateAccess {
    * Returns the instance ids that were moved to trash so callers can narrate.
    */
   deletePermanent(permanentId: string): string[] {
-    const cards = this.moveDeletedPermanentCardsToTrash(permanentId);
+    const move = this.moveDeletedPermanentCardsToTrash(permanentId);
+    const cards = move.cards;
     // <Overflow> (CR §4-18): every card here just left the field (topCard), or left from
     // under a card (stack/linked), for the trash — a genuine leave. This is the single
     // chokepoint for every SINGLE-permanent deletion (combat, security-check, rule, and
@@ -364,6 +398,7 @@ export class GameStateAccess {
     // sorted turn-player-first ONCE across the whole batch (CR §4-18-5) rather than once per
     // permanent in call order.
     applyOverflow(this.memory, cards, this.state.turnSeat);
+    this.narrateDeletion([move]);
     return cards.map((c) => c.instanceId);
   }
 
@@ -379,9 +414,10 @@ export class GameStateAccess {
    */
   deletePermanentsBatched(permanentIds: readonly string[]): string[][] {
     const perPermanent = permanentIds.map((id) => this.moveDeletedPermanentCardsToTrash(id));
-    const allCards = perPermanent.flat();
+    const allCards = perPermanent.flatMap((move) => move.cards);
     applyOverflow(this.memory, allCards, this.state.turnSeat);
-    return perPermanent.map((cards) => cards.map((c) => c.instanceId));
+    this.narrateDeletion(perPermanent);
+    return perPermanent.map((move) => move.cards.map((c) => c.instanceId));
   }
 
   /**
