@@ -14,7 +14,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-008 — 10/10
   - Evidence: catalog and KB Q2266/Q2267/Q5981–Q5985 reviewed; compiled IR exclusively uses `registerIrCard`, with Koromon alternate evolution, Marcus kind/DP/digivolve restriction, and inherited red-or-yellow Tamer suspension watcher traced through targeting, duration, ownership, and frequency primitives.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-008.test.ts` passed (5 tests): alternate 0-cost evolution, Marcus's 3000-DP Digimon/restriction state, inclusive deletion boundary and once-per-turn behavior, optional refusal, and blue-Tamer negative.
-- BT13-009 — Pending
+- BT13-009 — 10/10
+  - Evidence: catalog and KB Q2268 reviewed; compiled IR exclusively uses `registerIrCard`, and traces same-controller Sistermon-name play event timing, optional hand BaoHuckmon evolution, free payment, inherited source anchoring, and once-per-turn memory use.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-009.test.ts` passed (4 tests): free stack evolution, refusal, inherited first-of-two memory gain, and non-Sistermon negative.
 - BT13-010 — Pending
 - BT13-011 — Pending
 - BT13-012 — Pending
