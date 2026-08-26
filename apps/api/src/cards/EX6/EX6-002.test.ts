@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-002.js";
 
 describe("EX6-002 Yokomon", () => {
@@ -39,8 +39,12 @@ describe("EX6-002 Yokomon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
+    await settle(
+      () => s.perm("host").stack.some(({ instanceId }) => instanceId === s.inst("blueLevel3").instanceId),
+      600,
+    );
 
-    // EX6-007's own [Your Turn] watcher draws after the successful placement, so
+    // EX6-007's own [Your Turn] watcher may draw after the successful placement, so
     // prove the selected card moved rather than asserting an incidental hand size.
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("blueLevel3").instanceId);
     expect(s.perm("host").stack[0]!.instanceId).toBe(s.inst("blueLevel3").instanceId);

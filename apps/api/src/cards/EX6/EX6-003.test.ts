@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-003.js";
 
 describe("EX6-003 Cupimon", () => {
@@ -45,6 +45,10 @@ describe("EX6-003 Cupimon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
+    await settle(
+      () => s.state.players[0]!.security.some(({ instanceId }) => instanceId === s.inst("angel").instanceId),
+      600,
+    );
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("securityTop").instanceId);
     expect(s.state.players[0]!.security).toHaveLength(1);
