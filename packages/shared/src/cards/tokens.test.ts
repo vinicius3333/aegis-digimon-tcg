@@ -29,3 +29,20 @@ describe("BT14 Four Great Dragons tokens", () => {
     }
   });
 });
+
+describe("LM-018 Gyuukimon Token", () => {
+  it("preserves the printed token identity and stats", () => {
+    expect(tokenDefinitions.find(({ cardId }) => cardId === "TOKEN-Gyuukimon-Token")).toMatchObject({
+      nameEn: "Gyuukimon Token",
+      kinds: ["Digimon"],
+      colors: ["Purple"],
+      level: 5,
+      playCost: 7,
+      dp: 3000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Dark Animal"],
+      isToken: true,
+    });
+  });
+});

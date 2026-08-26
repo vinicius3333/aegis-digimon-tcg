@@ -187,12 +187,16 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   free-play/deletion branch. The reaction now requires effect provenance on the add-digivolution
   event, so ordinary digivolution cannot arm it. The catalog has no local KB entry; static review
   found no new causal gap across the level boundary, bottom placement, deletion cost, or
-  once-per-turn gate. Positive and negative focused cases are unrun, so LM-017 remains below 10/10.
+  once-per-turn gate. The previously published focused evidence is green at 7/7; no rerun is
+  authorized or needed here. LM-017 remains below 10/10 pending mechanism and collection gates.
 
 ## LM-018 — Gyuukimon — pending focused execution
 
 - Direct On Play deletion then conditional token play uses the preceding-action receipt correctly.
-  Six focused cases are present but unrun; no local ruling exists, so LM-018 remains below 10/10.
+  Static review found a real shared-token fidelity gap: the catalog requires the Gyuukimon Token to
+  be Lv.5, 3000 DP, play cost 7, Ultimate/Virus/Dark Animal, while the token registry had Lv.4,
+  4000 DP, play cost 4, and no form/attribute/type. The registry and token proof now encode the
+  catalog identity; focused proof is still pending.
 
 ## LM-019 — Bokomon — pending focused execution
 

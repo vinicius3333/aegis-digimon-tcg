@@ -26,6 +26,14 @@ describe("LM-018 Gyuukimon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "ST1-06")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Gyuukimon-Token")).toBe(true);
+    expect(getCardDefinition("TOKEN-Gyuukimon-Token")).toMatchObject({
+      level: 5,
+      playCost: 7,
+      dp: 3000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Dark Animal"],
+    });
   });
 
   it("can take one of the controller's own level-4-or-lower Digimon", async () => {
