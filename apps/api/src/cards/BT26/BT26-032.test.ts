@@ -86,7 +86,7 @@ describe("BT26-032 compiled fidelity", () => {
     expect(s.perm("penaltyTarget").currentDP).toBe(7000);
   });
 
-  it("confers only the topmost matching Ceresmon and includes its printed keywords", async () => {
+  it("confers only the topmost matching Ceresmon while keeping hand-only Digisorption inactive", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -110,7 +110,11 @@ describe("BT26-032 compiled fidelity", () => {
     ).continuous.listStackEffectConferrals();
     expect(conferrals.map(({ stackInstanceId }) => stackInstanceId)).toContain(s.inst("topmostCeresmon").instanceId);
     expect(conferrals.map(({ stackInstanceId }) => stackInstanceId)).not.toContain(s.inst("lowerCeresmon").instanceId);
-    expect(s.perm("ceresmon").keywords).toContain("Digisorption");
+    // Comprehensive Rules §16-10-1: Digisorption only triggers for the card with
+    // the effect while that card is in hand. The conferred BT3-056 effect remains
+    // represented by Succession, but its intrinsic hand-only marker is not an
+    // active keyword on this field permanent.
+    expect(s.perm("ceresmon").keywords).not.toContain("Digisorption");
   });
 
   it("publicly reduces every suspended opposing Digimon by 5000 on digivolution", async () => {

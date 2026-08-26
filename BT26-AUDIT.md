@@ -1423,3 +1423,49 @@ git diff --check
 ```
 
 No unresolved BT26-031 ambiguity or unsupported card clause remains. The only broader-suite failure is the unrelated pre-existing BT26-032 Digisorption expectation. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-031; no later card section was touched.
+
+## BT26-032 — Ceresmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-032` (`Ceresmon`), a Yellow/Green level-6 DUAL Digimon/Option with play cost 5, 13000 DP, Data attribute, and `Shaman`/`Olympos XII`/`Iliad`/`TS` traits. Its normal evolution requirements are Yellow Lv.5 for cost 5 or Green Lv.5 for cost 5; its alternate requirement is `Play cost 12 [Ceresmon]: Cost 2`. The Digimon text is `＜Alliance＞`, `＜Succession ([Ceresmon])＞`, `[When Digivolving] All of your opponent's suspended Digimon get -5000 DP until their turn ends. Then, by suspending 1 Digimon, if it's your turn, you may play or use 1 [Vegetation] or [TS] trait card from your hand with the cost reduced by 5.`, and `[Rule] Trait: Has [Vegetation] Type.` The Option face is `＜Use Req. ([TS] trait)＞ [Main] You may suspend 2 of your opponent's Digimon or Tamers. Then, 3 of their Digimon or Tamers can't unsuspend until their turn ends.` There is no inherited or Security text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-032 --json`; it reports Q7000–Q7003, with no banlist restriction or errata. Q7000 confirms that 0-DP deletion waits for the rule-check timing after all activated effects resolve. Q7001 confirms that the Digimon paid to the When Digivolving continuation may belong to either player. Q7002 confirms that the played card's own cost reduction and Ceresmon's -5 reduction stack. Q7003 confirms that the Main effect may restrict cards that were not suspended by its first clause.
+- Comprehensive Rules evidence: §§2-3-5-1–3 cover alternate evolution requirements and cost; §§4-6-3–6 distinguish the Digimon and Option information on a DUAL card and treat a DUAL card placed on the field as a Digimon; §§4-7-3–10 cover stack order and face/visibility; §§15-7-1–3 cover the optional `by suspending` processing condition and its continuation gate; §§15-8-3 and 16-24-1–5 cover Alliance's attack-time suspend cost and temporary DP/Security Attack result; §§15-13-1–2 and 15-15-2-1–2 cover gained effects and their carried state; §§15-16-3-1, 15-16-7-1, 15-16-8-1, and 15-16-9-1 define When Digivolving, Main, turn-scoped, and all-turn timing; §16-10-1–5 defines Digisorption as an immediate effect only for a card with that effect in hand; and §17-1 covers the deferred 0-DP rule check.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-032.ts` is IR-only and registers exactly once through `registerIrCard("BT26-032", compiled)`; it contains no `registerCard` call. The alternate evolution requirement is exact (`names: ["Ceresmon"]`, `basePlayCost: 12`, `cost: 2`, `isAlternate: true`), while the two normal color/level routes remain handled by the shared evolution legality path.
+- The When Digivolving body first applies -5000 DP to all opponent-controlled suspended Digimon through an all-target filter and `untilOpponentTurnEnd`. Its next action is an optional suspend of exactly one Digimon with `controller: "any"`, matching Q7001. The following modal is gated by both successful payment (`ifThisEffectActed`) and the controller's turn (`isYourTurn`); it splits the printed `play or use` verb into `PlayWithoutCost` for Digimon/Tamer cards and `UseOptionWithoutCost` for Options, both from hand, OR-matching `Vegetation`/`TS`, with `payCost: true` and `reduceCostBy: 5`. This preserves Q7002 stacking and the optional refusal/failure path.
+- The static Rule clause grants the effective `Vegetation` trait to this permanent. The Succession clause uses `GrantStatic` with a Ceresmon name filter and `topmostOnly: true`, so only the topmost matching evolution card's effects are conferred while lower matching cards are excluded. The shared conferral collector preserves source instance and trigger identity for inherited/stack effects.
+- The Option face's `WaiveColorRequirement` is conditional on an own live `TS` trait card, matching the green Option requirement and `[TS]` Use Req. Its Main body optionally suspends up to two opponent Digimon/Tamers, then applies an `unsuspend` restriction to three opponent Digimon/Tamers (or all available when fewer than three exist) until the opponent's turn ends. The target sets are independently resolved, so Q7003's restriction can include a card that was not selected by the first action.
+- Relevant peers and seams inspected: BT26-080 and BT26-103 for the same DUAL/alternate-evolution/Succession pattern; BT25-059 and BT25-077 for the Ceresmon/TS cost-reduction and stack interactions; BT24-102 for activating effects gained through Succession; `actions/digivolve.ts` for alternate requirements, cost affordability, evolution-stack transition, and deferred rule checks; `actions/play.ts`/`actions/borrowed.ts` for paid reductions on effect-driven play/use; `grantStatic.ts`, `collect.ts`, and `continuous.ts` for topmost effect conferral; and the target/restriction primitives for mixed Digimon/Tamer selection and duration cleanup.
+
+### Behavioral proof and correction
+
+- The focused suite initially failed only at `apps/api/src/cards/BT26/BT26-032.test.ts:113`, where it expected a Ceresmon host to expose `Digisorption` after conferring BT3-056 from its stack. This was a stale expectation, not a card or engine gap: the shared registration intentionally consumes BT3-056's intrinsic Digisorption marker into the hand-only cost registry, and §16-10-1 says the keyword triggers only when the card with the effect is in hand. The test now asserts that Succession confers only the topmost matching card while the hand-only Digisorption marker remains inactive on the field host.
+- The focused `apps/api/src/cards/BT26/BT26-032.test.ts` suite has 7 passing tests proving catalog/DUAL metadata, exact alternate evolution IR, Alliance/Succession/Rule trait/waiver structure, topmost Ceresmon conferral with lower-card exclusion, -5000 suspended-opponent DP and deferred 0-DP deletion, Q7001's either-player suspend, Q7002's stacked cost reductions, and the Famis mixed target/TS waiver/Q7003 path. The tests exercise real evolution stacks, hand/trash movement, optional continuation, final zones, and effect settlement.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-032
+  PASS (Q7000–Q7003; no errata/restriction)
+node tools/kb/query.mjs card BT26-032 --json
+  PASS (banlist: null; errata: null; Q7000–Q7003)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-032.test.ts
+  PASS (1 file, 7 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-009.test.ts src/cards/BT26/BT26-011.test.ts src/cards/BT26/BT26-080.test.ts src/cards/BT26/BT26-103.test.ts src/cards/BT24/BT24-102.test.ts src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts src/engine/actions/digivolve.test.ts
+  PASS (7 files, 91 tests)
+pnpm --filter @aegis/api exec vitest run src/engine/effects/continuous.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/subtriggers.test.ts
+  PASS (4 files, 372 tests)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-032.test.ts
+  PASS
+pnpm exec oxlint apps/api/src/cards/BT26/BT26-032.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-032 ambiguity or unsupported printed clause remains. The only change for this card is the corrected stale Digisorption expectation in its focused test; implementation files remain unchanged. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-032; no later card section was touched.
