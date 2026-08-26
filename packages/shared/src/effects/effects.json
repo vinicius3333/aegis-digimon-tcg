@@ -16784,17 +16784,8 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [
-      {
-        "level": 2,
-        "texts": ["Save"],
-        "cost": 0,
-        "isAlternate": true,
-        "from": ["battleArea", "hand"],
-        "baseKind": "Digimon"
-      }
-    ],
-    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 1, "costReduction": 2 }]
+    "digivolutionRequirement": [{ "level": 2, "texts": ["Save"], "cost": 0, "isAlternate": true }],
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
   },
   "BT12-076": {
     "effects": [
