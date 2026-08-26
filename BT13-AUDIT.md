@@ -131,7 +131,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-047 — 10/10
   - Evidence: catalog and KB Q5997 reviewed; compiled IR exclusively uses `registerIrCard`, tracing static Blocker and inherited +1000 DP aura when the opponent has no unsuspended Digimon, including the zero-opponent case and live continuous-state changes.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-047.test.ts` passed (5 tests): Q5997 zero-opponent condition, top-vs-inherited keyword separation, suspended state transitions, and evolution cost.
-- BT13-048 — Pending
+- BT13-048 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing separate Beast/Animal-or-Sovereign (excluding Sea Animal) and Royal Knight reveal selections, deck-bottom routing, and inherited own-turn +2000 DP trait aura.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-048.test.ts` passed (5 tests): mixed trait search, Sea Animal exclusion, Beast/Royal Knight hosts, turn duration, unrelated-host negative, and evolution cost.
 - BT13-049 — Pending
 - BT13-050 — Pending
 - BT13-051 — Pending
