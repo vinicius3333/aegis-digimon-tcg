@@ -49,8 +49,7 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldDigivolve",
           sourceFilter: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
+            isSelfRef: true,
           },
           actions: [
             {
