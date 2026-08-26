@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-047 (Floramon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-047 Floramon | Green level 3 Digimon; alternate level-2 `[TS]` evolution cost 0; on play reveals top 3, adds 1 `[Vegetation]` or `[Shaman]` trait card and 1 `[TS]` trait card, then bottoms the rest; inherited during your turn all own Digimon get +1000 DP. Local card query has no entries. | **No card-specific causal mismatch found statically.** RevealAdd carries the Vegetation/Shaman union and TS slot with shared taken-instance exclusion and deck-bottom remainder. The inherited all-own-Digimon +1000 modifier is turn-scoped and permanent for the active turn window; alternate evolution is represented. | Structural test only; no execution of overlapping trait selection, bottom-deck ordering, inherited turn lapse, or alternate evolution. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-047
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-047` (no entries).
+- Direct module and shared RevealAdd union/taken-card behavior plus YourTurn ModifyDP scope
+  were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-046 (Gekkomon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
