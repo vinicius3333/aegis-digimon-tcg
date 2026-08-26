@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -6,7 +5,7 @@ const bloom = {
   controllerDefault: "mine",
   kind: ["Digimon"],
   suspended: true,
-  nameOrTrait: [{ tokens: ["Vegetation", "Plant", "Fairy"], match: "trait" }],
+  nameOrTrait: [{ tokens: ["Vegetation", "Plant", "Ancient Plant", "Carnivorous Plant", "Fairy"], match: "trait" }],
 };
 const suspendedDigimon = { controllerDefault: "mine", kind: ["Digimon"], suspended: true };
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
