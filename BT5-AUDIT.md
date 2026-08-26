@@ -559,3 +559,46 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   `primitives.test.ts`; it reports no BT5-010 errors.
 - Remaining ambiguity: none identified.
+
+## BT5-011 — Meramon — 10/10
+
+- Catalog evidence: Red Lv.4 Champion Digimon, Data/Flame, play cost 5,
+  5000 DP, and a red Lv.3 evolution cost of 2. Its complete text is
+  `[When Digivolving] 1 of your other Digimon gets +3000 DP for the turn.`
+- Knowledge base and rules evidence: `node tools/kb/query.mjs card BT5-011`
+  returns `Meramon` with no knowledge-base entries, so the catalog text is the
+  governing contract. The local rules manual's digivolution and effect-timing
+  guidance establishes the trigger timing, `other` self-exclusion, and the
+  current-turn duration. The shared `ModifyDP` primitive carries the declared
+  `forTheTurn` duration.
+- Implementation: `apps/api/src/cards/BT5/BT5-011.ts` contains one
+  `WhenDigivolving` action targeting exactly one own Digimon, excluding the
+  source with `excludeSelf`, adding exactly 3000 DP, and declaring
+  `duration: "forTheTurn"`. It has `coverage: "full"`, `residual: []`, and
+  registers exclusively through `registerIrCard("BT5-011", compiled)`.
+- Primitive and peer/stack evidence: targeting applies `controller: "mine"`,
+  `kind: ["Digimon"]`, `excludeSelf: true`, and `count: 1`. The focused test
+  uses a legal BT1-009 -> BT5-011 evolution and verifies one ally gets +3000,
+  a second ally and opponent Digimon remain unchanged, and no-target boards
+  resolve without a target.
+- Behavioral proof: 2 focused tests pass, proving the positive numeric result,
+  exact one-target behavior, controller/self boundaries, and no-valid-target
+  handling. The positive test then sweeps the owner-turn boundary through the
+  production modifier ledger and recomputes state, proving the +3000 expires.
+- Defect corrected: no card or engine defect. Expanded only
+  `apps/api/src/cards/BT5/BT5-011.test.ts` with controller and no-target cases.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-011.test.ts --pool=forks
+  --poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 2 tests
+  passed. Exact duration mechanism regression
+  `pnpm --filter @aegis/api exec vitest run src/engine/effects/modifiers.test.ts
+  --pool=forks --poolOptions.forks.singleFork=true --no-file-parallelism` — 1
+  file, 26 tests passed. `pnpm exec oxfmt --check
+  apps/api/src/cards/BT5/BT5-011.ts apps/api/src/cards/BT5/BT5-011.test.ts`
+  and `git diff --check` pass. `pnpm typecheck` builds shared and web but
+  retains unrelated API errors: `EX6-010.test.ts:78` (`abortOnDecline`),
+  `interpreter/actions/removal.ts:129,131` (`trackCount`),
+  `interpreter/actions/runAction.ts:115-117,286,511,515` (Action/Cost fields
+  and implicit `any`), `interpreter/targeting/loose.ts:336` (`sourceRef`), and
+  `interpreter/effects/primitives.test.ts:2438` (missing new primitive keys).
+- Remaining ambiguity: none identified.
