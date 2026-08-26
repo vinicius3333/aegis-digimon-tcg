@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-042 (ClavisAngemon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-042 ClavisAngemon | Yellow/black level 6; on play/when digivolving/attacking once per turn, by trashing top or bottom own security, become unaffected by opponent Digimon effects; all turns once per turn when own security is removed, may play a level-4-or-lower Angel/Iliad card free, then 2 own Digimon gain Reboot and Blocker until opponent's turn ends. Q6311 defines Security ordering. | **Multiple causal gaps.** Main costs are generic `trash` actions with no security top/bottom restriction and are incorrectly optional despite the mandatory “By trashing” clause. In the `AllTurns` effect, only the play action is inside the `whenSecurityRemoved` SubTrigger; the Reboot and Blocker grants are sibling actions and therefore resolve when the continuous effect is installed, not after a security-removal event. Those two grants also select independently, allowing different Digimon to receive each keyword instead of the same 2 recipients. Security-removal direction, free play target, durations, once-per-turn keys, and alternate evolution are otherwise represented. | Structural proof only; no execution of Security cost legality, event-driven play/keyword sequencing, shared recipient identity, timing, or Q6311 ordering. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-042
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-042` (Q6311).
+- Direct module and shared generic-trash versus security manipulation, SubTrigger nesting,
+  target-selection reuse, and all-turn effect resolution were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-041 (Murasamemon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
