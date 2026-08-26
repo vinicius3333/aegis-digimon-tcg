@@ -44,7 +44,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
-          sourceFilter: { kind: ["Digimon"], excludeSelf: true },
+          sourceFilter: { controller: "opponent", kind: ["Digimon"], excludeSelf: true },
           actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
           frequency: "OncePerTurn",
         },

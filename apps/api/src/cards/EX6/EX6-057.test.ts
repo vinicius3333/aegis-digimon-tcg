@@ -9,4 +9,11 @@ describe("EX6-057 Lilithmon", () => {
     expect(text).toContain("wouldLeavePlay");
     expect(text).toContain("OncePerTurn");
   });
+  it("trashes opponent security only when an opposing Digimon is deleted", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "onDeletionOf",
+      sourceFilter: { controller: "opponent", kind: ["Digimon"], excludeSelf: true },
+      actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
+    }));
 });
