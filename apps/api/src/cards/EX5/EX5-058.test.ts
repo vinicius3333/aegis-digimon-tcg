@@ -10,21 +10,18 @@ describe("EX5-058 Octomon", () => {
         options: [
           [
             {
-              kind: "PlayWithoutCost",
+              kind: "PlayToken",
               payCost: false,
-              suspend: true,
-              controller: "self",
-              target: { count: 1, filter: { name: "Fujitsumon", isToken: true } },
+              suspended: true,
+              tokens: [{ name: "Fujitsumon Token", color: "Purple", dp: 3000 }],
             },
           ],
           [
             {
               kind: "PlayToken",
-              to: "opponentBattleArea",
-              suspend: true,
-              controller: "self",
-              asOpponentDigimon: true,
-              target: { count: 1, filter: { name: "Fujitsumon", isToken: true } },
+              suspended: true,
+              placedAs: "opponentDigimon",
+              tokens: [{ name: "Fujitsumon Token", color: "Purple", dp: 3000 }],
             },
           ],
         ],
