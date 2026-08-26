@@ -1,6 +1,6 @@
 # EX5 Card Implementation Revalidation
 
-This is the English source-audit ledger for EX5-001 through EX5-074. Every row has current catalog, local-KB, direct-module, registration, and colocated-test-file evidence; runtime evidence is intentionally pending while PID group 11091 owns the only permitted Vitest window. No row is awarded 10/10 until its isolated focused run and the final serial collection gate pass.
+This is the English source-audit ledger for EX5-001 through EX5-074. The ascending static pass is complete at 74/74: every row has current catalog, local-KB, direct-module, registration, and colocated-test-file evidence, including the generated-record normalizations and every direct executable IR action. Runtime evidence is intentionally pending while PID group 11091 owns the only permitted Vitest window, and no row is awarded 10/10 until its isolated focused run and the final serial collection gate pass.
 
 | Card | Name | KB entries | Static evidence | Runtime |
 | --- | --- | ---: | --- | --- |
