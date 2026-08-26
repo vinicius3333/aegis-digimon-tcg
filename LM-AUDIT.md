@@ -23,8 +23,9 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   coordinator decision gate before the collection test; do not infer collection authorization from
   a focused or mechanism pass.
 - Re-run `git diff --check`, commit any audit changes atomically, and push normally before any
-  collection-complete notification. LM-029 remains below 10/10 unless the KB association conflict
-  receives authoritative resolution.
+  collection-complete notification. LM-029's former KB association conflict was resolved by the
+  category-aware Q&A parser; it remains below 10/10 only pending the same complete validation
+  evidence required of every card.
 
 ## Generated IR provenance reconciliation
 
@@ -254,12 +255,12 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Catalog, direct IR, and existing behavioral fixtures agree on the yellow Scramble contract:
   legal yellow evolution at minus three, placement, opponent-gated Delay with mandatory
   yellow-trash return before optional low-DP play, and Security play/hand return.
-- KB Q4043-Q4047 match that contract. Q4737/Q4738 are indexed under LM-029 in the local KB but
-  describe an absent `[Your Turn]` Option-use/unsuspend clause; the same rulings and wording are
-  implemented for EX8-037, so this is a knowledge-base card-association conflict rather than
-  sufficient authority to add unprinted LM-029 behavior. It remains explicitly unresolved.
-- Existing focused scenarios are behavioral but unrun under PID 82901. The unresolved KB linkage
-  and absent authoritative printed clause keep LM-029 below 10/10.
+- KB Q4043-Q4047 match that contract. The official LM-029 result page also renders EX8-037 as a
+  related-card category, whose Q4737/Q4738 describe that card's `[Your Turn]` Option-use/unsuspend
+  clause; `parseQa` now retains only the requested category, so those rulings remain solely under
+  EX8-037 and cannot be mistaken for unprinted LM-029 behavior.
+- The former provenance issue is resolved. LM-029 remains below 10/10 only pending the same full
+  focused, mechanism, and collection-validation evidence required for the rest of the collection.
 
 ## LM-030 — Green Scramble — pending focused execution
 
