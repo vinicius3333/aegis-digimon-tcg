@@ -47816,6 +47816,7 @@
             "kind": "PlayWithoutCost",
             "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1 },
             "from": ["digivolutionCards"],
+            "fromOwnDigivolutionStack": true,
             "payCost": false,
             "optional": true
           }
@@ -47829,7 +47830,11 @@
             "kind": "Aura",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "effect": { "kind": "keyword", "keyword": { "keyword": "Collision", "raw": "＜Collision＞" } },
-            "while": { "kind": "raw", "raw": "this Digimon has the [Machine] trait" }
+            "while": {
+              "kind": "selfHasTrait",
+              "filter": { "nameOrTrait": [{ "tokens": ["Machine"], "match": "trait" }] },
+              "raw": "this Digimon has the [Machine] trait"
+            }
           }
         ],
         "isInherited": true
