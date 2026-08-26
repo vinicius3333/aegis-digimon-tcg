@@ -1,9 +1,25 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "./BT11-072.js";
+import { compiled } from "./BT11-072.js";
 describe("BT11-072 Machinedramon", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-072")).toMatchObject({
+      cardId: "BT11-072",
+      colors: ["Black"],
+      level: 6,
+      playCost: 11,
+      dp: 11000,
+      types: ["Machine"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "WhenDigivolving", actions: [{ kind: "RevealAdd", revealCount: 5 }] },
+      { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 5 }] },
+      { trigger: "OnDeletion", actions: [{ kind: "Return", to: "deckBottom" }, { kind: "PlayWithoutCost" }] },
+    ]);
+  });
+
   it("reveals five and trashes unmatched cards", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT11-072", as: "machine" }], deck: ["BT1-001", "BT1-002"] } },
