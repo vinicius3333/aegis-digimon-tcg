@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { hasRegisteredCompiledCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./index.js";
 
 const EX9_IDS = Array.from({ length: 74 }, (_, index) => `EX9-${String(index + 1).padStart(3, "0")}`);
@@ -16,6 +17,15 @@ describe("EX9 collection registration and IR audit", () => {
   it("registers every catalog card from EX9-001 through EX9-074", () => {
     for (const cardId of EX9_IDS) {
       expect(getEffectModule(cardId), `${cardId} has no registered effect module`).toBeDefined();
+      expect(hasRegisteredCompiledCard(cardId), `${cardId} has no directly registered compiled IR`).toBe(true);
+    }
+  });
+
+  it("registers each EX9 source module exclusively through its one IR registration", () => {
+    for (const cardId of EX9_IDS) {
+      const source = readFileSync(new URL(`./${cardId}.ts`, import.meta.url), "utf8");
+      expect(source.match(new RegExp(`\\bregisterIrCard\\(\\s*[\"']${cardId}[\"']`, "g")), `${cardId} IR registrations`).toHaveLength(1);
+      expect(source).not.toMatch(/\bregisterCard\s*\(/);
     }
   });
 

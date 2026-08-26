@@ -52,4 +52,41 @@ describe("EX9-020", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.some((card) => card.instanceId === targetId)).toBe(true);
   });
+
+  it("does not offer DNA replacement for a battle leave, but DNA digivolves for another leave", async () => {
+    const battle = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-020", as: "cres" },
+            { card: "EX9-013", as: "blitz" },
+          ],
+          hand: ["EX9-021"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await battle.ready();
+
+    expect(await advance(battle.engine).verb.deletePermanent([battle.perm("cres").permanentId], "byBattle")).toBe(1);
+    expect(battle.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-013"]);
+    expect(battle.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("EX9-021");
+
+    const nonBattle = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-020", as: "cres" },
+            { card: "EX9-013", as: "blitz" },
+          ],
+          hand: ["EX9-021"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await nonBattle.ready();
+
+    expect(await advance(nonBattle.engine).verb.deletePermanent([nonBattle.perm("cres").permanentId], "byEffect")).toBe(0);
+    expect(nonBattle.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-021"]);
+  });
 });
