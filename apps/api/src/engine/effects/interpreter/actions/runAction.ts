@@ -71,6 +71,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "Return" &&
     action.cost !== undefined &&
+    action.allowCostWithoutTarget !== true &&
     !returnsLooseCard &&
     action.target.filter.dpLessOrEqualToSuspendedDigimon !== true &&
     (await resolvePermanentTargets(ctx, action.target)).length === 0

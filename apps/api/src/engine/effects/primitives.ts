@@ -3426,7 +3426,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (card.instanceId === instanceId || collected.length === 1) {
           // A Digi-Egg selected by a generic "return ... to hand" effect cannot enter a hand;
           // it returns face-down to the bottom of its owner's Digi-Egg deck (KB BT25-080 Q6715).
-          if (requireCardDefinition(card.cardId).kinds.includes(CardKind.DigiEgg)) {
+          const definition = requireCardDefinition(card.cardId);
+          if (definition.isToken === true) {
+            // A token can pay a return-to-hand processing condition, but ceases to exist instead
+            // of entering any zone (BT14-030 Q2404). Keep it in `moved` as a successful leave
+            // receipt while deliberately excluding it from hand-addition trigger payloads.
+            moved.push(card);
+          } else if (definition.kinds.includes(CardKind.DigiEgg)) {
             card.faceUp = false;
             insertCard(player(card.ownerSeat), Zone.EggDeck, card);
             moved.push(card);

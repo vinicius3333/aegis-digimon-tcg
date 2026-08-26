@@ -604,7 +604,11 @@ export function permanentMatchesFilter(
     if (effective !== undefined) {
       const wanted = filter.kind.map((k) => KIND_MAP[k]);
       const tokenAsDigimon = filter.allowTokens === true && def.isToken === true && wanted.includes(CardKind.Digimon);
-      if (!tokenAsDigimon && !wanted.some((k) => effective.includes(k))) return false;
+      const liveDigimon =
+        permanent.topCard.faceUp !== false &&
+        wanted.includes(CardKind.Digimon) &&
+        (def.kinds.includes(CardKind.Digimon) || def.kinds.includes(CardKind.DigiEgg));
+      if (!tokenAsDigimon && !liveDigimon && !wanted.some((k) => effective.includes(k))) return false;
       // Strip kind from filter so definitionMatches doesn't double-check against static def.kinds
       const { kind: _k, ...rest } = filter;
       filter = rest;
