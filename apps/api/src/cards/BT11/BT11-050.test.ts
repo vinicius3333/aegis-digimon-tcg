@@ -1,9 +1,15 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-050.js";
+import { compiled } from "./BT11-050.js";
 
 describe("BT11-050 Ninjamon", () => {
+  it("maps its green champion catalog facts and once-per-turn inherited trigger", () => {
+    expect(getCardDefinition("BT11-050")).toMatchObject({ cardId: "BT11-050", colors: ["Green"], level: 4, playCost: 5, dp: 5000, types: ["Mutant"] });
+    expect(compiled.effects).toMatchObject([{ trigger: "YourTurn", frequency: "OncePerTurn", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenPlayed" }] }]);
+  });
+
   it("inherited effect suspends an opponent's Digimon when its controller plays a Tamer", async () => {
     const s = setupEngine(
       {
