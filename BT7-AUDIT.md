@@ -179,3 +179,20 @@ Remaining work is to bind the suspended target into the Restrict action (or esta
 10. **Reproducible behavioral proof (0/1):** No test was executed in this static-only pass; suspend ordering, placement, same-turn Delay lockout, memory gain, and Security behavior remain unproven.
 
 Remaining work is focused behavioral proof of the Main/Delay/Security lifecycle; this card is not formally complete at 10/10.
+
+## BT7-101 — Thunder Laser — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a Green Option costing 1 whose Main effect conditionally suspends one opposing Digimon and whose Security effect returns this card to its owner's hand.
+2. **Condition (1/1):** Main suspension is gated by an owner battle-area Digimon carrying either `Hybrid` or `Ten Warriors`.
+3. **Target (1/1):** The action selects exactly one opponent Digimon.
+4. **No-target ruling (1/1):** The condition is on the action rather than card use, preserving Q1669's ruling that the Option can be used with no qualifying Digimon and simply has no effect.
+5. **Security behavior (1/1):** Security uses `AddToHandSelf`.
+6. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-101` returns Q1669; no unresolved ambiguity is surfaced.
+7. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-101", compiled)` registration are present.
+8. **Static primitive trace (1/1):** Battle-area zone, owner controller, OR trait tokens, opponent controller, Digimon kind, and exact target count are explicit.
+9. **Clause completeness (1/1):** Main and Security text map directly to compiled effects without omitted duration or optionality clauses.
+10. **Reproducible behavioral proof (0/1):** No test was executed in this static-only pass; qualifying/non-qualifying trait, no-target use, suspension, and Security return remain unproven.
+
+Remaining work is focused proof of Q1669's no-target boundary and trait matching; this card is not formally complete at 10/10.
