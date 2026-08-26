@@ -38,7 +38,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-016 — 10/10
   - Evidence: catalog and KB Q2275 reviewed; compiled IR exclusively uses `registerIrCard`. Corrected the cost-replacement scope to the Sistermon-triggered Jesmon evolution, then traced trait/name/controller filters, optionality, hand/trash source routing, inherited Royal Knight attack behavior, ownership, and frequency.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-016.test.ts` passed (6 tests): reduced trigger evolution, decline, normal-evolution full-cost negative, Royal Knight inherited play/frequency, trait negative, and inherited refusal.
-- BT13-017 — Pending
+- BT13-017 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, with duplicated On Play/When Digivolving DP-budget deletion and All Turns other-Sistermon-or-Royal-Knight scaling traced through multi-target selection, DP summing, controller filter, self exclusion, and continuous DP projection.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-017.test.ts` passed (4 tests): On Play and evolution budget boundaries, multi-target/choose-none behavior, and mixed Sistermon/Royal Knight continuous-buff stack.
 - BT13-018 — Pending
 - BT13-019 — Pending
 - BT13-020 — Pending
