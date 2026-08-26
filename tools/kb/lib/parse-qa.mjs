@@ -25,6 +25,14 @@ const TOKEN_RE = new RegExp(
 const DATE_SPAN_RE = /<span>([^<]*)<\/span>/;
 const CARD_NO_RE = /card_no=([A-Za-z0-9-]+)/g;
 
+function categoryIsForCard(categoryHtml, cardId) {
+  // The server joins the numeric database id and card number with no text separator
+  // (`522901LM-029 Yellow Scramble`), so a word-boundary match would reject the
+  // requested category. A category is only its card-number/name label, making this
+  // exact substring the appropriate identity check.
+  return textOf(categoryHtml).includes(cardId);
+}
+
 function relatedCardsBetween(html, fromIndex, toIndex, selfCardId) {
   const window = html.slice(fromIndex, toIndex);
   const found = new Set();
@@ -39,10 +47,18 @@ function relatedCardsBetween(html, fromIndex, toIndex, selfCardId) {
 export function parseQa(html, selfCardId) {
   const matches = [];
   let token;
+  let inRequestedCardCategory = false;
   TOKEN_RE.lastIndex = 0;
   while ((token = TOKEN_RE.exec(html))) {
-    // token[1] is a qa_category header (internal card label) — skip it.
-    if (token[1] !== undefined) continue;
+    // A search result can include one or more related cards after the requested card. Their
+    // rulings are visible in the same document, but they are not rulings OF `selfCardId`.
+    // Keep category identity while scanning so related-card Q&A cannot be attributed to the
+    // requested card (LM-029's search page also renders EX8-037's Q4737/Q4738).
+    if (token[1] !== undefined) {
+      inRequestedCardCategory = categoryIsForCard(token[1], selfCardId);
+      continue;
+    }
+    if (!inRequestedCardCategory) continue;
     matches.push({
       qno: textOf(token[2]),
       questionHtml: token[3],
