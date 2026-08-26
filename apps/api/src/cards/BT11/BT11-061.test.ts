@@ -1,13 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { validateCompetitiveDeck } from "../../tournaments/participants/deckLegality.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "./BT11-061.js";
+import { compiled } from "./BT11-061.js";
 import "./BT11-070.js";
 import "./BT11-111.js";
 
 describe("BT11-061 Vemmon", () => {
+  it("maps the catalog facts and both printed effects to IR", () => {
+    expect(getCardDefinition("BT11-061")).toMatchObject({
+      cardId: "BT11-061",
+      colors: ["Black"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      maxCountInDeck: 50,
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Main", actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" }] },
+      { trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn" },
+    ]);
+  });
+
   it("uses the printed 50-copy deckbuilding limit", () => {
     const legal = validateCompetitiveDeck({ mainDeck: Array(50).fill("BT11-061"), eggDeck: [] });
     const illegal = validateCompetitiveDeck({ mainDeck: [...Array(50).fill("BT11-061"), "BT11-061"], eggDeck: [] });
