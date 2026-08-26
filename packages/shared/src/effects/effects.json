@@ -29525,7 +29525,12 @@
   },
   "BT15-038": {
     "effects": [
-      { "trigger": "Counter", "actions": [], "isFromHand": true },
+      {
+        "trigger": "Counter",
+        "actions": [],
+        "isFromHand": true,
+        "keywords": [{ "keyword": "BlastDigivolve", "raw": "＜Blast Digivolve＞" }]
+      },
       {
         "trigger": "OnPlay",
         "actions": [
@@ -29568,8 +29573,14 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "sourceFilter": { "controller": "mine" },
             "actions": [
-              { "kind": "RawUnparsed", "text": "missing-primitive(unaudited): if you have 3 or fewer security cards," }
+              {
+                "kind": "Recover",
+                "controller": "mine",
+                "amount": 1,
+                "condition": { "kind": "zoneCount", "seat": "mine", "zone": "security", "op": "lte", "value": 3 }
+              }
             ]
           }
         ],
