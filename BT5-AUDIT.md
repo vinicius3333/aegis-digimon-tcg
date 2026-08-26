@@ -726,3 +726,44 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `git diff --check` passed. Workspace `pnpm typecheck` builds shared and web
   but retains only the known unrelated API errors outside BT5-014.
 - Remaining ambiguity: none identified.
+
+## BT5-015 — MetalGreymon: Alterous Mode — 10/10
+
+- Catalog evidence: Red Lv.5 Ultimate Digimon, Vaccine/Cyborg, play cost 8,
+  8000 DP, standard red Lv.4 evolution cost 3, and alternate red Lv.5
+  evolution cost 1. `[When Digivolving]`, if the stack contains a card with
+  `MetalGreymon` in its name, it deletes one opposing Digimon with 4000 DP or
+  less. Its inherited owner-turn clause gives a host named `Omnimon` or
+  `Greymon` +2000 DP, excluding DoruGreymon, BurningGreymon, and
+  DexDoruGreymon.
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-015`
+  returns no entries. Comprehensive Rules §§4-3-2, 4-3-3, and 15-3 establish
+  digivolution-card stack identity and inherited effect acquisition. No
+  ruling, errata, restriction, or ambiguity changes the printed clauses.
+- Implementation: `apps/api/src/cards/BT5/BT5-015.ts` encodes one
+  `WhenDigivolving` delete action gated by a MetalGreymon name in the source
+  stack, targeting exactly one opposing Digimon at DP `lte 4000`. Its
+  inherited `YourTurn` aura gives +2000 to the live host when its name contains
+  Omnimon or Greymon and rejects all three explicit exclusions. It declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-015", compiled)`.
+- Primitive, peer, and stack evidence: `selfDigivolutionStackHasTrait` uses
+  name matching over the evolution stack, while target resolution enforces
+  opposing controller, Digimon kind, exact count, and the inclusive DP cap.
+  The inherited condition reads the current top-card name and owner-relative
+  turn. BT5-007, BT5-010, and BT5-016 exercise the same Greymon name/exclusion
+  vocabulary and remain green.
+- Behavioral proof: 5 focused tests prove deletion at exactly 4000 DP,
+  rejection at 4001 DP, no deletion without a MetalGreymon source, +2000 for
+  Greymon and Omnimon hosts, rejection of DoruGreymon/BurningGreymon/
+  DexDoruGreymon, and removal of the inherited bonus during the opponent's
+  turn.
+- Defect corrected: none in the IR or engine. The audit added only missing
+  focused boundary and owner-turn assertions to `BT5-015.test.ts`.
+- Verification: focused BT5-015 — 1 file, 5 tests passed. BT5-007, BT5-010,
+  and BT5-016 peer regressions — 3 files, 11 tests passed. Shared capabilities
+  ran 285/290 tests; its five failures are pre-existing CAP-E14 Delay and
+  CAP-G3 breeding-digivolve cases. Targeted Oxfmt and Oxlint passed, and
+  `git diff --check` is clean. Workspace `pnpm typecheck` retains only the
+  known unrelated API errors outside BT5-015.
+- Remaining ambiguity: none identified.
