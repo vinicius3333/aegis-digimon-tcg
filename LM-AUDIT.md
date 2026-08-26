@@ -163,3 +163,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   blue in battle/breeding, refusal, reveal output, and Security; shared Delay proof covers the
   activation lifecycle. The focused comment's stale ruling reference was corrected to Q4069/Q4070.
 - Tests are deliberately unrun under PID 43774, so LM-036 remains below 10/10.
+
+## LM-037 — Sepia Memory Boost! — pending focused execution
+
+- Catalog and Q4071/Q4072 map to a direct Static `alsoColor: yellow` alternative; option
+  legality observes black or yellow sources in battle and breeding without making the printed
+  black requirement unconditional. Main correctly reveals three, adds one black-or-yellow
+  Digimon, bottoms the rest, and places the Option; Delay gains two memory; Security places it.
+- Focused behavior covers native black, alternate yellow in battle and breeding, rejection with
+  neither colour, search resolution, and Security. The shared Delay suite supplies lifecycle
+  proof; the focused comment's stale ruling reference is corrected to Q4071/Q4072.
+- Tests remain deliberately unrun under PID 43774, so LM-037 remains below 10/10.
