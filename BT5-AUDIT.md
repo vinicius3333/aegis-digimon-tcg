@@ -652,3 +652,37 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/targeting/loose.ts`, and `interpreter/effects/primitives.test.ts`;
   it reports no BT5-012 errors. `git diff --check` is clean.
 - Remaining ambiguity: none identified.
+
+## BT5-013 — Triceramon — 10/10
+
+- Catalog evidence: Red Lv.5 Ultimate Digimon, Data/Ceratopsian, play cost 5,
+  8000 DP, standard red Lv.4 evolution cost 3, rarity C, and four-copy limit.
+  It has no main, inherited, Security, alternate-evolution, or once-per-turn
+  text; its complete executable contract is therefore intentionally empty.
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-013`
+  returns no entries. No ruling, errata, restriction, or unresolved ambiguity
+  changes the catalog contract.
+- Implementation: `apps/api/src/cards/BT5/BT5-013.ts` declares `effects: []`,
+  `coverage: "full"`, and `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-013", compiled)`. Generated runtime data in
+  `packages/shared/src/effects/effects.json` independently matches that empty
+  executable definition.
+- Peer and stack evidence: vanilla peer BT5-023 uses the same empty/full IR
+  pattern. BT5-108's focused behavior recognizes BT5-013 as an opposing Lv.5
+  Digimon, demonstrating that its static level metadata remains available to
+  shared target filters. Ceratopsian is only card identity here; no printed
+  trait-dependent behavior requires a mixed-trait interaction or evolution
+  stack assertion.
+- Behavioral proof: the 2 existing focused tests prove BT5-013 introduces no
+  unintended continuous DP modifier and that its registration is complete and
+  residual-free. No effect-specific positive, refusal, duration, inherited,
+  Security, or once-per-turn case applies to a vanilla card.
+- Defect corrected: none. Existing source and tests already provide
+  reproducible 10/10 evidence; only this audit record was added.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-013.test.ts` — 1 file, 2 tests passed. Full BT5 regression
+  — 121 files, 318 tests passed. `git diff --check` passed. Workspace
+  `pnpm typecheck` builds shared and web but retains only the known unrelated
+  API errors in `EX6-010.test.ts`, interpreter removal/runAction/targeting
+  files, and `primitives.test.ts`; it reports no BT5-013 errors.
+- Remaining ambiguity: none identified.
