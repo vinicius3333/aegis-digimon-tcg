@@ -3777,7 +3777,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const deck = definition.kinds.includes(CardKind.DigiEgg)
         ? player(card.ownerSeat).eggDeck
         : player(card.ownerSeat).deck;
-      deck.unshift(card);
+      if (opts?.position === "bottom") deck.push(card);
+      else deck.unshift(card);
     }
     if (moved.length === 0) return [];
 

@@ -461,7 +461,7 @@ root-worktree Vitest workload has cleared.
 
 - Catalog evidence: Purple level-5 `Fallen Angel`, play cost 7 and 7000 DP. On Play and When Digivolving, it deletes one opposing level-4-or-lower Digimon when the opponent has five or fewer cards in hand and trashes one card in that opponent hand at seven or more; On Deletion, it may play a `DanDevimon` from the controller's trash without cost when the opponent has at least ten trash cards. Its inherited When Attacking once-per-turn lets the opponent trash one hand card, otherwise may play a purple level-3 Digimon from the controller's trash without cost.
 - Knowledge base: no NeoDevimon-specific local ruling is recorded.
-- Defect corrected: the generated seven-or-more branch used `controllerDefault: "mine"`, which resolves to the NeoDevimon controller's hand despite the printed "their hand" referring to the opponent. The action now explicitly filters `controller: "opponent"`; the stale module/test identity was also corrected from DanDevimon to NeoDevimon. The inherited opponent-choice branch was already correctly scoped to opponent hand and chooser.
+- Defect corrected: both seven-or-more timing branches now explicitly filter `controller: "opponent"`; the When Digivolving generated branch had still used `controllerDefault: "mine"` despite the printed "their hand" referring to the opponent. The stale module/test identity was also corrected from DanDevimon to NeoDevimon. The inherited opponent-choice branch is scoped to opponent hand and chooser.
 - Direct IR and primitive trace: both printed timing entries use independent opponent-hand count gates, then `Delete(level <= 4)` and executable loose-hand `Trash`; the latter now resolves opponent candidates through `candidateLooseInstances` and moves the selected card through the standard trash action. On Deletion uses optional zero-cost trash play of the named DanDevimon, while the inherited acted/not-acted continuation uses the immediate prior-action receipt. Coverage remains full with no residual clauses and exclusive `registerIrCard("EX6-051", compiled)` registration.
 - Existing observable proof: shared removal and hand-trash suites exercise opponent-hand targeting, opponent choice, count-gated branches, and the acted/not-acted continuation. The colocated assertion now specifically protects the corrected opponent-hand target but no NeoDevimon end-to-end fixture presently proves the 5/6/7/10 thresholds together; this is queued only if later coverage accounting finds the shared proofs insufficient.
 - Status: corrected source and focused IR assertion are unexecuted in this dispatch while PID group 43774 remains active; not yet rated 10/10.
@@ -544,7 +544,7 @@ root-worktree Vitest workload has cleared.
 ## EX6-061 — Leviamon — evidence in progress
 
 - Catalog/KB evidence: the All Turns once-per-turn watcher triggers on an opponent Digimon play **or** a controller `Seven Great Demon Lords` Digimon play, trashes one hand card to return bottom three sources of an opposing Digimon to deck bottom, then conditionally deletes a stackless opponent Digimon; Q3803 confirms self play can trigger it, while Q3804/Q3805 define its non-battle Gate replacement and exclude the departing card from trash selection.
-- Defect corrected: generated IR encoded an AND-like opponent+trait watcher, a whole-permanent return, and a detached delete. Hand-fixed IR uses an executable OR source filter, a new bottom-stack mode on `ReturnTopDigivolutionCards`, nested mandatory Then delete with `boardCountCompare`, and trash-to-`breeding` Gate bottom placement.
+- Defect corrected: generated IR encoded an AND-like opponent+trait watcher, a whole-permanent return, and a detached delete. Hand-fixed IR uses an executable OR source filter, a new bottom-stack mode on `ReturnTopDigivolutionCards`, nested mandatory Then delete with `boardCountCompare`, and trash-to-`breeding` Gate bottom placement; its primitive now inserts returned bottom-stack cards at deck bottom rather than ignoring the requested position.
 - Proof/status: the focused assertion protects the reconstructed contract; shared play-watch, stack return, board-count, replacement, and placement seams are traced. Runtime proof remains required and unexecuted while PID group 43774 persists; not rated 10/10.
 
 ## EX6-062 — UltimateChaosmon — evidence in progress
@@ -588,3 +588,27 @@ root-worktree Vitest workload has cleared.
 - Catalog/KB evidence: Main may place an Angel/Archangel/Three Great Angels hand Digimon at bottom security, then places this Option in battle; its deletion watcher arms Delay to search security, optionally play a Three Great Angels Digimon found there without cost, then shuffle. Q3818 confirms Main may still place the Option when no qualifying hand card is placed.
 - Direct IR/primitive trace: optional executable `SecurityManipulation(placeAsSecurity, toTop:false)` precedes mandatory `PlaceInBattleAreaSelf`; the deletion watcher is intrinsically Delay-armed and uses `SearchSecurity` with nested optional zero-cost play followed by explicit security shuffle. Security directly places the Option in battle. Full coverage, no residual text, exclusive `registerIrCard("EX6-068", compiled)`.
 - Proof/status: shared security placement/search/shuffle/Delay mechanisms plus the focused IR contract cover the execution path; current-checkout runs are deferred while PID group 43774 persists, so not rated 10/10.
+
+## EX6-069 — Rise of the Seven Great Demon Lords — evidence in progress
+
+- Catalog/KB evidence: Main optionally places a Seven Great Demon Lords card from hand/trash under a breeding Gate, then places itself in battle; deletion arms Delay to optionally play one such Digimon specifically from that Gate's digivolution cards. Q3819 permits the Main Option placement even without a source card.
+- Defect corrected: the Delay play could enumerate unrelated own stacks. Its `hostFilter` now explicitly restricts digivolution-card candidates to a controller-owned `Gate of Deadly Sins` in `breeding`.
+- Status: focused contract is unexecuted while PID group 43774 persists; not rated 10/10.
+
+## EX6-070 — Phantom Pain — evidence in progress
+
+- Catalog/KB evidence: Main gives an opposing Digimon delayed end-turn self-deletion then places this Option in battle; at opponent end, a controller Lilithmon condition arms Delay to optionally delete an unsuspended opponent Digimon. Q3820/Q4255 cover target immunity expiry and breeding relocation timing.
+- Defect corrected: automatic Delete with a self-delete cost did not model an executable Delay. End-of-opponent-turn now grants Delay under the Lilithmon condition, and a Delay-keyword Main entry carries optional self-delete-costed unsuspended opponent deletion.
+- Status: focused contract is unexecuted while PID group 43774 persists; not rated 10/10.
+
+## EX6-071 — Pandemonium Lost — evidence in progress
+
+- Catalog/KB evidence: at five or more opponent hand cards, the opponent trashes one; Then delete one opposing Digimon with level at least their current hand count. Q3821 confirms the deletion remains processable below five cards.
+- Defect corrected: the generated gate incorrectly skipped both clauses. IR now has a conditional opponent-chosen hand Trash followed by unconditional level-scaled Delete.
+- Status: focused contract is unexecuted while PID group 43774 persists; not rated 10/10.
+
+## EX6-072 — Mega Digimon Assembly! — evidence in progress
+
+- Catalog/KB evidence: color requirements waive against an opposing level-6-or-higher Digimon; Main optionally DNA digivolves one controller level-6 battle Digimon and one controller hand card into a level-7 hand Digimon, retaining required material legality (Q3822); Security returns one level-6-or-higher trash Digimon then adds this Option to hand.
+- Direct IR/primitive trace: independent battle/hand material slots feed `DnaDigivolve`, with target level seven and normal requirements; Security sequences loose trash return then `AddToHandSelf`. The focused test now correctly identifies Mega Digimon Assembly!, with full coverage and exclusive registration.
+- Status: runtime execution remains deferred while PID group 43774 persists; not rated 10/10.

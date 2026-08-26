@@ -22,7 +22,7 @@ describe("EX6-051 NeoDevimon", () => {
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       frequency: "OncePerTurn",
       actions: [
-        { kind: "Trash", controller: "opponent" },
+        { kind: "Trash", controller: "opponent", target: { filter: { controller: "opponent", zone: "hand" } } },
         { kind: "PlayWithoutCost", from: ["trash"], condition: { kind: "ifThisEffectDidNotAct" } },
       ],
     });
