@@ -1,10 +1,26 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-064.js";
+import { compiled } from "./BT11-064.js";
 import "./BT11-069.js";
 
 describe("BT11-064 Greymon (X Antibody)", () => {
+  it("maps catalog facts and its scaling evolution plus inherited protection to IR", () => {
+    expect(getCardDefinition("BT11-064")).toMatchObject({
+      cardId: "BT11-064",
+      colors: ["Black", "Red"],
+      level: 4,
+      playCost: 5,
+      dp: 6000,
+      types: ["Dinosaur", "X Antibody"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "YourTurn", actions: [{ kind: "Replacement", event: "wouldDigivolve", scaling: { unit: "colors" } }] },
+      { trigger: "AllTurns", isInherited: true, actions: [{ kind: "Replacement", event: "wouldLeavePlay" }] },
+    ]);
+  });
+
   it("reduces evolution into a dual-color Greymon-named card by 2", async () => {
     const s = setupEngine({
       0: {
