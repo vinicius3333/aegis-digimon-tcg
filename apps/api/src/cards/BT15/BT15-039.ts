@@ -11,18 +11,6 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          amount: -3000,
-          duration: "untilOpponentTurnEnd",
-        },
-        {
           kind: "GainTriggeredEffect",
           target: {
             filter: {
@@ -30,15 +18,24 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-            sameTarget: true,
           },
-          gainedTrigger: "OnDeletion",
+          gainedTrigger: "onDeletionOf",
           gainedActions: [
             {
               kind: "GainMemory",
               amount: -1,
             },
           ],
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 1,
+            sameTarget: true,
+          },
+          amount: -3000,
           duration: "untilOpponentTurnEnd",
         },
       ],
@@ -47,18 +44,6 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          amount: -3000,
-          duration: "untilOpponentTurnEnd",
-        },
-        {
           kind: "GainTriggeredEffect",
           target: {
             filter: {
@@ -66,15 +51,24 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-            sameTarget: true,
           },
-          gainedTrigger: "OnDeletion",
+          gainedTrigger: "onDeletionOf",
           gainedActions: [
             {
               kind: "GainMemory",
               amount: -1,
             },
           ],
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            count: 1,
+            sameTarget: true,
+          },
+          amount: -3000,
           duration: "untilOpponentTurnEnd",
         },
       ],

@@ -48,6 +48,7 @@ function makeSource(permanentId = "PERM#matt", onBattleArea = true): CardSource 
             topCard: { instanceId: "INST#BT15-083", cardId: "BT15-083", ownerSeat: 0 as Seat },
             isSuspended: false,
             stack: [],
+            linked: [],
           } as never)
         : undefined,
     isOnBattleArea: () => onBattleArea,

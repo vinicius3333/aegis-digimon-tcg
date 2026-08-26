@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT15-078.js";
 
 describe("BT15-078", () => {
-  it("deletes its battle opponent when deleted after losing a battle", () =>
+  it("grants Piercing as its inherited effect", () =>
     expect(compiled.effects?.[2]).toMatchObject({
-      trigger: "OnDeletion",
+      trigger: "Static",
       isInherited: true,
-      actions: [{ kind: "Delete", target: { filter: { sourceRef: "battleOpponent" } } }],
+      keywords: [{ keyword: "Piercing" }],
     }));
   it("gives opponent-played Digimon an On Deletion memory loss effect once per turn", () =>
     expect(compiled.effects?.[0]).toMatchObject({

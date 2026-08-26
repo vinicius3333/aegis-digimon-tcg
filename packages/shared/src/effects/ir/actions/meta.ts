@@ -28,6 +28,8 @@ export interface ReactivateEffectAction extends ActionBase {
   /** The trigger window to copy from this same card. */
   fromTrigger: EffectTrigger;
   count: number;
+  /** Re-run the specified timing on selected permanent(s), not the source card. */
+  target?: Target;
   /** Re-run an effect on the permanent that drove the enclosing watcher. */
   targetSource?: "triggerSubject";
 }

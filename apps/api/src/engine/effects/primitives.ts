@@ -368,6 +368,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     effectSourceKindsStack.pop();
     engine.finishEffectBody?.();
   };
+  const currentHandAddProvenance = () => {
+    const ownerSeat = effectSeatStack.at(-1);
+    if (ownerSeat === undefined) return undefined;
+    return {
+      ownerSeat,
+      isDigimonEffect: (effectSourceKindsStack.at(-1) ?? []).includes(CardKind.Digimon),
+    };
+  };
   const restrictSecurityAddsFromEffect: Primitives["restrictSecurityAddsFromEffect"] = (
     blockedEffectSeat,
     granterSeat,
@@ -477,7 +485,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // An effect Draw is an effect-driven hand addition ("when an effect adds cards to
       // your opponent's hand"/"...your hand"). The normal draw-phase draw routes through
       // GameEngine.drawCards, not this fx.draw, so it does not fire here.
-      const addedToHand = { instanceIds: drawn.map((c) => c.instanceId) };
+      const addedToHand = {
+        instanceIds: drawn.map((c) => c.instanceId),
+        byEffect: currentHandAddProvenance(),
+      };
       await engine.fireSubTrigger?.("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: seat, addedToHand });
       await engine.fireSubTrigger?.("whenEffectAddsToHand", { effectAddedToHandSeat: seat, addedToHand });
     }
@@ -3531,7 +3542,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (opts?.silent !== true) {
         const recipientSeats = new Set(movedToHand.map((c) => c.ownerSeat));
         for (const seat of recipientSeats) {
-          const addedToHand = { instanceIds: movedToHand.filter((c) => c.ownerSeat === seat).map((c) => c.instanceId) };
+          const addedToHand = {
+            instanceIds: movedToHand.filter((c) => c.ownerSeat === seat).map((c) => c.instanceId),
+            byEffect: currentHandAddProvenance(),
+          };
           await engine.fireSubTrigger?.("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: seat, addedToHand });
           await engine.fireSubTrigger?.("whenEffectAddsToHand", { effectAddedToHandSeat: seat, addedToHand });
         }

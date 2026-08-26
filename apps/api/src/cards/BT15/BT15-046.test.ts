@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import "./BT15-046.js";
 import { compiled } from "./BT15-046.js";
 
@@ -37,4 +39,17 @@ describe("BT15-046", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "SubTrigger", event: "whenSuspended" }],
     }));
+
+  it("draws once when another one of your Digimon becomes suspended", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT15-046", as: "woodmon" }, { card: "BT1-009", as: "attacker" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId), 1_500);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+  });
 });

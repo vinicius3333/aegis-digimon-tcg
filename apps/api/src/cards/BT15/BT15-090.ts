@@ -11,31 +11,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Return",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              levelComparison: {
-                op: "lte",
-                value: 4,
-              },
-            },
-            count: 1,
-          },
-          to: "hand",
-        },
-        {
-          kind: "Return",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              superlative: "lowestLevel",
-            },
-            count: 1,
-          },
-          to: "hand",
+          kind: "ConditionalBranch",
           condition: {
             kind: "youHave",
             filter: {
@@ -50,6 +26,12 @@ const compiled: CompiledCard = {
             },
             raw: "you have a Digimon with [Gabumon]/[Garurumon] in its name",
           },
+          ifTrue: [
+            { kind: "Return", target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestLevel" }, count: 1 }, to: "hand" },
+          ],
+          ifFalse: [
+            { kind: "Return", target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } }, count: 1 }, to: "hand" },
+          ],
         },
       ],
     },

@@ -1,144 +1,89 @@
-import { describe, it, expect } from "vitest";
-import { EffectDuration, EffectTiming, type Seat } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Primitives } from "../../engine/effects/EffectContext.js";
-import "./BT15-025.js";
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
+import { compiled } from "./BT15-025.js";
 
-// A3 for BT15-025 (Seadramon) — Blue Lv.3 Digimon.
-//
-// [Static] ＜Rush＞ (non-inherited)
-// [Static][Inherited] ＜Jamming＞
-//
-// documented behavior:
-//
-interface Call {
-  verb: string;
-  args: unknown[];
-}
+describe("BT15-025", () => {
+  it("publishes non-inherited Rush", () =>
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "Static",
+      keywords: [{ keyword: "Rush" }],
+      actions: [],
+    }));
 
-function makeSource(permanentId = "PERM#sea"): CardSource {
-  return {
-    instanceId: "INST#BT15-025",
-    cardId: "BT15-025",
-    ownerSeat: 0 as Seat,
-    definition: {
-      cardId: "BT15-025",
-      set: "BT15",
-      nameEn: "Seadramon",
-      kinds: ["Digimon"],
-      colors: ["Blue"],
-      playCost: 3,
-      dp: 3000,
-      evoCosts: [],
-      maxCountInDeck: 4,
-    } as never,
-    permanent: () =>
-      ({
-        permanentId,
-        controllerSeat: 0 as Seat,
-        topCard: { instanceId: "INST#BT15-025", cardId: "BT15-025", ownerSeat: 0 as Seat },
-        isSuspended: false,
-        stack: [],
-      }) as never,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => false,
-  };
-}
+  it("publishes inherited Jamming", () =>
+    expect(compiled.effects?.[1]).toMatchObject({
+      trigger: "Static",
+      isInherited: true,
+      keywords: [{ keyword: "Jamming" }],
+      actions: [],
+    }));
 
-function makeContext(recorder: { calls: Call[] }, source: CardSource) {
-  const fx = new Proxy({} as Primitives, {
-    get:
-      (_, verb: string) =>
-      (...args: unknown[]) => {
-        recorder.calls.push({ verb, args });
-      },
-  });
-  return {
-    source,
-    trigger: {},
-    game: {} as never,
-    fx,
-    ask: {} as never,
-  };
-}
+  it("can attack the player on the turn it is normally played", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT15-025", as: "seadramon" }] },
+      1: { security: ["BT1-001"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
 
-describe("BT15-025 Seadramon — static Rush + inherited Jamming keyword grants", () => {
-  const module = getEffectModule("BT15-025");
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("seadramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(observe(s.engine).hasKeyword(s.perm("seadramon"), "Rush")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("seadramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
 
-  it("is registered", () => {
-    expect(module, "BT15-025 must self-register on import").toBeDefined();
+    expect(s.perm("seadramon").isSuspended).toBe(true);
   });
 
-  it("returns two effects at EffectTiming.None (Rush + Jamming) and none at other timings", () => {
-    const source = makeSource();
-    const noneEffects = module!.effectsForTiming(EffectTiming.None, source);
-    expect(noneEffects).toHaveLength(2);
-    // No effects at other timings.
-    expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
-    expect(module!.effectsForTiming(EffectTiming.OnEndTurn, source)).toHaveLength(0);
+  it("grants only Jamming to an inherited host and survives stronger security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-025"] }] },
+      1: { security: ["BT1-081"] },
+    });
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Rush")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
   });
 
-  it("Rush effect is not inherited", () => {
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.None, source);
-    const rush = effects.find((e) => e.effectKey?.includes("rush"));
-    expect(rush, "Rush effect must exist").toBeDefined();
-    expect(rush!.isInherited).toBe(false);
-  });
+  it("does not let inherited Jamming prevent deletion in ordinary Digimon battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-025"] }] },
+      1: { battleArea: [{ card: "BT1-081", as: "defender", suspended: true }] },
+    });
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
 
-  it("Jamming effect is inherited", () => {
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.None, source);
-    const jamming = effects.find((e) => e.effectKey?.includes("jamming"));
-    expect(jamming, "Jamming effect must exist").toBeDefined();
-    expect(jamming!.isInherited).toBe(true);
-  });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId));
 
-  it("resolving Rush effect calls grantKeyword(permanentId, 'Rush', UntilEachTurnEnd)", async () => {
-    const source = makeSource("PERM#sea");
-    const recorder: { calls: Call[] } = { calls: [] };
-    const ctx = makeContext(recorder, source);
-
-    const effects = module!.effectsForTiming(EffectTiming.None, source);
-    const rush = effects.find((e) => e.effectKey?.includes("rush"));
-    expect(rush, "Rush effect must exist").toBeDefined();
-
-    await rush!.resolve(ctx as never);
-
-    const call = recorder.calls.find((c) => c.verb === "grantKeyword" && c.args[1] === "Rush");
-    expect(call, "grantKeyword('Rush') must be called").toBeDefined();
-    expect(call!.args[0]).toBe("PERM#sea");
-    expect(call!.args[2]).toBe(EffectDuration.UntilEachTurnEnd);
-  });
-
-  it("resolving Jamming effect calls grantKeyword(permanentId, 'Jamming', UntilEachTurnEnd)", async () => {
-    const source = makeSource("PERM#sea");
-    const recorder: { calls: Call[] } = { calls: [] };
-    const ctx = makeContext(recorder, source);
-
-    const effects = module!.effectsForTiming(EffectTiming.None, source);
-    const jamming = effects.find((e) => e.effectKey?.includes("jamming"));
-    expect(jamming, "Jamming effect must exist").toBeDefined();
-
-    await jamming!.resolve(ctx as never);
-
-    const call = recorder.calls.find((c) => c.verb === "grantKeyword" && c.args[1] === "Jamming");
-    expect(call, "grantKeyword('Jamming') must be called").toBeDefined();
-    expect(call!.args[0]).toBe("PERM#sea");
-    expect(call!.args[2]).toBe(EffectDuration.UntilEachTurnEnd);
-  });
-
-  it("does not call grantKeyword when not on the battle area (canTrigger guard)", () => {
-    // canTrigger checks source.isOnBattleArea() — when off-field, resolve is never called.
-    // The effect is gated at the canTrigger level so this test verifies the guard exists.
-    const source: CardSource = { ...makeSource(), isOnBattleArea: () => false, permanent: () => undefined };
-    const effects = module!.effectsForTiming(EffectTiming.None, source);
-    // Both effects exist but their canTrigger returns false when off-field.
-    for (const effect of effects) {
-      const triggered = effect.canTrigger({ source } as never);
-      expect(triggered, `${effect.effectKey} must not trigger off-field`).toBe(false);
-    }
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
   });
 });

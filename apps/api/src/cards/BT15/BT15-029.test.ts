@@ -1,4 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT15-029.js";
 
 describe("BT15-029", () => {
@@ -7,7 +11,12 @@ describe("BT15-029", () => {
       kind: "Return",
       to: "deckBottom",
       target: { filter: { levelLte: "placedDigimonLevel" } },
-      cost: { kind: "place", storeAs: "placedDigimonLevel" },
+      cost: {
+        kind: "place",
+        targetIsPermanent: true,
+        shedOwnCards: true,
+        storeAs: "placedDigimonLevel",
+      },
     });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "Return" }] });
   });
@@ -16,6 +25,160 @@ describe("BT15-029", () => {
       trigger: "WhenAttacking",
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "Unsuspend", cost: { kind: "place" }, optional: true }],
+      actions: [
+        {
+          kind: "Unsuspend",
+          cost: { kind: "place", targetIsPermanent: true, shedOwnCards: true },
+          optional: true,
+        },
+      ],
     }));
+
+  it("pays the On Play cost first, then bottoms only a Digimon at or below the placed card's level", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT15-029", as: "megaSeadramon" }],
+          battleArea: [{ card: "BT15-025", as: "placedLevelFour" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT15-025", as: "eligibleLevelFour" },
+            { card: "BT15-029", as: "ineligibleLevelFive" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    const placedPermanentId = s.perm("placedLevelFour").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("megaSeadramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("eligibleLevelFour").instanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(
+      placedPermanentId,
+    );
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(s.inst("eligibleLevelFour").instanceId);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("ineligibleLevelFive").permanentId,
+    );
+  });
+
+  it("the inherited effect pays with another blue Digimon, unsuspends its host, and is once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT15-025", as: "host", under: [{ card: "BT15-029", as: "inherited" }] },
+            { card: "BT15-025", as: "firstCost" },
+            { card: "BT15-025", as: "secondCost" },
+          ],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended === false);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.perm("host").stack).toHaveLength(2);
+
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("host"));
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("host").stack).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("secondCost").permanentId,
+    );
+  });
+
+  it("When Digivolving uses the placed Digimon's exact level as the return ceiling", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT15-025", as: "base" },
+            {
+              card: "BT15-023",
+              as: "placedLevelThree",
+              under: [{ card: "BT15-001", as: "materialPriorSource" }],
+              linked: [{ card: "BT15-002", as: "materialPriorLink" }],
+            },
+          ],
+          hand: [{ card: "BT15-029", as: "megaSeadramon" }],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT15-023", as: "eligibleLevelThree" },
+            { card: "BT15-025", as: "ineligibleLevelFour" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("megaSeadramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.deck.some(({ instanceId }) => instanceId === s.inst("eligibleLevelThree").instanceId),
+    );
+
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("placedLevelThree").instanceId,
+      s.inst("base").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("materialPriorSource").instanceId,
+        s.inst("materialPriorLink").instanceId,
+      ]),
+    );
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("ineligibleLevelFour").permanentId,
+    );
+  });
+
+  it("cannot return anything when no other blue Digimon can pay the placement cost", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT15-029", as: "megaSeadramon" }] },
+        1: { battleArea: [{ card: "BT15-023", as: "wouldBeTarget" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("megaSeadramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-029"));
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("wouldBeTarget").permanentId,
+    );
+    expect(s.state.players[1]!.deck).toHaveLength(0);
+  });
 });

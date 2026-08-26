@@ -47,6 +47,7 @@ function makeSource(permanentId = "PERM#sora", onBattleArea = true): CardSource 
             topCard: { instanceId: "INST#BT15-082", cardId: "BT15-082", ownerSeat: 0 as Seat },
             isSuspended: false,
             stack: [],
+            linked: [],
           } as never)
         : undefined,
     isOnBattleArea: () => onBattleArea,
@@ -159,7 +160,7 @@ describe("BT15-082 Sora Takenouchi", () => {
       expect(install.sourcePermanentId).toBe("PERM#sora");
     });
 
-    it("does NOT call subscribeSubTrigger when permanent() is undefined", async () => {
+    it("keeps the continuous watcher registration safe when the Tamer is off the battle area", async () => {
       const source = makeSource("PERM#sora", false);
       const recorder: { calls: Call[] } = { calls: [] };
       const ctx = makeContext(recorder, source);

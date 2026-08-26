@@ -1474,6 +1474,16 @@ export async function payCost(
         if (cost.targetIsPermanent === true) {
           const sourceIds = await resolvePermanentTargets(ctx, cost.target);
           if (sourceIds.length === 0) return false;
+          if (cost.storeAs !== undefined) {
+            const sourcePermanent = ctx.game.permanentById(sourceIds[0]!);
+            const level = sourcePermanent?.topCard
+              ? ctx.game.definitionOf(sourcePermanent.topCard).level
+              : undefined;
+            if (level !== undefined && level > 0) {
+              if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
+              ctx.namedCounts.set(cost.storeAs, level);
+            }
+          }
           if (cost.destination === "security") {
             for (const sourcePermanentId of sourceIds) {
               const permanent = ctx.game.permanentById(sourcePermanentId);
@@ -1532,7 +1542,7 @@ export async function payCost(
           for (const sourcePermanentId of sourceIds) {
             await relocateByEffect(ctx, hostPermId, sourcePermanentId, {
               belowTop: cost.position !== "bottom",
-              shedOwnCards: (cost as { shedOwnCards?: boolean }).shedOwnCards === true,
+              shedOwnCards: cost.shedOwnCards === true,
             });
           }
           if (out) out.paidCount = sourceIds.length;
