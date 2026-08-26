@@ -12666,24 +12666,18 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "colors": ["Red"],
-              "nameOrTrait": [{ "tokens": ["Avian"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" }],
+              "byEffect": true
             },
             "actions": [
               {
                 "kind": "GainKeyword",
-                "target": {
-                  "filter": {
-                    "controllerDefault": "mine",
-                    "kind": ["Digimon", "Tamer"],
-                    "nameOrTrait": [
-                      { "tokens": ["Bird", "Beast", "Animal"], "match": "trait" },
-                      { "tokens": ["Sovereign"], "match": "trait" }
-                    ]
-                  },
-                  "count": 1
-                },
+                "target": { "sourceRef": "triggerSubject", "filter": { "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Rush", "raw": "＜Rush＞" },
-                "duration": "forTheTurn"
+                "duration": "forTheTurn",
+                "cost": { "kind": "suspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }, "raw": "by suspending this Tamer" },
+                "optional": true,
+                "abortOnDecline": true
               }
             ]
           }
