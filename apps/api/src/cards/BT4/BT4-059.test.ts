@@ -48,4 +48,22 @@ describe("BT4-059 Lilamon", () => {
     await settle(() => s.perm("target").isSuspended);
     expect(s.perm("target").isSuspended).toBe(true);
   });
+
+  it("does not suspend an opposing Digimon from its inherited effect without a Tamer", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-060", as: "host", under: ["BT4-059"] }] },
+      1: { battleArea: [{ card: "BT1-019", as: "target" }], security: ["BT1-001"] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+
+    expect(s.perm("target").isSuspended).toBe(false);
+  });
 });
