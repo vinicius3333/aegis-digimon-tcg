@@ -29489,29 +29489,36 @@
   "BT15-037": {
     "effects": [
       {
-        "trigger": "Static",
+        "trigger": "OnDiscardSecurity",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenTrashedFromSecurity",
-            "actions": [
-              {
-                "kind": "RawUnparsed",
-                "text": "missing-primitive(unaudited): play it without paying the cost",
-                "optional": true
-              }
-            ]
+            "kind": "PlayWithoutCost",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "from": ["trash"],
+            "payCost": false,
+            "optional": true
           }
         ]
       },
       {
         "trigger": "AllTurns",
         "actions": [
-          { "kind": "SubTrigger", "event": "whenSecurityRemoved", "actions": [{ "kind": "GainMemory", "amount": 1 }] }
+          {
+            "kind": "SubTrigger",
+            "event": "whenSecurityRemoved",
+            "sourceFilter": { "controller": "mine" },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }]
+          }
         ],
         "frequency": "OncePerTurn"
       },
-      { "trigger": "Static", "actions": [], "isInherited": true }
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Barrier", "raw": "＜Barrier＞" }] },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "isInherited": true,
+        "keywords": [{ "keyword": "Barrier", "raw": "＜Barrier＞" }]
+      }
     ],
     "coverage": "full",
     "residual": []
