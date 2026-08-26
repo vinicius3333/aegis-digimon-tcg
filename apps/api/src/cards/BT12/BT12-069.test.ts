@@ -1,14 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT12-069.js";
 
 describe("BT12-069 Footmon", () => {
   it("has no printed effects and keeps its card definition", () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT12-069", as: "foot" }] } });
-    expect(s.state.players[0]!.hand.find(({ instanceId }) => instanceId === s.inst("foot").instanceId)?.cardId).toBe(
-      "BT12-069",
-    );
+    expect(getCardDefinition("BT12-069")).toMatchObject({
+      cardId: "BT12-069",
+      nameEn: "Footmon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 8,
+      dp: 9000,
+      evoCosts: [{ color: "Black", level: 4, memoryCost: 2 }],
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Cyborg"],
+    });
+    expect(getCompiledCard("BT12-069")).toMatchObject({ effects: [], coverage: "full", residual: [] });
     expect(getEffectModule("BT12-069")?.cardId).toBe("BT12-069");
   });
 });

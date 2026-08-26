@@ -61,6 +61,8 @@ export interface RestrictAction extends ActionBase {
    * restriction continuous so it lifts as soon as the state stops holding.
    */
   while?: Condition;
+  /** Keep the restriction only while its recipient continues to match the original target filter. */
+  whileMatchesTargetFilter?: boolean;
 }
 
 /** Declare a card category, reveal the opponent's top deck card, and gain matching immunity. */

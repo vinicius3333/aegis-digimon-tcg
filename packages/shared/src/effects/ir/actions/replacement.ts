@@ -33,7 +33,7 @@ export interface ReplacementAction extends ActionBase {
    * `Replacement` inside `actions` (BT18-082, BT22-079, BT23-073), and `runReplacement` derives
    * the effective mode from those shapes when this is absent.
    */
-  mode?: "reduceCost" | "increaseCost" | "prevent" | "instead";
+  mode?: "reduceCost" | "increaseCost" | "prevent" | "instead" | "gainMemoryOnDna";
   /** Pay a prevention cost by digivolving the leaving permanent into this source from Trash. */
   digivolveFromTrash?: boolean;
   amount?: number;

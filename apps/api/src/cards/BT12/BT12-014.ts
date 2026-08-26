@@ -13,6 +13,11 @@ if (whenDigivolving !== undefined) {
     },
   ];
 }
+const yourTurn = compiled.effects.find((effect) => effect.trigger === "YourTurn");
+const securityAttack = yourTurn?.actions[0];
+if (securityAttack?.kind === "GainKeyword") {
+  securityAttack.condition = { kind: "selfDigivolutionCountAtLeast", value: 4 };
+}
 const inherited = compiled.effects.find((effect) => effect.trigger === "WhenAttacking");
 const attack = inherited?.actions[0];
 if (attack?.kind === "Delete")

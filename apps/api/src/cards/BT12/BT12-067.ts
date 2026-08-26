@@ -1,6 +1,4 @@
 import { getCompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const module = registerIrCard("BT12-067", getCompiledCard("BT12-067")!);
-
-export default module;
+export default registerIrCard("BT12-067", getCompiledCard("BT12-067")!);

@@ -63,4 +63,24 @@ describe("BT12-054 Jagamon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
   });
+
+  it("may decline the optional play and leaves both matching cards in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-054", as: "jagamon" }],
+          hand: [
+            { card: "BT12-049", as: "yaki" },
+            { card: "BT12-052", as: "potamon" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const handIds = [s.inst("yaki").instanceId, s.inst("potamon").instanceId];
+    await advance(s.engine).verb.deletePermanent([s.perm("jagamon").permanentId]);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(handIds);
+  });
 });

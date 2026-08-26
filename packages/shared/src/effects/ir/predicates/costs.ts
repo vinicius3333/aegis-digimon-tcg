@@ -107,6 +107,8 @@ export interface Cost {
   faceDown?: boolean;
   /** The place cost relocates a battle-area permanent rather than a loose card. */
   targetIsPermanent?: boolean;
+  /** Trash the relocated permanent's own digivolution cards instead of carrying them to the destination. */
+  shedOwnCards?: boolean;
   /** Store the chosen host permanent id for a downstream `target.fromSelectionRef`. */
   bindHostAs?: string;
   /**

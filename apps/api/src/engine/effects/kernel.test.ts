@@ -267,6 +267,25 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
     expect(passesPlacementGuard(printed, ctx)).toBe(false);
   });
 
+  it("activates a buried card's own effect when the deleted host had gained it", () => {
+    const buriedSource = fakeSource({ instanceId: "source#1", permanent: () => undefined });
+    const printed = onPlay({
+      source: buriedSource,
+      effectKey: "conferred-on-deletion",
+      description: "",
+      resolve: async () => {},
+    });
+    const ctx = fakeContext(buriedSource);
+    ctx.conferredToPermanentId = "host#1";
+    ctx.trigger = {
+      deletedPermanentIds: ["host#1"],
+      deletedInstanceIds: ["top#1", "source#1"],
+      deletedWasStackInstanceIds: ["source#1"],
+    };
+
+    expect(passesPlacementGuard(printed, ctx)).toBe(true);
+  });
+
   it("still activates the deleted top card's own printed effect", () => {
     const topSource = fakeSource({ instanceId: "top#1", permanent: () => undefined });
     const printed = onPlay({
