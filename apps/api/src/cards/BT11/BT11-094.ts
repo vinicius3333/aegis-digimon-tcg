@@ -33,7 +33,7 @@ function playCounterpart({ name }: { name: "Angewomon" | "LadyDevimon" }): Actio
   };
 }
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     { trigger: "StartOfYourTurn", actions: [{ kind: "GainMemory", amount: 1 }] },
     {
