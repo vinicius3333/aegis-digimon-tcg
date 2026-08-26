@@ -93,6 +93,8 @@ When the coordinator opens one serial Vitest window, run exactly one focused fil
 | 4     | Reveal/search/security and effect-play watcher paths                   | — |
 | 5     | Stateless auras, attack/deletion triggers, and remaining combat routes | —                                                                                                                                                                                                                                   |
 
+Collection gate evidence (2026-08-26): serial command `pnpm --filter @aegis/api exec vitest run src/cards/EX5 --reporter=dot --pool=forks --poolOptions.forks.singleFork --fileParallelism=false` passed with **74/74 files and 165/165 tests** in 36.72s. This validates the EX5 test collection, but EX5-069 remains pending its focused proof and the final typecheck/inventory/diff gates.
+
 The queue is intentionally not authorization to run tests: wait for the coordinator’s explicit serial-window message. After all focused files, request approval for the one final collection gate, then typecheck, inventory recheck, and `git diff --check`.
 
 ## Direct IR clause trace (static pass)
