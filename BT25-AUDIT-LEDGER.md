@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-050 (Kiwimon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-050 Kiwimon | Green level 4 Digimon; alternate level-3 `[TS]` evolution cost 2; on play/when digivolving may suspend 1 Digimon from either player, then if at least 2 Digimon are suspended, 1 opposing Digimon cannot unsuspend until opponent's turn ends; inherited Your Turn all own Digimon +1000 DP. Q6322 confirms the first suspension may target either player. | **Potential mandatory-follow-up optionality gap.** The first suspension correctly permits any Digimon and is optional. The subsequent restriction is marked `optional: true`, although the printed “Then, if there are 2 or more suspended Digimon, 1 ... can't unsuspend” has no “may”; when the condition and target exist, the controller should not be able to decline it. Condition, target, duration, inherited modifier, and alternate evolution are otherwise represented. | Structural test only; no execution of either-player suspension, 2-suspended boundary, mandatory follow-up, target selection, duration, or inherited turn lapse. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-050
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-050` (Q6322).
+- Direct module and shared any-controller suspension, total suspended-Digimon condition,
+  restriction optionality, and YourTurn DP scope were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-049 (Armalizamon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
