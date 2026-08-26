@@ -14,7 +14,9 @@ export const compiled: CompiledCard = {
           controller: "mine",
           // "By placing 1 Digimon on top of ITS OWNER's security stack": the Digimon carries no
           // possessive, so either player's is eligible, and the destination follows its owner.
-          source: { filter: { controllerDefault: "any", kind: ["Digimon"] }, count: 1 },
+          // Q4009: a token played as a Digimon can pay this placement condition; Mother
+          // D-Reaper already qualifies through the live Digi-Egg-with-DP Digimon rule.
+          source: { filter: { controllerDefault: "any", kind: ["Digimon"], allowTokens: true }, count: 1 },
           ownerSecurity: true,
           toTop: true,
           optional: true,

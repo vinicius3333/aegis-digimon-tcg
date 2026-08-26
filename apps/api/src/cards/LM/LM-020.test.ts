@@ -175,7 +175,12 @@ describe("LM-020 Quantumon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
       actions: [
-        { kind: "SecurityManipulation", op: "placeAsSecurity", optional: true },
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          optional: true,
+          source: { filter: { kind: ["Digimon"], allowTokens: true } },
+        },
         { kind: "SecurityManipulation", op: "revealAllChooseToDeckTopShuffleRest", controller: "opponent" },
       ],
     });
