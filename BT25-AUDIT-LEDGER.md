@@ -112,6 +112,22 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-040 (MagnaAngemon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-040 MagnaAngemon | Yellow level 5 Digimon; when effects trash this card from security, may play a level-4-or-lower Angel/Iliad card from hand for free; Ascension; on play/when digivolving, by trashing your top or bottom security card, 1 opposing Digimon gets -8000 DP until opponent's turn ends; inherited all turns once per turn on own security removal, one opposing Digimon gets -4000 for the turn. Q6309 restricts the security-trash reaction to direct effect trash; Q6310 defines Security timing order. | **Causal cost/optionality gap.** Both main effects model the “trash your top or bottom security card” cost as a generic `trash` action targeting any own card, with no security zone or top/bottom constraint. They also mark the whole DP effect optional/abort-on-decline, although the printed “By trashing...” clause is mandatory once the effect resolves (subject to having a security card), not a may activation. Thus the implementation can trash arbitrary cards or decline instead of paying the required top/bottom security cost. The OnDiscardSecurity timing, free hand target, Ascension, inherited watcher, and DP duration/target are otherwise represented. | Structural test only; no execution of direct security-trash timing, top/bottom choice, mandatory payment, empty-security failure, target selection, or Q6310 ordering. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-040
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-040` (Q6309 and Q6310).
+- Direct module and shared cost/action semantics were inspected. The generic `trash` cost
+  lacks a security-zone/top-bottom constraint, and `optional: true` permits refusal of a
+  non-optional “by trashing” clause.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-039 (Sirenmon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
