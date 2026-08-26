@@ -364,3 +364,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-018.
+
+## BT25-019 — UltimateBrachiomon — 10/10
+
+- Catalog evidence: Red/black level-6 Digimon, play cost 13, 13000 DP, `Mega`/`Data`, `Cyborg`/`X Antibody`/`Titan`/`TS`/`Dinosaur`; standard red or black level-5 evolution for 5 plus alternate level-5 Dinosaur/TS evolution for 4; Reboot and Blocker; On Play/When Digivolving delete one opposing highest-DP Digimon; end-turn once-per-turn Digimon-effect immunity at opponent memory 5+, then Option-effect immunity at 5 or less, each until their turn ends.
+- Knowledge base: Q6270/Q6271 define the memory thresholds from the opponent's side of the gauge. Q6272–Q6277 define effect immunity, including legal selection, suppression of granted/previous effects while immune, restoration after immunity lapses, and trigger suppression at timing.
+- Implementation: the direct IR exposes both static keywords, parallel highest-DP deletions, both exact opponent-memory conditions, opponent-only duration, and both alternate trait branches. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-019", compiled)`.
+- Defect corrected: the immunity actions encoded source kind inside `sourceFilter`, a target/event filter ignored by restriction matching. The direct and shared IR now use the executable `fromSourceKind` field for Digimon and Option respectively, while `byOpponentEffectsOnly` preserves Tamer effects and all friendly effects.
+- Behavioral proof: the focused suite verifies live Reboot/Blocker, highest-DP deletion on play/evolution, legal level-5 TS and Dinosaur evolution routes, and the 6/5/4 opponent-memory boundaries: Digimon-only at 6, both at 5, Option-only at 4, with Tamer always unaffected. Catalog-sync plus immunity-mechanism tests prove the restriction is enforced by actual effect source kind. The source-kind assertions fail against the prior IR.
+- Verification: focused suite — 9 passed; catalog-sync/immunity mechanism regressions — 25 passed; targeted Oxfmt and `git diff --check` — passed. Workspace typecheck retains six unrelated pre-existing errors and no BT25-019 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-019
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-019.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-019.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-019.ts apps/api/src/cards/BT25/BT25-019.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-019.
