@@ -1,9 +1,24 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-090.js";
 import "./BT9-090.js";
 
 describe("BT9-090 Maki Himekawa", () => {
+  it("matches catalog values and the reveal, cost reduction, and security IR", () => {
+    expect(getCardDefinition("BT9-090")).toMatchObject({
+      colors: ["Black"], kinds: ["Tamer"], playCost: 3,
+      securityEffectText: "[Security] Play this card without paying its memory cost.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 3, add: [{ filter: { nameOrTrait: [{ tokens: ["Tapirmon"], match: "name" }] } }, { filter: { multicolor: true, colors: ["Black"] } }], rest: "deckBottom" }] },
+        { trigger: "YourTurn", actions: [{ kind: "Replacement", event: "wouldDigivolve", into: { multicolor: true, colors: ["Black"] }, actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1 }, { kind: "Suspend", optional: true }] }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
+      ],
+    });
+  });
+
   it("adds Tapirmon and a two-color black card from three revealed cards", async () => {
     const s = setupEngine(
       {
