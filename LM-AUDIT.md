@@ -196,3 +196,16 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   changes. Existing focused fixtures prove bottom-deck destination, empty and above-threshold
   Security Attack fallback, shared budget, named-source digivolution, and restriction activation.
 - No local Q&A exists. The unrun focused proof under PID 43774 keeps LM-039 below 10/10.
+
+## LM-040 — Vikemon — pending focused execution
+
+- Catalog's named Shakkoumon/Zudomon alternate evolution, Ice Clad, and evolution trash are
+  direct compiled IR. `TrashDigivolution` selects all qualifying opponent hosts and uses the
+  distributed cross-Digimon primitive, so “any 4” is a pooled player choice rather than four from
+  one host or top-only removal.
+- The attack gate compares each opponent's stack depth to Vikemon's and unsuspends only when none
+  is at least as deep. Q4843 requires the Then clause regardless of that gate; the direct
+  `ModifySecurityDP` action writes the opponent security-Digimon ledger rather than attempting to
+  target security loose cards as permanents. Existing behavior covers pooled trash, both stack
+  comparison outcomes, mandatory Then, and once-per-turn.
+- Focused proof remains unrun while PID 43774 is active, so LM-040 remains below 10/10.
