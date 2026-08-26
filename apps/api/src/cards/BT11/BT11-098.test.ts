@@ -1,8 +1,17 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-098.js";
+import { compiled } from "./BT11-098.js";
 
 describe("BT11-098 Maelstrom", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-098")).toMatchObject({ cardId: "BT11-098", colors: ["Blue"], kinds: ["Option"], playCost: 5 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Main", actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"] }, { kind: "Return", to: "deckBottom" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+    ]);
+  });
+
   it("plays a blue source, then bottom-decks an opposing level 4 with Seadramon in play", async () => {
     const s = setupEngine(
       {
