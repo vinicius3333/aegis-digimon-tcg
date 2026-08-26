@@ -11,6 +11,21 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Every entry remains below 10/10 until its focused proof, relevant mechanisms, and later
   collection gate run in the authorized serial slot.
 
+### Deferred validation checklist
+
+- Do not start any validation while either external PGID `82901` or `97051` exists. Once both are
+  absent, obtain coordinator authorization before starting the next single focused file.
+- Run only one explicit card file per process, using
+  `pnpm --filter @aegis/api exec vitest run src/cards/LM/LM-###.test.ts --pool=forks
+  --poolOptions.forks.singleFork=true --no-file-parallelism`; record the exact card, command, and
+  result in this ledger before advancing to the next card.
+- Run the applicable mechanism tests only after its focused proof is green. Request a separate
+  coordinator decision gate before the collection test; do not infer collection authorization from
+  a focused or mechanism pass.
+- Re-run `git diff --check`, commit any audit changes atomically, and push normally before any
+  collection-complete notification. LM-029 remains below 10/10 unless the KB association conflict
+  receives authoritative resolution.
+
 ## Generated IR provenance reconciliation
 
 - `packages/shared/src/effects/effects.json` is a historical generated aggregate; direct LM
