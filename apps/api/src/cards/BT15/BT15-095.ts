@@ -21,7 +21,7 @@ const compiled: CompiledCard = {
           },
         },
         {
-          kind: "GrantAuraToOpponents",
+          kind: "GainTriggeredEffect",
           target: {
             filter: {
               controller: "opponent",
@@ -29,7 +29,8 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-          effectText: "[On Deletion] Trash the top card of your security stack.",
+          gainedTrigger: "onDeletionOf",
+          gainedActions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
           condition: {
             kind: "youHave",
             filter: {

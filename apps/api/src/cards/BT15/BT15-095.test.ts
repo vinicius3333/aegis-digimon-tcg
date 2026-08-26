@@ -8,8 +8,9 @@ describe("BT15-095", () => {
       target: { filter: { controller: "opponent" } },
     });
     expect(compiled.effects?.[0]?.actions[1]).toMatchObject({
-      kind: "GrantAuraToOpponents",
-      effectText: "[On Deletion] Trash the top card of your security stack.",
+      kind: "GainTriggeredEffect",
+      gainedTrigger: "onDeletionOf",
+      gainedActions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
       condition: { kind: "youHave" },
       duration: "untilOpponentTurnEnd",
     });

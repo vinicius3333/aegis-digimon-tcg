@@ -77,16 +77,13 @@ const compiled: CompiledCard = {
               },
               amount: -2000,
               duration: "untilOpponentTurnEnd",
+              scaling: {
+                per: 1,
+                filter: { controller: "mine", kind: ["Digimon"] },
+                unit: "cards",
+              },
             },
           ],
-          scaling: {
-            per: 1,
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            unit: "cards",
-          },
         },
       ],
       frequency: "OncePerTurn",

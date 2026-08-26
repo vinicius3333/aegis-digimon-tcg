@@ -5,21 +5,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldBeDeleted",
-          sourceFilter: { isSelfRef: true },
-          mode: "prevent",
-          cost: {
-            kind: "place",
-            target: { filter: { hasDigiXrosRequirement: true }, count: 2, source: ["digivolutionCards"] },
-            underFilter: { controller: "mine", kind: ["Tamer"] },
-            raw: "By placing 2 DigiXros requirement cards from this Digimon's digivolution cards under 1 of your Tamers",
-          },
-        } as any,
-      ],
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "MaterialSave", amount: 2, raw: "＜Material Save 2＞" }],
     },
     {
       trigger: "StartOfYourTurn",
@@ -33,14 +21,15 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Suspend",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, bindAs: "suspendedTarget" },
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          bindResultAs: "suspendedTarget",
           optional: false,
         },
         {
           kind: "Restrict",
           target: { fromSelectionRef: "suspendedTarget" },
           restriction: "unsuspend",
-          duration: "untilOpponentTurnEnd",
+          duration: "untilOpponentNextUnsuspendPhase",
           condition: { kind: "digiXrosCount", minimum: 2, raw: "if DigiXrosing with 2 cards" },
         },
       ],
@@ -59,6 +48,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digiXrosRequirement: [{ materials: [{ names: ["Shoutmon"] }, { names: ["Ballistamon"] }], count: 2 }],
 };
 
 registerIrCard("BT15-012", compiled);

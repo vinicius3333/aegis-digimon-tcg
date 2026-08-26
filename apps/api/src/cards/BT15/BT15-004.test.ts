@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT15-004.js";
 
 // A3 for BT15-004 (Motimon) — Green Lv.2 Digi-Egg.
 //
@@ -27,6 +28,22 @@ function fireTiming(s: EngineSetup, timing: EffectTiming): Promise<void> {
 }
 
 describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attack", () => {
+  it("registers only compiled IR for the inherited Insectoid attack", () => {
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "EndOfYourTurn",
+      isInherited: true,
+      actions: [
+        {
+          kind: "Attack",
+          attackPlayer: false,
+          optional: true,
+          drainTimingWindowDuringAttack: true,
+          condition: { kind: "selfHasTrait" },
+        },
+      ],
+    });
+  });
+
   it("triggers an attack with an Insectoid Digimon that has BT15-004 in its stack", async () => {
     const s = setupEngine(
       {
@@ -42,7 +59,7 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
         },
         1: {
           // Opponent needs at least one Digimon for the canActivate check (and the attack target).
-          battleArea: [{ card: DUMMY, dp: 3000 }],
+          battleArea: [{ card: DUMMY, dp: 3000, suspended: true }],
           security: [
             { card: DUMMY, faceUp: true },
             { card: DUMMY, faceUp: true },
@@ -132,5 +149,29 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
 
     // The canActivate guard (types must include "Insectoid") prevents the attack.
     expect(s.perm("nonInsectoid").isSuspended, "non-Insectoid must not be suspended").toBe(false);
+  });
+
+  it("allows only the first of two pending Motimon effects to declare an attack (KB Q2491)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: TENTOMON, dp: 4000, as: "first", under: [MOTIMON] },
+            { card: TENTOMON, dp: 4000, as: "second", under: [MOTIMON] },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: DUMMY, dp: 1000, as: "target1", suspended: true },
+            { card: DUMMY, dp: 1000, as: "target2", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await fireTiming(s, EffectTiming.OnEndTurn);
+
+    expect([s.perm("first").isSuspended, s.perm("second").isSuspended].filter(Boolean)).toHaveLength(1);
   });
 });

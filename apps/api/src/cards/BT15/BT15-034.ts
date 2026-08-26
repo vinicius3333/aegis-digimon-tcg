@@ -40,7 +40,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           from: ["hand"],
-          toTop: false,
+          position: "choice",
           condition: {
             kind: "securityAtMost",
             value: 2,

@@ -30,14 +30,7 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
-      actions: [
-        {
-          kind: "Restrict",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          restriction: "beDeletedInBattle",
-          duration: "permanent",
-        },
-      ],
+      actions: [],
       keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }],
       isInherited: true,
     },

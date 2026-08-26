@@ -106,14 +106,19 @@ export interface Cost {
   position?: "top" | "bottom" | "choice" | "faceUpBottom";
   /**
    * `"self"` places under the source; `"target"` under the `underFilter` host (legacy string
-   * form); the object form lets the player pick a matching host (BT21-071).
+   * form); `"triggerSource"` uses the timing payload host; the object form lets the player pick
+   * a matching host (BT21-071).
    */
   host?: "self" | "target" | "triggerSource" | { filter: Filter; count: number; orFilters?: Filter[] };
   /** Only meaningful for `destination:"security"`; digivolution cards are always face-down. */
   faceDown?: boolean;
   /** The place cost relocates a battle-area permanent rather than a loose card. */
   targetIsPermanent?: boolean;
-  /** Trash the relocated permanent's own digivolution cards instead of carrying them to the destination. */
+  /**
+   * When relocating a permanent as a placement cost, move only its top card to the destination;
+   * trash its existing digivolution and linked cards to their respective owners instead of
+   * attaching the entire prior stack. Ignored unless `targetIsPermanent` is true.
+   */
   shedOwnCards?: boolean;
   /** Store the chosen host permanent id for a downstream `target.fromSelectionRef`. */
   bindHostAs?: string;
