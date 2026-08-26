@@ -529,3 +529,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-026.
+
+## BT25-027 — MachGaogamon — 10/10
+
+- Catalog evidence: Blue/black level-5 Digimon, play cost 7, 7000 DP, `Ultimate`/`Data`, `Cyborg`/`DATA SQUAD`; standard blue or black level-4 evolution for 3 plus alternate level-4 `DATA SQUAD` evolution for 3; shared once-per-turn When Digivolving/When Attacking sequence optionally returns one opposing level-4-or-lower Digimon to hand, then optionally trashes the bottom face-down card under a friendly Tamer to unsuspend this Digimon; all-turn once-per-turn self leave prevention for the same cost; inherited once-per-turn leave prevention for a friendly Gaogamon-name or DATA SQUAD Digimon for the same cost.
+- Knowledge base: `node tools/kb/query.mjs card BT25-027` returned no entries, so there are no local card-specific rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: both primary timings share `ir-shared-0`, preserve the optional bounce and independently optional paid unsuspend, use the dedicated bottom-face-down-under-Tamer cost, and target self correctly. Both leave replacements use prevention mode, controller-owned costs, and source filters matching the main/inherited text. The alternate evolution is complete. Direct/shared IR match, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-027", compiled)`.
+- Behavioral proof: the existing focused suite verifies the compiled timing, target, shared-frequency, payment, replacement, inherited-filter, and evolution contract. Delegated runtime smoke checks cover bounce level boundaries, exact unsuspend payment, shared timing consumption, and both main/inherited leave-prevention paths. No defect was found, so no implementation or test change was made.
+- Verification: focused suite — 2 passed; focused plus interpreter/leave-prevention mechanisms — 203 passed; `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-027 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-027
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-027.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-027.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-027.
