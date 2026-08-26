@@ -461,3 +461,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: Mushroomon and Darcmon prove the ordinary Vegetation/Fairy pair; Palmon accepts real Carnivorous Plant BT1-071 under Q1971. A reveal with only the Plant match proves Q1972 while the two-category fixtures prove Q1973 adds both.
 - Behavioral proof: four focused cases prove catalog/IR fidelity, exact reveal count, both independent buckets, compound Plant matching, mandatory dual addition, sole-category addition, and bottoming all other cards.
 - Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
+## BT10-047 — RedVegiemon — 10/10
+
+- Catalog evidence: green level 4 Digimon, play cost 3, 3000 DP; evolves from green level 3 for 1; form `Champion`, attribute `Virus`, type `Vegetation`; it has no main, inherited, or Security effect text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-047` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct compiled module intentionally has an empty effect list with full coverage and no residual clauses, and registers exclusively through `registerIrCard("BT10-047", compiled)`. All executable behavior is catalog-driven ordinary play and evolution.
+- Primitive trace: normal evolution validates the exact green level-3 recipe, charges 1, performs the evolution draw, and retains the base as a source; normal play charges printed cost 3 and creates a 3000-DP permanent without an effect window.
+- Cross-card and stack proof: real green level-3 Palmon proves the catalog evolution transition, while a second physical RedVegiemon proves direct play independently.
+- Behavioral proof: two focused cases assert complete catalog identity, exact empty IR, legal evolution and retained stack, printed-cost play, final memory and zones, and absence of an effect decision.
+- Verification: focused suite — 2 passed; generic play/evolution mechanisms exercised through production flows; focused lint/format and `git diff --check` — passed.
