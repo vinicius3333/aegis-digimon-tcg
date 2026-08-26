@@ -1557,3 +1557,39 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-036 — Renamon — 10/10
+
+- Catalog evidence: Yellow Lv.3 Rookie Digimon, Data/Beastkin, play cost 4,
+  3000 DP, and yellow Lv.2 evolution cost 0. Its `[On Play]` effect gives
+  exactly 1 opposing Digimon `<Security Attack -1>` until the end of the
+  opponent's next turn. It has no inherited or Security text.
+- Knowledge-base and rules evidence: the card query returns no QA, errata,
+  restriction, or ruling entry, so the catalog text is controlling. The
+  applicable local rules cover on-play timing, Security Attack modifiers,
+  controller-qualified targeting, and opponent-next-turn duration expiry.
+- Implementation: `apps/api/src/cards/BT5/BT5-036.ts` contains one `OnPlay`
+  `GainKeyword` action targeting one opponent-controlled Digimon. It grants
+  `SecurityAttack` with amount -1 and `untilOpponentTurnEnd` duration. The
+  module declares `coverage: "full"`, `residual: []`, and registers
+  exclusively through `registerIrCard("BT5-036", compiled)`.
+- Primitive and peer evidence: the keyword ledger combines signed Security
+  Attack amounts and the combat security-check calculation consumes the
+  resulting value. The duration is anchored to the source controller's
+  opponent and survives intermediate turn transitions until that opponent's
+  end-of-turn sweep. BT5-042 and BT5-057 exercise the same turn-duration and
+  opposing-target interpreter paths.
+- Behavioral proof: 2 focused tests prove the exact -1 amount, exactly one
+  selected opposing target, exclusion of a second opponent and of the
+  controller's own Digimon, persistence into the opponent's turn, and expiry
+  only after that opponent's turn ends.
+- Defect corrected: none in the module. The implementation was already
+  faithful; the audit strengthened the existing test because its title
+  claimed the duration boundary without previously advancing through it.
+- Verification: focused BT5-036, BT5-042 and BT5-057 peers, and the complete
+  interpreter suite — 4 files, 187 tests passed. Targeted Oxfmt, Oxlint, and
+  `git diff --check` pass. Workspace typecheck passes shared and web while API
+  retains only the known unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
