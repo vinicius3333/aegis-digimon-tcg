@@ -1,8 +1,23 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT9-069.js";
+import { compiled } from "./BT9-069.js";
 
 describe("BT9-069 Baihumon", () => {
+  it("matches catalog and Q1858-Q1861 mixed-target and aggregate-count IR", () => {
+    expect(getCardDefinition("BT9-069")).toMatchObject({
+      cardId: "BT9-069", nameEn: "Baihumon", colors: ["Black"], kinds: ["Digimon"], level: 6,
+      playCost: 13, dp: 13000, evoCosts: [{ color: "Black", level: 5, memoryCost: 5 }], forms: ["Mega"],
+      attributes: ["Data"], types: ["Holy Beast", "Four Sovereigns"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "WhenDigivolving", actions: [{ kind: "Unsuspend", target: { filter: { kind: ["Digimon", "Tamer"] }, count: 2, upTo: true } }, { kind: "GainMemory", amount: 1, scaling: { unit: "cards" } }] },
+        { trigger: "EndOfYourTurn", frequency: "OncePerTurn", actions: [{ kind: "Trash", target: { filter: { zone: "security", position: "top" }, count: 1 }, scaling: { per: 2, unit: "cards" } }] },
+      ],
+    });
+  });
+
   it("unsuspends up to 2 permanents and gains memory for every opposing unsuspended Digimon and Tamer", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

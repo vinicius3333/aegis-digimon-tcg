@@ -14,7 +14,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   opponent has in play, trash 1 card from the top of your opponent's security stack."
 // Q1861: count all opponent's unsuspended Digimon+Tamers, divide by 2 (floor).
 // Fix: Trash target needs zone:"security", position:"top" (not a generic opponent filter).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
