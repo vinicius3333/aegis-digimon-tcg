@@ -194,7 +194,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-068 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, alternate level-3 Chessmon evolution at 2, and optional opponent-turn level-4-or-lower Chessmon hand play on deletion.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-068.test.ts` passed (2 tests): IR clause proof and live opponent-turn deletion play.
-- BT13-069 — Pending
+- BT13-069 — 10/10
+  - Evidence: catalog and KB Q2309/Q2310 reviewed; corrected compiled IR to allow any controller's other Sukamon-name Digimon as the inherited deletion-prevention cost, while retaining optional attack play of an own level-4-or-lower Sukamon and alternate level-4 Sukamon evolution.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-069.test.ts` passed (3 tests): attack play, Q2309 opponent-Sukamon deletion prevention, and replacement/source IR proof.
 - BT13-070 — Pending
 - BT13-071 — Pending
 - BT13-072 — Pending

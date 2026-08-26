@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-069.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-069 KingSukamon", () => {
@@ -46,7 +47,7 @@ describe("BT13-069 KingSukamon", () => {
                 kind: "deleteOwn",
                 target: {
                   filter: {
-                    controller: "mine",
+                    controller: "any",
                     excludeSelf: true,
                     kind: ["Digimon"],
                     nameOrTrait: [{ match: "name", tokens: ["Sukamon"] }],
@@ -76,5 +77,20 @@ describe("BT13-069 KingSukamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT11-040"), 3000);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT11-040")).toBe(true);
+  });
+
+  it("may delete an opponent's other Sukamon to prevent its inherited host's deletion (Q2309)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT11-040", as: "host", under: ["BT13-069"] }] },
+        1: { battleArea: [{ card: "BT11-040", as: "opponent-sukamon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const opponentSukamonId = s.perm("opponent-sukamon").permanentId;
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("host"));
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === opponentSukamonId)).toBe(false);
   });
 });
