@@ -899,3 +899,50 @@ git diff --check
 ```
 
 A broader exploratory command over 10 files and 400 tests also reproduced three unrelated pre-existing failures in `BT26-031.test.ts`, `BT26-084.test.ts`, and `BT26-086.test.ts`; none of those cards/tests is touched by this audit, and the directly affected BT26-019, suspend-normalization peers, Link, interpreter, primitive, and combat-legality suites pass. This card's implementation and focused proof were adjusted for the real suspend-regression cause. Only this BT26-019 section and its minimal shared-seam/card/test changes are left uncommitted for coordinator review; no commit or push was made.
+
+## BT26-020 — ShellNumemon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-020` (`ShellNumemon`), a blue level 4 Champion Digimon with 4000 DP, Virus attribute, and `Crustacean`/`DS` traits. Its normal evolution requirement is blue Lv.3 for 2; its alternate requirement is `[Digivolve] Lv.3 w/[DS] trait: Cost 2`. The printed effects are `[On Play] ＜Draw 1＞ Then, 1 of your opponent's Digimon can't attack or block until their turn ends.` Its inherited effect is `＜Evade＞`.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-020`; it reports no card-specific knowledge-base entries, errata, restrictions, or unresolved rulings.
+- Comprehensive Rules evidence: §15-1-2/§15-1-4 establish mandatory printed processing order and `Then` sequencing; §15-11-1-1/§15-11-1-3 define individual target selection and persistence after selection; §15-16-2 defines On Play timing; §15-3-1/§15-3-2 define inherited effects and their Digimon-effect identity; §16-8 defines Draw 1; and §16-22-1–3 defines Evade as an optional suspend that prevents deletion. The manual's target-choice and turn-end examples also confirm that an individually chosen Digimon remains restricted even if its later state changes, and that `until their turn ends` lasts through the affected opponent's turn.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-020.ts` is an IR-only module. Its On Play effect executes `Draw` for one card under the source controller, then resolves one opposing Digimon target and applies `attackOrBlock` until `untilOpponentTurnEnd`. The interpreter expands `attackOrBlock` to both `attack` and `block` restrictions on the same selected permanent; the target filter's `controller: "opponent"` and `kind: ["Digimon"]` exclude own permanents, Tamers, Options, and non-battle-area cards unless explicitly included by text.
+- The inherited effect is represented by a `Static` effect with `isInherited: true` and the `Evade` keyword marker. The compiled-card runtime grants this inherited keyword to the host Digimon only while the card is in its evolution stack; a top-card ShellNumemon does not receive its own inherited effect as a host.
+- The alternate evolution requirement is supplied by the shared generated override as level 3, exact `DS` trait, cost 2, alternate. Registration is exclusively `registerIrCard("BT26-020", compiled)`; no `registerCard` registration exists for this card. `coverage` is `full` and `residual` is empty.
+- Relevant peers and seams inspected: BT26-018 for the adjacent DS trait/evolution path; BT19-018, BT24-050, and EX3-020 for printed and inherited Evade handling; BT19-077 and the engine's attack-or-block targeting examples for the same restriction vocabulary; shared target resolution, restriction, duration, draw, inherited-keyword, combat-legality, and deletion/Evade primitives. Their controller, zone, target, timing, duration, and evolution-stack semantics are consistent with ShellNumemon.
+
+### Behavioral proof
+
+The focused `apps/api/src/cards/BT26/BT26-020.test.ts` suite has 6 passing tests proving:
+
+- complete IR coverage, empty residuals, Draw followed by same-target `attackOrBlock`, and inherited Evade metadata;
+- mandatory Draw 1 with a populated deck, selection of exactly one among two opposing Digimon, and no leakage to the unselected target;
+- the selected Digimon being unable to declare an attack and unable to block, while the restriction remains through the owner's turn end and expires at the affected opponent's turn end;
+- the `Then` restriction still applying when Draw 1 has no card to draw;
+- the exact level-3 DS alternate evolution at cost 2, rejection of a same-level non-DS near-match, memory payment, and stack transition; and
+- inherited Evade applying only to a host containing ShellNumemon in its evolution stack, then actually suspending that host and preventing effect deletion through the `respondEvade` decision.
+
+The focused and regression suites resolve the full effect stack and assert observable hand/deck, target restrictions, attack legality, block legality, turn-end duration, evolution stack, keyword inheritance, suspension, and deletion state. No unresolved card-text ambiguity remains. No code or test changes were necessary for this audit.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-020
+  PASS (no knowledge-base entries; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-020.test.ts
+  PASS (1 file, 6 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-020.test.ts src/cards/BT26/BT26-018.test.ts src/cards/BT26/BT26-071.test.ts src/cards/BT19/BT19-018.test.ts src/cards/BT24/BT24-050.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/conformance/ch15-03-targeting-and-selection.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts src/engine/combat/legality.test.ts
+  PASS (10 files, 420 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-020.ts apps/api/src/cards/BT26/BT26-020.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+Only this BT26-020 ledger section is left uncommitted for coordinator review; no code/test change, commit, or push was made.
