@@ -18,7 +18,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fix 4: Use excludeNameOrTrait for "without [X Antibody] in traits" (prior IR used
 //   nameOrTrait which MATCHED cards WITH X Antibody — inverted logic).
 // Fix 5: Security effect targets opponent Digimon (text specifies "your opponent's").
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

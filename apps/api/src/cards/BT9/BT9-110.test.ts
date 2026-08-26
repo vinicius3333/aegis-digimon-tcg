@@ -1,10 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-110.js";
 import "./BT9-110.js";
 
 describe("BT9-110 X Program", () => {
+  it("matches catalog values and global-count branch, waiver, and security IR", () => {
+    expect(getCardDefinition("BT9-110")).toMatchObject({
+      colors: ["White"], kinds: ["Option"], playCost: 8,
+      securityEffectText: "[Security] Delete 1 of your opponent's Digimon without [X Antibody] in its traits.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "Static", actions: [{ kind: "WaiveColorRequirement" }] },
+        {
+          trigger: "Main",
+          actions: [{
+            kind: "ConditionalBranch", condition: { kind: "totalDigimonCount", value: 3 },
+            ifTrue: [{ kind: "Delete", target: { count: "all", filter: { excludeNameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } } }],
+            ifFalse: [{ kind: "Delete", target: { count: 1 } }],
+          }],
+        },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "Delete", target: { filter: { controller: "opponent", excludeNameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } } }] },
+      ],
+    });
+  });
+
   it("deletes exactly 1 non-X-Antibody Digimon while fewer than 3 are in play", async () => {
     const s = setupEngine(
       {
