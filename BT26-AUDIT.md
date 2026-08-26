@@ -1469,3 +1469,53 @@ git diff --check
 ```
 
 No unresolved BT26-032 ambiguity or unsupported printed clause remains. The only change for this card is the corrected stale Digisorption expectation in its focused test; implementation files remain unchanged. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-032; no later card section was touched.
+
+## BT26-033 — Jupitermon / Wide Plasment — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-033` (`Jupitermon` / `Wide Plasment`), a yellow/red level-6 DUAL Digimon/Option with play cost 2, 13000 DP, Vaccine attribute, and `Shaman`/`Olympos XII`/`Iliad`/`TS` traits. Its normal evolution requirements are yellow Lv.5 for cost 5 or red Lv.5 for cost 5; its alternate requirement is Lv.5 with the `TS` trait for cost 4. The Digimon text is `＜Raid＞ ＜Alliance＞ ＜Engage＞ [When Digivolving] Add your top security card to the hand. Then, if it's your turn, you may play or use 1 [Iliad] card from your hand with the cost reduced by 5. [All Turns] When any of your [TS] trait Digimon or Tamers would leave the battle area, by placing this Digimon's top stacked card as the bottom security card, they don't leave.` The Option text is `For each of your security cards, add 1 to this card's use cost. ＜Use Req. ([TS] trait)＞ [Main] Delete all of your opponent's Digimon with the lowest DP. Then, ＜Recovery +1＞`.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-033 --json`; it reports no banlist restriction and no erratum. Q7004 confirms that Jupitermon's paid `-5` play reduction stacks with BT25-044 Junomon's own reduction for a total of 10. Q7005 confirms that the All Turns replacement prevents every simultaneously-leaving matching Digimon/Tamer after one payment, without a per-target choice. Q7006 confirms that Wide Plasment's first cost effect is always active and its use cost constantly fluctuates with the current security count.
+- Comprehensive/manual rules evidence: §§2-3-5-1–3 and 8-1-3 define the normal/alternate evolution requirements, costs, stack transition, and evolution draw; §§4-6-1–6 distinguish DUAL Digimon/Option information and the declared use side; §§4-7-1–10 and 4-8-1–2 define stacked-card order, top-card identity, visibility, and the fate of cards under a permanent that leaves; §§4-22-1–5 define Option color requirements and field color sources; §§9-1-1–9 define Option use, payment, the no-area resolving window, and pending trash; §§15-7-1–5 define optional processing and payment gates; §§15-8-2/3/4 define persistent, trigger-type, and activation-type timing; §§15-14-1-1–5 define once-per-turn boundaries (not printed on this card); §§15-16-3-1, 15-16-7-1, and 15-16-9-1 define When Digivolving, Main, and All Turns timing; §§16-24-1–5 define Alliance; §16-42-1–3 defines Use Req.; and §17-1-2-2/17-1-3-1–2 defer DP-0 deletion and other rule checks until effect resolution completes. No applicable ruling, restriction, erratum, or unresolved ambiguity remains.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-033.ts` is compiled IR and registers exactly once through `registerIrCard("BT26-033", compiled)`; there is no `registerCard` registration. The alternate requirement is exact (`level: 5`, `traits: ["TS"]`, `cost: 4`, `isAlternate: true`); the two normal color/Lv.5 routes remain handled by the shared evolution legality path. Raid, Alliance, and Engage are published as keyword metadata.
+- The When Digivolving body first moves exactly one own top security card to hand, then exposes an optional, your-turn-only modal. Its play branch selects one own-hand `Iliad` Digimon/Tamer and its use branch selects one own-hand `Iliad` Option; both pay the normal cost after applying the printed `-5` reduction, preserving Q7004's stacked-reduction behavior. The source/controller, hand zone, one-card count, optionality, turn gate, and Option-vs-play split are explicit.
+- The All Turns replacement uses `wouldLeavePlay`, `sourceFilter`/target filters for own `TS` permanents, `affectsAll: true`, and a `placeAsSecurity` cost targeting this source's top card at the bottom of the controller's security. The shared leave-prevention consult pays once and marks every matching simultaneous departure prevented, exactly as Q7005 requires; the source top-card placement and face-down bottom-security default are traced through `payCost`, `addSecurity`, leave-cause handling, and stack teardown.
+- The Option-side static `CostModifier` is hand-resident, self-targeted, permanent, and adds one to use cost per own security card. The live modifier ledger is read for both normal Option use and effect-driven use, so Q7006's constant cost fluctuation is preserved. The separate static `WaiveColorRequirement` is conditioned on an own live `TS` permanent, implementing `＜Use Req. ([TS] trait)＞`; the Main body deletes all opponent Digimon tied for lowest DP, then performs one Recovery. It does not target Tamers, and the recovery/rule-check order remains deferred through the normal effect stack.
+- Shared seams and peers inspected: `actions/borrowed.ts` and `actions/play.ts` for paid effect-driven play/use and cost reductions; `actions/security.ts`, `costs.ts`, `leavePrevention.ts`, and `primitives.ts` for security movement, bottom placement, simultaneous prevention, and permanent stack fate; `resources.ts`/`modifiers.ts` for hand-resident dynamic use cost; `conditions.ts`/target matching for field `TS` Use Req. and lowest-DP ties; DUAL `playCard.ts`/Arts-Digivolve routing; and BT26-029, BT26-032, BT26-080, BT26-103, BT24-093, and BT24-101 for adjacent DUAL, Iliad/TS, security, and evolution-stack patterns. Raid/Alliance/Engage registration and their combat consumers were also checked. No inherited or Security clause exists on this card.
+
+### Behavioral proof
+
+The existing focused `apps/api/src/cards/BT26/BT26-033.test.ts` suite has 4 passing tests proving:
+
+- full IR coverage with no residual behavior, exact DUAL-facing keyword metadata, alternate evolution shape, explicit your-turn modal split, All Turns `affectsAll` replacement, dynamic use-cost modifier, conditional color waiver, lowest-DP deletion, and Recovery;
+- Q7004's real When Digivolving path: top security to hand, paid Junomon play, stacked `-5` reductions, and final memory/zone state;
+- Q7005's simultaneous boundary: one top Jupitermon card placed at bottom security and every matching TS Digimon protected by one payment; and
+- Q7006's real Option use: use cost `2 +` the three live security cards, full lowest-DP tie deletion, deferred Recovery +1, and final Option trash.
+
+These assertions are mutation-sensitive and use public intents, `advance`, and settled observable state. The focused proof exercises a real evolution-style source, an explicit stacked source card for the replacement payment, mixed lowest-DP opponents, an Iliad peer card, and the DUAL Option lifecycle. Shared mechanism tests cover optional decisions, controller/zone/kind filters, payment/flooring, dynamic scaling, security face/order, simultaneous replacement, stack teardown, DUAL mode, and rule-check timing. No card-specific implementation or test change was necessary because the committed implementation and tests are sufficient.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-033 --json
+  PASS (Q7004–Q7006; banlist: null; errata: null)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-033.test.ts
+  PASS (1 file, 4 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-029.test.ts src/cards/BT26/BT26-032.test.ts src/cards/BT26/BT26-080.test.ts src/cards/BT26/BT26-103.test.ts src/cards/BT24/BT24-093.test.ts src/cards/BT24/BT24-101.test.ts
+  PASS (6 files, 49 tests)
+pnpm --filter @aegis/api exec vitest run src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/leavePrevent.test.ts src/engine/security/securityCheck.test.ts
+  PASS (5 files, 373 tests)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxlint apps/api/src/cards/BT26/BT26-033.ts apps/api/src/cards/BT26/BT26-033.test.ts
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-033.ts apps/api/src/cards/BT26/BT26-033.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-033 ambiguity or unsupported printed clause remains. No implementation, shared-engine, or test changes were needed. The audit entry is intentionally uncommitted and unpushed, and this audit is limited to BT26-033; no later card section was touched.
