@@ -5,6 +5,7 @@ import { runtimeCompiledCard } from "../compiledCards.js";
 import { runEffect } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
+import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { runActivateEffect, runActivateForeignEffect, runActivateMain, runUseOptionWithoutCost } from "./borrowed.js";
 import { EffectTiming } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
@@ -31,6 +32,19 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
       return false;
     }
     case "ReactivateEffect": {
+      if (action.target !== undefined) {
+        const timing = action.fromTrigger === "WhenDigivolving" ? EffectTiming.WhenDigivolving : undefined;
+        if (timing === undefined) {
+          unsupported(ctx, action, `targeted reactivation does not support ${action.fromTrigger}`);
+          return false;
+        }
+        const targetIds = await resolvePermanentTargets(ctx, action.target);
+        ctx.lastEffectActed = false;
+        for (const permanentId of targetIds) {
+          ctx.lastEffectActed = (await ctx.fx.reactivateOnPlay?.(permanentId, { timings: [timing], chooseOne: false })) === true || ctx.lastEffectActed;
+        }
+        return false;
+      }
       if (action.targetSource === "triggerSubject") {
         const permanentId = ctx.trigger.subjectPermanentId;
         if (permanentId === undefined) {
