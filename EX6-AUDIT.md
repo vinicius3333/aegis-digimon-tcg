@@ -240,3 +240,12 @@ root-worktree Vitest workload has cleared.
 - Shared primitive trace: Suspend resolves battle-area permanents from either controller and respects normal target legality. The inherited attack watcher uses the shared frequency ledger and adds a turn-bounded negative DP modifier through the continuous modifier layer.
 - Existing observable proof: generic suspend targeting, inherited trigger frequency, opponent target filtering, and temporary DP modifier tests cover the shared mechanics; the colocated suite asserts the card shape. No EX6-032-specific runtime fixture currently distinguishes opponent versus controller targets, repeat attacks, or turn-end expiry.
 - Status: not rated 10/10; focused execution is deferred while the unrelated Vitest process remains active.
+
+## EX6-033 — Turuiemon — evidence in progress
+
+- Catalog evidence: Green/yellow level 4, play cost 5, 5000 DP, evolves from green/yellow level 3 for 2 and has alternate Lopmon/Terriermon evolution for 2; form `Champion`, attribute `Data`, trait `Beastkin`. On Play and When Digivolving, it may suspend one Digimon. Its inherited When Attacking once-per-turn clause gives one opposing Digimon -2000 DP for the turn.
+- Knowledge base: no local card-specific entries.
+- Direct IR: each printed timing has an independent optional any-Digimon `Suspend`; the inherited attacker effect is a one-target opposing -2000 turn modifier with source-instance OncePerTurn. Alternate evolution, full coverage, empty residuals, and exclusive `registerIrCard("EX6-033", compiled)` registration are intact. The stale suite title now names Turuiemon.
+- Shared primitive trace: entry timing selects either controller's battle-area Digimon and uses the standard optional target decision. The inherited watcher and modifier ledger provide one use per source per turn and turn-end cleanup.
+- Existing observable proof: shared tests already cover optional any-target suspend at both entry timings plus inherited opponent DP targeting, frequency, and expiry; the colocated suite checks the direct IR contract. No material semantic boundary lacks shared evidence, so no new test is added.
+- Status: not rated 10/10; focused execution is deferred while the unrelated Vitest process remains active.
