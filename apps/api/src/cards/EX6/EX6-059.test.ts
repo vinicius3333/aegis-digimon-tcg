@@ -13,10 +13,10 @@ describe("EX6-059 Barbamon", () => {
     expect(text).toContain("playCostLteScaling");
   });
 
-  it("plays an eligible purple card when an opponent hand card is actually trashed", async () => {
+  it("plays a purple card exactly at the scaled cost-9 ceiling", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-059", as: "barbamon" }], trash: ["BT10-012", "BT11-071"] },
+        0: { battleArea: [{ card: "EX6-059", as: "barbamon" }], trash: ["BT10-012"] },
         1: { hand: [{ card: "BT1-010", as: "discard" }, "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -26,6 +26,21 @@ describe("EX6-059 Barbamon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-012"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-012")).toBe(true);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT11-071");
+  });
+
+  it("rejects an isolated purple card above the scaled cost-9 ceiling", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-059", as: "barbamon" }], trash: ["BT11-071"] },
+        1: { hand: [{ card: "BT1-010", as: "discard" }, "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.trash([s.inst("discard").instanceId], 0);
+    await settle(() => s.state.players[1]!.hand.length === 1);
+
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT11-071"]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["EX6-059"]);
   });
 });
