@@ -233,3 +233,73 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   `primitives.test.ts`; it reports no BT5-004 source errors. Changed-file
   formatting and `git diff --check` are clean.
+
+## BT5-005 — Tsumemon — 10/10
+
+- Catalog evidence: Black Digi-Egg, Lv.2 In-Training, play cost -1, DP 0,
+  no digivolution costs, [Unidentified] type, rarity U, and max 4 copies. It
+  has no regular, main, or Security text. Its sole inherited clause is
+  "[When Attacking][Once Per Turn] If this Digimon has [Unidentified] in its
+  type, trigger ＜Draw 1＞. (Draw 1 card from your deck.)"
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-005`
+  returns the card identity with no knowledge-base entries, so the catalog
+  wording is the governing contract. Comprehensive Rules §2-3-2-3 defines a
+  trait reference as requiring a matching trait, §4-3-3 and §15-3-1 establish
+  that a Digimon gains inherited effects from cards stacked beneath it, and
+  §11-1-3/§11-1-4 establish the attack-declaration timing and that subsequent
+  timing waits for triggered effects to resolve. Comprehensive §15-8-3-1
+  defines trigger-type effects such as [When Attacking], while §15-14-1-2,
+  §15-14-1-3, and §15-14-1-5 define the once-per-turn cap, per-copy counting,
+  and reset on turn change or becoming a new card. The glossary's
+  `When Attacking`, `Once Per Turn`, `Digivolution Card`, and `Type` entries
+  provide the same operational meanings. No errata, ruling, restriction, or
+  card-specific ambiguity applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-005.ts` contains one inherited
+  `WhenAttacking` effect with `frequency: "OncePerTurn"`. Its only action is
+  `{ kind: "Draw", controller: "mine", amount: 1 }`, gated by
+  `selfHasTrait` with an exact trait reference for `Unidentified`. The module
+  registers only through `registerIrCard("BT5-005", compiled)`, declares
+  `coverage: "full"`, and has `residual: []`.
+- Primitive trace: `selfHasTrait` reads the live top card of the source
+  permanent and uses `matchNameOrTrait` in `trait` mode, whose normalized
+  trait comparison is exact rather than substring-based; stack cards below
+  the top card are not incorrectly treated as the host's type. Registration
+  routes `WhenAttacking` to the attack-declaration window, propagates
+  `OncePerTurn` to the watcher, and keys the use budget by the inherited
+  source instance. The Draw action consumes one card from the source
+  controller's deck into that controller's hand. These semantics align with
+  comparable inherited trait gates in BT17-005 and BT22-005 and with the
+  neighboring BT5-001 inherited attack-draw effect.
+- Peer and evolution-stack evidence: BT5-001 confirms the neighboring
+  Digi-Egg pattern of an inherited attack-triggered once-per-turn draw, while
+  BT17-005 and BT22-005 use the same exact `selfHasTrait` primitive for
+  Unidentified. The focused suite includes two simultaneous Unidentified
+  hosts, an Unknown near-match (`BT11-061`), and a nonmatching Crustacean
+  (`BT5-021`), proving the trait boundary across a mixed board. It also
+  builds a legal BT5-005 (Lv.2) -> BT5-059 (Lv.3) breeding evolution, moves it
+  to the battle area, then evolves to BT5-063 (Lv.4), checking each source
+  transition and the final stack before attacking.
+- Behavioral proof: 5 focused tests pass. They prove the positive draw from
+  an Unidentified host, no draw from a host lacking that type, exact matching
+  across multiple Unidentified/Unknown/other-type hosts, one draw only across
+  repeated attacks by the same source in one turn, and inherited behavior
+  surviving the legal multi-step breeding evolution. No optional refusal,
+  target selection, duration, Security, or cost case applies because the
+  printed clause has none of those features.
+- Defect corrected: none in the card module or shared engine. The compiled IR
+  was already faithful; this audit added only the missing trait-boundary,
+  once-per-turn, and evolution-stack assertions to
+  `apps/api/src/cards/BT5/BT5-005.test.ts`.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-005.test.ts` — 1 file, 5 tests passed. Affected
+  mechanism suites also pass: `capabilities.test.ts -t selfHasTrait` (3),
+  `mechanic.test.ts -t Once Per Turn` (1),
+  `conformance/glossary.test.ts -t Once Per Turn` (1), and
+  `interactionAudit.test.ts -t per-turn use budgets` (2). Workspace
+  `pnpm typecheck` builds shared and passes web typecheck but retains
+  pre-existing unrelated API errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and `primitives.test.ts`; it reports no
+  BT5-005 errors. Changed TypeScript file `pnpm exec oxfmt --check
+  apps/api/src/cards/BT5/BT5-005.test.ts` and `git diff --check` pass. No
+  shared engine seam was changed. Remaining ambiguity: none identified.
