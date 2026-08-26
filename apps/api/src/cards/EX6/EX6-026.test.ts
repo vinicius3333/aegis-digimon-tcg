@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-026.js";
 
-describe("EX6-026 Shakamon", () => {
+describe("EX6-026 Cho-Hakkaimon", () => {
   it("grants Security Attack -1, DigiXros DP/Blocker, and inherits Security Attack -1", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 } },
+      { kind: "GainKeyword", target: { filter: { controller: "any" } }, keyword: { keyword: "SecurityAttack", amount: -1 } },
       { kind: "ModifyDP", amount: 3000, condition: { kind: "digiXrosCount" } },
       { kind: "GainKeyword", keyword: { keyword: "Blocker" }, condition: { kind: "digiXrosCount" } },
     ]);
