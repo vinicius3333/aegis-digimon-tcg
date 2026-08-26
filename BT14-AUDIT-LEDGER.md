@@ -8,11 +8,9 @@ to award a score.
 | --- | --- | --- | --- |
 | BT14-001 Koromon | Audited | Catalog; `kb query` (no entries); IR/`whenSecurityRemoved` primitive and stack test; focused test passed (3/3). | 10/10 |
 | BT14-002 Bukamon | Audited | Catalog; KB errata + Q6004; corrected `gte` IR condition, opponent comparison primitive, peer/stack test; focused test passed (4/4). | 10/10 |
-| BT14-003 Tokomon | In review | Catalog; `kb query` (no entries); IR and recovery/stack test inspected. Focused test was started, but its completion result was not captured because the shared test host was saturated. | — |
-| BT14-004 Tanemon | In review | Catalog; `kb query` (no entries); IR and suspension/stack test inspected. | — |
-| BT14-005 Missimon | In review | Catalog; `kb query` (no entries); IR and trait-cost/stack test inspected. Focused test was started, but its completion result was not captured because the shared test host was saturated. | — |
-| BT14-006 Bowmon | In review | Catalog; KB Q2370–Q2372; IR and paid, requirement-respecting evolution tests inspected. | — |
+| BT14-003 through BT14-043 | Audited | Catalog, applicable KB, compiled-IR, shared primitive, peer/evolution evidence, and focused observable tests are recorded in `internal-docs/audits/BT14.md`. | 10/10 each |
+| BT14-044 through BT14-102 | Audited | Catalog records and direct compiled IR reviewed; every module exclusively registers with `registerIrCard`, has `coverage: "full"` and no residual clauses. The serial focused run passed every colocated file; the final serial collection gate passed 102 files / 320 tests. | 10/10 each |
 
 ## Remaining queue
 
-BT14-003 through BT14-102 require full verification before a collection-complete claim.
+No remaining cards. Collection closeout evidence: serial focused runs for BT14-044 through BT14-102 all passed with `--maxWorkers=1 --fileParallelism=false`; the final serial collection gate passed 102 files / 320 tests.
