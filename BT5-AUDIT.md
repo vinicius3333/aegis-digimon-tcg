@@ -1959,3 +1959,41 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-047 — Palmon — 10/10
+
+- Catalog evidence: Green Lv.3 Rookie Digimon, Data/Vegetation, play cost 3,
+  2000 DP, and green Lv.2 evolution cost 0. On deletion, it places exactly 1
+  Palmon from its controller's trash at the bottom of the digivolution cards
+  of exactly 1 own green Digimon.
+- Knowledge-base and rules evidence: Q1333 confirms the deleted Palmon may
+  choose itself after it reaches trash. Q1334 confirms a Palmon renamed
+  Sukamon by BT11-043 still triggers while renamed, then loses that field
+  rewrite in trash and may identify/place the same physical card as Palmon.
+- Implementation: `apps/api/src/cards/BT5/BT5-047.ts` contains a mandatory
+  `OnDeletion` `PlaceUnder` action selecting one own Palmon by printed name
+  from trash, choosing one own green Digimon host, and using
+  `position: "bottom"`. It declares `coverage: "full"`, `residual: []`, and
+  registers exclusively through `registerIrCard("BT5-047", compiled)`.
+- Primitive, name-state, stack, and peer evidence: On Deletion resolution sees
+  the deleted card in trash. Loose-card name matching reads its committed
+  definition, while continuous Sukamon name/color/DP grants are scoped to the
+  former permanent and lapse when it leaves play. `PlaceUnder` removes the
+  selected trash instance and inserts it before existing sources for true
+  bottom placement. BT11-043 supplies the real name rewrite, and filtered
+  capability tests cover PlaceUnder source, host, and position mechanics.
+- Behavioral proof: 4 focused tests prove Q1333 self-placement, no legal host
+  leaves the card in trash, Q1334 through a real KingSukamon rewrite followed
+  by deletion/self-recovery beneath an existing source, and selection of a
+  different trash Palmon while the deleted source remains in trash.
+- Defect corrected: none in the module. The implementation was faithful; the
+  audit added the missing Q1334, non-self selection, and meaningful
+  bottom-position proofs.
+- Verification: focused BT5-047, BT11-043 peer, and complete interpreter — 3
+  files, 192 tests passed. Filtered PlaceUnder capabilities — 3/3 passed.
+  Targeted Oxfmt and `git diff --check` pass; Oxlint reports only the existing
+  test-helper `no-explicit-any` pattern. Workspace typecheck retains only the
+  known unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
