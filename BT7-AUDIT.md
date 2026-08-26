@@ -26,3 +26,20 @@ rg -n 'register(Card|IrCard)\\(' apps/api/src/cards/BT7/BT7-111.ts
 ```
 
 Remaining work is behavioral proof for the clauses listed in item 10; this card is not formally complete at 10/10.
+
+## BT7-110 — Evolution Ancient — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a White Option with play cost 0 and the printed Hybrid color-waiver, level-4-to-Ten-Warriors evolution, and Security add-to-owner-hand text.
+2. **Hybrid color waiver (1/1):** The Static `WaiveColorRequirement` is conditioned on a controller-owned battle-area Digimon carrying the `Hybrid` trait, matching Q1677's battle-area ruling.
+3. **Main source target (1/1):** The Main `Digivolve` action selects exactly one of the owner's level-4 Digimon.
+4. **Evolution target and zone (1/1):** The destination is one Digimon in hand with the `Ten Warriors` trait; `from: ["hand"]` is explicit.
+5. **Color and level boundaries (1/1):** `colorsMatchDigivolvingSource: true` enforces matching colors while `ignoreLevelRequirement: true` bypasses only the destination level requirement.
+6. **Cost and Security (1/1):** `payCost: true` pays the destination's printed evolution cost, and Security uses `AddToHandSelf`.
+7. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-110` returns Q1677; no unresolved ambiguity is surfaced.
+8. **Direct IR and registration (1/1):** The module is `coverage: "full"`, has no residual clauses, and has exactly one `registerIrCard("BT7-110", compiled)` registration.
+9. **Static primitive trace (1/1):** The waiver condition, level-4 selector, trait selector, source zone, color match, level bypass, and paid evolution are all represented by explicit compiled fields.
+10. **Reproducible behavioral proof (0/1):** A colocated suite exists for same-color evolution and off-color rejection, but it was not executed in this static-only pass; waiver behavior and Security recovery are not directly covered there.
+
+Remaining work is execution of the focused suite plus Hybrid waiver and Security boundary proof; this card is not formally complete at 10/10.
