@@ -1803,3 +1803,37 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-043 — Jijimon — 10/10
+
+- Catalog evidence: Yellow Lv.6 Mega Digimon, Vaccine/Ancient, play cost 10,
+  10000 DP, and yellow Lv.5 evolution cost 2. Its sole clause is
+  `[On Deletion]` Recovery +1 (Deck), placing the controller's deck-top card
+  on top of their Security. The card query has no QA, errata, restriction, or
+  ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-043.ts` contains one
+  `OnDeletion` effect whose `SecurityManipulation addTop` action moves exactly
+  one card from the source controller's deck to their Security. It declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-043", compiled)`.
+- Primitive, stack, and peer evidence: deletion processing retains the card as
+  an effect source after it reaches trash, so controller-relative Recovery
+  still resolves for the deleted card's owner. The security primitive removes
+  the actual deck-top instance and places it face-down at Security top, safely
+  doing nothing if no card is available. EX8-033 and EX8-036 prove the same
+  On Deletion Recovery path from real evolution stacks and related conditional
+  contexts; interpreter and primitive suites cover trigger routing and zone
+  movement.
+- Behavioral proof: the focused test deletes Jijimon through the real deletion
+  primitive, tracks the exact deck-top instance into Security, and confirms
+  the deck becomes empty. The EX8 peer matrix supplies realistic stack and
+  deletion interactions without redundant focused cases.
+- Defect corrected: none. The module and existing focused proof were already
+  faithful, so no changes were made.
+- Verification: focused BT5-043, EX8-033/036 peers, complete interpreter, and
+  primitive suites — 5 files, 327 tests passed. `git diff --check` passes.
+  Workspace typecheck passes shared and web while API retains only the known
+  unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
