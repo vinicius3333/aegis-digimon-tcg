@@ -508,3 +508,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-025.
+
+## BT25-026 — Crescemon — 10/10
+
+- Catalog evidence: Blue level-5 Digimon, play cost 6, 7000 DP, `Ultimate`/`Data`, `Wizard`/`Iliad`/`TS`; standard blue or red level-4 evolution for 3 plus alternate level-4 `TS` evolution for 3; On Play/When Digivolving trash the bottom three digivolution cards of one opposing Digimon, then prevent one opposing Digimon with no digivolution cards from suspending until their turn ends; controller-turn red play/evolution reaction optionally evolves this Digimon into Dianamon from trash at cost -2; inherited controller-turn attack-target-change immunity.
+- Knowledge base: Q6290 says every friendly Digimon play/evolution event triggers, but the effect can activate only if that Digimon is red. Q6291 says a digivolution event checks the resulting, post-evolution Digimon. The structured fire condition reads the trigger subject after the event and combines red color with controller-turn scope.
+- Implementation: both entry timings preserve bottom-up digivolution trashing and independently select a now-empty opposing Digimon for the suspension restriction. Both delayed watchers are scoped to a friendly Digimon, evaluate post-event red color, optionally evolve this card into a controller-owned Dianamon from the controller's trash, and pay the printed cost reduced by 2. The alternate evolution and inherited restriction are complete. Direct/shared IR are synchronized, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-026", compiled)`.
+- Defects corrected: the direct module's watchers lacked the printed “your Digimon” source filter, and the Dianamon destination did not explicitly default to the controller. Both watchers now reject an opponent's red event and cannot consume Dianamon from the opponent's trash. These changes bring the direct module back into exact alignment with the persisted shared IR.
+- Behavioral proof: the focused suite proves both entry timings, exact bottom-three order and partial-stack handling, independent selection of the no-source restriction target, both red play/evolution routes with exact reduced-cost payment, opponent event rejection, opponent-trash exclusion, controller-turn inherited scope, and valid/invalid alternate evolution. The opponent-event and opponent-trash cases expose the prior underspecified direct IR.
+- Verification: focused suite — 12 passed; watcher/evolution/restriction mechanism regressions — 34 passed with 111 skipped; targeted Oxfmt and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-026 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-026
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-026.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-026.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-026.ts apps/api/src/cards/BT25/BT25-026.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-026.

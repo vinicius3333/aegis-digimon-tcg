@@ -1,5 +1,13 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { CardColor, EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
+import {
+  CardColor,
+  digivolutionRequirementsFor,
+  EffectTiming,
+  getCardDefinition,
+  type CardDefinition,
+  type Permanent,
+  type Seat,
+} from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type {
   DecisionApi,
@@ -9,7 +17,10 @@ import type {
   SubTriggerInstall,
 } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import "./BT25-026.js";
+import { compiled as BT25_026 } from "./BT25-026.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 let seq = 0;
 
@@ -67,6 +78,7 @@ interface Harness {
 }
 
 const RED_DIGIMON = "DIG-RED";
+const OPPONENT_RED_DIGIMON = "DIG-OPPONENT-RED";
 const BLUE_DIGIMON = "DIG-BLUE";
 const DIANAMON = "DIANAMON";
 
@@ -75,13 +87,20 @@ function makeHarness(turnSeat: Seat): Harness {
   const self = makePermanent({ cardId: "BT25-026", controllerSeat: 0 as Seat });
   const redSubject = makePermanent({ permanentId: "subj-red", cardId: RED_DIGIMON, controllerSeat: 0 as Seat });
   const blueSubject = makePermanent({ permanentId: "subj-blue", cardId: BLUE_DIGIMON, controllerSeat: 0 as Seat });
+  const opponentRedSubject = makePermanent({
+    permanentId: "subj-opponent-red",
+    cardId: OPPONENT_RED_DIGIMON,
+    controllerSeat: 1 as Seat,
+  });
   const byId: Record<string, Permanent> = {
     [self.permanentId]: self,
     "subj-red": redSubject,
     "subj-blue": blueSubject,
+    "subj-opponent-red": opponentRedSubject,
   };
   const colorsByCard: Record<string, CardColor[]> = {
     [RED_DIGIMON]: [CardColor.Red],
+    [OPPONENT_RED_DIGIMON]: [CardColor.Red],
     [BLUE_DIGIMON]: [CardColor.Blue],
     [DIANAMON]: [CardColor.Blue],
     "BT25-026": [CardColor.Blue],
@@ -96,7 +115,7 @@ function makeHarness(turnSeat: Seat): Harness {
       // A [Dianamon] in trash so the digivolve has a source to find.
       trash: [{ instanceId: "t-dianamon", cardId: DIANAMON, ownerSeat: 0 as Seat, faceUp: false }],
     },
-    { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+    { seat: 1, battleArea: [opponentRedSubject], security: [], hand: [], deck: [], trash: [] },
   ];
   const game: GameAccess = {
     state: { memory: 0, players, turnSeat } as never,
@@ -173,6 +192,14 @@ describe("BT25-026 — SubTrigger fire-time source-color gate", () => {
     await installWatchers(h);
     const colorGated = h.installs.filter((i) => i.matches !== undefined);
     expect(colorGated.length).toBeGreaterThanOrEqual(2);
+
+    const effect = BT25_026.effects.find((entry) => entry.trigger === "YourTurn" && !entry.isInherited)!;
+    const watchers = effect.actions.filter((action) => action.kind === "SubTrigger");
+    expect(watchers).toHaveLength(2);
+    for (const watcher of watchers) {
+      expect(watcher.sourceFilter).toEqual({ controller: "mine", kind: ["Digimon"] });
+      expect(watcher.actions[0]).toMatchObject({ into: { controllerDefault: "mine" } });
+    }
   });
 
   it("a RED triggering Digimon (your turn) => the gate passes and the digivolve fires", async () => {
@@ -192,10 +219,163 @@ describe("BT25-026 — SubTrigger fire-time source-color gate", () => {
     expect(install.matches!(h.subCtxFor("subj-blue"))).toBe(false);
   });
 
+  it("an opponent's red Digimon does not satisfy the 'your Digimon' clause", async () => {
+    const h = makeHarness(0 as Seat);
+    await installWatchers(h);
+    const install = h.installs.find((i) => i.matches !== undefined)!;
+
+    expect(install.matches!(h.subCtxFor("subj-opponent-red"))).toBe(false);
+  });
+
   it("a red subject on the OPPONENT's turn => the your-turn conjunct blocks the gate", async () => {
     const h = makeHarness(1 as Seat); // opponent's turn
     await installWatchers(h);
     const install = h.installs.find((i) => i.matches !== undefined)!;
     expect(install.matches!(h.subCtxFor("subj-red"))).toBe(false);
+  });
+});
+
+describe("BT25-026 — entry effects and inherited restriction", () => {
+  it.each([EffectTiming.OnPlay, EffectTiming.WhenDigivolving])(
+    "%s trashes the bottom three cards, then restricts one now-empty opponent Digimon",
+    async (timing) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT25-026", as: "source" }] },
+          1: {
+            battleArea: [
+              {
+                card: "BT1-010",
+                as: "stacked",
+                under: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+              },
+              { card: "BT1-010", as: "empty" },
+            ],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      await s.ready();
+
+      await advance(s.engine).fireForPermanent(timing, s.perm("source"));
+      await settle(
+        () => s.state.players[1]!.trash.length === 3 && observe(s.engine).isRestricted(s.perm("empty"), "beSuspended"),
+      );
+
+      expect(s.perm("stacked").stack).toHaveLength(1);
+      expect(s.state.players[1]!.trash).toHaveLength(3);
+      expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
+      expect(s.perm("stacked").stack[0]!.cardId).toBe("BT1-004");
+      expect(observe(s.engine).isRestricted(s.perm("stacked"), "beSuspended")).toBe(false);
+      expect(observe(s.engine).isRestricted(s.perm("empty"), "beSuspended")).toBe(true);
+    },
+  );
+
+  it("inherits the attack-target-change restriction only during its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT25-018", as: "host", under: ["BT25-026"] }] } });
+    await s.ready();
+
+    expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(true);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).isRestricted(s.perm("host"), "attackTargetChange")).toBe(false);
+  });
+
+  it.each(["whenPlayed", "whenOneOfYoursDigivolves"] as const)(
+    "digivolves into Dianamon from your trash for the reduced cost after a red own-Digimon %s event",
+    async (event) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT25-026", as: "source" },
+              { card: "BT1-010", as: "redSubject" },
+            ],
+            trash: [{ card: "BT25-028", as: "dianamon" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 2;
+      await s.ready();
+
+      await advance(s.engine).fireSubTrigger(event, { subjectPermanentId: s.perm("redSubject").permanentId });
+      await settle(() => s.perm("source").topCard.cardId === "BT25-028");
+
+      expect(s.perm("source").topCard.cardId).toBe("BT25-028");
+      expect(s.state.memory).toBe(0);
+      expect(s.perm("source").stack.at(-1)?.cardId).toBe("BT25-026");
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("dianamon").instanceId);
+    },
+  );
+
+  it("does not use a Dianamon in the opponent's trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-026", as: "source" },
+            { card: "BT1-010", as: "redSubject" },
+          ],
+        },
+        1: { trash: [{ card: "BT25-028", as: "opponentDianamon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("redSubject").permanentId });
+
+    expect(s.perm("source").topCard.cardId).toBe("BT25-026");
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponentDianamon").instanceId);
+  });
+
+  it("keeps the printed metadata and legal TS alternate evolution route", async () => {
+    expect(getCardDefinition("BT25-026")).toMatchObject({
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 6,
+      types: ["Wizard", "Iliad", "TS"],
+    });
+    expect(digivolutionRequirementsFor("BT25-026")).toEqual([{ level: 4, traits: ["TS"], cost: 3, isAlternate: true }]);
+
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-050", as: "tsBase" }],
+        hand: [{ card: "BT25-026", as: "crescemon" }],
+      },
+    });
+    legal.state.memory = 3;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("tsBase").permanentId,
+        instanceId: legal.inst("crescemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("tsBase").topCard.cardId === "BT25-026");
+    expect(legal.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-010", as: "nonTsBase" }],
+        hand: [{ card: "BT25-026", as: "crescemon" }],
+      },
+    });
+    invalid.state.memory = 3;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("nonTsBase").permanentId,
+        instanceId: invalid.inst("crescemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

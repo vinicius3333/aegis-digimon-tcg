@@ -84,6 +84,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+          },
           fireCondition: {
             kind: "allOf",
             conditions: [{ kind: "triggerSubjectHasColor", filter: { colors: ["Red"] } }, { kind: "isYourTurn" }],
@@ -99,6 +103,7 @@ export const compiled: CompiledCard = {
                 isSelf: true,
               },
               into: {
+                controllerDefault: "mine",
                 nameOrTrait: [
                   {
                     tokens: ["Dianamon"],
@@ -117,6 +122,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+          },
           fireCondition: {
             kind: "allOf",
             conditions: [{ kind: "triggerSubjectHasColor", filter: { colors: ["Red"] } }, { kind: "isYourTurn" }],
@@ -132,6 +141,7 @@ export const compiled: CompiledCard = {
                 isSelf: true,
               },
               into: {
+                controllerDefault: "mine",
                 nameOrTrait: [
                   {
                     tokens: ["Dianamon"],
