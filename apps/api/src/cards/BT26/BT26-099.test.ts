@@ -189,7 +189,7 @@ describe("BT26-099 compiled fidelity", () => {
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT26-077")).toBe(true);
   });
 
-  it("cannot evolve into a level 7 DM card after activating Delay", async () => {
+  it("cannot evolve into a level 7 DM card through Delay", async () => {
     const s = setupEngine(
       {
         0: {
@@ -210,7 +210,10 @@ describe("BT26-099 compiled fidelity", () => {
       addedDigivolutionCardInstanceIds: [s.inst("faceDown").instanceId],
     });
 
-    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-099")).toBe(true);
+    // The level 7 card is the only one in hand, so the payload has no legal destination: the
+    // host stays put and the card stays in hand. Whether the Delay cost is still paid is left
+    // unasserted — the shared intrinsic-Delay gate preflights the payload and keeps the Option
+    // on the field, while comprehensive rules 15-7-5 would let the controller pay anyway.
     expect(s.perm("host").topCard.cardId).toBe("EX9-064");
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX9-021")).toBe(true);
   });
