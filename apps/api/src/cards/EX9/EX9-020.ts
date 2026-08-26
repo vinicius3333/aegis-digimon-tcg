@@ -84,6 +84,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],

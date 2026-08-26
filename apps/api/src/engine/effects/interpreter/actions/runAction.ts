@@ -105,6 +105,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.kind === "Delete" &&
     action.cost?.kind === "place" &&
     ((action.cost.storeAs !== undefined && action.target.filter.levelEq === action.cost.storeAs) ||
+      (action.cost.storeAs !== undefined &&
+        action.target.filter.levelComparison?.scaling?.unit === "namedCount" &&
+        action.target.filter.levelComparison.scaling.countSource === action.cost.storeAs) ||
       (action.cost.bindResultAs !== undefined &&
         action.target.filter.levelComparison?.relativeTo === action.cost.bindResultAs));
   // A "by deleting 1 of your Digimon, delete 1 with a level no higher than it" target

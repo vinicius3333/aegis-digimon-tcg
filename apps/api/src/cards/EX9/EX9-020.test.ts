@@ -27,6 +27,7 @@ describe("EX9-020", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "Replacement",
       event: "wouldLeavePlay",
+      leaveCause: "otherThanBattle",
       actions: [{ kind: "DnaDigivolve", optional: true }],
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({
