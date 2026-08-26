@@ -32,11 +32,13 @@ describe("BT7-087 Koji Minamoto", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("koji").topCard?.instanceId === s.inst("magna").instanceId);
 
-    // MagnaGarurumon's When Digivolving effect returns one Hybrid, which also
-    // activates Koji's inherited memory gain in the complete module graph.
-    expect(s.state.memory).toBe(1);
-    expect(s.perm("koji").stack).toHaveLength(5);
-    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT7-021")).toHaveLength(1);
+    // There is no opponent Digimon with a matching level, so MagnaGarurumon's
+    // optional return cannot be activated and Koji's inherited trigger has no
+    // event to observe. The dedicated test below supplies that event.
+    expect(s.state.memory).toBe(0);
+    // Five placed Hybrids plus the evolved-from Tamer remain as sources.
+    expect(s.perm("koji").stack).toHaveLength(6);
+    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT7-021")).toHaveLength(0);
   });
 
   it("does not ignore MagnaGarurumon's printed blue level-5 evolution requirement", async () => {
