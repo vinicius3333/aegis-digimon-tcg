@@ -15,71 +15,80 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 
 - Direct IR covers Blast Digivolve, On Play/When Digivolving stack placement, cost modification,
   DP-based deletion, and the shared once-per-turn all-turns memory watcher. Existing eight focused
-  cases are unrun; no local ruling exists, so it remains below 10/10.
+  cases exercise placement ownership, dynamic color ceiling, optionality, and deletion identity;
+  they remain unrun, so it remains below 10/10.
 
 ## LM-002 — Jellymon — pending focused execution
 
 - Q3989/Q3990 require live hand-count re-evaluation across simultaneous copies; direct Main and
-  inherited attack Draw actions each gate on hand at seven-or-fewer. Existing focused cases cover
-  the timing and live threshold, but are unrun, so LM-002 remains below 10/10.
+  inherited attack Draw actions each gate on hand at seven-or-fewer. Focused cases include the
+  two-copy threshold and inherited-host timing, but are unrun, so LM-002 remains below 10/10.
 
 ## LM-003 — TeslaJellymon — pending focused execution
 
 - Q3991-Q3993 map to attack-time battle-deletion protection plus live ≤7 hand draw; Retaliation
-  remains effect deletion rather than protected battle deletion. Focused cases exist but are
-  unrun, so LM-003 remains below 10/10.
+  remains effect deletion rather than protected battle deletion. Focused cases cover declined and
+  invalid blue costs plus Security and inherited boundaries, but are unrun, so below 10/10.
 
 ## LM-004 — Thetismon — pending focused execution
 
 - Direct On Play/When Digivolving unsuspend, Tamer gate, Blocker grant, and all-turns once-per-turn
-  watcher map through IR. Existing focused cases are unrun; no local ruling exists, so below 10/10.
+  watcher map through IR; the hand-trash gate is owner-scoped by the interpreter event payload.
+  Focused cases are unrun, so below 10/10.
 
 ## LM-005 — Amphimon — pending focused execution
 
 - Q3994 supports distributed multi-target stack trash after blue hand costs; Q3995 permits stacked
-  Security Attack gains across distinct attacks. Direct IR and seven focused cases cover these
-  paths, but are unrun, so LM-005 remains below 10/10.
+  Security Attack gains across distinct attacks. Direct IR uses actual paid-count scaling and the
+  no-stack return boundary; seven focused cases are unrun, so LM-005 remains below 10/10.
 
 ## LM-006 — Cthyllamon — pending focused execution
 
 - Q3996 requires the no-source attack restriction to lapse as soon as a source is gained; direct
-  IR uses a live target filter after stack trash. Existing focused cases are unrun, so below 10/10.
+  IR uses a live target filter after stack trash, while the trash Main reducer records returned
+  Tamer cost before payment. Existing focused cases are unrun, so below 10/10.
 
 ## LM-007 — Publimon — pending focused execution
 
 - Q3997 requires mandatory End of Attack security movement; direct Security play and end-attack
-  action map to the security primitive. Focused proof is unrun, so LM-007 remains below 10/10.
+  action map to the self-bound security primitive. Focused proof includes the mandatory boundary
+  but is unrun, so LM-007 remains below 10/10.
 
 ## LM-008 — Angoramon — pending focused execution
 
 - Direct start-main Tamer memory gate and Your Turn text-sensitive DP aura map to interpreter
-  conditions. Seven focused cases are present but unrun; no local ruling exists, so below 10/10.
+  conditions; the aura evaluates the inherited host's live top-card text and owner turn. Seven
+  focused cases are present but unrun, so below 10/10.
 
 ## LM-009 — Airdramon — pending focused execution
 
 - Q3998/Q3999 require both source and destination Angoramon-text matching for suspend/cost
   replacement, and prevent post-evolution Rush from this source. Direct replacement/watcher IR
-  and focused cases are unrun, so LM-009 remains below 10/10.
+  is pay-time and self-suspension-bound; focused cases are unrun, so LM-009 remains below 10/10.
 
 ## LM-010 — Chamblemon — pending focused execution
 
 - Direct IR maps Tamer suspension/restriction and the Tamer-count-dependent all-turn DP modifier.
-  Existing six focused cases are unrun; no local ruling exists, so LM-010 remains below 10/10.
+  The restriction is a live opponent-seat filter and the DP count includes both owners' suspended
+  Tamers. Existing six focused cases are unrun, so LM-010 remains below 10/10.
 
 ## LM-011 — SymbareAngoramon — pending focused execution
 
 - Q4000 confirms the no-opponent branch grants Blocker despite no suspension target; direct IR
-  keeps the clauses independent. Existing focused proof is unrun, so LM-011 remains below 10/10.
+  keeps the clauses independent and targets any one owned Digimon; the inherited aura stays bound
+  to the host. Existing focused proof is unrun, so LM-011 remains below 10/10.
 
 ## LM-012 — Lamortmon — pending focused execution
 
 - Direct IR maps opponent suspension, no-unsuspended-opponent restriction, and once-per-turn
-  security manipulation watcher. Existing focused cases are unrun; no local ruling exists, so below 10/10.
+  security manipulation watcher. The watcher requires the host attacker to delete in battle and
+  retains host/controller identity; focused cases are unrun, so below 10/10.
 
 ## LM-013 — Diarbbitmon — pending focused execution
 
 - Q4001 maps to delayed end-of-opponent-turn return-top/trash-under behavior after free play of an
-  Angoramon-text Digimon. Direct delayed IR and focused cases are unrun, so below 10/10.
+  Angoramon-text Digimon. Direct delayed IR binds the played permanent rather than its source;
+  focused Q4001 stack-return proof is unrun, so below 10/10.
 
 ## LM-014 — Espimon — pending focused execution
 
