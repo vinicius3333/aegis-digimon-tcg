@@ -29,3 +29,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   They remain unrun while PID 43774 holds the test slot. The security-Digimon example in Q4027
   is currently mechanism-traced rather than exercised as a card-level fixture, so this card
   remains below 10/10.
+
+## LM-025 — Cyberdramon — pending focused execution
+
+- Catalog contract maps to the direct `registerIrCard` module: optional free play of one
+  revealed black cost-4-or-lower Tamer, ordered top-or-bottom return of the remainder, then
+  an opponent De-Digivolve 1 only when a Tamer is present; inherited attack De-Digivolve 1 is
+  once per turn.
+- Existing focused behavioral fixtures cover successful Tamer play plus Then De-Digivolve,
+  the no-revealed-Tamer negative, free play at zero memory, and inherited once-per-turn use.
+- No local rulings add ambiguity. The focused suite is unrun while PID 43774 holds the serial
+  slot, so this card remains below 10/10.
