@@ -43,3 +43,20 @@ Remaining work is behavioral proof for the clauses listed in item 10; this card 
 10. **Reproducible behavioral proof (0/1):** A colocated suite exists for same-color evolution and off-color rejection, but it was not executed in this static-only pass; waiver behavior and Security recovery are not directly covered there.
 
 Remaining work is execution of the focused suite plus Hybrid waiver and Security boundary proof; this card is not formally complete at 10/10.
+
+## BT7-109 — Dead or Alive — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a Purple Option, play cost 8, with the printed trash-play Main effect, 10-card alternative, and Security activation.
+2. **Default play branch (1/1):** The first compiled action plays exactly one owner Purple level-5 Digimon from `trash` without paying its memory cost.
+3. **Alternative filter (1/1):** The alternative selects exactly one owner Digimon with `Lucemon` in its name from `trash`, matching the printed name condition.
+4. **Threshold (1/1):** The alternative is conditioned on the owner's trash count being greater than or equal to 10.
+5. **Optionality and instead semantics (1/1):** The alternative is explicitly `optional: true` and `instead: true`, preserving the ruling that the normal level-5 branch remains available when the optional alternative is declined.
+6. **Security behavior (1/1):** Security uses `ActivateMain` and is marked as a Security effect.
+7. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-109` returns Q1676, confirming the 10+ trash alternative does not remove the ability to choose the ordinary Purple level-5 play.
+8. **Direct IR and registration (1/1):** The module has `coverage: "full"`, an empty residual list, and exactly one `registerIrCard("BT7-109", compiled)` registration.
+9. **Static primitive trace (1/1):** Both actions use explicit `from: ["trash"]`, `payCost: false`, controller ownership, exact count, and the threshold/name/level/color filters required by the card text.
+10. **Reproducible behavioral proof (0/1):** The colocated test covers only the ordinary Purple level-5 play and was not executed in this static-only pass; the 10-card optional choice, decline fallback, and Security path remain unproven.
+
+Remaining work is behavioral proof of the alternative and fallback branches plus Security activation; this card is not formally complete at 10/10.
