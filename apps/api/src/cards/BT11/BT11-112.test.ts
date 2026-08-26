@@ -151,3 +151,15 @@ describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory",
     expect(s.state.memory).toBe(4);
   });
 });
+
+describe("BT11-112 IR target ownership", () => {
+  it("binds both On Play keywords and reactivates the suspended permanent's effect", () => {
+    const card = runtimeCompiledCard("BT11-112")!;
+    expect(card.effects?.[0]?.actions[1]).toMatchObject({ kind: "GainKeyword", target: { sameTarget: true } });
+    expect(card.effects?.[1]?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSuspended",
+      actions: [{ kind: "Suspend" }, { kind: "ActivateEffect", target: { sourceRef: "triggerSubject" } }],
+    });
+  });
+});

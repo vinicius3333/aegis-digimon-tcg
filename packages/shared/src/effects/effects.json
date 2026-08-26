@@ -12,7 +12,8 @@
                 "controller": "mine",
                 "nameOrTrait": [{ "tokens": ["Greymon", "Garurumon", "Omnimon"], "match": "name" }]
               },
-              "count": 1
+              "count": 1,
+              "sameTarget": true
             },
             "to": "hand",
             "optional": true
@@ -123,7 +124,8 @@
                 "kind": ["Digimon"],
                 "dp": { "op": "lte", "relativeToSource": true }
               },
-              "count": 1
+              "count": 1,
+              "sameTarget": true
             }
           }
         ]
@@ -14096,7 +14098,8 @@
                 "kind": ["Digimon"],
                 "nameOrTrait": [{ "tokens": ["Veemon", "Veedramon"], "match": "name" }]
               },
-              "count": 1
+              "count": 1,
+              "sameTarget": true
             },
             "keyword": { "keyword": "Evade", "raw": "＜Evade＞" },
             "duration": "untilOpponentTurnEnd"
@@ -14104,8 +14107,30 @@
         ]
       },
       {
-        "trigger": "AllTurns",
-        "actions": [{ "kind": "ReactivateEffect", "fromTrigger": "WhenDigivolving", "count": 1 }]
+        "trigger": "Static",
+        "actions": [
+          {
+            "kind": "SubTrigger",
+            "event": "whenSuspended",
+            "sourceFilter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Veedramon"], "match": "name" }]
+            },
+            "actions": [
+              {
+                "kind": "Suspend",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
+              },
+              {
+                "kind": "ActivateEffect",
+                "target": { "filter": {}, "count": 1, "sourceRef": "triggerSubject" },
+                "effectType": "WhenDigivolving",
+                "count": 1
+              }
+            ]
+          }
+        ]
       },
       {
         "trigger": "YourTurn",
