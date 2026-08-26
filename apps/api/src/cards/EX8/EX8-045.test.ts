@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
@@ -25,13 +27,18 @@ describe("EX8-045", () => {
   });
   it("applies the multicolor DP bonus and both conditional keywords on live state", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-045", as: "callismon", under: ["EX8-032", "EX8-033"] }] },
+      0: {
+        battleArea: [
+          { card: "EX8-045", as: "callismon", under: ["EX8-032", "EX8-030"] },
+          { card: "EX8-029", as: "unrelated" },
+        ],
+      },
       1: { battleArea: [{ card: "AD1-001", as: "target" }] },
     });
     await s.ready();
     await settle(() => observe(s.engine).hasPierce(s.perm("callismon")));
 
-    expect(s.perm("callismon").currentDP).toBe(14000);
+    expect(s.perm("callismon").currentDP).toBe(13000);
     expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(1);
   });
@@ -45,5 +52,26 @@ describe("EX8-045", () => {
 
     expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(false);
     expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(0);
+  });
+
+  it("suspends one opponent and may bottom-deck a different suspended Tamer", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-045", as: "callismon" }] },
+        1: {
+          battleArea: [
+            { card: "AD1-001", as: "digimon" },
+            { card: "BT1-087", as: "tamer", suspended: true },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("digimon").permanentId);
+    const tamerId = s.inst("tamer").instanceId;
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("callismon"));
+    expect(s.perm("digimon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(tamerId);
   });
 });

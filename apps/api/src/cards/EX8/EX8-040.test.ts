@@ -63,4 +63,13 @@ describe("EX8-040", () => {
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("opponent").isSuspended).toBe(false);
   });
+
+  it("applies its inherited DP grant only during the host controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-040"] }] } });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(7000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(5000);
+  });
 });

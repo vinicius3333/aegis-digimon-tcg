@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./EX8-038.js";
 
@@ -60,5 +61,11 @@ describe("EX8-038", () => {
 
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("opponent").isSuspended).toBe(false);
+  });
+
+  it("grants Retaliation to the live evolution host", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-038"] }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
   });
 });

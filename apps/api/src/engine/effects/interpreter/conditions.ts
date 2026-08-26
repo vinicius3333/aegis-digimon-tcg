@@ -409,6 +409,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       if (deleted === undefined || cond.filter?.nameOrTrait === undefined) return false;
       return cond.filter.nameOrTrait.some((ref) => matchNameOrTrait(deleted, ref));
     }
+    case "selfIsInBattleArea": {
+      const self = ctx.source.permanent();
+      return (
+        self !== undefined &&
+        !(ctx.trigger.deletedPermanentIds ?? []).includes(self.permanentId) &&
+        ctx.game.permanentById(self.permanentId) !== undefined
+      );
+    }
     case "selfHasName": {
       // "This Digimon is [X]" — exact current top-card name check.
       const def = sourceTopDefinition(ctx);

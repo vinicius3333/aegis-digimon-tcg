@@ -79,4 +79,31 @@ describe("EX8-041", () => {
     expect(observe(s.engine).isRestricted(s.perm("suspended"), "unsuspend")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "unsuspend")).toBe(true);
   });
+
+  it("uses the Reptile evolution route and resolves the entry effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-038", as: "base" }], hand: [{ card: "EX8-041", as: "dark" }] },
+        1: { battleArea: [{ card: "BT1-087", as: "tamer" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dark").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").isSuspended && observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend"));
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("grants inherited Retaliation to its host", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-041"] }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
+  });
 });

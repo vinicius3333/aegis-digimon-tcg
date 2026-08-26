@@ -26,7 +26,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayToken",
-          tokens: ["Uka no Mitama"],
+          tokens: [{ name: "Uka no Mitama", keywords: [{ keyword: "Rush" }] }],
           count: 1,
           payCost: false,
           condition: {

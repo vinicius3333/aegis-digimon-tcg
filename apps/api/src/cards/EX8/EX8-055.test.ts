@@ -14,7 +14,7 @@ describe("EX8-055", () => {
       raw: "＜Fragment (3)＞",
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([
-      { kind: "Unsuspend", cost: { kind: "trash", target: { count: 3 } } },
+      { kind: "Unsuspend", abortOnDecline: true, cost: { kind: "trash", target: { count: 3 } } },
       { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "forTheTurn" },
     ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions[0]).toMatchObject({
@@ -29,19 +29,23 @@ describe("EX8-055", () => {
     }));
   it("places an exact Mineral card from trash underneath itself at end of turn", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX8-055", as: "pyramid" }], trash: ["EX8-053"] } },
+      { 0: { battleArea: [{ card: "EX8-055", as: "pyramid" }], trash: ["EX8-053", "EX8-005"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("pyramid"));
 
     expect(s.perm("pyramid").stack.some((card) => card.cardId === "EX8-053")).toBe(true);
+    expect(s.perm("pyramid").stack.some((card) => card.cardId === "EX8-005")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-053")).toBe(false);
   });
   it("trashes three Mineral digivolution cards to unsuspend and gain Security Attack +1 when digivolving", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-055", as: "pyramid", under: ["EX8-048", "EX8-048", "EX8-048"], suspended: true }],
+          battleArea: [
+            { card: "EX8-055", as: "pyramid", under: ["EX8-048", "EX8-048"], suspended: true },
+            { card: "AD1-001", as: "ally", under: ["EX8-048"] },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -51,6 +55,22 @@ describe("EX8-055", () => {
 
     expect(s.perm("pyramid").isSuspended).toBe(false);
     expect(s.perm("pyramid").stack).toHaveLength(0);
+    expect(s.perm("ally").stack).toHaveLength(0);
     expect(observe(s.engine).keywordAmount(s.perm("pyramid"), "SecurityAttack")).toBe(1);
+  });
+
+  it("does nothing when only two qualifying digivolution cards can pay the exact cost (Q3938)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-055", as: "pyramid", under: ["EX8-048", "EX8-049"], suspended: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("pyramid"));
+    expect(s.perm("pyramid").isSuspended).toBe(true);
+    expect(s.perm("pyramid").stack).toHaveLength(2);
+    expect(observe(s.engine).keywordAmount(s.perm("pyramid"), "SecurityAttack")).toBe(0);
   });
 });

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
@@ -35,5 +36,62 @@ describe("EX8-017", () => {
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
+  });
+
+  it("survives a losing security battle through inherited Jamming", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", dp: 1000, as: "attacker", under: ["EX8-017"] }] },
+      1: { security: ["BT1-009"] },
+    });
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
+  });
+
+  it("uses the level-2 DS route for 0 and rejects a level-2 non-DS base", async () => {
+    expect(digivolutionRequirementsFor("EX8-017")).toContainEqual({
+      level: 2,
+      traits: ["DS"],
+      cost: 0,
+      isAlternate: true,
+    });
+    const eligible = setupEngine({
+      0: { breeding: { card: "EX8-002", as: "bukamon" }, hand: [{ card: "EX8-017", as: "crabmon" }] },
+    });
+    eligible.state.memory = 0;
+    await eligible.ready();
+    expect(
+      eligible.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: eligible.perm("bukamon").permanentId,
+        instanceId: eligible.inst("crabmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => eligible.perm("bukamon").topCard.instanceId === eligible.inst("crabmon").instanceId);
+    expect(eligible.state.memory).toBe(0);
+
+    const ineligible = setupEngine({
+      0: { breeding: { card: "BT2-005", as: "kapurimon" }, hand: [{ card: "EX8-017", as: "crabmon" }] },
+    });
+    await ineligible.ready();
+    expect(
+      ineligible.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ineligible.perm("kapurimon").permanentId,
+        instanceId: ineligible.inst("crabmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

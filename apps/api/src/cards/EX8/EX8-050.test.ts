@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./EX8-050.js";
 
@@ -52,9 +53,14 @@ describe("EX8-050", () => {
       {
         0: {
           battleArea: [{ card: "BT1-081", as: "host", under: ["EX8-050"], dp: 10000 }],
-          security: ["BT1-001"],
+          security: ["BT1-001", "BT1-002"],
         },
-        1: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 1000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-016", as: "attacker", dp: 1000 },
+            { card: "BT1-016", as: "second", dp: 1000 },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -68,10 +74,26 @@ describe("EX8-050", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("second").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(s.perm("host").isSuspended).toBe(false);
+  });
+
+  it("exposes its printed Blocker keyword live", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-050", as: "gogmamon" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("gogmamon"), "Blocker")).toBe(true);
   });
 });

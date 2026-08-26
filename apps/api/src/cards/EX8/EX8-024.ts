@@ -59,6 +59,31 @@ export const compiled: CompiledCard = {
       ],
       frequency: "OncePerTurn",
     },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Unsuspend",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          cost: {
+            kind: "place",
+            targetIsPermanent: true,
+            target: {
+              filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
+              count: 1,
+            },
+            raw: "By placing 1 of your other Digimon as this Digimon's bottom digivolution card",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
   coverage: "full",
   residual: [],

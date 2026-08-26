@@ -16,6 +16,7 @@ describe("EX8-029", () => {
       kind: "PlayMultiple",
       totalCost: 12,
       from: ["digivolutionCards"],
+      filter: { hostFilter: { isSelfRef: true } },
       condition: { kind: "isDnaDigivolving" },
     });
   });
@@ -45,5 +46,32 @@ describe("EX8-029", () => {
     s.state.memory = 2;
     await advance(s.engine).recompute();
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "activateOnPlay")).toBe(false);
+  });
+
+  it("plays DS cards only from the DNA result's own sources", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-026", as: "metal", under: [{ card: "EX8-020", as: "own" }] }],
+          breeding: { card: "BT1-009", as: "other", under: [{ card: "EX8-017", as: "foreign" }] },
+          hand: [
+            { card: "EX8-027", as: "plesiomon" },
+            { card: "EX8-029", as: "aegis" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plesiomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("own").instanceId),
+    );
+
+    expect(s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("foreign").instanceId)).toBe(
+      true,
+    );
   });
 });

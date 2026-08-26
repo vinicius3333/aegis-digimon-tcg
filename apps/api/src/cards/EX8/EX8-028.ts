@@ -31,6 +31,21 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          kind: "CostModifier",
+          mode: "raiseCeiling",
+          costType: "level",
+          amount: 1,
+          scaling: {
+            per: 1,
+            filter: {
+              digivolutionCards: "none",
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            unit: "cards",
+          },
+        },
+        {
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -53,21 +68,6 @@ export const compiled: CompiledCard = {
           payCost: false,
           optional: true,
         },
-        {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "level",
-          amount: 1,
-          scaling: {
-            per: 1,
-            filter: {
-              digivolutionCards: "none",
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            unit: "cards",
-          },
-        },
       ],
     },
     {
@@ -84,10 +84,11 @@ export const compiled: CompiledCard = {
           },
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 digivolutionCards: "none",
-                controllerDefault: "mine",
+                controllerDefault: "any",
                 kind: ["Digimon"],
               },
               count: 1,
@@ -118,10 +119,11 @@ export const compiled: CompiledCard = {
           },
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 digivolutionCards: "none",
-                controllerDefault: "mine",
+                controllerDefault: "any",
                 kind: ["Digimon"],
               },
               count: 1,

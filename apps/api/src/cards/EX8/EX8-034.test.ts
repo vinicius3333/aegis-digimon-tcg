@@ -20,6 +20,11 @@ describe("EX8-034", () => {
       keyword: { keyword: "SecurityAttack", amount: -1 },
       target: { count: 2 },
     });
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "ModifyDP", amount: -4000, duration: "forTheTurn" }],
+    });
   });
   it("gives two opposing Digimon Security Attack -1 when deleted", async () => {
     const s = setupEngine({
@@ -61,5 +66,25 @@ describe("EX8-034", () => {
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === allowedInstanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === tooExpensiveInstanceId)).toBe(true);
+  });
+
+  it("applies the inherited -4000 DP on a real attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-034"] }] },
+        1: { battleArea: [{ card: "EX8-029", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const before = s.perm("target").currentDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === before - 4000);
+    expect(s.perm("target").currentDP).toBe(before - 4000);
   });
 });

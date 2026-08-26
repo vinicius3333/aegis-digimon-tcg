@@ -24,6 +24,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           from: ["digivolutionCards"],
+          fromOwnDigivolutionStack: true,
           payCost: false,
           optional: true,
         },
@@ -58,7 +59,7 @@ export const compiled: CompiledCard = {
                   },
                 ],
               },
-              payCost: true,
+              payCost: false,
               optional: true,
               bindResultAs: "dnaDigivolvedByThisEffect",
               condition: {
@@ -119,7 +120,7 @@ export const compiled: CompiledCard = {
                   },
                 ],
               },
-              payCost: true,
+              payCost: false,
               optional: true,
               bindResultAs: "dnaDigivolvedByThisEffect",
               condition: {

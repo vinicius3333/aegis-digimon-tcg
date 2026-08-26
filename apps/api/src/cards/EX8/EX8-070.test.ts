@@ -81,4 +81,30 @@ describe("EX8-070", () => {
     expect(s.perm("mineral").currentDP).toBe(baseDP + 3000);
     expect(observe(s.engine).hasRestriction(s.perm("mineral"), "beReturned")).toBe(true);
   });
+  it("may decline without trashing a source or granting any benefit", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-047", as: "mineral", under: ["EX8-048"] }],
+        hand: [{ card: "EX8-070", as: "option" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("mineral").stack).toHaveLength(1);
+    expect(s.perm("mineral").currentDP).toBe(s.perm("mineral").baseDP);
+    expect(observe(s.engine).hasKeyword(s.perm("mineral"), "Collision")).toBe(false);
+  });
 });

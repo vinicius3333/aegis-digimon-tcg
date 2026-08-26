@@ -69,6 +69,9 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   whenMovedFromBreeding: "whenMovedFromBreeding",
   whenOpponentMovedFromBreeding: "whenOpponentMovedFromBreeding",
   onDeletionOf: "onDeletionOf",
+  // GainTriggeredEffect uses printed timing names, while the deletion bus uses the
+  // event-shaped spelling. Both describe the same deleted-permanent payload.
+  OnDeletion: "onDeletionOf",
   whenSecurityRemoved: "whenSecurityRemoved",
   whenSecurityBattleEnded: "whenSecurityBattleEnded",
   // Alias used by the ST15 hand-authored module; both spellings share the
@@ -362,13 +365,20 @@ export async function runSubTrigger(
         }
       : undefined;
   // `whenHandTrashed` carries no subject permanent — its payload names the seat whose hand an
-  // action just trashed from. The watcher ("[All Turns] when YOUR hand is trashed from", BT25-084)
-  // has no subject sourceFilter; gate purely on the trashed hand being the watcher controller's own.
+  // action just trashed from. Gate that payload against the explicit controller direction; older
+  // watchers omit it and retain the historical "mine" default.
   const handTrashedGate =
     event === "whenHandTrashed"
-      ? (subCtx: EffectContext): boolean =>
-          action.fireCondition?.kind === "triggerHandTrashedSeat" ||
-          subCtx.trigger?.handTrashedSeat === subCtx.source.ownerSeat
+      ? (subCtx: EffectContext): boolean => {
+          if (action.fireCondition?.kind === "triggerHandTrashedSeat") return true;
+          const expectedSeat =
+            action.handTrashedController === "opponent"
+              ? subCtx.source.ownerSeat === 0
+                ? 1
+                : 0
+              : subCtx.source.ownerSeat;
+          return subCtx.trigger?.handTrashedSeat === expectedSeat;
+        }
       : undefined;
   // "When THIS Digimon's attack target is switched" is host-scoped, which the IR marks with a
   // self-referencing sourceFilter. The event bus broadcasts every switch to every watcher, so

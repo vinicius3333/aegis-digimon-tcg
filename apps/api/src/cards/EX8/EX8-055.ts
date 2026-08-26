@@ -55,6 +55,7 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing any 3 digivolution cards with the [Mineral]/[Rock] trait from your Digimon",
           },
+          abortOnDecline: true,
         },
         {
           kind: "GainKeyword",
@@ -103,6 +104,7 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing any 3 digivolution cards with the [Mineral]/[Rock] trait from your Digimon",
           },
+          abortOnDecline: true,
         },
         {
           kind: "GainKeyword",

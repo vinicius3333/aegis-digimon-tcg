@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -39,5 +40,70 @@ describe("EX8-026", () => {
     s.state.memory = 0;
     await advance(s.engine).recompute();
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(false);
+  });
+
+  it("de-digivolves first, then bottom-decks the newly exposed play-cost-3 Digimon on play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-026", as: "metal" }] },
+        1: { battleArea: [{ card: "AD1-004", as: "target", under: [{ card: "BT1-009", as: "base" }] }] },
+      },
+      { autoSelectCards: true },
+    );
+    const baseId = s.inst("base").instanceId;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("metal"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.deck.at(-1)!.instanceId).toBe(baseId);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "AD1-004")).toBe(true);
+  });
+
+  it("blocks an opposing attack at +1 memory, including the Blitz legality path (Q3892–Q3893)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-026", as: "metal" }] },
+      1: { battleArea: [{ card: "BT5-009", as: "blitz" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(observe(s.engine).isRestricted(s.perm("blitz"), "suspend")).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("blitz").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+  });
+
+  it("uses the level-5 DS route for 3 and resolves the same removal sequence", async () => {
+    expect(digivolutionRequirementsFor("EX8-026")).toContainEqual({
+      level: 5,
+      traits: ["DS"],
+      cost: 3,
+      isAlternate: true,
+    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-024", as: "megaSeadramon" }], hand: [{ card: "EX8-026", as: "metal" }] },
+        1: { battleArea: [{ card: "AD1-004", as: "target", under: ["BT1-009"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("megaSeadramon").permanentId,
+        instanceId: s.inst("metal").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).hasEffectiveTrait(s.perm("megaSeadramon"), "Aquatic")).toBe(true);
   });
 });

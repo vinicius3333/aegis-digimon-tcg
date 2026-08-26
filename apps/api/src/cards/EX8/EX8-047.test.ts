@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { PlayerState } from "@aegis/shared";
 import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./EX8-047.js";
 
@@ -67,13 +68,36 @@ describe("EX8-047", () => {
   it("deletes an opposing low-cost Digimon from a qualifying host", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX8-048", as: "host", under: [{ card: "EX8-047", as: "discarded" }] }] },
+      1: {
+        battleArea: [
+          { card: "BT1-010", as: "target" },
+          { card: "EX8-041", as: "tooExpensive" },
+        ],
+      },
+    });
+    await s.ready();
+    await primitivesOf(s).trashDigivolutionCards(s.perm("host").permanentId, [s.inst("discarded").instanceId], {
+      byEffectSeat: 0,
+    });
+    await settle(() => (s.state.players[1] as PlayerState).battleArea.length === 1);
+    expect(s.perm("tooExpensive").topCard.cardId).toBe("EX8-041");
+  });
+
+  it("does not trigger when trashed from a non-Mineral/Rock host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "host", under: [{ card: "EX8-047", as: "discarded" }] }] },
       1: { battleArea: [{ card: "BT1-010", as: "target" }] },
     });
     await s.ready();
     await primitivesOf(s).trashDigivolutionCards(s.perm("host").permanentId, [s.inst("discarded").instanceId], {
       byEffectSeat: 0,
     });
-    await settle(() => (s.state.players[1] as PlayerState).battleArea.length === 0);
-    expect((s.state.players[1] as PlayerState).battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("exposes Mineral as a live rule trait", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-047", as: "sunarizamon" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasEffectiveTrait(s.perm("sunarizamon"), "Mineral")).toBe(true);
   });
 });

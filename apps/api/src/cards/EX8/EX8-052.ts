@@ -26,7 +26,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "PlayWithoutCost",
+          kind: "PlaceInBattleAreaSelf",
           target: {
             filter: {
               nameOrTrait: [
@@ -41,17 +41,24 @@ export const compiled: CompiledCard = {
             count: 1,
             from: ["hand", "trash"],
           },
-          payCost: false,
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Cyberdramon", "X Antibody"],
-                  match: "name",
+            kind: "anyOf",
+            conditions: [
+              {
+                kind: "selfDigivolutionStackCountAtLeast",
+                count: 1,
+                filter: {
+                  nameOrTrait: [{ tokens: ["Cyberdramon"], match: "name" }],
                 },
-              ],
-            },
+              },
+              {
+                kind: "selfDigivolutionStackCountAtLeast",
+                count: 1,
+                filter: {
+                  nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }],
+                },
+              },
+            ],
             raw: "[Cyberdramon]/[X Antibody] is in this Digimon's digivolution cards",
           },
           optional: true,

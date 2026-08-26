@@ -57,4 +57,36 @@ describe("EX8-042", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-011"]);
   });
+
+  it("replays itself through Fortitude when deleted with a digivolution card", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-042", as: "mega", under: ["EX8-039"] }] },
+    });
+    const instanceId = s.inst("mega").instanceId;
+    await advance(s.engine).verb.deletePermanent([s.perm("mega").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not activate the inherited security trash when both battlers are deleted (Q3927)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000, under: ["EX8-042"] }] },
+      1: {
+        battleArea: [{ card: "BT1-016", as: "defender", dp: 3000, suspended: true }],
+        security: [
+          { card: "BT1-010", as: "top" },
+          { card: "BT1-011", as: "bottom" },
+        ],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
 });

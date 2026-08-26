@@ -615,12 +615,21 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         return false;
       }
       if (returnTarget.isSelf || returnTarget.filter.isSelfRef) {
+        if (
+          action.from !== undefined &&
+          !candidateLooseInstances(ctx, returnTarget, action.from).some(
+            (candidate) => candidate.instanceId === ctx.source.instanceId,
+          )
+        ) {
+          ctx.lastEffectActed = false;
+          return action.abortOnDecline === true;
+        }
         const moved =
           action.to === "hand"
             ? await ctx.fx.returnToHand([ctx.source.instanceId])
             : await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: action.to === "deckTop" });
         ctx.lastEffectActed = moved.length > 0;
-        return false;
+        return action.abortOnDecline === true && moved.length === 0;
       }
       if (returnTarget.totalPlayCostBudget !== undefined) {
         const ids = topInstanceIds(ctx, await resolveTotalPlayCostBudgetTargets(ctx, returnTarget));
