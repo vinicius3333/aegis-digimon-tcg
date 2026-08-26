@@ -7,7 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // and Security Digimon. These are distinct runtime modifier channels.
 // [End of Attack]: "You may add the top security card to hand TO unsuspend" —
 // the security add is the cost that enables the unsuspend (cost kind securityToHand).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

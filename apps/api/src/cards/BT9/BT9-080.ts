@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [End of Your Turn] You may DNA digivolve this Digimon and one of your other Digimon
 // in play into a Digimon card in your hand for its DNA digivolve cost.
 // Encoded: materials.isSelf = true triggers the self+1-other pickup in runDnaDigivolve.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",

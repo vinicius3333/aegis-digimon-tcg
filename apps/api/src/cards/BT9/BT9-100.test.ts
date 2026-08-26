@@ -1,8 +1,23 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-100.js";
 import "./BT9-100.js";
 
 describe("BT9-100 Grandis Scissor", () => {
+  it("matches catalog values and the bound Insectoid attack and security IR", () => {
+    expect(getCardDefinition("BT9-100")).toMatchObject({
+      colors: ["Green"], kinds: ["Option"], playCost: 4,
+      securityEffectText: "[Security] Suspend 1 of your opponent's Digimon or Tamers.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "Main", actions: [{ kind: "Suspend", target: { filter: { kind: ["Digimon"] } } }, { kind: "Unsuspend", optional: true, abortOnDecline: true, target: { bindAs: "unsuspendedInsectoid", filter: { nameOrTrait: [{ tokens: ["Insectoid"], match: "trait" }] } } }, { kind: "Attack", attackPlayer: false, target: { fromSelectionRef: "unsuspendedInsectoid" } }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "Suspend", target: { filter: { kind: ["Digimon", "Tamer"] } } }] },
+      ],
+    });
+  });
+
   it("suspends an opponent, unsuspends an Insectoid, and makes it attack that Digimon rather than the player", async () => {
     const s = setupEngine(
       {

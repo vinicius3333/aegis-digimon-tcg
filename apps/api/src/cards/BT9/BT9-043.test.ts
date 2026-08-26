@@ -1,8 +1,24 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT9-043.js";
+import { compiled } from "./BT9-043.js";
 describe("BT9-043 Magnadramon (X Antibody)", () => {
+  it("matches catalog, Q1836 exact-name condition, and end-attack cost IR", () => {
+    expect(getCardDefinition("BT9-043")).toMatchObject({
+      cardId: "BT9-043", nameEn: "Magnadramon (X Antibody)", colors: ["Yellow"], kinds: ["Digimon"], level: 6,
+      playCost: 12, dp: 12000, evoCosts: [{ color: "Yellow", level: 5, memoryCost: 4 }], forms: ["Mega"],
+      attributes: ["Vaccine"], types: ["Holy Dragon", "Four Great Dragons", "X Antibody"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Magnadramon"], cost: 1, isAlternate: true }],
+      effects: [
+        { trigger: "WhenDigivolving", actions: [{ kind: "ModifyDP", amount: -1000, target: { count: "all" }, scaling: { unit: "security" } }, { kind: "ModifySecurityDP", amount: -1000, scaling: { unit: "security" } }] },
+        { trigger: "EndOfAttack", frequency: "OncePerTurn", actions: [{ kind: "Unsuspend", optional: true, cost: { kind: "securityToHand", amount: 1, fromTop: true } }] },
+      ],
+    });
+  });
+
   it("reduces each opposing Digimon by 1000 DP per security card", async () => {
     const s = setupEngine(
       {

@@ -1,10 +1,26 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT9-056.js";
+import { compiled } from "./BT9-056.js";
 
 describe("BT9-056 Dinotigermon", () => {
+  it("matches catalog and Q1852 exact-X, Leomon-name, opponent-suspend IR", () => {
+    expect(getCardDefinition("BT9-056")).toMatchObject({
+      cardId: "BT9-056", nameEn: "Dinotigermon", colors: ["Green"], kinds: ["Digimon"], level: 6,
+      playCost: 12, dp: 12000,
+      evoCosts: [{ color: "Green", level: 5, memoryCost: 4 }, { color: "Blue", level: 5, memoryCost: 4 }],
+      forms: ["Mega"], attributes: ["Data"], types: ["Ancient Animal", "X Antibody"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["SaberLeomon"], cost: 1, isAlternate: false }],
+      effects: [
+        { trigger: "WhenAttacking", actions: [{ kind: "Suspend", condition: { kind: "selfDigivolutionStackHasTrait" } }] },
+        { trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenSuspended", sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, actions: [{ kind: "Unsuspend", optional: true }] }] },
+      ],
+    });
+  });
+
   it("suspends an opposing Digimon or Tamer when attacking with Leomon or X Antibody in its sources", async () => {
     const s = setupEngine(
       {

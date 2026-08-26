@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The selfDigivolutionStackHasTrait condition with match:"name" is name-based,
 // which satisfies the ruling.
 // KB Q1812: "if no Digimon is deleted by this effect" = ifThisEffectDidNotDelete.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

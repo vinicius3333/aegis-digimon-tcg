@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q1825: the 2 trashed cards must be same level AS EACH OTHER (not the Digimon's level).
 // KB Q1826: this card itself (in the digivolution cards) can be one of the 2 trashed.
 // Encoded as a Replacement "prevent" with a sameLevelPair cost from digivolutionCards.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",

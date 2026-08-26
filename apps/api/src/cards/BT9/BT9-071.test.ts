@@ -1,9 +1,23 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT9-071.js";
+import { compiled } from "./BT9-071.js";
 
 describe("BT9-071 Dracmon", () => {
+  it("matches errata and Q1862-Q1865 selection and inherited-evolution IR", () => {
+    expect(getCardDefinition("BT9-071")).toMatchObject({
+      cardId: "BT9-071", nameEn: "Dracmon", colors: ["Purple"], kinds: ["Digimon"], level: 3,
+      playCost: 3, dp: 1000, evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }], forms: ["Rookie"],
+      attributes: ["Virus"], types: ["Undead"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [{ to: "hand" }, { to: "trash" }] }] },
+        { trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "Digivolve", payCost: true, optional: true, into: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["Undead", "Dark Animal"], match: "trait" }] } } }] },
+      ],
+    });
+  });
+
   it("adds one eligible card and trashes another from the revealed cards", async () => {
     const s = setupEngine(
       {

@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { compiled } from "./BT9-109.js";
 import "./BT9-109.js";
 import { setupEngine, settle as harnessSettle, assertNoLoudGap } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -130,6 +132,21 @@ function digimonHost(permanentId: string, opts: { withXAntibody?: boolean } = {}
 
 describe("BT9-109 X Antibody (override)", () => {
   const module = getEffectModule("BT9-109");
+
+  it("matches catalog values and waiver, security, placement, and inherited IR", () => {
+    expect(getCardDefinition("BT9-109")).toMatchObject({
+      colors: ["White"], kinds: ["Option"], playCost: 0, types: ["X Antibody"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "Static", actions: [{ kind: "WaiveColorRequirement" }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "GainMemory", amount: 1 }, { kind: "AddToHandSelf" }] },
+        { trigger: "Main", actions: [{ kind: "PlaceUnder", position: "bottom", underFilter: { excludeCardsNamed: ["X Antibody"] } }] },
+        { trigger: "AllTurns", isInherited: true, actions: [{ kind: "Restrict", restriction: "beTrashed" }] },
+        { trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "Digivolve", from: ["hand"], payCost: true, optional: true, into: { traits: ["X Antibody"] } }] },
+      ],
+    });
+  });
 
   it("registers on import", () => {
     expect(module, "BT9-109 must self-register on import").toBeDefined();

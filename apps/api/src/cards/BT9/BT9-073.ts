@@ -10,7 +10,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q1867: [When Attacking] effects added mid-attack do not fire retroactively.
 //
 // Fix: added `from: ["trash"]` to ensure the digivolution source is restricted to trash.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",

@@ -1,10 +1,28 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-106.js";
 import "./BT9-106.js";
 
 describe("BT9-106 DeathXDigivolution!", () => {
+  it("matches catalog values and waiver, legal trash evolution, and security IR", () => {
+    expect(getCardDefinition("BT9-106")).toMatchObject({
+      colors: ["Purple"], kinds: ["Option"], playCost: 0, types: ["X Antibody"],
+      securityEffectText: "[Security] Add this card to its owner's hand.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        {
+          trigger: "Static",
+          actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } } }],
+        },
+        { trigger: "Main", actions: [{ kind: "Digivolve", from: ["trash"], payCost: true, into: { nameOrTrait: [{ tokens: ["Dex"], match: "name" }, { tokens: ["DeathX"], match: "name" }] } }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "AddToHandSelf" }] },
+      ],
+    });
+  });
+
   it("offers only legal bases and pays the chosen Dex card's digivolution cost", async () => {
     const s = setupEngine({
       0: {

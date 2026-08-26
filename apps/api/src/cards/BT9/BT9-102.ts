@@ -28,14 +28,14 @@ const securityHandCost = {
   },
   raw: "by trashing 1 Digimon card with [Cyborg] or [Machine] in its traits in your hand",
 };
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
       actions: [
         {
           kind: "GrantKeyword",
-          target: { filter: { controller: "mine", kind: ["Digimon"], levels: [6], traits: ["Machine"] }, count: 1 },
+          target: { filter: { controller: "mine", kind: ["Digimon"], levels: [6], traits: ["Machine"] }, count: "all" },
           keyword: "Rush",
           duration: "forTheTurn",
           cost: handCost,
@@ -43,7 +43,7 @@ const compiled: CompiledCard = {
         },
         {
           kind: "GrantStatic",
-          target: { filter: { controller: "mine", kind: ["Digimon"], levels: [6], traits: ["Machine"] }, count: 1 },
+          target: { filter: { controller: "mine", kind: ["Digimon"], levels: [6], traits: ["Machine"] }, count: "all" },
           grant: "effects",
           tokens: ["OnPlayBlitzIfHasDigivolutionCard"],
           duration: "forTheTurn",

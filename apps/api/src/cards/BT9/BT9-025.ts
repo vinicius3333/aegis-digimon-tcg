@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [End of Attack][Once Per Turn] You may trash 2 cards in your hand (any kind) to
 //   unsuspend this Digimon.
 // The cost targets any card from hand (no kind filter), Unsuspend is the action.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "EndOfAttack",

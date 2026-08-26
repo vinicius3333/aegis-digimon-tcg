@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Q1803-Q1805: the two trashed sources share a level with each other, this
 // card may be one of them, and only effect-driven deletion or hand/deck return
 // can be prevented.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",

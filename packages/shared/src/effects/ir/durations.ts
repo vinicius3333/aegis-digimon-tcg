@@ -6,6 +6,7 @@ export type EffectDurationRef =
   | "forThisAttack" // hand-authored alias of untilEndOfAttack (UntilEndAttack)
   | "untilYourTurnEnd" // UntilOwnerTurnEnd
   | "untilOpponentTurnEnd" // UntilOpponentTurnEnd
+  | "untilOpponentNextTurnEnd" // current opponent turn does not count when resolving during it
   | "untilEndOfAttack"
   | "untilEndOfBattle"
   | "untilOpponentNextUnsuspendPhase"

@@ -1833,6 +1833,111 @@ describe("unsupported actions are loud", () => {
   });
 });
 
+describe("untilOpponentNextTurnEnd DP scope is loud", () => {
+  const baseTarget = { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } as const;
+  const cases: Array<[string, Action]> = [
+    [
+      "player-wide",
+      {
+        kind: "ModifyDP",
+        target: baseTarget,
+        amount: 3000,
+        duration: "untilOpponentNextTurnEnd",
+        playerWide: true,
+      } as never,
+    ],
+    [
+      "continuous",
+      {
+        kind: "ModifyDP",
+        target: baseTarget,
+        amount: 3000,
+        duration: "untilOpponentNextTurnEnd",
+        continuous: true,
+      } as never,
+    ],
+    [
+      "combined keyword",
+      {
+        kind: "ModifyDP",
+        target: baseTarget,
+        amount: 3000,
+        duration: "untilOpponentNextTurnEnd",
+        alsoGainKeywords: [{ keyword: "Blocker" }],
+      } as never,
+    ],
+    [
+      "budget target",
+      {
+        kind: "ModifyDP",
+        target: { ...baseTarget, totalDpCap: 12000 },
+        amount: 3000,
+        duration: "untilOpponentNextTurnEnd",
+      } as never,
+    ],
+    [
+      "count-all target",
+      {
+        kind: "ModifyDP",
+        target: { ...baseTarget, count: "all" },
+        amount: 3000,
+        duration: "untilOpponentNextTurnEnd",
+      } as never,
+    ],
+    [
+      "count-modified target",
+      {
+        kind: "ModifyDP",
+        target: { ...baseTarget, countModifier: { amount: 1 } },
+        amount: 3000,
+        duration: "untilOpponentNextTurnEnd",
+      } as never,
+    ],
+    [
+      "multi-id sameTarget",
+      {
+        kind: "ModifyDP",
+        target: { ...baseTarget, sameTarget: true },
+        amount: 3000,
+        duration: "untilOpponentNextTurnEnd",
+      } as never,
+    ],
+  ];
+
+  it.each(cases)("rejects the %s runtime path before granting DP", async (_name, action) => {
+    const source = makeSource({ cardId: "X-NEXT-OPPONENT-DP" });
+    const recorder: Recorder = { calls: [] };
+    const first = makeFakePermanent({
+      permanentId: "P1",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "P1-CARD", cardId: "DIGIMON", ownerSeat: 0 } as never,
+    });
+    const second = makeFakePermanent({
+      permanentId: "P2",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "P2-CARD", cardId: "DIGIMON", ownerSeat: 0 } as never,
+    });
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownBattleArea: [first, second],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+    ctx.lastResolvedPermanentIds = [first.permanentId, second.permanentId];
+    const module = irCardModule(source.cardId, {
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "OnPlay", actions: [action] }],
+    });
+
+    await expect(module.effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx)).rejects.toBeInstanceOf(
+      UnsupportedEffectError,
+    );
+    expect(recorder.calls.some((call) => call.verb === "modifyDP" || call.verb === "modifyPlayerDP")).toBe(false);
+    expect(recorder.calls.some((call) => call.verb === "grantKeyword")).toBe(false);
+  });
+});
+
 // --- New IR action kinds (v2): dispatch to real primitives ------------------
 
 /** Resolve a single-effect compiled card's first effect against a fresh recorder. */

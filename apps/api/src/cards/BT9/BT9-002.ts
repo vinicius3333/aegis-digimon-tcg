@@ -6,7 +6,7 @@
 // previously-dead "whenCardAddedToHand" name (declared, never fired) collapsed onto it.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",

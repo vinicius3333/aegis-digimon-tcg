@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Condition is allOf: selfDigivolutionStackHasTrait (nameExact) AND zoneCount<=5.
 // Recovery uses GainKeyword action (not SecurityManipulation): the engine calls
 // recoverToSecurity when a Recovery keyword is granted.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

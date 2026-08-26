@@ -1,7 +1,22 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-102.js";
 import "./BT9-102.js";
-describe("BT9-102 Black Memory Boost", () => {
+describe("BT9-102 Attack of the Heavy Mobile Digimon!", () => {
+  it("matches catalog values and all-Machine grant and security IR", () => {
+    expect(getCardDefinition("BT9-102")).toMatchObject({
+      colors: ["Black"], kinds: ["Option"], playCost: 0,
+      securityEffectText: "[Security] You may trash 1 Digimon card with [Cyborg] or [Machine] in its traits in your hand to delete 1 of your opponent’s Digimon whose play cost is less than or equal to the trashed card’s play cost.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "Main", actions: [{ kind: "GrantKeyword", keyword: "Rush", duration: "forTheTurn", optional: true, target: { count: "all", filter: { levels: [6], traits: ["Machine"] } } }, { kind: "GrantStatic", grant: "effects", tokens: ["OnPlayBlitzIfHasDigivolutionCard"], target: { count: "all", filter: { levels: [6], traits: ["Machine"] } } }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "Delete", optional: true, cost: { kind: "trash" } }] },
+      ],
+    });
+  });
+
   it("installs the Rush effect by trashing a hand card", async () => {
     const s = setupEngine(
       { 0: { battleArea: ["BT9-029"], hand: [{ card: "BT9-102", as: "option" }, "BT9-030"] } },

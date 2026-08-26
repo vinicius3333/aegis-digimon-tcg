@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   2. Optional: add it to hand
 //      - If added: place top of deck as top security card (Recovery +1)
 //      - If not: return it face-down to top of security stack
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
