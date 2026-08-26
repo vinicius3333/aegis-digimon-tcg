@@ -32,7 +32,9 @@ describe("ST6-14 Matt Ishida", () => {
   it("plays itself from Security without paying its memory cost", async () => {
     const s = setupEngine({ 0: { security: [{ card: "ST6-14", as: "matt", faceUp: true }] } });
     const instanceId = s.inst("matt").instanceId;
+    s.state.memory = 3;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("matt"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
+    expect(s.state.memory).toBe(3);
   });
 });
