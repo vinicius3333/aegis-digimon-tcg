@@ -285,7 +285,13 @@ export function collectWouldBePlayedSelfReducers(cardId: string, effects: readon
           ...inner,
           condition: inner.condition ?? a.condition,
         };
-        captureReducer(costActions, innerWithGate as never, a.scaling, "Reduce the play cost.", out);
+        captureReducer(
+          costActions,
+          innerWithGate as never,
+          (inner.scaling as Scaling | undefined) ?? a.scaling,
+          "Reduce the play cost.",
+          out,
+        );
       }
     }
   }
