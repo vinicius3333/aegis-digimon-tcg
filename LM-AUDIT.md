@@ -129,3 +129,15 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   black battle, black breeding, and no-colour-source paths, and the shared Delay suite exercises
   cost/payment removal and the two-memory payload.
 - All focused proof remains unrun under PID 43774, so LM-033 remains below 10/10.
+
+## LM-034 — Wisteria Memory Boost! — pending focused execution
+
+- Catalog and Q4065/Q4066 map to the direct Static `WaiveColorRequirement` with
+  `alsoColor: red`; interpreter legality treats a blue or red source in battle or breeding as
+  satisfying the printed blue requirement, without converting the effect into a blanket waiver.
+- Main reveals three, adds one blue-or-red Digimon, bottoms the rest, and places the Option;
+  Delay separately gains two memory and Security places it. Focused fixtures cover blue, red
+  battle, red breeding, no eligible source, reveal results, and Security, while the shared Delay
+  suite covers activation/payment/result behavior. The stale Q&A reference in the test comment
+  was corrected from Q4063/Q4064 to Q4065/Q4066.
+- Proof is deliberately unrun under PID 43774, so LM-034 remains below 10/10.
