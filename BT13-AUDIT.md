@@ -128,7 +128,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-046 — 10/10
   - Evidence: catalog and KB Q2291–Q2293 reviewed; compiled IR exclusively uses `registerIrCard`, tracing combined-security-six mandatory reveal/memory sequence, yellow-inclusive multicolor top-security placement, non-yellow return, and optional top-security unsuspend/-7000 DP attack sequence with once-per-turn scope.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-046.test.ts` passed (7 tests): Q2291 threshold, Q2292 mandatory reveal, Q2293 multicolor behavior, above-threshold negative, attack cost/refusal/frequency, and evolution cost.
-- BT13-047 — Pending
+- BT13-047 — 10/10
+  - Evidence: catalog and KB Q5997 reviewed; compiled IR exclusively uses `registerIrCard`, tracing static Blocker and inherited +1000 DP aura when the opponent has no unsuspended Digimon, including the zero-opponent case and live continuous-state changes.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-047.test.ts` passed (5 tests): Q5997 zero-opponent condition, top-vs-inherited keyword separation, suspended state transitions, and evolution cost.
 - BT13-048 — Pending
 - BT13-049 — Pending
 - BT13-050 — Pending
