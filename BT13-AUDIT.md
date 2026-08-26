@@ -176,7 +176,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-062 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing mandatory own-hand Sukamon/Etemon name trash cost for returning own-trash Sukamon, plus inherited optional suspended Chuumon play from trash after Sukamon/Etemon-name host deletion.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-062.test.ts` passed (2 tests): IR clause proof and live mandatory cost/return resolution.
-- BT13-063 — Pending
+- BT13-063 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard` and traces inherited all-turn self +1000 DP only when the evolution stack's host has the X Antibody trait.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-063.test.ts` passed (2 tests): IR trait-gate proof and live registration.
 - BT13-064 — Pending
 - BT13-065 — Pending
 - BT13-066 — Pending
