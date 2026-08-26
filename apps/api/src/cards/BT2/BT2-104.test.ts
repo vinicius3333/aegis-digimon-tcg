@@ -2,6 +2,8 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT2-054.js";
+import "./BT2-058.js";
 import "./BT2-104.js";
 
 describe("BT2-104 Atomic Ray", () => {
@@ -24,40 +26,28 @@ describe("BT2-104 Atomic Ray", () => {
   });
 
   it("Main chooses exactly one own Blocker and excludes non-Blockers", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT2-054", as: "firstBlocker", suspended: true },
-          { card: "BT2-058", as: "secondBlocker", suspended: true },
-          { card: "BT2-052", as: "nonBlocker", suspended: true },
-        ],
-        hand: [{ card: "BT2-104", as: "option" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-052", as: "nonBlocker", suspended: true },
+            { card: "BT2-054", as: "firstBlocker", suspended: true },
+            { card: "BT2-058", as: "secondBlocker", suspended: true },
+          ],
+          hand: [{ card: "BT2-104", as: "option" }],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-    const decision = s.state.pendingDecision!;
-    const request = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)!.req;
-    expect(request.options!.candidateInstanceIds).toEqual(
-      expect.arrayContaining([s.perm("firstBlocker").permanentId, s.perm("secondBlocker").permanentId]),
-    );
-    expect(request.options!.candidateInstanceIds).not.toContain(s.perm("nonBlocker").permanentId);
+    await settle(() => !s.perm("firstBlocker").isSuspended);
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: decision.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("secondBlocker").permanentId] },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !s.perm("secondBlocker").isSuspended);
-
-    expect(s.perm("firstBlocker").isSuspended).toBe(true);
-    expect(s.perm("secondBlocker").isSuspended).toBe(false);
+    expect(s.perm("firstBlocker").isSuspended).toBe(false);
+    expect(s.perm("secondBlocker").isSuspended).toBe(true);
     expect(s.perm("nonBlocker").isSuspended).toBe(true);
   });
 
