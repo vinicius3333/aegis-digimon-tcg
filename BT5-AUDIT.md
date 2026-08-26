@@ -1921,3 +1921,41 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-046 — Terriermon Assistant — 10/10
+
+- Catalog evidence: Green Lv.3 Rookie Digimon, Vaccine/Beast, play cost 3,
+  1000 DP, and green Lv.2 evolution cost 0. Its `[Main]` Digi-Burst 1 trashes
+  one of its own digivolution cards, reveals the deck top, adds it to hand if
+  it is a green Digimon, and otherwise places it at deck bottom. The card
+  query has no QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-046.ts` contains a Main
+  `RevealAdd` of exactly one card, with a green Digimon hand filter and
+  `rest: "deckBottom"`. Its attached trash cost targets exactly one card in
+  this Digimon's digivolution cards and is exposed as Digi-Burst 1. The module
+  declares `coverage: "full"`, `residual: []`, and registers exclusively
+  through `registerIrCard("BT5-046", compiled)`.
+- Primitive, stack, and peer evidence: the activation gate requires the full
+  targeted source-trash cost before exposing the Main effect. Payment removes
+  the selected source to trash before reveal resolution. `RevealAdd` moves a
+  matching green Digimon instance to hand while preserving every nonmatch at
+  deck bottom. BT5-004 supplies the legal green Lv.2 source, BT5-100 exercises
+  green Digi-Burst reveal filtering, and chapter-16 conformance covers
+  Digi-Burst cost/activation semantics.
+- Behavioral proof: 3 focused tests use a legal BT5-004-to-BT5-046 stack to
+  prove exact one-source payment and green-Digimon addition; track a revealed
+  red Digimon's identity to the bottom behind the unrevealed card; and prove a
+  source-less Terriermon Assistant exposes no activatable Main effect.
+- Defect corrected: none in the module. The audit repaired weak tests that
+  used an illegal Lv.3 source and never actually asserted the nonmatching card
+  returned to deck bottom, then added the unavailable-cost boundary.
+- Verification: focused BT5-046, BT5-004/100 peers, and Digi-Burst
+  conformance — 4 files, 22 tests passed. Filtered mechanic coverage passed 10
+  relevant tests; its one remaining failure is the known unrelated IDigiBurst
+  shape baseline for BT7-040, ST4-13, and ST6-13. Targeted Oxfmt and
+  `git diff --check` pass; Oxlint reports only the existing test-helper
+  `no-explicit-any` pattern. Workspace typecheck retains only the known
+  unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
