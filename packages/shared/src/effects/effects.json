@@ -10914,7 +10914,7 @@
                 "count": 10,
                 "to": "play",
                 "optional": true,
-                "totalPlayCostLimit": 10
+                "totalPlayCostBudget": 10
               }
             ],
             "rest": "deckBottom",
