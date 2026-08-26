@@ -77,7 +77,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-071 | Loyalty Deeper than the Sea | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-072 | Holy Beasts Great Cardinal Positions | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-073 | GraceNovamon | 4 | Direct IR corrected deletion, DNA route, and static keywords; Q3687/Q3688 attack proof remains queued, and the leave-play payment is now restricted to this Digimon’s own same-level sources. | Pending focused run |
-| EX5-074 | Fanglongmon | 2 | Direct module resolves generated residual; exclusive IR registration and existing behavior evidence. | Pending rerun |
+| EX5-074 | Fanglongmon | 2 | Existing harness proofs cover Four Sovereigns security scaling and paid-trash DP scaling; direct permanent GrantStatic routes to the shared Digimon-only `beAffected` restriction (capabilities/targeting proof), so Option/Tamer effects are intentionally outside its scope. | Pending rerun |
 
 ## Validation queue
 
