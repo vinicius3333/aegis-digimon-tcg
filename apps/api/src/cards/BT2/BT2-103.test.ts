@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-054.js";
+import "./BT2-072.js";
 import "./BT2-103.js";
 
 describe("BT2-103 Spiral Sword", () => {
