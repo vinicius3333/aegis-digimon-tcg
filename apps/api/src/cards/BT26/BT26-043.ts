@@ -5,10 +5,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const opponentTarget = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 };
 const setup = [
   { kind: "Suspend", target: opponentTarget },
+  // "your deck's top card" is taken with no prompt. A loose `from: ["deck"]` target would
+  // instead offer the whole deck for selection.
   {
     kind: "PlaceUnder",
-    target: { filter: { zone: "deck", controller: "mine" }, count: 1 },
-    from: ["deck"],
+    fromDeckTop: true,
+    target: { filter: {}, count: 1 },
     underFilter: { isSelfRef: true },
     position: "bottom",
     faceDown: true,
