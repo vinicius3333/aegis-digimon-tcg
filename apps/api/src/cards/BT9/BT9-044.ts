@@ -15,7 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    activate this effect when there are no digivolution cards (the action requires a card to
 //    place). Fix: add condition selfDigivolutionCountAtLeast: 1 to the Replacement.
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OpponentsTurn",

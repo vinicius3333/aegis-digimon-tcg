@@ -1,10 +1,27 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT9-044.js";
+import { compiled } from "./BT9-044.js";
 import "./BT9-023.js";
 
 describe("BT9-044 Magnamon (X Antibody)", () => {
+  it("matches catalog and Q1837-Q1840 IR contract", () => {
+    expect(getCardDefinition("BT9-044")).toMatchObject({
+      cardId: "BT9-044", nameEn: "Magnamon (X Antibody)", colors: ["Yellow", "Blue"], kinds: ["Digimon"], level: 6,
+      playCost: 12, dp: 11000,
+      evoCosts: [{ color: "Yellow", level: 5, memoryCost: 3 }, { color: "Blue", level: 5, memoryCost: 3 }],
+      forms: ["Mega"], attributes: ["Vaccine"], types: ["Holy Warrior", "Royal Knight", "X Antibody"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Magnamon"], cost: 4 }],
+      effects: [
+        { trigger: "OpponentsTurn", actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks", actions: [{ kind: "RedirectAttack", optional: true }] }] },
+        { trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldBeDeleted", mode: "prevent", optional: true, condition: { kind: "selfDigivolutionCountAtLeast", value: 1 } }] },
+      ],
+    });
+  });
+
   it("may place its top card face down in security to prevent deletion", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT9-044", as: "magna", under: ["BT8-038"] }] } },
