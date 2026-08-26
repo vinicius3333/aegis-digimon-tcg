@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT9-058.js";
+import { compiled } from "./BT9-058.js";
 
 describe("BT9-058 Dorumon", () => {
+  it("matches catalog and optional X-Antibody-trait trash-to-draw IR", () => {
+    expect(getCardDefinition("BT9-058")).toMatchObject({
+      cardId: "BT9-058", nameEn: "Dorumon", colors: ["Black"], kinds: ["Digimon"], level: 3,
+      playCost: 3, dp: 2000, evoCosts: [{ color: "Black", level: 2, memoryCost: 0 }], forms: ["Rookie"],
+      attributes: ["Data"], types: ["Beast", "X Antibody"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [{ trigger: "OnPlay", actions: [{ kind: "Draw", amount: 2, optional: true, cost: { kind: "trash", target: { filter: { zone: "hand", nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] }, count: 1 } } }] }],
+    });
+  });
+
   it("may trash an X Antibody card from hand to draw two", async () => {
     const s = setupEngine(
       {
