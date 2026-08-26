@@ -165,13 +165,18 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Ginryumon without cost, and gates the inherited +1000 DP on the live X Antibody trait during the
   controller's turn. The catalog has no local KB entry; multiple Ginryumon printings share the
   name and the direct name filter correctly admits them, while the historical aggregate retains a
-  weaker raw inherited condition. Static catalog/direct-IR review found no new causal gap; seven
-  focused cases are unrun, so LM-015 remains below 10/10.
+  weaker raw inherited condition. Static catalog/direct-IR review found no new causal gap. The
+  authorized single serialized run passed 1/1 file and 7/7 tests in 3.32s on 2026-08-26 using
+  `vitest run src/cards/LM/LM-015.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-015 remains below 10/10 pending mechanism and collection gates.
 
 ## LM-016 — Gammamon — pending focused execution
 
-- Direct all-turns once-per-turn reactive evolution and On Deletion free-play behavior map to IR.
-  Existing focused cases are unrun; no local ruling exists, so LM-016 remains below 10/10.
+- Direct all-turns once-per-turn reactive evolution is restricted to effect-caused deletion of
+  another friendly Digimon, and inherited On Deletion free-play targets any named Hiro Amanokawa
+  Tamer from hand. The catalog has no local KB entry; direct IR and focused fixtures cover effect
+  versus battle deletion, self-deletion, inherited play/refusal, and metadata, with no new causal
+  gap found. Existing focused cases are unrun, so LM-016 remains below 10/10.
 
 ## LM-017 — Regulusmon — pending focused execution
 
