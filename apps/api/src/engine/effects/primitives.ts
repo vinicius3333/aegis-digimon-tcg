@@ -662,6 +662,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     );
   };
 
+  const effectiveLooseUseCost: NonNullable<Primitives["effectiveLooseUseCost"]> = (instanceId, controllerSeat) => {
+    const instance = peekLooseInstance(state, instanceId);
+    if (instance === undefined) return undefined;
+    const definition = requireCardDefinition(instance.cardId);
+    return ledger.playCostFor({ def: definition, controllerSeat }, normalizeCost(definition.playCost));
+  };
+
   // --- play from hand / security --------------------------------------------
 
   const playFromHand = async (
@@ -4916,6 +4923,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     playFromSecurity,
     canAffordEffectPlay,
     effectivePlayCost,
+    effectiveLooseUseCost,
     playInstances,
     placeOptionAsPermanent,
     digivolveFromInstance,
