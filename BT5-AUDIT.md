@@ -59,3 +59,55 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   `primitives.test.ts`; it reports no BT5-001 errors. `git diff --check` and
   changed-file `oxfmt --check` both pass.
+
+## BT5-002 — Tsunomon — 10/10
+
+- Catalog evidence: Blue Digi-Egg, Lv.2 In-Training, play cost -1, DP 0, no
+  digivolution costs, [Lesser] trait, rarity U, and max 4 copies. It has no
+  main, regular, or Security text. Its sole inherited clause is
+  "[Your Turn] While this Digimon has [Garurumon] or [Omnimon] in its name,
+  it gets +1000 DP."
+- Knowledge base: `node tools/kb/query.mjs card BT5-002` returns the card
+  identity with no knowledge-base entries, so the catalog text is the governing
+  contract. The applicable local rules are glossary `Your Turn` (the period
+  from the start of the owner's turn through its end), glossary `Digivolution
+  Card` (an inherited effect can be activated by the digivolved Digimon),
+  comprehensive §2-3-1-3 ("with [XX] in its name" is a substring match),
+  §15-3-1 (an inherited effect is gained from a digivolution card), and
+  §15-8-2-1/§15-8-2-6 (persistent effects are constantly active while their
+  timing and processing conditions hold).
+- Implementation: `apps/api/src/cards/BT5/BT5-002.ts` contains one inherited
+  `YourTurn` effect whose only action is an `Aura` targeting the host via
+  `isSelfRef`, modifying DP by exactly 1000 while
+  `selfHasNameContaining` matches `Garurumon` or `Omnimon`. It is registered
+  exclusively with `registerIrCard("BT5-002", compiled)`, and declares
+  `coverage: "full"` with an empty `residual` list.
+- Primitive trace: `timingForTrigger` routes `YourTurn` to the persistent
+  `EffectTiming.None` window, while `turnOwnerGuard` gates it to the source
+  owner's turn. `recomputeContinuousEffects` clears and re-derives the
+  continuous modifier tier, so the +1000 lapses when the turn changes or the
+  `while` predicate fails. The `Aura` action resolves its self-reference to
+  the host permanent and records a continuous DP modifier. The
+  `selfHasNameContaining` condition reads the current top card name
+  case-insensitively and matches requested bracket text as a substring; an
+  inherited source is therefore evaluated against its host's live name.
+- Behavioral proof: 4 focused cases pass. The existing positive case proves
+  the inherited aura on `AncientGarurumon`, and the companion boundary case
+  proves `Omnimon` matches while `AncientGreymon` does not. A legal stack case
+  proves the source remains active through BT5-002 (Lv.2) -> BT1-029 (Lv.3)
+  -> BT1-036 (Lv.4) -> BT1-040 (Lv.5) -> BT4-114 (Lv.6), grants exactly
+  +1000 on seat 0's turn, and drops to base DP after changing to seat 1's
+  turn. A same-name host without BT5-002 proves the inherited effect cannot
+  activate from a loose/missing source card.
+- Defect corrected: none in the card module. The implementation was already
+  faithful compiled IR; this audit added the missing owner-turn, exact-stack,
+  and inherited-source negative assertions to `BT5-002.test.ts`.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-002.test.ts` — 1 file, 4 tests passed. No shared engine
+  seam changed, so no mechanism regression suite was required. Workspace
+  `pnpm typecheck` is blocked by pre-existing unrelated errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  `primitives.test.ts`; it reports no BT5-002 errors. Changed-file
+  `pnpm exec oxfmt --check apps/api/src/cards/BT5/BT5-002.test.ts` and
+  `git diff --check` pass.
