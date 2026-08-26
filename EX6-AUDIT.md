@@ -1,0 +1,27 @@
+# EX6 Card Implementation Audit
+
+This ledger is the evidence record for the EX6-001 through EX6-074 audit. It is
+maintained in card-ID order. A `10/10` assessment requires the exact catalog
+contract, any local knowledge-base evidence, direct compiled IR, shared runtime
+seams, and observable behavioral evidence; structural assertions alone do not
+establish behavioral proof. The EX6-002 through EX6-006 focused additions made
+before this ledger remain committed and will be executed only after the unrelated
+root-worktree Vitest workload has cleared.
+
+## EX6-007 — Zubamon — evidence in progress
+
+- Catalog evidence: Red level 3, play cost 4, 1000 DP, standard red level-2 evolution for 0 and alternate `[Sakuttomon]`/`[Kakkinmon]` evolution for 0; forms `Rookie`, attribute `Vaccine`, traits `Weapon` and `Legend-Arms`. Its hand `[Main]` pays 1 and places Zubamon at the bottom of one controller-owned level-3 or `Legend-Arms` Digimon, granting that exact host +4000 DP for the turn. Its top-card `[Your Turn] [Once Per Turn]` draws when an effect places a digivolution card under Zubamon; its inherited text gives the host +2000 DP during the controller's turn.
+- Knowledge base: Q3701 confirms the `[Main]` cannot be activated merely by paying 1 when no legal level-3 or `Legend-Arms` placement host exists. No other local entry applies.
+- Direct IR: [`EX6-007.ts`](apps/api/src/cards/EX6/EX6-007.ts) declares a hand `Main` `ModifyDP` action with a paid-memory cost, an atomic additional `place` cost, `underFilter` plus `underOrFilters`, and `bindHostAs: "placementTarget"`; the DP modifier consumes that exact binding. A separate `YourTurn` once-per-turn `onAddDigivolutionCards` watcher draws one, and the inherited `YourTurn` modifier grants +2000 permanently while active. Its alternate evolution recipe is exact, coverage is `full`, residual is empty, and registration is exclusively `registerIrCard("EX6-007", compiled)`.
+- Shared primitive trace: `activateEffect` enumerates the hand Main entry and evaluates activation feasibility before resolution; `placeUnder` validates legal host candidates and places the source at stack bottom; the action runner resolves bound `placementTarget` before `ModifyDP` applies the turn-bounded modifier. `subTrigger.ts` validates the `onAddDigivolutionCards` subject against Zubamon, applies source-instance once-per-turn tracking, then delegates `Draw` to the resource action. The continuous modifier ledger recomputes the inherited +2000 DP on the host.
+- Existing observable proof: EX6-007's colocated test currently proves only the IR shape. Existing EX6-001 and EX6-002 behavioral tests exercise the same production `placeUnder` and `onAddDigivolutionCards` paths, but do not prove Q3701's atomic hand-Main activation gate or Zubamon's bound-target +4000 result. This is a material unverified boundary and remains queued for a targeted test after the ledger pass identifies all comparable gaps.
+- Status: not rated 10/10; focused execution is deferred while the unrelated Vitest process remains active.
+
+## EX6-008 — ZubaEagermon — evidence in progress
+
+- Catalog evidence: Red level 4, play cost 5, 4000 DP, evolves from a level-3 `Legend-Arms` Digimon for 2; form `Champion`, attribute `Vaccine`, traits `Weapon` and `Legend-Arms`. Its hand `[Main]` pays 1, places itself beneath one controller-owned level-4 or `Legend-Arms` Digimon, and grants that exact host +4000 DP for the turn. Its top-card `[Your Turn] [Once Per Turn]` gains both Raid and Piercing when an effect adds a digivolution card under it; its inherited text gives the host +2000 DP during the controller's turn.
+- Knowledge base: Q3702 is the level-4 counterpart of Q3701: no legal level-4 or `Legend-Arms` placement host means the hand Main cannot be activated merely by paying 1.
+- Defect corrected: the original IR encoded the placement cost as `payAndPlaceUnder`, a cost kind with no interpreter implementation or other repository consumer. It also selected the +4000 target independently from the placement. The audited IR now uses the supported atomic `payMemory` plus `additionalCosts.place` sequence, binds the selected host as `placementTarget`, and applies +4000 through that binding. The exact level-4-or-`Legend-Arms`, controller, kind, hand-source, bottom-placement, and alternate-evolution clauses are preserved; registration remains exclusively `registerIrCard("EX6-008", compiled)` with full coverage and no residual clauses.
+- Shared primitive trace: the same activation preflight, hand-source placement, bottom-stack transition, and bound-target DP modifier path as EX6-007 now executes this clause. `onAddDigivolutionCards` uses source identity and once-per-turn tracking before the two turn-bounded `GainKeyword` actions apply Raid and Piercing; the inherited DP modifier is maintained by the continuous ledger.
+- Existing observable proof: the colocated suite currently verifies the corrected IR contract only. Existing EX6-001/002 runtime cases exercise the common stack-placement event, but no current test observes Q3702's failed activation, the atomic cost/placement transaction, the bound +4000 target, or the Raid/Piercing grant. These material boundaries remain queued for focused proof after ledger coverage is calculated.
+- Status: not rated 10/10; focused execution is deferred while the unrelated Vitest process remains active.

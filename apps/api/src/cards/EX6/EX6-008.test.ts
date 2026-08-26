@@ -7,18 +7,21 @@ describe("EX6-008 ZubaEagermon", () => {
       kind: "ModifyDP",
       amount: 4000,
       duration: "forTheTurn",
-      target: {
-        count: 1,
-        filter: {
-          controllerDefault: "mine",
-          kind: ["Digimon"],
-          orFilters: [
-            { levelComparison: { op: "eq", value: 4 } },
-            { nameOrTrait: [{ match: "trait", tokens: ["Legend-Arms"] }] },
+      target: { fromSelectionRef: "placementTarget", count: 1 },
+      cost: { kind: "payMemory", memory: 1 },
+      additionalCosts: [
+        {
+          kind: "place",
+          bindHostAs: "placementTarget",
+          position: "bottom",
+          target: { from: ["hand"], filter: { isSelfRef: true } },
+          underFilter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "eq", value: 4 } },
+          underOrFilters: [
+            { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["Legend-Arms"] }] },
           ],
+          destination: "digivolutionStack",
         },
-      },
-      cost: { kind: "payAndPlaceUnder", payCost: 1, placeThis: true, position: "bottom" },
+      ],
     });
   });
   it("inherits +2000 DP and grants Raid and Piercing when a digivolution card is added", () => {
