@@ -994,3 +994,43 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and `primitives.test.ts`.
 - Remaining ambiguity: none identified.
+
+## BT5-022 — Bulucomon — 10/10
+
+- Catalog evidence: Blue Lv.3 Rookie Digimon, Data/Mini Dragon, play cost 4,
+  3000 DP, and blue Lv.2 evolution cost 0. It has no main or Security text.
+  Its inherited effect is `[Your Turn][Once Per Turn] When you trash a
+  digivolution card of 1 of your opponent's Digimon, gain 1 memory.`
+- Knowledge-base and rules evidence: Q1305 confirms that returning a Digimon
+  to hand does not treat its digivolution cards as trashed. Q1306 confirms
+  that trashing cards from two opposing Digimon at the same time grants only
+  1 memory because the inherited effect is once per turn. Local inherited,
+  effect-attribution, subtrigger, and per-turn reset rules govern the remaining
+  text. No errata, restriction, or unresolved ambiguity applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-022.ts` installs an inherited
+  `whenDigivolutionTrashed` subtrigger only during `YourTurn`, filtered to an
+  opponent-controlled Digimon and gated by `triggerByYourEffect`. Its action
+  gains exactly 1 memory. Both the watcher and outer effect carry the required
+  once-per-turn identity. The module declares `coverage: "full"`,
+  `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-022", compiled)`.
+- Primitive, peer, and stack evidence: the subtrigger receives the affected
+  permanent and effect seat, so it distinguishes the opponent's host and the
+  controller's effect attribution. Bouncing a stack emits no source-trash
+  event. The shared turn ledger caps multiple eligible events and explicitly
+  resets for a new turn. BT6-002 provides a peer inherited watcher over the
+  same trash-digivolution event and stack topology.
+- Behavioral proof: 5 focused tests prove a legal inherited host gaining 1
+  memory, rejection when the opponent trashes their own source, inactivity
+  during the opponent's turn, Q1305 bounce behavior, and Q1306's one-memory
+  cap across two opposing Digimon. Shared subtrigger regression proves the
+  once-per-turn reset on a later turn.
+- Defect corrected: none in the IR or engine. The audit added only the missing
+  opponent-turn negative assertion to `BT5-022.test.ts`.
+- Verification: focused BT5-022, BT6-002 peer, and shared subtrigger suite — 3
+  files, 31 tests passed. Targeted Oxfmt and `git diff --check` passed.
+  Workspace `pnpm typecheck` retains only the known unrelated API errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  `primitives.test.ts`.
+- Remaining ambiguity: none identified.
