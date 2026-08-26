@@ -171,3 +171,65 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   `primitives.test.ts`; it reports no BT5-003 source errors. Changed-file
   formatting and `git diff --check` are required below and are clean.
+
+## BT5-004 — Yokomon — 10/10
+
+- Catalog evidence: Green Digi-Egg, Lv.2 In-Training, play cost -1, DP 0,
+  no digivolution cost, [Bulb] type, rarity U, and max 4 copies. It has no
+  main, regular, or Security text. Its sole inherited clause is
+  "[Your Turn] When this card is trashed due to activating this Digimon's
+  ＜Digi-Burst＞, 1 of your Digimon gets +2000 DP for the turn."
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-004`
+  returns the card identity with no card-specific KB entries, rulings, errata,
+  or restrictions. The local glossary defines Digi-Burst as trashing the
+  specified number of that Digimon's digivolution cards to activate its effect,
+  and defines Your Turn as the period from the start of the owner's turn to its
+  end. Comprehensive Rules §15-3-1/§15-3-3 establish that an inherited effect
+  is gained from a digivolution card and that a "this card" reference identifies
+  the inherited source card; §15-8-3 defines the trigger-type activation and
+  requires its trigger conditions to be met. The local manual's Digivolution
+  Cards section confirms that stacked cards are not cards on the field while
+  their inherited effects remain usable by the host.
+- Implementation: `apps/api/src/cards/BT5/BT5-004.ts` contains one inherited
+  `YourTurn` effect with a `SubTrigger` for
+  `onDigiBurstCardDiscarded`, `sourceFilter.isSelfRef: true`, and one
+  `ModifyDP` action targeting exactly one own battle-area Digimon (`mine`,
+  `Digimon`) for +2000 with `forTheTurn` duration. It is registered exclusively
+  with `registerIrCard("BT5-004", compiled)`, and declares `coverage: "full"`
+  with an empty `residual` list.
+- Primitive trace: `YourTurn` is collected through the persistent trigger
+  window and gated to the source owner's turn. Digi-Burst costs call
+  `trashDigivolutionCards` (and its atomic sibling), which emits the dedicated
+  `onDigiBurstCardDiscarded` event with the trashed stack-card instance IDs;
+  `runSubTrigger`'s discard gate compares those IDs with Yokomon's source
+  instance, preventing another host's Digi-Burst or ordinary stack trash from
+  matching. The discarded-source handling preserves the inherited source
+  context after Yokomon leaves the stack. `candidatePermanents` defaults to
+  battle-area candidates, scopes `mine`, and resolves count 1; `ModifyDP`'s
+  `forTheTurn` ledger entry is removed by the turn-end sweep.
+- Peer and stack evidence: BT5-050 uses the same inherited
+  `onDigiBurstCardDiscarded`/`isSelfRef` pattern and its negative test confirms
+  that another host's Digi-Burst does not trigger the source. BT4-008 and
+  BT7-003 are comparable inherited Digi-Burst reactions with the same event
+  seam. The focused BT5-004 suite now performs a legal Green Lv.2 Yokomon ->
+  Green Lv.3 BT5-046 breeding evolution, verifies the source-card transition,
+  moves the host into the battle area, and then activates Digi-Burst.
+- Behavioral proof: 4 focused tests pass. They prove exact-one own-target
+  selection while leaving the host and an opponent unchanged, reject a
+  different host's Digi-Burst, reject ordinary non-Digi-Burst stack trash, and
+  preserve the inherited source through a legal breeding evolution before
+  expiring the +2000 modifier at the owner's turn end. No optional refusal or
+  trait-filter case applies because the printed clause has no optional marker
+  and names no trait.
+- Defect corrected: none in the card module or shared engine. The compiled IR
+  was already faithful; this audit added the missing cross-host, non-Digi-Burst,
+  legal-evolution, exact-target, and duration assertions to
+  `apps/api/src/cards/BT5/BT5-004.test.ts`.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-004.test.ts` — 1 file, 4 tests passed. No shared engine
+  seam changed, so no mechanism regression suite was required. Workspace
+  `pnpm typecheck` retains the repository's pre-existing unrelated errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  `primitives.test.ts`; it reports no BT5-004 source errors. Changed-file
+  formatting and `git diff --check` are clean.
