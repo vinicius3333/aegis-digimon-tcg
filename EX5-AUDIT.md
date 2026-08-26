@@ -44,9 +44,9 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-038 | Vikaralamon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-039 | Garudamon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-040 | Kumbhiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-041 | Ebonwumon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-041 | Ebonwumon | 0 | Blast is hand-only; both entry routes suspend up to live Deva/Four Sovereigns count and restrict every opponent Digimon’s next unsuspend phase, while deletion selects only a currently suspended opponent. | Pending focused proof |
 | EX5-042 | Merukimon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-043 | Leopardmon (X Antibody) | 2 | Direct module normalizes generated record; exclusive IR registration and no executable residual. | Pending |
+| EX5-043 | Leopardmon (X Antibody) | 2 | Generated `whenPlayed` watcher is retained and its Return target uses base 5000 plus the normalized +3000-per-other-friendly-Digimon dynamic ceiling; shared source/target scaling supplies live evaluation. | Pending focused proof |
 | EX5-044 | Elecmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-045 | Chuumon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-046 | Targetmon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
@@ -56,8 +56,8 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-050 | Sinduramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-051 | Caturamon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-052 | Makuramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-053 | Baihumon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-054 | MetalEtemon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-053 | Baihumon | 2 | Generated security correction moves the branch to OnSecurityCheck and limits free play to the revealed security Deva card; source identity is carried by the shared security-reveal seam. | Pending focused proof |
+| EX5-054 | MetalEtemon | 2 | Entry deletion targets opponent Digimon/Tamer at cost≤3 plus live own-trash Etemon/Sukamon scaling; opponent attack watcher optionally redirects to self only after placing a matching hand card atop own security, Once Per Turn. | Pending focused proof |
 | EX5-055 | HeavyLeomon | 1 | Direct IR repeats the De-Digivolve → top-source trash → ≤6000 bottom-deck sequence for evolution/deletion; shared `lastTargetCanTrashDigivolution` stops the chain at level 3/no source, and bound end-attack return controls the fallback unsuspend. | Pending focused proof |
 | EX5-056 | Syakomon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-057 | Labramon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
