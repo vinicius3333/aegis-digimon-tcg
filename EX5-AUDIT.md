@@ -81,7 +81,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 
 ## Validation queue
 
-All 74 individual focused files remain queued. After PID group 11091 clears, each must be run in an isolated single-fork process, followed by the coordinator-approved serial collection gate, typecheck, inventory recheck, and diff check. Until then this ledger is static evidence only, not a 10/10 closure claim.
+All 74 individual focused files remain queued. Six currently contain observable engine-harness cases (EX5-025, EX5-037, EX5-040, EX5-062, EX5-063, and EX5-074); the other 68 currently prove compiled shape only, so a green focused run alone is not sufficient to award collection-wide 10/10 evidence. After PID group 11091 clears, each must be run in an isolated single-fork process, then the structural-only high-risk clauses must be promoted to observable proof where no shared mechanism already proves them, followed by the coordinator-approved serial collection gate, typecheck, inventory recheck, and diff check. Until then this ledger is static evidence only, not a 10/10 closure claim.
 
 ## Direct IR clause trace (static pass)
 
