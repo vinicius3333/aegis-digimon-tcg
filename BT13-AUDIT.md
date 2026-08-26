@@ -259,7 +259,9 @@ This ledger records only independently reproduced, card-scoped verification. His
   - Registration: exclusive `registerIrCard("BT13-089", compiled)`; no legacy registration.
   - Correction: replaced immediate end-of-your-turn Ravemon play with `DelayedEffect(nextEndOfOpponentTurn)`, preserving the printed delete-now/play-later sequence.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-089.test.ts` passed (3 tests): delayed Bird/Avian Ravemon recursion and On Deletion Falcomon/Keenan recursion are covered.
-- BT13-090 — Pending
+- BT13-090 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-090", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-090.test.ts` passed (3 tests): two return clauses and scaled opponent-attack memory watcher are covered.
 - BT13-091 — Pending
 - BT13-092 — Pending
 - BT13-093 — Pending
