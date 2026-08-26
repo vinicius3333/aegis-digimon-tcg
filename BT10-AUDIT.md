@@ -501,3 +501,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: off-color BT8 Gammamon proves the name route while green Palmon proves the catalog route, both at cost 2 with retained stacks. A real attack into a lower-DP suspended Gammamon proves deletion followed by the security check rather than merely inspecting keyword metadata.
 - Behavioral proof: five focused cases prove catalog/IR fidelity, continuous Piercing, both evolution routes and exact cost, retained sources, real battle deletion, continued security checking, and attacker survival.
 - Verification: focused suite — 5 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
+## BT10-051 — SymbareAngoramon — 10/10
+
+- Catalog evidence: green level 4 Digimon, play cost 5, 6000 DP; evolves from green level 3 for 2; form `Champion`, attribute `Vaccine`, type `Beastkin`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when an opposing Digimon becomes suspended.
+- Knowledge base: `node tools/kb/query.mjs card BT10-051` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: one inherited owner-turn source-instance once-per-turn `whenSuspended` watcher filters the event identity to opponent-controlled Digimon and gains exactly 1 memory. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-051", compiled)`.
+- Primitive trace: suspension completion emits the affected live permanent; the watcher compares its controller with SymbareAngoramon's host controller and checks the current turn before consuming the physical inherited source's frequency. Repeated continuous recomputation does not duplicate the watcher.
+- Cross-card and stack proof: SymbareAngoramon beneath a real green level-5 host observes two different opposing Digimon suspensions but rewards only the first. A controller-owned peer and the same opponent event during the opponent's turn independently prove ownership and turn boundaries.
+- Behavioral proof: four focused cases prove catalog/IR fidelity, legal inherited stack, exact opponent-Digimon event filter, +1 amount, once-per-turn frequency, recomputation idempotence, allied negative, and owner-turn negative.
+- Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
