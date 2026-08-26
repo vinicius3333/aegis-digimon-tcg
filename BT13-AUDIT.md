@@ -212,7 +212,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-074 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, traces separate On Play/evolution top-three optional free-play of a Mamemon costing 10 or less with rest trash, and all-turn Jamming/Reboot auras for own Mamemon-name and Royal Knight Digimon.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-074.test.ts` passed (2 tests): IR clause proof and live dual-keyword aura on both trait branches.
-- BT13-075 — Pending
+- BT13-075 — 10/10
+  - Evidence: catalog and KB Q2312/Q2313 reviewed; compiled IR exclusively uses `registerIrCard`, tracing mandatory own-trash X Antibody/Royal Knight bottom-source placement, restriction of all current qualifying opponent Digimon from player attacks through opponent turn, and once-per-turn leave-play prevention by source-card deck-bottom return.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-075.test.ts` passed (2 tests): complete IR clause proof for Q2312/Q2313 target semantics and live registration.
 - BT13-076 — Pending
 - BT13-077 — Pending
 - BT13-078 — Pending
