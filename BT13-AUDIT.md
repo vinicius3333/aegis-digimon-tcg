@@ -137,7 +137,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-049 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing distinct Vegetation/Plant-or-Fairy and Yoshino reveal selections, bottom routing, and inherited own-turn once-per-turn cost reduction conditioned on an own green Tamer.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-049.test.ts` passed (5 tests): mixed search, own/opponent Tamer boundary for inherited reduction, frequency-compatible evolution behavior, and level-2 evolution.
-- BT13-050 — Pending
+- BT13-050 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing optional self-suspension as the cost to evolve an own Digimon into a hand Fairy at -2, plus inherited own-green-Tamer reduction with once-per-turn scope.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-050.test.ts` passed (6 tests): positive cost/evolution path, no-Fairy and refusal negatives, inherited reduction, and normal evolution cost.
 - BT13-051 — Pending
 - BT13-052 — Pending
 - BT13-053 — Pending
