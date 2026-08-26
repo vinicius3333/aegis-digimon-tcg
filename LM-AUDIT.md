@@ -236,3 +236,17 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Existing focused fixtures exercise the lock halves and self-security placement but do not yet
   force distinct first/second choices or invoke a locked target's effect. Along with PID 43774's
   unrun gate, that incomplete behavioral proof keeps LM-042 below 10/10.
+
+## LM-043 — Darkdramon — pending focused execution
+
+- Catalog maps directly to the D-Brigade/ACCEL alternate evolution, hand Counter Blast
+  Digivolve marker, Scapegoat, shared On Play/When Digivolving De-Digivolve 1 then delete-all
+  lowest-play-cost clauses, and inherited Collision. The target narrowing is evaluated after
+  De-Digivolve, so a reverted stack can become a delete target; tied lowest costs remain all
+  eligible.
+- Existing focused proof covers both sequencing paths and Collision. A minimal card-level
+  Scapegoat battle proof was added: an opponent battle into suspended Darkdramon must sacrifice
+  another own Digimon and retain Darkdramon, exercising the registered keyword through the combat
+  deletion path rather than merely asserting its marker.
+- No local Q&A exists. This new focused case is intentionally unrun under PID 43774, so LM-043
+  remains below 10/10.
