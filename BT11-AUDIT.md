@@ -499,3 +499,15 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Catalog and KB evidence: BlackWarGreymon (X Antibody) has alternate BlackWarGreymon evolution for 2 and Reboot. Q2102 requires the opponent's attacker to be highest DP at declaration before redirect can activate; Q2103 confirms its distinct unsuspend watcher sees any Digimon, not just a friendly one, and deletes an opposing lowest-play-cost Digimon only with BlackWarGreymon or X Antibody in its stack.
 - Source audit correction: shared IR made redirect a bare opponent-turn action with no declaration gate, and its unsuspend watcher was friendly-only with a raw stack condition. It now matches direct IR's highest-DP `whenOpponentAttacks` watcher, any-controller unsuspend subject, and executable stack predicate.
 - Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2102 declaration snapshot, redirect decline, Q2103 both-controller unsuspends, stack gate, lowest-cost ties, once-per-turn identities, and direct/shared equality require observable proof.
+
+## BT11-075 — DoKunemon — source audit pending focused verification
+
+- Catalog and KB evidence: DoKunemon is a purple level-3 Larva with no executable text, and the local knowledge base has no card-specific entry.
+- Source audit: direct and shared IR both intentionally contain no effects, declare full coverage, have no residuals, and direct registration is exclusively `registerIrCard`.
+- Verification status: no focused test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is not scored 10/10; vanilla catalog/IR and legal-evolution observable proof remains required.
+
+## BT11-076 — Ignitemon — source correction pending focused verification
+
+- Catalog and KB evidence: Ignitemon has alternate Xros Heart level-2 evolution for 0. When attacking, it may delete another friendly Digimon to delete one opposing unsuspended Digimon with level at most that deleted Digimon; inherited, it gains memory only when its controller plays a Digimon **by an effect**. Q2104 includes DigiXros-effect plays in that inherited trigger.
+- Source audit correction: shared IR omitted the deleted-Digimon level ceiling and the `byEffect` gate. It now matches direct IR's `relativeTo: "lastDeleted"` target comparison and effect-play provenance, retaining ordinary friendly controller scope and once-per-turn identity.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; alternate evolution, paid deletion level boundary, unsuspended boundary, ordinary/effect/DigiXros play provenance, and direct/shared equality require observable proof.
