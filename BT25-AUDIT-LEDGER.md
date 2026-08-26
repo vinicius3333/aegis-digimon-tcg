@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-053 (Aegiochusmon: Green)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-053 Aegiochusmon: Green | Green/red level 5; alternate `[Aegiomon]` evolution cost 3; Vortex and Decode; on play/when digivolving suspend 1 opposing Digimon/Tamer, it cannot unsuspend until opponent's turn ends, then if own security is 3 or fewer this gains Piercing and +5000 DP for the turn; inherited all turns once per turn on own security removal may suspend 1 opposing Digimon/Tamer. Q6329 confirms the follow-up restriction still applies if the selected target was already suspended; Q6330 defines Security ordering. | **No card-specific causal mismatch found statically.** Main effects bind the selected opposing Digimon/Tamer and apply the unsuspend restriction to that same target, then independently gate Piercing/+5000 on the 3-or-fewer security condition. The inherited security-removal watcher is optional, once-per-turn, and opponent Digimon/Tamer scoped; Vortex, Decode, alternate evolution, and durations are represented. | Structural test only; no execution of already-suspended targets, security boundary, same-target binding, inherited optionality, or Q6330 ordering. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-053
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-053` (Q6329 and Q6330).
+- Direct module and shared target binding, unsuspend restriction, security-count conditions,
+  and security-removal watcher routing were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-052 (Logimon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
