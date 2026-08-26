@@ -33,7 +33,8 @@ if (replacement?.kind === "Replacement") {
         filter: {
           zone: "digivolutionCards",
           controller: "mine",
-          nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }],
+          // [X Antibody] is a named card reference here, not the broad [X Antibody] trait.
+          nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }],
         },
       },
       amount: 1,

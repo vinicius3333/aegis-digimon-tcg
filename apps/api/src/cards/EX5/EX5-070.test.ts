@@ -18,6 +18,23 @@ describe("EX5-070 X Antibody Proto Form", () => {
     });
   });
   it("registers the inherited leave-field return and security placement effect", () => {
-    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.isInherited).toBe(true);
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
+      isInherited: true,
+      actions: [
+        {
+          kind: "Replacement",
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              source: {
+                filter: {
+                  nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }],
+                },
+              },
+            },
+          ],
+        },
+      ],
+    });
   });
 });
