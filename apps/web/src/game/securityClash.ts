@@ -13,7 +13,12 @@ import {
   TIMINGS,
 } from "./timings";
 
-export type SecurityClashResolution = "battle" | "effect" | "trashed";
+/**
+ * `pending` is the client's own: the card has been revealed (`securityRevealed`) and the
+ * check has not closed yet, so the scene holds the card on stage while whatever it caused
+ * resolves. The other three come from the server's `securityChecked.resolution`.
+ */
+export type SecurityClashResolution = "pending" | "battle" | "effect" | "trashed";
 export type SecurityClashSide = "you" | "opp";
 
 /** The attack the check belongs to, remembered from the last `attackDeclared`. */
@@ -51,6 +56,12 @@ export interface SecurityClashScene {
    * so `revealed` here drives the claw, not the card's destination.
    */
   loser?: { attacker: boolean; revealed: boolean };
+  /**
+   * The outcome reached a scene that was already on stage — the check took a decision or
+   * two to close — so its beat starts at the settle rather than on the clock the reveal
+   * began. Drawn as a zeroed `--t-clash-outcome-at`.
+   */
+  outcomeStartsNow?: boolean;
 }
 
 /**
@@ -163,14 +174,64 @@ function comparableDp(cardId: string): number | undefined {
   return definition && isDigimon(definition) ? definition.dp : undefined;
 }
 
-export function buildSecurityClashScene({
+/**
+ * The scene the reveal opens with: both cards on stage, no verdict yet. The outcome is
+ * grafted on by {@link settleSecurityClashScene} when `securityChecked` closes the check,
+ * which may be a decision or two later.
+ */
+export function buildSecurityRevealScene({
   key,
   revealedCardId,
-  resolution,
   defenderSeat,
   viewerSeat,
   attacker,
+}: {
+  key: number;
+  revealedCardId: string;
+  /** Seat whose security was checked, i.e. the `securityRevealed` seat. */
+  defenderSeat: Seat;
+  viewerSeat: Seat;
+  attacker?: SecurityClashAttacker;
+}): SecurityClashScene {
+  const defenderSide: SecurityClashSide = defenderSeat === viewerSeat ? "you" : "opp";
+  const attackerSide: SecurityClashSide = defenderSide === "you" ? "opp" : "you";
+  // An attack context left over from the other seat's attack would face the wrong
+  // way, so it is only used when it actually opposes the checked player.
+  const facing = attacker && attacker.seat !== defenderSeat ? attacker : undefined;
+  return {
+    key,
+    resolution: "pending",
+    revealed: { cardId: revealedCardId, side: defenderSide, dp: comparableDp(revealedCardId) },
+    ...(facing ? { attacker: { cardId: facing.cardId, side: attackerSide, dp: comparableDp(facing.cardId) } } : {}),
+  };
+}
+
+/** Graft the closed check's outcome onto the scene the reveal put on stage. */
+export function settleSecurityClashScene(
+  scene: SecurityClashScene,
+  {
+    resolution,
+    battle,
+    outcomeStartsNow,
+  }: { resolution: string; battle?: SecurityBattleResult; outcomeStartsNow?: boolean },
+): SecurityClashScene {
+  return {
+    ...scene,
+    resolution: normalizeSecurityClashResolution(resolution),
+    ...(outcomeStartsNow === true ? { outcomeStartsNow: true } : {}),
+    // Without an attacker on stage there is no side to claw, so the verdict is dropped
+    // rather than shown against a card that is not there.
+    ...(scene.attacker && battle
+      ? { loser: { attacker: battle.attackerDeleted, revealed: battle.securityDigimonDeleted } }
+      : {}),
+  };
+}
+
+/** The whole scene at once, for a check whose reveal and outcome are already both known. */
+export function buildSecurityClashScene({
+  resolution,
   battle,
+  ...reveal
 }: {
   key: number;
   revealedCardId: string;
@@ -182,22 +243,7 @@ export function buildSecurityClashScene({
   /** The DP compare the server published on `securityChecked`. */
   battle?: SecurityBattleResult;
 }): SecurityClashScene {
-  const defenderSide: SecurityClashSide = defenderSeat === viewerSeat ? "you" : "opp";
-  const attackerSide: SecurityClashSide = defenderSide === "you" ? "opp" : "you";
-  // An attack context left over from the other seat's attack would face the wrong
-  // way, so it is only used when it actually opposes the checked player.
-  const facing = attacker && attacker.seat !== defenderSeat ? attacker : undefined;
-  return {
-    key,
-    resolution: normalizeSecurityClashResolution(resolution),
-    revealed: { cardId: revealedCardId, side: defenderSide, dp: comparableDp(revealedCardId) },
-    ...(facing ? { attacker: { cardId: facing.cardId, side: attackerSide, dp: comparableDp(facing.cardId) } } : {}),
-    // Without an attacker on stage there is no side to claw, so the verdict is dropped
-    // rather than shown against a card that is not there.
-    ...(facing && battle
-      ? { loser: { attacker: battle.attackerDeleted, revealed: battle.securityDigimonDeleted } }
-      : {}),
-  };
+  return settleSecurityClashScene(buildSecurityRevealScene(reveal), { resolution, ...(battle ? { battle } : {}) });
 }
 
 /**

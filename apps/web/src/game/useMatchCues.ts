@@ -52,7 +52,8 @@ import {
 import {
   buildSecurityBranchScene,
   buildSecurityBreakScene,
-  buildSecurityClashScene,
+  buildSecurityRevealScene,
+  settleSecurityClashScene,
   SECURITY_BRANCH_TOTAL_MS,
   SECURITY_BREAK_TIMINGS,
   type SecurityBranchScene,
@@ -144,6 +145,12 @@ const UNSUSPEND_SWEEP_MS = TIMINGS.suspendRotate + UNSUSPEND_SWEEP_SLOTS * TIMIN
  * showcase was mid-flight rather than painting over it.
  */
 const CENTER_STAGE_TRACK = "centerStage";
+
+/** Index of the last event of a kind in the batch, or -1. */
+function lastIndexOfKind(events: readonly ServerEvent[], kind: ServerEvent["kind"]): number {
+  for (let index = events.length - 1; index >= 0; index -= 1) if (events[index]!.kind === kind) return index;
+  return -1;
+}
 
 export type TurnTransitionCue = { endingSeat: number; nextSeat: number; turnCount: number };
 
@@ -359,11 +366,10 @@ export function useMatchCues({
   // read out yet. A newer check replaces that track, so they are flushed rather than
   // dropped with it — a lost animation is a shrug, a lost effect description is not.
   const heldNoticesRef = useRef<readonly MatchNotice[]>([]);
-  // True while the held notices came in AHEAD of their `securityChecked` — the server
-  // announces a check's effects before the event that closes the check, and a decision
-  // inside the effect splits the two across batches. The check that arrives next owns
-  // them, so it must not flush them as a superseded check's leftovers.
-  const heldAwaitingCheckRef = useRef(false);
+  // The revealed card currently held on stage by a check the server has not closed yet.
+  // `securityRevealed` stages it and `securityChecked` settles it, which may be a decision
+  // or two later — everything in between is that card's consequence and queues behind it.
+  const revealOnStageRef = useRef<{ key: number; scene: SecurityClashScene } | null>(null);
   // `cardsMoved` names only instance ids, so the panels need the board's current
   // identity and ownership index to name the cards that just moved.
   const sidePanelLookupRef = useRef<SidePanelLookup>({ cardId: () => undefined, seat: () => undefined });
@@ -447,7 +453,6 @@ export function useMatchCues({
   function flushHeldNotices() {
     const held = heldNoticesRef.current;
     heldNoticesRef.current = [];
-    heldAwaitingCheckRef.current = false;
     if (held.length === 0) return;
     for (const notice of held) openNotice({ ...notice, createdAt: Date.now() });
   }
@@ -457,7 +462,19 @@ export function useMatchCues({
     const fresh = eventsAfter(events, previous);
     lastCueEventRef.current = events.at(-1);
     const rejection = [...fresh].reverse().find((event) => event.kind === "actionRejected");
-    const securityCheck = [...fresh].reverse().find((event) => event.kind === "securityChecked");
+    // A batch can carry a whole check (reveal then close), only its opening, or only its
+    // close — a decision inside a [Security] effect is what splits the two apart. Only the
+    // last of each is staged: a batch holding several checks plays the newest, which is
+    // what the centre-stage track's `replace` does to the ones before it anyway.
+    const revealIndex = lastIndexOfKind(fresh, "securityRevealed");
+    const checkIndex = lastIndexOfKind(fresh, "securityChecked");
+    const securityReveal = revealIndex >= 0 ? fresh[revealIndex] : undefined;
+    /** True when this batch's last close belongs to this batch's last reveal. */
+    const closesFreshReveal = revealIndex >= 0 && checkIndex > revealIndex;
+    // A close that precedes the batch's last reveal belongs to a card the newer reveal has
+    // already taken off the stage, so it is dropped with the scene it closed.
+    const securityCheck = checkIndex >= 0 && (revealIndex < 0 || closesFreshReveal) ? fresh[checkIndex] : undefined;
+    const closingCheck = closesFreshReveal && securityCheck?.kind === "securityChecked" ? securityCheck : undefined;
     const turnEnd = [...fresh].reverse().find((event) => event.kind === "turnEnded");
     const securityAttack = [...fresh]
       .reverse()
@@ -473,10 +490,6 @@ export function useMatchCues({
     // are handed to the centre-stage sequence below instead of being raised here, where
     // they would talk over — or ahead of — the reveal they describe.
     let heldNotices: readonly MatchNotice[] = [];
-    // The ones the server itself stamped as fired mid-check. Their `securityChecked`
-    // may not even be in this batch yet — a decision inside the effect splits the two —
-    // so they are held for the check that arrives, this pass or a later one.
-    const checkOwnedNotices: MatchNotice[] = [];
 
     if (!replayingHistory) {
       for (const event of fresh) {
@@ -507,13 +520,7 @@ export function useMatchCues({
           keywordNoticeFromEvent(event, viewerSeat, noticeId, now);
         if (notice) {
           if (notice.body.variant === "effect") securityEffectPendingRef.current = false;
-          // An effect the server marked as fired mid-check announces a card the viewer
-          // has not been shown yet, so it never talks ahead of the reveal it describes.
-          if (event.kind === "effectTriggered" && event.duringSecurityCheck === true) {
-            checkOwnedNotices.push(notice);
-          } else {
-            raised.push(notice);
-          }
+          raised.push(notice);
         }
       }
       // The cut-in owns the centre of the screen ahead of the showcase, so the
@@ -620,8 +627,24 @@ export function useMatchCues({
       // An On Play / When Digivolving notice reads as the consequence of the card
       // that was just announced, so it waits for the reveal instead of talking
       // over the showcase. Its clock starts when it is finally raised.
-      if (securityCheck && raised.length > 0) {
+      if (securityReveal && raised.length > 0) {
+        // The reveal staged below owns them: it reads them out once its card is on screen.
         heldNotices = raised;
+      } else if (revealOnStageRef.current !== null && raised.length > 0) {
+        // A reveal from an earlier batch is still holding the centre of the screen while
+        // the check resolves. These notices are that check's consequences, so they queue
+        // behind the reveal on its own track rather than talking over it.
+        noticeSequenceRef.current += 1;
+        const id = `security-notices-late-${noticeSequenceRef.current}`;
+        heldNoticesRef.current = [...heldNoticesRef.current, ...raised];
+        enqueue({
+          id,
+          track: CENTER_STAGE_TRACK,
+          skippable: false,
+          run() {
+            flushHeldNotices();
+          },
+        });
       } else if (showcased && raised.length > 0) {
         enqueue({
           id: `showcase-notices-${showcaseKeyRef.current}`,
@@ -633,13 +656,6 @@ export function useMatchCues({
         });
       } else {
         for (const notice of raised) openNotice(notice);
-      }
-      // A check-owned notice whose check is not in this batch waits for the
-      // `securityChecked` that closes it. The flag marks the held stack as belonging
-      // to the check that arrives next, not to a superseded one.
-      if (!securityCheck && checkOwnedNotices.length > 0) {
-        heldNoticesRef.current = [...heldNoticesRef.current, ...checkOwnedNotices];
-        heldAwaitingCheckRef.current = true;
       }
       if (announcement) {
         const shown = announcement;
@@ -683,39 +699,26 @@ export function useMatchCues({
         topInstanceId: cardSiteRef.current.topInstanceOf(securityAttack.attackerPermanentId),
       };
     }
-    if (securityCheck?.kind === "securityChecked") {
-      securityClashKeyRef.current += 1;
-      const key = securityClashKeyRef.current;
-      const scene = buildSecurityClashScene({
-        key,
-        revealedCardId: securityCheck.revealedCardId,
-        resolution: securityCheck.resolution,
-        defenderSeat: securityCheck.seat,
-        viewerSeat,
-        attacker: securityAttackerRef.current,
-        ...(securityCheck.battle ? { battle: securityCheck.battle } : {}),
-      });
-      const breakScene = buildSecurityBreakScene({ key, defenderSeat: securityCheck.seat, viewerSeat });
-      const branch = buildSecurityBranchScene({
-        key,
-        revealedCardId: securityCheck.revealedCardId,
-        resolution: securityCheck.resolution,
-        defenderSeat: securityCheck.seat,
-        viewerSeat,
-      });
-      // The whole check runs on the one centre-screen track, in the reference client's
-      // order (battle-animation-spec.md §4b): the shield arms, its glass breaks, the card
-      // is revealed and held, and only then does what the card *did* reach the screen —
-      // its notice, its detour to the side, the decision it asks for. Serial order is what
-      // guarantees that: a parallel track with a fixed lead-in cannot know when this one
-      // actually gets to the reveal, so it can and does run ahead of it. The break carries
-      // the `replace`, so a check still cancels whatever showcase was mid-flight.
-      // Whatever the check it cancels had not said yet is said now, before it goes —
-      // unless the held stack is this very check's own notices, arrived ahead of it.
-      if (!heldAwaitingCheckRef.current) flushHeldNotices();
-      enqueue(shieldBreakStep(breakScene));
+    // A check now reaches the client as two events: `securityRevealed` the moment the card
+    // is turned face up, and `securityChecked` once the server has resolved everything that
+    // card caused. The scene follows the same split — the card goes on stage at the reveal
+    // and holds there while its effect, its decisions and its battle play out, and only the
+    // outcome beat waits for the close. That is what puts the reveal at the moment of the
+    // attack and everything else after it.
+    //
+    // The whole check runs on the one centre-screen track, in the reference client's
+    // order (battle-animation-spec.md §4b): the shield arms, its glass breaks, the card
+    // is revealed and held, and only then does what the card *did* reach the screen —
+    // its notice, its detour to the side, the decision it asks for. Serial order is what
+    // guarantees that: a parallel track with a fixed lead-in cannot know when this one
+    // actually gets to the reveal, so it can and does run ahead of it. The break carries
+    // the `replace`, so a check still cancels whatever showcase was mid-flight.
+    function stageSecurityReveal(key: number, scene: SecurityClashScene, seat: Seat) {
+      // Whatever the check this one replaces had not said yet is said now, before it goes.
+      flushHeldNotices();
+      enqueue(shieldBreakStep(buildSecurityBreakScene({ key, defenderSeat: seat, viewerSeat })));
       // Everything the check will present is held back from here until the reveal has
-      // been seen. Cleared by the outcome step below, and by the queue going idle in
+      // been seen. Cleared by the presentation step, and by the queue going idle in
       // case a newer cue took the centre of the screen before the scene got there.
       if (!replayingHistory) setPendingRevealKey(key);
       // The scene is two steps, not one, so a click through it collapses the half
@@ -732,38 +735,11 @@ export function useMatchCues({
           if (context.cancelled) setSecurityClash((current) => (current?.key === scene.key ? null : current));
         },
       });
-      enqueue({
-        id: `security-clash-outcome-${key}`,
-        track: CENTER_STAGE_TRACK,
-        async run(context) {
-          try {
-            await context.wait(CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
-          } finally {
-            setSecurityClash((current) => (current?.key === scene.key ? null : current));
-          }
-        },
-      });
-      heldNoticesRef.current = [...heldNoticesRef.current, ...heldNotices, ...checkOwnedNotices];
-      heldAwaitingCheckRef.current = false;
-      // Step 10b: the revealed card takes its place at the side of the screen BEFORE its
-      // clause is read out, so the notice lands beside the card it explains rather than
-      // ahead of it (the reference client flies the card to the execute zone, then opens
-      // the panel). A check that resolves no effect has no detour, so its notices follow
-      // the outcome directly.
-      if (branch) {
-        // The slide itself is decoration, so a click through the scene collapses it and
-        // the card simply appears at the side.
-        enqueue({
-          id: `security-branch-in-${key}`,
-          track: CENTER_STAGE_TRACK,
-          async run(context) {
-            setSecurityBranch(branch);
-            await context.wait(SECURITY_BRANCH_IN_MS);
-          },
-        });
-      }
-      // The clock on each notice starts here rather than when the server named it. Always
-      // queued — it also reads out check-owned notices that arrive while the scene plays.
+    }
+
+    /** Reads out what the check has to say, then hands the board back to the player. */
+    function presentSecurityReveal(key: number) {
+      // The clock on each notice starts here rather than when the server named it.
       enqueue({
         id: `security-notices-${key}`,
         track: CENTER_STAGE_TRACK,
@@ -784,6 +760,106 @@ export function useMatchCues({
           setPendingRevealKey((current) => (current === key ? null : current));
         },
       });
+      // A cue that never reached the screen must not leave the check's presentation
+      // held back for good, so the flag is dropped at the latest when nothing is running.
+      if (!replayingHistory) {
+        void queue.idle().then(() => setPendingRevealKey((current) => (current === key ? null : current)));
+      }
+    }
+
+    if (securityReveal?.kind === "securityRevealed") {
+      securityClashKeyRef.current += 1;
+      const key = securityClashKeyRef.current;
+      const revealed = buildSecurityRevealScene({
+        key,
+        revealedCardId: securityReveal.revealedCardId,
+        defenderSeat: securityReveal.seat,
+        viewerSeat,
+        attacker: securityAttackerRef.current,
+      });
+      // A check that closes inside this same batch never shows the pending state: its
+      // outcome is already known, so the scene is staged settled and reads the way it
+      // always has. Only a check the server is still resolving holds the card unsettled.
+      const settled = closingCheck ? settleSecurityClashScene(revealed, closingCheck) : revealed;
+      stageSecurityReveal(key, settled, securityReveal.seat);
+      revealOnStageRef.current = { key, scene: settled };
+      heldNoticesRef.current = [...heldNoticesRef.current, ...heldNotices];
+      // With the close still outstanding, the card stays on stage and everything it causes
+      // queues behind it: the notices it earns, and the decisions its effect asks for.
+      if (!closingCheck) presentSecurityReveal(key);
+    }
+    if (securityCheck?.kind === "securityChecked") {
+      const staged = revealOnStageRef.current;
+      // A close with no reveal on stage is a client that joined mid-check (reconnect
+      // replay) or an older server: stage the finished scene now so the card is still
+      // shown before its outcome.
+      const key = staged?.key ?? (securityClashKeyRef.current += 1);
+      // A scene that has been holding the card on stage since an earlier batch starts its
+      // outcome beat now; one staged in this batch keeps the reference client's lead-in.
+      const heldOnStage = staged !== null && !closesFreshReveal;
+      const scene = settleSecurityClashScene(
+        staged?.scene ??
+          buildSecurityRevealScene({
+            key,
+            revealedCardId: securityCheck.revealedCardId,
+            defenderSeat: securityCheck.seat,
+            viewerSeat,
+            attacker: securityAttackerRef.current,
+          }),
+        { ...securityCheck, ...(heldOnStage ? { outcomeStartsNow: true } : {}) },
+      );
+      const staging = staged === null;
+      if (staging) {
+        stageSecurityReveal(key, scene, securityCheck.seat);
+        heldNoticesRef.current = [...heldNoticesRef.current, ...heldNotices];
+      }
+      revealOnStageRef.current = null;
+      // The detour to the side of the screen belongs to a card whose effect has not been
+      // seen yet. A card that already held the centre of the screen through its own
+      // resolution has been seen, so it takes the outcome beat and leaves.
+      const branch = heldOnStage
+        ? null
+        : buildSecurityBranchScene({
+            key,
+            revealedCardId: securityCheck.revealedCardId,
+            resolution: securityCheck.resolution,
+            defenderSeat: securityCheck.seat,
+            viewerSeat,
+          });
+      enqueue({
+        id: `security-clash-outcome-${key}`,
+        track: CENTER_STAGE_TRACK,
+        async run(context) {
+          try {
+            // The verdict reaches the scene here, so a card held through a long resolution
+            // takes the claw at the close rather than wearing the outcome the whole time.
+            setSecurityClash((current) => (current?.key === key ? scene : current));
+            await context.wait(CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
+          } finally {
+            setSecurityClash((current) => (current?.key === key ? null : current));
+          }
+        },
+      });
+      // Step 10b: the revealed card takes its place at the side of the screen BEFORE its
+      // clause is read out, so the notice lands beside the card it explains rather than
+      // ahead of it (the reference client flies the card to the execute zone, then opens
+      // the panel). A check that resolves no effect has no detour, so its notices follow
+      // the outcome directly.
+      if (branch) {
+        // The slide itself is decoration, so a click through the scene collapses it and
+        // the card simply appears at the side.
+        enqueue({
+          id: `security-branch-in-${key}`,
+          track: CENTER_STAGE_TRACK,
+          async run(context) {
+            setSecurityBranch(branch);
+            await context.wait(SECURITY_BRANCH_IN_MS);
+          },
+        });
+      }
+      // A reveal already presented has read out its notices and given the board back; only
+      // a scene staged straight from the close still owes both.
+      if (closesFreshReveal || staging) presentSecurityReveal(key);
       if (branch) {
         // The card holds next to its notice, then the centre of the board is given back.
         enqueue({
@@ -799,11 +875,6 @@ export function useMatchCues({
             }
           },
         });
-      }
-      // A cue that never reached the screen must not leave the check's presentation
-      // held back for good, so the flag is dropped at the latest when nothing is running.
-      if (!replayingHistory) {
-        void queue.idle().then(() => setPendingRevealKey((current) => (current === key ? null : current)));
       }
     }
     // A permanent that lost a battle takes the claw and the shake first, and its

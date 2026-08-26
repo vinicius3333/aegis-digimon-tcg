@@ -24,6 +24,13 @@ function keyframePercents(name: string): readonly number[] {
   return [...block.matchAll(/(\d+)%/g)].map((match) => Number(match[1]));
 }
 
+/** The declaration block of one CSS rule, so a delay expression can be read back. */
+function clashRule(selector: string): string {
+  const start = gameCss.indexOf(`${selector} {`);
+  expect(start, `${selector} is missing from game.css`).toBeGreaterThan(-1);
+  return gameCss.slice(start, gameCss.indexOf("\n}", start));
+}
+
 /** Where a moment lands inside an animation, as the percentage the keyframe has to carry. */
 function percentOf(momentMs: number, totalMs: number): number {
   return Math.round((momentMs / totalMs) * 100);
@@ -75,10 +82,16 @@ describe("battle timings", () => {
     expect(keyframePercents("battle-clash-hit")).toContain(percentOf(TIMINGS.cardShake, TIMINGS.clashOutcome));
   });
 
-  it("holds the clash scene up from the entrance until the exit begins", () => {
-    const percents = keyframePercents("battle-clash-scene");
-    expect(percents).toContain(percentOf(TIMINGS.clashAttackerEnter, CLASH_TOTAL_MS));
-    expect(percents).toContain(percentOf(CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome, CLASH_TOTAL_MS));
+  // The scene fades in and out as two animations rather than one long keyframe, because a
+  // check the server has not closed yet holds on stage for as long as it takes: the exit
+  // is delayed off the outcome, which a scene settled late zeroes for itself.
+  it("starts the clash exit where the outcome beat ends", () => {
+    const rule = clashRule('.battle-clash:not([data-resolution="pending"])');
+    expect(rule).toContain(`battle-clash-in var(--t-clash-enter, ${TIMINGS.clashAttackerEnter}ms)`);
+    expect(rule).toContain(`battle-clash-out var(--t-clash-exit, ${TIMINGS.clashExit}ms)`);
+    expect(rule).toContain(
+      `calc(var(--t-clash-outcome-at, ${CLASH_OUTCOME_AT_MS}ms) + var(--t-clash-outcome, ${TIMINGS.clashOutcome}ms))`,
+    );
   });
 
   // The server paces an automated seat behind this budget, so a check that outgrew it

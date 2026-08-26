@@ -27,7 +27,8 @@ import type { WinCheck } from "./winCheck.js";
  *   2. A player-directed attack with Strike >= 1 into EMPTY security => the
  *      attacker's controller wins immediately (loss = "security").
  *   3. Otherwise loop up to `Strike` times while security cards remain:
- *      a. take the top security card (security[0]) and reveal it (faceUp = true),
+ *      a. take the top security card (security[0]), reveal it (faceUp = true) and
+ *         announce the reveal (`securityRevealed`) before anything it causes,
  *      b. fire the OnSecurityCheck trigger,
  *      c. run its [Security] effect, if any (the card is STILL in the security
  *         stack, so a [Security] "play this card" effect can locate it there),
@@ -208,6 +209,17 @@ export async function runSecurityCheck(
     // Reveal the top security card. Source: it becomes face-up during the check.
     revealed.faceUp = true;
     checkedCount += 1;
+
+    // Announce the reveal before anything the revealed card causes. Everything below —
+    // the triggers, the [Security] effect and any decision it opens, the battle — is a
+    // consequence of this card, and the client cannot present it as one until it has been
+    // told which card was flipped. `securityChecked` closes the check with the outcome.
+    emit({
+      kind: "securityRevealed",
+      seat: defenderSeat,
+      revealedCardId: revealed.cardId,
+      attackerPermanentId: attacker.permanentId,
+    });
 
     if (wasAlreadyFaceUp) {
       await deps.fireSubTrigger?.("whenCheckedFaceUpSecurity", {

@@ -274,7 +274,7 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-clash-reveal": TIMINGS.clashReveal,
   "--t-clash-outcome": TIMINGS.clashOutcome,
   "--t-clash-outcome-at": CLASH_OUTCOME_AT_MS,
-  "--t-clash-total": CLASH_TOTAL_MS,
+  "--t-clash-exit": TIMINGS.clashExit,
   "--t-showcase-in": TIMINGS.showcaseIn,
   "--t-showcase-out": TIMINGS.showcaseOut,
   "--t-showcase-out-at": SHOWCASE_OUT_AT_MS,

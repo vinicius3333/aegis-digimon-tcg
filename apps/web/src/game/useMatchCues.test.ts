@@ -24,6 +24,9 @@ import {
  */
 const EFFECT_CHECK_NOTICE_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_IN_MS;
 
+/** When a reveal the server has not closed yet has finished putting its card on screen. */
+const REVEAL_SHOWN_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS;
+
 const playSound = vi.hoisted(() => vi.fn<(kind: string) => void>());
 vi.mock("../design/sound", () => ({ playSound }));
 
@@ -35,8 +38,15 @@ const ATTACK: ServerEvent = {
   attackerCardId: "BT1-010",
   target: { kind: "player" },
 };
+const REVEAL: ServerEvent = {
+  kind: "securityRevealed",
+  seat: 0,
+  revealedCardId: "BT1-010",
+  attackerPermanentId: "perm-1",
+};
 const CHECK: ServerEvent = { kind: "securityChecked", seat: 0, revealedCardId: "BT1-010", resolution: "battle" };
 const SECOND_CHECK: ServerEvent = { ...CHECK, revealedCardId: "BT1-011" };
+const SECOND_REVEAL: ServerEvent = { ...REVEAL, revealedCardId: "BT1-011" };
 const EFFECT_CHECK: ServerEvent = { ...CHECK, resolution: "effect" };
 const TURN_END: ServerEvent = { kind: "turnEnded", endingSeat: 1, nextSeat: 0, turnCount: 4 };
 const COMBAT: ServerEvent = {
@@ -145,6 +155,63 @@ describe("match cues", () => {
     expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
 
     await advance(CLASH_TOTAL_MS);
+    expect(result.current.securityClash).toBeNull();
+  });
+
+  // The point of the split: the card is on screen at the moment of the attack, and
+  // everything it causes — its effect, its decisions, its battle — plays after it.
+  it("shows the revealed card while the server is still resolving the check", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([ATTACK, REVEAL]);
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
+    expect(result.current.securityClash?.resolution).toBe("pending");
+
+    // No close, so the card holds: the scene outlives the clock a settled one runs on.
+    await advance(CLASH_TOTAL_MS * 2);
+    expect(result.current.securityClash?.resolution).toBe("pending");
+
+    rerender([ATTACK, REVEAL, CHECK]);
+    await advance(0);
+    expect(result.current.securityClash?.resolution).toBe("battle");
+    // The outcome beat starts at the close rather than on the reveal's clock.
+    expect(result.current.securityClash?.outcomeStartsNow).toBe(true);
+
+    await advance(CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
+    expect(result.current.securityClash).toBeNull();
+  });
+
+  // The decision a [Security] effect asks for arrives long before the check closes, so
+  // waiting for the close would have left the prompt open over an unrevealed card.
+  it("gives the board back once the reveal has played, without waiting for the close", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([REVEAL]);
+    await advance(0);
+    expect(result.current.securityRevealPending).toBe(true);
+
+    await advance(REVEAL_SHOWN_AT_MS - 1);
+    expect(result.current.securityRevealPending).toBe(true);
+
+    await advance(1);
+    expect(result.current.securityRevealPending).toBe(false);
+    expect(result.current.securityClash?.resolution).toBe("pending");
+  });
+
+  // A card the viewer already watched resolve does not detour to the side afterwards.
+  it("skips the branch for a card that held the screen through its own resolution", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([REVEAL]);
+    await advance(REVEAL_SHOWN_AT_MS);
+
+    rerender([REVEAL, EFFECT_CHECK]);
+    await advance(CLASH_TOTAL_MS);
+    expect(result.current.securityBranch).toBeNull();
     expect(result.current.securityClash).toBeNull();
   });
 
@@ -531,7 +598,7 @@ describe("notices", () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
-    rerender([EFFECT_CHECK, EFFECT]);
+    rerender([REVEAL, EFFECT, EFFECT_CHECK]);
     await advance(0);
     expect(result.current.notices).toEqual([]);
 
@@ -547,19 +614,17 @@ describe("notices", () => {
 
   const CHECK_OWNED_EFFECT: ServerEvent = { ...EFFECT, duringSecurityCheck: true };
 
-  // The reported bug's other half: the server announces a check's effect BEFORE the
+  // The reported bug's other half: the effect a check fires is announced before the
   // `securityChecked` that closes the check, and a decision inside the effect delivers
   // the two in separate batches — so the effect used to read out ahead of the clash.
+  // The reveal is what it waits for now, not the close: the card is on screen long
+  // before the server is done with it.
   it("holds a mid-check effect announced ahead of its check until the reveal has played", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
-    rerender([CHECK_OWNED_EFFECT]);
-    await advance(0);
-    expect(result.current.notices).toEqual([]);
-
-    rerender([CHECK_OWNED_EFFECT, EFFECT_CHECK]);
-    await advance(EFFECT_CHECK_NOTICE_AT_MS - 1);
+    rerender([REVEAL, CHECK_OWNED_EFFECT]);
+    await advance(REVEAL_SHOWN_AT_MS - 1);
     expect(result.current.notices).toEqual([]);
 
     await advance(1);
@@ -571,26 +636,25 @@ describe("notices", () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
-    rerender([EFFECT_CHECK]);
+    rerender([REVEAL]);
     await advance(TIMINGS.securityArm);
 
-    rerender([EFFECT_CHECK, CHECK_OWNED_EFFECT]);
-    await advance(EFFECT_CHECK_NOTICE_AT_MS - TIMINGS.securityArm - 1);
+    rerender([REVEAL, CHECK_OWNED_EFFECT]);
+    await advance(REVEAL_SHOWN_AT_MS - TIMINGS.securityArm - 1);
     expect(result.current.notices).toEqual([]);
 
     await advance(1);
     expect(result.current.notices).toHaveLength(1);
   });
 
-  it("flushes a held mid-check effect at turn end when no check ever closes it", async () => {
+  // With the reveal announced on its own event there is never a mid-check effect ahead of
+  // the card it describes, so one that arrives with no reveal holding the screen has
+  // nothing left to wait for.
+  it("raises a mid-check effect at once when no reveal is holding the screen", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
     rerender([CHECK_OWNED_EFFECT]);
-    await advance(0);
-    expect(result.current.notices).toEqual([]);
-
-    rerender([CHECK_OWNED_EFFECT, TURN_END]);
     await advance(0);
     expect(result.current.notices).toHaveLength(1);
   });
@@ -599,13 +663,13 @@ describe("notices", () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
-    rerender([EFFECT_CHECK, EFFECT]);
+    rerender([REVEAL, EFFECT]);
     await advance(TIMINGS.securityArm);
     expect(result.current.notices).toEqual([]);
 
     // A second strike replaces the centre of the screen. A dropped animation is a
     // shrug; a dropped effect description is information the viewer never gets back.
-    rerender([EFFECT_CHECK, EFFECT, SECOND_CHECK]);
+    rerender([REVEAL, EFFECT, SECOND_REVEAL]);
     await advance(0);
     expect(result.current.notices).toHaveLength(1);
   });

@@ -3,6 +3,7 @@
    resolves between them. Decoration only — it never takes pointer input, and the
    contents and the timeline come from ./securityClash. */
 
+import type { CSSProperties } from "react";
 import { getCardDefinition } from "@aegis/shared";
 import { CardFull } from "../design/cards";
 import { colorKey, type ColorName } from "../design/theme";
@@ -24,6 +25,9 @@ const CLASH_CARD_WIDTH = 158;
 const BRANCH_CARD_WIDTH = 150;
 
 const RESOLUTION_LABEL_KEYS = {
+  // The check is still resolving on the server, so the scene says what it knows: this card
+  // was revealed, and what it does is happening now.
+  pending: "overlay.securityResolving",
   battle: "overlay.securityBattle",
   effect: "overlay.securityEffect",
   trashed: "overlay.securityTrashed",
@@ -94,12 +98,15 @@ function clashFate(scene: SecurityClashScene, role: "attacker" | "revealed"): Cl
 }
 
 /**
- * Whether the card leaves the board after the beat. The checked card always does —
- * CR 13-1-8-4 trashes it whichever way the compare went — while the attacker is a
- * permanent whose own deletion is narrated by the board, not by this scene.
+ * Whether the card leaves the board after the beat. The checked card does whenever the
+ * check ends with it in the trash — CR 13-1-8-4 trashes it whichever way a compare went,
+ * and a card with nothing to resolve is trashed outright — while the attacker is a
+ * permanent whose own deletion is narrated by the board, not by this scene. A card that
+ * resolves an effect is excluded: it detours through the branch scene, which plays its
+ * own exit.
  */
 function clashSpent(scene: SecurityClashScene, role: "attacker" | "revealed"): boolean {
-  return scene.resolution === "battle" && role === "revealed";
+  return role === "revealed" && (scene.resolution === "battle" || scene.resolution === "trashed");
 }
 
 /** The revealed card breaks in its own colour, the way a deleted permanent does. */
@@ -115,6 +122,9 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
       className="battle-clash"
       data-testid="security-clash"
       data-resolution={scene.resolution}
+      // A check that held on stage while it resolved has already spent the lead-in, so the
+      // outcome beat and the fade behind it run from the settle instead of the mount.
+      style={scene.outcomeStartsNow === true ? ({ "--t-clash-outcome-at": "0ms" } as CSSProperties) : undefined}
       role="status"
       aria-live="assertive"
     >
