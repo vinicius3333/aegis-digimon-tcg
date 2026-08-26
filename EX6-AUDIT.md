@@ -114,3 +114,12 @@ root-worktree Vitest workload has cleared.
 - Shared primitive trace: the self-scoped static replacement participates in both manual and effect-driven would-play events. RevealAdd performs the mandatory one-card search and trash remainder. The security cost resolves a live own level-6 permanent and relocates it to top security; the following optional Digivolve can fail or be declined independently, leaving the payment in place for Q3715/Q3716, while the normal evolution matcher enforces Q5002.
 - Existing observable proof: EX6-018's suite verifies IR shape only. Shared would-play, permanent-to-security, trash-evolution, and alternate-evolution mechanisms have runtime coverage, but no current card-level fixture demonstrates the Q3714 effect-play reduction, Q3715/Q3716 post-cost branches, or Q5002 rejection.
 - Status: not rated 10/10; focused execution is deferred while the unrelated Vitest process remains active.
+
+## EX6-019 — Angemon — evidence in progress
+
+- Catalog evidence: Yellow level 4, play cost 4, 4000 DP, evolves from yellow level 3 for 2; form `Champion`, attribute `Vaccine`, trait `Angel`. The top-card keyword is Barrier. Its inherited When Attacking once-per-turn clause Draws 1 when the host has Angel, Archangel, or Three Great Angels.
+- Knowledge base: no local entries.
+- Direct IR: [`EX6-019.ts`](apps/api/src/cards/EX6/EX6-019.ts) declares static Barrier and inherited `WhenAttacking` Draw 1 gated by exact trait-union `selfHasTrait`, with source-instance once-per-turn frequency. Coverage is full, residual is empty, and registration is exclusively `registerIrCard("EX6-019", compiled)`. The test title was corrected from Patamon to Angemon.
+- Shared primitive trace: Barrier is collected by the combat/security replacement layer; the inherited watcher evaluates the host's live trait union before using the Draw resource action. Frequency tracking keys the limit to this Angemon source rather than the host card identity.
+- Existing observable proof: the colocated suite verifies the keyword and conditional-IR contract. Existing Barrier, trait-condition, and once-per-turn draw regression suites cover shared behavior, but no card-specific EX6-019 stack/attack fixture currently proves positive trait, negative trait, or repeated attack behavior.
+- Status: not rated 10/10; focused execution is deferred while the unrelated Vitest process remains active.
