@@ -13563,13 +13563,8 @@
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "amount": 5000,
-            "duration": "forTheTurn"
-          },
-          {
-            "kind": "GainKeyword",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "keyword": { "keyword": "Rush", "raw": "＜Rush＞" },
-            "duration": "forTheTurn"
+            "duration": "forTheTurn",
+            "alsoGainKeywords": [{ "keyword": "Rush", "raw": "＜Rush＞" }]
           },
           {
             "kind": "Attack",
