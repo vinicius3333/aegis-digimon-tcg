@@ -738,6 +738,12 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Implementation and primitive trace: alternate evolution uses exact name matching/cost 2; the AllTurns self Aura checks only the live stack for a name-containing Gammamon source. The optional trash `PlayWithoutCost` moves one selected Gammamon to battle with suspension applied after placement; full/no-residual IR registers exclusively through `registerIrCard("BT10-078", compiled)`.
 - Cross-card, stack, and behavioral proof: off-color red BT8-008 Gammamon proves the alternate evolution and exact memory transition, while paired Gammamon/non-Gammamon stacks prove Retaliation's source boundary. Deletion proves free suspended play from trash and a preferred physical stack source proves the just-trashed source is eligible. Focused suite — 4 passed; `git diff --check` — passed; workspace typecheck passed after BT10-057's repair.
 
+## BT10-079 — Sandiramon — 10/10
+
+- Catalog evidence: purple level-5 Ultimate Digimon, play cost 5 and 6000 DP, evolving from purple level 4 for 2; it has no main, inherited, Security, rule, or alternate evolution text. The local KB has no entries.
+- Implementation and primitive trace: empty full/no-residual compiled IR intentionally delegates all behavior to ordinary catalog lifecycle and registers exclusively with `registerIrCard("BT10-079", ...)`. Normal evolution validates purple exact level 4, pays two, retains the physical source, and ordinary play charges five without publishing an effect decision.
+- Cross-card, stack, and behavioral proof: a BT10-074 purple level-4 stack proves legal exact-cost evolution and source retention; an independent physical copy proves direct play cost and the absence of an effect window. Focused suite — 2 passed; `git diff --check` — passed; workspace typecheck passed after BT10-057's repair.
+
 ## BT10-068 — Gankoomon (X Antibody) — 10/10
 
 - Catalog evidence: black level-6 Digimon, play cost 13 and 12000 DP; evolves from black or red level 5 for 4, with an alternate cost-1 route from exact [Gankoomon]. It has static Blocker; when digivolving it may freely play one [Sistermon]-name Digimon from hand or trash, then, if exact [Gankoomon] is a source or a [Sistermon]-name Digimon is in play, all allied Digimon gain +2000 DP and immunity to opposing return-to-hand/deck and DP-reduction effects through the opponent's turn.
