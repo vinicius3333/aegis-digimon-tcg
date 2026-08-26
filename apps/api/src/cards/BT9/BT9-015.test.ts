@@ -52,6 +52,11 @@ describe("BT9-015 MetalGreymon (X Antibody)", () => {
     expect(dpAction).not.toHaveProperty("playerWide");
     expect(dpAction).not.toHaveProperty("alsoGainKeywords");
     expect(dpAction).not.toHaveProperty("continuous");
+    expect(dpAction).toMatchObject({ target: { count: 1 } });
+    expect(dpAction).not.toHaveProperty("target.sameTarget");
+    expect(dpAction).not.toHaveProperty("target.totalDpCap");
+    expect(dpAction).not.toHaveProperty("target.totalPlayCostBudget");
+    expect(dpAction).not.toHaveProperty("target.totalLevels");
     expect(() => toDuration("untilOpponentNextTurnEnd")).toThrow(/single-target ModifyDP/);
   });
 
