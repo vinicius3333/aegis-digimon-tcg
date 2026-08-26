@@ -367,9 +367,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   suspension target; both `cannotActivateWhenDigivolving` and `unsuspend` restrictions bind to
   that single fresh selection until the opponent turn ends. The trigger filter enforces the
   Q5746-Q5750 semantics in the shared interpreter, including no false once-per-turn consumption.
-- Existing focused fixtures exercise the lock halves and self-security placement but do not yet
-  force distinct first/second choices or invoke a locked target's effect. Along with PID 43774's
-  unrun gate, that incomplete behavioral proof keeps LM-042 below 10/10.
+- A manual-decision focused case now chooses one opponent for suspension and a different opponent
+  for the fresh Then lock, proving the two bindings are independent while both lock restrictions
+  remain coupled to the second choice. PID 82901 still blocks its execution, so LM-042 remains
+  below 10/10.
 
 ## LM-043 — Darkdramon — pending focused execution
 
