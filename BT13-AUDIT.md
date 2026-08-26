@@ -23,7 +23,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-011 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, with distinct On Play/When Digivolving 3000-DP-or-less deletion timing and inherited owner draw traced through targeting, zone movement, and source ownership.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-011.test.ts` passed (3 tests): On Play boundary, legal evolution-stack trigger, and inherited deletion draw.
-- BT13-012 — Pending
+- BT13-012 — 10/10
+  - Evidence: catalog and KB Q2270/Q2271 plus restriction reviewed; compiled IR exclusively uses `registerIrCard`, tracing alternate Agumon/Dinosaur evolution, private security selection, conditional recovery/shuffle, and inherited red-or-yellow Tamer deletion through targets, zones, optionality, and frequency.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-012.test.ts` passed (4 tests): alternate evolution/security play/recovery, Q2271 no-candidate result, decline result, and inherited DP boundary with once-per-turn limit.
 - BT13-013 — Pending
 - BT13-014 — Pending
 - BT13-015 — Pending
