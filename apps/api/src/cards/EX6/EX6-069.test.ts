@@ -12,6 +12,10 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
       kind: "SubTrigger",
       actions: [{ kind: "PlayWithoutCost", source: "breeding", target: { filter: { zone: "digivolutionCards", hostFilter: { zone: "breeding" } } }],
     });
+    expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
+      kind: "PlaceUnder",
+      position: "bottom",
+    });
     expect(text).toContain("PlaceInBattleAreaSelf");
   });
 });

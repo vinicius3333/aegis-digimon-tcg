@@ -22,6 +22,7 @@ export const compiled: CompiledCard = {
             zone: "breeding",
           },
           from: ["hand", "trash"],
+          position: "bottom",
           optional: true,
         },
         { kind: "PlaceInBattleAreaSelf" },
