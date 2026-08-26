@@ -71,4 +71,37 @@ describe("EX8-072", () => {
     await settle(() => (s.state.players[0] as PlayerState).battleArea.length === 0);
     expect((s.state.players[0] as PlayerState).battleArea).toHaveLength(0);
   });
+  it("returns itself from trash to deck bottom and activates Main after Barbamon X evolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-059", as: "barbamon" }],
+          hand: [{ card: "EX8-063", as: "barbamonX" }],
+          trash: [{ card: "EX8-072", as: "option" }],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("barbamon").permanentId,
+        instanceId: s.inst("barbamonX").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.deck.some((card) => card.instanceId === optionId) &&
+        s.state.players[1]!.battleArea.length === 0,
+    );
+    expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(optionId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });
