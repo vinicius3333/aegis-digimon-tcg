@@ -1039,6 +1039,9 @@ const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
   /^[A-Z][a-z0-9]*(?: [a-z0-9]+)+$/,
 ];
 
+/** A watcher's event name, e.g. "whenSecurityRemoved" — one camelCase or PascalCase token. */
+const INTERNAL_WATCHER_DESCRIPTION = /^[A-Za-z][A-Za-z0-9]*$/;
+
 /**
  * Whether a description is the engine's own summary of an effect rather than the
  * card's text.
@@ -1050,6 +1053,10 @@ const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
  */
 function isInternalEffectDescription(text: string): boolean {
   if (INTERNAL_IR_DESCRIPTION.test(text)) return true;
+  // A watcher is described by the event it watches ("whenSecurityRemoved"): an identifier
+  // the engine reads, never a clause a player can. Card text is a sentence, so a single
+  // unspaced token is the engine's own name for the effect.
+  if (INTERNAL_WATCHER_DESCRIPTION.test(text)) return true;
   const body = text
     .replace(/^(?:\s*\[[^\]]*\])+/, "")
     .replace(/^\s*＜[^＞]+＞/, "")
