@@ -295,3 +295,13 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   resolution, and Security; shared Delay proof covers activation. Removed unrelated LM-033 Q&A
   citations because LM-047 has no card-specific KB entry.
 - Tests remain deliberately unrun under PID 43774, so LM-047 remains below 10/10.
+
+## LM-048 — Chrome Memory Boost! — pending focused execution
+
+- Catalog maps to direct Static `alsoColor: black`, retaining green-or-black source legality
+  across battle and breeding. Main reveal/add/bottom/place, Delay gain-two, and Security placement
+  are direct IR and interpreter paths; existing focused cases cover all color-source and zone
+  boundaries plus search and Security behavior.
+- Removed unrelated LM-033 Q&A references: LM-048 has no local KB entry, and its card catalog is
+  the card-specific authority. Its existing focused suite is behavioral but deliberately unrun.
+- PID 43774 remains active, so LM-048 remains below 10/10.
