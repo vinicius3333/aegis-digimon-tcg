@@ -188,7 +188,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-066 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard` and traces inherited all-turn self +1000 DP only when the host has the X Antibody trait.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-066.test.ts` passed (2 tests): IR trait-gate proof and live registration.
-- BT13-067 — Pending
+- BT13-067 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard` for printed static Jamming and separately inherited static Reboot.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-067.test.ts` passed (2 tests): exact IR keyword registration and live Jamming observation.
 - BT13-068 — Pending
 - BT13-069 — Pending
 - BT13-070 — Pending
