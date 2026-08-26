@@ -16,9 +16,13 @@ describe("BT12-021 Veemon", () => {
       { autoSelectCards: true, autoOrderCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("veemon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("veemon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === 2);
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT12-030", "BT8-088"]));
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT12-030", "BT8-088"]),
+    );
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
   });
 
@@ -42,8 +46,8 @@ describe("BT12-021 Veemon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT12-022", as: "blue", under: ["BT12-021"] },
-            { card: "BT12-050", as: "green" },
+            { card: "BT1-032", as: "blue", under: ["BT12-021"] },
+            { card: "BT1-069", as: "green" },
           ],
           hand: [{ card: "BT12-028", as: "paildramon" }],
         },

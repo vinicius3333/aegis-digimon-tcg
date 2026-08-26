@@ -5,6 +5,9 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT12-007.js";
+import "./BT12-010.js";
+import "./BT12-016.js";
 import "./BT12-089.js";
 
 describe("BT12-089 handwritten module", () => {
@@ -44,7 +47,7 @@ describe("BT12-089 handwritten module", () => {
     ).toHaveLength(1);
   });
 
-  it("places the required cards under Guilmon, digivolves to Gallantmon, and grants +2000 DP", async () => {
+  it("places the required cards under Guilmon, digivolves to Gallantmon, and stacks all printed DP bonuses", async () => {
     const s = setupEngine(
       {
         0: {
@@ -67,8 +70,8 @@ describe("BT12-089 handwritten module", () => {
     expect(s.perm("guilmon").stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT12-089", "BT12-010", "BT12-016"]),
     );
-    // This clause itself grants +2000 DP for the turn. The inherited-effect
-    // behavior of the newly assembled stack is independently covered by BT12-007.
-    expect(s.perm("guilmon").currentDP).toBe(s.perm("guilmon").baseDP + 2000);
+    // The activated clause adds +2000; the required Guilmon and Growlmon
+    // sources each add their own printed +2000 once Gallantmon is on top.
+    expect(s.perm("guilmon").currentDP).toBe(s.perm("guilmon").baseDP + 6000);
   });
 });

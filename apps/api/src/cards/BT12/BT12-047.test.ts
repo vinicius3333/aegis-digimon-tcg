@@ -57,8 +57,8 @@ it("may DNA digivolve its host with another Digimon at end of its turn", async (
     {
       0: {
         battleArea: [
-          { card: "BT12-050", as: "green", under: ["BT12-047"] },
-          { card: "BT12-022", as: "blue" },
+          { card: "BT1-069", as: "green", under: ["BT12-047"] },
+          { card: "BT1-032", as: "blue" },
         ],
         hand: [{ card: "BT12-028", as: "paildramon" }],
       },

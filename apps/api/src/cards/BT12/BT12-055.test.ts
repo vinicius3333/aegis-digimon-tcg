@@ -56,8 +56,10 @@ describe("BT12-055 Dinobeemon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT12-022", as: "blue" },
-            { card: "BT12-050", as: "green" },
+            // Neutral legal DNA materials make the assertion independent of
+            // ExVeemon and Stingmon's own DNA-memory replacement effects.
+            { card: "BT1-032", as: "blue" },
+            { card: "BT1-069", as: "green" },
           ],
           hand: [{ card: "BT12-055", as: "dino" }],
           deck: ["BT1-009"],
@@ -77,7 +79,7 @@ describe("BT12-055 Dinobeemon", () => {
     await settle(() => s.state.players[0]!.battleArea[0]?.topCard.cardId === "BT12-055");
     expect(s.state.memory).toBe(0);
     expect(s.perm("dino").currentDP).toBe(11000);
-    expect(s.perm("dino").stack.map(({ cardId }) => cardId)).toEqual(["BT12-022", "BT12-050"]);
+    expect(s.perm("dino").stack.map(({ cardId }) => cardId)).toEqual(["BT1-032", "BT1-069"]);
     expect(s.perm("target").isSuspended).toBe(true);
   });
 
