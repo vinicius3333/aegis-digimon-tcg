@@ -440,7 +440,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Main, Delay, and Security effects remain independent. The focused suite remains unrun; LM-035
   stays below 10/10 pending explicit authorization and the relevant mechanism/collection gates.
 
-## LM-036 — Jade Memory Boost! — pending focused execution
+## LM-036 — Jade Memory Boost! — static audit complete; pending focused authorization
 
 - Catalog and Q4069/Q4070 map to a direct Static `alsoColor: blue` alternative. The shared
   executable option-legality path accepts green or blue sources from either battle or breeding,
@@ -449,9 +449,12 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Delay gains two memory and Security places it. Focused fixtures cover native green, alternate
   blue in battle/breeding, refusal, reveal output, and Security; shared Delay proof covers the
   activation lifecycle. The focused comment's stale ruling reference was corrected to Q4069/Q4070.
-- Tests are deliberately unrun under PID 82901, so LM-036 remains below 10/10.
+- Static audit found no catalog, Q&A, direct-IR, registration, shared-primitive, or focused-fixture
+  gap: the self-bound blue alternative preserves the printed Green requirement, the reveal filter
+  is Green-or-Blue Digimon, and Main Delay/Security remain independent. Tests are deliberately
+  unrun per coordinator instruction, so LM-036 remains below 10/10.
 
-## LM-037 — Sepia Memory Boost! — pending focused execution
+## LM-037 — Sepia Memory Boost! — static audit complete; pending focused authorization
 
 - Catalog and Q4071/Q4072 map to a direct Static `alsoColor: yellow` alternative; option
   legality observes black or yellow sources in battle and breeding without making the printed
@@ -460,7 +463,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Focused behavior covers native black, alternate yellow in battle and breeding, rejection with
   neither colour, search resolution, and Security. The shared Delay suite supplies lifecycle
   proof; the focused comment's stale ruling reference is corrected to Q4071/Q4072.
-- Tests remain deliberately unrun under PID 82901, so LM-037 remains below 10/10.
+- Static audit found no catalog, Q&A, direct-IR, registration, shared-primitive, or focused-fixture
+  gap: the self-bound yellow alternative preserves the printed Black requirement, the reveal
+  filter is Black-or-Yellow Digimon, and Main Delay/Security remain independent. Tests are
+  deliberately unrun per coordinator instruction, so LM-037 remains below 10/10.
 
 ## LM-038 — Grape Memory Boost! — pending focused execution
 
