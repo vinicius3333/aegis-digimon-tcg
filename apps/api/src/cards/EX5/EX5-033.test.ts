@@ -41,8 +41,9 @@ describe("EX5-033 Mitamamon", () => {
       duration: "untilOpponentTurnEnd",
       target: { whileMatchesTargetFilter: true },
     });
-    const opponentAction = compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0] as any;
-    expect(opponentAction?.target.filter.levelComparison).toMatchObject({
+    const opponentAction = compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0];
+    if (opponentAction?.kind !== "GainKeyword") throw new Error("EX5-033 opponent-turn effect missing");
+    expect(opponentAction.target.filter.levelComparison).toMatchObject({
       op: "gte",
       value: { kind: "dynamicCount", filter: { zone: "security", controller: "any" } },
     });

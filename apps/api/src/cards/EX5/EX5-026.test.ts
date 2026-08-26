@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runStaticAction } from "../../engine/effects/interpreter/actions/statics.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { compiled } from "./EX5-026.js";
 
 describe("EX5-026 MetalGarurumon (X Antibody)", () => {
@@ -101,7 +102,7 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
       ({
         ...ctx,
         trigger: { subjectPermanentId: id, entryCause: "move" },
-      }) as any;
+      }) as EffectContext;
     // Movement from breeding is an actual battle-area entry, but not a play.
     const laterContext = entrantContext("later-opponent");
     expect(watcher.matches(laterContext)).toBe(true);
