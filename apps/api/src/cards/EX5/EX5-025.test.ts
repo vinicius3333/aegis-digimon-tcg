@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { makeInstance, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-025.js";
 
 describe("EX5-025 Dianamon", () => {
@@ -39,5 +43,25 @@ describe("EX5-025 Dianamon", () => {
         },
       ],
     });
+  });
+
+  it("releases an opponent Digimon that gains a source after the live lock, per Q3587", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX5-025", as: "dianamon" }] },
+        1: { battleArea: [{ card: "BT1-080", as: "bare" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dianamon"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("bare").permanentId, "suspend"), 2000);
+    expect(observe(s.engine).isRestricted(s.perm("bare").permanentId, "suspend")).toBe(true);
+
+    s.perm("bare").stack.push(makeInstance("BT1-010", 1, true));
+    await advance(s.engine).recompute();
+
+    expect(observe(s.engine).isRestricted(s.perm("bare").permanentId, "suspend")).toBe(false);
   });
 });
