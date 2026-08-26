@@ -8,6 +8,9 @@ test("parseQa excludes a related card's Q&A category", () => {
     <dl class="questions"><dt>Q4043</dt><dd>Yellow question<span>May. 24, 2024 Updated</span></dd></dl>
     <dl class="answer"><dt>A4043</dt><dd>Yellow answer</dd></dl>
     <div class="relation"></div>
+    <dl class="questions"><dt>Q4044</dt><dd>Second yellow question<span>May. 24, 2024 Updated</span></dd></dl>
+    <dl class="answer"><dt>A4044</dt><dd>Second yellow answer</dd></dl>
+    <div class="relation"></div>
     <dt class="qa_category"><span>522026</span>EX8-037 Sakuyamon (X Antibody)</dt>
     <dl class="questions"><dt>Q4737</dt><dd>Related question<span>May. 8, 2026 Updated</span></dd></dl>
     <dl class="answer"><dt>A4737</dt><dd>Related answer</dd></dl>
@@ -19,6 +22,13 @@ test("parseQa excludes a related card's Q&A category", () => {
       qno: "Q4043",
       question: "Yellow question",
       answer: "Yellow answer",
+      date: "2024-05-24",
+      related: [],
+    },
+    {
+      qno: "Q4044",
+      question: "Second yellow question",
+      answer: "Second yellow answer",
       date: "2024-05-24",
       related: [],
     },
