@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-045.js";
 
-describe("EX6-045 Antylamon", () => {
+describe("EX6-045 Tsukaimon", () => {
   it("deletes an opposing level 3 Digimon on deletion", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions[0]).toMatchObject({
       kind: "Delete",
