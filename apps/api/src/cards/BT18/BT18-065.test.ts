@@ -178,22 +178,45 @@ describe("BT18-065 Snatchmon", () => {
   });
 
   it("does not offer end-turn evolution below four sources or from trash", async () => {
-    const s = setupEngine(
+    const belowThreshold = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT18-065", as: "snatchmon", under: ["BT18-060", "BT18-060", "BT18-060"] }],
+          hand: [{ card: "BT11-070", as: "handDestination" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    belowThreshold.state.memory = 8;
+    await belowThreshold.ready();
+    await advance(belowThreshold.engine).fire(EffectTiming.EndOfYourTurn, belowThreshold.perm("snatchmon"));
+    expect(belowThreshold.perm("snatchmon").topCard?.cardId).toBe("BT18-065");
+    expect(belowThreshold.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT11-070");
+    expect(belowThreshold.decisions).toHaveLength(0);
+
+    const trashOnly = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT18-065",
+              as: "snatchmon",
+              under: ["BT18-060", "BT18-060", "BT18-060", "BT18-060"],
+            },
+          ],
           trash: [{ card: "BT11-070", as: "trashDestination" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 8;
-    await s.ready();
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("snatchmon"));
-    expect(s.perm("snatchmon").topCard?.cardId).toBe("BT18-065");
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT11-070"]);
-    expect(s.decisions).toHaveLength(0);
-    assertNoLoudGap(s);
+    trashOnly.state.memory = 8;
+    await trashOnly.ready();
+    await advance(trashOnly.engine).fire(EffectTiming.EndOfYourTurn, trashOnly.perm("snatchmon"));
+    expect(trashOnly.perm("snatchmon").topCard?.cardId).toBe("BT18-065");
+    expect(trashOnly.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT11-070"]);
+    expect(trashOnly.decisions).toHaveLength(0);
+    assertNoLoudGap(belowThreshold);
+    assertNoLoudGap(trashOnly);
   });
 
   it("inherits only from its host's returned Vemmon and triggers once per turn", async () => {
