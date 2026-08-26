@@ -241,3 +241,23 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-012.
+
+## BT25-013 — Firamon — 10/10
+
+- Catalog evidence: Red level-4 Digimon, play cost 4, 5000 DP, `Champion`/`Vaccine`, `Beast`/`Iliad`/`TS`; standard red or blue level-3 evolution for 2 plus alternate level-3 `TS` evolution for 2; On Play/When Digivolving, trash one hand card then optionally return one red or blue Iliad Digimon from trash; controller-turn reaction to a blue Digimon being played or evolving, optionally evolve this Digimon into hand Flaremon at cost -1; inherited controller-turn +2000 DP.
+- Knowledge base: Q6255 permits paying the trash condition and declining the return; Q6256 says all friendly play/evolution events trigger but activation requires the resulting Digimon to be blue; Q6257 checks the post-evolution Digimon's colors.
+- Implementation: both entry actions bind the one-card hand-trash processing condition to an optional filtered trash return. Both controller-turn subtriggers use a post-event blue subject condition and offer self-evolution into Flaremon from hand at cost reduced by 1. Alternate evolution and the inherited modifier are complete. The module has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-013", compiled)`.
+- Defect corrected: both Flaremon `Digivolve` actions declared a reduction but omitted `payCost: true`, which could bypass the remaining printed evolution cost. Both actions now explicitly pay the base cost after the -1 reduction.
+- Behavioral proof: the focused suite covers both entry timings, exact color/trait filtering, Q6255 return refusal after payment, an actual blue play event and exact reduced-cost payment, non-blue rejection, standard/alternate evolution metadata, a legal `TS` evolution stack, and inherited DP turn duration. The payment assertion fails against the prior IR.
+- Verification: focused suite — 9 passed; `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-013 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-013
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-013.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-013.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-013.
