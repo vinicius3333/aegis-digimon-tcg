@@ -110,7 +110,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-040 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, leaving-play replacement ordering (draw before optional free Veemon play), self-source isolation, and the Veemon alternate-evolution requirement.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-040.test.ts` passed (10 tests): live Blocker, source/hand/drawn Veemon paths, refusal and foreign-source negatives, and alternate/normal evolution boundaries.
-- BT13-041 — Pending
+- BT13-041 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Barrier and inherited optional free suspended Kudamon play from own hand or trash through exact-name, controller, zone, and deletion timing filters.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-041.test.ts` passed (7 tests): live Barrier/replacement cost, trash and hand play paths, refusal/non-Kudamon negatives, suspension, and evolution cost.
 - BT13-042 — Pending
 - BT13-043 — Pending
 - BT13-044 — Pending
