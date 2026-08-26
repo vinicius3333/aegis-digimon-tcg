@@ -55,11 +55,11 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Dobermon"],
-                  match: "name",
+                  match: "trait",
                 },
                 {
                   tokens: ["X Antibody"],
-                  match: "name",
+                  match: "trait",
                 },
               ],
             },

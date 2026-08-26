@@ -83,6 +83,7 @@ export const compiled: CompiledCard = {
                 isSelf: true,
               },
               optional: true,
+              includePlayer: true,
             },
           ],
           cost: {
