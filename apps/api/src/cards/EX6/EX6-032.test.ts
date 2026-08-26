@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-032.js";
 
-describe("EX6-032 Terriermon", () => {
+describe("EX6-032 Lopmon", () => {
   it("suspends one Digimon on play and inherits once-per-turn -2000 DP on attack", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "Suspend",
