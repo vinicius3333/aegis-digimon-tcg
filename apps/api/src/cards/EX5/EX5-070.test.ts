@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { requireCardDefinition } from "@aegis/shared";
 import { permanentMatchesFilter } from "../../engine/effects/interpreter.js";
 import { candidateLooseInstances } from "../../engine/effects/interpreter/targeting/loose.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-070.js";
 import "./EX5-070.js";
@@ -101,7 +102,7 @@ describe("EX5-070 X Antibody Proto Form", () => {
       fx: {},
       ask: {},
       selections: new Map(),
-    } as any;
+    } as unknown as EffectContext;
 
     expect(permanentMatchesFilter(ctx, s.perm("withProto"), targetFilter.target.filter, ctx.source)).toBe(false);
     expect(permanentMatchesFilter(ctx, s.perm("withoutProto"), targetFilter.target.filter, ctx.source)).toBe(true);

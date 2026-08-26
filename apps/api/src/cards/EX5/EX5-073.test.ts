@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dnaDigivolutionRequirementsFor, requireCardDefinition } from "@aegis/shared";
 import { canPayCost } from "../../engine/effects/interpreter/costs.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-073.js";
 
@@ -105,11 +106,10 @@ describe("EX5-073 GraceNovamon", () => {
       fx: {},
       ask: {},
       selections: new Map(),
-    } as any;
+    } as unknown as EffectContext;
     const replacement = compiled.effects!.find((effect) => effect.trigger === "AllTurns")!.actions[0]!;
     if (replacement.kind !== "Replacement" || replacement.actions?.[0]?.kind !== "Prevent")
       throw new Error("EX5-073 prevention missing");
-    if (replacement.actions === undefined) throw new Error("EX5-073 replacement actions missing");
 
     expect(canPayCost(ctx, replacement.actions[0].cost!)).toBe(false);
   });
