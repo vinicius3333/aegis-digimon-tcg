@@ -206,7 +206,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-072 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing evolution top-three X Antibody attachment/rest trash plus conditional DP-deletion immunity, and inherited optional end-turn hand X Antibody attachment with frequency.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-072.test.ts` passed (2 tests): IR clause proof and live registration.
-- BT13-073 — Pending
+- BT13-073 — 10/10
+  - Evidence: catalog and KB Q2311 reviewed; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, alternate level-5 Chessmon evolution at 3, and all-turn own Chessmon actual-deletion event into self-unsuspend (not replacement prevention).
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-073.test.ts` passed (2 tests): IR clause proof and live own-Chessmon deletion unsuspend.
 - BT13-074 — Pending
 - BT13-075 — Pending
 - BT13-076 — Pending
