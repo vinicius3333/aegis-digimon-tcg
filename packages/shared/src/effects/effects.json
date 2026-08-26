@@ -10948,7 +10948,7 @@
           },
           {
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "suspended": false }, "count": 1 },
             "condition": { "kind": "raw", "raw": "you do" },
             "scaling": { "per": 1, "unit": "namedCount", "countSource": "titamonTrashedCards" }
           },
