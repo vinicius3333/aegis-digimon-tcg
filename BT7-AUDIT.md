@@ -265,6 +265,23 @@ Remaining work is focused behavioral proof of the full Security sequence and inh
 
 Remaining work is behavioral proof of Q1659/Q1660 optional/count boundaries and inherited persistence; this card is not formally complete at 10/10.
 
+## BT7-086 — Tommy Himi — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Blue Tamer costing 3 with On Play bottom-three evolution-card trash, inherited once-per-turn attack/block restriction, and Security free play.
+2. **On Play target (1/1):** `TrashDigivolution` selects exactly one opponent Digimon that has evolution cards.
+3. **Bottom-three behavior (1/1):** `amount: 3` with `fromTop: false` selects cards from the bottom of that stack.
+4. **Inherited timing/limit (1/1):** The effect is inherited, triggers When Attacking, and is frequency-limited OncePerTurn.
+5. **Restriction target/duration (1/1):** It targets one opponent Digimon with no evolution cards and prevents attack or block until the end of the opponent's next turn.
+6. **Rules evidence (1/1):** Q1655 confirms inherited activation via digivolving onto the Tamer; Q1656 confirms the restriction persists even if the target later gains an evolution card.
+7. **Security behavior (1/1):** Security plays this card without cost.
+8. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-086", compiled)` registration are present.
+9. **Static primitive trace (1/1):** Stack presence, bottom direction, opponent controller, no-stack filter, restriction, duration, inherited timing, frequency, and free play are explicit.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; exact three-card bottom trash, once-per-turn behavior, Q1656 persistence, and Security play remain unproven.
+
+Remaining work is behavioral proof of Q1655/Q1656 stack and duration boundaries; this card is not formally complete at 10/10.
+
 ## BT7-101 — Thunder Laser — 9/10 (static audit)
 
 ### Clause-by-clause score
