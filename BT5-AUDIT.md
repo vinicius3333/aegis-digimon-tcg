@@ -502,3 +502,60 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/targeting/loose.ts`, and `primitives.test.ts`; it reports no
   BT5-009 errors. Changed-file formatting and `git diff --check` pass.
 - Remaining ambiguity: none identified.
+
+## BT5-010 — Greymon — 10/10
+
+- Catalog evidence: Red Lv.4 Champion Digimon, Vaccine/Dinosaur, play cost 5,
+  5000 DP, and a red Lv.3 evolution cost of 2. Its complete text is
+  `[When Digivolving] If this Digimon has [Agumon] in its digivolution cards,
+  gain 1 memory.` Its inherited text is `[Your Turn] While this Digimon has
+  [Omnimon] or [Greymon] (other than [DoruGreymon], [BurningGreymon], or
+  [DexDoruGreymon]) in its name, it gets +2000 DP.`
+- Knowledge base and rules evidence: `node tools/kb/query.mjs card BT5-010`
+  returns the card identity with no knowledge-base entries, so the catalog
+  text is the governing contract. The local rules manual's Digivolution Cards
+  section (around §4-18) establishes that cards under a Digimon are
+  digivolution cards and that their inherited effects are usable by the host;
+  its effect-timing guidance defines `[When Digivolving]` as the trigger after
+  a successful digivolution and `[Your Turn]` as owner-turn processing. The
+  name condition is a case-insensitive substring match in
+  `interpreter/conditions.ts`, with explicit `excludeNames` disqualifiers.
+- Implementation: `apps/api/src/cards/BT5/BT5-010.ts` contains one
+  `WhenDigivolving` action that gains exactly 1 memory when the current stack
+  has an `Agumon` source, plus one inherited `YourTurn` aura that modifies the
+  host by exactly +2000 DP. The aura matches `Omnimon` or `Greymon` and uses
+  `excludeNames` for all three printed exclusions. The module declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-010", compiled)`.
+- Primitive and peer/stack evidence: `selfHasInDigivolutionCards` reads the
+  host's visible evolution stack, while `selfHasNameContaining` reads the
+  current top card name and rejects any matching excluded substring. The
+  inherited aura is continuously recomputed and is owner-turn gated. BT5-007
+  and BT5-015 provide neighboring Greymon evolution/name interactions; their
+  focused suites also pass. The BT5-010 tests use a legal BT5-007 -> BT5-010
+  evolution for the memory trigger and real BT5-016/BT5-086 hosts over a
+  BT5-010 source card for inherited behavior.
+- Behavioral proof: 5 focused tests pass. They prove the Agumon-source memory
+  gain, +2000 on both positive name categories, rejection of DoruGreymon,
+  BurningGreymon, and DexDoruGreymon using same-card baselines to isolate
+  BT5-010's modifier, owner-turn expiry, and no bonus when the inherited source
+  is absent. The existing BurningGreymon comparison remains as a peer sanity
+  check.
+- Defect corrected: the inherited IR previously expressed the exclusions as a
+  nested `not` condition that was not honored by the continuous aura path. It
+  now uses the supported `excludeNames` field on the positive name predicate,
+  preserving the smallest card-local correction. Tests were expanded with all
+  positive and negative name boundaries, owner-turn behavior, and missing-source
+  coverage.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-010.test.ts --pool=forks
+  --poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 5 tests
+  passed. Affected peer regressions `BT5-007.test.ts` and `BT5-015.test.ts` —
+  2 files, 6 tests passed. `pnpm exec oxfmt --check
+  apps/api/src/cards/BT5/BT5-010.ts apps/api/src/cards/BT5/BT5-010.test.ts`
+  passed. `git diff --check` is required below and is clean. `pnpm typecheck`
+  builds shared and web successfully but retains the pre-existing unrelated API
+  errors in `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  `primitives.test.ts`; it reports no BT5-010 errors.
+- Remaining ambiguity: none identified.

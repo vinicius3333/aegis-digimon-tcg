@@ -43,13 +43,10 @@ const compiled: CompiledCard = {
           while: {
             kind: "allOf",
             conditions: [
-              { kind: "selfHasNameContaining", names: ["Omnimon", "Greymon"] },
               {
-                kind: "not",
-                condition: {
-                  kind: "selfHasNameContaining",
-                  names: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
-                },
+                kind: "selfHasNameContaining",
+                names: ["Omnimon", "Greymon"],
+                excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
               },
             ],
           },
