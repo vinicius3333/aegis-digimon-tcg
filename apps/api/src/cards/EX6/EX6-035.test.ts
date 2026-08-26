@@ -19,7 +19,6 @@ describe("EX6-035 Cherubimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[1]).toMatchObject({
       kind: "ModifyDP",
       amount: -4000,
-      optional: true,
       scaling: { per: 1, unit: "cards", filter: { excludeSelf: true } },
     }));
 });

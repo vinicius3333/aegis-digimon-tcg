@@ -60,7 +60,6 @@ export const compiled: CompiledCard = {
           },
           amount: -4000,
           duration: "untilOpponentTurnEnd",
-          optional: true,
           scaling: {
             per: 1,
             filter: {
@@ -105,7 +104,6 @@ export const compiled: CompiledCard = {
           },
           amount: -4000,
           duration: "untilOpponentTurnEnd",
-          optional: true,
           scaling: {
             per: 1,
             filter: {
