@@ -1,10 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-059.js";
+import { compiled } from "./BT10-059.js";
 
 describe("BT10-059 Spadamon", () => {
+  it("matches its catalog and exact self-placement plus inherited reveal IR", () => {
+    const d = getCardDefinition("BT10-059")!;
+    expect([d.colors, d.level, d.playCost, d.dp]).toEqual([["Black", "Red"], 3, 4, 2000]);
+    expect(d.evoCosts).toEqual([
+      { color: "Black", level: 2, memoryCost: 1 },
+      { color: "Red", level: 2, memoryCost: 1 },
+    ]);
+    expect([d.forms, d.attributes, d.types]).toEqual([["Rookie"], ["Free"], ["Weapon", "Legend-Arms", "Xros Heart"]]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "OnPlay",
+        actions: [expect.objectContaining({ kind: "DeDigivolve", amount: 1, stopAtLevel: 3 })],
+      }),
+      expect.objectContaining({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn" }),
+    ]);
+  });
+
   it("may place itself under a matching Digimon to De-Digivolve an opponent", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

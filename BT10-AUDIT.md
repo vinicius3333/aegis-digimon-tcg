@@ -512,6 +512,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: four focused cases prove catalog/IR fidelity, separate slots, mandatory two-card addition, visible versus eligible reveals, Q1985 dual-role assignment, sole-slot Q1984 behavior, color/name near-match rejection, and exact remainder counts.
 - Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-059 — Spadamon — 10/10
+
+- Catalog evidence: black/red level 3 Digimon, play cost 4, 2000 DP; evolves from black or red level 2 for 1; form `Rookie`, attribute `Free`, types `Weapon`, `Legend-Arms`, and `Xros Heart`. On Play may place itself at the bottom of an allied Legend-Arms or Xros Heart Digimon's sources to De-Digivolve 1 one opposing Digimon. Its inherited When Attacking once-per-turn reveals three, adds one Legend-Arms or Xros Heart card, and bottoms the rest.
+- Knowledge base: Q1986 permits paying the self-placement cost even when the opponent has no Digimon and De-Digivolve has no target. No errata, restriction, or unresolved ambiguity remains.
+- Implementation: the optional On Play De-Digivolve action couples Spadamon's physical self-placement beneath a different eligible allied Digimon, at bottom position, with amount 1 and level-3 floor. The inherited source-instance once-per-turn reveal has an exact trait disjunction, count one, and deck-bottom remainder. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-059", compiled)`.
+- Primitive trace: accepting the action chooses an eligible host, removes Spadamon from its temporary played permanent, inserts it below existing sources, then independently resolves any available opponent target; the cost remains paid when no target exists under Q1986. Each inherited physical copy owns its attack frequency and separately snapshots/reconciles three revealed identities.
+- Cross-card and stack proof: Xros Heart Dorulumon accepts Spadamon below an existing source and a real stacked opponent loses exactly its top card without crossing the level-3 floor. The no-opponent fixture proves Q1986 and bottom insertion. Two physical Spadamon sources under one attacker each resolve their own inherited reveal on the same real attack.
+- Behavioral proof: four focused cases prove catalog/IR fidelity, both printed evolution colors, exact host trait and self-exclusion encoding, physical bottom placement, De-Digivolve amount/floor, Q1986 paid-cost behavior, inherited trait search, independent source frequencies, and reveal remainder counts.
+- Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
