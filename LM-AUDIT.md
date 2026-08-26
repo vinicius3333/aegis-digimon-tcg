@@ -277,7 +277,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --fileParallelism=false`. LM-028 remains below 10/10 pending relevant mechanism and refreshed
   collection gates.
 
-## LM-029 — Yellow Scramble — pending focused execution
+## LM-029 — Yellow Scramble — focused proof green; pending mechanism and collection gates
 
 - Catalog, direct IR, and existing behavioral fixtures agree on the yellow Scramble contract:
   legal yellow evolution at minus three, placement, opponent-gated Delay with mandatory
@@ -286,8 +286,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   related-card category, whose Q4737/Q4738 describe that card's `[Your Turn]` Option-use/unsuspend
   clause; `parseQa` now retains only the requested category, so those rulings remain solely under
   EX8-037 and cannot be mistaken for unprinted LM-029 behavior.
-- The former provenance issue is resolved. LM-029 remains below 10/10 only pending the same full
-  focused, mechanism, and collection-validation evidence required for the rest of the collection.
+- The former provenance issue is resolved. The authorized serialized focused command passed 1/1
+  file and 6/6 tests in 4.23s on 2026-08-26: `vitest run src/cards/LM/LM-029.test.ts --pool=forks
+  --poolOptions.forks.singleFork=true --fileParallelism=false`. LM-029 remains below 10/10 pending
+  relevant mechanism and refreshed collection gates.
 
 ## LM-030 — Green Scramble — pending focused execution
 
