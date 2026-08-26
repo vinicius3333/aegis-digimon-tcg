@@ -305,3 +305,13 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Removed unrelated LM-033 Q&A references: LM-048 has no local KB entry, and its card catalog is
   the card-specific authority. Its existing focused suite is behavioral but deliberately unrun.
 - PID 43774 remains active, so LM-048 remains below 10/10.
+
+## LM-049 — Midnight Memory Boost! — pending focused execution
+
+- Catalog maps to direct Static `alsoColor: blue`, retaining black-or-blue color legality in
+  battle and breeding. Main reveal/add/bottom/place, Delay gain-two, and Security placement are
+  executable direct IR; focused fixtures cover native/alternate source, breeding, refusal, reveal
+  result, and Security.
+- Removed unrelated LM-033 Q&A citations because LM-049 has no local KB entry. Focused behavior
+  remains unrun while PID 43774 occupies the serial test slot.
+- LM-049 remains below 10/10 pending that execution.
