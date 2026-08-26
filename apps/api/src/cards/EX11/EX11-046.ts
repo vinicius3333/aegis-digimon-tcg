@@ -164,7 +164,12 @@ const compiled: CompiledCard = {
           },
           into: {
             controllerDefault: "mine",
-            names: ["Galacticmon"],
+            nameOrTrait: [
+              {
+                tokens: ["Galacticmon"],
+                match: "name",
+              },
+            ],
           },
           from: ["hand", "trash"],
           payCost: false,

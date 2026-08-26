@@ -1,5 +1,6 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
@@ -25,6 +26,7 @@ const GALACTICMON = "EX11-046";
 const GALACTICMON_BASE = "BT11-111"; // Lv.6 [Galacticmon], satisfies the alternate digivolve requirement
 const OPPONENT_CHEAP = "AD1-011"; // playCost 8 — must be deleted (not the highest)
 const OPPONENT_COSTLY = "AD1-004"; // playCost 12 — the highest, must survive
+const DECOY = "P-094"; // Destromon — Black Lv.5, NOT named [Galacticmon]
 
 describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-cost opponent Digimon", () => {
   it("preserves the printed card and only its two text evolution requirements", () => {
@@ -47,7 +49,7 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     expect(compiled.effects.find(({ trigger }) => trigger === "EndOfOpponentsTurn")?.actions).toMatchObject([
       {
         kind: "Digivolve",
-        into: { names: ["Galacticmon"] },
+        into: { nameOrTrait: [{ tokens: ["Galacticmon"], match: "name" }] },
         from: ["hand", "trash"],
         payCost: false,
         ignoreRequirements: true,
@@ -123,5 +125,29 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
       duration: "untilOpponentTurnEnd",
     });
     assertNoLoudGap(s);
+  });
+
+  /**
+   * FAILS-WHEN-REVERTED: the [End of Opponent's Turn] destination was encoded as
+   * `into: { names: ["Galacticmon"] }`, and `names` is not a Filter field — the interpreter
+   * ignored it and offered every card in hand and trash (Snatchmon, Destromon, ...).
+   */
+  it("only digivolves into a card named [Galacticmon] at the end of the opponent's turn", async () => {
+    const withHand = (hand: string) =>
+      setupEngine(
+        { 0: { battleArea: [{ card: GALACTICMON, as: "self" }], hand: [{ card: hand, as: "candidate" }] } },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+
+    const decoy = withHand(DECOY);
+    decoy.state.turnSeat = 1;
+    await advance(decoy.engine).runTurn(1);
+    expect(decoy.perm("self").topCard?.cardId).toBe(GALACTICMON);
+    expect(decoy.state.players[0]!.hand.map((card) => card.cardId)).toContain(DECOY);
+
+    const named = withHand(GALACTICMON_BASE);
+    named.state.turnSeat = 1;
+    await advance(named.engine).runTurn(1);
+    expect(named.perm("self").topCard?.cardId).toBe(GALACTICMON_BASE);
   });
 });

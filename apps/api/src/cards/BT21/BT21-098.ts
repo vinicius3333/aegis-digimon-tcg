@@ -79,6 +79,9 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              // "Play" only ever puts a Digimon or Tamer into the battle area; Option cards
+              // are USED, never played, so a kind-less filter would wrongly offer them.
+              kind: ["Digimon", "Tamer"],
               playCostLte: 6,
               nameOrTrait: [
                 {

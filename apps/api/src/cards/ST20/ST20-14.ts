@@ -84,6 +84,7 @@ const compiled: CompiledCard = {
       ],
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "PlayWithoutCost",
           target: {
             filter: {

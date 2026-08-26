@@ -94,6 +94,7 @@ export const compiled: CompiledCard = {
       ],
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "DnaDigivolve",
           materials: {
             filter: {

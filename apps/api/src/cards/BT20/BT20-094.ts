@@ -67,6 +67,7 @@ export const compiled: CompiledCard = {
       keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "PlayWithoutCost",
           target: {
             filter: {
