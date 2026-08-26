@@ -552,6 +552,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: two focused cases assert complete catalog identity, exact empty IR, legal evolution and retained stack, printed-cost play, final memory and zones, and absence of an effect decision.
 - Verification: focused suite — 2 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-063 — Hi-VisionMonitamon — 10/10
+
+- Catalog evidence: black level 4 Digimon, play cost 6, 7000 DP; evolves from black level 3 for 2; form `Champion`, attribute `Data`, types `LCD`, `Twilight`, and `Xros Heart`. DigiXros -2 accepts exactly three Monitamon-name materials from hand or battle area; it has no other effect text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-063` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the compiled card has no timing effects and an exact three-role DigiXros recipe, each requiring the Monitamon effective name and reducing play cost by 2. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-063", compiled)`.
+- Primitive trace: pre-play validation resolves each proposed material's effective name and physical zone, rejects more identities than the three recipe slots, moves each accepted identity beneath the new permanent, and floors the three reductions against printed play cost 6 at zero.
+- Cross-card and stack proof: three physical Monitamon cards from hand fill all slots, become three distinct sources under Hi-VisionMonitamon, and reduce payment from 6 to 0. A fourth otherwise eligible Monitamon is rejected as invalid material before any state mutation.
+- Behavioral proof: three focused cases prove catalog/IR fidelity, exact repeated material roles, per-card reduction, zero-cost play, physical source retention, three-slot maximum, and atomic rejection of a fourth material.
+- Verification: focused suite — 3 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
