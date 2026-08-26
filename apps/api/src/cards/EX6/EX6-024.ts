@@ -25,6 +25,7 @@ export const compiled: CompiledCard = {
             raw: "＜Security Attack -1＞",
           },
           duration: "untilOpponentTurnEnd",
+          optional: true,
         },
         {
           kind: "Restrict",
@@ -65,6 +66,7 @@ export const compiled: CompiledCard = {
             raw: "＜Security Attack -1＞",
           },
           duration: "untilOpponentTurnEnd",
+          optional: true,
         },
         {
           kind: "Restrict",
@@ -151,6 +153,7 @@ export const compiled: CompiledCard = {
         },
       ],
       count: 2,
+      maxMaterials: 1,
     },
   ],
 };

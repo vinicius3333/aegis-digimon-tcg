@@ -26,6 +26,7 @@ export const compiled: CompiledCard = {
           },
           duration: "untilOpponentTurnEnd",
           optional: true,
+          optional: true,
         },
         {
           kind: "ModifyDP",
@@ -56,6 +57,7 @@ export const compiled: CompiledCard = {
             raw: "＜Blocker＞",
           },
           duration: "untilOpponentTurnEnd",
+          optional: true,
           condition: {
             kind: "digiXrosCount",
           },
@@ -186,6 +188,7 @@ export const compiled: CompiledCard = {
         },
       ],
       count: 2,
+      maxMaterials: 1,
     },
   ],
 };
