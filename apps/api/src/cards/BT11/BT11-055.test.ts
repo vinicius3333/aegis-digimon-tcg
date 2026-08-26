@@ -1,10 +1,19 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-055.js";
+import { compiled } from "./BT11-055.js";
 
 describe("BT11-055 MetalTyrannomon", () => {
+  it("maps the dual-color mega and all three executable clauses", () => {
+    expect(getCardDefinition("BT11-055")).toMatchObject({ cardId: "BT11-055", colors: ["Green", "Black"], level: 5, playCost: 8, dp: 8000 });
+    expect(compiled.effects).toHaveLength(3);
+    expect(compiled.effects[0]).toMatchObject({ trigger: "WhenDigivolving" });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "OnPlay" });
+    expect(compiled.effects[2]).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", isInherited: true });
+  });
+
   it("Q2088: suspends per green/black Tamer but locks only one suspended Digimon", async () => {
     const s = setupEngine(
       {
