@@ -554,3 +554,33 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-019.
+
+## BT9-020 — Gabumon (X Antibody) — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Blue level-3 Digimon, play cost 3, 2000 DP, `Rookie`/`Data`, complete `Beast`/`X Antibody` traits, and blue level-2 evolution for 0 are asserted.
+2. **Dual timing (1/1):** Identical reveal/search actions are present and behaviorally reached from public On Play and When Digivolving flows.
+3. **Reveal/rest procedure (1/1):** Exactly the top 3 cards are revealed, selected cards move to hand, and every remainder returns to deck bottom.
+4. **Garurumon/Omnimon name family (1/1):** The first slot uses in-name matching for either token and accepts `Garurumon (X Antibody)`.
+5. **Exact X Antibody card (1/1):** The second slot uses exact-name matching; `X Antibody` qualifies while a longer Digimon name and an X Antibody trait alone do not.
+6. **Q1821 partial availability (1/1):** Separate public-play cases prove the lone eligible Garurumon slot and lone eligible X Antibody slot are each added when the other category is absent.
+7. **Q1822 mandatory maximum (1/1):** With both categories revealed, both are added; each selection advertises minimum 1 and rejects an empty response.
+8. **Legal alternate evolution (1/1):** Public intents build Upamon → Gabumon in breeding, use the exact Gabumon alternate route for 0, preserve the legal stack, and resolve the search.
+9. **Direct IR and registration (1/1):** The full/no-residual dedicated module contains both effects and the alternate recipe, registers exactly once with `registerIrCard`, has no legacy registration, and is indexed.
+10. **Reproducible verification (1/1):** Focused proof passes 7/7; shared RevealAdd interpreter mechanisms, typecheck, formatting, and `git diff --check` pass.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-020
+rg -n 'Q1821|Q1822' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-020.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-020.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/engine/effects/interpreter.test.ts --reporter=dot
+pnpm typecheck
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-020.ts apps/api/src/cards/BT9/BT9-020.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-020.
