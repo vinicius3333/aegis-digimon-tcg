@@ -202,3 +202,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-010.
+
+## BT25-011 — Aquilamon — 10/10
+
+- Catalog evidence: Red/green level-4 Digimon, play cost 4, 4000 DP, `Champion`/`Free`, `Giant Bird`/`Iliad`/`TS`; standard red or yellow level-3 evolution for 3; alternate Hawkmon or level-3 `TS` evolution for 2; Raid; On Play/When Digivolving suspend one opposing Digimon, then during the controller's turn two of their Digimon may DNA evolve into hand Silphymon; inherited controller-turn +2000 DP.
+- Knowledge base: `node tools/kb/query.mjs card BT25-011` returned no entries. General DNA evolution timing/material/stack rules apply without unresolved card-specific ambiguity.
+- Implementation: the direct IR has the static Raid keyword, parallel On Play and When Digivolving sequences with exact opposing suspension followed by an optional controller-turn two-Digimon DNA evolution into Silphymon from hand, both alternate evolution recipes, and the inherited self modifier. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-011", compiled)`.
+- Behavioral proof: the focused suite verifies the complete effect shape and clauses. The delegated audit traced the shared DNA resolver and ran BT24-035's equivalent resolver cases plus BT16-012/BT8-015 Silphymon legality peers, covering legal material choice, stack formation, trigger sequencing, and inherited source visibility. No defect was found, so no test or implementation change was needed.
+- Verification: focused suite — 2 passed; DNA peer regressions — 10 passed; `git diff --check` — passed. The broader capability suite retains five unrelated pre-existing Delay/G3 failures, and workspace typecheck retains the already-recorded unrelated errors; neither reports a BT25-011 regression.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-011
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-011.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-011.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-011.
