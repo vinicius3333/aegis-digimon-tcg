@@ -1,5 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT18-065.js";
 import { compiled } from "./BT18-065.js";
 
@@ -31,6 +34,8 @@ describe("BT18-065 Snatchmon", () => {
     expect(s.state.players[0]!.battleArea[0]?.topCard?.cardId).toBe("BT18-065");
     expect(s.state.players[0]!.battleArea[0]?.stack.map((card) => card.cardId)).toContain("BT18-060");
     expect(s.state.memory).toBe(5);
+    expect(s.decisions).toHaveLength(0);
+    assertNoLoudGap(s);
   });
 
   it("keeps trash locked when the player controls a non-Vemmon Digimon", () => {
@@ -106,5 +111,124 @@ describe("BT18-065 Snatchmon", () => {
     expect(s.perm("base").topCard?.cardId).toBe("BT18-065");
     expect(s.perm("base").stack.filter((card) => card.cardId === "BT18-060")).toHaveLength(1);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT18-060")).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("may refuse its digivolving placement and never offers non-Vemmon or opposing trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-060", as: "base" }],
+          hand: [{ card: "BT18-065", as: "snatchmon" }],
+          trash: [{ card: "BT1-009", as: "wrongName" }],
+        },
+        1: { trash: [{ card: "BT18-060", as: "opposingVemmon" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 6;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("snatchmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await s.ready();
+
+    expect(s.perm("base").stack.filter(({ cardId }) => cardId === "BT18-060")).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT18-060"]);
+    assertNoLoudGap(s);
+  });
+
+  it("pays to evolve at end of turn only with four sources and permits refusal", async () => {
+    const accepted = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-065", as: "qualified", under: ["BT18-060", "BT18-060", "BT18-060", "BT18-060"] }],
+          hand: [{ card: "BT11-070", as: "destromon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    accepted.state.memory = 8;
+    await accepted.ready();
+    await advance(accepted.engine).fire(EffectTiming.EndOfYourTurn, accepted.perm("qualified"));
+    expect(accepted.perm("qualified").topCard?.instanceId).toBe(accepted.inst("destromon").instanceId);
+    expect(accepted.state.memory).toBe(3);
+
+    const refused = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-065", as: "qualified", under: ["BT18-060", "BT18-060", "BT18-060", "BT18-060"] }],
+          hand: [{ card: "BT11-070", as: "destromon" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    refused.state.memory = 8;
+    await refused.ready();
+    await advance(refused.engine).fire(EffectTiming.EndOfYourTurn, refused.perm("qualified"));
+    expect(refused.perm("qualified").topCard?.cardId).toBe("BT18-065");
+    expect(refused.state.memory).toBe(8);
+    assertNoLoudGap(accepted);
+    assertNoLoudGap(refused);
+  });
+
+  it("does not offer end-turn evolution below four sources or from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-065", as: "snatchmon", under: ["BT18-060", "BT18-060", "BT18-060"] }],
+          trash: [{ card: "BT11-070", as: "trashDestination" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("snatchmon"));
+    expect(s.perm("snatchmon").topCard?.cardId).toBe("BT18-065");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT11-070"]);
+    expect(s.decisions).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("inherits only from its host's returned Vemmon and triggers once per turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "BT1-009",
+            as: "host",
+            suspended: true,
+            under: [
+              { card: "BT18-065" },
+              { card: "BT18-060", as: "first" },
+              { card: "BT18-060", as: "second" },
+              { card: "BT1-009", as: "wrongName" },
+            ],
+          },
+          { card: "BT1-009", as: "other", suspended: true, under: [{ card: "BT18-060", as: "otherVemmon" }] },
+        ],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.returnToDeck([s.inst("otherVemmon").instanceId]);
+    await advance(s.engine).verb.returnToDeck([s.inst("wrongName").instanceId]);
+    expect(s.perm("host").isSuspended).toBe(true);
+
+    await advance(s.engine).verb.returnToDeck([s.inst("first").instanceId]);
+    await settle(() => s.perm("host").isSuspended === false);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
+
+    s.perm("host").isSuspended = true;
+    await advance(s.engine).verb.returnToDeck([s.inst("second").instanceId]);
+    await settle();
+    expect(s.perm("host").isSuspended).toBe(true);
+    assertNoLoudGap(s);
   });
 });

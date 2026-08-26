@@ -48055,6 +48055,8 @@
               "upTo": true,
               "from": ["trash"]
             },
+            "underFilter": { "isSelfRef": true },
+            "position": "bottom",
             "optional": true
           }
         ]
@@ -48072,7 +48074,12 @@
             },
             "from": ["hand"],
             "optional": true,
-            "condition": { "kind": "raw", "raw": "this Digimon has 4 or more digivolution cards" }
+            "payCost": true,
+            "condition": {
+              "kind": "selfDigivolutionCountAtLeast",
+              "value": 4,
+              "raw": "this Digimon has 4 or more digivolution cards"
+            }
           }
         ]
       },
@@ -48080,17 +48087,21 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "GainKeyword",
-            "target": {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "name" }]
+            "kind": "SubTrigger",
+            "event": "onDigivolutionCardReturnToDeckBottom",
+            "sourceFilter": { "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "name" }] },
+            "actions": [
+              {
+                "kind": "Unsuspend",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
               },
-              "count": 1
-            },
-            "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
-            "duration": "untilOpponentTurnEnd"
+              {
+                "kind": "GainKeyword",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
+                "duration": "untilOpponentTurnEnd"
+              }
+            ]
           }
         ],
         "isInherited": true,
@@ -48099,9 +48110,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digiXrosRequirement": [
-      { "materials": [{ "names": ["Vemmon", "Vemmon"], "traits": ["All Turns", "Once Per Turn"] }], "count": 1 }
-    ]
+    "digiXrosRequirement": [{ "materials": [{ "names": ["Vemmon"] }], "count": 1, "maxMaterials": 4 }]
   },
   "BT18-066": {
     "effects": [
