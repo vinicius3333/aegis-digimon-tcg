@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-052.js";
 
-describe("EX6-052 SkullSatamon", () => {
+describe("EX6-052 Bastemon", () => {
   it("has Scapegoat and plays a purple level 3 Digimon from trash on digivolving", () => {
     expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords?.[0]?.keyword).toBe("Scapegoat");
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
