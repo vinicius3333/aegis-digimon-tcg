@@ -462,6 +462,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: five focused cases prove catalog/IR fidelity, exact cost and play candidates, self-suspension, free play, Main once-per-turn, decline atomicity, Q1978 attack negative, allied effect positive, inherited frequency, and owner-turn negative.
 - Verification: focused suite — 5 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-054 — Lamortmon — 10/10
+
+- Catalog evidence: green level 5 Digimon, play cost 8, 9000 DP; evolves from green level 4 for 3; form `Ultimate`, attribute `Vaccine`, type `Beast`. When Digivolving suspends one opposing Digimon. Your Turn once per turn, after this Digimon deletes an opposing Digimon in battle, it unsuspends itself. When Attacking, if its controller has no Tamer, that controller loses 2 memory.
+- Knowledge base: `node tools/kb/query.mjs card BT10-054` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the evolution clause chooses exactly one opponent-controlled Digimon to suspend. The owner-turn source-instance `whenDeletesInBattle` watcher requires Lamortmon's own permanent as the battle winner and unsuspends it once per turn. The attack clause independently applies memory -2 only when its controller has no Tamer. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-054", compiled)`.
+- Primitive trace: legal evolution establishes Lamortmon before collecting its mandatory target choice. Attack timing evaluates current controller permanents before combat, so memory loss precedes battle; successful battle deletion emits the attacker identity and the matching watcher unsuspends the same permanent, while subsequent wins cannot repeat that turn.
+- Cross-card and stack proof: real green level-4 evolution chooses one of two opposing Digimon, attacks that suspended target, deletes it, and visibly unsuspends Lamortmon. A second real battle proves once-per-turn suppression. A separate player attack with a live allied Tamer proves the conditional memory-loss negative.
+- Behavioral proof: four focused cases prove catalog/IR fidelity, exact evolution cost and target ownership, real suspend/battle/delete/unsuspend flow, first-only frequency, -2 memory without a Tamer, and no loss with a Tamer.
+- Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
