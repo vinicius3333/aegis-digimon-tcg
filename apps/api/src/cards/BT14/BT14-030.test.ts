@@ -293,12 +293,21 @@ describe("BT14-030", () => {
     expect(self.state.players[0]!.security).toHaveLength(0);
 
     const opponentTurn = setupEngine({
-      0: { battleArea: [{ card: "BT14-030", as: "marine" }], deck: ["BT1-001"] },
-      1: { battleArea: [{ card: "BT14-020", as: "returned" }] },
+      0: {
+        battleArea: [
+          { card: "BT14-030", as: "marine" },
+          { card: "BT14-021", as: "ownReturned" },
+        ],
+        deck: ["BT1-001"],
+      },
+      1: { battleArea: [{ card: "BT14-020", as: "opponentReturned" }] },
     });
     opponentTurn.state.turnSeat = 1;
     await opponentTurn.ready();
-    await advance(opponentTurn.engine).verb.returnToHand([opponentTurn.perm("returned").topCard.instanceId]);
+    await advance(opponentTurn.engine).verb.returnToHand([opponentTurn.perm("opponentReturned").topCard.instanceId]);
+    await settle();
+    expect(opponentTurn.state.players[0]!.security).toHaveLength(0);
+    await advance(opponentTurn.engine).verb.returnToHand([opponentTurn.perm("ownReturned").topCard.instanceId]);
     await settle();
     expect(opponentTurn.state.players[0]!.security).toHaveLength(0);
     assertNoLoudGap(own);
