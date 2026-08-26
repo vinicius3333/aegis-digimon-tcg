@@ -71,6 +71,7 @@ describe("LM-043 Darkdramon", () => {
     );
     s.state.turnSeat = 1;
     await s.ready();
+    const sacrificePermanentId = s.perm("sacrifice").permanentId;
 
     expect(
       s.engine.applyIntent(1, {
@@ -79,10 +80,10 @@ describe("LM-043 Darkdramon", () => {
         target: { kind: "permanent", permanentId: s.perm("darkdramon").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("sacrifice").permanentId), 2000);
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === sacrificePermanentId), 2000);
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("darkdramon").permanentId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("sacrifice").permanentId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === sacrificePermanentId)).toBe(false);
   });
 
   it("matches committed metadata and publishes fully covered compiled IR", () => {
