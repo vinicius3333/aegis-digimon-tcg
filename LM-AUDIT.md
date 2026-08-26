@@ -4,13 +4,128 @@ This ledger records source and focused-proof evidence for the LM collection. A c
 is not 10/10 until its focused test has been run in the authorized serial test slot,
 its applicable mechanism coverage is green, and collection evidence is refreshed.
 
-## Collection invariant — incomplete
+## Collection invariant — focused execution incomplete
 
 - All 62 catalog LM modules currently have one direct `registerIrCard("LM-…")` registration,
   no module-level legacy `registerCard`, and a colocated focused test file.
-- This ledger currently contains source evidence only for LM-023 through LM-062 (40 entries).
-  LM-001 through LM-022 require their historical audit evidence to be reconstructed here before
-  the collection can be called reproducibly complete; their absence is not a 10/10 claim.
+- Every entry remains below 10/10 until its focused proof, relevant mechanisms, and later
+  collection gate run in the authorized serial slot.
+
+## LM-001 — Siriusmon — pending focused execution
+
+- Direct IR covers Blast Digivolve, On Play/When Digivolving stack placement, cost modification,
+  DP-based deletion, and the shared once-per-turn all-turns memory watcher. Existing eight focused
+  cases are unrun; no local ruling exists, so it remains below 10/10.
+
+## LM-002 — Jellymon — pending focused execution
+
+- Q3989/Q3990 require live hand-count re-evaluation across simultaneous copies; direct Main and
+  inherited attack Draw actions each gate on hand at seven-or-fewer. Existing focused cases cover
+  the timing and live threshold, but are unrun, so LM-002 remains below 10/10.
+
+## LM-003 — TeslaJellymon — pending focused execution
+
+- Q3991-Q3993 map to attack-time battle-deletion protection plus live ≤7 hand draw; Retaliation
+  remains effect deletion rather than protected battle deletion. Focused cases exist but are
+  unrun, so LM-003 remains below 10/10.
+
+## LM-004 — Thetismon — pending focused execution
+
+- Direct On Play/When Digivolving unsuspend, Tamer gate, Blocker grant, and all-turns once-per-turn
+  watcher map through IR. Existing focused cases are unrun; no local ruling exists, so below 10/10.
+
+## LM-005 — Amphimon — pending focused execution
+
+- Q3994 supports distributed multi-target stack trash after blue hand costs; Q3995 permits stacked
+  Security Attack gains across distinct attacks. Direct IR and seven focused cases cover these
+  paths, but are unrun, so LM-005 remains below 10/10.
+
+## LM-006 — Cthyllamon — pending focused execution
+
+- Q3996 requires the no-source attack restriction to lapse as soon as a source is gained; direct
+  IR uses a live target filter after stack trash. Existing focused cases are unrun, so below 10/10.
+
+## LM-007 — Publimon — pending focused execution
+
+- Q3997 requires mandatory End of Attack security movement; direct Security play and end-attack
+  action map to the security primitive. Focused proof is unrun, so LM-007 remains below 10/10.
+
+## LM-008 — Angoramon — pending focused execution
+
+- Direct start-main Tamer memory gate and Your Turn text-sensitive DP aura map to interpreter
+  conditions. Seven focused cases are present but unrun; no local ruling exists, so below 10/10.
+
+## LM-009 — Airdramon — pending focused execution
+
+- Q3998/Q3999 require both source and destination Angoramon-text matching for suspend/cost
+  replacement, and prevent post-evolution Rush from this source. Direct replacement/watcher IR
+  and focused cases are unrun, so LM-009 remains below 10/10.
+
+## LM-010 — Chamblemon — pending focused execution
+
+- Direct IR maps Tamer suspension/restriction and the Tamer-count-dependent all-turn DP modifier.
+  Existing six focused cases are unrun; no local ruling exists, so LM-010 remains below 10/10.
+
+## LM-011 — SymbareAngoramon — pending focused execution
+
+- Q4000 confirms the no-opponent branch grants Blocker despite no suspension target; direct IR
+  keeps the clauses independent. Existing focused proof is unrun, so LM-011 remains below 10/10.
+
+## LM-012 — Lamortmon — pending focused execution
+
+- Direct IR maps opponent suspension, no-unsuspended-opponent restriction, and once-per-turn
+  security manipulation watcher. Existing focused cases are unrun; no local ruling exists, so below 10/10.
+
+## LM-013 — Diarbbitmon — pending focused execution
+
+- Q4001 maps to delayed end-of-opponent-turn return-top/trash-under behavior after free play of an
+  Angoramon-text Digimon. Direct delayed IR and focused cases are unrun, so below 10/10.
+
+## LM-014 — Espimon — pending focused execution
+
+- Direct On Play reveal/add and opponent-turn once-per-turn draw watcher map to the interpreter.
+  Its six focused tests previously passed 6/6, but collection proof remains incomplete, so below 10/10.
+
+## LM-015 — Ryudamon — pending attack/evolution proof
+
+- Direct attack evolution is Tamer-gated and the Your Turn aura depends on the named trait. Seven
+  focused cases exist but remain unrun in this serial campaign; no local ruling exists, so below 10/10.
+
+## LM-016 — Gammamon — pending focused execution
+
+- Direct all-turns once-per-turn reactive evolution and On Deletion free-play behavior map to IR.
+  Existing focused cases are unrun; no local ruling exists, so LM-016 remains below 10/10.
+
+## LM-017 — Regulusmon — pending focused execution
+
+- Direct IR maps Blast Digivolve, shared entrance trash/under placement, and once-per-turn reactive
+  free-play/deletion branch. Existing focused cases are unrun; no local ruling exists, so below 10/10.
+
+## LM-018 — Gyuukimon — pending focused execution
+
+- Direct On Play deletion then conditional token play uses the preceding-action receipt correctly.
+  Six focused cases are present but unrun; no local ruling exists, so LM-018 remains below 10/10.
+
+## LM-019 — Bokomon — pending focused execution
+
+- Q4002 supports the simultaneous-leaving self-deletion replacement; direct IR uses a replacement
+  rather than post-leave trigger. Existing focused cases are unrun, so LM-019 remains below 10/10.
+
+## LM-020 — Quantumon — pending focused execution
+
+- Q4003-Q4011 map to declared-category immunity and security manipulation, including token/Mother
+  D-Reaper special movement semantics. Catalog proof was tightened in fd8b25340; nine tests are
+  unrun in the current serial campaign, so LM-020 remains below 10/10.
+
+## LM-021 — Agumon - Bond of Bravery — pending focused execution
+
+- Q4012-Q4018 require live ≤2-security named evolution legality and selectable total-DP deletion
+  bounded by source DP. Direct IR and seven focused cases cover those paths but are unrun, so below 10/10.
+
+## LM-022 — Gabumon - Bond of Friendship — pending focused execution
+
+- Q4019-Q4023 require live ≤2-security named evolution legality, including Blast/Delay timing.
+  Direct IR and six focused cases cover return and Tamer-gated unsuspend paths but are unrun, so below 10/10.
 
 ## LM-023 — Sakuyamon: Maid Mode — pending focused execution
 
