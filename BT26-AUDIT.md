@@ -498,3 +498,54 @@ pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-011.test.ts src/eng
 ```
 
 No unresolved card-text ambiguity remains. No implementation or test change was required, no duplicate legacy registration exists, and no push was made. The BT26-011 audit evidence is left uncommitted for coordinator review.
+
+## BT26-012 — Manekimon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-012` (`Manekimon`), a red/yellow level 4 Champion Digimon, play cost 5, DP 6000, Vaccine attribute, and `Puppet`/`Shambala`/`TB` traits. Its printed normal evolution requirements are red Lv.3 for 3 or yellow Lv.3 for 3; its alternate requirement is `[Digivolve] Lv.3 w/[Shambala] trait: Cost 2`. Main text is `[Main] [Once Per Turn] You may play or use 1 [TB] trait card from your hand with the cost reduced by 2.` Its inherited text is `[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP for the turn.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-012`; it reports Q6966–Q6968 and no card-specific erratum, restriction, or unresolved ruling. Q6966 prohibits simultaneously activating two copies to combine reductions on one play/use; Q6967 allows activation when play-cost reductions are prohibited but leaves the cost unreduced; Q6968 allows activation when effect-driven Digimon plays are prohibited but prevents the play.
+- Comprehensive Rules §1-3-9 and §4-2-3-1 establish that reduced costs cannot become negative and are paid as alternate costs; §15-7 covers optional “you may” processing; §4-3-3 establishes inherited effects and §11 covers the When Attacking timing and turn duration.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-012.ts` contains the alternate Lv.3 `[Shambala]`/cost-2 evolution requirement, one non-inherited `Main`/`OncePerTurn` modal, and one inherited `WhenAttacking`/`OncePerTurn` `ModifyDP` action for exactly one opponent Digimon by -2000 for the turn.
+- The Main modal's play branch now selects exactly one own-hand `[TB]` `Digimon` or `Tamer` and pays its cost reduced by 2; the use branch selects exactly one own-hand `[TB]` Option, pays its use cost reduced by 2, and permits multicolor Options. The play wording is intentionally represented by both playable permanent kinds; Options are used by the separate branch.
+- The shared interpreter applies the reduction only to the selected card's own payment, checks player-level cost-reduction and effect-play prohibitions, and leaves the card in hand when a prohibited effect-driven Digimon play cannot resolve. Once-per-turn identity is tracked per physical source copy, so separate copies do not combine reductions into one payment.
+- Registration is exclusively `registerIrCard("BT26-012", compiled)`; no legacy `registerCard` registration exists for this card.
+- Relevant peers inspected: BT26-006 for the same play/use-by-trait modal and Tamer-inclusive play boundary; BT26-033 for the same reduced play/use branches and multicolor Option handling; BT26-011/BT26-013/BT26-014 for neighboring BT26 evolution, effect-play, and inherited-trigger conventions; ST12-03 and BT9-047 for the Q6967/Q6968 restriction interactions; and the shared play/use, cost, once-per-turn, and DP-duration primitives.
+
+### Behavioral proof
+
+Existing and strengthened `apps/api/src/cards/BT26/BT26-012.test.ts` cases prove:
+
+- the exact red and yellow normal Lv.3 cost-3 evolution paths, plus the alternate Lv.3 `[Shambala]` cost-2 evolution and rejection of a near-match;
+- playing exactly one own-hand `[TB]` Digimon for 2 less, spending the Main effect once per turn, and rejecting a second activation in the same turn;
+- the repaired printed-kind boundary by playing the `[TB]` Tamer `BT26-104 Kunlun` for exactly 3 memory (5 minus 2), proving the play branch is not Digimon-only;
+- the Q6967 Option path with a live “players can't reduce play costs” restriction, which pays the full Option cost;
+- the Q6966 two-copy boundary, where two separate activations do not combine into a single reduced payment;
+- the Q6968 effect-play prohibition, which leaves the selected Digimon in hand and preserves memory;
+- optional refusal with no memory/card movement;
+- the inherited effect in a real evolution stack, including exactly one opponent Digimon, exclusion of Tamers/breeding, -2000 DP for the turn, and once-per-turn suppression; and
+- the negative case where another allied Digimon attacks, proving the inherited `When Attacking` source is not an ally-attack watcher.
+
+The focused suite is mutation-sensitive to the corrected Tamer-inclusive filter, the alternate evolution requirement, Main and inherited trigger timing, optionality, reduction, prohibition interactions, controller/kind/count boundaries, duration, and once-per-turn identity. No unresolved card-text ambiguity remains.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-012
+  PASS (Q6966–Q6968; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-012.test.ts
+  PASS (12 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-006.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/useOption.test.ts
+  PASS (4 files, 338 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-012.ts apps/api/src/cards/BT26/BT26-012.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+The audit found and corrected one fidelity defect: the play branch previously admitted only `Digimon`, excluding valid `[TB]` Tamers despite the printed “card” wording. It now admits `Digimon` and `Tamer`, with focused behavioral proof. No commit or push was made, per the audit task instructions.

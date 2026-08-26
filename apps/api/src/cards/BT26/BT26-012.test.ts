@@ -51,6 +51,44 @@ describe("BT26-012 Manekimon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 
+  it("supports both printed normal Lv.3 color evolution paths for cost 3", async () => {
+    const red = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-008", as: "redBase" }],
+        hand: [{ card: CARD_ID, as: "redManekimon" }],
+      },
+    });
+    red.state.memory = 3;
+    expect(
+      red.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: red.perm("redBase").permanentId,
+        instanceId: red.inst("redManekimon").instanceId,
+        useAlternateCost: false,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => red.perm("redBase").topCard.cardId === CARD_ID);
+    expect(red.state.memory).toBe(0);
+
+    const yellow = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-045", as: "yellowBase" }],
+        hand: [{ card: CARD_ID, as: "yellowManekimon" }],
+      },
+    });
+    yellow.state.memory = 3;
+    expect(
+      yellow.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: yellow.perm("yellowBase").permanentId,
+        instanceId: yellow.inst("yellowManekimon").instanceId,
+        useAlternateCost: false,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => yellow.perm("yellowBase").topCard.cardId === CARD_ID);
+    expect(yellow.state.memory).toBe(0);
+  });
+
   it("plays exactly 1 [TB] Digimon from hand for 2 less and spends its once-per-turn activation", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -77,6 +115,24 @@ describe("BT26-012 Manekimon", () => {
     s.give(0, Zone.Hand, { card: "BT26-008", as: "secondTb" });
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("manekimon"));
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("secondTb").instanceId)).toBe(true);
+  });
+
+  it("plays a [TB] Tamer from hand for 2 less, not only a Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "manekimon" }],
+          hand: [{ card: "BT26-104", as: "tbTamer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("manekimon"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-104")).toBe(true);
   });
 
   it("encodes the once-per-turn TB play/use branches and inherited DP reduction", () => {
