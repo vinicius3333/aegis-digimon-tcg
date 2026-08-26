@@ -50,7 +50,7 @@ describe("BT26-097 compiled fidelity", () => {
           ignoreRequirements: true,
           optional: true,
         },
-        { kind: "PlaceUnder", position: "top", optional: true, condition: { kind: "ifThisEffectDigivolved" } },
+        { kind: "PlaceUnder", position: "top", optional: true },
       ],
     });
     expect(card.effects.find((effect) => effect.trigger === "Static")?.actions[0]).toMatchObject({
