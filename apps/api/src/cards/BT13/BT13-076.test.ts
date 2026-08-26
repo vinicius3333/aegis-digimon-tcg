@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-076.js";
 
@@ -11,23 +11,24 @@ describe("BT13-076 KingEtemon", () => {
     expect(trigger).toMatchObject({
       kind: "SubTrigger",
       event: "onDeletionOf",
-      sourceFilter: { controllerDefault: "mine", kind: ["Digimon"], excludeSelf: true },
+      sourceFilter: { controller: "any", kind: ["Digimon"], excludeSelf: true },
     });
     expect(trigger.sourceFilter).toMatchObject({ nameOrTrait: [{ match: "name", tokens: ["Etemon", "Sukamon"] }] });
     expect(trigger.actions).toEqual([
       {
         kind: "ModifyDP",
-        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        target: { filter: { controller: "opponent", kind: ["Digimon"], excludeLeavingSubject: true }, count: 1 },
         amount: -3000,
         duration: "untilOpponentTurnEnd",
       },
       {
         kind: "GainKeyword",
-        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        target: { filter: { controller: "opponent", kind: ["Digimon"], excludeLeavingSubject: true }, count: 1 },
         keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" },
         duration: "untilOpponentTurnEnd",
       },
     ]);
+    expect(watcher).toMatchObject({ frequency: "OncePerTurn" });
   });
 
   it("grants Blocker and protects Etemon/Sukamon Digimon from returning", () => {
@@ -75,6 +76,20 @@ describe("BT13-076 KingEtemon", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("etemon").permanentId]);
 
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
+  });
+
+  it("also triggers when an opponent's Etemon is deleted (Q2314)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-076", as: "king" }] },
+        1: { battleArea: [{ card: "BT11-041", as: "etemon" }, { card: "BT1-015", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("etemon").permanentId]);
+    await settle(() => observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === -1);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
   });
 });

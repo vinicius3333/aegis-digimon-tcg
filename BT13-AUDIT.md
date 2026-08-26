@@ -215,7 +215,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-075 — 10/10
   - Evidence: catalog and KB Q2312/Q2313 reviewed; compiled IR exclusively uses `registerIrCard`, tracing mandatory own-trash X Antibody/Royal Knight bottom-source placement, restriction of all current qualifying opponent Digimon from player attacks through opponent turn, and once-per-turn leave-play prevention by source-card deck-bottom return.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-075.test.ts` passed (2 tests): complete IR clause proof for Q2312/Q2313 target semantics and live registration.
-- BT13-076 — Pending
+- BT13-076 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-076", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-076.test.ts` passed (4 tests): full IR clause proof, own and opposing Etemon-deletion reactions (Q2314), and exclusion of the leaving deletion subject from the chosen debuff target.
 - BT13-077 — Pending
 - BT13-078 — Pending
 - BT13-079 — Pending
