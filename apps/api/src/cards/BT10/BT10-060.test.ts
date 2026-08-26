@@ -1,11 +1,45 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-087.js";
-import "./BT10-060.js";
+import { compiled } from "./BT10-060.js";
 
 describe("BT10-060 Sparrowmon", () => {
+  it("matches its catalog and exact aura, Save, Reboot, and evolution IR", () => {
+    const d = getCardDefinition("BT10-060")!;
+    expect([d.colors, d.level, d.playCost, d.dp]).toEqual([["Black"], 3, 4, 2000]);
+    expect(d.evoCosts).toEqual([{ color: "Black", level: 2, memoryCost: 0 }]);
+    expect([d.forms, d.attributes, d.types]).toEqual([["Rookie"], ["Data"], ["Bird", "Twilight", "Xros Heart"]]);
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      digivolutionRequirement: [{ level: 2, traits: ["Xros Heart"], cost: 0, isAlternate: false }],
+    });
+    expect(compiled.effects.map(({ trigger, isInherited }) => [trigger, isInherited])).toEqual([
+      ["AllTurns", undefined],
+      ["OnDeletion", undefined],
+      ["OpponentsTurn", true],
+    ]);
+  });
+
+  it("digivolves from an Xros Heart level 2 for 0", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-005", as: "base" }], hand: [{ card: "BT10-060", as: "evolving" }] },
+    });
+    s.state.memory = 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT10-060");
+    expect(s.state.memory).toBe(1);
+  });
+
   it("does not immediately unsuspend a Shoutmon after it attacks", async () => {
     const s = setupEngine({
       0: {

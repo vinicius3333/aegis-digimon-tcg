@@ -522,6 +522,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: four focused cases prove catalog/IR fidelity, both printed evolution colors, exact host trait and self-exclusion encoding, physical bottom placement, De-Digivolve amount/floor, Q1986 paid-cost behavior, inherited trait search, independent source frequencies, and reveal remainder counts.
 - Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-060 — Sparrowmon — 10/10
+
+- Catalog evidence: black level 3 Digimon, play cost 4, 2000 DP; evolves from black level 2 or a level-2 Xros Heart for 0; form `Rookie`, attribute `Data`, types `Bird`, `Twilight`, and `Xros Heart`. All Turns, while another allied Xros Heart or Twilight Digimon/Tamer exists, it gets +3000 DP. On Deletion has Save. Its inherited Opponent's Turn effect grants Reboot while the host name contains Shoutmon or Mervamon.
+- Knowledge base: `node tools/kb/query.mjs card BT10-060` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: an exclude-self all-turn aura conditions +3000 DP on another controller-owned battle-area Digimon or Tamer with either trait. Optional Save preserves the physical card beneath a chosen allied Tamer. The inherited opponent-turn self aura publishes Reboot only for a live Shoutmon- or Mervamon-name host, alongside the exact level-2 Xros Heart zero-cost recipe. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-060", compiled)`.
+- Primitive trace: continuous recomputation adds or removes the DP modifier as the qualifying peer enters or leaves. Save reroutes the deleted top identity out of trash into the chosen Tamer stack. Reboot is continuous only during the opponent's turn and therefore acts at that unsuspend phase, never immediately after an attack during Sparrowmon's controller turn.
+- Cross-card and stack proof: real Xros Heart level-2 Monimon proves the trait evolution route and zero cost. Taiki supplies and then loses the qualifying peer to prove live +3000 DP gain/removal. Deletion beside Taiki proves Save identity; Sparrowmon under Shoutmon versus an unrelated host proves inherited name filtering, while an owner-turn attack proves no immediate unsuspend.
+- Behavioral proof: six focused cases prove catalog/IR fidelity, Xros Heart evolution and cost, exclude-self conditional DP and removal, Save zones, Reboot turn/name scope, nonmatching negative, and owner-turn attack suspension persistence.
+- Verification: focused suite — 6 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
