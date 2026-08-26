@@ -11,6 +11,7 @@ describe("ST21-11", () => {
       expect(action).toMatchObject({ kind: "Return", to: "deckBottom" });
       expect(irNode(action).target.filter.levelComparison).toEqual({ op: "lte", value: 4 });
       expect(irNode(action).target.filter.controller).toBe("opponent");
+      expect(irNode(action).scaling).toMatchObject({ per: 2, unit: "colors", levelCeilingAdd: 1 });
     }
   });
   it("keeps Blast Digivolve and optional once-per-turn trash play", () => {
@@ -44,6 +45,41 @@ describe("ST21-11", () => {
     );
     expect(
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    ).toBe(false);
+  });
+
+  it("raises the return ceiling by one for two Tamer colors", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST21-09", as: "base" },
+            { card: "ST21-12", as: "twoColorTamer" },
+          ],
+          hand: [{ card: "ST21-11", as: "metal" }],
+        },
+        1: { battleArea: [{ card: "ST21-09", as: "levelFiveTarget" }], security: ["BT1-001"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("metal").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(
+          (permanent) => permanent.permanentId === s.perm("levelFiveTarget").permanentId,
+        ),
+    );
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.permanentId === s.perm("levelFiveTarget").permanentId,
+      ),
     ).toBe(false);
   });
 });

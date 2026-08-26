@@ -16,20 +16,6 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "dp",
-          amount: 2000,
-          scaling: {
-            per: 2,
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-            },
-            unit: "colors",
-          },
-        },
-        {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "opponent",
@@ -43,6 +29,12 @@ const compiled: CompiledCard = {
               },
             },
             count: 1,
+          },
+          sourceDpCeilingScaling: {
+            per: 2,
+            filter: { controller: "mine", kind: ["Tamer"] },
+            unit: "colors",
+            amount: 2000,
           },
           toTop: true,
         },
@@ -52,20 +44,6 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "dp",
-          amount: 2000,
-          scaling: {
-            per: 2,
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-            },
-            unit: "colors",
-          },
-        },
-        {
           kind: "SecurityManipulation",
           op: "placeAsSecurity",
           controller: "opponent",
@@ -79,6 +57,12 @@ const compiled: CompiledCard = {
               },
             },
             count: 1,
+          },
+          sourceDpCeilingScaling: {
+            per: 2,
+            filter: { controller: "mine", kind: ["Tamer"] },
+            unit: "colors",
+            amount: 2000,
           },
           toTop: true,
         },

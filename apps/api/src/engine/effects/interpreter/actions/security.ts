@@ -349,7 +349,22 @@ export async function runSecurityManipulation(
         unsupported(ctx, action, `SecurityManipulation placeAsSecurity source ${action.source} unsupported`);
         return;
       }
-      const resolvedPermanentIds = await resolvePermanentTargets(ctx, action.source);
+      let source = action.source;
+      if (action.sourceDpCeilingScaling !== undefined && source.filter.dp?.value !== undefined) {
+        source = {
+          ...source,
+          filter: {
+            ...source.filter,
+            dp: {
+              ...source.filter.dp,
+              value:
+                source.filter.dp.value +
+                scaleFactor(ctx, action.sourceDpCeilingScaling) * action.sourceDpCeilingScaling.amount,
+            },
+          },
+        };
+      }
+      const resolvedPermanentIds = await resolvePermanentTargets(ctx, source);
       const ids = topInstanceIds(ctx, resolvedPermanentIds);
       if (ids.length === 0) return;
       // "on top of ITS OWNER's security stack" (LM-020): the destination follows each placed

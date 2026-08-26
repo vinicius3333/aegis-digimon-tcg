@@ -4,6 +4,7 @@ import type { EffectDurationRef } from "../durations.js";
 import type { Filter, Target } from "../filters/filter.js";
 import type { Controller, ZoneRef } from "../filters/zones.js";
 import type { Condition } from "../predicates/conditions.js";
+import type { Scaling } from "../predicates/scaling.js";
 import type { Action } from "./action.js";
 import type { ActionBase } from "./base.js";
 
@@ -99,6 +100,8 @@ export interface SecurityManipulationAction extends ActionBase {
     | "hand"
     | "handOrTrash"
     | "lastOptionUsed";
+  /** Raises a field-source DP ceiling for each matching scaling unit (ST21-06). */
+  sourceDpCeilingScaling?: Scaling & { amount: number };
   /** For placeAsSecurity: which zone the placed cards come from. */
   from?: ZoneRef[];
   /** For placeAsSecurity; default top. */
