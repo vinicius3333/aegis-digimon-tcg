@@ -1101,3 +1101,47 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   `primitives.test.ts`.
 - Remaining ambiguity: none identified.
+
+## BT5-025 — Paledramon — 10/10
+
+- Catalog evidence: Blue Lv.4 Champion Digimon, Data/Dragon, play cost 5,
+  4000 DP, and blue Lv.3 evolution cost 2. Its sole effect is
+  `[When Digivolving] Trash up to 2 digivolution cards from the bottom of 1
+  of your opponent's Digimon.` It has no inherited or Security text.
+- Knowledge-base and rules evidence: the card query returns no card-specific
+  QA, errata, restriction, or ruling entries. Comprehensive §1-3-6 requires at
+  least one card when a choice can be made; §15-10-2-2 permits choosing fewer
+  than the printed maximum for `up to X`; and §4-26-3 requires bottom-stack
+  processing to start at the actual bottom. Thus an eligible stack permits
+  exactly 1 or 2, never 0, while a source-free target is unaffected.
+- Implementation: `apps/api/src/cards/BT5/BT5-025.ts` targets exactly one
+  opponent Digimon with `TrashDigivolution`, amount 2, `fromTop: false`, and
+  the new explicit `upTo: true` choice. It declares `coverage: "full"`,
+  `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-025", compiled)`.
+- Primitive and stack evidence: the shared TrashDigivolution seam clamps the
+  maximum to the target's available stack, makes the first eligible source
+  mandatory, and asks whether to trash each additional source. It always
+  takes a bottom or top prefix rather than allowing an illegal skipped card.
+  The dedicated trash primitive preserves instance ownership, moves the
+  selected sources to trash, and emits the source-trash event for inherited
+  watchers such as BT5-022.
+- Behavioral proof: 5 focused tests prove two bottom sources, the one-source
+  clamp, exact bottom-to-top trash identities, the opponent-only controller
+  boundary, a source-free target, and the choice to stop after exactly one of
+  three available sources while retaining the upper two in order.
+- Defect corrected: the prior IR deterministically trashed the maximum and
+  could not represent the legal choice of only one source. The audit added an
+  `upTo` field to `TrashDigivolutionAction`, implemented prefix-preserving
+  count choice in the shared interpreter, and marked BT5-025 accordingly.
+- Verification: focused BT5-025 — 5 tests passed; full interpreter — 183
+  passed; shared primitives — 136 passed; targeted TrashDigivolution mechanic
+  — 1 passed. Shared package build passed. Targeted Oxfmt and
+  `git diff --check` passed. The full mechanic file additionally passed 116
+  tests and retained two unrelated failures: a BT15-020 timeout and the
+  pre-existing Digi-Burst shape finding for BT7-040, ST4-13, and ST6-13.
+  Workspace typecheck retains only the known unrelated API errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  `primitives.test.ts`.
+- Remaining ambiguity: none identified.

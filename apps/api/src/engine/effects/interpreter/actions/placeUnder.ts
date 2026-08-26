@@ -659,7 +659,18 @@ export async function runTrashDigivolution(
     const stack = permanent.stack;
     const targetAmount =
       action.scaling?.unit === "targetColors" ? new Set(ctx.game.definitionOf(permanent.topCard).colors).size : amount;
-    const take = targetAmount === "all" ? stack.length : Math.min(targetAmount, stack.length);
+    let take = targetAmount === "all" ? stack.length : Math.min(targetAmount, stack.length);
+    if (action.upTo === true && typeof targetAmount === "number" && take > 1) {
+      // "up to" source trash still requires one card under CR 1-3-6, then lets the
+      // controller decline each additional card. Asking one card at a time preserves
+      // the printed bottom/top prefix; a free multi-card selection could skip a card.
+      for (let i = 1; i < take; i++) {
+        if (!(await ctx.ask.optional(ctx, `Trash another digivolution card (${i + 1} of ${take})?`))) {
+          take = i;
+          break;
+        }
+      }
+    }
     let ids: string[];
     if (action.choose === true) {
       // "trash any 1 card under [permanent]" (RB1-016, KB Q4094): the controller picks freely
