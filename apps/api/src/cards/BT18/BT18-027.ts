@@ -15,10 +15,11 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              kind: ["Digimon", "Tamer"],
+              kind: ["Digimon"],
               colors: ["Blue"],
               levels: [3],
             },
+            orFilters: [{ controller: "mine", kind: ["Tamer"] }],
             count: 1,
           },
           from: ["digivolutionCards"],

@@ -37,4 +37,24 @@ describe("BT18-008 Goblimon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === smallId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === largeId)).toBe(true);
   });
+
+  it("digivolves from a red level 2 for 0 and preserves the source stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-001", as: "egg" }],
+        hand: [{ card: "BT18-008", as: "goblimon" }],
+      },
+    });
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("goblimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "BT18-008");
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("egg").stack.at(-1)?.cardId).toBe("BT1-001");
+  });
 });

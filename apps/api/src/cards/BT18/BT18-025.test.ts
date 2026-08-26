@@ -39,4 +39,45 @@ describe("BT18-025 Korikakumon", () => {
     expect(observe(s.engine).isRestricted(emptyId, "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(stackedId, "suspend")).toBe(false);
   });
+
+  it.each([
+    ["Tommy Himi", "BT18-089", 3, 2],
+    ["Kumamon", "BT18-022", 1, 4],
+  ])("digivolves from %s for the named cost and preserves the source", async (_name, baseCard, _cost, memoryLeft) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: baseCard, as: "base" }],
+        hand: [{ card: "BT18-025", as: "korikakumon" }],
+      },
+    });
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("korikakumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT18-025");
+
+    expect(s.state.memory).toBe(memoryLeft);
+    expect(s.perm("base").stack.at(-1)?.cardId).toBe(baseCard);
+  });
+
+  it("grants Ice-Snow and both main and inherited Jamming", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT18-025", as: "self" },
+          { card: "BT1-030", as: "host", under: ["BT18-025"] },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasEffectiveTrait(s.perm("self"), "Ice-Snow")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("self"), "Jamming")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
+  });
 });

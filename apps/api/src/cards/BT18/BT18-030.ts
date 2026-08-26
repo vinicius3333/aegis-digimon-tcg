@@ -17,10 +17,9 @@ export const compiled: CompiledCard = {
             {
               filter: {
                 controllerDefault: "mine",
-                colors: ["Yellow"],
                 nameOrTrait: [
                   {
-                    tokens: ["Data"],
+                    tokens: ["Witchelny"],
                     match: "trait",
                   },
                 ],
@@ -31,9 +30,10 @@ export const compiled: CompiledCard = {
             {
               filter: {
                 controllerDefault: "mine",
+                colors: ["Yellow"],
                 nameOrTrait: [
                   {
-                    tokens: ["Witchelny"],
+                    tokens: ["Data"],
                     match: "trait",
                   },
                 ],
@@ -52,6 +52,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          leaveCause: "byOpponentEffect",
           sourceFilter: {
             controllerDefault: "mine",
             kind: ["Digimon"],
@@ -73,6 +74,7 @@ export const compiled: CompiledCard = {
                   filter: {
                     controller: "mine",
                     zone: "security",
+                    position: "top",
                   },
                   count: 1,
                 },

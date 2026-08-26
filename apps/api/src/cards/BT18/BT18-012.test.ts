@@ -1,6 +1,9 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-012.js";
+import "./BT18-014.js";
 
 describe("BT18-012 Grumblemon", () => {
   it("deletes an opposing Digimon at 3000 DP or less on play", async () => {
@@ -42,5 +45,59 @@ describe("BT18-012 Grumblemon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === smallId));
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === smallId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === largeId)).toBe(true);
+  });
+
+  it("digivolves from Gigasmon for 0 and resolves the When Digivolving deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-014", as: "gigasmon" }],
+          hand: [{ card: "BT18-012", as: "grumblemon" }],
+          deck: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-030", dp: 3000, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    const targetId = s.perm("target").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gigasmon").permanentId,
+        instanceId: s.inst("grumblemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("gigasmon").stack.at(-1)?.cardId).toBe("BT18-014");
+  });
+
+  it("deletes once per turn through the inherited When Attacking effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-030", as: "host", under: ["BT18-012"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-030", dp: 3000, as: "first" },
+            { card: "BT1-030", dp: 3000, as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const firstId = s.perm("first").permanentId;
+    const secondId = s.perm("second").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstId));
+    await advance(s.engine).fireForInstance(EffectTiming.OnUseAttack, s.perm("host").topCard!);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(secondId);
   });
 });

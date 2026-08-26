@@ -103,6 +103,9 @@ const compiled: CompiledCard = {
         {
           names: ["Grumblemon"],
         },
+        {
+          names: ["Gigasmon"],
+        },
       ],
       count: 2,
     },

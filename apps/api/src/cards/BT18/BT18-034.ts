@@ -60,11 +60,7 @@ const compiled: CompiledCard = {
                 match: "name",
               },
             ],
-            exclude: [
-              {
-                cardID: "BT7-111",
-              },
-            ],
+            excludeCardIds: ["BT7-111"],
           },
           payCost: false,
           from: ["trash"],
