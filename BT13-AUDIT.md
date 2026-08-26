@@ -104,7 +104,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-038 — 10/10
   - Evidence: catalog and KB Q2290 reviewed; compiled IR exclusively uses `registerIrCard`, tracing optional own-top-security trash, exact opponent Security Attack -2 grant through opponent-turn end, and inherited once-per-turn -2000 DP at combined security six or fewer.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-038.test.ts` passed (7 tests): exact cost routing, decline/unpayable negatives, temporary keyword grant, Q2290 security-count boundaries, and evolution cost.
-- BT13-039 — Pending
+- BT13-039 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing own-turn optional level-4-or-lower Chessmon deletion play, inherited static Reboot, and the alternative yellow/black level-3 Chessmon evolution cost against non-Chessmon normal and invalid paths.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-039.test.ts` passed (8 tests): level/turn negatives, Reboot, alternate and normal evolution costs across both colors, and alternate-requirement rejection.
 - BT13-040 — Pending
 - BT13-041 — Pending
 - BT13-042 — Pending
