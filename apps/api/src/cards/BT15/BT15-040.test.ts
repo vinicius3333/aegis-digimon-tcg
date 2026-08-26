@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT15-040.js";
 
 describe("BT15-040", () => {
@@ -23,9 +25,33 @@ describe("BT15-040", () => {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          scaling: { per: 1, unit: "cards" },
-          actions: [{ kind: "ModifyDP", amount: -2000 }],
+          actions: [{ kind: "ModifyDP", amount: -2000, scaling: { per: 1, unit: "cards" } }],
         },
       ],
     }));
+
+  it("debuffs exactly one opponent by -2000 for each of your Digimon when another Digimon is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-040", as: "monzaemon" }],
+          hand: [{ card: "BT1-009", as: "other" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", dp: 7000, as: "chosen" },
+            { card: "BT1-009", dp: 7000, as: "unchosen" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("other").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("chosen").currentDP === 3000, 1_500);
+
+    expect(s.perm("chosen").currentDP).toBe(3000);
+    expect(s.perm("unchosen").currentDP).toBe(7000);
+  });
 });

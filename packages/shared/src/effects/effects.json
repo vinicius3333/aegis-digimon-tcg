@@ -29698,10 +29698,10 @@
                 "kind": "ModifyDP",
                 "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
                 "amount": -2000,
-                "duration": "untilOpponentTurnEnd"
+                "duration": "untilOpponentTurnEnd",
+                "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
               }
-            ],
-            "scaling": { "per": 1, "filter": { "controller": "mine", "kind": ["Digimon"] }, "unit": "cards" }
+            ]
           }
         ],
         "frequency": "OncePerTurn"
