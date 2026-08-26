@@ -12381,6 +12381,19 @@
   "BT11-086": {
     "effects": [
       {
+        "trigger": "Static",
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldBePlayed",
+            "mode": "reduceCost",
+            "amount": 0,
+            "additionalEffects": [{ "kind": "AllowDigiXrosMaterialsFromTrash" }],
+            "raw": "cards from your trash can also be placed as DigiXros materials"
+          }
+        ]
+      },
+      {
         "trigger": "OnPlay",
         "actions": [
           {
