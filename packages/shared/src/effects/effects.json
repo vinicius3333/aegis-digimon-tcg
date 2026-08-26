@@ -29343,7 +29343,30 @@
     "coverage": "full",
     "residual": []
   },
-  "BT15-033": { "effects": [{ "trigger": "Static", "actions": [] }], "coverage": "full", "residual": [] },
+  "BT15-033": {
+    "effects": [
+      {
+        "trigger": "AllTurns",
+        "isInherited": true,
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldBeDeleted",
+            "leaveCause": "byBattle",
+            "sourceFilter": { "isSelfRef": true },
+            "mode": "prevent",
+            "actions": [],
+            "cost": {
+              "kind": "trashSecurityTop",
+              "raw": "By trashing the top card of your security stack, prevent that deletion"
+            }
+          }
+        ]
+      }
+    ],
+    "coverage": "full",
+    "residual": []
+  },
   "BT15-034": {
     "effects": [
       {
