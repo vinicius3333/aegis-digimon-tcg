@@ -152,3 +152,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   result, and Security, while the shared Delay suite covers payment and payload. The stale Q&A
   references in both focused-test comments are corrected to their card-specific rulings.
 - All focused proof is intentionally unrun under PID 43774, so LM-035 remains below 10/10.
+
+## LM-036 — Jade Memory Boost! — pending focused execution
+
+- Catalog and Q4069/Q4070 map to a direct Static `alsoColor: blue` alternative. The shared
+  executable option-legality path accepts green or blue sources from either battle or breeding,
+  while preserving the requirement that one of those colours exists.
+- Main reveals three, adds one green-or-blue Digimon, bottoms the rest, then places the Option;
+  Delay gains two memory and Security places it. Focused fixtures cover native green, alternate
+  blue in battle/breeding, refusal, reveal output, and Security; shared Delay proof covers the
+  activation lifecycle. The focused comment's stale ruling reference was corrected to Q4069/Q4070.
+- Tests are deliberately unrun under PID 43774, so LM-036 remains below 10/10.
