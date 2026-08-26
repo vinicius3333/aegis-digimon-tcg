@@ -18,13 +18,13 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-012 | Flaremon | 1 | Q3549 is represented by separate self-scoped play and digivolve-into cost replacements, each gated by a live qualifying stack with ≥3 sources; both entry timings delete DP≤5000 and inherited DP is owner-turn scoped. | Pending focused proof |
 | EX5-013 | Zhuqiaomon | 1 | Q3550 confirms the payment can delete either player's eligible Digimon; direct IR uses an unrestricted Deva-or-DP≤6000 `deleteOwn` cost, and shared cost selection preserves that scope before the shared Once Per Turn SEC+ grant. | Pending focused proof |
 | EX5-014 | Apollomon | 1 | Direct IR gives digivolving-only Blitz, owner-turn SEC+ scaling per three own Digimon sources, and a shared Once Per Turn `whenSecurityRemoved` watcher whose deletion ceiling is the source’s live DP. | Pending focused proof |
-| EX5-015 | Gabumon (X Antibody) | 3 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-015 | Gabumon (X Antibody) | 3 | On Play/When Digivolving share reveal-four/add-up-to-two then conditional hand trash; inherited battle-only deletion replacement is named-host scoped, once per turn, and pays two non-Egg trash returns before prevention. | Pending focused proof |
 | EX5-016 | Lunamon | 5 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-017 | Lekismon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-018 | Garurumon (X Antibody) | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-019 | Antylamon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-020 | Crescemon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-021 | Majiramon | 11 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-020 | Crescemon | 1 | Q3569 has separate self-scoped would-play and would-digivolve-into reductions with live trait-plus-three-source gate; both entry routes restrict one opponent’s suspend until their turn end, and inherited DP is opponent-turn scoped. | Pending focused proof |
+| EX5-021 | Majiramon | 11 | On Play draw then optional breeding-area Deva play uses distinct-name exclusion; Your Turn watcher gates memory on Option cost≥1, while inherited attack memory uses the source’s live Four Sovereigns/God Beast trait and Once Per Turn. | Pending focused proof |
 | EX5-022 | Mihiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-023 | WereGarurumon (X Antibody) | 1 | Direct IR orders the mandatory two-card hand trash before optional source-gated return and self-unsuspend; the shared `selfDigivolutionStackHasTrait` condition reads the live stack and inherited attack route has its own Once Per Turn. | Pending focused proof |
 | EX5-024 | Azulongmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
