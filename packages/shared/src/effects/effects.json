@@ -277,7 +277,7 @@
             "kind": "Replacement",
             "event": "wouldLeavePlay",
             "sourceFilter": {
-              "controller": "any",
+              "controllerDefault": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Gallantmon"], "match": "name" }]
             },
@@ -5433,7 +5433,7 @@
               "kind": "youHave",
               "filter": {
                 "zone": "battleArea",
-                "controllerDefault": "mine",
+                "controller": "any",
                 "excludeSelf": true,
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["Xros Heart"], "match": "trait" }]
