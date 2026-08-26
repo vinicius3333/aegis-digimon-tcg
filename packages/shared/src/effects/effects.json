@@ -91094,7 +91094,8 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Thomas H. Norstein"], "match": "trait" }]
+                "kind": ["Tamer"],
+                "nameOrTrait": [{ "tokens": ["Thomas H. Norstein"], "match": "name" }]
               },
               "count": 1
             },
@@ -91117,7 +91118,8 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Thomas H. Norstein"], "match": "trait" }]
+                "kind": ["Tamer"],
+                "nameOrTrait": [{ "tokens": ["Thomas H. Norstein"], "match": "name" }]
               },
               "count": 1
             },

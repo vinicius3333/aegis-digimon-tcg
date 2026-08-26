@@ -444,3 +444,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-022.
+
+## BT25-023 — Gaogamon — 10/10
+
+- Catalog evidence: Blue level-4 Digimon, play cost 5, 6000 DP, `Champion`/`Data`, `Beast`/`DATA SQUAD`; standard blue level-3 evolution for 2 plus alternate level-3 DATA SQUAD evolution for 2; On Play/When Digivolving, with one or fewer Tamers, optionally play Thomas H. Norstein from hand without cost; inherited When Attacking once-per-turn both players Draw 1.
+- Knowledge base: `node tools/kb/query.mjs card BT25-023` returned no entries. The committed English card text labels `[Thomas H. Norstein]` as a trait, but BT25-087's catalog identity is the Tamer name `Thomas H. Norstein` and its only declared trait is `DATA SQUAD`; BT25-096 uses the same bracketed token as a named-card target. The executable interpretation is therefore a named Tamer, not a nonexistent trait.
+- Implementation: both entry effects now select a controller-owned Tamer named Thomas H. Norstein from hand, gate on at most one friendly Tamer, and play it optionally without cost. The alternate evolution and inherited two-player Draw sequence are complete. Direct/shared IR are synchronized, with full coverage/no residual clauses and exclusive `registerIrCard("BT25-023", compiled)` registration.
+- Defect corrected: the generated target used `match: "trait"`, making the intended BT25-087 target ineligible. Both direct actions and persisted shared actions now use `kind: ["Tamer"]` plus `match: "name"`.
+- Behavioral proof: the focused suite proves live On Play of BT25-087, the two-Tamer negative boundary, complete structural equivalence for When Digivolving, and both-player inherited draws capped across two attacks. BT25-087/BT25-096 peer suites remain green. The live Thomas play fails against the prior trait filter.
+- Verification: focused suite — 5 passed; peer suites — 9 passed; targeted Oxfmt and `git diff --check` — passed. Workspace typecheck retains six unrelated pre-existing errors and no BT25-023 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-023
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-023.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-023.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-023.ts apps/api/src/cards/BT25/BT25-023.test.ts
+git diff --check
+```
+
+No unsupported executable behavior remains for BT25-023; the catalog-label discrepancy is resolved by the set's named-card data and peer wording.
