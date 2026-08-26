@@ -98,6 +98,14 @@ export interface DigiXrosDeps {
   payMemory(state: GameState, seat: Seat, cost: number): void;
   /** Apply continuous play-cost modifiers to the printed cost (before the DigiXros reduction). */
   adjustedPlayCost?(state: GameState, seat: Seat, definition: CardDefinition, base: number): number;
+  /** Resolve pay-time effects on the card after the DigiXros material reduction is known. */
+  finalizePlayCost?(
+    state: GameState,
+    seat: Seat,
+    instance: CardInstance,
+    definition: CardDefinition,
+    baseCost: number,
+  ): Promise<number>;
   /**
    * Returns DigiXros-only granted name aliases for a material card instance (KB Q3068/Q3105/Q3119).
    * These are names the card is "also treated as [X] for a DigiXros" — valid ONLY in material
@@ -119,6 +127,8 @@ export interface DigiXrosDeps {
   ): Promise<void>;
   /** Place loose cards (hand / trash / under-Tamer) under a permanent as bottom digivolution cards. */
   placeUnder(targetPermanentId: string, instanceIds: string[]): Promise<unknown>;
+  /** Place costs committed while the played permanent did not yet exist. */
+  placePendingDigivolution?(playedInstanceId: string, permanentId: string): Promise<void>;
   /** Move a whole battle-area permanent under another as digivolution cards. */
   relocatePermanent(
     destPermanentId: string,
@@ -165,8 +175,9 @@ export function validateDigiXros(
   const materialIds = intent.digiXros.materialInstanceIds;
   if (materialIds.length === 0) return { ok: false, reason: "no-materials" };
 
-  // Resolve the chosen expander Tamers and aggregate the unlocked per-zone maxima (documented behavior takes the MAX
-  // across all active effects). An expander must be an unsuspended Tamer this seat controls whose
+  // Resolve the chosen expander Tamers and aggregate the unlocked per-zone maxima. Each Tamer
+  // is a separately paid effect, so multiple copies add their quotas (EX10-064 Q5178/Q5179).
+  // An expander must be an unsuspended Tamer this seat controls whose
   // trait gate accepts the card being played.
   //
   // AllowDigiXrosMaterialsFromTrash (CAP-C-14, BT21-030): the played card's own IR declares that
@@ -178,7 +189,9 @@ export function validateDigiXros(
     player.battleArea.every((permanent) => {
       if (permanent.topCard === undefined) return true;
       const materialDefinition = definitionOf(permanent.topCard.cardId);
-      return !materialDefinition.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(materialDefinition.nameEn);
+      return (
+        !materialDefinition.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(materialDefinition.nameEn)
+      );
     });
   let trashMax = allowsDigiXrosMaterialsFromTrash(instance.cardId) || intrinsicTrashAllowed ? Infinity : 0;
   if (allowsExtraDigiXrosMaterials(instance.cardId)) trashMax = 1;
@@ -192,8 +205,8 @@ export function validateDigiXros(
     if (expander === undefined || !expander.appliesTo(definition)) {
       return { ok: false, reason: "invalid-expander" };
     }
-    underTamerMax = Math.max(underTamerMax, expander.underTamerMax);
-    trashMax = Math.max(trashMax, expander.trashMax);
+    underTamerMax += expander.underTamerMax;
+    trashMax += expander.trashMax;
   }
 
   // Resolve each chosen material to its source zone, gated by the unlocked maxima.
@@ -264,7 +277,10 @@ export async function applyDigiXros(
   const check = validateDigiXros(state, seat, intent, deps);
   if (!check.ok) return check;
 
-  const { definition, materials, expanderPermanentIds, cost } = check;
+  const { definition, materials, expanderPermanentIds } = check;
+  const cost = deps.finalizePlayCost
+    ? await deps.finalizePlayCost(state, seat, check.instance, definition, check.cost)
+    : check.cost;
   const player = state.players[seat]!;
 
   // (1) Pay the activation cost: suspend the chosen expander Tamers.
@@ -311,6 +327,7 @@ export async function applyDigiXros(
     }
     placedIds.push(material.instanceId);
   }
+  await deps.placePendingDigivolution?.(instance.instanceId, permanent.permanentId);
 
   // (5) Fire On Play, carrying the material count so `digiXrosCount` conditions can gate on it.
   await deps.fireTiming(state, seat, EffectTiming.OnPlay, instance.instanceId, materials.length);

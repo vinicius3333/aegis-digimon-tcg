@@ -968,7 +968,7 @@ export function MemoryGauge({
             by cell fraction, which the marker's own extra width puts it beside, and
             a blurred disc that wide washed over its neighbours either way. */}
         {ticks.map(renderCoin)}
-        {arcEnds ?<MemoryArc key={sweepGeneration.current} from={arcEnds.from} to={arcEnds.to} /> : null}
+        {arcEnds ? <MemoryArc key={sweepGeneration.current} from={arcEnds.from} to={arcEnds.to} /> : null}
         {prediction !== undefined && shouldDrawMemoryPrediction(cv, prediction) ? (
           <MemoryPredictionArc from={cv} to={prediction} />
         ) : null}
@@ -1344,19 +1344,24 @@ interface ArrowPoint {
   y: number;
 }
 
-function arcBetween(from: ArrowPoint, to: ArrowPoint): string {
-  const midX = (from.x + to.x) / 2;
-  return `M ${from.x} ${from.y} Q ${midX} ${(from.y + to.y) / 2 - 90} ${to.x} ${to.y}`;
+/**
+ * The reference client draws a straight beam between the two card centres, not a
+ * curve: the arc the web port had made the tip approach the target sideways, which
+ * is what left it reading as pointing past the card rather than into it.
+ */
+function beamBetween(from: ArrowPoint, to: ArrowPoint): string {
+  return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
 }
 
 /**
- * The target arrow (`TargetArrow.cs`). One tail, one arc per target, drawn from
- * board coordinates the caller re-measures as the cards move — which is what keeps
- * a declared attack pointing at its target while the board shifts under it.
+ * The target arrow (`TargetArrow.cs`). One tail, one straight beam per target,
+ * drawn from board coordinates the caller re-measures as the cards move — which is
+ * what keeps a declared attack pointing at its target while the board shifts under
+ * it. Both ends are card centres, so the head lands inside the card it names.
  *
  * `tracking` is the reference client's persistent arrow: it extends with two quick
  * flashes and then stays up until the thing it is about is over. Without it the
- * arc draws itself once, which is what a hovering drag preview wants.
+ * beam draws itself once, which is what a hovering drag preview wants.
  */
 export function AttackArrow({
   from,
@@ -1378,33 +1383,55 @@ export function AttackArrow({
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 60, pointerEvents: "none" }}
     >
       <defs>
-        <marker id={headId} markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
-          <path className="game-attack-arrow__head" d="M0,0 L6,3 L0,6 Z" fill={`var(--battle-arrow-${kind})`} />
+        {/* Marker units are stroke widths, so the head grows with the arc rather
+            than needing its own breakpoint. The dark rim is what keeps the tip
+            readable over bright card art. */}
+        <marker id={headId} markerWidth="4" markerHeight="4" refX="2.8" refY="2" orient="auto">
+          <path
+            className="game-attack-arrow__head"
+            d="M0,0 L2.8,2 L0,4 Z"
+            fill={`var(--battle-arrow-${kind})`}
+            stroke="var(--battle-arrow-casing)"
+            strokeWidth={0.3}
+            strokeLinejoin="round"
+          />
         </marker>
       </defs>
       {targets.map((target, index) => {
-        const arc = arcBetween(from, target);
+        const arc = beamBetween(from, target);
         return (
           <g key={index}>
-            {/* Soft glow pass under the arc, the way the reference client draws attacks. */}
+            {/* Soft glow pass under the beam, the way the reference client draws attacks. */}
             <path
-              className="game-attack-arrow__stroke"
+              className="game-attack-arrow__stroke game-attack-arrow__stroke--glow"
               d={arc}
               pathLength={100}
               strokeDasharray={100}
               fill="none"
               stroke={`var(--battle-arrow-${kind}-glow)`}
+              strokeWidth={14}
+              strokeLinecap="round"
+            />
+            {/* Dark casing between the glow and the bright core: without it the beam
+                disappears into pale card art wherever it crosses one. */}
+            <path
+              className="game-attack-arrow__stroke game-attack-arrow__stroke--casing"
+              d={arc}
+              pathLength={100}
+              strokeDasharray={100}
+              fill="none"
+              stroke="var(--battle-arrow-casing)"
               strokeWidth={10}
               strokeLinecap="round"
             />
             <path
-              className="game-attack-arrow__stroke"
+              className="game-attack-arrow__stroke game-attack-arrow__stroke--core"
               d={arc}
               pathLength={100}
               strokeDasharray={100}
               fill="none"
               stroke={`var(--battle-arrow-${kind})`}
-              strokeWidth={4.5}
+              strokeWidth={6}
               strokeLinecap="round"
               markerEnd={`url(#${headId})`}
             />
