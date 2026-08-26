@@ -119,7 +119,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-043 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard` for both printed and inherited static Barrier keywords, traced through public observation, exact top-security replacement cost, refusal/unpayable behavior, and evolution-stack propagation.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-043.test.ts` passed (7 tests): printed and inherited live Barrier, accept/refusal/no-security branches, exact cost, and evolution cost.
-- BT13-044 — Pending
+- BT13-044 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, optional top-security payment for -6000 DP through opponent-turn end, and own-security-removal optional yellow Tamer play with all-turn once-per-turn scope.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-044.test.ts` passed (7 tests): keyword observation, payment/refusal/unpayable paths, own/opponent security ownership, frequency, color negative, and evolution cost.
 - BT13-045 — Pending
 - BT13-046 — Pending
 - BT13-047 — Pending
