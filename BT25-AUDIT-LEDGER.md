@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-048 (Bearmon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-048 Bearmon | Green level 3 Digimon; alternate level-2 `[TS]` evolution cost 0; during your turn, when this Digimon in the battle area would digivolve into a `[TS]` Digimon, reduce cost by 1; inherited all turns once per turn when this Digimon wins a battle, draw 1. Q6316 excludes breeding-area evolution; Q6317-Q6321 define battle-win timing, Security Digimon inclusion, ordering, and activation despite deletion prevention. | **No card-specific causal mismatch found statically.** The replacement is Your Turn, self-scoped, explicitly battle-area, and destination-filtered to TS, matching Q6316. The inherited watcher is self-scoped, all-turn, once-per-turn, and listens to `whenBattleWon`; shared combat timing supplies the post-win event before/alongside deletion-resolution ordering described by Q6317-Q6321. Alternate evolution is represented. | Structural test only; no execution of breeding-area exclusion, cost reduction, Security Digimon win, deletion-prevention activation, or once-per-turn draw. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-048
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-048` (Q6316-Q6321).
+- Direct module and shared battle-area replacement, destination TS matching, battle-win event,
+  Security battle handling, and once-per-turn watcher behavior were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-047 (Floramon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
