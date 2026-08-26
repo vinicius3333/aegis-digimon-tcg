@@ -249,7 +249,9 @@ This ledger records only independently reproduced, card-scoped verification. His
   - Registration: exclusive `registerIrCard("BT13-086", compiled)`; no legacy registration.
   - Correction: moved [On Play] Akihiro Kurata recursion out of the static replacement effect into its printed OnPlay timing.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-086.test.ts` passed (3 tests): level-4 cost replacement, static restrictions, deletion recursion, and live OnPlay Akihiro recursion.
-- BT13-087 — Pending
+- BT13-087 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-087", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-087.test.ts` passed (3 tests): reveal/add/trash clauses and the live Royal Knight play deletion watcher are covered.
 - BT13-088 — Pending
 - BT13-089 — Pending
 - BT13-090 — Pending
