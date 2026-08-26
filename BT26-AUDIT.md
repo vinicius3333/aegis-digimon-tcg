@@ -185,3 +185,45 @@ git diff --check
 ```
 
 No unresolved card-text ambiguity remains. No card or engine change was necessary, and no commit or push was made, per the audit task instructions.
+
+## BT26-005 — Pinamon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-005` (`Pinamon`), a purple Digi-Egg, level 2 In-Training, with `Bird` and `DATA SQUAD` traits and no main or Security effect.
+- Printed inherited text: `[On Deletion] By trashing the bottom face-down card from under any of your Tamers, you may play 1 play cost 5 or lower [Avian] trait or [DATA SQUAD] trait card from your trash without paying the cost.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-005`; it reports Q6958 and no local erratum, restriction, or unresolved ruling conflict.
+- Q6958 confirms that the card just trashed from under the Tamer may be the card played from the trash.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-005.ts` contains exactly one inherited `OnDeletion` effect. Its optional `PlayWithoutCost` action reads only the controller's trash, selects exactly one `Digimon` or `Tamer` with printed play cost at most 5 and either the `Avian` or `DATA SQUAD` trait, and pays `trashBottomFaceDownUnderTamer` for exactly one of the controller's Tamers before the free play.
+- The shared `definitionMatches`/`matchNameOrTrait` path treats the two `nameOrTrait` entries as a union and applies whole-trait matching; the shared loose-card path scopes `controller: "mine"` to the source owner's trash and applies the play-cost and kind boundaries. Options are intentionally excluded because this is a `play` clause and the engine's Option lifecycle is `use`, not permanent play.
+- The shared `canPayCost` and `payCost` implementations enumerate only battle-area Tamers whose literal bottom stack card (`stack[0]`) is face-down, select among any eligible Tamer, and trash the selected card through `trashDigivolutionCards`. The cost is paid before candidate selection, preserving Q6958 when the newly trashed card is itself eligible.
+- Registration is exclusively `registerIrCard("BT26-005", compiled)`; no `registerCard` registration exists for this card.
+- Relevant peers inspected: BT26-003 and BT26-057 for bottom-face-down Tamer costs and unpayable/declined boundaries; BT26-076 for the same inherited play-from-trash vocabulary; BT26-072 and BT26-065 for DATA SQUAD/Avian candidates; and ST24-12 for the same Tamer-stack cost family. Their controller, kind, trait, and stack-order conventions are consistent with Pinamon.
+
+### Behavioral proof
+
+Existing and strengthened `apps/api/src/cards/BT26/BT26-005.test.ts` cases prove:
+
+- the inherited deletion trigger, optional free-play action, exact play-cost/kind/trait filter, and exact Tamer-stack cost shape;
+- runtime selection of an Avian-only card (`BT1-013`) and a DATA SQUAD Digimon/Tamer, with the selected card entering the battle area without paying its play cost;
+- the Q6958 path where the card just trashed from under the Tamer is immediately selected from the trash and played;
+- the inclusive play-cost-5 boundary and rejection of an over-cost candidate and an unrelated Tamer from a mixed trash pool; and
+- optional refusal, which leaves both the face-down Tamer-stack card and trash candidate unmoved.
+
+The inherited effect is exercised from a stacked Digimon, including a legal BT26 Pinamon-to-Falcomon evolution base in the Avian branch test. Shared peer tests cover the face-up-bottom/unpayable cost boundary and the reusable cost/primitive resolution. The six focused tests are mutation-sensitive to the inherited trigger, optionality, cost ordering, controller scope, exact kind/cost/trait filter, and Q6958 final zones. No implementation change was necessary; the only card-specific change was the missing Avian behavioral proof and exact filter assertion.
+
+### Verification
+
+Commands and results:
+
+- `node tools/kb/query.mjs card BT26-005` — PASS (Q6958; no erratum/restriction).
+- Focused `pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-005.test.ts` — PASS (6 tests).
+- Focused plus peers/primitives/interpreter — PASS (5 files, 338 tests).
+- `pnpm typecheck` — PASS (shared build, shared/api/web typecheck).
+- `git diff --check` — PASS.
+- `pnpm exec oxfmt apps/api/src/cards/BT26/BT26-005.test.ts` — PASS.
+
+No unresolved card-text ambiguity remains. No module or shared-engine change was necessary, no duplicate legacy registration exists, and no commit or push was made, per the audit task instructions.
