@@ -12235,7 +12235,7 @@
               "count": 1
             },
             "to": "hand",
-            "condition": { "kind": "raw", "raw": "you do" }
+            "condition": { "kind": "ifThisEffectActed", "raw": "if you trashed a card" }
           }
         ]
       },
@@ -12249,7 +12249,8 @@
               "controllerDefault": "mine",
               "nameOrTrait": [{ "tokens": ["Angewomon", "Mirei Mikagura"], "match": "name" }]
             },
-            "actions": [{ "kind": "GainMemory", "amount": 1 }]
+            "actions": [{ "kind": "GainMemory", "amount": 1 }],
+            "oncePerTurnKey": "when-angel-or-mirei-played"
           }
         ],
         "frequency": "OncePerTurn"
