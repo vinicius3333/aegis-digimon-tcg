@@ -442,6 +442,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: four focused cases prove catalog and structural fidelity, exact green-Tamer ownership filters, main once-per-turn, legal inherited stack activation, opposing-Digimon filtering, inherited once-per-turn, and both owner-turn negatives.
 - Verification: focused suite — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-052 — Cherrymon — 10/10
+
+- Catalog evidence: green level 5 Digimon, play cost 7, 7000 DP; evolves from green level 4 for 3; form `Ultimate`, attribute `Virus`, type `Vegetation`. Digisorption -2 may suspend one allied Digimon to reduce its evolution cost by 2. On the opponent's turn, once per turn when an opposing Digimon attacks, it may redirect that attack to one of its controller's suspended Digimon.
+- Knowledge base: Q1975 permits suspended Cherrymon itself as the redirect target. Q1976 makes the attacker's When Attacking and Cherrymon's response simultaneous, with the turn player able to activate its effect first. No errata, restriction, or unresolved ambiguity remains.
+- Implementation: the static `wouldDigivolve` replacement couples an optional one-Digimon suspend cost to an exact reduction of 2 and publishes Digisorption metadata. The opponent-turn source-instance once-per-turn watcher offers exactly one controller-owned suspended Digimon to `RedirectAttack`. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-052", compiled)`.
+- Primitive trace: evolution preflight offers Digisorption only when an unsuspended allied Digimon can pay its cost; acceptance suspends before evolution completes and payment uses reduced cost, while refusal or unavailable cost retains printed cost. Attack declaration collects the turn player's When Attacking and Cherrymon's simultaneous response group before combat target resolution; redirect mutates only the active attack target.
+- Cross-card and stack proof: Cherrymon evolves over Sunflowmon and uses Palmon or itself as a legal suspend cost; decline and all-suspended fixtures prove payment boundaries. A real opponent attack redirects from the player to suspended Cherrymon under Q1975. A Shoutmon host with Pickmons inherited Draw proves the turn player's When Attacking resolves in the same window before the redirected battle under Q1976.
+- Behavioral proof: six focused cases prove catalog/IR fidelity, Digisorption acceptance/decline/unpayable cases, exact memory and suspension, Q1975 self-redirection, preserved security, physical deletion result, and Q1976 simultaneous production timing.
+- Verification: focused suite — 6 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
