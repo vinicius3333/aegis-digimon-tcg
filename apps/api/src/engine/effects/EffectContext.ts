@@ -151,6 +151,17 @@ export type RemovalCause = "byEffect" | "byBattle" | "byRule";
  * sections 2 and 10).
  */
 export interface TriggerInfo {
+  /** Stack-effect conferrals captured before a deleted host leaves play (Q2214). */
+  stackEffectConferralsSnapshot?: readonly {
+    targetPermanentId: string;
+    stackInstanceId: string;
+    trigger?: string;
+    inheritedOnly?: boolean;
+  }[];
+  /** Named effect grants captured at the same pre-deletion boundary. */
+  customEffectGrantsSnapshot?: readonly { instanceId: string; token: string }[];
+  /** On-deletion-at-end-of-attack projections captured before deletion teardown. */
+  onDeletionAtEndOfAttackProjectionsSnapshot?: readonly string[];
   /** The play was initiated by an explicitly marked Decode replacement payload. */
   playedByDecode?: boolean;
   /** Seat whose turn was active when the event occurred (preserved across deferred rule triggers). */
