@@ -60,6 +60,7 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          affectsAll: true,
           leaveCause: "otherThanBattle",
           sourceFilter: {
             controller: "mine",
@@ -70,6 +71,14 @@ const compiled: CompiledCard = {
                 match: "trait",
               },
             ],
+          },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
+            },
+            count: "all",
           },
           actions: [
             {
