@@ -332,3 +332,20 @@ Remaining work is focused behavioral proof of the DP boundary and up-to count; t
 10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; exact equal-DP boundary, smaller/larger targets, Hybrid exclusion, and Security optional play remain unproven.
 
 Remaining work is focused behavioral proof of the relative DP boundary and Security branch; this card is not formally complete at 10/10.
+
+## BT7-092 — Flame Memory Boost! — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red Option costing 3 with Main Security Attack +1, battle-area placement, Delay gain of 2 memory, and Security placement.
+2. **Main effect (1/1):** Exactly one owner Digimon gains Security Attack +1 for the turn, then this card is placed in its battle area.
+3. **Delay lifecycle (1/1):** Delay trashes this card from its battle area, then gains 2 memory.
+4. **Security behavior (1/1):** Security places this card in its owner's battle area.
+5. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-092` reports no rulings or unresolved ambiguity.
+6. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-092", compiled)` registration are present.
+7. **Static primitive trace (1/1):** Owner Digimon filter, exact count, keyword amount, turn duration, self-placement, self-trash, gain amount, and Delay keyword are explicit.
+8. **Ordering (1/1):** The keyword grant precedes Main placement; Delay deletion precedes memory gain.
+9. **Clause completeness (1/1):** Main, Delay, and Security clauses map directly to compiled effects without omitted text.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; target selection, placement, same-turn Delay lockout, memory gain, and Security behavior remain unproven.
+
+Remaining work is focused behavioral proof of the Main/Delay/Security lifecycle; this card is not formally complete at 10/10.
