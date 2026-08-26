@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
           },
           effectText: "[When Attacking] Lose 4 memory",
           duration: "untilOpponentTurnEnd",
+          includeLaterEntrants: true,
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: {

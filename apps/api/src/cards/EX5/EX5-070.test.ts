@@ -27,7 +27,9 @@ describe("EX5-070 X Antibody Proto Form", () => {
       actions: [
         {
           kind: "Replacement",
+          leaveCause: "otherThanYourEffect",
           actions: [
+            { kind: "Return", optional: undefined },
             {
               kind: "SecurityManipulation",
               source: {
@@ -40,6 +42,15 @@ describe("EX5-070 X Antibody Proto Form", () => {
         },
       ],
     });
+  });
+
+  it("excludes own-effect leaves and keeps the first stack return mandatory before security placement", () => {
+    const replacement = compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0];
+    if (replacement?.kind !== "Replacement") throw new Error("EX5-070 inherited replacement missing");
+    expect(replacement.leaveCause).toBe("otherThanYourEffect");
+    expect(replacement.actions[0]).toMatchObject({ kind: "Return", to: "hand" });
+    expect(replacement.actions[0]).not.toHaveProperty("optional");
+    expect(replacement.actions[1]).toMatchObject({ kind: "SecurityManipulation", op: "addTop" });
   });
 
   it("excludes a stack carrying Proto Form itself from the Main evolution target, per Q3679", async () => {

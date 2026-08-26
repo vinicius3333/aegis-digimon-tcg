@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { runStaticAction } from "../../engine/effects/interpreter/actions/statics.js";
 import { compiled } from "./EX5-026.js";
 
 describe("EX5-026 MetalGarurumon (X Antibody)", () => {
@@ -25,5 +26,23 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
       cost: { kind: "return", to: "deckBottom", storeAs: "returnedDigimonLevel" },
     });
     expect(action).not.toHaveProperty("optional");
+  });
+  it("installs a duration-bound entrant watcher alongside grants for current opponents", async () => {
+    const action = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0];
+    const installs: unknown[] = [];
+    const grants: unknown[] = [];
+    const opponent = { permanentId: "opponent", topCard: { instanceId: "opponent-top", ownerSeat: 1 } };
+    const ctx = {
+      source: { ownerSeat: 0 },
+      game: { opponentOf: () => 1, permanentById: (id: string) => (id === "opponent" ? opponent : undefined) },
+      fx: {
+        grantCustomEffect: (...args: unknown[]) => grants.push(args),
+        subscribeSubTrigger: (install: unknown) => (installs.push(install), 1),
+      },
+    } as never;
+    if (action?.kind !== "GrantAuraToOpponents") throw new Error("missing EX5-026 timed aura");
+    await runStaticAction(ctx, action);
+    expect(grants).toHaveLength(1);
+    expect(installs).toHaveLength(1);
   });
 });

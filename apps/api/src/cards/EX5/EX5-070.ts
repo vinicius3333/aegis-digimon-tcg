@@ -18,6 +18,7 @@ if (digivolve?.kind === "Digivolve") {
 const inherited = compiled.effects.find((effect) => effect.trigger === "AllTurns");
 const replacement = inherited?.actions.find((action) => action.kind === "Replacement");
 if (replacement?.kind === "Replacement") {
+  replacement.leaveCause = "otherThanYourEffect";
   replacement.actions = [
     {
       kind: "Return",
@@ -26,7 +27,6 @@ if (replacement?.kind === "Replacement") {
         count: 1,
       },
       to: "hand",
-      optional: true,
     },
     {
       kind: "SecurityManipulation",

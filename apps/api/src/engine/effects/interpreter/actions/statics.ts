@@ -107,6 +107,35 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
           if (top === undefined) continue;
           ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, action.effectText, grantDuration);
         }
+        // "All of their Digimon gain ... until the end of their turn" is a timed player-wide
+        // grant, not a snapshot of the board. Keep the existing targets and apply the same
+        // token to a matching opponent Digimon that enters before the duration expires.
+        if (action.includeLaterEntrants === true) {
+          const target = action.target ??
+            ({ filter: action.filter ?? { kind: ["Digimon"], controller: "opponent" }, count: "all" } as Target);
+          ctx.fx.subscribeSubTrigger({
+            event: "whenPlayed",
+            activationContext: ctx,
+            once: false,
+            expiresOnTurnEndOf: ctx.game.opponentOf(ctx.source.ownerSeat),
+            matches: (subCtx) => {
+              const id = subCtx.trigger.subjectPermanentId;
+              const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
+              return permanent !== undefined && permanentMatchesFilter(
+                subCtx,
+                permanent,
+                { ...target.filter, controller: "opponent" },
+                subCtx.source,
+              );
+            },
+            run: async (subCtx) => {
+              const id = subCtx.trigger.subjectPermanentId;
+              const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
+              const top = permanent?.topCard;
+              if (top !== undefined) ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, action.effectText!, grantDuration);
+            },
+          });
+        }
         return false;
       }
       // P-075: grant a debuff aura (SubTrigger watcher) to all opponent Digimon.
