@@ -94,9 +94,9 @@ export const TIMINGS = {
   /** The full-width turn banner: the reference client's 160ms in, 300ms hold and 160ms out. */
   turnBanner: 620,
   /** How long a framed notice stays readable on its own. */
-  noticeLifetime: 2800,
+  noticeLifetime: 4200,
   /** A crowded notice stack disperses on this shorter clock instead. */
-  noticeCrowdedLifetime: 1400,
+  noticeCrowdedLifetime: 2400,
   /** A notice sliding in from its anchor. */
   noticeIn: 200,
   /** How long one opponent action stays up in the corner feed. */
