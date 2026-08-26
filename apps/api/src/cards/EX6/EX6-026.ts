@@ -26,7 +26,6 @@ export const compiled: CompiledCard = {
           },
           duration: "untilOpponentTurnEnd",
           optional: true,
-          optional: true,
         },
         {
           kind: "ModifyDP",
