@@ -577,13 +577,20 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     }
   }
   try {
-    for (const action of actions) {
+    for (const [actionIndex, action] of actions.entries()) {
       // Legacy compiled Reboot records carry a self-Unsuspend action beside the keyword
       // marker. It describes what Reboot does during the opponent's unsuspend phase; it is
       // not a continuously re-fired "unsuspend now" action. Executing it in the static pass
       // makes a Reboot Digimon stand back up immediately after declaring an attack.
       if (isRebootMarker && action.kind === "Unsuspend") continue;
-      const abort = await runAction(ctxWithSelections, action);
+      const outerActionPath = ctxWithSelections.activeActionPath;
+      ctxWithSelections.activeActionPath = `${actionIndex}`;
+      let abort: boolean;
+      try {
+        abort = await runAction(ctxWithSelections, action);
+      } finally {
+        ctxWithSelections.activeActionPath = outerActionPath;
+      }
       if (abort) break;
     }
   } finally {

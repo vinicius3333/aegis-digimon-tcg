@@ -425,3 +425,46 @@ describe("leave-area prevent: cause gating + bounce coverage", () => {
     expect(self.isSuspended).toBe(false);
   });
 });
+
+describe("immediate replacement activation identity", () => {
+  it("runs distinct actions with identical prose on one source while suppressing same-action nesting", async () => {
+    const h = harness();
+    const source = putPermanent(h.state, 0, "source");
+    const victim = putPermanent(h.state, 0, "victim");
+    let firstActivations = 0;
+    let secondActivations = 0;
+    let nested = false;
+
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      mode: "instead",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/effect/action-0",
+      description: "identical display text",
+      apply: async () => {
+        firstActivations += 1;
+        if (nested) return;
+        nested = true;
+        await h.consult([victim.permanentId]);
+      },
+    });
+    h.subTriggers.subscribeReplacement({
+      event: "wouldBeDeleted",
+      mode: "instead",
+      sourcePermanentId: source.permanentId,
+      sourceInstanceId: source.topCard!.instanceId,
+      activationIdentity: "TEST/effect/action-1",
+      description: "identical display text",
+      apply: async () => {
+        secondActivations += 1;
+      },
+    });
+
+    expect(h.subTriggers.replacementsFor("wouldBeDeleted")).toHaveLength(2);
+    await h.consult([victim.permanentId]);
+
+    expect(firstActivations).toBe(1);
+    expect(secondActivations).toBe(2);
+  });
+});

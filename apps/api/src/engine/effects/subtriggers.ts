@@ -163,6 +163,8 @@ export interface ReplacementSubscriptionBase {
    * the subscription lifecycle while the instance preserves the printed source card.
    */
   sourceInstanceId?: string;
+  /** Stable compiled effect/action identity. Description is display text and must not identify rules uses. */
+  activationIdentity?: string;
   /** Stable key used to consume a persistent replacement at most once in a turn. */
   oncePerTurnKey?: string;
   /**
@@ -391,7 +393,8 @@ export class SubTriggerRegistry {
         replacement.mode === sub.mode &&
         replacement.sourcePermanentId === sub.sourcePermanentId &&
         replacement.sourceInstanceId === sub.sourceInstanceId &&
-        replacement.description === sub.description,
+        sub.activationIdentity !== undefined &&
+        replacement.activationIdentity === sub.activationIdentity,
     );
     if (existing !== undefined) return existing.id;
     const id = this.seq++;

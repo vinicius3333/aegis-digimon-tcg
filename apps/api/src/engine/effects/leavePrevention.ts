@@ -4,7 +4,8 @@ import type { ReplacementSubscription, SubTriggerRegistry } from "./subtriggers.
 
 function replacementActivationKey(replacement: ReplacementSubscription): string {
   const source = replacement.sourceInstanceId ?? replacement.sourcePermanentId ?? "unanchored";
-  return `${replacement.mode}:${replacement.event}:${source}:${replacement.description}`;
+  const action = replacement.activationIdentity ?? `subscription-${replacement.id}`;
+  return `${source}:${action}`;
 }
 
 /**
