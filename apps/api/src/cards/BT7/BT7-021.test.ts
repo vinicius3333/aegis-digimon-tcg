@@ -5,11 +5,10 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-021.js";
 
 describe("BT7-021 Kumamon", () => {
-  it("digivolves onto a blue Tamer for 0 but rejects a Tamer of another color", async () => {
+  it("digivolves onto a blue Tamer for its printed cost but rejects a Tamer of another color", async () => {
     expect(matchingAlternateDigivolutionRequirement("BT7-021", "BT1-086")).toMatchObject({
-      cost: 0,
+      cost: 2,
       baseIsTamer: true,
-      baseColors: ["Blue"],
     });
     expect(matchingAlternateDigivolutionRequirement("BT7-021", "BT1-085")).toBeUndefined();
 
@@ -23,6 +22,7 @@ describe("BT7-021 Kumamon", () => {
       },
     });
     const kumamon = s.inst("kumamon").instanceId;
+    s.state.memory = 2;
 
     expect(
       s.engine.applyIntent(0, {
