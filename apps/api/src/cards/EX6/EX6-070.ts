@@ -4,23 +4,20 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const generated = getCompiledCard("EX6-070")!;
 
-/** EX6-070 — Phantom Pain, with its Delay self-deletion cost structured. */
+/** EX6-070 — Phantom Pain, with end-turn Delay arming structured. */
 export const compiled: CompiledCard = {
   ...generated,
-  effects: generated.effects.map((effect) =>
+  effects: [
+    ...generated.effects.map((effect) =>
     effect.trigger === "EndOfOpponentsTurn"
       ? {
           ...effect,
-          actions: [
-            {
-              kind: "Delete",
-              target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true }, count: 1 },
-              cost: {
-                kind: "deleteOwn",
-                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-                raw: "delete this card",
-              },
-              condition: {
+          actions: [{
+            kind: "GainKeyword",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            keyword: { keyword: "Delay" },
+            duration: "permanent",
+            condition: {
                 kind: "youHave",
                 filter: {
                   controllerDefault: "mine",
@@ -28,13 +25,22 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [{ tokens: ["Lilithmon"], match: "name" }],
                 },
                 raw: "you have a Digimon with [Lilithmon] in its name",
-              },
-              raw: "＜Delay＞ Delete 1 of your opponent's unsuspended Digimon",
             },
-          ],
+          }],
         }
       : effect,
-  ),
+    ),
+    {
+      trigger: "Main",
+      keywords: [{ keyword: "Delay" }],
+      actions: [{
+        kind: "Delete",
+        target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true }, count: 1 },
+        cost: { kind: "deleteOwn", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+        optional: true,
+      }],
+    },
+  ],
   coverage: "full",
   residual: [],
 };
