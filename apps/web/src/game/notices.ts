@@ -175,10 +175,7 @@ export function dismissNotice(notices: readonly MatchNotice[], id: string): Matc
  * names the card and prints the clause, so the notice would repeat it word for word in the
  * corner. The opponent's notices stay: their dialog is not on this screen.
  */
-export function dismissOwnEffectNotices(
-  notices: readonly MatchNotice[],
-  cardId: string,
-): readonly MatchNotice[] {
+export function dismissOwnEffectNotices(notices: readonly MatchNotice[], cardId: string): readonly MatchNotice[] {
   const kept = notices.filter(
     (notice) => !(notice.side === "you" && notice.body.variant === "effect" && notice.body.cardId === cardId),
   );
