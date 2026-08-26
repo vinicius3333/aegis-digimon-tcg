@@ -53,7 +53,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
 }
 
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
-  if (action.kind === "PlayWithoutCost" && action.target.filter.sameColorAsReturned === true) {
+  if (action.kind === "PlayWithoutCost" && action.target.filter?.sameColorAsReturned === true) {
     ctx.lastReturnedColors = undefined;
   }
   // Per-action gate. `while` is the continuously re-evaluated spelling used by persistent
