@@ -601,3 +601,52 @@ git diff --check
 ```
 
 No card implementation change was necessary. One focused evolution test was added to prove the previously untested Shambala-only branch of the printed OR requirement. No commit or push was made, per the audit task instructions.
+
+## BT26-014 — Darumamon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-014` (`Darumamon`), a red/yellow level 5 Ultimate Digimon with 7000 DP, Vaccine attribute, and `Mutant`/`Shambala`/`TB` traits. Its normal evolution requirements are red or yellow Lv.4 for 4; its alternate requirement is `[Digivolve] Lv.4 w/[Shambala] trait: Cost 3`. The printed Assembly requirement is `[Assembly -2] Lv.4 or lower [TB] trait card`.
+- Printed text: `[On Play] [When Digivolving] Delete 1 of your opponent's Digimon with 7000 DP or less.` Its `[On Deletion]` effect may return 1 `[Shambala]` trait card from its trash to the hand, then may play 1 `[TB]` trait Digimon card with 6000 DP or less from the hand without paying the cost. The inherited text is `[On Deletion]` may play 1 `[TB]` trait Digimon card with 6000 DP or less from the hand without paying the cost.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-014`; it reports Q6969 and no erratum, restriction, or unresolved card-text ambiguity. Q6969 confirms that after the first On Deletion part returns the activating card from trash to hand, the effect continues through the part after `then`.
+- Comprehensive Rules evidence: the effect-timing rules define On Play, When Digivolving, and On Deletion triggers; the optional-effect rules define each `may` branch; the Assembly rules require the exact specified trash material and apply the fixed reduction before paying the play cost; inherited-effect rules apply the inherited On Deletion clause from an evolution stack.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-014.ts` is a complete IR module with separate On Play and When Digivolving delete actions, a two-action On Deletion sequence, and a separate inherited On Deletion play action. The delete filter is exactly one opponent Digimon with DP `lte 7000`; the play filter is exactly one own-hand Digimon with the `TB` trait and printed DP `lte 6000`, played without cost and optionally.
+- The first On Deletion Return action is optional and restricted to one own-trash `[Shambala]` trait card; the following optional PlayWithoutCost action remains in the same resolving effect, preserving Q6969 continuation when the returned card is the activating Darumamon itself. The inherited action uses the same exact hand/trait/DP boundary.
+- The alternate evolution requirement is supplied by `packages/shared/src/effects/generated-digivolve-overrides.json`, and the Assembly recipe by the BT26 override in `packages/shared/src/effects/data.ts`; both are consumed by the shared evolution/Assembly engine. Registration is exclusively `registerIrCard("BT26-014", compiled)`; no legacy `registerCard` registration exists.
+- Shared primitive trace: target resolution applies controller, kind, trait, and inclusive DP filters; Return moves a selected trash card to hand before the following action resolves; PlayWithoutCost plays the selected hand Digimon without memory cost and fires its play timing; deletion timing preserves the pending effect source after the source moves to trash. Assembly validates trash-only material, exact count, Lv.4-or-lower and `[TB]` constraints, and the -2 reduction.
+- Relevant peers inspected: BT26-012 and BT26-013 for adjacent TB/Shambala hand filters, alternate evolution, and optional deletion sequencing; BT26-017 for Shambala/Assembly and inherited-stack behavior; BT24-073 and BT24-076 for On Deletion effect-play conventions; and shared `assembly.ts`, loose-targeting, definition matching, permanent matching, play, removal, and trigger-resolution primitives. Their controller, zone, trait, DP, optionality, and source-continuation conventions are consistent with Darumamon.
+
+### Behavioral proof
+
+Existing `apps/api/src/cards/BT26/BT26-014.test.ts` has 9 passing tests proving:
+
+- exact compiled trigger structure, the alternate `[Shambala]` Lv.4/cost-3 evolution requirement, and the `[TB]` Lv.4-or-lower Assembly recipe;
+- Assembly with a legal Lv.4 `[TB]` material, rejection of a Lv.5 `[TB]` near-match, exact -2 memory reduction, and material placement under the played card;
+- On Play deletion of an opposing Digimon at the inclusive 7000-DP boundary while leaving an 8000-DP Digimon;
+- When Digivolving deletion at the same inclusive boundary through a legal evolution path;
+- Q6969's source-continuation case: returning Darumamon itself from trash to hand and then continuing to play an eligible `[TB]` Digimon from hand;
+- inherited On Deletion play from a real evolution stack, with the played card resolved after the host deletion;
+- rejection of a `[TB]` Digimon above 6000 DP and of a low-DP Digimon without the `[TB]` trait; and
+- optional refusal of both On Deletion branches without moving unrelated cards.
+
+The focused suite is mutation-sensitive to every printed target, zone, controller, trait, count, DP boundary, trigger, optional branch, Assembly boundary, and inherited-stack path. No unresolved card-text ambiguity remains.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-014
+  PASS (Q6969; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-014.test.ts
+  PASS (1 file, 9 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-014.test.ts src/engine/cards/bt26Assembly.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/conformance/ch15-01-effect-basics.test.ts src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts
+  PASS (6 files, 349 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+git diff --check
+  PASS
+```
+
+No card implementation or test change was required. The BT26-014 audit evidence is left uncommitted for coordinator review; no push was made.
