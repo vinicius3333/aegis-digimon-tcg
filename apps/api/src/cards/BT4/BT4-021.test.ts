@@ -32,4 +32,25 @@ describe("BT4-021 Gaomon", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
   });
+
+  it("does not return to hand when it is trashed outside Digi-Burst", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT3-081", dp: 1000, as: "host", under: [{ card: "BT4-021", as: "source" }] }] },
+      1: { battleArea: [{ card: "BT1-057", dp: 5000, suspended: true, as: "target" }] },
+    });
+    const hostId = s.perm("host").permanentId;
+    const sourceId = s.inst("source").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId), 5000);
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === sourceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === sourceId)).toBe(true);
+  });
 });

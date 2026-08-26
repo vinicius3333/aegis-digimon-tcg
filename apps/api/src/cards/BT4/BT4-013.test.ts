@@ -27,4 +27,23 @@ describe("BT4-013 BurningGreymon", () => {
     expect(s.perm("tamer").topCard?.cardId).toBe("BT4-013");
     expect(s.perm("tamer").currentDP).toBe(9000);
   });
+
+  it("cannot use a non-red Tamer as its alternate digivolution base", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-086", as: "tamer" }],
+        hand: [{ card: "BT4-013", as: "burning" }],
+      },
+    });
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tamer").permanentId,
+        instanceId: s.inst("burning").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("tamer").topCard?.cardId).toBe("BT1-086");
+  });
 });

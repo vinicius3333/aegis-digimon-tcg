@@ -48,4 +48,24 @@ describe("BT4-100 Trident Revolver", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
     ).toBe(true);
   });
+
+  it("plays an eligible Tamer even when there is no deletable opponent Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT4-007"],
+          hand: [
+            { card: "BT4-100", as: "option" },
+            { card: "BT4-092", as: "tamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT4-044", as: "tooLarge", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("tamer").instanceId));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });

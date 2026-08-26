@@ -12,4 +12,14 @@ describe("BT4-005 Missimon", () => {
 
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
+
+  it("does not give DP to a host without the D-Brigade trait", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT3-025", as: "host", under: ["BT4-005"] }] },
+    });
+
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });

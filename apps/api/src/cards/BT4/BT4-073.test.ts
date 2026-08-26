@@ -16,4 +16,15 @@ describe("BT4-073 BanchoGolemon", () => {
     expect(observe(s.engine).hasKeyword(bancho, "Blocker")).toBe(true);
     expect(bancho.currentDP).toBe(bancho.baseDP + 3000);
   });
+
+  it("does not get the DP bonus when the opponent has only 2 Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-073", as: "bancho" }] },
+      1: { battleArea: ["BT1-009", "BT1-010"] },
+    });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("bancho").currentDP).toBe(s.perm("bancho").baseDP);
+  });
 });

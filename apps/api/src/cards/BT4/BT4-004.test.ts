@@ -13,4 +13,14 @@ describe("BT4-004 Budmon", () => {
 
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
+
+  it("does not give DP to a host without Digi-Burst", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT3-025", as: "host", under: ["BT4-004"] }] },
+    });
+
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });

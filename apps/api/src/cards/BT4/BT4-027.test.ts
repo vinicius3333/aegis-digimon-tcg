@@ -60,4 +60,28 @@ describe("BT4-027 KendoGarurumon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
     expect(sourceIds.every((id) => s.state.players[1]!.trash.some((card) => card.instanceId === id))).toBe(true);
   });
+
+  it("does not return an opposing level 4 Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-027", as: "kendo" }] },
+      1: {
+        battleArea: [{ card: "BT1-019", as: "target", under: [{ card: "BT1-001", as: "source" }] }],
+        security: ["BT1-010"],
+      },
+    });
+    const targetId = s.perm("target").permanentId;
+    const sourceId = s.inst("source").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kendo").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
+    expect(s.perm("target").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+  });
 });

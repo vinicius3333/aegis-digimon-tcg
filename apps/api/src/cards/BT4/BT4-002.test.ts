@@ -27,4 +27,27 @@ describe("BT4-002 Bukamon", () => {
 
     expect(s.perm("target").stack).toHaveLength(0);
   });
+
+  it("does not target an opposing level 5 Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT3-025", as: "host", under: ["BT4-002"] }] },
+      1: {
+        battleArea: [{ card: "BT1-023", as: "target", under: [{ card: "BT1-010", as: "bottom" }] }],
+        security: ["BT1-011"],
+      },
+    });
+    const bottomId = s.inst("bottom").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+
+    expect(s.perm("target").stack.map((card) => card.instanceId)).toContain(bottomId);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === bottomId)).toBe(false);
+  });
 });

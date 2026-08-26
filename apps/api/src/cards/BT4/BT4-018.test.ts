@@ -8,4 +8,13 @@ describe("BT4-018 Spinomon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("spino").currentDP).toBe(13000);
   });
+
+  it("does not get the DP bonus during the opponent's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-018", as: "spino" }] } });
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("spino").currentDP).toBe(s.perm("spino").baseDP);
+  });
 });

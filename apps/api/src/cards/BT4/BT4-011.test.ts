@@ -28,4 +28,23 @@ describe("BT4-011 Agunimon", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
   });
+
+  it("cannot use a non-red Tamer as its alternate digivolution base", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-086", as: "tamer" }],
+        hand: [{ card: "BT4-011", as: "aguni" }],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tamer").permanentId,
+        instanceId: s.inst("aguni").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("tamer").topCard?.cardId).toBe("BT1-086");
+  });
 });

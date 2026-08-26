@@ -55,4 +55,25 @@ describe("BT4-034 Regalecusmon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 1);
     expect(s.state.memory).toBe(1);
   });
+
+  it("does not draw or gain memory when no source is trashed", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-034", as: "regal" }], deck: ["BT1-009", "BT1-010"] },
+      1: { battleArea: [{ card: "BT3-015", as: "target" }], security: ["BT1-010"] },
+    });
+    s.state.memory = 0;
+    const deckBefore = s.state.players[0]!.deck.length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("regal").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+
+    expect(s.state.players[0]!.deck).toHaveLength(deckBefore);
+    expect(s.state.memory).toBe(0);
+  });
 });

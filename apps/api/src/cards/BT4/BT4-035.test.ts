@@ -21,6 +21,25 @@ describe("BT4-035 MirageGaogamon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("does not gain memory when the opponent has only 3 cards in hand", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-011", as: "base" }], hand: [{ card: "BT4-035", as: "evolving" }] },
+      1: { hand: Array(3).fill("BT1-010") },
+    });
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT4-035", 5000);
+
+    expect(s.state.memory).toBe(0);
+  });
+
   it("is unblockable during its controller's turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT4-035", as: "mirage" }] } });
     await s.ready();

@@ -20,11 +20,19 @@ describe("BT4-016 Aldamon", () => {
   });
 
   it("does not get +4000 DP without either qualifying source", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-016", as: "alda", under: ["BT4-011", "BT1-085"] }] } });
-    s.perm("alda").stack.splice(0, s.perm("alda").stack.length);
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-016", as: "alda", under: ["BT4-012"] }] } });
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).keywordAmount(s.perm("alda"), "SecurityAttack")).toBe(1);
     expect(s.perm("alda").currentDP).toBe(7000);
+  });
+
+  it("gets the DP bonus only once when it has both qualifying source types", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-016", as: "alda", under: ["BT4-011", "BT1-085"] }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("alda").currentDP).toBe(11000);
   });
 });

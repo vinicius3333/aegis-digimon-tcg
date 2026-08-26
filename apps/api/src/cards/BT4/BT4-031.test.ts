@@ -26,4 +26,26 @@ describe("BT4-031 MarinChimairamon", () => {
     expect(mine.hand.some((card) => card.cardId === "BT4-026")).toBe(true);
     expect(mine.trash.some((card) => card.cardId === "BT4-024")).toBe(true);
   });
+
+  it("cannot return an opposing Digimon that has digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT4-031", as: "source" }],
+          battleArea: [{ card: "BT4-026", as: "cost" }],
+        },
+        1: { battleArea: [{ card: "BT4-025", as: "target", under: ["BT4-024"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    const costId = s.perm("cost").permanentId;
+    const targetId = s.perm("target").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT4-031"), 5000);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === costId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
+  });
 });
