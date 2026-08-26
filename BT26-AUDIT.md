@@ -946,3 +946,50 @@ git diff --check
 ```
 
 Only this BT26-020 ledger section is left uncommitted for coordinator review; no code/test change, commit, or push was made.
+
+## BT26-021 — Gekomon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-021` (`Gekomon`), a blue/purple level 4 Champion Digimon with 4000 DP, Virus attribute, and `Amphibian`/`Titan`/`TS` traits. Its normal evolution requirements are blue or purple Lv.3 for 3; its alternate requirement is `[Digivolve] Lv.3 w/[TS] trait: Cost 2`. The printed effects are `[On Play] [When Digivolving] 1 of your [TS] trait Digimon's attack target can't change for the turn`; `[Main] [Once Per Turn] You may play 1 [TS] trait Tamer card from your trash with the cost reduced by 2`; and inherited `[All Turns] [Once Per Turn] When a Digimon attacks, by trashing 1 card in your hand, trash the bottom 2 digivolution cards of 1 of your opponent's Digimon.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-021`; it reports Q6983 and Q6984, with no erratum, restriction, or unresolved card-text ambiguity. Q6983 confirms that two simultaneous Gekomon Main effects cannot be activated to combine reductions; Q6984 confirms that the Main effect may activate under a `Players can't reduce play costs` effect, but the reduction is not applied.
+- Comprehensive Rules evidence: §11-2-7-1–5 defines attack-target choice and switching, including the rule that a target switch can be prevented; §15-3-1–2 defines inherited effects as effects gained by the host Digimon; §15-7-1–5 defines optional processing conditions and their costs; §15-8-3-7–9 defines trigger-time references and processing conditions; §15-16-2–3, §15-16-5, and §15-16-7 define On Play, When Digivolving, When Attacking, and Main timing; and the glossary's Once Per Turn rule establishes independent budgets for separate Gekomon copies and one budget per effect source.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-021.ts` is an IR-only module. Its On Play and When Digivolving actions select exactly one own Digimon with the exact `TS` trait and apply `attackTargetChange` through the current turn's end. Its Main effect is Once Per Turn, optional, selects exactly one own `TS` Tamer from the trash, plays it from the trash while paying its cost with a reduction of 2, and leaves the reduction subject to global play-cost blockers. Its inherited All Turns watcher fires on any Digimon attack, once per turn, pays by trashing exactly one card from its controller's hand, and trashes the bottom two sources from exactly one opposing Digimon.
+- The compiled alternate evolution requirement is level 3, exact `TS` trait, cost 2, alternate; normal blue/purple Lv.3 cost-3 requirements remain supplied by the catalog definition. `coverage` is `full` and `residual` is empty. Registration is exclusively `registerIrCard("BT26-021", compiled)`; no `registerCard` registration exists for this card.
+- Relevant peers inspected: BT26-018/BT26-020/BT26-022 for adjacent DS/TS evolution, target, and inherited-keyword conventions; BT26-017 and BT26-078 for TS/Titan stack interactions; BT17-020 and BT19-053 for reduced-cost filtered play; BT14-023 and BT15-030 for bottom-source trash; and the shared restriction, attack legality, filtered PlayWithoutCost, cost-reduction, SubTrigger/Once Per Turn, and TrashDigivolution seams. Their controller, target, duration, zone, stack-order, and inherited-source semantics are consistent with Gekomon.
+
+### Behavioral proof
+
+The existing `apps/api/src/cards/BT26/BT26-021.test.ts` suite has 9 passing tests proving:
+
+- complete IR shape, exact alternate Lv.3 TS evolution at cost 2, legal stack transition, and rejection of a same-level non-TS base;
+- On Play selection of exactly one own TS Digimon, exclusion of a non-TS own Digimon and all opponent Digimon, attack-target-change restriction during the turn, and expiration at turn end;
+- Main selection/play of an own TS Tamer from trash at the inclusive reduced cost, with Q6983's two-copy no-combination behavior;
+- Q6984's activation under ST12-03 Solarmon, where the Tamer is still played but the full printed cost is paid;
+- optional refusal of the Main play without moving the Tamer or paying memory;
+- an inherited real evolution-stack watcher firing on an opponent's attack, paying one hand card, trashing exactly the bottom two opposing sources, and not firing again on a second attack in the same turn; and
+- the inherited cost-decline boundary, which leaves the once-per-turn budget available rather than consuming it.
+
+The focused and regression suites resolve the full effect stack and assert observable battle-area, hand, trash, memory, attack legality, restriction duration, controller ownership, evolution-stack transition, bottom-source order, and Once Per Turn state. No unresolved card-text ambiguity remains. No code or test changes were necessary for this audit.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-021
+  PASS (Q6983–Q6984; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-021.test.ts
+  PASS (1 file, 9 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-021.test.ts src/cards/BT26/BT26-020.test.ts src/cards/BT26/BT26-022.test.ts src/cards/BT26/BT26-056.test.ts src/cards/BT26/BT26-078.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts src/engine/combat/legality.test.ts
+  PASS (9 files, 413 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-021.ts apps/api/src/cards/BT26/BT26-021.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+Only this BT26-021 ledger section is left uncommitted for coordinator review; no code/test change, commit, or push was made.
