@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-037.js";
 
-describe("EX6-037 Zubamon", () => {
+describe("EX6-037 Spadamon", () => {
   it("pays 1 and places itself under a level 3 or Legend-Arms Digimon to draw", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
       kind: "Draw",
