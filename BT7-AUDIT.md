@@ -128,3 +128,20 @@ Remaining work is behavioral proof of Q1671/Q1672 boundaries and modal/Security 
 10. **Reproducible behavioral proof (0/1):** A colocated test exists but was not executed in this static-only pass; no proof is claimed for no-eligible/no-play trash handling, exact reveal boundaries, Delay timing, or Security placement.
 
 Remaining work is behavioral proof of Q1670 and Delay/Security lifecycle boundaries; this card is not formally complete at 10/10.
+
+## BT7-104 — Metal Cannon — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a Black Option costing 2 with X-Antibody selection, draw scaling, and Security return-to-hand text.
+2. **Selection (1/1):** Main selects exactly one owner Digimon carrying the `X-Antibody` trait and binds that choice.
+3. **Scaling source (1/1):** Draw amount is one per digivolution card of the chosen Digimon, using the bound reference rather than a later or global source.
+4. **Draw and Security (1/1):** The action draws from the owner's deck; Security uses `AddToHandSelf`.
+5. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-104` reports no rulings, errata, restrictions, or unresolved ambiguity.
+6. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-104", compiled)` registration are present.
+7. **Static primitive trace (1/1):** Trait filter, owner controller, exact selection count, bind identity, per-card unit, and digivolution-card scaling are explicit.
+8. **Reference fidelity (1/1):** `boundRef: "xAntibodyTarget"` ensures the draw count remains tied to the selected Digimon through effect resolution.
+9. **Clause completeness (1/1):** All printed Main and Security clauses have direct IR representations; no optionality or duration clause is omitted.
+10. **Reproducible behavioral proof (0/1):** A colocated test exists but was not executed in this static-only pass; zero-source, multi-source, non-X rejection, deck-boundary, and Security behavior remain unproven.
+
+Remaining work is behavioral proof of selection and exact draw boundaries; this card is not formally complete at 10/10.
