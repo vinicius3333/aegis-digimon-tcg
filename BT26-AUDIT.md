@@ -549,3 +549,55 @@ git diff --check
 ```
 
 The audit found and corrected one fidelity defect: the play branch previously admitted only `Digimon`, excluding valid `[TB]` Tamers despite the printed “card” wording. It now admits `Digimon` and `Tamer`, with focused behavioral proof. No commit or push was made, per the audit task instructions.
+
+## BT26-013 — Musyamon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-013` (`Musyamon`), a red/purple level 4 Champion Digimon, play cost 4, DP 5000, Virus attribute, and `Wizard`/`Shambala`/`TB`/`TS` traits. Its normal evolution requirements are red or purple Lv.3 for 3; its alternate requirement is `[Digivolve] Lv.3 w/[Shambala]/[TS] trait: Cost 2`.
+- Printed text: `<Blocker>`; `[On Play] [On Deletion] By trashing 1 card in your hand, delete 1 of your opponent's Digimon with 6000 DP or less.` Its inherited text is `[Your Turn] This Digimon gets +2000 DP.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-013`; it reports no card-specific ruling, erratum, restriction, or unresolved entry.
+- Comprehensive Rules §2-3-2-2–3 defines slash-separated traits and matching a specified trait; §15-7-1–5 defines “by trashing” as an optional processing condition and allows paying it even when the following target cannot be processed; §15-16-4 defines the On Deletion timing; §15-3-1–2 defines inherited effects; §15-8-2 and §16-5 define the persistent Your Turn and Blocker behaviors.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-013.ts` contains the alternate Lv.3 `[Shambala]`/`[TS]` cost-2 requirement, a static `<Blocker>` keyword, matching `OnPlay` and `OnDeletion` actions, and the inherited `YourTurn` +2000 DP action.
+- Each delete action targets exactly one opponent-controlled Digimon with current DP `lte 6000`, pays exactly one card from the controller's hand, is optional with `abortOnDecline`, and sets `allowCostWithoutTarget` to preserve §15-7-5's legal cost-only path when no qualifying opponent exists.
+- The inherited modifier targets only the source stack's top permanent, grants +2000 DP for the turn, and is active only on its owner's turn.
+- Registration is exclusively `registerIrCard("BT26-013", compiled)`; no legacy `registerCard` registration exists for this card.
+- Relevant peers inspected: BT26-008 for the same Shambala/TS OR-trait evolution and inherited +2000 DP shape; BT26-011/BT26-012/BT26-014 for neighboring alternate evolution, optional hand-trash, and inherited-trigger conventions; BT24-013 and BT13-006 for the same hand-trash-to-delete semantics; and the shared deletion, cost, DP-duration, trait matching, Blocker, and evolution primitives.
+
+### Behavioral proof
+
+The strengthened `apps/api/src/cards/BT26/BT26-013.test.ts` suite has 10 passing tests proving:
+
+- exact compiled trigger/keyword/action structure and the alternate evolution requirement;
+- alternate evolution for 2 from both a TS-only Lv.3 and a Shambala-only Lv.3, with rejection of a non-trait peer;
+- On Play and On Deletion payment of exactly one hand card followed by deletion of one opposing Digimon at the inclusive 6000-DP boundary, while leaving a 7000-DP Digimon;
+- the §15-7-5 no-target path, where the hand card may still be trashed without deletion;
+- optional refusal without hand trashing or deletion;
+- `<Blocker>` publication on the top card; and
+- inherited +2000 DP on the owner's turn, including a real evolution stack, with no bonus on the opponent's turn.
+
+The focused and affected regression suites resolve the full effect stack and assert observable zones, memory, stack transitions, DP, and keywords. No unresolved card-text ambiguity remains.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-013
+  PASS (no knowledge-base entries)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-013.test.ts
+  PASS (1 file, 10 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-008.test.ts src/cards/BT26/BT26-012.test.ts src/cards/BT26/BT26-014.test.ts src/engine/cards/bt26Assembly.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts
+  PASS (6 files, 349 tests)
+pnpm --filter @aegis/api exec vitest run src/engine/conformance/ch15-01-effect-basics.test.ts src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts
+  PASS (2 files, 20 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-013.ts apps/api/src/cards/BT26/BT26-013.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No card implementation change was necessary. One focused evolution test was added to prove the previously untested Shambala-only branch of the printed OR requirement. No commit or push was made, per the audit task instructions.
