@@ -86,3 +86,19 @@ focused observable tests pass. No collection result is inferred from this ledger
 - Catalog records and all local KB queries (`BT25-013` through `BT25-016`) were read.
 - Direct IR modules and colocated tests were inspected one card at a time. Relevant shared paths included optional cost/return sequencing, event-subject color timing, deletion-result conditions, battle deletion event ordering, once-per-turn watchers, attack threshold matching, and effect-driven evolution.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun; all focused runs remain pending authorization.
+
+## Static diagnosis: BT25-022 (Lunamon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-022 Lunamon | Red level 3 Digimon; alternate level-2 `[TS]` evolution cost 0; `[On Play]` reveals the top 3 cards, adds 1 `[Iliad]` trait card and 1 `[TS]` trait card among them to hand, then returns the rest to the bottom of the deck; inherited `[Jamming]`. Local card query has no knowledge-base entries. | **No card-specific causal mismatch found statically.** The compiled IR has the exact two RevealAdd slots, each count 1 and controller-defaulted to the owner, with the required Iliad/TS trait filters and `deckBottom` remainder. `runRevealAdd` tracks taken instance IDs between slots, so a card selected for the Iliad slot cannot also satisfy the TS slot; remaining revealed cards are sent to the requested bottom destination. The alternate evolution requirement and inherited Jamming keyword are present. | The colocated test verifies only the IR shape and inherited keyword. It does not execute reveal ordering, distinct-slot selection, overlap handling, bottom-deck order, missing-slot behavior, alternate evolution, or Jamming in security. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-022
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-022` (no entries).
+- Direct module, colocated structural test, and `runRevealAdd` were inspected. The shared
+  implementation's `taken` instance set enforces distinct physical cards across add slots,
+  while the `rest: "deckBottom"` path handles all unselected revealed cards.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
