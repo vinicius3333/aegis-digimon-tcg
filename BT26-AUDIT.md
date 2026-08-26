@@ -1119,3 +1119,49 @@ The focused `apps/api/src/cards/BT26/BT26-024.test.ts` suite has 11 passing test
 The affected regression run passed 8 files and 213 tests: BT26-027, BT26-034, EX9-042, digivolution candidate legality, ch08 digivolution, ch16c deletion/advanced keywords, primitives, and BT26-024. `pnpm typecheck` passed the shared build plus shared/API/web typechecks. `pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-024.ts apps/api/src/cards/BT26/BT26-024.test.ts` and `git diff --check` both passed.
 
 One stale pre-audit assertion incorrectly expected Barrier to prevent effect deletion; it was corrected to the printed battle-only behavior and a separate negative effect-deletion assertion was added. No card-text ambiguity remains. Changes are intentionally uncommitted and unpushed for coordinator review.
+
+## BT26-025 — Liollmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-025` (`Liollmon`), a yellow level 3 Rookie Digimon with play cost 3, 1000 DP, Vaccine attribute, and `Holy Beast`/`Glowing Dawn`/`BEATBREAK` traits. Its normal requirement is yellow Lv.2 for cost 0, and its alternate requirement is `[Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0`. The printed effect is `[When Moving] [On Play] By placing your top security card face down under any of your [Glowing Dawn] trait Tamers, ＜Recovery +1＞`. The inherited effect is `[When Attacking] [Once Per Turn] You may add your top security card to the hand. Then, if you have 0 security cards, ＜Recovery +1＞`.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-025 --json`; it returns `banlist: null`, `errata: null`, and Q6986 (2026-08-18), confirming that the inherited effect can activate with 0 security cards and perform Recovery +1 without adding a security card to hand.
+- Comprehensive Rules evidence: §2-3-5/§8-1-3 covers the alternate requirement, requirement choice, stacking, and digivolution draw; §3-4-7-3/5/8/9/10 and §4-4-2 cover stack order, face-down information, and new cards under an existing Tamer going to the bottom; §15-4-1-2 preserves a resolving effect through source transitions; §15-7-1 through §15-7-5 defines `By` as an optional processing condition and requires the follow-up only after successful payment; §15-16-2-1, §15-16-5-1, and §15-16-16-1 define On Play, When Attacking, and When Moving timing; §16-6-1/2 defines Recovery as face-down deck-top cards placed on security; and the rules glossary's Once Per Turn entry limits the inherited trigger to one activation each turn.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-025.ts` is IR-only and registers exclusively with `registerIrCard("BT26-025", compiled)`; no `registerCard` registration exists for BT26-025. The generated alternate requirement is the exact level-2 `Glowing Dawn` trait requirement with cost 0.
+- The first compiled effect is shared by `OnPlay` and `WhenMoving`. Its `SecurityManipulation(addTop, source: "deck")` recovers exactly one face-down deck-top card, gated by a `place` cost that selects exactly one own top security card and places it face-down at the bottom of one own Tamer's stack. The cost's destination host filter requires kind `Tamer`, controller `mine`, and the exact `Glowing Dawn` trait; `position: "bottom"` follows §4-4-2 for existing Tamer stacks. `optional: true` models the printed `By` condition, while payment failure leaves both security and deck unchanged.
+- The inherited `WhenAttacking` effect is marked `isInherited: true` and `frequency: "OncePerTurn"`. It first optionally moves exactly one own top security card to hand, then independently executes one deck-top Recovery only when `securityAtMost` is 0. The action sequencing, controller, count, and empty-security behavior match Q6986; no duration, opponent controller, target selection, or security-face-up approximation is present.
+- Shared seams inspected: `canPayCost`/`payCost` placement preflight and transactional host resolution; `candidateLooseInstances` security `position: "top"` matching; `placeUnder` bottom-stack ordering and forced face-down digivolution-card state; `runSecurityAdd` deck-top Recovery; inherited-source dispatch; and the once-per-turn activation ledger. Relevant peers inspected: BT26-022 for Q6985's zero-security recovery, BT26-024/BT26-027 for Glowing Dawn/WG evolution stacks, BT26-089/BT26-093 and ST23-15/ST24-15 for face-down cards under trait Tamers, and the shared security/interpreter/primitive/subtrigger suites.
+
+### Behavioral proof
+
+The focused `apps/api/src/cards/BT26/BT26-025.test.ts` suite has 11 passing tests proving:
+
+- exact normal/alternate evolution metadata, legal level-2 Glowing Dawn evolution for 0, and rejection of a near-match base;
+- On Play and When Moving activation, top-security payment, exact Glowing Dawn Tamer filtering, face-down placement, Recovery +1 from the deck, and no recovery when no eligible Tamer exists;
+- bottom ordering under a Tamer that already has a stacked card, including face-down state;
+- Q6986's empty-security inherited path, optional refusal, taking the last security then recovering, no recovery when one security remains, and once-per-turn suppression of a second activation;
+- full observable zone transitions, controller ownership, stack order, face state, and inherited-source behavior.
+
+No implementation change was needed. One additional test closes the previously uncovered §4-4-2 bottom-ordering boundary; the existing inherited tests already cover the exact-zero security boundary.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-025 --json
+  PASS (Q6986; no errata/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-025.test.ts
+  PASS (1 file, 11 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-025.test.ts src/cards/BT26/BT26-022.test.ts src/cards/BT26/BT26-024.test.ts src/cards/BT26/BT26-027.test.ts src/cards/BT26/BT26-041.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts
+  PASS (8 files, 387 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-025.ts apps/api/src/cards/BT26/BT26-025.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved ambiguity or unsupported behavior remains. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-025.

@@ -58,6 +58,31 @@ describe("BT26-025 Liollmon", () => {
     expect(s.perm("nonGlowingDawnTamer").stack).toHaveLength(0);
   });
 
+  it("places the face-down security card at the bottom of an existing Tamer stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST23-14", as: "tamer", under: [{ card: "BT1-010", as: "existing" }] }],
+          hand: [{ card: "BT26-025", as: "liollmon" }],
+          security: [{ card: "BT1-009", as: "topSecurity" }],
+          deck: [{ card: "BT1-011", as: "recovery" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("liollmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
+
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("topSecurity").instanceId,
+      s.inst("existing").instanceId,
+    ]);
+    expect(s.perm("tamer").stack[0]).toMatchObject({ faceUp: false });
+  });
+
   it("does not recover when the security placement cost has no eligible Tamer", async () => {
     const s = setupEngine({
       0: {
