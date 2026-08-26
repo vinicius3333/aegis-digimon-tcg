@@ -122,7 +122,6 @@ export const compiled: CompiledCard = {
               colors: ["Yellow"],
             },
             count: "all",
-            whileMatchesTargetFilter: true,
           },
           keyword: {
             keyword: "Barrier",
@@ -154,6 +153,7 @@ export const compiled: CompiledCard = {
               },
             },
             count: "all",
+            whileMatchesTargetFilter: true,
           },
           keyword: {
             keyword: "SecurityAttack",
