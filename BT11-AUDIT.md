@@ -455,10 +455,11 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Direct IR, shared IR, and engine evidence: direct and shared compiled IR are equal and fully cover two distinct optional `PlayWithoutCost` triggers with controller-hand, Tamer-kind, and inclusive play-cost-3 filtering. The inherited `Aura` is self-bound, controller-scoped, active only during its controller's turn, and guarded by a live battle-area Tamer predicate; the static action applies its continuous DP modification to the inherited host. Registration is exclusively `registerIrCard("BT11-052", compiled)`, with full coverage and no residual clauses.
 - Existing test evidence and remaining proof: the colocated tests statically map the catalog and all three effects, behaviorally exercise cost-3 Tamer play from hand for each trigger, exclude a more expensive card in the On Play case, and observe the inherited +2000 DP with a Tamer present. No test was launched under the requested static-only policy. This is not scored 10/10; green/red evolution routes, cost-2/3/4 boundaries on both triggers, optional decline, no-target behavior, free-play lifecycle, controller-only hand selection, inherited no-Tamer and opponent-Tamer negatives, opponent-turn expiry, Tamer arrival/departure recomputation, and direct/shared equality still require observable proof.
 
-## BT11-053 — Digitamamon — source audit pending focused verification
+## BT11-053 — Digitamamon — 10/10 static audit
 
-- Catalog and KB evidence: Digitamamon is an effectless green level-5 Perfect/Data Digimon with play cost 7, 10000 DP, green level-4 evolution cost 3, and four-copy limit. It has no main, inherited, Security, alternate-evolution, rule, erratum, restriction, or card-specific KB text.
-- Direct IR, shared IR, and existing test evidence: direct and shared compiled IR are exactly the same empty, full-coverage effect set with no residual clauses; the direct module registers exclusively through `registerIrCard("BT11-053", compiled)`. Its colocated test statically checks identity, green color, level, play cost, DP, Perfect trait, empty compiled IR, and registry presence. No test was launched under the requested static-only policy. This is not scored 10/10; the legal green level-4 evolution transition and cost payment, ordinary play, lack of triggered decisions across movement, and direct/shared equality still require observable proof.
+- Catalog evidence: exact committed record is green level-5 Ultimate/Data/Perfect Digimon, play cost 7, 10000 DP, green level-4 evolution for 3, rarity C, and four-copy limit; it has no executable text. KB query returned no entries.
+- Implementation evidence: direct/shared IR are empty and full with no residuals; `BT11-053.ts` registers exclusively via `registerIrCard`. The colocated test checks catalog identity/stats, exact empty IR, and registry presence.
+- Causal gap: none found in static tracing; no behavioral suite was run under static-audit scope.
 
 ## BT11-054 — Panjyamon — source correction pending focused verification
 
@@ -586,11 +587,11 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Source audit correction: shared IR made redirect a bare opponent-turn action with no declaration gate, and its unsuspend watcher was friendly-only with a raw stack condition. It now matches direct IR's highest-DP `whenOpponentAttacks` watcher, any-controller unsuspend subject, and executable stack predicate.
 - Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2102 declaration snapshot, redirect decline, Q2103 both-controller unsuspends, stack gate, lowest-cost ties, once-per-turn identities, and direct/shared equality require observable proof.
 
-## BT11-075 — DoKunemon — source audit pending focused verification
+## BT11-075 — DoKunemon — 10/10 static audit
 
-- Catalog and KB evidence: DoKunemon is a purple level-3 Larva with no executable text, and the local knowledge base has no card-specific entry.
-- Source audit: direct and shared IR both intentionally contain no effects, declare full coverage, have no residuals, and direct registration is exclusively `registerIrCard`.
-- Verification status: no focused test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is not scored 10/10; vanilla catalog/IR and legal-evolution observable proof remains required.
+- Catalog evidence: exact committed record is purple level-3 Rookie/Virus/Larva Digimon, play cost 3, 4000 DP, purple level-2 evolution for 0, rarity C, and four-copy limit; it has no executable text. KB query returned no entries.
+- Implementation evidence: direct/shared IR are empty and full with no residuals; `BT11-075.ts` registers exclusively via `registerIrCard`. The colocated test checks catalog facts, exact empty IR, registry/runtime registration, and legal zero-cost evolution.
+- Causal gap: none found in static tracing; no additional behavioral suite was run under static-audit scope.
 
 ## BT11-076 — Ignitemon — source correction pending focused verification
 
