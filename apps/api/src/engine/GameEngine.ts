@@ -278,6 +278,16 @@ function subTriggerIdentity(sub: SubTriggerSubscription): string {
   ].join("|");
 }
 
+/**
+ * A watcher's description as the players should read it. A player-scoped watcher tags its
+ * description with the instance that installed it, so it can be told apart from the copy
+ * conferred on another card; that tag is bookkeeping and never belongs in an announcement.
+ */
+function subTriggerDescriptionFor(sub: SubTriggerSubscription, ctx: EffectContext): string {
+  const tag = ` [${ctx.source.instanceId}]`;
+  return sub.description.endsWith(tag) ? sub.description.slice(0, -tag.length) : sub.description;
+}
+
 /** A watcher that triggered, with the EffectContext bound at the moment its event fired. */
 interface ArmedSubTrigger {
   sub: SubTriggerSubscription;
@@ -1098,7 +1108,10 @@ export class GameEngine {
           const selected = keyed.find(({ key }) => key === response.order[0]);
           return selected === undefined
             ? replacements
-            : [selected.replacement, ...replacements.filter((replacement) => replacement.id !== selected.replacement.id)];
+            : [
+                selected.replacement,
+                ...replacements.filter((replacement) => replacement.id !== selected.replacement.id),
+              ];
         },
       },
       permanentIds,
@@ -2261,6 +2274,7 @@ export class GameEngine {
           this.activeWindowToken,
           this.subTriggerTurnLedger(),
           (sub) => this.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
+          (sub, ctx) => this.announceSubTrigger(sub, ctx),
         );
       }
     });
@@ -2386,7 +2400,8 @@ export class GameEngine {
         const collected = this.subTriggerAsCollected(item);
         return {
           ...collected,
-          effect: { ...collected.effect, resolve: async () => this.fireOneSubTrigger(item) },
+          // The resolver announces what it resolves, so this body must not announce itself.
+          effect: { ...collected.effect, resolve: async () => this.fireOneSubTrigger(item, { announce: false }) },
         };
       });
     return [...this.pendingNestedTimingEffects, ...subTriggers];
@@ -2471,18 +2486,47 @@ export class GameEngine {
   }
 
   /**
+   * Announce a watcher body as it starts, the way the effect stack announces the printed
+   * effects it resolves (`resolutionDeps.onResolving`). A watcher IS a triggered effect: it can
+   * stop the game to ask its controller for a choice, and the players are owed the clause that
+   * asked before the wait — a security-removal reaction ("when your opponent's security stack is
+   * removed from") activates mid-check, so without this the board simply froze on the check with
+   * nothing said. Watchers folded into a timing window are announced by the resolver instead, so
+   * that path passes no announcer and neither announces twice.
+   */
+  private announceSubTrigger(sub: SubTriggerSubscription, ctx: EffectContext | undefined): void {
+    if (ctx === undefined) return;
+    this.hooks.emit({
+      kind: "effectTriggered",
+      seat: ctx.source.ownerSeat,
+      sourceCardId: ctx.source.cardId,
+      effectKey: `subtrigger/${sub.id}/${sub.description}`,
+      description: subTriggerDescriptionFor(sub, ctx),
+      timing: sub.event,
+      // `securityChecked` closes the check AFTER these bodies have run, so the client needs
+      // this to hold the announcement until the checked card's reveal has been shown.
+      ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+    });
+  }
+
+  /**
    * Run one armed watcher. `contextAtFireTime` decides which board it sees: the immediate path
    * rebuilds the context now (so `fireSnapshot`'s own `matches` re-check can still drop a watcher
    * whose condition lapsed), while the deferred paths hand back the context bound when their
    * event happened, because their trigger has already activated (KB Q2611/Q2629).
    */
-  private async fireOneSubTrigger({ sub, contextAtFireTime }: ArmedSubTrigger): Promise<void> {
+  private async fireOneSubTrigger(
+    { sub, contextAtFireTime }: ArmedSubTrigger,
+    opts: { announce?: boolean } = {},
+  ): Promise<void> {
     if (this.subTriggerWindowDepth > 0) this.consumedSubTriggerKeys.add(subTriggerIdentity(sub));
     await this.subTriggers.fireSnapshot(
       [sub],
       () => contextAtFireTime(),
       this.activeWindowToken,
       this.subTriggerTurnLedger(),
+      undefined,
+      opts.announce === false ? undefined : (fired, ctx) => this.announceSubTrigger(fired, ctx),
     );
   }
 
@@ -2578,6 +2622,7 @@ export class GameEngine {
         this.activeWindowToken,
         this.subTriggerTurnLedger(),
         (sub) => this.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
+        (sub, ctx) => this.announceSubTrigger(sub, ctx),
       );
     }
     await this.recomputeContinuousEffects();
@@ -3788,7 +3833,11 @@ export class GameEngine {
    * controller's hand, but the resulting watcher cannot activate before the repeated
    * 0-DP rule check deletes Titamon.
    */
-  private readonly deferredRuleSubTriggers: { event: SubTriggerEventName; payload: TriggerInfo; armed: ArmedSubTrigger[] }[] = [];
+  private readonly deferredRuleSubTriggers: {
+    event: SubTriggerEventName;
+    payload: TriggerInfo;
+    armed: ArmedSubTrigger[];
+  }[] = [];
 
   /**
    * The deletions a rule-check fixpoint has performed but not yet reacted to, or `undefined`
