@@ -141,3 +141,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   suite covers activation/payment/result behavior. The stale Q&A reference in the test comment
   was corrected from Q4063/Q4064 to Q4065/Q4066.
 - Proof is deliberately unrun under PID 43774, so LM-034 remains below 10/10.
+
+## LM-035 — Amber Memory Boost! — pending focused execution
+
+- Catalog and Q4067/Q4068 map to direct self-bound Static color alternative `purple`, which the
+  executable legality path evaluates from either battle or breeding; it still rejects a player
+  with neither yellow nor purple available. Main reveals three, adds one yellow-or-purple
+  Digimon, bottoms the rest, and places the Option; Delay gains two memory and Security places it.
+- Focused fixtures cover native yellow, alternate purple in battle and breeding, refusal, reveal
+  result, and Security, while the shared Delay suite covers payment and payload. The stale Q&A
+  references in both focused-test comments are corrected to their card-specific rulings.
+- All focused proof is intentionally unrun under PID 43774, so LM-035 remains below 10/10.
