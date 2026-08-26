@@ -247,3 +247,20 @@ Remaining work is focused behavioral proof of the conditional boundary and turn 
 10. **Reproducible behavioral proof (0/1):** Existing tests cover only the ordinary battle-area modifier and were not executed in this static-only pass; Security Digimon scope, duration, and Q1666 battle boundary remain unproven.
 
 Remaining work is behavioral proof of the all-Security-Digimon modifier and Q1666 interaction; this card is not formally complete at 10/10.
+
+## BT7-097 — Tidal Wave — 8/10 (static audit; fidelity finding)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** BT7-097 is an Option whose Main and Security text play up to two Digimon cards from one of the owner's Digimon's digivolution cards without paying memory costs.
+2. **Source zone and free play (1/1):** IR explicitly uses `from: ["digivolutionCards"]`, `upTo: true`, `count: 2`, and `payCost: false`.
+3. **Unsuspended result (1/1):** `suspended: false` matches the expected played state.
+4. **Controller/kind (1/1):** Only owner Digimon cards on owner-controlled Digimon stacks are eligible.
+5. **Security reuse (1/1):** Security activates the same play payload.
+6. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-097` reports no rulings or unresolved ambiguity.
+7. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-097", compiled)` registration are present.
+8. **Single-stack fidelity (0/1):** The target filter constrains each card with `hostFilter` but does not bind one selected host before selecting up to two cards. Statically, this does not prove that cards cannot be mixed across two evolution stacks, contrary to “from one of your Digimon's digivolution cards.”
+9. **Clause completeness (1/1):** Main/Security timing, count, source, cost, and suspension clauses are represented, subject to the stack-origin concern.
+10. **Reproducible behavioral proof (0/1):** Existing tests cover two cards from one stack and zero selection but were not executed; mixed-stack exclusion and Security behavior remain unproven.
+
+Required follow-up: bind the chosen host stack (or establish an engine guarantee for `hostFilter`) before selecting cards, then add a mixed-stack behavioral proof. This card is not formally complete at 10/10.
