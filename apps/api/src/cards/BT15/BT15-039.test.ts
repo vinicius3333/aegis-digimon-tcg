@@ -1,19 +1,40 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT15-039.js";
 
 describe("BT15-039", () => {
   it("gives one opposing Digimon -3000 DP and makes it lose 1 memory on deletion", () => {
     expect(compiled.effects?.[0]?.actions[0]).toMatchObject({
+      kind: "GainTriggeredEffect",
+      gainedTrigger: "onDeletionOf",
+      gainedActions: [{ kind: "GainMemory", amount: -1 }],
+    });
+    expect(compiled.effects?.[0]?.actions[1]).toMatchObject({
       kind: "ModifyDP",
       amount: -3000,
       duration: "untilOpponentTurnEnd",
-    });
-    expect(compiled.effects?.[0]?.actions[1]).toMatchObject({
-      kind: "GainTriggeredEffect",
-      gainedTrigger: "OnDeletion",
-      gainedActions: [{ kind: "GainMemory", amount: -1 }],
       target: { sameTarget: true },
     });
+  });
+
+  it("binds DP loss and deletion memory loss to the same opponent on play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT15-039", as: "bomber" }] },
+        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 8;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bomber").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.memory === 2, 1_500);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    // Memory is stored relative to the active (seat 0) player. The opponent's loss of 1
+    // therefore moves the shared gauge from 1 (after Bombermon's play cost) to 2.
+    expect(s.state.memory).toBe(2);
   });
   it("grants Gammamon-related effects on all turns and inherited all turns", () => {
     expect(compiled.effects?.[2]).toMatchObject({

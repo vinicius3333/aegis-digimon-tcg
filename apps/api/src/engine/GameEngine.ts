@@ -2128,12 +2128,19 @@ export class GameEngine {
       };
     }
     if (this.ruleProcessing) {
+      const subscriptions = this.subTriggers.subscriptionsFor(event);
+      const contexts = new Map<number, EffectContext>();
+      for (const sub of subscriptions) {
+        const context = this.buildSubTriggerContext(sub, payload);
+        if (context !== undefined) contexts.set(sub.id, context);
+      }
       this.deferredRuleSubTriggers.push({
         event,
         payload: {
           turnSeat: this.state.turnSeat,
           ...payload,
         },
+        armed: this.armedSubTriggers(subscriptions, payload, contexts),
       });
       return;
     }
@@ -3657,7 +3664,7 @@ export class GameEngine {
    * controller's hand, but the resulting watcher cannot activate before the repeated
    * 0-DP rule check deletes Titamon.
    */
-  private readonly deferredRuleSubTriggers: { event: SubTriggerEventName; payload: TriggerInfo }[] = [];
+  private readonly deferredRuleSubTriggers: { event: SubTriggerEventName; payload: TriggerInfo; armed: ArmedSubTrigger[] }[] = [];
 
   /**
    * The deletions a rule-check fixpoint has performed but not yet reacted to, or `undefined`
@@ -3845,9 +3852,7 @@ export class GameEngine {
   private async flushRuleTriggerPool(pool: readonly PooledRuleDeletion[]): Promise<void> {
     const watcherEvents = this.deferredRuleSubTriggers.splice(0);
     if (pool.length === 0 && watcherEvents.length === 0) return;
-    const armed = watcherEvents.flatMap(({ event, payload }) =>
-      this.armedSubTriggers(this.subTriggers.subscriptionsFor(event), payload),
-    );
+    const armed = watcherEvents.flatMap(({ armed: eventArmed }) => eventArmed);
     const enclosing = this.pendingWindowSubTriggers;
     this.pendingWindowSubTriggers = [...enclosing, ...armed];
     // Raised for both branches below so a watcher this flush resolves is recorded as consumed
@@ -3862,6 +3867,14 @@ export class GameEngine {
         const merged = mergeRuleDeletions(pool);
         await this.resolveDeletionReactions(merged.trigger, merged.ascensionCandidates, (deletionTrigger) =>
           this.runTimingWindow(EffectTiming.OnDestroyedAnyone, deletionTrigger, merged.transientCandidates),
+        );
+        // A deletion can have no printed [On Deletion] candidates, in which case the empty
+        // timing window never requests its pending watcher collection. The watcher was already
+        // armed while its target was live; resolve any it did not consume in that window now.
+        await this.withTriggeredMutations(() =>
+          this.runSubTriggersInChosenOrder(
+            armed.filter((item) => !this.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub))),
+          ),
         );
       }
     } finally {

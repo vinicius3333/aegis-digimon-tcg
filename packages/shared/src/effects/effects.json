@@ -29596,16 +29596,16 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "ModifyDP",
+            "kind": "GainTriggeredEffect",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "amount": -3000,
+            "gainedTrigger": "onDeletionOf",
+            "gainedActions": [{ "kind": "GainMemory", "amount": -1 }],
             "duration": "untilOpponentTurnEnd"
           },
           {
-            "kind": "GainTriggeredEffect",
+            "kind": "ModifyDP",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
-            "gainedTrigger": "OnDeletion",
-            "gainedActions": [{ "kind": "GainMemory", "amount": -1 }],
+            "amount": -3000,
             "duration": "untilOpponentTurnEnd"
           }
         ]
@@ -29622,7 +29622,7 @@
           {
             "kind": "GainTriggeredEffect",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "sameTarget": true },
-            "gainedTrigger": "OnDeletion",
+            "gainedTrigger": "onDeletionOf",
             "gainedActions": [{ "kind": "GainMemory", "amount": -1 }],
             "duration": "untilOpponentTurnEnd"
           }
