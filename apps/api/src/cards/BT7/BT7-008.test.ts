@@ -15,6 +15,7 @@ describe("BT7-008 Flamemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     await settle(() =>
@@ -24,6 +25,7 @@ describe("BT7-008 Flamemon", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("takuya").instanceId),
     ).toBe(true);
+    expect(s.state.memory).toBe(3);
   });
 
   it("adds an eligible Hybrid, Susanoomon or Takuya card", async () => {
