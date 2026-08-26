@@ -8,6 +8,60 @@ establish behavioral proof. The EX6-002 through EX6-006 focused additions made
 before this ledger remain committed and will be executed only after the unrelated
 root-worktree Vitest workload has cleared.
 
+## EX6-001 — Sakuttomon — evidence in progress
+
+- Catalog evidence: Red level-2 Digi-Egg, form `In-Training`, attribute `Data`, traits `Weapon` and `Legend-Arms`. Its `[Your Turn] [Once Per Turn]` gains 1 memory when an effect places a `Legend-Arms` card beneath this Digimon.
+- Knowledge base: no EX6-001-specific local ruling is recorded.
+- Direct IR: [`EX6-001.ts`](apps/api/src/cards/EX6/EX6-001.ts) declares an inherited `YourTurn` once-per-turn `SubTrigger` for `onAddDigivolutionCards`, requires the event subject to be the exact host and the added card to have `Legend-Arms`, then resolves `GainMemory(1)`. Coverage is full, residual text is empty, and the module registers exclusively through `registerIrCard("EX6-001", compiled)`.
+- Shared primitive trace: `placeUnder` emits the added-card event after stack placement; `subTrigger.ts` enforces the self reference, trait filter, and source-instance frequency before routing the resource action to the memory ledger.
+- Existing observable proof: the colocated runtime test uses `setupEngine` and real `placeUnder` actions, first placing a non-`Legend-Arms` card and then a `Legend-Arms` card beneath the host; it observes no memory for the negative case and +1 for the matching event. This covers the card's only material condition and result; execution is deferred for the current checkout.
+- Status: behavioral evidence is committed but unexecuted in this dispatch while PID group 43774 remains active; not yet rated 10/10.
+
+## EX6-002 — Yokomon — evidence in progress
+
+- Catalog evidence: Blue level-2 Digi-Egg, form `In-Training`, attribute `Data`, traits `Lesser` and `Bird`. Its inherited `[When Attacking] [Once Per Turn]` may place one controller-owned blue level-3 Digimon from hand beneath this Digimon at the bottom.
+- Knowledge base: no EX6-002-specific local ruling is recorded.
+- Direct IR: [`EX6-002.ts`](apps/api/src/cards/EX6/EX6-002.ts) represents the inherited once-per-turn `WhenAttacking` placement with a hand, controller, Digimon, blue, level-3 source filter, an exact-self `underFilter`, bottom position, and optional choice. Coverage is full, residual text is empty, and registration is exclusively `registerIrCard("EX6-002", compiled)`.
+- Shared primitive trace: the attack event identifies the inherited host; `PlaceUnder` enumerates only matching hand cards, preserves optional decline, and routes the selected source to that host's bottom stack position.
+- Existing observable proof: the committed runtime fixture observes bottom-of-stack ordering, an optional-decline path, and rejection of a wrong-color candidate through the production action resolver. This covers the printed source, target, bottom-placement, and may boundaries; execution is deferred for the current checkout.
+- Status: behavioral evidence is committed but unexecuted in this dispatch while PID group 43774 remains active; not yet rated 10/10.
+
+## EX6-003 — Cupimon — evidence in progress
+
+- Catalog evidence: Yellow level-2 Digi-Egg, form `In-Training`, attribute `Data`, trait `Lesser`. Its inherited `[When Attacking] [Once Per Turn]` places the top card of the controller's security stack into hand, then places one controller-owned `Angel`, `Archangel`, or `Three Great Angels` Digimon from hand at the bottom of security.
+- Knowledge base: Q3692 confirms effects for adding the new security card apply; Q3693 confirms effects for removing the former top security card apply.
+- Direct IR: [`EX6-003.ts`](apps/api/src/cards/EX6/EX6-003.ts) sequences `SecurityManipulation(toHand, top)` with `SecurityManipulation(placeAsSecurity)` whose hand candidate filter is the exact three-trait union and whose destination is bottom security. The effect is inherited and source-instance once-per-turn, has full coverage, no residual text, and exclusive `registerIrCard("EX6-003", compiled)` registration.
+- Shared primitive trace: security movement uses the executable security manipulation primitive rather than a pseudo-zone placement; its removal and addition transitions emit their normal security events, so Q3692/Q3693 use the same event seams as any other security-card change.
+- Existing observable proof: the committed runtime test executes the exchange and observes both the former top security card entering hand and the matching hand card becoming the new bottom security card. It supplies observable evidence for the ordered exchange and candidate trait boundary; execution is deferred for the current checkout.
+- Status: behavioral evidence is committed but unexecuted in this dispatch while PID group 43774 remains active; not yet rated 10/10.
+
+## EX6-004 — Kokomon — evidence in progress
+
+- Catalog evidence: Green level-2 Digi-Egg, form `In-Training`, attribute `Data`, trait `Lesser`. Its inherited `[Your Turn] [Once Per Turn]` grants this Digimon +2000 DP for the turn when the controller's effect suspends a Digimon.
+- Knowledge base: no EX6-004-specific local ruling is recorded.
+- Direct IR: [`EX6-004.ts`](apps/api/src/cards/EX6/EX6-004.ts) declares an inherited `YourTurn` once-per-turn `SubTrigger` for `whenEffectSuspends`, filtering for a Digimon suspended by the controller's source, and applies `ModifyDP(+2000, turn)` to the exact host. Coverage is full, residual text is empty, and registration is exclusively `registerIrCard("EX6-004", compiled)`.
+- Shared primitive trace: the production suspend verb emits `whenEffectSuspends` with its source-controller identity; `subTrigger.ts` applies the filter and frequency, and the continuous modifier ledger grants then expires the host DP change at turn boundary.
+- Existing observable proof: the committed runtime test suspends a Digimon through the real effect action and observes the inherited host gain +2000 DP. It covers the material controller/effect event and turn-bounded result; execution is deferred for the current checkout.
+- Status: behavioral evidence is committed but unexecuted in this dispatch while PID group 43774 remains active; not yet rated 10/10.
+
+## EX6-005 — Kakkinmon — evidence in progress
+
+- Catalog evidence: Black level-2 Digi-Egg, form `In-Training`, attribute `Data`, traits `Lesser` and `Legend-Arms`. At `[Start of Your Main Phase]`, the controller may return one `Legend-Arms` card from this Digimon's digivolution cards to hand to gain 1 memory.
+- Knowledge base: no EX6-005-specific local ruling is recorded.
+- Direct IR: [`EX6-005.ts`](apps/api/src/cards/EX6/EX6-005.ts) uses a `GainMemory(1)` action with an optional, abort-on-decline return cost scoped to the exact host's digivolution cards and filtered to `Legend-Arms` Digimon. Coverage is full, residual text is empty, and registration is exclusively `registerIrCard("EX6-005", compiled)`.
+- Shared primitive trace: the start-main phase event resolves the conditional cost before the memory action; the return resolver selects only an eligible card in the host stack and moves it to the controller's hand, while decline prevents the reward.
+- Existing observable proof: the committed runtime fixture places an eligible card in the host stack, triggers start main, and observes that exact stack source returned to hand with +1 memory. This covers the printed cost/result relationship; execution is deferred for the current checkout.
+- Status: behavioral evidence is committed but unexecuted in this dispatch while PID group 43774 remains active; not yet rated 10/10.
+
+## EX6-006 — Gate of Deadly Sins — evidence in progress
+
+- Catalog evidence: Purple Option, cost 0, `Delay`, security effect: `Delay`; its Start of Main sequence places itself under the controller's breeding-area Digimon from egg deck, deletes all controller Digimon, then places one controller-owned `Seven Great Demon Lords` Digimon from trash under that breeding Digimon if this effect acted. Its inherited opponent-end clause may play `Ogudomon` from trash without cost after deleting the host when its stack has seven distinct card names. Its inherited Your Turn once-per-turn replacement may reduce the play cost of a controller-owned `Seven Great Demon Lords` Digimon by 3 or 4 when the host stack has five distinct names.
+- Knowledge base: Q3694 requires the all-own-Digimon deletion even when no breeding target/egg-deck placement is possible; Q3695–Q3697 define distinct-name counting and overlapping copies; Q3698–Q3700 confirm the optional reduction, including effect-play and choosing 3 despite eligibility for 4.
+- Direct IR: [`EX6-006.ts`](apps/api/src/cards/EX6/EX6-006.ts) declares the Start of Main breeding sequence, unconditional `Delete(all own Digimon)`, guarded trash-to-stack placement, the seven-distinct-name opponent-end `PlayWithoutCost(Ogudomon)` sequence with self-delete cost, and the five-distinct-name optional `wouldBePlayed` cost-reduction replacement with explicit 3/4 choices. It has full coverage, no residual text, and exclusive `registerIrCard("EX6-006", compiled)` registration.
+- Shared primitive trace: the phase runner preserves independent sequence actions, so a failed egg-deck placement cannot suppress Q3694's delete; stack distinct-name counting is evaluated from the live host stack; the replacement layer runs for both ordinary and effect play and records the selected optional reduction.
+- Existing observable proof: the committed EX6-006 regression executes Start of Main with an empty egg deck and observes the controller's board Digimon are still deleted, directly covering Q3694. Other colocated assertions cover the compiled clauses; Q3695–Q3700 remain pending focused runtime confirmation after the no-test constraint clears.
+- Status: behavioral evidence is partially committed but unexecuted in this dispatch while PID group 43774 remains active; not yet rated 10/10.
+
 ## EX6-007 — Zubamon — evidence in progress
 
 - Catalog evidence: Red level 3, play cost 4, 1000 DP, standard red level-2 evolution for 0 and alternate `[Sakuttomon]`/`[Kakkinmon]` evolution for 0; forms `Rookie`, attribute `Vaccine`, traits `Weapon` and `Legend-Arms`. Its hand `[Main]` pays 1 and places Zubamon at the bottom of one controller-owned level-3 or `Legend-Arms` Digimon, granting that exact host +4000 DP for the turn. Its top-card `[Your Turn] [Once Per Turn]` draws when an effect places a digivolution card under Zubamon; its inherited text gives the host +2000 DP during the controller's turn.
