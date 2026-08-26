@@ -85,14 +85,16 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "OnDeletion",
-      actions: [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          kind: "Delete",
-          target: { filter: { sourceRef: "battleOpponent" }, count: 1 },
+          keyword: "Piercing",
+          raw:
+            "(When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would).",
         },
       ],
-      isInherited: true,
     },
   ],
   coverage: "full",
