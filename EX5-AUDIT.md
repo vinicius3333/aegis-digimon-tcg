@@ -10,9 +10,9 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-004 | Frimon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-005 | Tokomon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-006 | Xiaomon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-007 | Coronamon | 3 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-008 | Firamon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-009 | Indramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-007 | Coronamon | 3 | Start Main memory uses a live friendly Light Fang/Night Claw Tamer predicate; inherited Main rotation moves only a qualifying host top card to its bottom as the optional once-per-turn memory cost. | Pending focused proof |
+| EX5-008 | Firamon | 2 | Both entry routes use two independent reveal-three add slots (Light Fang and Night Claw/Galaxy), then bottom the remainder; inherited owner-turn DP is self-only. | Pending focused proof |
+| EX5-009 | Indramon | 6 | On Play draw then optional distinct-name Deva breeding play; deletion draw is independent, and inherited Security Attack aura continuously follows the host’s live Four Sovereigns/God Beast trait. | Pending focused proof |
 | EX5-010 | Sandiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-011 | Pajiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-012 | Flaremon | 1 | Q3549 is represented by separate self-scoped play and digivolve-into cost replacements, each gated by a live qualifying stack with ≥3 sources; both entry timings delete DP≤5000 and inherited DP is owner-turn scoped. | Pending focused proof |
