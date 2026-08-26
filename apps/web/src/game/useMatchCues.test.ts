@@ -7,6 +7,8 @@ import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import {
   CLASH_OUTCOME_AT_MS,
   CLASH_TOTAL_MS,
+  FIELD_CLASH_IMPACT_AT_MS,
+  FIELD_CLASH_LUNGE_AT_MS,
   SECURITY_BRANCH_TOTAL_MS,
   SECURITY_BREAK_TOTAL_MS,
   SHOWCASE_TOTAL_MS,
@@ -233,6 +235,44 @@ describe("match cues", () => {
     rerender([COMBAT, { ...COMBAT, deletedPermanentIds: ["perm-unmeasured"] }]);
     await advance(COMBAT_IMPACT_TOTAL_MS);
     expect(result.current.deleteBursts).toEqual([]);
+  });
+
+  it("plays the board battle — arrow scene, lunge, then the blow — ahead of the loser's burst", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    const declare: ServerEvent = {
+      kind: "attackDeclared",
+      seat: 1,
+      attackerPermanentId: "perm-1",
+      attackerCardId: "BT1-010",
+      target: { kind: "permanent", permanentId: "perm-dead" },
+      targetCardId: "BT1-020",
+    };
+    // The declaration and its resolution arrive in one batch, the way an
+    // uncontested attack does; the scene still plays each beat on its own clock.
+    rerender([declare, COMBAT]);
+    await advance(0);
+    expect(result.current.fieldClash).toMatchObject({
+      attacker: { permanentId: "perm-1", cardId: "BT1-010" },
+      defender: { permanentId: "perm-dead", cardId: "BT1-020" },
+      direction: "down",
+    });
+    expect(result.current.attackLunge).toBeNull();
+    expect(result.current.combatImpactIds.size).toBe(0);
+
+    await advance(FIELD_CLASH_LUNGE_AT_MS);
+    expect(result.current.attackLunge).toEqual({ permanentId: "perm-1", direction: "down" });
+
+    await advance(FIELD_CLASH_IMPACT_AT_MS - FIELD_CLASH_LUNGE_AT_MS);
+    expect(result.current.combatImpactIds.has("perm-dead")).toBe(true);
+    expect(result.current.deleteBursts).toEqual([]);
+
+    await advance(COMBAT_IMPACT_TOTAL_MS);
+    expect(result.current.fieldClash).toBeNull();
+    expect(result.current.attackLunge).toBeNull();
+    expect(result.current.combatImpactIds.size).toBe(0);
+    expect(result.current.deleteBursts).toHaveLength(1);
   });
 
   it("bursts for an effect that trashes a permanent off the field", async () => {

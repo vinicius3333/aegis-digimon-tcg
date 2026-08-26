@@ -219,6 +219,15 @@ export const ARROW_FLASH_COUNT = 2;
 /** How long the arrow spends flashing before it stays extended. */
 export const ARROW_FLASH_TOTAL_MS = TIMINGS.arrowFlash * ARROW_FLASH_COUNT * 2;
 
+/** A board battle leans the attacker at its target once the arrow has extended. */
+export const FIELD_CLASH_LUNGE_AT_MS = ARROW_FLASH_TOTAL_MS;
+
+/** The blow lands when the lunge peaks into the defender. */
+export const FIELD_CLASH_IMPACT_AT_MS = FIELD_CLASH_LUNGE_AT_MS + TIMINGS.attackLunge;
+
+/** A board battle end to end: the arrow, the lunge, and the claw-and-shake it lands. */
+export const FIELD_CLASH_TOTAL_MS = FIELD_CLASH_IMPACT_AT_MS + COMBAT_IMPACT_TOTAL_MS;
+
 /** A cut-in, end to end, for the tier it is playing. */
 export function cutInTotalMs(tier: CutInTier): number {
   switch (tier) {

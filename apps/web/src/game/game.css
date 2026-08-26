@@ -5442,6 +5442,19 @@ button.side-panel__name:focus-visible {
   }
 }
 
+/* --- Field battle ghost --------------------------------------------------- */
+
+/* A battle loser's stand-in: the board has already dropped the permanent, so its
+   card is held where it stood while the arrow, the lunge and the claw play out.
+   `translate` animations (lunge, shake) compose with the left/top placement. */
+.game-field-clash-ghost {
+  position: absolute;
+  z-index: 61;
+  pointer-events: none;
+  border-radius: 9px;
+  overflow: hidden;
+}
+
 /* --- Combat claw --------------------------------------------------------- */
 
 /* Three tapered gashes raked from the top-left corner down through the card, in

@@ -41,6 +41,7 @@ import {
   AttackArrow,
   BoardInputLock,
   BreedingSlot,
+  ClawSlash,
   Hand,
   HAND_CARD_WIDTH,
   HAND_CARD_WIDTH_COMPACT,
@@ -153,6 +154,10 @@ import {
 } from "./decisionPresentation";
 
 const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End];
+
+/** A battle loser's stand-in card, sized to the shatter that takes over from it. */
+const FIELD_CLASH_GHOST_WIDTH = 72;
+const FIELD_CLASH_GHOST_HEIGHT = Math.round(FIELD_CLASH_GHOST_WIDTH * 1.4);
 
 /**
  * Phone layout: touch sheets, compact everything. Mirrors the CSS blocks of the
@@ -448,6 +453,7 @@ export function GameScreen({
     attackAnnouncement,
     attackLunge,
     combatImpactIds,
+    fieldClash,
     cutIn,
     deckRiffles,
     effectSources,
@@ -529,7 +535,18 @@ export function GameScreen({
       ),
     ),
   );
+  // A battle that declares and resolves in one batch never has an open attack in
+  // the log, so the scene keeps its own arrow up while it plays.
+  const fieldClashArrow: TrackingArrow | null = fieldClash
+    ? {
+        kind: "attack",
+        key: `clash:${fieldClash.key}`,
+        from: { kind: "permanent", permanentId: fieldClash.attacker.permanentId },
+        to: [{ kind: "permanent", permanentId: fieldClash.defender.permanentId }],
+      }
+    : null;
   const trackingArrowRequest =
+    fieldClashArrow ??
     activeAttackArrow(events) ??
     effectTargetArrow({
       decision,
@@ -555,7 +572,11 @@ export function GameScreen({
           : end.seat === viewerSeat
             ? yourSecRef.current
             : oppSecRef.current;
-      if (!element?.isConnected) return undefined;
+      // A permanent deleted by the battle has left the board, but the arrow must
+      // still reach where it stood, so its last measurement stands in.
+      if (!element?.isConnected) {
+        return end.kind === "permanent" ? permCentersRef.current[end.permanentId] : undefined;
+      }
       const rect = element.getBoundingClientRect();
       if (!rect.width) return undefined;
       return { x: rect.left + rect.width / 2 - board.left, y: rect.top + rect.height / 2 - board.top };
@@ -2791,6 +2812,42 @@ export function GameScreen({
               tracking
             />
           ) : null}
+
+          {/* A battle's loser has already left the live state, so a ghost of its card
+              stands where it stood, takes the lunge or the claw, and hands the spot to
+              the shatter burst when the scene ends. Combatants still on the board play
+              the same beats on their own PermanentView instead. */}
+          {fieldClash
+            ? [fieldClash.attacker, fieldClash.defender].flatMap((combatant) => {
+                if (permRefs.current[combatant.permanentId]?.isConnected) return [];
+                const center = permCentersRef.current[combatant.permanentId];
+                const cardId = combatant.cardId ?? permCardIdsRef.current[combatant.permanentId];
+                if (!center || !cardId) return [];
+                const struck = combatImpactIds.has(combatant.permanentId);
+                return [
+                  <span
+                    key={`clash-ghost-${fieldClash.key}-${combatant.permanentId}`}
+                    aria-hidden="true"
+                    className={[
+                      "game-field-clash-ghost",
+                      attackLunge?.permanentId === combatant.permanentId
+                        ? `game-permanent-lunge--${attackLunge.direction}`
+                        : "",
+                      struck ? "game-permanent-shake" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    style={{
+                      left: center.x - FIELD_CLASH_GHOST_WIDTH / 2,
+                      top: center.y - FIELD_CLASH_GHOST_HEIGHT / 2,
+                    }}
+                  >
+                    <CardFull cardId={cardId} width={FIELD_CLASH_GHOST_WIDTH} zoomOnHover={false} />
+                    {struck ? <ClawSlash /> : null}
+                  </span>,
+                ];
+              })
+            : null}
 
           {deleteBursts.map((burst) => (
             <span

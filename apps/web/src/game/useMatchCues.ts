@@ -78,6 +78,7 @@ import {
   type EffectSourceLookup,
 } from "./effectSource";
 import { deckRiffleFromEvent, type DeckRiffle } from "./deckChrome";
+import { buildFieldClashScene, trackOpenAttack, type FieldClashScene, type OpenAttack } from "./fieldClash";
 import { phaseBannerFrom, type PhaseBanner } from "./phaseBanner";
 import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
 import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } from "./freezePulse";
@@ -87,6 +88,9 @@ import {
   COMBAT_IMPACT_TOTAL_MS,
   cutInTotalMs,
   dpPulseTotalMs,
+  FIELD_CLASH_IMPACT_AT_MS,
+  FIELD_CLASH_LUNGE_AT_MS,
+  FIELD_CLASH_TOTAL_MS,
   SHOWCASE_TOTAL_MS,
   TIMINGS,
 } from "./timings";
@@ -202,6 +206,8 @@ export interface MatchCues {
   securityFlights: ReadonlySet<number>;
   /** Permanents currently taking the claw and the shake for a battle they lost. */
   combatImpactIds: ReadonlySet<string>;
+  /** The board battle currently playing: its arrow stays up and its losers keep a ghost on the board. */
+  fieldClash: FieldClashScene | null;
   /** The DP change each permanent is currently pulsing over, by permanent id. */
   dpPulses: ReadonlyMap<string, DpPulse>;
   /** The attack/block lock each permanent is currently jolting over, by permanent id. */
@@ -324,6 +330,7 @@ export function useMatchCues({
   const [pendingPermanentIds, setPendingPermanentIds] = useState<ReadonlySet<string>>(new Set());
   const [phaseBanner, setPhaseBanner] = useState<PhaseBanner | null>(null);
   const [combatImpactIds, setCombatImpactIds] = useState<ReadonlySet<string>>(new Set());
+  const [fieldClash, setFieldClash] = useState<FieldClashScene | null>(null);
   const [dpPulses, setDpPulses] = useState<ReadonlyMap<string, DpPulse>>(new Map());
   const [freezePulses, setFreezePulses] = useState<ReadonlyMap<string, FreezePulse>>(new Map());
   const [cutIn, setCutIn] = useState<DigivolutionCutIn | null>(null);
@@ -357,6 +364,10 @@ export function useMatchCues({
   // attacker, so it is remembered from the attack that opened the check.
   const securityAttackerRef = useRef<SecurityClashAttacker | undefined>(undefined);
   const securityClashKeyRef = useRef(0);
+  // The attack still open on the board, so the battle that closes it can be staged
+  // even when its declaration and its resolution arrive in the same batch.
+  const openAttackRef = useRef<OpenAttack | null>(null);
+  const fieldClashKeyRef = useRef(0);
   const drawFlightKeyRef = useRef(0);
   const deleteBurstKeyRef = useRef(0);
   const unsuspendSweepKeyRef = useRef(0);
@@ -766,11 +777,53 @@ export function useMatchCues({
     // A permanent that lost a battle takes the claw and the shake first, and its
     // burst waits behind them — the reference client hits the card, then breaks
     // it. Only combat deletions get the impact; an effect deletion has no blow
-    // to land.
+    // to land. A battle whose defender is known plays the whole scene — arrow,
+    // lunge, then the blow — so its losers wait on the longer clock.
     const beaten = new Set<string>();
+    const clashScenes: FieldClashScene[] = [];
+    const clashLoserIds = new Set<string>();
     for (const event of fresh) {
-      if (event.kind !== "combatResolved") continue;
-      for (const permanentId of event.deletedPermanentIds) beaten.add(permanentId);
+      if (event.kind === "combatResolved") {
+        const scene = buildFieldClashScene({
+          key: (fieldClashKeyRef.current += 1),
+          open: openAttackRef.current,
+          event,
+          viewerSeat,
+          cardIdOf: (permanentId) => anchors.permanentCardId?.(permanentId),
+        });
+        if (scene) {
+          clashScenes.push(scene);
+          for (const permanentId of event.deletedPermanentIds) clashLoserIds.add(permanentId);
+        } else {
+          for (const permanentId of event.deletedPermanentIds) beaten.add(permanentId);
+        }
+      }
+      openAttackRef.current = trackOpenAttack(openAttackRef.current, event);
+    }
+    for (const scene of clashScenes) {
+      const impacted: ReadonlySet<string> = new Set(scene.loserPermanentIds);
+      enqueue({
+        id: `field-clash-${scene.key}`,
+        track: "combatImpact",
+        replace: true,
+        async run(context) {
+          if (context.mode !== "live") return;
+          try {
+            setFieldClash(scene);
+            await context.wait(FIELD_CLASH_LUNGE_AT_MS);
+            if (context.cancelled) return;
+            setAttackLunge({ permanentId: scene.attacker.permanentId, direction: scene.direction });
+            await context.wait(FIELD_CLASH_IMPACT_AT_MS - FIELD_CLASH_LUNGE_AT_MS);
+            if (context.cancelled) return;
+            setCombatImpactIds(impacted);
+            await context.wait(COMBAT_IMPACT_TOTAL_MS);
+          } finally {
+            setFieldClash((current) => (current?.key === scene.key ? null : current));
+            setAttackLunge((current) => (current?.permanentId === scene.attacker.permanentId ? null : current));
+            setCombatImpactIds((current) => (current === impacted ? new Set() : current));
+          }
+        },
+      });
     }
     if (beaten.size > 0) {
       const impacted: ReadonlySet<string> = new Set(beaten);
@@ -791,7 +844,12 @@ export function useMatchCues({
     }
     for (const event of fresh) {
       for (const anchorId of deletionAnchorIdsFromEvent(event)) {
-        const step = deleteBurstStep(anchorId, beaten.has(anchorId) ? COMBAT_IMPACT_TOTAL_MS : 0);
+        const delayMs = clashLoserIds.has(anchorId)
+          ? FIELD_CLASH_TOTAL_MS
+          : beaten.has(anchorId)
+            ? COMBAT_IMPACT_TOTAL_MS
+            : 0;
+        const step = deleteBurstStep(anchorId, delayMs);
         if (step) enqueue(step);
       }
     }
@@ -1261,6 +1319,7 @@ export function useMatchCues({
     securityFlights,
     phaseBanner,
     combatImpactIds,
+    fieldClash,
     dpPulses,
     freezePulses,
     securityHitSeat,
