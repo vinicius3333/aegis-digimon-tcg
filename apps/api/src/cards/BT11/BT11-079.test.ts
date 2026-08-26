@@ -1,10 +1,21 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-079.js";
+import { compiled } from "./BT11-079.js";
 
 describe("BT11-079 DarkLizardmon", () => {
+  it("maps catalog facts, Retaliation, and deletion draw-discard to IR", () => {
+    expect(getCardDefinition("BT11-079")).toMatchObject({
+      cardId: "BT11-079", colors: ["Purple"], level: 4, playCost: 5, dp: 4000, types: ["Evil Dragon"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", keywords: [{ keyword: "Retaliation" }] },
+      { trigger: "OnDeletion", actions: [{ kind: "Draw", amount: 1 }, { kind: "Trash" }] },
+    ]);
+  });
+
   it("has executable Retaliation that deletes the Digimon it loses a battle against", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT11-079", as: "darklizardmon" }] },
