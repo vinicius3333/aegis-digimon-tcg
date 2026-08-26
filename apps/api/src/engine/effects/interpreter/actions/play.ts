@@ -8,9 +8,15 @@ import { countMatching, scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { runPlayPerLevel } from "./dna.js";
 import { CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
-import type { Action, Seat, Target } from "@aegis/shared";
+import type { Action, Scaling, Seat, Target } from "@aegis/shared";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
 import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
+
+export function playCostScalingDelta(scaling: Scaling, factor: number): number {
+  if (scaling.subtract !== undefined) return -scaling.subtract * factor;
+  if (scaling.bonus !== undefined) return scaling.bonus * factor;
+  return factor;
+}
 
 export function applyPlayCostCeiling(
   ctx: EffectContext,
@@ -306,7 +312,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 ...levelCeilingAdjustedTarget.filter,
                 playCostLte:
                   (levelCeilingAdjustedTarget.filter.playCostLte ?? 0) +
-                  scaleFactor(ctx, playCostScaling) * (playCostScaling.bonus ?? 1),
+                  playCostScalingDelta(playCostScaling, scaleFactor(ctx, playCostScaling)),
                 playCostLteScaling: undefined,
               },
             };
