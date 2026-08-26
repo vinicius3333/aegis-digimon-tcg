@@ -269,7 +269,9 @@ This ledger records only independently reproduced, card-scoped verification. His
   - Registration: exclusive `registerIrCard("BT13-092", compiled)`; no legacy registration.
   - Correction: moved Burst Digivolve out of an invalid static action into the structured Ravemon/Keenan burst requirement; retained executable burst turn-end and printed trigger clauses.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-092.test.ts` passed (2 tests): burst requirement, burst-end source trash, hand trash/security addition, and attack deletion IR are validated.
-- BT13-093 — Pending
+- BT13-093 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-093", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-093.test.ts` passed (2 tests): On Play draw and optional Royal Knight placement under breeding King Drasil are covered.
 - BT13-094 — Pending
 - BT13-095 — Pending
 - BT13-096 — Pending
