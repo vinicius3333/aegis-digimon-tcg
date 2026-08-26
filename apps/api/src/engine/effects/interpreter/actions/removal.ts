@@ -126,6 +126,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         ...ctx.lastDeletedByThisEffectIds.filter((id) => !(ctx.deletedThisEffectIds ?? []).includes(id)),
       ];
       ctx.lastEffectActed = ctx.lastDeletedByThisEffectIds.length > 0;
+      if (action.trackCount !== undefined) {
+        ctx.namedCounts ??= new Map();
+        ctx.namedCounts.set(action.trackCount, ctx.lastDeletedByThisEffectIds.length);
+      }
       return false;
     }
     case "DeletePerColor": {
