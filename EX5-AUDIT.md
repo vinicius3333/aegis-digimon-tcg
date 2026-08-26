@@ -47,9 +47,9 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-041 | Ebonwumon | 0 | Blast is hand-only; both entry routes suspend up to live Deva/Four Sovereigns count and restrict every opponent Digimon’s next unsuspend phase, while deletion selects only a currently suspended opponent. | Pending focused proof |
 | EX5-042 | Merukimon | 0 | Fortitude static; entry reveal-one can play a level≤5 Fortitude Digimon and otherwise sends it to hand, while Your Turn grants permanent Rush only to own Fortitude Digimon with no sources. | Pending focused proof |
 | EX5-043 | Leopardmon (X Antibody) | 2 | Generated `whenPlayed` watcher is retained and its Return target uses base 5000 plus the normalized +3000-per-other-friendly-Digimon dynamic ceiling; shared source/target scaling supplies live evaluation. | Pending focused proof |
-| EX5-044 | Elecmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-045 | Chuumon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-046 | Targetmon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-044 | Elecmon | 0 | On Play reveal-five adds one exact Leomon then bottoms remainder; inherited deletion De-Digivolve 1 targets a single opponent Digimon. | Pending focused proof |
+| EX5-045 | Chuumon | 0 | Opponent-turn entry reveal-three may play one Sukamon and trashes remainder; inherited deletion optionally plays Chuumon from trash suspended only for Sukamon/Etemon-named host. | Pending focused proof |
+| EX5-046 | Targetmon | 2 | Static Blocker and Rule names; deletion mandatorily returns self after matching hand trash, while inherited deletion replacement requires deleting another Sukamon-named ally before prevention. | Pending focused proof |
 | EX5-047 | Leomon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-048 | Etemon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-049 | GrapLeomon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
