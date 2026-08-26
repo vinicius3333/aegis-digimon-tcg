@@ -448,17 +448,6 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Failure diagnosis: the earlier empty/declined-search observation that the Recovery deck card vanished was fixture state, not an interpreter or card defect. Ordinary evolution draws one deck card before the When Digivolving effect resolves; the fixture supplied only its Recovery sentinel, so that rules draw consumed it. The corrected fixture supplies a separate rules-draw card above the sentinel and substitutes valid purple level-4 BT11-080 for BT11-075.
 - Verification status: no focused test was run after these corrections because externally owned Vitest processes 82901 and 97051 remain active. No production behavior was changed and this entry is deliberately not scored 10/10.
 
-## BT11-041 — Etemon — static audit pending focused verification
-
-- Catalog and KB evidence: Yellow/Black level-5 Etemon (7000 DP) has alternate evolution from a level-4 [Sukamon] for 3. On Play/When Digivolving, it may trash one [Sukamon]-named card from hand or this Digimon's evolution cards to give one opposing Digimon -3000 DP and Security Attack -1 until the end of the opponent's turn. Its inherited All Turns replacement may delete one other [Sukamon]-named Digimon to prevent its deletion; Q2075-Q2079 confirm the any-controller cost and non-recursive replacement behavior.
-- Implementation evidence: direct IR has both triggers sharing the optional trash-cost action, opposing Digimon targeting, -3000 DP and Security Attack -1, and the correct alternate level-4 Sukamon evolution requirement. The inherited replacement uses an any-controller, exclude-self [Sukamon] filter and optional prevent action. Coverage is full, residual is empty, and registration is exclusively `registerIrCard`; colocated tests cover catalog/evolution, hand and evolution-card costs, both-controller prevention, and recursion boundaries.
-- Causal gap: no static clause gap found; focused behavioral execution was intentionally not run under the static-only request, so this remains below 10/10 pending reproducible focused proof.
-
-## BT11-040 — Sukamon — static audit pending focused verification
-
-- Catalog and KB evidence: Yellow/Black level-4 Sukamon (1000 DP) has On Deletion reveal-top-3 behavior, adding one card named [Chuumon], [Sukamon], or [Etemon] and trashing the rest. Its inherited All Turns replacement may delete one other [Sukamon]-named Digimon to prevent its deletion; no card-specific KB ruling adds ambiguity.
-- Implementation evidence: direct IR uses `RevealAdd` with exactly three cards, controller-owned name alternatives, hand destination, and trash remainder. The inherited replacement is optional, excludes self, and permits an any-controller [Sukamon] cost. Coverage is full, residual is empty, registration is exclusively `registerIrCard`; colocated tests cover exact reveal/add/trash behavior, matching-name alternatives, friendly/opposing prevention costs, and decline.
-- Causal gap: no static clause gap found; focused behavioral execution was intentionally not run under the static-only request, so this remains below 10/10 pending reproducible focused proof.
 
 ## BT11-052 — Tyrannomon — source audit pending focused verification
 
