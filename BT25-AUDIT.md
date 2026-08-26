@@ -261,3 +261,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-013.
+
+## BT25-014 — Meramon — 10/10
+
+- Catalog evidence: Red level-4 Digimon, play cost 4, 5000 DP, `Champion`/`Data`, `Flame`/`Iliad`/`TS`; alternate level-3 Flame/TS evolution for 2; `[Main] [Once Per Turn]` trash one Flame/TS hand card, delete one opposing Digimon with 4000 DP or less, and Draw 2 if this effect did not delete; inherited When Attacking deletion with the same DP boundary.
+- Knowledge base: Q6258 allows activation and requires the trash cost even with no eligible opposing Digimon; Q6259 requires selecting/deleting an eligible target when one exists; Q6260 permits selecting a deletion-protected eligible target, whose failed deletion satisfies the Draw 2 condition.
+- Implementation: the direct IR uses a mandatory filtered hand-trash cost, mandatory exact-boundary Delete, structured `ifThisEffectDidNotDelete`, once-per-turn frequency, the alternate evolution recipe, and the inherited deletion. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-014", compiled)`.
+- Defects corrected: the Main deletion now sets `allowCostWithoutTarget`, allowing Q6258's cost-plus-zero-result path without making target selection optional. The shared Delete action preserves legally selected protected targets through target resolution while the deletion primitive still enforces protection, so result binding reports zero deleted for Q6260 and the conditional Draw 2 resolves.
+- Behavioral proof: the focused suite covers successful deletion at exactly 4000 DP without drawing, >4000 exclusion, once-per-turn suppression, Q6258 no-target payment/draw, Q6260 protected-target selection/draw, alternate evolution metadata, and inherited deletion from a realistic Meramon-under-BT25-015 stack. The new no-target/protected assertions fail against the prior seams.
+- Verification: focused suite — 6 passed; result-binding/interpreter regressions — 193 passed; immunity regressions — 3 passed; targeted Oxfmt and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated errors, including the pre-existing `DeleteAction.trackCount` typing issue, and no BT25-014 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-014
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-014.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-014.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-014.ts apps/api/src/cards/BT25/BT25-014.test.ts apps/api/src/engine/effects/interpreter/actions/removal.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-014.

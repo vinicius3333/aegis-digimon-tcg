@@ -31,7 +31,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         if (permanent?.topCard === undefined) return [];
         return action.position === "bottom"
           ? Array.from(permanent.stack).slice(0, action.cardsPerTarget)
-          : [...Array.from(permanent.stack), permanent.topCard].slice(-Math.min(action.cardsPerTarget, permanent.stack.length));
+          : [...Array.from(permanent.stack), permanent.topCard].slice(
+              -Math.min(action.cardsPerTarget, permanent.stack.length),
+            );
       });
       if (cards.length === 0) return false;
       let ordered = cards.map((card) => card.instanceId);
@@ -99,10 +101,14 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           },
         };
       }
+      // Deletion targets remain legally selectable even when protected by an effect. Preserve
+      // those chosen IDs through the delete primitive so the actual removal count is 0 and
+      // downstream `ifThisEffectDidNotDelete` clauses can observe the failed deletion (BT25-014
+      // Q6260). The primitive still enforces protection; this only preserves target selection.
       const resolved =
         target.totalDpCap !== undefined
           ? await resolveTotalDpCapTargets(ctx, target)
-          : await resolvePermanentTargets(ctx, target);
+          : await resolvePermanentTargets(ctx, target, { preserveUnaffectableSelection: true });
       const ids = survivorIds.length > 0 ? resolved.filter((id) => !survivorIds.includes(id)) : resolved;
       ctx.lastDeleteTargetSelected = ids.length > 0;
       if (action.at === "endOfTurn") {
@@ -576,7 +582,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             ...returnTarget.filter,
             dp: {
               ...returnTarget.filter.dp,
-              value: returnTarget.filter.dp.value + scaleFactor(ctx, action.dpCeilingScaling) * action.dpCeilingScaling.amount,
+              value:
+                returnTarget.filter.dp.value +
+                scaleFactor(ctx, action.dpCeilingScaling) * action.dpCeilingScaling.amount,
             },
           },
         };
