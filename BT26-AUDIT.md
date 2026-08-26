@@ -1560,3 +1560,48 @@ git diff --check
 ```
 
 No unresolved BT26-034 ambiguity or unsupported printed clause remains. The implementation and focused tests were corrected only for the inherited optionality gap; no shared-engine or peer-card files were changed. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-034; the collection is not marked complete.
+
+## BT26-035 — Morphomon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-035` (`Morphomon`), a green level-3 Rookie Digimon with play cost 3, 1000 DP, Vaccine attribute, and `Insectoid`/`NSp` traits. Its normal evolution requirement is green Lv.2 for cost 0, and its alternate requirement is `[Digivolve] Lv.2 w/[NSp] trait: Cost 0`. The main text is `[When Moving] [On Play] You may suspend 1 Digimon.` Its inherited text is `[Your Turn] [Once Per Turn] When this Digimon wins a battle, 1 of your [Insectoid] or [NSp] trait Digimon may digivolve into an [Insectoid] or [NSp] trait Digimon card in the hand with the cost reduced by 1.` It has no Security text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-035 --json`; it returns no Q&A ruling, erratum, or banlist restriction. `data/kb/errata.json` and `data/kb/banlist.json` contain no BT26-035 entry.
+- Comprehensive Rules evidence: §§2-3-5-1–3 define the alternate evolution requirement; §§8-1-1–3 define revealing, requirement checking, payment, stacking, and the evolution draw; §§11-2-1–5 define attack declaration and the suspension requirement; §§15-7-1–5 define optional processing; §§15-14-1-1–5 define Once Per Turn identity, activation counting, and reset; §§15-16-2-1, 15-16-16-1, and 15-16-5-1 define On Play, When Moving, and When Attacking timing. No unresolved card-specific ambiguity remains.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-035.ts` is compiled IR with `coverage: "full"` and `residual: []`. It registers exactly once through `registerIrCard("BT26-035", compiled)` and has no `registerCard` registration.
+- The alternate requirement is exact (`level: 2`, `traits: ["NSp"]`, `cost: 0`, `isAlternate: true`). The shared evolution legality path supplies the normal green Lv.2/cost-0 route and preserves requirement checking, stack transition, orientation, and draw behavior.
+- The combined `[When Moving] [On Play]` clause is represented by two trigger entries, both using one optional `Suspend` action targeting exactly one Digimon with `controller: "any"` and `kind: ["Digimon"]`. This permits either player’s Digimon and excludes Tamers while preserving the printed “may”.
+- The inherited clause is a `[Your Turn]` persistent watcher with `frequency: "OncePerTurn"` and a `SubTrigger` for `whenBattleWon`. `sourceFilter: { isSelfRef: true }` binds “this Digimon” to the host that actually won; the target is exactly one own Digimon and the hand destination is restricted to own Digimon cards with the complete OR trait filter (`Insectoid` or `NSp`). `payCost: true` with `costDelta: -1` reduces the normal digivolution cost by one while shared legality still enforces the destination card’s requirements. The interpreter’s turn-scope and stable Once Per Turn ledger carry the `[Your Turn]`/`[Once Per Turn]` semantics across recomputation.
+- Shared seams inspected: `effects/interpreter/actions/digivolve.ts` for candidate-zone/trait filtering, ordinary and alternate requirement legality, cost delta, hand source, and evolution stack transition; `effects/interpreter/actions/subTrigger.ts` for self-source binding, turn scope, optional activation, and stable Once Per Turn keys; target matching for `controller: "any"`, `controllerDefault: "mine"`, kind, and OR trait filters; attack/battle-win event dispatch; and the inherited-effect collector. Relevant peers inspected: BT26-034 and BT26-038 for adjacent NSp/TS evolution and the same battle-win inherited-digivolution vocabulary, plus BT26-036 for the paired On Play/When Moving and inherited suspend pattern.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-035.test.ts` now has 6 passing tests. The suite proves the exact alternate requirement and IR trigger/action shape; On Play suspension of an opponent Digimon; When Moving suspension from breeding; optional refusal for both suspend windows; optional refusal of the inherited evolution; an actual own-host battle win while an ally’s battle win is ignored; selection of an NSp target from a mixed board containing a non-matching Digimon; the one-memory cost reduction and final stack/source transition; and rejection of a near-match non-NSp alternate-evolution base.
+- The inherited mixed-board test uses a real `EX12-049` NSp target, a non-matching `BT1-009` ally, two legal Insectoid destination cards, and real attacks. It forces the NSp target, verifies the first evolution, unsuspends the host, and proves the second host battle in the same turn cannot consume the second candidate, providing mutation-sensitive evidence for source identity, OR trait breadth, cost reduction, and Once Per Turn.
+- The final-zone and negative assertions verify that declined optional effects leave the opponent unsuspended and the evolution card in hand, while a non-NSp Lv.2 breeding card cannot use the alternate route. All effects settle before observable assertions.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-035 --json
+  PASS (no Q&A; banlist: null; errata: null)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-035.test.ts
+  PASS (1 file, 6 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-034.test.ts src/cards/BT26/BT26-036.test.ts src/cards/BT26/BT26-038.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts
+  PASS (6 files, 358 tests)
+pnpm --filter @aegis/api exec vitest run src/engine/actions/digivolve.test.ts src/engine/effects/digivolveCandidateLegality.test.ts
+  PASS (2 files, 39 tests)
+pnpm exec oxlint apps/api/src/cards/BT26/BT26-035.ts apps/api/src/cards/BT26/BT26-035.test.ts
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-035.ts apps/api/src/cards/BT26/BT26-035.test.ts
+  PASS
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+git diff --check
+  PASS
+```
+
+No unresolved BT26-035 ambiguity or unsupported printed clause remains. No implementation or shared-engine change was needed; only the focused test was strengthened to provide the required optional, mixed-trait, host-source, cost, and Once Per Turn evidence. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-035; the collection is not marked complete.
