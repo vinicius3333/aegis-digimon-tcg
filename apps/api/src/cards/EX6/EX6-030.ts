@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const generated = getCompiledCard("EX6-030")!;
 const generatedWhenDigivolving = generated.effects.find((effect) => effect.trigger === "WhenDigivolving")!;
 
-/** EX6-030 — Mastemon, with security search/play and security-cost prevention structured. */
+/** EX6-030 — Dominimon, with security search/play and security-cost prevention structured. */
 export const compiled: CompiledCard = {
   ...generated,
   effects: generated.effects.map((effect) => {
@@ -25,7 +25,6 @@ export const compiled: CompiledCard = {
               count: 1,
             },
             then: { kind: "PlayWithoutCost", source: "security", payCost: false, optional: true },
-            optional: true,
             raw: "Search your security stack. You may play 1 level 5 or lower Digimon card with the [Angel]/[Archangel] trait among them without paying the cost.",
           },
           {
@@ -33,7 +32,6 @@ export const compiled: CompiledCard = {
             target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
             amount: -7000,
             duration: "untilEachTurnEnd",
-            optional: true,
           },
         ],
       };
@@ -45,6 +43,8 @@ export const compiled: CompiledCard = {
           action.kind === "Replacement"
             ? {
                 ...action,
+                affectsAll: true,
+                leaveCause: "otherThanBattle",
                 cost: {
                   kind: "trashSecurityTop",
                   controller: "mine",

@@ -33,6 +33,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          from: ["hand"],
           toTop: false,
         },
       ],

@@ -29,9 +29,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       const cards = targetIds.flatMap((id) => {
         const permanent = ctx.game.permanentById(id);
         if (permanent?.topCard === undefined) return [];
-        return [...Array.from(permanent.stack), permanent.topCard].slice(
-          -Math.min(action.cardsPerTarget, permanent.stack.length),
-        );
+        return action.position === "bottom"
+          ? Array.from(permanent.stack).slice(0, action.cardsPerTarget)
+          : [...Array.from(permanent.stack), permanent.topCard].slice(-Math.min(action.cardsPerTarget, permanent.stack.length));
       });
       if (cards.length === 0) return false;
       let ordered = cards.map((card) => card.instanceId);
@@ -41,6 +41,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       await ctx.fx.returnStackTopsToDeck(ordered, {
         byEffectSeat: ctx.source.ownerSeat,
         byEffectCardId: ctx.source.cardId,
+        position: action.position,
       });
       ctx.lastEffectActed = true;
       return false;
@@ -112,13 +113,23 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // Bind the delete OUTCOME on ctx (effect-result binding): the count actually removed, read
       // by a subsequent "if this effect didn't delete" Condition (KB BT23-069 Q5338). A resolve
       // that chose 0 targets (none eligible) is also "didn't delete" => bind 0.
+      const selectedLevels = ids.map((id) => {
+        const permanent = ctx.game.permanentById(id);
+        return permanent?.topCard === undefined ? undefined : ctx.game.definitionOf(permanent.topCard).level;
+      });
       ctx.lastDeleteCount = ids.length > 0 ? await ctx.fx.deletePermanent(ids) : 0;
       ctx.lastDeletedByThisEffectIds = ids.filter((id) => ctx.game.permanentById(id) === undefined);
+      ctx.lastDeletedLevel =
+        ctx.lastDeletedByThisEffectIds.length > 0 ? selectedLevels.find((level) => level !== undefined) : undefined;
       ctx.deletedThisEffectIds = [
         ...(ctx.deletedThisEffectIds ?? []),
         ...ctx.lastDeletedByThisEffectIds.filter((id) => !(ctx.deletedThisEffectIds ?? []).includes(id)),
       ];
       ctx.lastEffectActed = ctx.lastDeletedByThisEffectIds.length > 0;
+      if (action.trackCount !== undefined) {
+        ctx.namedCounts ??= new Map();
+        ctx.namedCounts.set(action.trackCount, ctx.lastDeletedByThisEffectIds.length);
+      }
       return false;
     }
     case "DeletePerColor": {

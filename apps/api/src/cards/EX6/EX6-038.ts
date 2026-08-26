@@ -13,10 +13,8 @@ export const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-            },
+            fromSelectionRef: "placementTarget",
+            filter: {},
             count: 1,
           },
           amount: 2000,
@@ -27,7 +25,7 @@ export const compiled: CompiledCard = {
               { kind: "payMemory", memory: 1 },
               {
                 kind: "place",
-                target: { filter: { zone: "hand", controller: "mine", kind: ["Option"] }, count: 1, from: ["hand"] },
+                target: { filter: { isSelfRef: true }, count: 1, from: ["hand"] },
                 underFilter: { controller: "mine", kind: ["Digimon"], levels: [3] },
                 underOrFilters: [
                   { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Legend-Arms"], match: "trait" }] },
@@ -35,6 +33,7 @@ export const compiled: CompiledCard = {
                 destination: "digivolutionStack",
                 position: "bottom",
                 host: "target",
+                bindHostAs: "placementTarget",
               },
             ],
             raw: "By paying 1 cost and placing this card as the bottom digivolution card of 1 of your Digimon that's level 3 or has the [Legend-Arms] trait",
@@ -51,6 +50,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          sourceFilter: {
+            isSelfRef: true,
+          },
           actions: [
             {
               kind: "Draw",

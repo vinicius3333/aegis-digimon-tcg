@@ -52,6 +52,9 @@ export const compiled: CompiledCard = {
                 raw: "and placing this card as the bottom digivolution card of 1 of your Digimon that's level 6 or has the [Legend-Arms] trait",
               },
             ],
+            // The printed payment and self-placement form one activation condition.
+            // Do not let the dependent Delete resolve if either half cannot be paid.
+            abortOnDecline: true,
             raw: "By paying 3 cost and placing this card as the bottom digivolution card of 1 of your Digimon that's level 6 or has the [Legend-Arms] trait, delete 1 of your opponent's Digimon with as much or less DP as that Digimon.",
           },
         ],

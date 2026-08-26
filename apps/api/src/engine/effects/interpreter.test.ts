@@ -3641,6 +3641,15 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
       { instanceId: "W1", cardId: "WERE" },
       { instanceId: "B1", cardId: "GABU" },
     ];
+    ctx.fx.placeUnder = async (...args) => {
+      recorder.calls.push({ verb: "placeUnder", args });
+      return (args[1] as string[]).map((instanceId) => ({
+        instanceId,
+        cardId: instanceId,
+        ownerSeat: 0,
+        faceUp: true,
+      })) as never;
+    };
     const paid = await payCost(ctx, {
       kind: "place",
       destination: "digivolutionStack",
@@ -3663,6 +3672,41 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     expect(recorder.calls).toContainEqual({
       verb: "placeUnder",
       args: ["SELF#NAMED-COST", ["G1", "W1"], { belowTop: false, faceUp: true }],
+    });
+  });
+
+  it("does not pay or bind a routed digivolution-stack cost when placeUnder moves no selected card", async () => {
+    const handCard = { instanceId: "UNMOVED", cardId: "UNMOVED", ownerSeat: 0, faceUp: true } as never;
+    const host = makeFakePermanent({
+      permanentId: "HOST#UNMOVED",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "HOST-CARD", cardId: "HOST", ownerSeat: 0, faceUp: true } as never,
+    });
+    const source = makeSource({ cardId: "SOURCE", permanent: () => host });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ source, recorder, ownHand: [handCard], ownBattleArea: [host] });
+    const out = { paidCount: 0 };
+
+    const paid = await payCost(
+      ctx,
+      {
+        kind: "place",
+        destination: "digivolutionStack",
+        position: "bottom",
+        host: "self",
+        bindHostAs: "placementTarget",
+        target: { filter: { zone: "hand" }, from: ["hand"], count: 1 },
+        raw: "by placing 1 card from your hand as this Digimon's bottom digivolution card",
+      },
+      out,
+    );
+
+    expect(paid).toBe(false);
+    expect(out.paidCount).toBe(0);
+    expect(ctx.selections?.has("placementTarget")).toBe(false);
+    expect(recorder.calls).toContainEqual({
+      verb: "placeUnder",
+      args: ["HOST#UNMOVED", ["UNMOVED"], { belowTop: false, faceUp: true }],
     });
   });
 

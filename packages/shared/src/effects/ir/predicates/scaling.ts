@@ -31,6 +31,7 @@ export interface Scaling {
     | "targetFaceDownDigivolutionCards"
     | "linkCards" // linked cards across matching permanents, not the permanents (BT25-075)
     | "deletedThisEffect"
+    | "lastDeletedLevel" // printed level of the preceding successful Delete target (EX6-058)
     | "namedCount" // a count already in `EffectContext.namedCounts`
     | "memory" // current memory from `filter.controller`'s perspective, floored at 0
     | "targetColors"; // distinct colors on the selected target permanent

@@ -412,14 +412,17 @@ export async function runSubTrigger(
     event === "whenSecurityBattleEnded"
       ? (subCtx: EffectContext): boolean => subCtx.trigger.securityInstanceId === ctx.source.instanceId
       : undefined;
-  // `whenEffectSuspends` without an explicit sourceFilter is the printed self-scoped form:
+  // `whenEffectSuspends` without an explicit subject/source filter is the printed self-scoped form:
   // "when an effect suspends THIS Digimon" (EX3-038 and its family). The bus broadcasts every
   // effect-suspension, including the opponent Digimon suspended by the watcher's own body, so
   // leaving this ungated makes every copy react to every Digimon and recursively suspend the
-  // opponent's entire board. Filtered forms ("when your effect suspends a Tamer") deliberately
-  // keep their broader subject gate above.
+  // opponent's entire board. Filtered forms ("when your effect suspends a Tamer" or EX6-064's
+  // "one of your Digimon") deliberately keep their broader subject gate above.
   const effectSuspendsSelfGate =
-    event === "whenEffectSuspends" && sourceFilter === undefined && anchorPermanentId !== undefined
+    event === "whenEffectSuspends" &&
+    sourceFilter === undefined &&
+    action.triggerFilter === undefined &&
+    anchorPermanentId !== undefined
       ? (subCtx: EffectContext): boolean => subCtx.trigger.suspendedPermanentId === anchorPermanentId
       : undefined;
   // `whenSuspended` is a board-wide bus. The single-card payload historically carries only
@@ -756,11 +759,19 @@ export async function runSubTrigger(
   // generic `filterMatch` uses for `sourceFilter` on other events.
   //   BT20-080: { isSelfRef: true } — fires only when cards are placed under THIS permanent.
   //   BT21-080: { kind: ["Digimon"], nameOrTrait: [...] } — receiver must be Gammamon/Hero trait.
+  // For suspension events, the event subject is the Digimon that was actually
+  // suspended; EX6-064 uses this to distinguish one of your Digimon from an
+  // opponent's Digimon without requiring that it be the Tamer itself.
   // For attack events (whenAttacking / whenOpponentAttacks) the event subject is the
   // ATTACKER, so the same subject-filter gate lets a watcher fire only when the attacker matches —
   // including relative gates like `digivolutionCardsCompareToSource` ("with as many or fewer
   // digivolution cards as this Digimon attacks", BT15-032 and AD1/BT16-family cards).
-  const SUBJECT_TRIGGER_FILTER_EVENTS = new Set(["whenAttacking", "whenOpponentAttacks", "whenLinked"]);
+  const SUBJECT_TRIGGER_FILTER_EVENTS = new Set([
+    "whenAttacking",
+    "whenOpponentAttacks",
+    "whenLinked",
+    "whenEffectSuspends",
+  ]);
   const triggerFilterGate =
     action.triggerFilter !== undefined &&
     (event === "onAddDigivolutionCards" || SUBJECT_TRIGGER_FILTER_EVENTS.has(event))
@@ -849,6 +860,32 @@ export async function runSubTrigger(
       ? (subCtx: EffectContext): boolean =>
           subCtx.trigger.removalCause === (sourceDeleteCause === "byEffect" ? "byEffect" : "byRule")
       : undefined;
+  // Leave-play watchers use the same relative cause vocabulary as replacements.  Preserve the
+  // event's effect-owner provenance so "other than by one of your effects" can distinguish an
+  // opponent effect, battle, and rules departure from the watcher's controller's own effect.
+  const leaveCauseGate =
+    event === "whenLeavesPlay" && action.leaveCause !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const cause = subCtx.trigger.removalCause ?? "byRule";
+          const resolvingSeat = subCtx.trigger.byEffectSeat;
+          switch (action.leaveCause) {
+            case "opponentEffect":
+            case "byOpponentEffect":
+              return cause === "byEffect" && resolvingSeat !== undefined && resolvingSeat !== subCtx.source.ownerSeat;
+            case "otherThanYourEffect":
+              return !(cause === "byEffect" && resolvingSeat === subCtx.source.ownerSeat);
+            case "byEffect":
+              return cause === "byEffect";
+            case "byBattle":
+              return cause === "byBattle";
+            case "otherThanBattle":
+              return cause !== "byBattle";
+            case "any":
+            default:
+              return true;
+          }
+        }
+      : undefined;
   const trashedDigivolutionTopGate =
     event === "whenDigivolutionTrashed" && action.requireTrashedDigivolutionCardWasTop === true
       ? (subCtx: EffectContext): boolean => subCtx.trigger.trashedDigivolutionCardWasTop === true
@@ -902,6 +939,7 @@ export async function runSubTrigger(
     inheritedHostNameGate,
     hostFilterGate,
     deleteCauseGate,
+    leaveCauseGate,
     notSimultaneousGate,
     trashedDigivolutionTopGate,
     faceDownDigivolutionBatchGate,

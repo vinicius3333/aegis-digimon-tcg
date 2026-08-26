@@ -10,37 +10,44 @@ export const compiled: CompiledCard = {
         {
           kind: "ModifyDP",
           target: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              orFilters: [
-                {
-                  levelComparison: {
-                    op: "eq",
-                    value: 4,
-                  },
-                },
-                {
-                  nameOrTrait: [
-                    {
-                      tokens: ["Legend-Arms"],
-                      match: "trait",
-                    },
-                  ],
-                },
-              ],
-            },
+            fromSelectionRef: "placementTarget",
+            filter: {},
             count: 1,
           },
           amount: 4000,
           duration: "forTheTurn",
           cost: {
-            kind: "payAndPlaceUnder",
-            payCost: 1,
-            placeThis: true,
-            position: "bottom",
-            raw: "By paying 1 cost and placing this card as the bottom digivolution card of 1 of your Digimon that's level 4 or has the [Legend-Arms] trait",
+            kind: "payMemory",
+            memory: 1,
+            raw: "By paying 1 cost",
           },
+          additionalCosts: [
+            {
+              kind: "place",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                from: ["hand"],
+              },
+              underFilter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                levelComparison: { op: "eq", value: 4 },
+              },
+              underOrFilters: [
+                {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Legend-Arms"], match: "trait" }],
+                },
+              ],
+              destination: "digivolutionStack",
+              position: "bottom",
+              host: "target",
+              bindHostAs: "placementTarget",
+              raw: "and placing this card as the bottom digivolution card of 1 of your Digimon that's level 4 or has the [Legend-Arms] trait",
+            },
+          ],
           optional: true,
           abortOnDecline: true,
         },

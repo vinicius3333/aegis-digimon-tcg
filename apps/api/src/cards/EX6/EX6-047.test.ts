@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-047.js";
 
-describe("EX6-047 LadyDevimon", () => {
+describe("EX6-047 Boogiemon", () => {
   it("reveals three for Fallen Angel/Demon Lord and purple Options, then trashes a hand card if it added", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
       {

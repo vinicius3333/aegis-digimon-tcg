@@ -14,13 +14,37 @@ describe("EX6-029 Mastemon", () => {
       target: { filter: { levelComparison: { op: "lte", value: 5 } } },
     });
   });
-  it("during DNA digivolving places a security card under a Digimon and trashes security until four remain", () =>
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions.slice(1)).toMatchObject([
+  it("during DNA digivolving mandatorily places a Digimon into security and trashes until four remain", () => {
+    const tail = compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions.slice(1);
+    expect(tail).toMatchObject([
       {
-        kind: "PlaceUnder",
+        kind: "SecurityManipulation",
+        op: "placeAsSecurity",
         condition: { kind: "isDnaDigivolving" },
-        underFilter: { zone: "security", position: "bottom" },
+        from: ["battleArea"],
+        toTop: false,
+        ownerSecurity: true,
       },
-      { kind: "SecurityManipulation", op: "trashTop", leaveCount: 4, condition: { kind: "isDnaDigivolving" } },
-    ]));
+      {
+        kind: "SecurityManipulation",
+        op: "trashTop",
+        leaveCount: 4,
+        condition: { kind: "isDnaDigivolving" },
+      },
+    ]);
+    expect(tail?.[0]).not.toHaveProperty("optional");
+    expect(tail?.[1]).not.toHaveProperty("optional");
+  });
+  it("routes the selected other Digimon to its owner's security bottom through the executable security primitive", () => {
+    const action = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[1];
+    expect(action).toMatchObject({
+      kind: "SecurityManipulation",
+      op: "placeAsSecurity",
+      from: ["battleArea"],
+      toTop: false,
+      ownerSecurity: true,
+      source: { filter: { excludeSelf: true, kind: ["Digimon"] }, count: 1 },
+    });
+    expect(action).not.toHaveProperty("underFilter");
+  });
 });

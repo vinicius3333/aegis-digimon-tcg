@@ -1,16 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-062.js";
 
-describe("EX6-062 Mastemon", () => {
+describe("EX6-062 UltimateChaosmon", () => {
   it("has Partition and during DNA digivolving places up to two level 6 cards from trash under itself", () => {
     expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords?.[0]?.keyword).toBe("Partition");
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "PlaceUnder",
       condition: { kind: "isDnaDigivolving" },
-      target: { count: 2, upTo: true, from: ["trash"] },
+      target: { count: 2, upTo: true, from: ["trash"], filter: { levels: [6] } },
     });
   });
-  it("returns an opposing Digimon for each level 6 stack card and grants Security Attack +3/Piercing at four", () =>
+  it("mandatorily returns an opposing Digimon for each level 6 stack card and grants Security Attack +3/Piercing at four", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[1]).toMatchObject({
+      kind: "Return",
+      to: "deckBottom",
+    });
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions).toMatchObject([
       {
         kind: "Aura",
@@ -18,5 +22,6 @@ describe("EX6-062 Mastemon", () => {
         while: { kind: "selfDigivolutionStackCountAtLeast", count: 4 },
       },
       { kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "Piercing" } } },
-    ]));
+    ]);
+  });
 });

@@ -188,6 +188,9 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
     return Math.floor(ids.length / per);
   }
   switch (scaling.unit) {
+    case "lastDeletedLevel":
+      raw = ctx.lastDeletedLevel ?? 0;
+      break;
     case "memory": {
       const ownPerspective =
         ctx.source.ownerSeat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
