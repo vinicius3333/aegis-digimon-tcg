@@ -448,3 +448,57 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
 - Remaining ambiguity: none identified; Q1287's fixed-cost exception is
   documented by the KB but belongs to the shared digivolution-cost consumer,
   not this card's restriction declaration.
+
+## BT5-009 — Shoutmon — 10/10
+
+- Catalog evidence: Red Lv.3 Rookie Digimon, Data/Mini Dragon, play cost 3,
+  1000 DP, red Lv.2 evolution cost 0, rarity U, and four-copy limit. Its
+  complete text is `[On Play] Reveal 5 cards from the top of your deck. Add 1
+  Digimon card with [Shoutmon] in its name and 1 Digimon card with <Blitz>
+  among them to your hand. Place the remaining cards at the bottom of your
+  deck in any order.` Its inherited text is `[Your Turn] While this Digimon
+  has <Blitz>, it gets +2000 DP.`
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-009`
+  returns Q1288-Q1290. Q1288 establishes that either matching category may be
+  added when both are not present; Q1289 establishes that two Shoutmon DX
+  copies may both be added because each satisfies both categories; Q1290
+  identifies the exact two categories. The local rules define <Blitz> as
+  permitting an attack while the opponent has 1 or more memory, and the
+  inherited Your Turn condition is controller-relative. No errata or
+  unresolved ambiguity applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-009.ts` contains one `OnPlay`
+  `RevealAdd` revealing exactly 5 cards, adding one Digimon whose name
+  contains `Shoutmon` and one Digimon with the `Blitz` keyword, then bottoming
+  the remainder. Its inherited `YourTurn` aura grants exactly +2000 DP while
+  the host has `Blitz`. It declares `coverage: "full"`, `residual: []`, and
+  registers exclusively through `registerIrCard("BT5-009", compiled)`.
+- Primitive and peer evidence: `RevealAdd` evaluates both add slots over the
+  revealed cards, tracks selected instances independently (so one card cannot
+  be selected twice, while two overlapping copies can satisfy both slots),
+  moves selected cards to hand, and returns all remaining revealed cards to the
+  deck bottom. The continuous aura uses the same live keyword and turn-owner
+  machinery as neighboring BT5 inherited effects. BT5-014 supplies the
+  Shoutmon evolution/name peer and BT5-019 supplies the dual Shoutmon/<Blitz>
+  peer used by Q1289.
+- Behavioral proof: 5 focused tests pass. The positive case verifies one
+  Shoutmon and one Blitz card are added and the other three revealed cards are
+  bottomed; the inherited-stack case verifies +2000 DP on a Blitz host; the
+  Q1289 case verifies two Shoutmon DX copies are both added; the one-category
+  boundary verifies the sole Shoutmon is still added and all other revealed
+  cards are bottomed; and the turn-boundary case verifies the inherited bonus
+  disappears during the opponent's turn. The stack fixture uses BT5-009 under
+  BT5-014, proving the inherited source transition rather than an isolated
+  card-only fixture.
+- Defect corrected: no card or engine defect. Added only the missing category
+  boundary and controller-turn assertions to
+  `apps/api/src/cards/BT5/BT5-009.test.ts`.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-009.test.ts --pool=forks
+  --poolOptions.forks.singleFork=true --no-file-parallelism` — 1 file, 5 tests
+  passed. No shared engine seam changed, so no mechanism regression suite was
+  required. Workspace `pnpm typecheck` builds shared and web successfully but
+  retains the pre-existing unrelated API errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and `primitives.test.ts`; it reports no
+  BT5-009 errors. Changed-file formatting and `git diff --check` pass.
+- Remaining ambiguity: none identified.
