@@ -764,6 +764,15 @@ export class AegisRoom extends Room<GameState> {
    */
   override onBeforePatch(): void {
     this.engine.syncCounts();
+    // Refresh every view before the patch is encoded, not only after the three events that
+    // happen to name a move. A StateView must still recognise a card as visible at the moment
+    // its removal is encoded, or the encoder drops the delete and the client's copy of the
+    // hand keeps the card forever (see rebuildClientViews). Any hand-emptying path whose
+    // event is not `cardPlayed`/`cardsMoved`/`digivolved` — a cost paid mid-effect, a card
+    // placed under a permanent by a watcher — used to strand exactly that way, so each such
+    // move left one more phantom copy in the player's own hand. Refreshing per patch closes
+    // the whole class: `unlockInto` is add-only and idempotent, so this is safe to repeat.
+    this.rebuildClientViews();
   }
 
   private handleIntent(client: Client, intent: Intent): void {
