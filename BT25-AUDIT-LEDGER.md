@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-030 (Elecmon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-030 Elecmon | Yellow level 3 Digimon; alternate level-2 `[TS]` evolution cost 0; start of your main phase, by adding your top security card to hand, gain 1 memory; inherited when attacking once per turn may add the top security card to hand, then if you have 0 security cards, Recovery +1. Q6297 confirms the inherited effect may activate at zero security and perform Recovery without adding a card to hand. | **No card-specific causal mismatch found statically.** The main effect requires the security-to-hand cost before gaining memory. The inherited sequence separately offers optional top-security movement, then conditionally grants Recovery +1 when the controller has exactly zero security; an empty security stack can therefore continue to the Recovery clause. Alternate evolution, once-per-turn frequency, and inherited scope are represented. | The colocated tests are structural only and do not execute payment/refusal, empty-security Recovery, security-removal triggers, deck exhaustion, or alternate evolution. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-030
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-030` (Q6297).
+- Direct module/test and shared security-to-hand, conditional Recovery keyword, optional action,
+  and once-per-turn handling were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-029 (MirageGaogamon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
