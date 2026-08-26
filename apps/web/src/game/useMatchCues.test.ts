@@ -27,6 +27,12 @@ const EFFECT_CHECK_NOTICE_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS + SEC
 /** When a reveal the server has not closed yet has finished putting its card on screen. */
 const REVEAL_SHOWN_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_OUTCOME_AT_MS;
 
+/**
+ * When that card has played out and left the centre of the screen. A check the server is
+ * still resolving hands the board over here: its effects read out on a clear board.
+ */
+const REVEAL_EXIT_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS;
+
 const playSound = vi.hoisted(() => vi.fn<(kind: string) => void>());
 vi.mock("../design/sound", () => ({ playSound }));
 
@@ -177,7 +183,7 @@ describe("match cues", () => {
 
   // The point of the split: the card is on screen at the moment of the attack, and
   // everything it causes — its effect, its decisions, its battle — plays after it.
-  it("shows the revealed card while the server is still resolving the check", async () => {
+  it("shows the revealed card, then takes it off the screen before the check resolves", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
@@ -186,17 +192,14 @@ describe("match cues", () => {
     expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
     expect(result.current.securityClash?.resolution).toBe("pending");
 
-    // No close, so the card holds: the scene outlives the clock a settled one runs on.
-    await advance(CLASH_TOTAL_MS * 2);
-    expect(result.current.securityClash?.resolution).toBe("pending");
+    // The scene plays to its end and the card leaves on its own, so whatever the check
+    // does next — its effects, their prompts — happens on a board it has handed over.
+    await advance(CLASH_TOTAL_MS);
+    expect(result.current.securityClash).toBeNull();
 
+    // The close no longer brings the card back: the viewer has already watched it resolve.
     rerender([ATTACK, REVEAL, CHECK]);
-    await advance(0);
-    expect(result.current.securityClash?.resolution).toBe("battle");
-    // The outcome beat starts at the close rather than on the reveal's clock.
-    expect(result.current.securityClash?.outcomeStartsNow).toBe(true);
-
-    await advance(CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
+    await advance(CLASH_TOTAL_MS);
     expect(result.current.securityClash).toBeNull();
   });
 
@@ -211,9 +214,10 @@ describe("match cues", () => {
     await advance(0);
     expect(result.current.securityRevealPending).toBe(true);
 
-    await advance(REVEAL_SHOWN_AT_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS);
+    await advance(REVEAL_EXIT_AT_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS);
     expect(result.current.securityRevealPending).toBe(true);
-    expect(result.current.securityClash?.resolution).toBe("pending");
+    // The card has left, but the check still owns the board until it closes.
+    expect(result.current.securityClash).toBeNull();
 
     rerender([REVEAL, CHECK]);
     await advance(CLASH_TOTAL_MS + SECURITY_BRANCH_TOTAL_MS);
@@ -231,12 +235,13 @@ describe("match cues", () => {
     expect(result.current.securityRevealPending).toBe(true);
 
     rerender({ events: [REVEAL], decisionPending: true });
-    await advance(REVEAL_SHOWN_AT_MS - 1);
+    await advance(REVEAL_EXIT_AT_MS - 1);
     expect(result.current.securityRevealPending).toBe(true);
 
     await advance(1);
     expect(result.current.securityRevealPending).toBe(false);
-    expect(result.current.securityClash?.resolution).toBe("pending");
+    // The question opens on a clear board: the card it belongs to has already left.
+    expect(result.current.securityClash).toBeNull();
   });
 
   // A card the viewer already watched resolve does not detour to the side afterwards.
@@ -386,6 +391,40 @@ describe("match cues", () => {
     expect(result.current.attackLunge).toBeNull();
     expect(result.current.combatImpactIds.size).toBe(0);
     expect(result.current.deleteBursts).toHaveLength(1);
+  });
+
+  it("holds a battle's effect notices until the blow has landed", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    const declare: ServerEvent = {
+      kind: "attackDeclared",
+      seat: 1,
+      attackerPermanentId: "perm-1",
+      attackerCardId: "BT1-010",
+      target: { kind: "permanent", permanentId: "perm-dead" },
+      targetCardId: "BT1-020",
+    };
+    // The server holds `combatResolved` until the attack ends, so the deletion trigger it
+    // fired reaches the client ahead of the event the battle scene is cut from.
+    const triggered: ServerEvent = {
+      kind: "effectTriggered",
+      seat: 1,
+      sourceCardId: "BT1-010",
+      effectKey: "BT1-010:onDeletion",
+      timing: "OnDeletion",
+      description: "Draw 1 card.",
+    };
+    rerender([declare, triggered, COMBAT]);
+    await advance(0);
+    expect(result.current.notices).toEqual([]);
+
+    await advance(FIELD_CLASH_IMPACT_AT_MS);
+    expect(result.current.notices).toEqual([]);
+
+    await advance(COMBAT_IMPACT_TOTAL_MS);
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.notices[0]).toMatchObject({ body: { variant: "effect", cardId: "BT1-010" } });
   });
 
   it("bursts for an effect that trashes a permanent off the field", async () => {
@@ -662,7 +701,7 @@ describe("notices", () => {
     await advance(0);
 
     rerender([REVEAL, CHECK_OWNED_EFFECT]);
-    await advance(REVEAL_SHOWN_AT_MS - 1);
+    await advance(REVEAL_EXIT_AT_MS - 1);
     expect(result.current.notices).toEqual([]);
 
     await advance(1);
@@ -678,7 +717,7 @@ describe("notices", () => {
     await advance(TIMINGS.securityArm);
 
     rerender([REVEAL, CHECK_OWNED_EFFECT]);
-    await advance(REVEAL_SHOWN_AT_MS - TIMINGS.securityArm - 1);
+    await advance(REVEAL_EXIT_AT_MS - TIMINGS.securityArm - 1);
     expect(result.current.notices).toEqual([]);
 
     await advance(1);
