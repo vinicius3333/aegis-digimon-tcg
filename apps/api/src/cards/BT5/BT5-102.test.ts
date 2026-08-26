@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./BT5-046.js";
 import "./BT5-102.js";
 
 describe("BT5-102 Wisselen", () => {
@@ -21,6 +22,7 @@ describe("BT5-102 Wisselen", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 8;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
@@ -57,6 +59,7 @@ describe("BT5-102 Wisselen", () => {
       },
       { autoSelectCards: true },
     );
+    await s.ready();
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(false);
