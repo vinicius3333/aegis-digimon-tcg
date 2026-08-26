@@ -11990,7 +11990,9 @@
               "kind": "deleteOwn",
               "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
               "raw": "By deleting this Digimon"
-            }
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -12011,7 +12013,7 @@
         "actions": [
           {
             "kind": "SubTrigger",
-            "event": "onDigivolutionCardDiscarded",
+            "event": "onDigivolutionCardsDiscardedBatch",
             "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "GainMemory", "amount": 1 }]
           }
