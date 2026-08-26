@@ -11818,12 +11818,14 @@
             "cost": {
               "kind": "return",
               "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "levels": [6],
-                  "excludeNames": ["Justimon: Accel Arm"]
-                },
+              "filter": {
+                "zone": "digivolutionCards",
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "levels": [6],
+                "excludeNames": ["Justimon: Accel Arm"],
+                "hostFilter": { "isSelfRef": true }
+              },
                 "count": 1
               },
               "raw": "By returning 1 level 6 Digimon card without [Justimon: Accel Arm] in its name from this Digimon's digivolution cards to its owner's hand"
