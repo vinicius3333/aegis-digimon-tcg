@@ -24,11 +24,11 @@ const compiled: CompiledCard = {
           from: ["trash"],
           payCost: false,
           condition: {
-            kind: "youHave",
-            countMin: 0,
-            countMax: 1,
+            kind: "permanentCount",
+            seat: "mine",
+            op: "lte",
+            value: 1,
             filter: {
-              controllerDefault: "mine",
               kind: ["Tamer"],
             },
             raw: "you have 1 or fewer Tamers",
