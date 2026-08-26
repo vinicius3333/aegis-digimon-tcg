@@ -1,29 +1,50 @@
 import { describe, expect, it } from "vitest";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import "./BT19-057.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 
-describe("BT19-057", () => {
-  it("preserves optional Tamer digivolution, Save, and inherited Collision", () => {
-    const card = runtimeCompiledCard("BT19-057");
-    expect(card).toMatchObject({ coverage: "full", residual: [] });
-    expect(card?.effects).toMatchObject([
-      {
-        trigger: "WhenAttacking",
-        actions: [
-          {
-            kind: "Digivolve",
-            into: { nameOrTrait: [{ tokens: ["RaptorSparrowmon"] }] },
-            onto: { filter: { controller: "mine", kind: ["Tamer"] } },
-            optional: true,
-          },
-        ],
-      },
-      { trigger: "OnDeletion", keywords: [{ keyword: "Save" }] },
-      {
-        trigger: "YourTurn",
-        isInherited: true,
-        actions: [{ kind: "GainKeyword", keyword: { keyword: "Collision" }, duration: "permanent" }],
-      },
-    ]);
+describe("BT19-057 Sparrowmon", () => {
+  it("When Attacking may evolve into exact RaptorSparrowmon under a Tamer at no cost", async () => {
+    const s = setupEngine({ 0: { battleArea: [
+      { card: "BT19-057", as: "sparrow" }, { card: "BT19-081", as: "tamer", under: ["BT19-061"] },
+    ] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 0;
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("sparrow"));
+    expect(s.perm("sparrow").topCard?.cardId).toBe("BT19-061");
+    expect(s.perm("tamer").stack).toEqual([]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("may decline its attack evolution", async () => {
+    const s = setupEngine({ 0: { battleArea: [
+      { card: "BT19-057", as: "sparrow" }, { card: "BT19-081", as: "tamer", under: ["BT19-061"] },
+    ] } }, { autoDeclineOptional: true, autoSelectCards: true });
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("sparrow"));
+    expect(s.perm("sparrow").topCard?.cardId).toBe("BT19-057");
+    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT19-061"]);
+  });
+
+  it("Save places deleted Sparrowmon under its controller's Tamer", async () => {
+    const s = setupEngine({ 0: { battleArea: [
+      { card: "BT19-057", as: "sparrow" }, { card: "BT19-081", as: "tamer" },
+    ] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("sparrow").permanentId], "byEffect");
+    await settle(() => s.perm("tamer").stack.some((card) => card.cardId === "BT19-057"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT19-057")).toBe(false);
+  });
+
+  it("inherits Collision only on an Xros Heart host during its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [
+      { card: "BT19-061", as: "host", under: ["BT19-057"] }, { card: "BT19-015", as: "other", under: ["BT19-057"] },
+    ] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Collision")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("other"), "Collision")).toBe(false);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Collision")).toBe(false);
   });
 });
