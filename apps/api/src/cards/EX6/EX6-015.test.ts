@@ -4,7 +4,13 @@ import { compiled } from "./EX6-015.js";
 describe("EX6-015 Xiangpengmon", () => {
   it("places up to three other blue Digimon under itself and returns opposing low-level Digimon scaled by the placed count", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "PlaceUnder", optional: true, trackCount: "xiangpengmonPlacedCount", target: { count: 3, upTo: true } },
+      {
+        kind: "PlaceUnder",
+        optional: true,
+        trackCount: "xiangpengmonPlacedCount",
+        targetIsPermanent: true,
+        target: { count: 3, upTo: true },
+      },
       {
         kind: "Return",
         to: "hand",
@@ -19,6 +25,7 @@ describe("EX6-015 Xiangpengmon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "onAddDigivolutionCards",
+      sourceFilter: { isSelfRef: true },
       actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false, optional: true }],
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "Rule")?.actions[0]).toMatchObject({

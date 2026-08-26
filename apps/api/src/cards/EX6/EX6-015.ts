@@ -24,6 +24,7 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           trackCount: "xiangpengmonPlacedCount",
+          targetIsPermanent: true,
         },
         {
           kind: "Return",
@@ -44,7 +45,6 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           to: "hand",
-          optional: true,
         },
       ],
     },
@@ -65,6 +65,7 @@ export const compiled: CompiledCard = {
           },
           optional: true,
           trackCount: "xiangpengmonPlacedCount",
+          targetIsPermanent: true,
         },
         {
           kind: "Return",
@@ -85,7 +86,6 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           to: "hand",
-          optional: true,
         },
       ],
     },
@@ -95,6 +95,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          sourceFilter: {
+            isSelfRef: true,
+          },
           actions: [
             {
               kind: "PlayWithoutCost",
