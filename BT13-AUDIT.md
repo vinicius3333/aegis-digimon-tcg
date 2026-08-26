@@ -11,7 +11,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-007 — 10/10
   - Evidence: catalog and KB Q2259–Q2265/Q2340/Q2369/Q2463 reviewed; direct compiled IR exclusively registers through `registerIrCard` and traces breeding restriction, optional scaled cost replacement, egg/Royal Knight placement, inherited Option trigger, ownership, and separate once-per-turn keys.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-007.test.ts` passed (5 tests): breeding evolution lock, reduction/decline and frequency, mandatory egg/Royal Knight placement with non-match retained, and inherited Royal Knight Option frequency.
-- BT13-008 — Pending
+- BT13-008 — 10/10
+  - Evidence: catalog and KB Q2266/Q2267/Q5981–Q5985 reviewed; compiled IR exclusively uses `registerIrCard`, with Koromon alternate evolution, Marcus kind/DP/digivolve restriction, and inherited red-or-yellow Tamer suspension watcher traced through targeting, duration, ownership, and frequency primitives.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-008.test.ts` passed (5 tests): alternate 0-cost evolution, Marcus's 3000-DP Digimon/restriction state, inclusive deletion boundary and once-per-turn behavior, optional refusal, and blue-Tamer negative.
 - BT13-009 — Pending
 - BT13-010 — Pending
 - BT13-011 — Pending
