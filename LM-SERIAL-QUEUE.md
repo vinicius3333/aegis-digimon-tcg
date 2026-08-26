@@ -1,7 +1,8 @@
 # LM serial low-RAM queue
 
-Do not start this queue until PID 43774 has exited and the coordinator explicitly reopens the
-one-test slot. Run exactly one listed file per process, in order, with no file parallelism:
+Do not start this queue while broad Vitest PID/PGID 82901 is active. After it exits, wait for a
+fresh explicit coordinator authorization that reopens the one-test slot. Run exactly one listed
+file per process, in order, with no file parallelism:
 
 ```sh
 pnpm --filter @aegis/api exec vitest run src/cards/LM/<CARD-ID>.test.ts --pool=forks --poolOptions.forks.singleFork=true --fileParallelism=false
