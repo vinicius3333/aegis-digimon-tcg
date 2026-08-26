@@ -5,6 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const linkedSource = {
   controllerDefault: "mine",
   zone: "digivolutionCards",
+  hostFilter: { isSelfRef: true },
   kind: ["Digimon"],
   levels: [3],
   hasLinkRequirement: true,

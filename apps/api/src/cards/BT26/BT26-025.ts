@@ -47,5 +47,6 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 2, traits: ["Glowing Dawn"], cost: 0, isAlternate: true }],
 };
 registerIrCard("BT26-025", compiled);

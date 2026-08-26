@@ -13,7 +13,15 @@ const placeHandCost = {
   position: "bottom",
   faceDown: true,
 };
-const placeDeckTop = { kind: "PlaceUnder", fromDeckTop: true, target: { filter: {}, count: 1 }, faceDown: true };
+// `position: "top"` is the fromDeckTop encoding for the TRUE bottom of the cards under this
+// Tamer (Q7137/Q6415): the engine's fromDeckTop branch reads `position !== "top"` as belowTop.
+const placeDeckTop = {
+  kind: "PlaceUnder",
+  fromDeckTop: true,
+  target: { filter: {}, count: 1 },
+  position: "top",
+  faceDown: true,
+};
 const removalGate = { kind: "triggerRemovedSecuritySeat", seat: "mine" };
 const nonEffectRemovalGate = {
   kind: "allOf",

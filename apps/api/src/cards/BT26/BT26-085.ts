@@ -46,6 +46,11 @@ export const compiled: CompiledCard = {
               optional: true,
               abortOnDecline: true,
             },
+            // "By digivolving it into [Chronomon: Destroy Mode] ... it doesn't leave": the
+            // digivolution is the cost, so the leave is prevented only when it actually happened.
+            // Without this gate the replacement saves the Digimon even with no Destroy Mode to
+            // digivolve into.
+            { kind: "Prevent", condition: { kind: "ifThisEffectDigivolved" } },
           ],
         },
       ],

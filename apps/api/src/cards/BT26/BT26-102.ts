@@ -45,6 +45,7 @@ export const compiled: CompiledCard = {
           },
           bindHostAs: "sevenCodeHost",
           mixedSources: { battleAreaPermanents: true, linkedCards: true, trash: true },
+          position: "bottom",
           order: "any",
           trackCount: "sevenCodeMaterials",
           optional: true,

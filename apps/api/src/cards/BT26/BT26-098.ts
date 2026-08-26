@@ -42,16 +42,30 @@ export const compiled: CompiledCard = {
     {
       trigger: "BeforePayCost",
       actions: [
+        // The payment is owned by the wrapper, not by the CostModifier itself: a CostModifier
+        // that carries its own cost is scaled by the count that cost reports, and a fixed-count
+        // cost reports 0, which zeroes the reduction before it reaches the pay-time window.
         {
-          kind: "CostModifier",
-          costType: "use",
-          mode: "reduce",
-          amount: 2,
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          handResident: true,
-          cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
+          kind: "CostGatedBlock",
+          cost: {
+            kind: "trashBottomFaceDownUnderTamer",
+            controller: "mine",
+            count: 1,
+            raw: "By trashing the bottom face-down card from under any of your Tamers",
+          },
           optional: true,
           abortOnDecline: true,
+          actions: [
+            {
+              kind: "CostModifier",
+              costType: "use",
+              mode: "reduce",
+              amount: 2,
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              handResident: true,
+              duration: "permanent",
+            },
+          ],
         },
       ],
     },

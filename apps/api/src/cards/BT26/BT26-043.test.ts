@@ -19,7 +19,7 @@ describe("BT26-043 Piximon", () => {
       trigger: "OnPlay",
       actions: [
         { kind: "Suspend" },
-        { kind: "PlaceUnder", from: ["deck"], faceDown: true, position: "bottom" },
+        { kind: "PlaceUnder", fromDeckTop: true, faceDown: true, position: "bottom" },
         { kind: "Restrict", restriction: "unsuspend", scaling: { unit: "selfFaceDownDigivolutionCards", per: 1 } },
       ],
     });
