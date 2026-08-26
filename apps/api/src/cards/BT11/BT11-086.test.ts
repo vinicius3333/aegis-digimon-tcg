@@ -1,9 +1,19 @@
-import { digiXrosRequirementFor } from "@aegis/shared";
+import { digiXrosRequirementFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-086.js";
+import { compiled } from "./BT11-086.js";
 describe("BT11-086 Mervamon", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-086")).toMatchObject({ cardId: "BT11-086", colors: ["Purple"], level: 6, playCost: 11, dp: 12000, types: ["Shaman", "Xros Heart"] });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", actions: [{ kind: "Replacement", additionalEffects: [{ kind: "AllowDigiXrosMaterialsFromTrash" }] }] },
+      { trigger: "OnPlay", actions: [{ kind: "PlayWithoutCost", from: ["trash"] }] },
+      { trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost", from: ["trash"] }] },
+      { trigger: "AllTurns", actions: [{ kind: "GainKeyword", keyword: { keyword: "Rush" } }, { kind: "GainKeyword", keyword: { keyword: "Blocker" } }] },
+    ]);
+  });
+
   it("DigiXroses with a Xros Heart card from trash and plays 2 eligible Digimon", async () => {
     expect(digiXrosRequirementFor("BT11-086")).toEqual([
       {

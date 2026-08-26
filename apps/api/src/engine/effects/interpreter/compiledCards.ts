@@ -41,3 +41,19 @@ export function universalNameAliasesFor(cardId: string): string[] {
   }
   return [...aliases];
 }
+
+/** Names a card is also treated as only while it is being checked as a DigiXros material. */
+export function digiXrosOnlyNameAliasesFor(cardId: string): string[] {
+  const compiled = runtimeCompiledCard(cardId);
+  if (compiled === undefined) return [];
+
+  const aliases = new Set<string>();
+  for (const effect of compiled.effects) {
+    if (effect.trigger !== "Static" && effect.trigger !== "Rule") continue;
+    for (const action of effect.actions) {
+      if (action.kind !== "GrantStatic" || action.grant !== "name" || action.digiXrosOnly !== true) continue;
+      for (const token of action.tokens ?? []) aliases.add(token);
+    }
+  }
+  return [...aliases];
+}

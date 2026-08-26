@@ -1,9 +1,26 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-074.js";
+import { compiled } from "./BT11-074.js";
 describe("BT11-074 BlackWarGreymon X", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-074")).toMatchObject({
+      cardId: "BT11-074",
+      colors: ["Black", "Red"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      types: ["Dragonkin", "X Antibody"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", keywords: [{ keyword: "Reboot" }] },
+      { trigger: "OpponentsTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks" }] },
+      { trigger: "OpponentsTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenUnsuspended" }] },
+    ]);
+  });
+
   it("has Reboot", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT11-074", as: "bwarg" }] } });
     await s.engine.recomputeContinuousEffects();

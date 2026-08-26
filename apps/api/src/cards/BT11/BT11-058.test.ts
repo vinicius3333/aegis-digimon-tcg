@@ -1,9 +1,16 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-058.js";
+import { compiled } from "./BT11-058.js";
 
 describe("BT11-058 HerculesKabuterimon (X Antibody)", () => {
+  it("maps its green mega, Security Attack, and conditional bottom-deck clauses", () => {
+    expect(getCardDefinition("BT11-058")).toMatchObject({ cardId: "BT11-058", colors: ["Green"], level: 6, playCost: 12, dp: 12000 });
+    expect(compiled.effects[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "SecurityAttack", amount: 1 }] });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "Return", to: "deckBottom" }] });
+  });
+
   it("bottom-decks a suspended Digimon when HerculesKabuterimon is in its stack", async () => {
     const s = setupEngine(
       {

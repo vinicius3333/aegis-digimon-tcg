@@ -1,10 +1,23 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-042.js";
+import { compiled } from "./BT11-042.js";
 
 describe("BT11-042 Angewomon", () => {
+  it("maps the catalog and all three executable clauses", () => {
+    expect(getCardDefinition("BT11-042")).toMatchObject({
+      cardId: "BT11-042", colors: ["Yellow"], level: 5, playCost: 7, dp: 6000,
+      evoCosts: [{ color: "Yellow", level: 4, memoryCost: 3 }, { color: "Purple", level: 4, memoryCost: 3 }],
+      types: ["Archangel"],
+    });
+    expect(compiled.effects).toHaveLength(3);
+    expect(compiled.effects[0]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "Search", searchZone: "security" }, { kind: "SecurityManipulation", op: "addTop" }, { kind: "SecurityManipulation", op: "shuffle" }] });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn" });
+    expect(compiled.effects[2]).toMatchObject({ trigger: "OpponentsTurn", isInherited: true });
+  });
+
   it("searches all security, adds an Angel-family card, recovers and shuffles", async () => {
     const s = setupEngine(
       {

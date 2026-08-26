@@ -15,7 +15,7 @@ const grant = {
     raw: "your opponent has 16 or more cards in their trash or you have 3 or more [Sukamon] in your trash",
   },
 };
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [{ kind: "GrantStatic", ...grant }] },
     { trigger: "WhenDigivolving", actions: [{ kind: "GrantStatic", ...grant }] },
@@ -55,7 +55,7 @@ const compiled: CompiledCard = {
                 kind: "deleteOwn",
                 target: {
                   filter: {
-                    controller: "mine",
+                    controller: "any",
                     excludeSelf: true,
                     kind: ["Digimon"],
                     nameOrTrait: [{ tokens: ["Sukamon"], match: "name" }],

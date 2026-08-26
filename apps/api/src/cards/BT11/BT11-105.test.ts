@@ -1,11 +1,20 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-105.js";
+import { compiled } from "./BT11-105.js";
 import "./BT11-061.js";
 
 describe("BT11-105 Fusionize", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-105")).toMatchObject({ cardId: "BT11-105", colors: ["Black"], kinds: ["Option"], playCost: 1 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
+      { trigger: "Main", actions: [{ kind: "PlaceUnder" }, { kind: "Digivolve" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "RevealAdd", revealCount: 3 }] },
+    ]);
+  });
+
   it("places Vemmon under the host and digivolves into Destromon from the trash", async () => {
     const s = setupEngine(
       {

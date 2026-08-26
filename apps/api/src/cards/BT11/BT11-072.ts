@@ -22,7 +22,7 @@ const reveal: any = {
   rest: "trash",
 };
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     { trigger: "WhenDigivolving", actions: [reveal] },
     { trigger: "OnPlay", actions: [reveal] },

@@ -69,11 +69,16 @@ export async function runReplacement(
   if (action.condition !== undefined && !evaluateCondition(ctx, action.condition)) return;
   if (action.sourceFilter?.zone === "battleArea" && !ctx.source.isOnBattleArea()) return;
   const self = ctx.source.permanent();
+  const activationIdentity =
+    ctx.activeEffectKey === undefined
+      ? undefined
+      : `${ctx.activeEffectKey}/action-${ctx.activeActionPath ?? "unknown"}`;
   if (event === "wouldDigivolve" && action.mode === "gainMemoryOnDna" && self !== undefined) {
     ctx.fx.subscribeReplacement({
       ...replacementBudget,
       event,
       sourcePermanentId: self.permanentId,
+      activationIdentity,
       mode: "gainMemoryOnDna",
       amount: action.amount ?? 0,
       description: action.raw ?? ctx.activeEffectText ?? "Gain memory on DNA digivolution",
@@ -87,6 +92,7 @@ export async function runReplacement(
       event,
       sourcePermanentId: self.permanentId,
       sourceInstanceId: ctx.source.instanceId,
+      activationIdentity,
       ...(ctx.activeTiming !== undefined ? { activationTiming: ctx.activeTiming } : {}),
       ...(ctx.activeEffectText !== undefined ? { activationEffectText: ctx.activeEffectText } : {}),
       mode: "redirect",
@@ -193,6 +199,7 @@ export async function runReplacement(
       event,
       sourcePermanentId: self?.permanentId,
       sourceInstanceId: ctx.source.instanceId,
+      activationIdentity,
       mode: "prevent",
       affectsAll: action.affectsAll,
       description: action.raw ?? ctx.activeEffectText ?? nestedCostModifier?.raw ?? "",
@@ -357,6 +364,7 @@ export async function runReplacement(
       event,
       sourcePermanentId: self?.permanentId,
       sourceInstanceId: ctx.source.instanceId,
+      activationIdentity,
       ...(ctx.activeTiming !== undefined ? { activationTiming: ctx.activeTiming } : {}),
       ...(ctx.activeEffectText !== undefined ? { activationEffectText: ctx.activeEffectText } : {}),
       mode: "reduceCost",
@@ -447,6 +455,7 @@ export async function runReplacement(
     event,
     sourcePermanentId: self?.permanentId,
     sourceInstanceId: ctx.source.instanceId,
+    activationIdentity,
     mode: "instead",
     description: action.raw ?? ctx.activeEffectText ?? event,
     digisorptionRedirect: action.digisorptionRedirect,

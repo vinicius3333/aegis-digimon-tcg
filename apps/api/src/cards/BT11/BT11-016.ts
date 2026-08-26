@@ -4,6 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const redTamerScaling = {
   per: 1,
+  bonus: 2000,
   filter: { zone: "battleArea", controller: "mine", kind: ["Tamer"], colors: ["Red"] },
   unit: "cards",
 };
@@ -16,6 +17,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "opponent" },
           actions: [{ kind: "ReactivateEffect", fromTrigger: "On Deletion", count: 1, optional: true }],
         },
       ],
@@ -33,10 +35,8 @@ export const compiled: CompiledCard = {
               colors: ["Red"],
               dpAtMost: 3000,
               dpAtMostScaling: redTamerScaling,
-              nameOrTrait: [
-                { tokens: ["Avian", "Bird", "Beast", "Animal"], match: "trait" },
-                { tokens: ["Sovereign"], match: "trait" },
-              ],
+              nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "traitContains" }],
+              excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
             },
             count: 1,
           },

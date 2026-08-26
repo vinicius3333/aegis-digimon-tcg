@@ -1,10 +1,27 @@
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-068.js";
+import { compiled } from "./BT11-068.js";
 describe("BT11-068 Mamemon", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-068")).toMatchObject({
+      cardId: "BT11-068",
+      colors: ["Black"],
+      level: 5,
+      playCost: 7,
+      dp: 6000,
+      types: ["Mutant"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 5 }] },
+      { trigger: "WhenDigivolving", actions: [{ kind: "RevealAdd", revealCount: 5 }] },
+      { trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn" },
+    ]);
+  });
+
   it("registers both reveal timings as dedicated effects", () => {
     const compiled = runtimeCompiledCard("BT11-068")!;
     expect(

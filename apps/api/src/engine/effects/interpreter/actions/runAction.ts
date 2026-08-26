@@ -100,19 +100,49 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.playCostCeiling !== undefined ||
       action.scaling !== undefined ||
       action.target.filter?.playCostLteScaling !== undefined);
-  const costProducesDeleteTarget =
+  const placeCostProducesDeleteTarget =
     action.kind === "Delete" &&
-    ((action.cost?.kind === "place" &&
+    action.cost?.kind === "place" &&
       ((action.cost.storeAs !== undefined && action.target.filter.levelEq === action.cost.storeAs) ||
         (action.cost.bindResultAs !== undefined &&
-          action.target.filter.levelComparison?.relativeTo === action.cost.bindResultAs))) ||
-      (action.cost?.kind === "deleteOwn" && action.target.filter.levelComparison?.relativeTo === "lastDeleted"));
+          action.target.filter.levelComparison?.relativeTo === action.cost.bindResultAs));
+  // A "by deleting 1 of your Digimon, delete 1 with a level no higher than it" target
+  // cannot be matched until the deleteOwn cost captures `lastDeletedLevel`.  Preflighting
+  // it before payment makes the target set look empty and silently skips the whole action.
+  const deleteOwnCost =
+    action.kind === "Delete" &&
+    action.cost !== undefined &&
+    typeof action.cost !== "number" &&
+    action.cost.kind === "deleteOwn"
+      ? action.cost
+      : undefined;
+  const deleteTargetBoundByItsCost =
+    deleteOwnCost !== undefined && action.target.filter.levelComparison?.relativeTo === "lastDeleted";
+  const deleteOwnLevelTargetAvailable = (() => {
+    if (!deleteTargetBoundByItsCost || deleteOwnCost.target === undefined) return false;
+    const highestCostLevel = Math.max(
+      ...candidatePermanents(ctx, deleteOwnCost.target)
+        .map((permanent) => {
+          const card = ctx.game.permanentById(permanent.permanentId)?.topCard;
+          return card === undefined ? 0 : (ctx.game.definitionOf(card).level ?? 0);
+        })
+        .filter((level) => level > 0),
+      0,
+    );
+    if (highestCostLevel === 0) return false;
+    const { levelComparison: _levelComparison, ...filterWithoutBound } = action.target.filter;
+    return candidatePermanents(ctx, { ...action.target, filter: filterWithoutBound }).some((permanent) => {
+      const card = ctx.game.permanentById(permanent.permanentId)?.topCard;
+      return card !== undefined && (ctx.game.definitionOf(card).level ?? 0) <= highestCostLevel;
+    });
+  })();
   if (
     action.kind === "Delete" &&
     action.cost !== undefined &&
     action.allowCostWithoutTarget !== true &&
     !dynamicallyScaledDeleteTarget &&
-    !costProducesDeleteTarget &&
+    !placeCostProducesDeleteTarget &&
+    (!deleteTargetBoundByItsCost || !deleteOwnLevelTargetAvailable) &&
     candidatePermanents(ctx, action.target).length === 0
   ) {
     return action.abortOnDecline === true;

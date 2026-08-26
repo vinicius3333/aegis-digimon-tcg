@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
@@ -50,7 +50,7 @@ const compiled: CompiledCard = {
             from: ["trash"],
           },
           underFilter: { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["General"], match: "trait" }] },
-          optional: true,
+          bindHostAs: "zeigGeneral",
         },
         {
           kind: "PlaceUnder",
@@ -64,8 +64,7 @@ const compiled: CompiledCard = {
             count: 1,
             from: ["trash"],
           },
-          underFilter: { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["General"], match: "trait" }] },
-          optional: true,
+          underSelectionRef: "zeigGeneral",
         },
       ],
       keywords: [{ keyword: "Save", raw: "＜Save＞" }],

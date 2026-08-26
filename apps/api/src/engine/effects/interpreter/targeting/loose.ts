@@ -3,6 +3,7 @@
 import type { EffectContext, SeatScopedDecisionApi } from "../../EffectContext.js";
 import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
+import { scaleFactor } from "../scaling.js";
 import { effectiveTargetCount } from "./permanents.js";
 import { filterToDistinctColors } from "@aegis/shared";
 import type { Filter, Seat, Target, ZoneRef } from "@aegis/shared";
@@ -281,6 +282,13 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
             const hostIsSelf =
               (zone === "digivolutionCards" || zone === "linked") && cand.hostPermanentId === selfPermanentId;
             if (!hostIsSelf) return false;
+          }
+          if (filter.dpAtMostScaling !== undefined) {
+            const cap =
+              (filter.dpAtMost ?? 0) + scaleFactor(ctx, filter.dpAtMostScaling) * (filter.dpAtMostScaling.bonus ?? 1);
+            if ((def.dp ?? 0) > cap) return false;
+            const { dpAtMost: _baseCap, dpAtMostScaling: _scaledCap, ...staticFilter } = filter;
+            return definitionMatches(staticFilter, def) && contextMatches(filter, cand.ownerSeat);
           }
           return definitionMatches(filter, def) && contextMatches(filter, cand.ownerSeat);
         };

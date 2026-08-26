@@ -1510,6 +1510,8 @@ export interface ReplacementInstallBase {
   sourcePermanentId?: string;
   /** Anchor for a replacement sourced from a loose card in hand/trash. */
   sourceInstanceId?: string;
+  /** Stable compiled effect/action identity; never derived from display prose. */
+  activationIdentity?: string;
   /** Stable per-turn budget key for a persistent `[Once Per Turn]` replacement. */
   oncePerTurnKey?: string;
   /**
@@ -1733,6 +1735,10 @@ export interface EffectContext {
   continuousPass?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
+  /** Stable compiled effect identity used by installed reactive actions; never derived from prose. */
+  activeEffectKey?: string;
+  /** Stable zero-based action path within the active compiled effect. */
+  activeActionPath?: string;
   /**
    * What the IR action currently running will do to the permanents it asks the controller
    * to pick (`targetFateOf`, set and restored by `runAction`). Surfaced on each

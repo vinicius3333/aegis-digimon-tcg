@@ -6,7 +6,7 @@ const angel = [
   { tokens: ["Angel", "Archangel"], match: "trait" },
   { tokens: ["Fallen Angel"], match: "trait" },
 ];
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

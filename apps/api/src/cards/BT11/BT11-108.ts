@@ -1,6 +1,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -31,7 +31,7 @@ const compiled: CompiledCard = {
       actions: [
         { kind: "DeDigivolve", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 }, amount: 1 },
         { kind: "Trash", target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 } },
-        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 } },
+        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 6 }, count: 3 } },
       ],
     },
     { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },

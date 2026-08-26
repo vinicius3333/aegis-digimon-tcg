@@ -19,7 +19,7 @@ const actions = [
     duration: "untilOpponentTurnEnd",
   },
 ];
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     { trigger: "WhenDigivolving", actions },
     { trigger: "OnPlay", actions },

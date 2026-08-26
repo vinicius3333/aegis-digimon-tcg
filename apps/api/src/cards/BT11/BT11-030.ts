@@ -21,7 +21,6 @@ const playActions = [
     kind: "Return",
     target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 },
     to: "deckBottom",
-    optional: true,
   },
   {
     kind: "Return",
@@ -50,7 +49,7 @@ export const compiled: CompiledCard = {
           tokens: ["MetalGreymon", "Cyberdramon"],
         },
       ],
-      keywords: [{ keyword: "ArmorPurge", raw: "＜Armor Purge＞" }],
+      keywords: [{ keyword: "Armor Purge", raw: "＜Armor Purge＞" }],
     },
     { trigger: "OnPlay", actions: playActions },
     { trigger: "WhenDigivolving", actions: playActions },

@@ -35,29 +35,23 @@ export const compiled: CompiledCard = {
       frequency: "OncePerTurn",
     },
     {
-      trigger: "Static",
+      trigger: "WhenAttacking",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenAttacking",
-          actions: [
-            {
-              kind: "Return",
-              target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 },
-              to: "hand",
-              condition: {
-                kind: "allOf",
-                conditions: [
-                  { kind: "isYourTurn" },
-                  {
-                    kind: "youHave",
-                    filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"] },
-                    raw: "you have a Tamer in play",
-                  },
-                ],
+          kind: "Return",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 },
+          to: "hand",
+          condition: {
+            kind: "allOf",
+            conditions: [
+              { kind: "isYourTurn" },
+              {
+                kind: "youHave",
+                filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"] },
+                raw: "you have a Tamer in play",
               },
-            },
-          ],
+            ],
+          },
         },
       ],
       isInherited: true,

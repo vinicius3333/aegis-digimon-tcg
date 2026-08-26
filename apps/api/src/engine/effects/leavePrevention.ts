@@ -1,6 +1,11 @@
 import type { Permanent, Seat } from "@aegis/shared";
 import type { EffectContext, RemovalCause } from "./EffectContext.js";
 import type { ReplacementSubscription, SubTriggerRegistry } from "./subtriggers.js";
+function replacementActivationKey(replacement: ReplacementSubscription): string {
+  const source = replacement.sourceInstanceId ?? replacement.sourcePermanentId ?? "unanchored";
+  const action = replacement.activationIdentity ?? `subscription-${replacement.id}`;
+  return `${source}:${action}`;
+}
 
 /**
  * The narrow seam the leave-prevention consult needs from its host engine
@@ -46,18 +51,18 @@ export interface LeavePreventionHost {
  *
  * `affectsAll` reactions ("they don't leave") pay once and then save every matching permanent
  * in the same consult; `affectsAll:false` ("1 of those doesn't leave") pays per saved
- * permanent. The shared `reentryGuard` stops a prevention cost that itself deletes a permanent
- * (e.g. BT25-039 "by deleting this Digimon") from recursively re-entering the consult.
+ * permanent. The shared `reentryGuard` suppresses only the replacement already resolving, so a
+ * prevention cost that deletes another protected permanent may activate that other permanent's
+ * distinct immediate effect while the original cannot recursively reactivate (BT11-040 Q2074).
  */
 export async function consultLeavePrevention(
   host: LeavePreventionHost,
   permanentIds: string[],
   cause: RemovalCause,
   resolvingSeat: Seat | undefined,
-  opts: { isBounce?: boolean; reentryGuard: { active: boolean } },
+  opts: { isBounce?: boolean; reentryGuard: { activeReplacementKeys: Set<string> } },
 ): Promise<Set<string>> {
   const prevented = new Set<string>();
-  if (opts.reentryGuard.active) return prevented;
   // wouldLeavePlay covers any leave (delete + hand/deck bounce); wouldBeDeleted watches
   // deletion ONLY — a bounce must NOT trigger a deletion-only reaction (BT9-044, RB1-016).
   // replacementsFor already excludes "reduceCost" (unrelated to leave/delete), leaving the
@@ -68,84 +73,89 @@ export async function consultLeavePrevention(
   ];
   if (replacements.length === 0) return prevented;
   const seat = resolvingSeat ?? (cause === "byEffect" ? host.turnSeat : undefined);
-  opts.reentryGuard.active = true;
-  try {
-    const firedAll = new Set<number>(); // affectsAll replacements that already paid this consult
-    for (const leavingId of permanentIds) {
-      if (prevented.has(leavingId)) continue;
-      const leaving = host.permanentById(leavingId);
-      if (leaving === undefined) continue;
-      const eligible: { repl: ReplacementSubscription; ctx: EffectContext }[] = [];
-      for (const repl of replacements) {
-        if (repl.mode !== "instead" && repl.mode !== "prevent") continue;
-        if (repl.sourcePermanentId === undefined && repl.sourceInstanceId === undefined) continue;
-        if (repl.causeAllows && !repl.causeAllows(cause, seat, opts.isBounce === true)) continue;
-        const srcPerm = repl.sourcePermanentId === undefined ? undefined : host.permanentById(repl.sourcePermanentId);
-        if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
-        if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
+  const firedAll = new Set<number>(); // affectsAll replacements that already paid this consult
+  for (const leavingId of permanentIds) {
+    if (prevented.has(leavingId)) continue;
+    const leaving = host.permanentById(leavingId);
+    if (leaving === undefined) continue;
+    const eligible: { repl: ReplacementSubscription; ctx: EffectContext; activationKey: string }[] = [];
+    for (const repl of replacements) {
+      if (repl.mode !== "instead" && repl.mode !== "prevent") continue;
+      const activationKey = replacementActivationKey(repl);
+      if (opts.reentryGuard.activeReplacementKeys.has(activationKey)) continue;
+      if (repl.sourcePermanentId === undefined && repl.sourceInstanceId === undefined) continue;
+      if (repl.causeAllows && !repl.causeAllows(cause, seat, opts.isBounce === true)) continue;
+      const srcPerm = repl.sourcePermanentId === undefined ? undefined : host.permanentById(repl.sourcePermanentId);
+      if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
+      if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
+      if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
+      const ctx =
+        srcPerm !== undefined
+          ? host.buildContext(srcPerm, leavingId)
+          : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
+      if (ctx === undefined) continue;
+      if (repl.mode === "instead") {
+        if (repl.appliesTo && !repl.appliesTo(ctx, leavingId)) continue;
+      } else if (repl.protects && !repl.protects(ctx, leavingId)) continue;
+      eligible.push({ repl, ctx, activationKey });
+    }
+
+    let ordered = eligible;
+    if (
+      host.orderReplacements !== undefined &&
+      eligible.some(({ repl }) => repl.mode === "instead") &&
+      eligible.some(({ repl }) => repl.mode === "prevent")
+    ) {
+      const orderedReplacements = await host.orderReplacements(eligible.map(({ repl }) => repl), leaving.controllerSeat);
+      const byId = new Map(eligible.map((candidate) => [candidate.repl.id, candidate]));
+      ordered = orderedReplacements.map((replacement) => byId.get(replacement.id)).filter((value) => value !== undefined);
+    }
+
+    let preventSucceeded = false;
+    for (const { repl, ctx, activationKey } of ordered) {
+      if (opts.reentryGuard.activeReplacementKeys.has(activationKey)) continue;
+      if (repl.mode === "instead") {
         if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
-        const ctx =
-          srcPerm !== undefined
-            ? host.buildContext(srcPerm, leavingId)
-            : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
-        if (ctx === undefined) continue;
-        if (repl.mode === "instead") {
-          if (repl.appliesTo && !repl.appliesTo(ctx, leavingId)) continue;
-        } else if (repl.protects && !repl.protects(ctx, leavingId)) continue;
-        eligible.push({ repl, ctx });
-      }
-
-      let ordered = eligible;
-      if (
-        host.orderReplacements !== undefined &&
-        eligible.some(({ repl }) => repl.mode === "instead") &&
-        eligible.some(({ repl }) => repl.mode === "prevent")
-      ) {
-        const orderedReplacements = await host.orderReplacements(eligible.map(({ repl }) => repl), leaving.controllerSeat);
-        const byId = new Map(eligible.map((candidate) => [candidate.repl.id, candidate]));
-        ordered = orderedReplacements.map((replacement) => byId.get(replacement.id)).filter((value) => value !== undefined);
-      }
-
-      let preventSucceeded = false;
-      for (const { repl, ctx } of ordered) {
-        if (repl.mode === "instead") {
-          if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
+        opts.reentryGuard.activeReplacementKeys.add(activationKey);
+        try {
           await repl.apply(ctx);
-          const relocated = host.permanentById(leavingId) === undefined;
-          // A true relocation replacement (BT22-007) removes the would-leave permanent from
-          // the battle area as its payload. Do not let the original removal continue against
-          // the now-relocated cards. Side-effect-only "instead" reactions such as Decode leave
-          // the permanent live here and therefore keep their established fall-through behavior.
-          if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
-          if (relocated) {
-            prevented.add(leavingId);
-            break;
-          }
-          continue;
+        } finally {
+          opts.reentryGuard.activeReplacementKeys.delete(activationKey);
         }
-        if (repl.mode !== "prevent") continue;
-        if (preventSucceeded) continue;
-        if (repl.affectsAll && firedAll.has(repl.id)) {
+        const relocated = host.permanentById(leavingId) === undefined;
+        if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
+        if (relocated) {
           prevented.add(leavingId);
-          preventSucceeded = true;
-          continue;
+          break;
         }
-        if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
-        if (!(await repl.preventCheck(ctx, leavingId))) continue;
+        continue;
+      }
+      if (repl.mode !== "prevent" || preventSucceeded) continue;
+      if (repl.affectsAll && firedAll.has(repl.id)) {
         prevented.add(leavingId);
         preventSucceeded = true;
-        if (repl.affectsAll) {
-          firedAll.add(repl.id);
-          for (const simultaneousId of permanentIds) {
-            if (host.permanentById(simultaneousId) === undefined) continue;
-            if (repl.protects === undefined || repl.protects(ctx, simultaneousId)) prevented.add(simultaneousId);
-          }
-        }
-        if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
+        continue;
       }
+      if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
+      opts.reentryGuard.activeReplacementKeys.add(activationKey);
+      let did: boolean;
+      try {
+        did = await repl.preventCheck(ctx, leavingId);
+      } finally {
+        opts.reentryGuard.activeReplacementKeys.delete(activationKey);
+      }
+      if (!did) continue;
+      prevented.add(leavingId);
+      preventSucceeded = true;
+      if (repl.affectsAll) {
+        firedAll.add(repl.id);
+        for (const simultaneousId of permanentIds) {
+          if (host.permanentById(simultaneousId) === undefined) continue;
+          if (repl.protects === undefined || repl.protects(ctx, simultaneousId)) prevented.add(simultaneousId);
+        }
+      }
+      if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
     }
-  } finally {
-    opts.reentryGuard.active = false;
   }
   return prevented;
 }

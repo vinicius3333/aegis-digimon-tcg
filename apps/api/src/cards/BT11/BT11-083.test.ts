@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-083.js";
+import { compiled } from "./BT11-083.js";
 
 describe("BT11-083 LadyDevimon", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-083")).toMatchObject({
+      cardId: "BT11-083", colors: ["Purple"], level: 5, playCost: 7, dp: 6000, types: ["Fallen Angel"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "WhenDigivolving", actions: [{ kind: "Trash" }, { kind: "Return", to: "hand" }] },
+      { trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger" }] },
+      { trigger: "OpponentsTurn", isInherited: true, actions: [{ kind: "Aura" }] },
+    ]);
+  });
+
   it("trashes 1 hand card before returning Mirei from trash", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(

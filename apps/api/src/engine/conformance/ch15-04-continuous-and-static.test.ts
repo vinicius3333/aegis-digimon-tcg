@@ -633,7 +633,7 @@ describe("§15-8-5 Immediate-Type Effects, real ＜Barrier＞ (comprehensive-017
     };
 
     const prevented = await consultLeavePrevention(host, [chirinmon.permanentId], "byBattle", 1, {
-      reentryGuard: { active: false },
+      reentryGuard: { activeReplacementKeys: new Set<string>() },
     });
     expect(prevented.has(chirinmon.permanentId)).toBe(true); // the deletion was prevented
     expect(p0.security.length).toBe(securityBefore - 1); // the cost (trash top security) was paid

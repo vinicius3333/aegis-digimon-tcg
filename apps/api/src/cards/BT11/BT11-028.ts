@@ -13,7 +13,6 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
           duration: "untilOpponentTurnEnd",
-          scaling: handScaling,
         },
         {
           kind: "ModifyDP",

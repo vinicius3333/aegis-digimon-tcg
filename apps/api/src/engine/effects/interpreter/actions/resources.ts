@@ -264,6 +264,9 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
           const ownerSeat = ctx.source.ownerSeat;
           ctx.fx.subscribeReplacement({
             event: "wouldDigivolve",
+            ...(ctx.activeEffectKey === undefined
+              ? {}
+              : { activationIdentity: `${ctx.activeEffectKey}/action-${ctx.activeActionPath ?? "unknown"}` }),
             mode: "reduceCost",
             amount: Math.abs(action.amount),
             controllerSeat: ownerSeat,
