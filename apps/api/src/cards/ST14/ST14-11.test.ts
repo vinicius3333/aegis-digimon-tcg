@@ -29,7 +29,7 @@ describe("ST14-11 Ai & Mako", () => {
     expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("cost-card").instanceId);
   });
 
-  it("cannot activate with an empty hand", async () => {
+  it("still suspends and gains memory with an empty hand", async () => {
     const s = setupEngine(
       {
         0: {
@@ -46,8 +46,8 @@ describe("ST14-11 Ai & Mako", () => {
       subjectPermanentId: s.perm("purple").permanentId,
     });
     await settle();
-    expect(s.perm("tamer").isSuspended).toBe(false);
-    expect(s.state.memory).toBe(0);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
   });
 
   it("reveals four on play and adds one Evil Digimon", async () => {
