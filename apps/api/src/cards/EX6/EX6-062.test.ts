@@ -11,7 +11,10 @@ describe("EX6-062 UltimateChaosmon", () => {
     });
   });
   it("mandatorily returns an opposing Digimon for each level 6 stack card and grants Security Attack +3/Piercing at four", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[1]).toMatchObject({ kind: "Return", to: "deckBottom", optional: undefined });
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[1]).toMatchObject({
+      kind: "Return",
+      to: "deckBottom",
+    });
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions).toMatchObject([
       {
         kind: "Aura",

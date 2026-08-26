@@ -92,12 +92,11 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
     });
     expect(res).toEqual({ ok: true });
 
-    const host = s.perm("host");
     const victim = s.perm("victim");
     const p1 = s.state.players[1]!;
     await settle(() => !p1.battleArea.some((p) => p.permanentId === victim.permanentId), 600);
 
-    expect(host.stack.some((c) => c.instanceId === durandamon.instanceId)).toBe(true);
+    expect(s.perm("host").stack.some((c) => c.instanceId === durandamon.instanceId)).toBe(true);
     expect(s.state.memory).toBe(7); // paid 3 cost
     expect(p1.battleArea.some((p) => p.permanentId === victim.permanentId)).toBe(false);
   });

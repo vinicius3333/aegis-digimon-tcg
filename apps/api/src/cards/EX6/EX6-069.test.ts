@@ -10,7 +10,13 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
     expect(text).toContain("onDeletionOf");
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
-      actions: [{ kind: "PlayWithoutCost", source: "breeding", target: { filter: { zone: "digivolutionCards", hostFilter: { zone: "breeding" } } }],
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          source: "breeding",
+          target: { filter: { zone: "digivolutionCards", hostFilter: { zone: "breeding" } } },
+        },
+      ],
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
       kind: "PlaceUnder",

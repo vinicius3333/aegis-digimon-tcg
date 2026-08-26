@@ -27,7 +27,20 @@ describe("EX6-042 RaijiLudomon", () => {
     });
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ kind: "Replacement", event: "wouldBeDeleted", leaveCause: "otherThanYourEffect", actions: [{ kind: "Prevent", optional: true, cost: { target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } } } }] }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          leaveCause: "otherThanYourEffect",
+          actions: [
+            {
+              kind: "Prevent",
+              optional: true,
+              cost: { target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } } } },
+            },
+          ],
+        },
+      ],
     });
   });
 });

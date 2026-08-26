@@ -24,6 +24,7 @@ describe("EX6-003 Cupimon", () => {
               nameOrTrait: [{ match: "trait", tokens: ["Angel", "Archangel", "Three Great Angels"] }],
             },
           },
+          from: ["hand"],
           toTop: false,
         },
       ],

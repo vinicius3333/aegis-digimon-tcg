@@ -40,7 +40,9 @@ describe("EX6-002 Yokomon", () => {
 
     await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
 
-    expect(s.state.players[0]!.hand).toHaveLength(0);
+    // EX6-007's own [Your Turn] watcher draws after the successful placement, so
+    // prove the selected card moved rather than asserting an incidental hand size.
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("blueLevel3").instanceId);
     expect(s.perm("host").stack[0]!.instanceId).toBe(s.inst("blueLevel3").instanceId);
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["BT12-021", "EX6-002"]);
   });
