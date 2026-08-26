@@ -25,17 +25,17 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-019 | Antylamon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-020 | Crescemon | 1 | Q3569 has separate self-scoped would-play and would-digivolve-into reductions with live trait-plus-three-source gate; both entry routes restrict one opponent’s suspend until their turn end, and inherited DP is opponent-turn scoped. | Pending focused proof |
 | EX5-021 | Majiramon | 11 | On Play draw then optional breeding-area Deva play uses distinct-name exclusion; Your Turn watcher gates memory on Option cost≥1, while inherited attack memory uses the source’s live Four Sovereigns/God Beast trait and Once Per Turn. | Pending focused proof |
-| EX5-022 | Mihiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-022 | Mihiramon | 6 | On Play draw/optional distinct-name Deva breeding play is followed by shared once-per-turn friendly-Digimon entry watcher that trashes one opposing top source; inherited Four Sovereigns/God Beast attack-memory clause is live-trait scoped. | Pending focused proof |
 | EX5-023 | WereGarurumon (X Antibody) | 1 | Direct IR orders the mandatory two-card hand trash before optional source-gated return and self-unsuspend; the shared `selfDigivolutionStackHasTrait` condition reads the live stack and inherited attack route has its own Once Per Turn. | Pending focused proof |
-| EX5-024 | Azulongmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-024 | Azulongmon | 0 | Blast is hand-only; both entry timings return one opponent level≤5 then unsuspend one own listed-trait Digimon, and deletion uses the shared highest-level target selector. | Pending focused proof |
 | EX5-025 | Dianamon | 4 | Catalog Q3584-Q3587, direct IR, and live player restriction primitive reviewed. Corrected the all/no-source suspend lock to re-evaluate entrants and source changes; shared Once Per Turn trigger verified structurally. | Pending focused proof |
-| EX5-026 | MetalGarurumon (X Antibody) | 3 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-026 | MetalGarurumon (X Antibody) | 3 | Blocker is static; source-gated evolution creates an opponent attack-memory-loss aura through opponent-turn end, while attack cost returns one own trash Digimon and binds its level for the exact opposing deletion filter. | Pending focused proof |
 | EX5-027 | Liollmon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-028 | Kudamon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-029 | Reppamon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-030 | Liamon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-031 | Chirinmon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-032 | LoaderLeomon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-032 | LoaderLeomon | 0 | Fortitude is static; either entry timing applies opponent-turn −3000 DP, and inherited opponent-turn Blocker aura uses the host’s live Leomon-name predicate. | Pending focused proof |
 | EX5-033 | Mitamamon | 3 | Q3599 opponent-turn SEC−2 now re-evaluates live total-security threshold (`whileMatchesTargetFilter`); corrected focused fixture distinguishes level 4 at total 4 from level 3 after total falls to 3. | Pending focused run |
 | EX5-034 | BanchoLeomon | 1 | Q3600 total-security threshold is represented by the static hand-play replacement; the All Turns watcher binds one optional opponent target once, then applies both −4000 DP and SEC−1 through that binding until opponent-turn end. | Pending focused proof |
 | EX5-035 | Hawkmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
