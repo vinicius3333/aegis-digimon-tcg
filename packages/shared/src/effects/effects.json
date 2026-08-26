@@ -12903,7 +12903,7 @@
             "actions": [
               {
                 "kind": "ModifyDP",
-                "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "target": { "sourceRef": "triggerSubject", "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "amount": 2000,
                 "duration": "untilOpponentTurnEnd",
                 "cost": {
@@ -12913,13 +12913,17 @@
                 },
                 "optional": true,
                 "abortOnDecline": true
+              },
+              {
+                "kind": "Restrict",
+                "target": { "sourceRef": "triggerSubject", "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "restriction": "beAffected",
+                "duration": "untilOpponentTurnEnd",
+                "fromSourceKind": ["Option"],
+                "byOpponentEffectsOnly": true,
+                "condition": { "kind": "triggerDigivolvedSameLevel" }
               }
             ]
-          },
-          {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): that Digimon isn't affected by your opponent's Option cards until the end of your opponent's turn",
-            "condition": { "kind": "raw", "raw": "it digivolved into a Digimon with the same level" }
           }
         ]
       },
@@ -12935,10 +12939,8 @@
         "isSecurity": true
       }
     ],
-    "coverage": "partial",
-    "residual": [
-      "missing-primitive(unaudited): that Digimon isn't affected by your opponent's Option cards until the end of your opponent's turn"
-    ]
+    "coverage": "full",
+    "residual": []
   },
   "BT11-094": {
     "effects": [
