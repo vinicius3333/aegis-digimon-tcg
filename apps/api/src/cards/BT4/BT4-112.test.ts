@@ -26,4 +26,15 @@ describe("BT4-112 Hell's Gate", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
   });
+
+  it("does not delete an opposing level 5 Digimon", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: ["BT4-076"], hand: [{ card: "BT4-112", as: "option" }] }, 1: { battleArea: [{ card: "BT4-045", as: "target" }] } },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT4-112"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });
