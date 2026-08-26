@@ -282,6 +282,23 @@ Remaining work is behavioral proof of Q1659/Q1660 optional/count boundaries and 
 
 Remaining work is behavioral proof of Q1655/Q1656 stack and duration boundaries; this card is not formally complete at 10/10.
 
+## BT7-085 — Takuya Kanbara — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog/rulings (1/1):** Red Tamer costing 3 with Security free play, once-per-turn Main placement of five Hybrid trash cards and optional EmperorGreymon evolution, plus inherited Your Turn DP/Security Attack effects; Q1651–Q1654 and Q3261 are available.
+2. **Main placement/evolution (1/1):** `PlaceUnder` takes exactly five Hybrid cards from trash beneath this Tamer, and the gated Digivolve targets only EmperorGreymon from hand while charging its cost.
+3. **Ruling boundaries (1/1):** Count gating, optional evolution, and virtual level-5 red source context align with Q1652–Q1654/Q3261.
+4. **Inherited DP (1/1):** Your Turn inherited aura grants +2000 DP.
+5. **Inherited Security Attack (1/1):** A second Your Turn aura grants Security Attack +1 while live DP is at least 10000.
+6. **Security (1/1):** Security plays this Tamer without cost.
+7. **Direct IR/registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-085", compiled)` registration are present.
+8. **Static primitive trace (1/1):** Hybrid source, exact five count, EmperorGreymon name, payment, once-per-turn, inherited timing, DP threshold, and Security Attack amount are explicit.
+9. **Clause completeness (1/1):** Main, inherited, and Security clauses map directly to compiled effects.
+10. **Reproducible behavioral proof (0/1):** Existing tests cover main evolution and inherited behavior but were not executed in this static-only pass; optional/count refusal, threshold transitions, and Security play remain unproven.
+
+Remaining work is behavioral proof of Q1652–Q1654/Q3261 and the inherited threshold; this card is not formally complete at 10/10.
+
 ## BT7-101 — Thunder Laser — 9/10 (static audit)
 
 ### Clause-by-clause score
