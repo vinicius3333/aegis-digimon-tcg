@@ -111,15 +111,22 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.playCostCeiling !== undefined ||
       action.scaling !== undefined ||
       action.target.filter?.playCostLteScaling !== undefined);
+  const placementCosts = [
+    ...(action.cost?.kind === "place" ? [action.cost] : []),
+    ...(action.additionalCost?.kind === "place" ? [action.additionalCost] : []),
+    ...((action.additionalCosts ?? []).filter((cost): cost is Cost => cost.kind === "place")),
+  ];
   const placeCostProducesDeleteTarget =
     action.kind === "Delete" &&
-    action.cost?.kind === "place" &&
-    ((action.cost.storeAs !== undefined && action.target.filter.levelEq === action.cost.storeAs) ||
-      (action.cost.storeAs !== undefined &&
-        action.target.filter.levelComparison?.scaling?.unit === "namedCount" &&
-        action.target.filter.levelComparison.scaling.countSource === action.cost.storeAs) ||
-      (action.cost.bindResultAs !== undefined &&
-        action.target.filter.levelComparison?.relativeTo === action.cost.bindResultAs));
+    placementCosts.some(
+      (cost) =>
+        (cost.storeAs !== undefined && action.target.filter.levelEq === cost.storeAs) ||
+        (cost.storeAs !== undefined &&
+          action.target.filter.levelComparison?.scaling?.unit === "namedCount" &&
+          action.target.filter.levelComparison.scaling.countSource === cost.storeAs) ||
+        (cost.bindHostAs !== undefined && action.target.filter.relativeTo?.selectionRef === cost.bindHostAs) ||
+        (cost.bindResultAs !== undefined && action.target.filter.levelComparison?.relativeTo === cost.bindResultAs),
+    );
   // A "by deleting 1 of your Digimon, delete 1 with a level no higher than it" target
   // cannot be matched until the deleteOwn cost captures `lastDeletedLevel`.  Preflighting
   // it before payment makes the target set look empty and silently skips the whole action.
