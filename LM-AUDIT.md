@@ -189,7 +189,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --fileParallelism=false`. LM-022 remains below 10/10 pending relevant mechanism and refreshed
   collection gates.
 
-## LM-023 — Sakuyamon: Maid Mode — pending focused execution
+## LM-023 — Sakuyamon: Maid Mode — focused proof green; pending mechanism and collection gates
 
 - Catalog and Q4024/Q4025: yellow Tamer or single-color Option placement is optional,
   revealed, and placed on top of security.
@@ -198,8 +198,12 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Yellow Tamer reductions make its use cost 5.
 - Q5517/Q5518: the existing `whenOptionUsed` watcher uses the real post-Main use event,
   rather than Security or Delay activation.
-- Focused behavioral case for the Q5516 reduced-cost boundary is authored but deliberately
-  unrun while the broad Vitest process holds the test slot.
+- The Q5516 reduced-cost positive and 9-to-6 negative boundaries prove the card-local projection
+  includes automatic self-reducers but does not speculate about paid/optional reducers.
+- The authorized serialized focused command passed 1/1 file and 9/9 tests in 3.88s on 2026-08-26:
+  `vitest run src/cards/LM/LM-023.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-023 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
 ## LM-024 — Shivamon — pending focused execution
 
