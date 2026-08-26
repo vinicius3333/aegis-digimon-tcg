@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-032 (Liollmon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-032 Liollmon | Yellow level 3 Digimon; alternate level-2 `[Glowing Dawn]` evolution cost 0; on play reveals top 3, adds 1 `[Glowing Dawn]` trait card and 1 yellow `[BEATBREAK]` trait card, then bottoms the rest; inherited Barrier. Local card query has no entries. | **No card-specific causal mismatch found statically.** The RevealAdd slots carry the required Glowing Dawn and yellow-plus-BEATBREAK intersections, while the shared taken-instance set prevents one physical card from being selected twice. The remainder goes to deck bottom; alternate evolution and Barrier are represented. | Structural test only; no execution of color/trait intersection, overlapping Glowing Dawn/BEATBREAK selection, missing-slot behavior, bottom-deck order, alternate evolution, or Barrier protection. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-032
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-032` (no entries).
+- Direct module/test and shared `RevealAdd` intersection matching, taken-instance exclusion,
+  and deck-bottom remainder handling were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-031 (Patamon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
