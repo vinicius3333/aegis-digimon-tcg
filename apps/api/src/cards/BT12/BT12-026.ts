@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled = structuredClone(getCompiledCard("BT12-026")!);
 const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving");
 const placementCost = whenDigivolving?.actions[0]?.cost;
-if (whenDigivolving !== undefined && placementCost !== undefined) {
+if (whenDigivolving !== undefined && typeof placementCost === "object") {
   whenDigivolving.actions = [
     {
       kind: "TrashDigivolution",

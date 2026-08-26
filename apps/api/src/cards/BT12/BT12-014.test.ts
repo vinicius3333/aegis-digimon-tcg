@@ -92,7 +92,7 @@ describe("BT12-014 OmniShoutmon", () => {
     const four = setupEngine({
       0: { battleArea: [{ card: "BT12-014", as: "omni", under: ["BT12-008", "BT12-009", "BT12-010", "BT12-011"] }] },
     });
-    await advance(four.engine).fire(EffectTiming.YourTurn, four.perm("omni"));
+    await advance(four.engine).fire(EffectTiming.None, four.perm("omni"));
     expect(observe(four.engine).keywordAmount(four.perm("omni"), "SecurityAttack")).toBe(1);
     four.state.turnSeat = 1;
     await four.engine.recomputeContinuousEffects();
@@ -101,7 +101,7 @@ describe("BT12-014 OmniShoutmon", () => {
     const three = setupEngine({
       0: { battleArea: [{ card: "BT12-014", as: "omni", under: ["BT12-008", "BT12-009", "BT12-010"] }] },
     });
-    await advance(three.engine).fire(EffectTiming.YourTurn, three.perm("omni"));
+    await advance(three.engine).fire(EffectTiming.None, three.perm("omni"));
     expect(observe(three.engine).hasKeyword(three.perm("omni"), "SecurityAttack")).toBe(false);
   });
 
@@ -109,7 +109,12 @@ describe("BT12-014 OmniShoutmon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT12-011", as: "host", under: ["BT12-014"] }] },
-        1: { battleArea: [{ card: "BT12-021", dp: 4000 }, { card: "BT12-021", dp: 4000 }] },
+        1: {
+          battleArea: [
+            { card: "BT12-021", dp: 4000 },
+            { card: "BT12-021", dp: 4000 },
+          ],
+        },
       },
       { autoSelectCards: true },
     );

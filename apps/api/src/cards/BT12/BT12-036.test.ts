@@ -20,7 +20,7 @@ describe("BT12-036 Mikemon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "digimon", permanentId: s.perm("first").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("first").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
@@ -30,7 +30,7 @@ describe("BT12-036 Mikemon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "digimon", permanentId: s.perm("second").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("second").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
@@ -41,6 +41,8 @@ describe("BT12-036 Mikemon", () => {
     const offTurn = setupEngine({ 0: { battleArea: [{ card: "BT12-038", as: "host", under: ["BT12-036"] }] } });
     offTurn.state.turnSeat = 1;
     await offTurn.ready();
-    expect(observe(offTurn.engine).subscriptions("whenDeletesInBattle", offTurn.perm("host").permanentId)).toHaveLength(0);
+    expect(observe(offTurn.engine).subscriptions("whenDeletesInBattle", offTurn.perm("host").permanentId)).toHaveLength(
+      0,
+    );
   });
 });

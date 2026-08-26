@@ -11,7 +11,7 @@ if (inherited?.actions[0]?.kind === "Aura") {
 }
 const digivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving");
 const dedigivolve = digivolving?.actions[0];
-if (dedigivolve?.kind === "DeDigivolve") {
+if (digivolving !== undefined && dedigivolve?.kind === "DeDigivolve") {
   dedigivolve.scaling = { per: 2, levelCeilingAdd: 1, unit: "digivolutionCards" };
   digivolving.actions = [dedigivolve];
 }

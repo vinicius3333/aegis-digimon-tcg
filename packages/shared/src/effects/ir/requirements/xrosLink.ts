@@ -19,6 +19,8 @@ export interface DigiXrosMaterial {
     tokens: string[];
     match: "name" | "nameExact" | "trait" | "traitContains" | "text" | "any";
   }[];
+  /** Tokens that must occur in the material's printed card text. */
+  texts?: string[];
   /** The "Lv.N or {lower,higher}" comparison form, distinct from exact `level`/`levelMin`/`levelMax`. */
   levelComparison?: { op: "lte" | "gte" | "eq"; value: number };
   /** Original element label when it is not a plain card name ("Lv.4 w/[Tyrannomon] in name"). */
