@@ -1489,3 +1489,39 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-034 — Kotemon — 10/10
+
+- Catalog evidence: Yellow Lv.3 Rookie Digimon, Data/Reptile, play cost 3,
+  2000 DP, and yellow Lv.2 evolution cost 0. On play it reveals the top 5
+  cards, adds up to 2 yellow Digimon with Warrior and/or Holy Warrior in their
+  types, and places the remainder at deck bottom in any order.
+- Knowledge-base and rules evidence: Q1316 confirms the selection is up to 2
+  total across the union of yellow Warrior and yellow Holy Warrior Digimon,
+  not two from each trait. Reveal, optional selection, combined-filter, and
+  deck-bottom ordering rules govern the remaining processing.
+- Implementation: `apps/api/src/cards/BT5/BT5-034.ts` uses one `OnPlay`
+  `RevealAdd` action with `revealCount: 5`. Its single add group requires a
+  yellow Digimon and OR-matches Warrior/Holy Warrior traits, has total
+  `count: 2`, targets hand, and is optional. Unselected cards use
+  `rest: "deckBottom"`. The module declares `coverage: "full"`, `residual: []`,
+  and registers exclusively through `registerIrCard("BT5-034", compiled)`.
+- Primitive and peer evidence: `RevealAdd` forms one candidate union before
+  applying the group maximum, presents an optional 0–2 selection, moves only
+  selected instances to hand, and routes every remainder through the
+  deck-bottom ordering path. BT5-037 and BT5-045 exercise the same reveal/add
+  interpreter family with different trait/color boundaries.
+- Behavioral proof: 3 focused tests prove both eligible traits are added
+  together while the other three cards return to deck, the decision exposes
+  exact `min: 0, max: 2` bounds and accepts one selection, and an empty
+  selection is legal and adds nothing. These cases directly cover the 0/1/2
+  optional boundary and Q1316's shared total.
+- Defect corrected: none. The hand-fixed compiled IR and its existing tests
+  were already faithful, so no redundant changes were made.
+- Verification: focused BT5-034, BT5-037 and BT5-045 peers, and the complete
+  interpreter suite — 4 files, 192 tests passed. `git diff --check` passes.
+  Workspace typecheck retains only the known unrelated baseline errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
