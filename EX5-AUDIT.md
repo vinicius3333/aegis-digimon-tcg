@@ -5,11 +5,11 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | Card | Name | KB entries | Static evidence | Runtime |
 | --- | --- | ---: | --- | --- |
 | EX5-001 | Sunmon | 2 | Q3526 maps the inherited clause to the shared `onAddDigivolutionCards` bus, scoped to this receiving host; optional hand Digivolve applies the printed −1 reduction and shares the inherited Once Per Turn gate. | Pending focused proof |
-| EX5-002 | Moonmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-003 | Nyaromon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-004 | Frimon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-005 | Tokomon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-006 | Xiaomon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-002 | Moonmon | 0 | Your Turn Tamer-entry subtrigger gates the optional self Digivolve from hand; shared `whenPlayed` payload and source ownership constrain the triggering Tamer. | Pending focused proof |
+| EX5-003 | Nyaromon | 0 | All Turns self aura continuously applies its DP modifier only while the inherited host is suspended. | Pending focused proof |
+| EX5-004 | Frimon | 0 | Attack draw is gated by the inherited host’s live Garurumon/Omnimon name predicate. | Pending focused proof |
+| EX5-005 | Tokomon | 0 | On Deletion draw is gated solely by the live opponent-turn condition. | Pending focused proof |
+| EX5-006 | Xiaomon | 0 | Your Turn effect-play Digimon subtrigger routes through shared `whenPlayed` and draws only for the qualifying friendly entry. | Pending focused proof |
 | EX5-007 | Coronamon | 3 | Start Main memory uses a live friendly Light Fang/Night Claw Tamer predicate; inherited Main rotation moves only a qualifying host top card to its bottom as the optional once-per-turn memory cost. | Pending focused proof |
 | EX5-008 | Firamon | 2 | Both entry routes use two independent reveal-three add slots (Light Fang and Night Claw/Galaxy), then bottom the remainder; inherited owner-turn DP is self-only. | Pending focused proof |
 | EX5-009 | Indramon | 6 | On Play draw then optional distinct-name Deva breeding play; deletion draw is independent, and inherited Security Attack aura continuously follows the host’s live Four Sovereigns/God Beast trait. | Pending focused proof |
