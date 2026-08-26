@@ -584,3 +584,18 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-020.
+
+## BT9-021 — Jellymon — 10/10
+
+1. **Catalog and evolution (1/1):** Blue level-3 `Mollusk` Digimon, costs/stats, and blue level-2 evolution for 0 are asserted from the committed catalog and exercised through a public breeding evolution.
+2. **Main trigger (1/1):** `[Your Turn][Once Per Turn]` watches an own blue Tamer public play, draws exactly one, rejects the opponent's play, and cannot draw again that turn.
+3. **Inherited trigger (1/1):** The buried inherited watcher uses live `whenEffectAddsToHand` dispatch, not a synthetic legacy event.
+4. **Q1823 (1/1):** Returning the carrier through Aqua Viper adds it to hand and still bounces one opposing level-3 Digimon.
+5. **Q1824 (1/1):** Labramon's public draw-then-trash flow still opens the bounce even though the drawn card later leaves hand.
+6. **Target boundary (1/1):** The bounce selects only an opposing level-3 Digimon; an opponent hand addition is rejected by the controller gate.
+7. **Inherited frequency (1/1):** Two public Gabumon draw effects in one turn produce only the first bounce.
+8. **Turn scope (1/1):** Both watcher clauses are constrained by `YourTurn` via compiled IR trigger scope.
+9. **Registration (1/1):** `BT9-021.ts` is full/no-residual compiled IR and has exactly one `registerIrCard` registration with no legacy registration.
+10. **Reproducible verification (1/1):** `node tools/kb/query.mjs card BT9-021`, focused proof (8/8), and `git diff --check` pass.
+
+No ambiguity or unsupported behavior remains for BT9-021.
