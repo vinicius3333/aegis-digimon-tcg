@@ -264,3 +264,20 @@ Remaining work is behavioral proof of the all-Security-Digimon modifier and Q166
 10. **Reproducible behavioral proof (0/1):** Existing tests cover two cards from one stack and zero selection but were not executed; mixed-stack exclusion and Security behavior remain unproven.
 
 Required follow-up: bind the chosen host stack (or establish an engine guarantee for `hostFilter`) before selecting cards, then add a mixed-stack behavioral proof. This card is not formally complete at 10/10.
+
+## BT7-096 — Starlight Velocity — 8/10 (static audit; fidelity finding)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Blue Option costing 3; Main plays one Tamer or Hybrid Digimon from one owner's evolution stack, and Security optionally plays Koji Minamoto from hand/trash.
+2. **Main source/filter (1/1):** IR selects one owner Hybrid Digimon/Tamer from `digivolutionCards`, plays without cost, and marks the Main choice optional.
+3. **Security source/filter (1/1):** Security optionally plays one named Koji Minamoto from hand or trash without cost.
+4. **Registration/coverage (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-096", compiled)` registration are present.
+5. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-096` reports no rulings or unresolved ambiguity.
+6. **Static primitive trace (1/1):** Controller, source zones, Hybrid trait/name filters, optionality, count, and free-play cost are explicit.
+7. **Transformation clause (1/1):** The target kind union represents the printed “as a Tamer or another Digimon” destination choice through the shared play primitive.
+8. **Single-stack fidelity (0/1):** As with BT7-097, no bound host reference is visible before selecting from `digivolutionCards`; static IR does not prove the Main card cannot combine cards across multiple evolution stacks.
+9. **Security completeness (1/1):** Security uses the exact hand/trash source pair and Koji name condition, with no unintended Main payload reuse.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; single-stack selection, destination transformation, optional decline, and Security boundaries remain unproven.
+
+Required follow-up: bind one chosen host stack (or establish the engine guarantee), then add behavioral proof for both Main and Security branches. This card is not formally complete at 10/10.
