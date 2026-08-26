@@ -22,7 +22,9 @@ const reactInto = {
   zone: "trash",
   kind: ["Digimon"],
   nameOrTrait: [
-    { tokens: ["Ravemon"], match: "name" },
+    // "[Ravemon]" is a bracket-only card reference (§2-3-1-2): exact name, so
+    // "Ravemon: Burst Mode" does not qualify.
+    { tokens: ["Ravemon"], match: "nameExact" },
     { tokens: ["DATA SQUAD"], match: "trait" },
   ],
 };
@@ -41,8 +43,10 @@ const avianTrash = {
   kind: ["Digimon", "Tamer"],
   playCostLte: 5,
   nameOrTrait: [
-    { tokens: ["Avian"], match: "trait" },
-    { tokens: ["Bird"], match: "trait" },
+    // "[Avian] or [Bird] in any of its traits" is the substring form (§2-3-2-4), so
+    // "Mysterious Bird" / "Giant Bird" qualify; "the [DATA SQUAD] trait" stays exact (§2-3-2-3).
+    { tokens: ["Avian"], match: "traitContains" },
+    { tokens: ["Bird"], match: "traitContains" },
     { tokens: ["DATA SQUAD"], match: "trait" },
   ],
 };

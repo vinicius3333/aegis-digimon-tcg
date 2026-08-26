@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { irNode } from "../../engine/testkit/irNode.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-076.js";
 import "../index.js";
@@ -54,6 +55,40 @@ describe("BT26-076 Crowmon", () => {
           event: "whenDigivolutionTrashed",
           sourceFilter: { controller: "mine", kind: ["Tamer"], byEffect: true },
         }),
+      ],
+    });
+  });
+
+  it("distinguishes the exact-name, exact-trait, and substring-trait references it prints", () => {
+    // "[Ravemon]" is a bracket-only card reference (rules 2-3-1-2): exact name, so
+    // "Ravemon: Burst Mode" is not a legal reactive digivolution target.
+    const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
+    expect(irNode(irNode(watcher.actions[0]!).actions[0]).into).toMatchObject({
+      filter: {
+        nameOrTrait: [
+          { tokens: ["Ravemon"], match: "nameExact" },
+          { tokens: ["DATA SQUAD"], match: "trait" },
+        ],
+      },
+    });
+    // "[Avian] or [Bird] in any of its traits" is the substring form (rules 2-3-2-4);
+    // "the [DATA SQUAD] trait" stays an exact trait identity (rules 2-3-2-3).
+    expect(compiled.effects.find((effect) => effect.trigger === "OnDeletion")).toMatchObject({
+      isInherited: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              playCostLte: 5,
+              nameOrTrait: [
+                { tokens: ["Avian"], match: "traitContains" },
+                { tokens: ["Bird"], match: "traitContains" },
+                { tokens: ["DATA SQUAD"], match: "trait" },
+              ],
+            },
+          },
+        },
       ],
     });
   });
