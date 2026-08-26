@@ -44,7 +44,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-018 — 10/10
   - Evidence: catalog and KB Q2276/Q5986–Q5991 reviewed; compiled IR exclusively uses `registerIrCard`, tracing RizeGreymon alternate evolution, Start Main/When Digivolving Marcus kind/base-DP/restriction/Blocker grants through opponent-turn end, and all-turn red/yellow Tamer suspension target/frequency behavior.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-018.test.ts` passed (4 tests): Start Main state, alternate evolution state, once-per-turn -6000 DP boundary, and blue-Tamer negative.
-- BT13-019 — Pending
+- BT13-019 — 10/10
+  - Evidence: catalog and KB Q2277 reviewed; compiled IR exclusively uses `registerIrCard`, with Blocker and optional trash-or-breeding free-play paths traced through zone-specific card selection, controller ownership, exact-name Omnimon/Gankoomon exclusions, and X-Antibody name allowance.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-019.test.ts` passed (6 tests): IR registration shape, trash play/refusal, On Play and evolution timing, breeding Royal Knight play including Q2277, and excluded-name negative.
 - BT13-020 — Pending
 - BT13-021 — Pending
 - BT13-022 — Pending
