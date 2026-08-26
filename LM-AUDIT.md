@@ -176,14 +176,18 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   another friendly Digimon, and inherited On Deletion free-play targets any named Hiro Amanokawa
   Tamer from hand. The catalog has no local KB entry; direct IR and focused fixtures cover effect
   versus battle deletion, self-deletion, inherited play/refusal, and metadata, with no new causal
-  gap found. Existing focused cases are unrun, so LM-016 remains below 10/10.
+  gap found. The authorized single serialized run passed 1/1 file and 6/6 tests in 3.34s on
+  2026-08-26 using
+  `vitest run src/cards/LM/LM-016.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-016 remains below 10/10 pending mechanism and collection gates.
 
 ## LM-017 — Regulusmon — pending focused execution
 
 - Direct IR maps Blast Digivolve, shared entrance trash/under placement, and once-per-turn reactive
   free-play/deletion branch. The reaction now requires effect provenance on the add-digivolution
-  event, so ordinary digivolution cannot arm it; positive and negative focused cases are unrun,
-  and no local ruling exists, so below 10/10.
+  event, so ordinary digivolution cannot arm it. The catalog has no local KB entry; static review
+  found no new causal gap across the level boundary, bottom placement, deletion cost, or
+  once-per-turn gate. Positive and negative focused cases are unrun, so LM-017 remains below 10/10.
 
 ## LM-018 — Gyuukimon — pending focused execution
 
