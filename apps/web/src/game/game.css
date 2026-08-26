@@ -1401,6 +1401,16 @@
 /* The field dims behind the dock, so the only lit things are the raising slot,
    the hand that digivolves into it and the turn control on the memory band.
    It sits under the band (z 5) and far under every notice, panel and dialog. */
+/* Pointer input off, for the play surfaces only: the header, the log and surrender are
+   outside it. `cursor: progress` is the whole of its appearance — the security scene
+   itself is what says why the board stopped answering. */
+.game-input-lock {
+  position: absolute;
+  z-index: 9;
+  inset: 0;
+  cursor: progress;
+}
+
 .game-breeding-mode {
   position: absolute;
   inset: 0;

@@ -39,6 +39,7 @@ import { useBattlefieldStyle } from "../design/battlefield";
 import "./game.css";
 import {
   AttackArrow,
+  BoardInputLock,
   BreedingSlot,
   Hand,
   HAND_CARD_WIDTH,
@@ -517,6 +518,17 @@ export function GameScreen({
     [],
   );
 
+  // A locked board keeps no half-built action: the contextual action bar pins itself
+  // to the viewport on a phone, which puts it outside the pane that takes the input,
+  // and a selection left standing there would offer buttons that answer nothing.
+  useEffect(() => {
+    if (!securityRevealPending) return;
+    clearSel();
+    setCardMenu(null);
+    setDigiXrosPick(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [securityRevealPending]);
+
   // Clear local selections whenever a decision opens or the turn flips.
   useEffect(() => {
     clearSel();
@@ -862,15 +874,22 @@ export function GameScreen({
   }
 
   const isMyTurn = state.turnSeat === viewerSeat;
+  /* A security check owns the board for as long as its scene plays. The reveal is on
+     both screens at the same time, so an action sent inside that window lands on a
+     board the other player is still watching resolve (docs/battle-animation-spec.md
+     §4b). The lock covers the play surfaces only — the header, the play log, the
+     card blow-ups and surrender all stay live, and a click still fast-forwards
+     whatever part of the scene is skippable. */
+  const boardLocked = securityRevealPending && !state.gameOver;
   const breedingWindow = isBreedingWindow({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat });
   // The breeding step is answered on the board rather than in a dialog: the egg
   // deck hatches, the raising slot moves out and the turn control ends the step.
   // These drive the highlights and the hint that stand in for the old modal.
   const canHatchEgg = you.eggDeckCount > 0 && !you.breeding;
   const canMoveOutOfBreeding = canMoveFromBreeding(you.breeding);
-  // The clash is a pointer-transparent overlay, so the breeding actions stay live
-  // underneath it: only an open decision or the end of the match takes them away.
-  const breedingActionsOpen = breedingWindow && !decision && !state.gameOver;
+  // An open decision, the end of the match, and the security check that has the board
+  // locked each take the breeding actions away; nothing else does.
+  const breedingActionsOpen = breedingWindow && !decision && !state.gameOver && !boardLocked;
   const memory = displayMemory(state, viewerSeat);
   const instanceIndex = buildInstanceIndex(state, viewerSeat);
   const youColor = identityColor;
@@ -891,6 +910,7 @@ export function GameScreen({
 
   // ----- intent senders (no-op safely if the room dropped) -----
   const playCard = (instanceId: string, confirmDrop = false) => {
+    if (boardLocked) return;
     const entry = handEntries.find((h) => h.instanceId === instanceId);
     if (entry) {
       const dnaMaterials = findDnaMaterialCombination(entry.cardId, you.battleArea);
@@ -989,6 +1009,7 @@ export function GameScreen({
     clearSel();
   };
   const digivolve = (permanentId: string, instanceId: string, useAlternateCost?: boolean) => {
+    if (boardLocked) return;
     if (room) {
       lastPlayAttemptRef.current = instanceId;
       playGameCue("digivolve");
@@ -997,6 +1018,7 @@ export function GameScreen({
     clearSel();
   };
   const attack = (attackerPermanentId: string, target: AttackTarget, vortex?: boolean) => {
+    if (boardLocked) return;
     if (room) {
       playGameCue("attackDeclare");
       intents.attack(room, attackerPermanentId, target, vortex);
@@ -1020,6 +1042,7 @@ export function GameScreen({
     }
   };
   const activateEffect = (instanceId: string, effectKey: string) => {
+    if (boardLocked) return;
     if (room) {
       playSound("confirm");
       intents.activateEffect(room, instanceId, effectKey);
@@ -1463,6 +1486,7 @@ export function GameScreen({
   };
 
   const onBreeding = () => {
+    if (boardLocked) return;
     if (selCardId && you.breeding && eligibleBase(you.breeding))
       return digivolveWithChoice(you.breeding.permanentId, handSel!, selCardId!, you.breeding);
     if (you.breeding) {
@@ -2334,6 +2358,10 @@ export function GameScreen({
             className="game-field"
             style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
           >
+            {/* The play surfaces refuse pointer input while a security check owns the
+                screen. Drawn twice — once here, once over the dock — so the header,
+                the log and surrender are never covered by it. */}
+            {boardLocked ? <BoardInputLock /> : null}
             {/* The breeding step is about one slot: the field dims behind the dock,
                 which keeps the raising area, the hand that digivolves into it and
                 the turn control lit. Notices, panels and dialogs all sit above. */}
@@ -2482,7 +2510,7 @@ export function GameScreen({
                 />
                 <TurnControl
                   state={turnControlState({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat })}
-                  onEndPhase={() => room && intents.endPhase(room)}
+                  onEndPhase={() => !boardLocked && room && intents.endPhase(room)}
                 />
               </div>
               <div
@@ -2645,6 +2673,7 @@ export function GameScreen({
           <footer
             className="game-player-dock"
             style={{
+              position: "relative",
               flexShrink: 0,
               borderTop: "1px solid var(--ds-border)",
               background: "var(--ds-surface)",
@@ -2652,6 +2681,7 @@ export function GameScreen({
               alignItems: "stretch",
             }}
           >
+            {boardLocked ? <BoardInputLock /> : null}
             {/* breeding area (bottom-left) */}
             <div
               className="game-breeding-dock"

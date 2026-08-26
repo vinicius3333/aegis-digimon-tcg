@@ -5,7 +5,7 @@ import { CardInstance, Permanent } from "@aegis/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NoticeStack } from "./NoticeStack";
 import { I18nProvider } from "../i18n";
-import { PermanentView } from "./boardPieces";
+import { BoardInputLock, PermanentView } from "./boardPieces";
 import { PermanentDetailInspector, StackViewerOverlay } from "./overlays";
 import { buildPermanentDetail } from "./permanentDetail";
 import { SecurityClash } from "./SecurityClashView";
@@ -175,5 +175,15 @@ describe("opponent permanent inspection", () => {
     expect(inspector.textContent).toContain("Reveal 5 cards from the top of your deck");
     expect(inspector.textContent).toContain("Greymon");
     expect(inspector.textContent).toContain("＜Raid＞");
+  });
+});
+
+describe("board input lock", () => {
+  it("covers its surface without drawing anything on it", () => {
+    render(<BoardInputLock />);
+
+    const lock = screen.getByTestId("board-input-lock");
+    expect(lock.textContent).toBe("");
+    expect(lock.getAttribute("aria-hidden")).toBe("true");
   });
 });
