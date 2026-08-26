@@ -342,7 +342,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   `ModifySecurityDP` action writes the opponent security-Digimon ledger rather than attempting to
   target security loose cards as permanents. Existing behavior covers pooled trash, both stack
   comparison outcomes, mandatory Then, and once-per-turn.
-- Focused proof remains unrun while PID 43774 is active, so LM-040 remains below 10/10.
+- Focused proof remains unrun while PID 82901 is active, so LM-040 remains below 10/10.
 
 ## LM-041 — Regalecusmon — pending focused execution
 
@@ -354,7 +354,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   opponent Digimon or Tamer with the duration through the opponent's turn end. The focused zero
   memory case was strengthened to assert the mandatory Then lock, not merely the absent return;
   existing cases cover memory-one dual execution, above-one boundary, and On Play DS targeting.
-- No local ruling adds ambiguity. The focused test is deliberately unrun under PID 43774, so
+- No local ruling adds ambiguity. The focused test is deliberately unrun under PID 82901, so
   LM-041 remains below 10/10.
 
 ## LM-042 — Rasielmon — pending focused execution
@@ -383,7 +383,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Scapegoat battle proof was added: an opponent battle into suspended Darkdramon must sacrifice
   another own Digimon and retain Darkdramon, exercising the registered keyword through the combat
   deletion path rather than merely asserting its marker.
-- No local Q&A exists. This new focused case is intentionally unrun under PID 43774, so LM-043
+- No local Q&A exists. This new focused case is intentionally unrun under PID 82901, so LM-043
   remains below 10/10.
 
 ## LM-044 — Ghoulmon — pending focused execution
@@ -396,7 +396,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   was initially false. Existing behavioral tests prove initial five (discard then delete), four
   (no discard but delete), and six (discard leaves five, so no delete) boundaries, plus keyword
   registration. No source semantic gap was found.
-- The focused suite remains unrun under PID 43774, so LM-044 remains below 10/10.
+- The focused suite remains unrun under PID 82901, so LM-044 remains below 10/10.
 
 ## LM-045 — Vermilion Memory Boost! — pending focused execution
 
@@ -408,7 +408,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   resolution, and Security; shared Delay tests cover its activation lifecycle. The LM-033-specific
   Q4063/Q4064 citations in this card's comments were removed because LM-045 has no local KB entry
   and the catalog is the only card-specific authority available.
-- Tests remain deliberately unrun under PID 43774, so LM-045 remains below 10/10.
+- Tests remain deliberately unrun under PID 82901, so LM-045 remains below 10/10.
 
 ## LM-046 — Navy Memory Boost! — pending focused execution
 
@@ -419,7 +419,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Existing focused cases cover native/alternate sources, breeding, rejection, reveal resolution,
   and Security; shared Delay behavior covers activation lifecycle. Removed LM-033-specific
   Q4063/Q4064 citations because LM-046 has no local KB ruling.
-- Tests remain deliberately unrun under PID 43774, so LM-046 remains below 10/10.
+- Tests remain deliberately unrun under PID 82901, so LM-046 remains below 10/10.
 
 ## LM-047 — Chartreuse Memory Boost! — pending focused execution
 
@@ -429,7 +429,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Existing focused behavior covers the native/alternate source paths, breeding, rejection, reveal
   resolution, and Security; shared Delay proof covers activation. Removed unrelated LM-033 Q&A
   citations because LM-047 has no card-specific KB entry.
-- Tests remain deliberately unrun under PID 43774, so LM-047 remains below 10/10.
+- Tests remain deliberately unrun under PID 82901, so LM-047 remains below 10/10.
 
 ## LM-048 — Chrome Memory Boost! — pending focused execution
 
@@ -439,7 +439,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   boundaries plus search and Security behavior.
 - Removed unrelated LM-033 Q&A references: LM-048 has no local KB entry, and its card catalog is
   the card-specific authority. Its existing focused suite is behavioral but deliberately unrun.
-- PID 43774 remains active, so LM-048 remains below 10/10.
+- PID 82901 remains active, so LM-048 remains below 10/10.
 
 ## LM-049 — Midnight Memory Boost! — pending focused execution
 
@@ -448,7 +448,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   executable direct IR; focused fixtures cover native/alternate source, breeding, refusal, reveal
   result, and Security.
 - Removed unrelated LM-033 Q&A citations because LM-049 has no local KB entry. Focused behavior
-  remains unrun while PID 43774 occupies the serial test slot.
+  remains unrun while PID 82901 occupies the serial test slot.
 - LM-049 remains below 10/10 pending that execution.
 
 ## LM-050 — Magenta Memory Boost! — pending focused execution
@@ -457,7 +457,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   purple-or-red Digimon, bottoming, placement, Delay gain-two, and Security placement. Focused
   source tests cover native/alternate battle and breeding sources, rejection, reveal, and Security.
 - LM-050 has no local KB entry; removed unrelated LM-033 Q&A citations. Tests are unrun under PID
-  43774, so it remains below 10/10.
+  82901, so it remains below 10/10.
 - Added shared card-level Delay integration proof for LM-050–053: on a later turn, activation must
   trash the exact placed Option and leave memory at exactly +2. This explicitly depends on EX6
   Delay-engine commit `d1082a712`; do not duplicate that generic engine repair in LM. Before any
@@ -468,7 +468,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Catalog and direct IR agree on red-or-green alternate legality and the standard reveal-three,
   placement, Delay, and Security paths. Focused source tests cover native/alternate/breeding and
   negative legality plus observable Main/Security results; no local ruling exists.
-- Stale generic breeding wording was made citation-free. Tests are unrun under PID 43774, so this
+- Stale generic breeding wording was made citation-free. Tests are unrun under PID 82901, so this
   card remains below 10/10.
 
 ## LM-052 — Malachite Memory Boost! — pending focused execution
@@ -476,14 +476,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Catalog and direct IR agree on blue-or-yellow alternate legality and standard reveal-three,
   placement, Delay, and Security behavior. Existing focused tests cover every color-source and
   primary-zone boundary; no local ruling exists.
-- Tests remain unrun under PID 43774, so LM-052 remains below 10/10.
+- Tests remain unrun under PID 82901, so LM-052 remains below 10/10.
 
 ## LM-053 — Obsidian Memory Boost! — pending focused execution
 
 - Catalog and direct IR agree on black-or-purple alternate legality and standard reveal-three,
   placement, Delay, and Security behavior. Existing focused tests cover native/alternate/breeding
   legality, refusal, search result, and Security; no local ruling exists.
-- Tests remain unrun under PID 43774, so LM-053 remains below 10/10.
+- Tests remain unrun under PID 82901, so LM-053 remains below 10/10.
 - Its Delay case is included in `LM-050-053.delay.test.ts` and shares the explicit EX6
   `d1082a712` integration dependency/update-before-validation requirement recorded at LM-050.
 
@@ -493,55 +493,55 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   battle area, reveal-two/add yellow-or-black card/bottom/place, and optional paid ordinary
   yellow-or-black evolution at minus two via Delay. Security repeats reveal and placement.
 - Existing focused source cases cover the waiver on/off boundary, legal reduced paid evolution,
-  Main, and Security. No local ruling exists; unrun status under PID 43774 keeps it below 10/10.
+  Main, and Security. No local ruling exists; unrun status under PID 82901 keeps it below 10/10.
 
 ## LM-055 — Sprint Dash Training — pending focused execution
 
 - Direct IR is the green/red analogue of LM-054: self-name-gated waiver, reveal-two/add card,
   place, optional paid ordinary evolution at minus two, and Security reveal/place. Existing focused
   tests cover each path; no local ruling exists.
-- Tests remain unrun under PID 43774, so LM-055 remains below 10/10.
+- Tests remain unrun under PID 82901, so LM-055 remains below 10/10.
 
 ## LM-056 — Image Training — pending focused execution
 
 - Direct IR is the blue/purple analogue of the Training contract, including self-name waiver
   scoping, ordinary paid evolution reduced by two, and independent Security reveal/place. Existing
   focused tests cover the applicable positive and waiver-negative boundaries.
-- No local ruling exists; tests are unrun under PID 43774 and LM-056 remains below 10/10.
+- No local ruling exists; tests are unrun under PID 82901 and LM-056 remains below 10/10.
 
 ## LM-057 — Wall Training — pending focused execution
 
 - Direct IR matches catalog's red/blue self-name waiver, reveal-two/add card/bottom/place, Delay
   optional ordinary paid evolution reduced by two, and Security reveal/place. Focused tests cover
   waiver lifecycle, evolution cost, Main, and Security.
-- No local ruling exists; unrun proof under PID 43774 keeps LM-057 below 10/10.
+- No local ruling exists; unrun proof under PID 82901 keeps LM-057 below 10/10.
 
 ## LM-058 — Parkour Training — pending focused execution
 
 - Direct IR matches catalog's blue/green Training contract and uses the same executable name-gated
   waiver, legal paid evolution, and Security paths. Existing focused tests cover each behavior.
-- No local ruling exists; tests remain unrun under PID 43774, so LM-058 remains below 10/10.
+- No local ruling exists; tests remain unrun under PID 82901, so LM-058 remains below 10/10.
 
 ## LM-059 — Heat Training — pending focused execution
 
 - Direct IR matches catalog's yellow/red Training contract: self-name-gated waiver, reveal/add,
   placement, Delay paid evolution at minus two, and Security reveal/place. Existing focused tests
   cover all stated boundaries.
-- No local ruling exists; tests remain unrun under PID 43774, so LM-059 remains below 10/10.
+- No local ruling exists; tests remain unrun under PID 82901, so LM-059 remains below 10/10.
 
 ## LM-060 — Shadow Training — pending focused execution
 
 - Direct IR matches catalog's green/purple Training contract through shared self-name waiver,
   normal paid evolution reduced by two, and Security reveal/place mechanisms. Existing focused
   tests cover the waiver boundary and every printed trigger path.
-- No local ruling exists; tests remain unrun under PID 43774, so LM-060 remains below 10/10.
+- No local ruling exists; tests remain unrun under PID 82901, so LM-060 remains below 10/10.
 
 ## LM-061 — Punching Training — pending focused execution
 
 - Direct IR matches catalog's black/red Training contract, including the self-name waiver scope,
   ordinary paid evolution, reduction, and Security resolution. Existing focused tests cover all
   printed branches.
-- No local ruling exists; tests remain unrun under PID 43774, so LM-061 remains below 10/10.
+- No local ruling exists; tests remain unrun under PID 82901, so LM-061 remains below 10/10.
 
 ## LM-062 — Breathing Training — pending focused execution
 
@@ -549,4 +549,4 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   source-text typo; the surrounding sentence and the five analogues establish the intended
   reduce-cost-by-two behavior, which the direct IR executes as paid ordinary evolution at minus two.
 - Existing focused tests cover waiver lifecycle, reveal/placement, reduction, and Security. No
-  local ruling exists; tests remain unrun under PID 43774, so LM-062 remains below 10/10.
+  local ruling exists; tests remain unrun under PID 82901, so LM-062 remains below 10/10.
