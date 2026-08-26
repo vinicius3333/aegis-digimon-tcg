@@ -3,7 +3,7 @@ import { compiled } from "./EX5-001.js";
 
 describe("EX5-001 Sunmon", () => {
   it("once per turn may digivolve itself from hand when an effect adds its top card to its stack", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
+    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
       isInherited: true,
       frequency: "OncePerTurn",
       actions: [

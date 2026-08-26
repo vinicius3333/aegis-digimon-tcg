@@ -4,7 +4,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 
 | Card | Name | KB entries | Static evidence | Runtime |
 | --- | --- | ---: | --- | --- |
-| EX5-001 | Sunmon | 2 | Q3526 maps the inherited clause to the shared `onAddDigivolutionCards` bus, scoped to this receiving host; optional hand Digivolve applies the printed −1 reduction and shares the inherited Once Per Turn gate. | Pending focused proof |
+| EX5-001 | Sunmon | 2 | Q3526/Q5393 maps the inherited owner-turn clause to the shared `onAddDigivolutionCards` bus, scoped to this receiving host; optional hand Digivolve applies the printed −1 reduction and shares the inherited Once Per Turn gate. | Pending focused proof |
 | EX5-002 | Moonmon | 0 | Your Turn Tamer-entry subtrigger gates the optional self Digivolve from hand; shared `whenPlayed` payload and source ownership constrain the triggering Tamer. | Pending focused proof |
 | EX5-003 | Nyaromon | 0 | All Turns self aura continuously applies its DP modifier only while the inherited host is suspended. | Pending focused proof |
 | EX5-004 | Frimon | 0 | Attack draw is gated by the inherited host’s live Garurumon/Omnimon name predicate. | Pending focused proof |
