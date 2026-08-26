@@ -10147,7 +10147,12 @@
             },
             "from": ["trash"],
             "payCost": false,
-            "condition": { "kind": "raw", "raw": "this Digimon has [Sukamon] or [Etemon] in its name" },
+            "suspended": true,
+            "condition": {
+              "kind": "selfHasNameContaining",
+              "names": ["Sukamon", "Etemon"],
+              "raw": "this Digimon has [Sukamon] or [Etemon] in its name"
+            },
             "optional": true
           }
         ],
