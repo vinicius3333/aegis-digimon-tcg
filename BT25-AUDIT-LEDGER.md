@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-044 (Junomon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-044 Junomon | Yellow/purple level 6; alternate level-5 Angel/Archangel/TS evolution cost 3; play cost -5 when both security stacks total 6 or fewer; on play/when digivolving, place 1 other Digimon as top security, then trash both players' top security; all turns once per turn when own security is removed, may play an Angel/Archangel/Iliad card with play cost 8 or lower from hand/trash free. Q6315 and Q7004 define Security ordering and cumulative play-cost reductions. | **No card-specific causal mismatch found statically.** Main actions select an own non-self Digimon, place it top security, then trash both players' top security; the total-security replacement condition and cumulative replacement behavior are present. The security-removal watcher defaults to the source owner's stack through the dedicated gate, and its free-play filter, zones, trait union, and cost ceiling are correct. | Structural test only; no execution of cumulative cost reductions, own-Digimon placement/trash ordering, empty-security edge cases, once-per-turn removal watcher, or Q6315 ordering. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-044
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-044` (Q6315 and Q7004).
+- Direct module and shared total-security condition, place-as-security/trash-both sequencing,
+  security-removal routing, and free hand/trash play filtering were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-043 (Habakirimon / Habakiri)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
