@@ -31,7 +31,7 @@ export const compiled: CompiledCard = {
         if (action.kind === "Delete") {
           return {
             ...action,
-            target: { ...action.target, upTo: true },
+            target: action.target,
             cost:
               action.cost?.kind === "return"
                 ? {

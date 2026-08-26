@@ -153,6 +153,7 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
     expect(paidDelete).toMatchObject({
       optional: true,
       abortOnDecline: true,
+      target: { count: 7, upTo: undefined },
       cost: {
         kind: "return",
         position: "bottom",
