@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { CardKind, EffectTiming, getCardDefinition, type CardDefinition, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, DecisionApi } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -7,6 +7,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "../BT2/BT2-010.js";
 import "./BT11-097.js";
+import { compiled } from "./BT11-097.js";
 
 // A3 for BT11-097 (Crimson Flare):
 //   [Main] Delete 1 of your opponent's Digimon with 8000 DP or less.
@@ -112,6 +113,14 @@ function makeCtx(opts: { deletedIds: string[]; oppBattleArea: FakePerm[] }): Eff
 }
 
 describe("BT11-097 Crimson Flare [Main]", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-097")).toMatchObject({ cardId: "BT11-097", colors: ["Red"], kinds: ["Option"], playCost: 5 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Main", actions: [{ kind: "Delete" }, { kind: "ActivateEffect", effectType: "OnDeletion" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+    ]);
+  });
+
   it("activates a red Vaccine Digimon's On Deletion effect without deleting it", async () => {
     const s = setupEngine(
       {
