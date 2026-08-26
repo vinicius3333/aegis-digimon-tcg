@@ -1,6 +1,7 @@
-/* The three badges a permanent wears for as long as it stands there, rather than
-   for the length of a cue: the ＜Blocker＞ shield, the `×N` digivolution-source
-   count, and the DP chip a dual-colour Digimon splits between its two colours.
+/* The badges a permanent wears for as long as it stands there, rather than for the
+   length of a cue: the ＜Blocker＞ shield, the `×N` digivolution-source count, the DP
+   chip a dual-colour Digimon splits between its two colours, and the debuff chips for
+   the blanket restrictions an effect has imposed on it.
 
    Server truth throughout. The shield reads `Permanent.keywords`, which the
    engine re-derives on every continuous-effect pass and therefore already
@@ -60,4 +61,41 @@ export interface DpChipColors {
 export function dpChipColors(permanent: Pick<Permanent, "topCard">): DpChipColors {
   const pair = palettePairFor(getCardDefinition(permanent.topCard?.cardId ?? "")?.colors);
   return { from: pair.from.base, to: pair.to.base, split: pair.split };
+}
+
+/** A blanket restriction a permanent wears as a standing debuff chip. */
+export type RestrictionBadgeKind = "cannotAttack" | "cannotBlock" | "cannotUnsuspend" | "cannotActivateWhenDigivolving";
+
+/** The translation key each chip prints, named per restriction so a rename is caught. */
+export type RestrictionLabelKey = `game.restriction.${RestrictionBadgeKind}`;
+
+export interface RestrictionBadge {
+  kind: RestrictionBadgeKind;
+  /** Translation key of the chip's short label. */
+  labelKey: RestrictionLabelKey;
+}
+
+/**
+ * The chip order, which is also the reading order on the card: what the position
+ * cannot do in combat first, then what it cannot do on its own turn.
+ */
+const RESTRICTION_BADGES: readonly RestrictionBadge[] = [
+  { kind: "cannotAttack", labelKey: "game.restriction.cannotAttack" },
+  { kind: "cannotBlock", labelKey: "game.restriction.cannotBlock" },
+  { kind: "cannotUnsuspend", labelKey: "game.restriction.cannotUnsuspend" },
+  { kind: "cannotActivateWhenDigivolving", labelKey: "game.restriction.cannotActivateWhenDigivolving" },
+];
+
+/**
+ * Every blanket restriction currently imposed on this permanent, read straight off
+ * the server's projection. Each flag is re-derived by the engine on every
+ * continuous-effect pass from the same ledger the rule itself consults, so a chip
+ * appears exactly while the restriction applies and no card text is parsed here.
+ *
+ * Target-scoped restrictions ("can't attack players") are deliberately absent: the
+ * server resolves those into `attackablePermanentIds` / `canAttackPlayer`, and a chip
+ * would double-count them.
+ */
+export function restrictionBadges(permanent: Pick<Permanent, RestrictionBadgeKind>): readonly RestrictionBadge[] {
+  return RESTRICTION_BADGES.filter((badge) => permanent[badge.kind]);
 }

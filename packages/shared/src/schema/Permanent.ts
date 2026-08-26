@@ -79,6 +79,15 @@ export class Permanent extends Schema {
   // which already resolve them; surfacing them here too would double-count.
   @type("boolean") cannotAttack = false;
   @type("boolean") cannotBlock = false;
+  // The two non-combat blanket restrictions the client shows as standing debuff badges,
+  // projected from the same ledger entries the rules read: the unsuspend step skips a
+  // permanent with `cannotUnsuspend` (GameEngine's unsuspend phase), and a [When
+  // Digivolving] effect is refused for one with `cannotActivateWhenDigivolving`
+  // (BT19-038, KB Q5541-Q5545). Published for both seats and every phase, like
+  // `cannotAttack`/`cannotBlock`, because they are facts about the permanent rather than
+  // about an action being declared right now.
+  @type("boolean") cannotUnsuspend = false;
+  @type("boolean") cannotActivateWhenDigivolving = false;
   // Number of security cards an attack by this Digimon checks: base 1 plus every resolved
   // ＜Security Attack ±N＞ grant, floored at 0 (Comprehensive Rules §16-4-4). Projected from
   // the same helper the security-check loop uses (`securityStrikeCount`) so the inspector can

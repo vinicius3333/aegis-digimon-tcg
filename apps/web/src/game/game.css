@@ -5227,6 +5227,51 @@ button.side-panel__name:focus-visible {
    the reference client feedback port — pending fate, prediction, spotlight, impact, result
    ========================================================================== */
 
+/* --- Restriction (debuff) chips ------------------------------------------ */
+
+/* The blanket "can't ..." locks an effect has imposed, worn along the card's
+   bottom edge for as long as the restriction holds — the standing counterpart to
+   the one-off freeze jolt. Danger-toned so they never read as a granted keyword,
+   which wears the light chips along the top edge. */
+.game-restriction-badges {
+  position: absolute;
+  bottom: -0.5rem;
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+  justify-content: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.game-restriction-badge {
+  display: inline-flex;
+  gap: 0.15rem;
+  align-items: center;
+  padding: 0.06rem 0.25rem;
+  font-family: var(--ds-font-sans);
+  font-size: 0.5rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ds-on-danger);
+  background: var(--ds-danger);
+  border-radius: 0.3rem;
+  box-shadow:
+    0 0 0 1px rgb(6 10 18 / 55%),
+    0 1px 4px rgb(0 0 0 / 40%);
+}
+
+.game-restriction-badge i {
+  font-style: normal;
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
 /* --- Pending-fate badge -------------------------------------------------- */
 
 /* The reference client stacks its fate pills above the card's top edge in a
@@ -6383,6 +6428,26 @@ button.side-panel__name:focus-visible {
 .stack-viewer-state__keywords li[data-empty] {
   color: var(--ds-fg-disabled);
   border-style: dashed;
+}
+/* The imposed "can't ..." locks, kept visibly apart from the keyword pills above:
+   those say what the position gained, these say what it lost. */
+.opponent-permanent-inspector__restrictions,
+.stack-viewer-state__restrictions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.opponent-permanent-inspector__restrictions li,
+.stack-viewer-state__restrictions li {
+  padding: 1px 7px;
+  color: var(--ds-on-danger);
+  font-size: 10.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: var(--ds-danger);
 }
 .opponent-permanent-inspector__fate,
 .stack-viewer-state__fate {

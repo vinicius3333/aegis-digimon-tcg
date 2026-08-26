@@ -810,6 +810,13 @@ export function PermanentDetailInspector({
           </ul>
         )}
       </section>
+      {detail.restrictions.length ? (
+        <ul className="opponent-permanent-inspector__restrictions" aria-label={t("overlay.restrictions")}>
+          {detail.restrictions.map((restriction) => (
+            <li key={restriction.kind}>{t(restriction.labelKey)}</li>
+          ))}
+        </ul>
+      ) : null}
       {fate ? (
         <p className="opponent-permanent-inspector__fate" data-tone={fate.tone}>
           <span aria-hidden="true">{fate.glyph}</span>
@@ -2350,6 +2357,13 @@ function StackViewerState({ detail, fate }: { detail: PermanentDetail; fate?: Pe
           </li>
         ))}
       </ul>
+      {detail.restrictions.length ? (
+        <ul className="stack-viewer-state__restrictions" aria-label={t("overlay.restrictions")}>
+          {detail.restrictions.map((restriction) => (
+            <li key={restriction.kind}>{t(restriction.labelKey)}</li>
+          ))}
+        </ul>
+      ) : null}
       {fate ? (
         <p className="stack-viewer-state__fate" data-tone={fate.tone}>
           <span aria-hidden="true">{fate.glyph}</span>

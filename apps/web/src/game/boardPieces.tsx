@@ -21,7 +21,7 @@ import {
 import { pressGesture } from "./pressGesture";
 import { turnControlLabelKey, type TurnControlState } from "./turnControl";
 import { formatKeyword } from "./keywordDisplay";
-import { hasBlocker, sourceCountBadge } from "./fieldBadges";
+import { hasBlocker, restrictionBadges, sourceCountBadge } from "./fieldBadges";
 import { deckLayerCount } from "./deckChrome";
 import type { PendingFateBadge } from "./pendingFate";
 import type { DpPulse } from "./dpPulse";
@@ -426,6 +426,10 @@ export function PermanentView({
   // never read off the printed art.
   const blocker = hasBlocker(perm);
   const sources = sourceCountBadge(perm);
+  // Server truth as well (`Permanent.cannotAttack` and friends): the standing debuffs
+  // an effect has imposed, worn for as long as they hold rather than only jolting the
+  // card once when they land.
+  const restrictions = restrictionBadges(perm);
 
   const cardName = def?.nameEn ?? topId;
   const activate = onKeyboardActivate ?? onClick;
@@ -433,6 +437,7 @@ export function PermanentView({
   const states = [
     perm.isSuspended ? t("overlay.suspended") : undefined,
     perm.summoningSick ? t("overlay.summoningSick") : undefined,
+    ...restrictions.map((restriction) => t(restriction.labelKey)),
     // The coming fate joins the spoken state list rather than labelling the pill
     // itself: a nested aria-label would rewrite the card's own accessible name.
     fate ? t(fate.labelKey) : undefined,
@@ -739,6 +744,18 @@ export function PermanentView({
               +{hiddenKeywordCount}
             </span>
           ) : null}
+        </div>
+      ) : null}
+      {restrictions.length > 0 ? (
+        /* Spoken through the wrapper's own state list above, so the chips
+           themselves stay out of the accessibility tree rather than repeating it. */
+        <div className="game-restriction-badges" aria-hidden="true">
+          {restrictions.map((restriction) => (
+            <span key={restriction.kind} className="game-restriction-badge">
+              <i aria-hidden="true">⊘</i>
+              {t(restriction.labelKey)}
+            </span>
+          ))}
         </div>
       ) : null}
     </div>

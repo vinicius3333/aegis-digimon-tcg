@@ -10,6 +10,7 @@
    Pure projection over a `Permanent`; no rules, no measurement. */
 
 import { getCardDefinition, type Permanent } from "@aegis/shared";
+import { restrictionBadges, type RestrictionBadge } from "./fieldBadges";
 import type { StackCard } from "./overlays";
 
 /** How many security cards an attack checks with no modifier at all. */
@@ -37,6 +38,12 @@ export interface PermanentDetail {
    * security-check loop itself reads, not a number scraped out of printed text.
    */
   securityAttack?: number;
+  /**
+   * The blanket "can't ..." locks currently imposed on this position, in reading order
+   * (`restrictionBadges`). Server truth like every other figure here: the engine
+   * re-derives each flag from the ledger the rule itself reads.
+   */
+  restrictions: readonly RestrictionBadge[];
   suspended: boolean;
   summoningSick: boolean;
   inBreeding: boolean;
@@ -74,6 +81,7 @@ export function buildPermanentDetail(permanent: Permanent): PermanentDetail {
     keywords,
     grantedKeywords: [...permanent.grantedKeywords],
     securityAttack: shownSecurityAttack(permanent),
+    restrictions: restrictionBadges(permanent),
     suspended: permanent.isSuspended,
     summoningSick: permanent.summoningSick,
     inBreeding: permanent.inBreeding,

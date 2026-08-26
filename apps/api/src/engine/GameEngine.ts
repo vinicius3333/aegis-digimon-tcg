@@ -2620,14 +2620,14 @@ export class GameEngine {
     this.syncActivatableEffects();
     this.syncKeywords();
     this.syncSummoningSickness();
-    this.syncCombatRestrictions();
+    this.syncRestrictions();
     this.syncAttackTargets();
     this.syncHandAffordances();
   }
 
   /**
    * The number of security cards an attack by `permanentId` checks. Single reader for both
-   * the live security-check loop (`strikeFor`) and the {@link syncCombatRestrictions}
+   * the live security-check loop (`strikeFor`) and the {@link syncRestrictions}
    * projection, so the inspector value cannot drift from the rule.
    */
   private securityStrikeFor(permanentId: string): number {
@@ -2641,24 +2641,32 @@ export class GameEngine {
   }
 
   /**
-   * Publish the blanket combat restrictions imposed on each permanent, plus its resolved
+   * Publish the blanket restrictions imposed on each permanent, plus its resolved
    * ＜Security Attack＞ count. Both seats and every phase, like {@link syncSummoningSickness}
    * and unlike {@link syncAttackTargets}: these are board-state facts about the permanent
    * itself, not "can this attack be declared right now", so the client can pulse a freeze
-   * the moment a restriction lands and show a truthful strike count in the inspector.
+   * the moment a restriction lands, wear a standing debuff badge for as long as one holds,
+   * and show a truthful strike count in the inspector.
    */
-  private syncCombatRestrictions(): void {
+  private syncRestrictions(): void {
     for (const player of this.state.players) {
-      for (const perm of player.battleArea) this.projectCombatRestrictions(perm);
+      for (const perm of player.battleArea) this.projectRestrictions(perm);
       // A permanent in the raising area can neither attack nor block by the rules of the
-      // area itself, so an imposed restriction has nothing to add; leave the defaults.
-      if (player.breeding) this.projectCombatRestrictions(player.breeding);
+      // area itself, so those two have nothing to add there; the unsuspend and [When
+      // Digivolving] locks do apply in the raising area, and {@link projectRestrictions}
+      // publishes every one of them from the same ledger the rules read.
+      if (player.breeding) this.projectRestrictions(player.breeding);
     }
   }
 
-  private projectCombatRestrictions(perm: Permanent): void {
+  private projectRestrictions(perm: Permanent): void {
     perm.cannotAttack = this.continuous.hasRestriction(perm.permanentId, "attack");
     perm.cannotBlock = this.continuous.hasRestriction(perm.permanentId, "block");
+    perm.cannotUnsuspend = this.continuous.hasRestriction(perm.permanentId, "unsuspend");
+    perm.cannotActivateWhenDigivolving = this.continuous.hasRestriction(
+      perm.permanentId,
+      "cannotActivateWhenDigivolving",
+    );
     perm.securityAttack = this.securityStrikeFor(perm.permanentId);
   }
 
