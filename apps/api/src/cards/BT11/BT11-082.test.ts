@@ -1,10 +1,23 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-082.js";
+import { compiled } from "./BT11-082.js";
 
 describe("BT11-082 Tuwarmon", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-082")).toMatchObject({
+      cardId: "BT11-082", colors: ["Purple", "Black"], level: 4, playCost: 7, dp: 6000, types: ["Mutant", "Bagra Army", "Twilight"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", keywords: [{ keyword: "Decoy" }] },
+      { trigger: "AllTurns", actions: [{ kind: "Restrict", restriction: "beDeleted" }] },
+      { trigger: "OnDeletion", actions: [{ kind: "PlayWithoutCost", suspended: true }] },
+      { trigger: "OpponentsTurn", isInherited: true, actions: [{ kind: "SubTrigger" }] },
+    ]);
+  });
+
   it("has Decoy and prevents own Yuu Amano from being deleted", async () => {
     const s = setupEngine({
       0: {

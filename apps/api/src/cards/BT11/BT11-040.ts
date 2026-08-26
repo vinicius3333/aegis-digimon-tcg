@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnDeletion",
@@ -41,7 +41,7 @@ const compiled: CompiledCard = {
                 kind: "deleteOwn",
                 target: {
                   filter: {
-                    controller: "mine",
+                    controller: "any",
                     excludeSelf: true,
                     kind: ["Digimon"],
                     nameOrTrait: [{ tokens: ["Sukamon"], match: "name" }],

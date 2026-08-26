@@ -1,8 +1,17 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-109.js";
+import { compiled } from "./BT11-109.js";
 
 describe("BT11-109 Astral Snatcher", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-109")).toMatchObject({ cardId: "BT11-109", colors: ["Purple"], kinds: ["Option"], playCost: 7 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Main", actions: [{ kind: "PlaceUnder" }, { kind: "SelectBind" }, { kind: "PlaceUnder" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+    ]);
+  });
+
   it("places Bagra Army trash cards under an own host, then relocates an opposing Digimon under another", async () => {
     const s = setupEngine(
       {

@@ -1,10 +1,21 @@
-import { digiXrosRequirementFor } from "@aegis/shared";
+import { digiXrosRequirementFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-081.js";
+import { compiled } from "./BT11-081.js";
 
 describe("BT11-081 MadLeomon: Armed Mode", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-081")).toMatchObject({
+      cardId: "BT11-081", colors: ["Purple"], level: 4, playCost: 6, dp: 5000, types: ["Undead", "Bagra Army"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "OpponentsTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenEffectAddsToOpponentHand" }] },
+      { trigger: "OnDeletion", keywords: [{ keyword: "Save" }] },
+      { trigger: "OpponentsTurn", isInherited: true, actions: [{ kind: "SubTrigger" }] },
+    ]);
+  });
+
   it("publishes and executes its two-material DigiXros -2 recipe", async () => {
     expect(digiXrosRequirementFor("BT11-081")).toEqual([
       {

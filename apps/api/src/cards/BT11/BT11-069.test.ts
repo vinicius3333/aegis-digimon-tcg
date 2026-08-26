@@ -1,10 +1,26 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-069.js";
+import { compiled } from "./BT11-069.js";
 
 describe("BT11-069 MetalGreymon (X Antibody)", () => {
+  it("maps catalog facts and each conditional effect to IR", () => {
+    expect(getCardDefinition("BT11-069")).toMatchObject({
+      cardId: "BT11-069",
+      colors: ["Black", "Red"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      types: ["Cyborg", "X Antibody"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "WhenDigivolving", actions: [{ kind: "GrantStatic" }, { kind: "Delete" }] },
+      { trigger: "OpponentsTurn", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger" }] },
+    ]);
+  });
+
   it("gains both protections and deletes a 6000-DP-or-less Digimon with a matching source", async () => {
     const s = setupEngine(
       {

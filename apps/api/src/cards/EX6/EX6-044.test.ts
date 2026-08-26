@@ -86,7 +86,7 @@ function harness(opts?: { turnSeat?: Seat }): Harness {
   const ledger = new ModifierLedger();
   const memory = new MemoryGauge(state, (e) => events.push(e));
   const subTriggers = new SubTriggerRegistry();
-  const reentryGuard = { active: false };
+  const reentryGuard = { activeReplacementKeys: new Set<string>() };
 
   const ask: SelectionPort = {
     selectInstances: async (_seat, candidates, _min, max) => candidates.slice(0, max),

@@ -1,10 +1,25 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../BT10/BT10-067.js";
-import "./BT11-073.js";
+import { compiled } from "./BT11-073.js";
 describe("BT11-073 Justimon: Accel Arm", () => {
+  it("maps catalog facts and both printed effects to IR", () => {
+    expect(getCardDefinition("BT11-073")).toMatchObject({
+      cardId: "BT11-073",
+      colors: ["Black"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      types: ["Cyborg"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "WhenDigivolving", actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack" } }, { kind: "GainKeyword", keyword: { keyword: "Piercing" } }] },
+      { trigger: "WhenAttacking", actions: [{ kind: "Digivolve", costOverride: 2, ignoreRequirements: true }] },
+    ]);
+  });
+
   it("returns a level 6 source when its digivolving effect is accepted", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT11-073", as: "justimon", under: ["BT2-030"] }] } },

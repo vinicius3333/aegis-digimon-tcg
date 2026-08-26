@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import type { GameEngine } from "../../engine/GameEngine.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 // Self-register every card module so the engine drives the REGISTERED BT11-106 IR.
 import "../index.js";
+import { compiled } from "./BT11-106.js";
 
 /**
  * A3 — Q1f: BT11-106 (Black Option) "[Main] Until the end of your opponent's turn, 1 of your
@@ -26,6 +29,26 @@ import "../index.js";
  */
 
 describe("A3 BT11-106 — granted '[On Deletion] Gain 3 memory.'", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-106")).toMatchObject({ cardId: "BT11-106", colors: ["Black"], kinds: ["Option"], playCost: 2 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
+      { trigger: "Main", actions: [{ kind: "GrantAuraToOpponents" }, { kind: "Restrict", restriction: "cantBeBlocked" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "RevealAdd", revealCount: 3 }] },
+    ]);
+  });
+
+  it("also makes the chosen Digimon unable to be blocked", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT2-056", as: "recipient" }], hand: [{ card: "BT11-106", as: "option" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("recipient"), "cantBeBlocked"));
+    expect(observe(s.engine).isRestricted(s.perm("recipient"), "cantBeBlocked")).toBe(true);
+  });
+
   it("POSITIVE: deleting the granted OWN Digimon gains 3 memory", async () => {
     const s = setupEngine(
       {

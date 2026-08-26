@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
@@ -56,17 +56,6 @@ const compiled: CompiledCard = {
               to: "hand",
             },
           ],
-        },
-        {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "level",
-          amount: 1,
-          scaling: {
-            per: 1,
-            filter: { zone: "battleArea", controller: "mine", kind: ["Tamer"], colors: ["Blue"] },
-            unit: "cards",
-          },
         },
       ],
       frequency: "OncePerTurn",

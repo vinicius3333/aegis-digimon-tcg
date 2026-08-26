@@ -38,6 +38,7 @@ import "./interpreter/effect.js";
 export { linkCostOf } from "./interpreter/actions/link.js";
 export {
   hasRegisteredCompiledCard,
+  digiXrosOnlyNameAliasesFor,
   runtimeCompiledCard,
   universalNameAliasesFor,
 } from "./interpreter/compiledCards.js";

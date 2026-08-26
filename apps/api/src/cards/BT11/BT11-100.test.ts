@@ -1,8 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-100.js";
+import { compiled } from "./BT11-100.js";
 
 describe("BT11-100 Megalo Spark", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-100")).toMatchObject({ cardId: "BT11-100", colors: ["Yellow"], kinds: ["Option"], playCost: 5 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
+      { trigger: "Main", actions: [{ kind: "ModifyDP", amount: -8000 }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+    ]);
+  });
+
   it("costs 1 less with a yellow Tamer and applies -8000 DP to exactly 1 opponent Digimon", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(

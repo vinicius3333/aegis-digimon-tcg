@@ -1,11 +1,20 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-092.js";
+import { compiled } from "./BT11-092.js";
 
 describe("BT11-092 Analogman", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-092")).toMatchObject({ cardId: "BT11-092", colors: ["Black"], kinds: ["Tamer"], playCost: 4 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "StartOfYourMainPhase", actions: [{ kind: "GainMemory", amount: 1 }, { kind: "Draw", amount: 1 }] },
+      { trigger: "OpponentsTurn", actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }] },
+    ]);
+  });
+
   it("trashes a level 5 Cyborg to gain 1 memory and draw 1 at start of main", async () => {
     const s = setupEngine(
       {

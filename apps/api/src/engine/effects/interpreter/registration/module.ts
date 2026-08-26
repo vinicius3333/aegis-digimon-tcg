@@ -203,7 +203,13 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
               await ctx.fx.deletePermanent([self.permanentId]);
               // The source is the activation cost. Delete it before resolving the payload so
               // state observers cannot see the Delay reward while the paid card remains in play.
-              await runEffect({ ...ctx, delayArmedConsumed }, effect);
+              const outerEffectKey = ctx.activeEffectKey;
+              ctx.activeEffectKey = effectKey;
+              try {
+                await runEffect({ ...ctx, delayArmedConsumed }, effect);
+              } finally {
+                ctx.activeEffectKey = outerEffectKey;
+              }
             },
           });
         }
@@ -247,7 +253,13 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
               if (!activate) return;
               const trashed = await ctx.fx.deletePermanent([self.permanentId]);
               if (trashed <= 0 && ctx.source.permanent() !== undefined) return;
-              await runEffect(ctx, effect);
+              const outerEffectKey = ctx.activeEffectKey;
+              ctx.activeEffectKey = effectKey;
+              try {
+                await runEffect(ctx, effect);
+              } finally {
+                ctx.activeEffectKey = outerEffectKey;
+              }
             },
           });
         }
@@ -279,7 +291,13 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             (effect.trigger !== "WhenLinking" || ctx.trigger.linkedInstanceIds?.includes(source.instanceId) === true) &&
             canActivateEffect(ctx, effect),
           resolve: async (ctx) => {
-            await runEffect(ctx, resolvedEffect);
+            const outerEffectKey = ctx.activeEffectKey;
+            ctx.activeEffectKey = effectKey;
+            try {
+              await runEffect(ctx, resolvedEffect);
+            } finally {
+              ctx.activeEffectKey = outerEffectKey;
+            }
           },
         });
       });

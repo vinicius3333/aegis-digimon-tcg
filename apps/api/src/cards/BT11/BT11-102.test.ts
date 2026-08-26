@@ -1,10 +1,18 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-102.js";
+import { compiled } from "./BT11-102.js";
 
 describe("BT11-102 High Mega Blaster", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-102")).toMatchObject({ cardId: "BT11-102", colors: ["Green"], kinds: ["Option"], playCost: 3 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Main", actions: [{ kind: "SelectBind" }, { kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "Suspend" }] },
+    ]);
+  });
+
   it("suspends exactly two opponent Digimon at or below the chosen Insect's DP", async () => {
     const s = setupEngine(
       {

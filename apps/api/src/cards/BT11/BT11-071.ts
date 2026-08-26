@@ -32,7 +32,7 @@ const enterActions: any[] = [
   },
 ];
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Rule",

@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { makeInstance as instance, setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT11-089.js";
 
 // A3 for BT11-089 (Akiho Rindou) — its [On Play] effect reveals the top 4 cards of the
 // deck and is supposed to add 1 red Digimon with [Vaccine] in its traits among them to
@@ -15,6 +16,15 @@ import "../index.js";
 // the selected card back into the deck bottom along with everything else instead of the
 // hand. The 7th known instance of the reveal-to-hand no-op bug class.
 describe("BT11-089 [On Play] reveal 4 -> add 1 red Vaccine Digimon to hand", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-089")).toMatchObject({ cardId: "BT11-089", colors: ["Red"], kinds: ["Tamer"], playCost: 3 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 4 }] },
+      { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenPlayed" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }] },
+    ]);
+  });
+
   it("moves the selected red/Vaccine Digimon to hand, not the deck bottom", async () => {
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;

@@ -1,10 +1,19 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-054.js";
+import { compiled } from "./BT11-054.js";
 
 describe("BT11-054 Panjyamon", () => {
+  it("maps the Leomon rule, dual-color Tamer play, and inherited Rush clauses", () => {
+    expect(getCardDefinition("BT11-054")).toMatchObject({ cardId: "BT11-054", colors: ["Green"], level: 5, playCost: 7, dp: 7000, types: ["Beastkin"] });
+    expect(compiled.effects).toHaveLength(3);
+    expect(compiled.effects[0]).toMatchObject({ trigger: "Static" });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost" }] });
+    expect(compiled.effects[2]).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn", isInherited: true });
+  });
+
   it("is also treated as having Leomon in its name", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT11-054", as: "panjyamon" }] } });
 

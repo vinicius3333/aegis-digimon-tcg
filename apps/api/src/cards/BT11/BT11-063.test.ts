@@ -1,9 +1,25 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-063.js";
+import { compiled } from "./BT11-063.js";
 
 describe("BT11-063 Geremon", () => {
+  it("maps the catalog facts, Numemon rule, and optional draw cost to IR", () => {
+    expect(getCardDefinition("BT11-063")).toMatchObject({
+      cardId: "BT11-063",
+      colors: ["Black"],
+      level: 4,
+      playCost: 3,
+      dp: 2000,
+      types: ["Mollusk"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Rule", actions: [{ kind: "GrantStatic", grant: "name", tokens: ["Numemon"] }] },
+      { trigger: "OnPlay", actions: [{ kind: "Draw", amount: 2, optional: true }] },
+    ]);
+  });
+
   it("is also treated as Numemon", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT11-063", as: "geremon" }] } });
     await s.engine.recomputeContinuousEffects();

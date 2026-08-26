@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",
@@ -22,8 +22,6 @@ const compiled: CompiledCard = {
             kind: "deleteOwn",
             target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: 1 },
           },
-          optional: true,
-          abortOnDecline: true,
         },
       ],
     },

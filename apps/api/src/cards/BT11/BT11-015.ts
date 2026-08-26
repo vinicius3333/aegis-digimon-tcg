@@ -5,11 +5,30 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "name",
+          tokens: ["Shoutmon"],
+          digiXrosOnly: true,
+        },
+      ],
+    },
+    {
       trigger: "WhenDigivolving",
       actions: [
         {
           kind: "Delete",
           target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } }, count: 1 },
+          condition: {
+            kind: "not",
+            condition: {
+              kind: "selfDigivolutionStackHasTrait",
+              filter: { nameOrTrait: [{ tokens: ["Shoutmon"], match: "name" }] },
+            },
+          },
         },
         {
           kind: "Delete",

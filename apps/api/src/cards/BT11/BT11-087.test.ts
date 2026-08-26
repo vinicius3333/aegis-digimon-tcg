@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { Phase, type PlayerState } from "@aegis/shared";
+import { getCardDefinition, Phase, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { compiled } from "./BT11-087.js";
 import "../index.js";
 
 // A3 for BT11-087 (Lilithmon — Purple Lv.6 Digimon).
@@ -25,6 +26,14 @@ import "../index.js";
 //   BT1-001   — filler deck cards (non-Bagra)
 
 describe("BT11-087 Lilithmon [On Play]", () => {
+  it("maps catalog facts and both printed effects to IR", () => {
+    expect(getCardDefinition("BT11-087")).toMatchObject({ cardId: "BT11-087", colors: ["Purple"], level: 6, playCost: 11, dp: 12000, types: ["Demon Lord", "Bagra Army"] });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "OnPlay", actions: [{ kind: "TrashTopDeck", amount: 4 }, { kind: "Return", to: "hand" }, { kind: "PlaceUnder" }] },
+      { trigger: "OpponentsTurn", actions: [{ kind: "SubTrigger", event: "whenOpponentMovedFromBreeding" }] },
+    ]);
+  });
+
   it("has complete registered IR coverage", () => {
     const compiled = runtimeCompiledCard("BT11-087")!;
     expect(compiled.coverage).toBe("full");

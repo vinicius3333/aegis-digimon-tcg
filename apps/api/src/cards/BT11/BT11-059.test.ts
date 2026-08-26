@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { type PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 // Self-register every card module so the engine drives the REGISTERED BT11-059
 // hand-override (not a hand-built ledger — Pitfall 3).
 import "../index.js";
+import { compiled } from "./BT11-059.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 /**
@@ -36,6 +37,11 @@ async function paidToEvolveIntoBT11059(tamerCardIds: string[]) {
 }
 
 describe("A3 BT11-059 — digivolve cost reduced per green/black Tamer (Q2092 dual=1)", () => {
+  it("maps catalog facts and both executable clauses", () => {
+    expect(getCardDefinition("BT11-059")).toMatchObject({ cardId: "BT11-059", colors: ["Green", "Black"], level: 6, playCost: 13, dp: 13000 });
+    expect(compiled.effects).toHaveLength(2);
+  });
+
   it("0 Tamers pays the printed evoCost 5 (revert-equivalent baseline)", async () => {
     const { paid, evolved } = await paidToEvolveIntoBT11059([]);
     expect(evolved).toBe(true);

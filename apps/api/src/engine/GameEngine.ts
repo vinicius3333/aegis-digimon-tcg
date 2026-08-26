@@ -107,6 +107,7 @@ import {
   hasBlastDigivolveKeyword,
   grantedTokenEffectsForTiming,
   resolveSelfWhenTrashedFromDeck,
+  digiXrosOnlyNameAliasesFor,
   universalNameAliasesFor,
 } from "./effects/interpreter.js";
 import type { CardSource } from "./effects/CardSource.js";
@@ -1028,8 +1029,8 @@ export class GameEngine {
     return source;
   }
 
-  /** Guards against re-entry when a prevention cost itself deletes a permanent. */
-  private preventReentryGuard = { active: false };
+  /** Guards each immediate prevention from reactivating during its own resolution. */
+  private preventReentryGuard = { activeReplacementKeys: new Set<string>() };
 
   /**
    * Consult active "prevent" leave/delete replacements for the permanents an effect is about to
@@ -5578,7 +5579,10 @@ export class GameEngine {
       digiXrosNamesOf: (instanceId) => {
         const located = this.findInstance(instanceId);
         if (located === undefined) return [];
-        const aliases = universalNameAliasesFor(located.instance.cardId);
+        const aliases = [
+          ...universalNameAliasesFor(located.instance.cardId),
+          ...digiXrosOnlyNameAliasesFor(located.instance.cardId),
+        ];
         if (located.permanent === undefined) return aliases;
         return [
           ...new Set([

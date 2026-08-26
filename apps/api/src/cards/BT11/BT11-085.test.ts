@@ -1,8 +1,20 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-085.js";
+import { compiled } from "./BT11-085.js";
 
 describe("BT11-085 WaruSeadramon", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-085")).toMatchObject({
+      cardId: "BT11-085", colors: ["Purple", "Blue"], level: 5, playCost: 8, dp: 8000, types: ["Aquatic"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "OnPlay", actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"] }] },
+      { trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"] }] },
+      { trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger" }] },
+    ]);
+  });
+
   it("plays a blue level 3 from an own blue Digimon's sources when digivolving", async () => {
     const s = setupEngine(
       {

@@ -1,10 +1,27 @@
-import { digiXrosRequirementFor, EffectTiming } from "@aegis/shared";
+import { digiXrosRequirementFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-071.js";
+import { compiled } from "./BT11-071.js";
 describe("BT11-071 MusouKnightmon", () => {
+  it("maps catalog facts, name rule, and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-071")).toMatchObject({
+      cardId: "BT11-071",
+      colors: ["Black", "Purple"],
+      level: 5,
+      playCost: 10,
+      dp: 8000,
+      types: ["Enhancement", "Bagra Army", "Twilight"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Rule", actions: [{ kind: "GrantStatic", tokens: ["DarkKnightmon", "Tuwarmon"] }] },
+      { trigger: "OnPlay", actions: [{ kind: "PlaceUnder" }, { kind: "DeDigivolve" }] },
+      { trigger: "WhenDigivolving", actions: [{ kind: "PlaceUnder" }, { kind: "DeDigivolve" }] },
+      { trigger: "OnDeletion", actions: [{ kind: "Return", to: "hand" }] },
+    ]);
+  });
+
   it("publishes its two-slot DigiXros recipe and permanent rule names", async () => {
     expect(digiXrosRequirementFor("BT11-071")).toEqual([
       {

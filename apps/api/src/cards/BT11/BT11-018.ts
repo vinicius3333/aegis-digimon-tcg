@@ -50,7 +50,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digiXrosRequirement: [{ materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }], count: 2 }],
+  digiXrosRequirement: [{ materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }], count: 3 }],
 };
 
 registerIrCard("BT11-018", compiled);

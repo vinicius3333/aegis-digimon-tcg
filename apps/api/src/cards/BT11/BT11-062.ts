@@ -23,7 +23,7 @@ const reveal: any = {
   rest: "deckBottom",
 };
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [reveal] },
     { trigger: "WhenDigivolving", actions: [reveal] },

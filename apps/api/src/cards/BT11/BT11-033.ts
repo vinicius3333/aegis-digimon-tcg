@@ -1,7 +1,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
@@ -29,8 +29,13 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectAddsToOpponentHand",
-          actions: [{ kind: "GainMemory", amount: 1 }],
-          scaling: { per: 4, filter: { zone: "hand", controller: "opponent" }, unit: "cards" },
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              scaling: { per: 4, filter: { zone: "hand", controller: "opponent" }, unit: "cards" },
+            },
+          ],
         },
       ],
       frequency: "OncePerTurn",

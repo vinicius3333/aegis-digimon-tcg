@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-101.js";
+import { compiled } from "./BT11-101.js";
 
 describe("BT11-101 Holy Sunshine", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-101")).toMatchObject({ cardId: "BT11-101", colors: ["Yellow"], kinds: ["Option"], playCost: 8 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
+      { trigger: "Main", actions: [{ kind: "ModifyDP", amount: -5000 }, { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 } }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+    ]);
+  });
+
   it("weakens exactly 3 opposing Digimon and grants Security Attack -1", async () => {
     const s = setupEngine(
       {

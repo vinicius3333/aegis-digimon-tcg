@@ -1,9 +1,21 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-077.js";
+import { compiled } from "./BT11-077.js";
 
 describe("BT11-077 Chikurimon", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-077")).toMatchObject({
+      cardId: "BT11-077", colors: ["Purple"], level: 3, playCost: 4, dp: 1000, types: ["Mine", "Bagra Army"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 5 }] },
+      { trigger: "OnDeletion", keywords: [{ keyword: "Save" }], actions: [{ kind: "PlaceUnder" }] },
+      { trigger: "OpponentsTurn", isInherited: true, actions: [{ kind: "SubTrigger" }] },
+    ]);
+  });
+
   it("deletes itself on play to reveal 5 and add a Bagra Army card", async () => {
     const s = setupEngine(
       {

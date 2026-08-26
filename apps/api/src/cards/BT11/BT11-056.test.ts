@@ -1,8 +1,15 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-056.js";
+import { compiled } from "./BT11-056.js";
 
 describe("BT11-056 Jijimon", () => {
+  it("maps the green mega and both reveal/play clauses", () => {
+    expect(getCardDefinition("BT11-056")).toMatchObject({ cardId: "BT11-056", colors: ["Green"], level: 6, playCost: 11, dp: 11000, types: ["Ancient"] });
+    expect(compiled.effects[0]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckTopOrBottom" }] });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "WhenAttacking", actions: [{ kind: "RevealAdd", frequency: "OncePerTurn" }] });
+  });
+
   it("reveals 3 and plays a revealed Tamer when digivolving", async () => {
     const s = setupEngine(
       {

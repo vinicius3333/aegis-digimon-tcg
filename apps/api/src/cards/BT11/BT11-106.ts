@@ -1,7 +1,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -44,6 +44,23 @@ const compiled: CompiledCard = {
             count: 1,
           },
           effectText: "[On Deletion] Gain 3 memory.",
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                { tokens: ["Numemon", "Sukamon", "Nanimon"], match: "name" },
+                { tokens: ["Etemon"], match: "name" },
+              ],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          restriction: "cantBeBlocked",
           duration: "untilOpponentTurnEnd",
         },
       ],

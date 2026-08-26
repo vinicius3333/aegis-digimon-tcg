@@ -1,8 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-091.js";
+import { compiled } from "./BT11-091.js";
 
 describe("BT11-091 Taiga", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-091")).toMatchObject({ cardId: "BT11-091", colors: ["Green"], kinds: ["Tamer"], playCost: 3 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "YourTurn", actions: [{ kind: "ModifyDP", amount: 1000 }] },
+      { trigger: "YourTurn", actions: [{ kind: "Replacement", event: "wouldDigivolve" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }] },
+    ]);
+  });
+
   it("gives all own Digimon +1000 DP and suspends to reduce a green level-5+ evolution by 1", async () => {
     const s = setupEngine(
       {

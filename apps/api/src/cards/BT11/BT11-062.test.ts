@@ -1,9 +1,26 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-062.js";
+import { compiled } from "./BT11-062.js";
 
 describe("BT11-062 Agumon (X Antibody)", () => {
+  it("maps its catalog facts, dual trigger, and inherited protection to IR", () => {
+    expect(getCardDefinition("BT11-062")).toMatchObject({
+      cardId: "BT11-062",
+      colors: ["Black"],
+      level: 3,
+      playCost: 4,
+      dp: 3000,
+      types: ["Reptile", "X Antibody"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 3 }] },
+      { trigger: "WhenDigivolving", actions: [{ kind: "RevealAdd", revealCount: 3 }] },
+      { trigger: "AllTurns", isInherited: true, actions: [{ kind: "Replacement", event: "wouldLeavePlay" }] },
+    ]);
+  });
+
   it("reveals 3 and independently adds a Greymon/X Antibody card and a black Tamer", async () => {
     const s = setupEngine(
       {

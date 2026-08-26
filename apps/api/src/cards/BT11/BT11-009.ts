@@ -4,7 +4,18 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "Static", actions: [], keywords: [{ keyword: "MaterialSave", amount: 1, raw: "＜Material Save 1＞" }] },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "name",
+          tokens: ["Shoutmon", "Starmons"],
+        },
+      ],
+      keywords: [{ keyword: "MaterialSave", amount: 1, raw: "＜Material Save 1＞" }],
+    },
     {
       trigger: "OnPlay",
       actions: [
@@ -24,7 +35,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digiXrosRequirement: [{ materials: [{ names: ["Shoutmon"] }], count: 1 }],
+  digiXrosRequirement: [{ materials: [{ names: ["Shoutmon"] }, { names: ["Starmons"] }], count: 1 }],
 };
 
 registerIrCard("BT11-009", compiled);

@@ -1,10 +1,25 @@
 import { describe, expect, it } from "vitest";
-import type { Seat } from "@aegis/shared";
+import { getCardDefinition, type Seat } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-067.js";
+import { compiled } from "./BT11-067.js";
 
 describe("BT11-067 Gigadramon", () => {
+  it("maps catalog facts and printed keywords to IR", () => {
+    expect(getCardDefinition("BT11-067")).toMatchObject({
+      cardId: "BT11-067",
+      colors: ["Black"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      types: ["Cyborg"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", keywords: [{ keyword: "Jamming" }] },
+      { trigger: "Static", isInherited: true, keywords: [{ keyword: "Reboot" }] },
+    ]);
+  });
+
   it("has Jamming and grants inherited Reboot", async () => {
     const s = setupEngine({
       0: {

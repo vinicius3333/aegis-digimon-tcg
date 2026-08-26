@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
+import { compiled } from "./BT11-093.js";
 
 // A3 for BT11-093 (Yuuya Kuga — Black Tamer).
 //
@@ -28,6 +30,15 @@ import "../index.js";
 //   BT1-001   — filler
 
 describe("BT11-093 Yuuya Kuga", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-093")).toMatchObject({ cardId: "BT11-093", colors: ["Black"], kinds: ["Tamer"], playCost: 4 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "StartOfYourTurn", actions: [{ kind: "SetMemory", value: 3 }] },
+      { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }] },
+    ]);
+  });
+
   it("has complete registered IR coverage", () => {
     const compiled = runtimeCompiledCard("BT11-093")!;
     expect(compiled.coverage).toBe("full");

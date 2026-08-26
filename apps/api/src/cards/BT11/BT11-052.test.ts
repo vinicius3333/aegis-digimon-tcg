@@ -1,9 +1,18 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-052.js";
+import { compiled } from "./BT11-052.js";
 
 describe("BT11-052 Tyrannomon", () => {
+  it("maps the two-color champion and both free-Tamer plus inherited DP clauses", () => {
+    expect(getCardDefinition("BT11-052")).toMatchObject({ cardId: "BT11-052", colors: ["Green", "Red"], level: 4, playCost: 5, dp: 5000, types: ["Dinosaur"] });
+    expect(compiled.effects).toHaveLength(3);
+    expect(compiled.effects[0]).toMatchObject({ trigger: "OnPlay", actions: [{ kind: "PlayWithoutCost" }] });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost" }] });
+    expect(compiled.effects[2]).toMatchObject({ trigger: "YourTurn", isInherited: true });
+  });
+
   it("plays a cost-3-or-less Tamer from hand on play", async () => {
     const s = setupEngine(
       {

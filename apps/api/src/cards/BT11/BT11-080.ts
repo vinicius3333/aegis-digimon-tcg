@@ -7,7 +7,7 @@ const yellow = {
   filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon", "Tamer"], colors: ["Yellow"] },
 };
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",

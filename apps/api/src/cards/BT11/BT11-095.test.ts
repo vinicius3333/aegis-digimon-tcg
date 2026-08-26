@@ -1,9 +1,18 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "./BT11-095.js";
+import { compiled } from "./BT11-095.js";
 describe("BT11-095 Taiki, Kiriha, & Nene", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-095")).toMatchObject({ cardId: "BT11-095", colors: ["White"], kinds: ["Tamer"], playCost: 4, types: ["Xros Heart", "BlueFlare", "General"] });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "StartOfYourMainPhase", actions: [{ kind: "GainMemory", amount: 1 }, { kind: "Draw", amount: 1 }] },
+      { trigger: "YourTurn", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }] },
+    ]);
+  });
+
   it("places a Xros Heart card, gains memory and draws", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT11-095", as: "tamer" }], hand: ["BT10-008"], deck: ["BT1-001"] } },

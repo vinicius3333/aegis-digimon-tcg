@@ -2,9 +2,16 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-114.js";
-import "./BT11-045.js";
+import { compiled } from "./BT11-045.js";
 
 describe("BT11-045 ClavisAngemon", () => {
+  it("maps its yellow level-six catalog facts and both executable clauses", () => {
+    expect(getCardDefinition("BT11-045")).toMatchObject({ cardId: "BT11-045", colors: ["Yellow"], level: 6, playCost: 12, dp: 12000, types: ["Virtue"] });
+    expect(compiled.effects).toHaveLength(2);
+    expect(compiled.effects[0]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "SecurityManipulation", op: "addTop", condition: { kind: "zoneCount", value: 5 } }] });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "OpponentsTurn", actions: [{ kind: "SubTrigger", event: "whenSecurityRemoved" }] });
+  });
+
   it("recovers from the deck when digivolving with 5 or fewer security cards", async () => {
     const s = setupEngine({
       0: {
@@ -105,3 +112,4 @@ describe("BT11-045 ClavisAngemon", () => {
     expect(s.perm("target").currentDP).toBe(1000);
   });
 });
+import { getCardDefinition } from "@aegis/shared";

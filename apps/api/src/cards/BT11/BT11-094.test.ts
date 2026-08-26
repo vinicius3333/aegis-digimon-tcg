@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT11-094.js";
 
 // A3 for BT11-094 (Mirei Mikagura — Purple Tamer).
 //
@@ -26,6 +27,15 @@ import "../index.js";
 //   BT1-001   — filler
 
 describe("BT11-094 Mirei Mikagura", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-094")).toMatchObject({ cardId: "BT11-094", colors: ["Purple", "Yellow"], kinds: ["Tamer"], playCost: 5 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "StartOfYourTurn", actions: [{ kind: "GainMemory", amount: 1 }] },
+      { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" }, { kind: "SubTrigger", event: "whenOneOfYoursDigivolves" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }] },
+    ]);
+  });
+
   it("[Start of Your Turn] gains 1 memory", async () => {
     const s = setupEngine(
       {

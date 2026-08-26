@@ -1,10 +1,41 @@
+import { compiledEffects, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-041.js";
+import { compiled } from "./BT11-041.js";
 
 describe("BT11-041 Etemon", () => {
+  it("maps the catalog, alternate Sukamon evolution, and unrestricted other-Digimon prevention cost", () => {
+    expect(getCardDefinition("BT11-041")).toMatchObject({
+      cardId: "BT11-041",
+      nameEn: "Etemon",
+      colors: ["Yellow", "Black"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      evoCosts: [
+        { color: "Yellow", level: 4, memoryCost: 4 },
+        { color: "Black", level: 4, memoryCost: 4 },
+      ],
+      types: ["Puppet"],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, names: ["Sukamon"], cost: 3, isAlternate: true }]);
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "Prevent", cost: { kind: "deleteOwn", target: { filter: { controller: "any", excludeSelf: true } } } }],
+        },
+      ],
+    });
+    expect(compiledEffects["BT11-041"]).toEqual(compiled);
+  });
+
   it("trashes a Sukamon from hand to give -3000 DP and Security Attack -1", async () => {
     const s = setupEngine(
       {
@@ -16,7 +47,7 @@ describe("BT11-041 Etemon", () => {
         },
         1: { battleArea: [{ card: "ST15-11", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     s.state.memory = 10;
 
@@ -30,18 +61,31 @@ describe("BT11-041 Etemon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
   });
 
-  it("can delete an opponent's Sukamon to prevent its host's deletion", async () => {
+  it.each([
+    ["a friendly Sukamon", 0],
+    ["an opponent's Sukamon (Q2075)", 1],
+  ])("can delete %s to prevent its host's deletion", async (_label, costSeat) => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT11-040", as: "host", under: ["BT11-041"] }] },
-        1: { battleArea: [{ card: "BT11-040", as: "opponentSukamon" }] },
+        0: {
+          battleArea: [
+            { card: "BT11-042", as: "host", under: ["BT11-041"] },
+            ...(costSeat === 0 ? ([{ card: "BT11-040", as: "cost" }] as const) : []),
+          ],
+        },
+        1: { battleArea: costSeat === 1 ? [{ card: "BT11-040", as: "cost" }] : [] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.inst("cost").instanceId);
+    const costPermanentId = s.perm("cost").permanentId;
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
 
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("host").permanentId);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[costSeat]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(
+      costPermanentId,
+    );
   });
 });

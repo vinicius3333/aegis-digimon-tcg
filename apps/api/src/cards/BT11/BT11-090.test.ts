@@ -1,11 +1,20 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-090.js";
+import { compiled } from "./BT11-090.js";
 
 describe("BT11-090 Nicolai Petrov", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-090")).toMatchObject({ cardId: "BT11-090", colors: ["Blue"], kinds: ["Tamer"], playCost: 3 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "StartOfYourMainPhase", actions: [{ kind: "GainKeyword", keyword: { keyword: "Jamming" } }] },
+      { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenEffectAddsToOpponentHand" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }] },
+    ]);
+  });
+
   it("grants Jamming to a Gaomon/Gaogamon-named Digimon at start of main", async () => {
     const s = setupEngine(
       { 0: { battleArea: ["BT11-090", { card: "BT11-020", as: "gaogamon" }] } },
