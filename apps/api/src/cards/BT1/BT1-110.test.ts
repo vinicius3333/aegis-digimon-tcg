@@ -2,6 +2,7 @@ import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT1-031.js";
 import "./BT1-110.js";
 
 describe("BT1-110 Flower Cannon", () => {
@@ -27,7 +28,7 @@ describe("BT1-110 Flower Cannon", () => {
       1: {
         battleArea: [
           { card: "BT1-010", as: "nonBlocker" },
-          { card: "BT1-023", as: "blocker" },
+          { card: "BT1-031", as: "blocker" },
         ],
       },
     });
