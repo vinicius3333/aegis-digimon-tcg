@@ -77,3 +77,20 @@ Remaining work is behavioral proof of the alternative and fallback branches plus
 10. **Reproducible behavioral proof (0/1):** The colocated test covers only a basic deletion and was not executed in this static-only pass; multi-source scaling, exact level boundary, mixed trait population, and Security behavior remain unproven.
 
 Remaining work is behavioral proof of Q1675 scaling and all applicable boundaries; this card is not formally complete at 10/10.
+
+## BT7-107 — Calling From the Darkness — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a Purple Option costing 1 with Main deletion/recovery text and Security add-to-owner-hand text.
+2. **Deletion (1/1):** Main first deletes exactly one of the owner's Digimon, with no accidental color or level restriction.
+3. **Recovery filter (1/1):** The second action returns up to two owner Purple Digimon cards from trash to hand.
+4. **Ordering and self-return (1/1):** Delete precedes Return, allowing the deleted Purple Digimon to be selected from trash as confirmed by Q1673.
+5. **Up-to and destination (1/1):** `count: 2`, `upTo: true`, and `to: "hand"` encode the printed upper bound and destination.
+6. **Security behavior (1/1):** Security uses `AddToHandSelf`.
+7. **Rules evidence (1/1):** The KB returns Q1673/Q1674 and linked-card rulings Q5615/Q5643/Q5648, plus the restriction to one copy since 2022-11-11. The pending On Deletion behavior is delegated to shared zone/event handling; no card-local approximation is present.
+8. **Direct IR and registration (1/1):** The module is full compiled IR with no residuals and exactly one `registerIrCard("BT7-107", compiled)` registration.
+9. **Static primitive trace (1/1):** Controller, kind, Purple color, trash zone, count, ordering, and destination are explicit.
+10. **Reproducible behavioral proof (0/1):** The colocated test covers only one ordinary delete-and-return case and was not executed in this static-only pass; up-to-zero, non-Purple exclusion, On Deletion pending behavior, and Security recovery remain unproven.
+
+Remaining work is behavioral proof of the Q1673/Q1674 boundaries and the current restriction's deck-validation integration; this card is not formally complete at 10/10.
