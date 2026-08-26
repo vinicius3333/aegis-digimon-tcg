@@ -1,10 +1,21 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-078.js";
+import { compiled } from "./BT11-078.js";
 import "./BT11-079.js";
 
 describe("BT11-078 Soulmon", () => {
+  it("maps catalog facts, Retaliation, and the continuous DP grant to IR", () => {
+    expect(getCardDefinition("BT11-078")).toMatchObject({
+      cardId: "BT11-078", colors: ["Purple"], level: 4, playCost: 5, dp: 4000, types: ["Ghost"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", keywords: [{ keyword: "Retaliation" }] },
+      { trigger: "AllTurns", actions: [{ kind: "ModifyDP", amount: 2000 }] },
+    ]);
+  });
+
   it("gives +2000 DP only to all of its controller's Digimon with Retaliation", async () => {
     const s = setupEngine({
       0: {
