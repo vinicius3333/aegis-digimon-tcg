@@ -104,7 +104,7 @@ describe("BT11-020 Gaomon", () => {
   it("returns one opposing level 3 on attack with a Tamer, only once per turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT11-025", as: "host", under: ["BT11-020"] }, "BT11-090"] },
+        0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT11-020"] }, "BT11-090"] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
@@ -124,7 +124,7 @@ describe("BT11-020 Gaomon", () => {
 
   it("does not return a level 3 without a Tamer", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT11-025", as: "host", under: ["BT11-020"] }] },
+      0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT11-020"] }] },
       1: { battleArea: [{ card: "BT1-009", as: "target" }] },
     });
     await s.ready();
