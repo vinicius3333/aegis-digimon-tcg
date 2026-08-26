@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { dnaDigivolutionRequirementsFor } from "@aegis/shared";
+import { dnaDigivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-073.js";
 
 describe("EX5-073 GraceNovamon", () => {
@@ -63,5 +65,22 @@ describe("EX5-073 GraceNovamon", () => {
         },
       ],
     });
+  });
+
+  it("still deletes an eligible opponent when attacking without DNA digivolving, per Q3687/Q3688", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX5-073", as: "grace", under: ["BT1-010", "BT1-011"] }] },
+        1: { battleArea: [{ card: "BT1-024", as: "eligible" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const eligibleId = s.perm("eligible").permanentId;
+
+    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("grace"));
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === eligibleId), 2000);
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === eligibleId)).toBe(false);
   });
 });
