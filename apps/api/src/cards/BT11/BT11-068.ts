@@ -16,7 +16,7 @@ const reveal: any = {
   rest: "deckTopOrBottom",
 };
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [reveal] },
     { trigger: "WhenDigivolving", actions: [reveal] },
