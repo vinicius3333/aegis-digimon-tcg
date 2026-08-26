@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-043 (Habakirimon / Habakiri)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-043 Habakirimon / Habakiri | Yellow level 6 Digimon/Option dual card; Digimon when digivolving/attacking once per turn performs Recovery +1, then by trashing the top security card of one player with the most security cards unsuspends; all turns once per turn, when any own Glowing Dawn Digimon would leave, by trashing own top security they do not leave. Option Main gives one opposing Digimon -8000, then by trashing own top security all opposing Digimon -5000. Q6312 resolves ties for most security by the activating player's choice; Q6313 covers zero-DP rule-check timing; Q6314 requires affects-all replacement. | **Causal security-cost/optionality gaps.** The Digimon-side `RecoverByTrashingMostSecurity` path appears to provide the intended Recovery-then-trash-most-player sequence, but the replacement and Option-side -5000 costs are generic `trash` targets constrained only to the security zone, not the required top security card. The Option-side cost is also marked optional/abort-on-decline although its “Then, by trashing...” clause is mandatory once the first -8000 effect resolves. These actions can select a non-top security card or decline the required payment. The once-per-turn sharing, tie-aware most-security action, affects-all target, DP amounts/durations, color waiver, and alternate evolution are otherwise represented. | Structural proof only; no execution of most-security ties, top-card enforcement, mandatory payment, replacement batches, Option mode, or zero-DP rule checks. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-043
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-043` (Q6312-Q6314).
+- Direct module and shared SecurityManipulation target semantics, most-security recovery,
+  affects-all replacement, once-per-turn keys, and dual-card Main/Security timing were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-042 (ClavisAngemon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
