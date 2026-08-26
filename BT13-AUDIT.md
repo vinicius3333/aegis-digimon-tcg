@@ -200,7 +200,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-070 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, alternate level-4 Chessmon evolution at 3, and optional opponent-turn level-5-or-lower Chessmon hand play on deletion.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-070.test.ts` passed (2 tests): IR clause proof and live opponent-turn deletion play.
-- BT13-071 — Pending
+- BT13-071 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker and inherited opponent-turn, own-Digimon-suspension, once-per-turn opponent top-security trash.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-071.test.ts` passed (2 tests): IR clause proof and live opponent-turn inherited event/zone routing.
 - BT13-072 — Pending
 - BT13-073 — Pending
 - BT13-074 — Pending
