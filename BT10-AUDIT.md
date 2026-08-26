@@ -532,6 +532,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: six focused cases prove catalog/IR fidelity, Xros Heart evolution and cost, exclude-self conditional DP and removal, Save zones, Reboot turn/name scope, nonmatching negative, and owner-turn attack suspension persistence.
 - Verification: focused suite — 6 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-061 — SkullKnightmon: Mighty Axe Mode — 10/10
+
+- Catalog evidence: black level 4 Digimon, play cost 4, 5000 DP; evolves from black level 3 for 3; form `Champion`, attribute `Virus`, types `Enhancement` and `Twilight`. DigiXros -1 uses SkullKnightmon plus DeadlyAxemon. Its Rule always also treats its name as both. On Play reveals three, adds one Knightmon-name, DeadlyAxemon-name, or Nene Amano-name card and trashes the rest; then, if played with two DigiXros cards, deletes one opposing play-cost-4-or-less Digimon.
+- Knowledge base: Q1987 confirms the two-material deletion still resolves when the reveal has no eligible card. Q1988 makes both additional names an always-active Rule in every relevant zone. No errata, restriction, or unresolved ambiguity remains.
+- Implementation: DigiXros describes the two distinct material-name roles at reduction 1 each. On Play performs an independent reveal/add/trash action followed by a `digiXrosCount >= 2` conditional Delete with exact opponent/kind/play-cost boundary. The Rule grants both names to self. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-061", compiled)`.
+- Primitive trace: pre-play DigiXros legality resolves effective names in hand/battle area, moves chosen physical materials beneath the played card, and records committed material count separately from reveal success. The reveal always completes first; the deletion condition then reads that play context, so empty searches cannot suppress Q1987. Rule-name resolution is available before the card becomes a permanent.
+- Cross-card and stack proof: real SkullKnightmon and DeadlyAxemon materials reduce play cost by 2 and enable deletion despite a wholly ineligible reveal. A one-material production play reduces by only 1 and leaves the target alive. Mighty Axe Mode itself fills DarkKnightmon's DeadlyAxemon material role from hand under Q1988 and is retained as the exact physical source.
+- Behavioral proof: five focused cases prove catalog/IR fidelity, exact DigiXros roles/reduction, reveal add and trash routing, Q1987 independence and target deletion, one-material negative, play-cost results, and Q1988 effective-name use in hand.
+- Verification: focused suite — 5 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
