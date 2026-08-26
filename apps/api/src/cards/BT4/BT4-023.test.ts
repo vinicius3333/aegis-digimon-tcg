@@ -23,4 +23,24 @@ describe("BT4-023 Strabimon", () => {
     await settle(() => added.every((id) => player.hand.some((card) => card.instanceId === id)));
     expect(player.deck).toHaveLength(1);
   });
+
+  it("adds a qualifying Hybrid even when no blue Tamer was revealed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT4-023", as: "source" }],
+          deck: [{ card: "BT4-025", as: "hybrid" }, "BT4-026", "BT4-012"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => player.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId));
+
+    expect(player.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);
+    expect(player.deck).toHaveLength(2);
+  });
 });
