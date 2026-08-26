@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { settle } from "../../engine/testkit/harness.js";
 import "./index.js";
@@ -42,6 +44,18 @@ describe("EX8-065", () => {
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);
     expect(s.state.memory).toBe(memoryBeforeSecurityEffect);
   });
+  it("gains memory at the real main-phase timing only while the opponent has a Digimon", async () => {
+    const positive = setupEngine({
+      0: { battleArea: [{ card: "EX8-065", as: "tamer" }] },
+      1: { battleArea: ["BT1-010"] },
+    });
+    await advance(positive.engine).fire(EffectTiming.StartOfYourMainPhase, positive.perm("tamer"));
+    expect(positive.state.memory).toBe(1);
+
+    const negative = setupEngine({ 0: { battleArea: [{ card: "EX8-065", as: "tamer" }] } });
+    await advance(negative.engine).fire(EffectTiming.StartOfYourMainPhase, negative.perm("tamer"));
+    expect(negative.state.memory).toBe(0);
+  });
   it("suspends this Tamer to digivolve a real Tyrannomon attacker from hand", async () => {
     const s = setupEngine(
       {
@@ -72,5 +86,67 @@ describe("EX8-065", () => {
     expect(s.perm("attacker").topCard?.cardId).toBe("BT1-024");
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-024")).toBe(false);
+    expect(s.state.memory).toBe(8);
+  });
+
+  it("uses the Dinosaur alternative and may decline without suspending or evolving", async () => {
+    const accepted = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-052", as: "attacker" },
+            { card: "EX8-065", as: "tamer" },
+          ],
+          hand: [{ card: "EX7-035", as: "dinosaur" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    accepted.state.memory = 3;
+    await accepted.ready();
+    expect(
+      accepted.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: accepted.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => accepted.perm("attacker").topCard.cardId === "EX7-035");
+    expect(accepted.state.memory).toBe(1);
+    expect(accepted.perm("tamer").isSuspended).toBe(true);
+
+    const declined = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-016", as: "attacker" },
+          { card: "EX8-065", as: "tamer" },
+        ],
+        hand: [{ card: "BT1-024", as: "tyrannomon" }],
+      },
+      1: { security: ["BT1-001"] },
+    });
+    declined.state.memory = 3;
+    await declined.ready();
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: declined.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.state.pendingDecision?.kind === "optional");
+    const decision = declined.state.pendingDecision!;
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.state.pendingDecision === undefined);
+    expect(declined.perm("attacker").topCard.cardId).toBe("BT1-016");
+    expect(declined.perm("tamer").isSuspended).toBe(false);
+    expect(declined.state.memory).toBe(3);
   });
 });
