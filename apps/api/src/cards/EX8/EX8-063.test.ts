@@ -34,6 +34,19 @@ describe("EX8-063", () => {
     expect(opponent.hand).toHaveLength(0);
     expect(opponent.trash.some((card) => card.instanceId === s.inst("opponentCard").instanceId)).toBe(true);
   });
+  it("trashes an opponent hand card on the attacking branch", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-063", as: "source" }] },
+        1: { hand: [{ card: "BT1-010", as: "opponentCard" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    await settle(() => s.state.players[1]!.hand.length === 0);
+
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentCard").instanceId)).toBe(true);
+  });
   it("plays the exact eligible Fallen Angel from trash when the opponent has no hand card", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX8-063", as: "source" }], trash: ["EX8-059", "BT1-010"] }, 1: { hand: [] } },
@@ -146,6 +159,53 @@ describe("EX8-063", () => {
     await settle(() => s.state.players[1]!.hand.length === 0);
 
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("ignores own-hand trash on a valid stack, suppresses a second opponent event, and resets next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-063", as: "barbamonX", under: ["EX6-059"] }],
+          hand: [{ card: "BT1-009", as: "ownDiscard" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: {
+          hand: [
+            { card: "BT1-010", as: "firstDiscard" },
+            { card: "BT1-011", as: "sameTurnDiscard" },
+            { card: "BT1-012", as: "nextTurnDiscard" },
+          ],
+          security: [
+            { card: "BT1-013", as: "topSecurity" },
+            { card: "BT1-014", as: "secondSecurity" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trash([s.inst("ownDiscard").instanceId], 1);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("topSecurity").instanceId,
+      s.inst("secondSecurity").instanceId,
+    ]);
+
+    await advance(s.engine).verb.trash([s.inst("firstDiscard").instanceId], 0);
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("topSecurity").instanceId)).toBe(true);
+    expect(s.state.players[1]!.security[0]!.instanceId).toBe(s.inst("secondSecurity").instanceId);
+
+    await advance(s.engine).verb.trash([s.inst("sameTurnDiscard").instanceId], 0);
+    expect(s.state.players[1]!.security[0]!.instanceId).toBe(s.inst("secondSecurity").instanceId);
+
+    s.state.memory = 0;
+    await advance(s.engine).runTurn(0);
+    await advance(s.engine).verb.trash([s.inst("nextTurnDiscard").instanceId], 0);
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondSecurity").instanceId)).toBe(
+      true,
+    );
   });
 
   it("digivolves from Barbamon for the alternate cost 1", async () => {

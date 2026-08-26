@@ -296,11 +296,25 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                     : playTarget.filter.levelComparison,
               },
             };
+      const playCostScaling = levelCeilingAdjustedTarget.filter.playCostLteScaling;
+      const scaledCostAdjustedTarget =
+        playCostScaling === undefined
+          ? levelCeilingAdjustedTarget
+          : {
+              ...levelCeilingAdjustedTarget,
+              filter: {
+                ...levelCeilingAdjustedTarget.filter,
+                playCostLte:
+                  (levelCeilingAdjustedTarget.filter.playCostLte ?? 0) +
+                  scaleFactor(ctx, playCostScaling) * (playCostScaling.bonus ?? 1),
+                playCostLteScaling: undefined,
+              },
+            };
       // playCostCeiling: dynamically raise the playCostLte ceiling before resolving candidates.
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
-      const playCostAdjustedTarget = applyPlayCostCeiling(ctx, action, levelCeilingAdjustedTarget);
+      const playCostAdjustedTarget = applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget);
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       let candidates = candidateLooseInstances(ctx, playCostAdjustedTarget, zones);
       if (action.fromTriggerHandTrash === true) {
