@@ -59,7 +59,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   focused command on 2026-08-26; `LM-002.test.ts` passed 1/1 file and 7/7 tests in 3.14s. LM-002
   remains below 10/10 pending relevant mechanism and collection gates.
 
-## LM-003 — TeslaJellymon — focused fixture corrected; re-run pending
+## LM-003 — TeslaJellymon — focused proof green; pending mechanism and collection gates
 
 - Q3991-Q3993 map to attack-time battle-deletion protection plus live ≤7 hand draw; Retaliation
   remains effect deletion rather than protected battle deletion. Focused cases cover declined and
@@ -67,8 +67,8 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   2026-08-26 reported 7/8 passing: its Retaliation case incorrectly expected the temporary
   `beDeletedInBattle` grant to remain observable after effect deletion removed the permanent.
   The direct IR already matches Q3992 and combat resolution, so only that fixture expectation
-  was corrected; re-run, mechanism, and collection gates remain pending, keeping LM-003 below
-  10/10.
+  was corrected. Its authorized serialized re-run then passed 1/1 file and 8/8 tests in 3.23s;
+  mechanism and collection gates remain pending, keeping LM-003 below 10/10.
 
 ## LM-004 — Thetismon — pending focused execution
 
