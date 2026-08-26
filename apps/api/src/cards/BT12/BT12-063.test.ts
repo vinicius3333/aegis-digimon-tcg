@@ -1,158 +1,156 @@
-import { describe, it, expect } from "vitest";
-import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives, DecisionApi } from "../../engine/effects/EffectContext.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { digiXrosRequirementFor, EffectTiming } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-063.js";
 
-// A3 for BT12-063 (Shoutmon DX):
-//   [On Play] Reveal top 3; may play 1 [Taiki Kudo]/[Yuu Amano]/[Tagiru Akashi] without cost.
-//
-// FAILS-WHEN-REVERTED: the declarative effect record encoded this via RevealAdd (interpreted path).
-// The hand-written module calls ctx.fx.reveal + ctx.fx.playInstances. The `playInstancesCalls`
-// assertion directly catches the regression: without the hand-written module, the reveal
-// runs through the interpreter's RevealAdd action — but when the card goes back to the IR
-// register path (registerIrCard), the EffectModule API yields 0 effects at OnPlay timing
-// because registerIrCard does not produce an EffectModule registered under getEffectModule.
-
-function fakeDef(cardId: string, kind: CardKind = CardKind.Digimon, name = cardId): CardDefinition {
-  return {
-    cardId,
-    set: cardId.split("-")[0]!,
-    nameEn: name,
-    kinds: [kind],
-    colors: ["Black"] as never,
-    playCost: 4,
-    dp: kind === CardKind.Digimon ? 4000 : 0,
-    evoCosts: [],
-    maxCountInDeck: 4,
-  };
-}
-
-function makeSource(instanceId = "inst-063", onBattleArea = true): CardSource {
-  return {
-    instanceId,
-    cardId: "BT12-063",
-    ownerSeat: 0 as Seat,
-    definition: fakeDef("BT12-063"),
-    permanent: () => undefined,
-    isOnBattleArea: () => onBattleArea,
-    isOwnersTurn: () => true,
-    hasColor: () => false,
-  };
-}
-
-function makeCtx(opts: {
-  revealedCards?: Array<{ cardId: string; instanceId: string; name?: string }>;
-  playInstancesCalls: string[][];
-  onBattleArea?: boolean;
-  deckSize?: number;
-}): EffectContext {
-  const { revealedCards = [], playInstancesCalls, onBattleArea = true, deckSize = 5 } = opts;
-
-  const players = [
-    {
-      battleArea: [],
-      security: [],
-      hand: [],
-      deck: Array.from({ length: deckSize }, (_, i) => ({ cardId: `deck-${i}`, instanceId: `d${i}` })),
-      trash: [],
-    },
-    { battleArea: [], security: [], hand: [], deck: [], trash: [] },
-  ];
-
-  const game: GameAccess = {
-    state: { memory: 0, players, turnSeat: 0 as Seat } as never,
-    player: (seat: Seat) => players[seat] as never,
-    opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-    permanentById: () => undefined,
-    definitionOf: (card: { cardId: string }) => {
-      const found = revealedCards.find((c) => c.instanceId === card.cardId || c.cardId === card.cardId);
-      if (found) return fakeDef(found.cardId, CardKind.Tamer, found.name ?? found.cardId);
-      return fakeDef(card.cardId);
-    },
-  };
-
-  const fx = {
-    reveal: async (_seat: Seat, _n: number) =>
-      revealedCards.map((c) => ({ cardId: c.cardId, instanceId: c.instanceId, ownerSeat: 0, faceUp: true })),
-    playInstances: async (ids: string[], _opts?: unknown) => {
-      playInstancesCalls.push(ids);
-      return [];
-    },
-    returnToDeck: async (_ids: string[], _opts?: unknown) => [],
-    returnToHand: async (_ids: string[]) => [],
-  } as unknown as Primitives;
-
-  const ask: DecisionApi = {
-    optional: async (_ctx, _msg) => true,
-    chooseTargets: async (_ctx, opts) => opts.candidates.slice(0, opts.max),
-    selectPermanents: async (_ctx, opts) => opts.candidates.slice(0, opts.max),
-    selectCards: async (_ctx, opts) => opts.candidates.slice(0, opts.max),
-    chooseOption: async (_ctx, _choices) => 0,
-  };
-
-  const source = makeSource("inst-063", onBattleArea);
-
-  return {
-    source,
-    trigger: {},
-    game,
-    fx,
-    ask,
-    selections: new Map(),
-  } as unknown as EffectContext;
-}
-
 describe("BT12-063 Damemon", () => {
-  it("registers only the inherited opponent-turn Blocker clause without a residual gap", async () => {
-    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
-    const card = runtimeCompiledCard("BT12-063")!;
-    expect(card.coverage).toBe("full");
-    expect(card.residual).toEqual([]);
-    expect(JSON.stringify(card)).not.toContain("RawUnparsed");
-    expect(card.effects).toEqual(
-      expect.arrayContaining([expect.objectContaining({ trigger: "OpponentsTurn", isInherited: true })]),
+  it.each(["BT12-087", "BT12-094", "BT12-096"])("reveals and free-plays named Tamer %s", async (tamer) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-063", as: "damemon" }],
+          deck: [{ card: tamer, as: "tamer" }, "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
-    expect(card.effects).not.toEqual(expect.arrayContaining([expect.objectContaining({ trigger: "Static" })]));
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("damemon"));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === tamer));
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === tamer)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
-  it("calls playInstances when a [Taiki Kudo] is among the revealed cards", async () => {
-    const playInstancesCalls: string[][] = [];
-    const taiki = { cardId: "taiki-001", instanceId: "taiki-inst", name: "Taiki Kudo" };
-    const ctx = makeCtx({ revealedCards: [taiki], playInstancesCalls });
-
-    const mod = getEffectModule("BT12-063");
-    expect(mod).toBeDefined();
-
-    const effects = mod!.effectsForTiming(EffectTiming.OnPlay, makeSource());
-    // FAILS-WHEN-REVERTED: the IR module is not accessible via getEffectModule; 0 effects.
-    expect(effects.length).toBeGreaterThan(0);
-
-    await effects[0]!.resolve(ctx);
-
-    // A [Taiki Kudo] was revealed; the player accepts (ask.optional → true);
-    // playInstances should have been called with the Taiki instance.
-    expect(playInstancesCalls).toHaveLength(1);
-    expect(playInstancesCalls[0]).toContain(taiki.instanceId);
+  it("digivolves for 2 from a level-3 Digimon with Save text and resolves When Digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-008", as: "saveBase" }],
+          hand: [{ card: "BT12-063", as: "damemon" }],
+          deck: [{ card: "BT12-094", as: "tamer" }, "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("saveBase").permanentId,
+        instanceId: s.inst("damemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-094"));
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("saveBase").stack.map(({ cardId }) => cardId)).toEqual(["BT12-008"]);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
-  it("does NOT call playInstances when no named Tamer is among revealed cards", async () => {
-    const playInstancesCalls: string[][] = [];
-    const nonTamer = { cardId: "non-tamer", instanceId: "non-tamer-inst", name: "OtherDigimon" };
-    const ctx = makeCtx({ revealedCards: [nonTamer], playInstancesCalls });
-
-    const mod = getEffectModule("BT12-063");
-    const effects = mod!.effectsForTiming(EffectTiming.OnPlay, makeSource());
-
-    await effects[0]!.resolve(ctx);
-
-    expect(playInstancesCalls).toHaveLength(0);
+  it("rejects the alternate evolution from a level-3 card without Save text", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "plainBase" }],
+        hand: [{ card: "BT12-063", as: "damemon" }],
+      },
+    });
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("plainBase").permanentId,
+        instanceId: s.inst("damemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
-  it("[When Digivolving] also has the reveal effect", () => {
-    const mod = getEffectModule("BT12-063");
-    const effects = mod!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource());
-    expect(effects.length).toBeGreaterThan(0);
+  it("DigiXroses with one Save-text Digimon for a 2-cost reduction", async () => {
+    expect(digiXrosRequirementFor("BT12-063")).toEqual([{ materials: [{ texts: ["Save"] }], count: 2 }]);
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT12-063", as: "damemon" },
+          { card: "BT12-008", as: "material" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("damemon").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("material").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("material").instanceId,
+    ]);
+  });
+
+  it("Saves itself, then places another Save Digimon under its Tamer in exact order", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-063", as: "damemon" },
+            { card: "BT12-094", as: "tamer" },
+          ],
+          trash: [{ card: "BT12-008", as: "peer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const sourceId = s.inst("damemon").instanceId;
+    const peerId = s.inst("peer").instanceId;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("damemon").permanentId], "byEffect");
+    await settle(() => s.perm("tamer").stack.length === 2);
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([sourceId, peerId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([]);
+  });
+
+  it("declining optional Save still performs the mandatory Then placement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-063", as: "damemon" },
+            { card: "BT12-094", as: "tamer" },
+          ],
+          trash: [{ card: "BT12-008", as: "peer" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const sourceId = s.inst("damemon").instanceId;
+    const peerId = s.inst("peer").instanceId;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("damemon").permanentId], "byEffect");
+    await settle(() => s.perm("tamer").stack.length === 1);
+    expect(s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([peerId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([sourceId]);
+  });
+
+  it("grants inherited Blocker only to a Save-text host on the opponent's turn", async () => {
+    const opponentTurn = setupEngine({
+      0: { battleArea: [{ card: "BT12-008", as: "host", under: ["BT12-063"] }] },
+    });
+    opponentTurn.state.turnSeat = 1;
+    await opponentTurn.ready();
+    expect(observe(opponentTurn.engine).hasKeyword(opponentTurn.perm("host"), "Blocker")).toBe(true);
+
+    const ownTurn = setupEngine({ 0: { battleArea: [{ card: "BT12-008", as: "host", under: ["BT12-063"] }] } });
+    await ownTurn.ready();
+    expect(observe(ownTurn.engine).hasKeyword(ownTurn.perm("host"), "Blocker")).toBe(false);
+
+    const plain = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-063"] }] } });
+    plain.state.turnSeat = 1;
+    await plain.ready();
+    expect(observe(plain.engine).hasKeyword(plain.perm("host"), "Blocker")).toBe(false);
   });
 });

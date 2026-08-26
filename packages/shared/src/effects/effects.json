@@ -16286,7 +16286,7 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [{ "level": 3, "texts": ["Save"], "cost": 2, "isAlternate": true }],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Opponent's Turn"], "texts": ["Save"] }], "count": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "texts": ["Save"] }], "count": 2 }]
   },
   "BT12-064": {
     "effects": [
