@@ -59,7 +59,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-023 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, with static Evade and inherited opponent-only bottom-source trash traced through the Evade replacement prompt and evolution-stack selection/zone-routing primitives.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-023.test.ts` passed (3 tests): IR shape, inherited attack bottom-card/owner boundary, and accepted Evade against effect deletion.
-- BT13-024 — Pending
+- BT13-024 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard` for printed Blocker, traced through public keyword observation and player-attack block/combat consumers.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-024.test.ts` passed (3 tests): IR keyword registration, public Blocker state, and live redirection/combat/security preservation.
 - BT13-025 — Pending
 - BT13-026 — Pending
 - BT13-027 — Pending
