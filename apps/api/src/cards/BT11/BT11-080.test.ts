@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-080.js";
+import { compiled } from "./BT11-080.js";
 
 describe("BT11-080 Devimon", () => {
+  it("maps catalog facts and the yellow-gated keywords to IR", () => {
+    expect(getCardDefinition("BT11-080")).toMatchObject({
+      cardId: "BT11-080", colors: ["Purple"], level: 4, playCost: 5, dp: 5000, types: ["Fallen Angel"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "YourTurn", actions: [{ kind: "Aura", effect: { keyword: { keyword: "Rush" } } }, { kind: "Aura", effect: { keyword: { keyword: "Retaliation" } } }] },
+    ]);
+  });
+
   it("gains Rush and Retaliation during its turn while a yellow permanent is in play", async () => {
     const s = setupEngine({
       0: {
