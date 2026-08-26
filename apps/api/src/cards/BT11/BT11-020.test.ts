@@ -1,13 +1,10 @@
-import { EffectTiming, getCardDefinition, type CompiledCard } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { compiled } from "./BT11-020.js";
-import { compiled as hostCompiled } from "./BT11-024.js";
 
-const HOST_CARD = "BT11-024";
-const blankHost: CompiledCard = { effects: [], coverage: "full", residual: [] };
+const HOST_CARD = "BT11-042";
 
 describe("BT11-020 Gaomon", () => {
   it("matches the catalog and carries both complete printed effects", () => {
@@ -107,8 +104,6 @@ describe("BT11-020 Gaomon", () => {
   });
 
   it("returns one opposing level 3 on attack with a Tamer, only once per turn", async () => {
-    registerIrCard(HOST_CARD, blankHost);
-    try {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: HOST_CARD, as: "host", under: ["BT11-020"] }, "BT11-090"] },
@@ -127,9 +122,6 @@ describe("BT11-020 Gaomon", () => {
     expect(s.state.players[1]!.hand).toHaveLength(1);
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    } finally {
-      registerIrCard(HOST_CARD, hostCompiled);
-    }
   });
 
   it("does not return a level 3 without a Tamer", async () => {
