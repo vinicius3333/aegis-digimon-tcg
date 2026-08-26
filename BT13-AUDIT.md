@@ -35,7 +35,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-015 — 10/10
   - Evidence: catalog and KB Q2274 reviewed; compiled IR exclusively uses `registerIrCard`, tracing GeoGreymon alternate evolution, optional free Marcus play, red/yellow Tamer deletion event, exact trash-to-top-security identity/face state, and independent direct/inherited frequency keys.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-015.test.ts` passed (4 tests): alternate stack/free play, refusal, Q2274 exact-card recovery, and inherited once-per-turn boundary.
-- BT13-016 — Pending
+- BT13-016 — 10/10
+  - Evidence: catalog and KB Q2275 reviewed; compiled IR exclusively uses `registerIrCard`. Corrected the cost-replacement scope to the Sistermon-triggered Jesmon evolution, then traced trait/name/controller filters, optionality, hand/trash source routing, inherited Royal Knight attack behavior, ownership, and frequency.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-016.test.ts` passed (6 tests): reduced trigger evolution, decline, normal-evolution full-cost negative, Royal Knight inherited play/frequency, trait negative, and inherited refusal.
 - BT13-017 — Pending
 - BT13-018 — Pending
 - BT13-019 — Pending

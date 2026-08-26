@@ -25,6 +25,12 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              sourceFilter: { isSelfRef: true },
+              actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 2, raw: "reduce the digivolution cost by 2" }],
+            },
+            {
               kind: "Digivolve",
               target: {
                 filter: {
@@ -46,22 +52,6 @@ export const compiled: CompiledCard = {
               from: ["hand"],
               payCost: true,
               optional: true,
-            },
-          ],
-        },
-        {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldDigivolve",
-              mode: "reduceCost",
-              amount: 2,
-              raw: "reduce the digivolution cost by 2",
             },
           ],
         },
