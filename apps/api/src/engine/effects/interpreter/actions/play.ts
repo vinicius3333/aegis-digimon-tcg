@@ -1,6 +1,7 @@
 // Playing cards from hand, deck, trash, and security.
 
 import type { EffectContext } from "../../EffectContext.js";
+import { evaluateCondition } from "../conditions.js";
 import type { ActionScope } from "../dispatch.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
@@ -16,6 +17,14 @@ export function playCostScalingDelta(scaling: Scaling, factor: number): number {
   if (scaling.subtract !== undefined) return -scaling.subtract * factor;
   if (scaling.bonus !== undefined) return scaling.bonus * factor;
   return factor;
+}
+
+function paidReduction(ctx: EffectContext, action: Extract<Action, { kind: "PlayWithoutCost" }>): number | undefined {
+  const base = action.reduceCostByScaling === undefined ? action.reduceCostBy : scaleFactor(ctx, action.reduceCostByScaling);
+  const conditional = (action as typeof action & { reduceCostByIf?: { amount: number; condition: import("@aegis/shared").Condition } })
+    .reduceCostByIf;
+  if (base === undefined && conditional === undefined) return undefined;
+  return (base ?? 0) + (conditional !== undefined && evaluateCondition(ctx, conditional.condition) ? conditional.amount : 0);
 }
 
 export function applyPlayCostCeiling(
@@ -177,10 +186,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // A scaled reduction ("with the play cost reduced by the play cost of the returned
           // Tamer" — LM-006) resolves against the live context, which already carries the
           // receipts written while this action's own cost was paid.
-          const scaledReduction =
-            action.reduceCostByScaling === undefined
-              ? action.reduceCostBy
-              : scaleFactor(ctx, action.reduceCostByScaling);
+          const scaledReduction = paidReduction(ctx, action);
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
@@ -197,10 +203,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // This is an effect-driven play, not a bare zone move. Route through the
           // generalized play seam so the card's [On Play] window and `whenPlayed`
           // watchers both fire (the same contract used by filtered plays).
-          const selfReduction =
-            action.reduceCostByScaling === undefined
-              ? action.reduceCostBy
-              : scaleFactor(ctx, action.reduceCostByScaling);
+          const selfReduction = paidReduction(ctx, action);
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
@@ -421,10 +424,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               .filter((instanceId, index, all) => all.indexOf(instanceId) === index)
           : undefined;
       const chosen = await pickLoose(ctx, playCostAdjustedTarget, candidates, undefined, ctx.ask, visibleZoneIds);
-      const costReduction =
-        action.reduceCostByScaling === undefined
-          ? (action.reduceCostBy ?? action.costReduction)
-          : scaleFactor(ctx, action.reduceCostByScaling);
+      const costReduction = paidReduction(ctx, action) ?? action.costReduction;
       if (chosen.length > 0) {
         // Options are USED, not played as permanents. `playInstances` intentionally rejects
         // Option definitions, so routing every PlayWithoutCost target through it silently

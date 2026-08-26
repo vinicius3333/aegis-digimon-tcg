@@ -15,10 +15,13 @@ for (const effect of compiled.effects ?? []) {
   const play = effect.actions.find((action) => action.kind === "PlayWithoutCost");
   if (play?.kind === "PlayWithoutCost") {
     play.reduceCostBy = 4;
-    play.reduceCostByScaling = {
-      per: 1,
-      unit: "cards",
-      filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Leopardmon", "X Antibody"], match: "name" }] },
+    play.reduceCostByIf = {
+      amount: 3,
+      condition: {
+        kind: "selfDigivolutionStackHasTrait",
+        filter: { nameOrTrait: [{ tokens: ["Leopardmon"], match: "name" }, { tokens: ["X Antibody"], match: "name" }] },
+        raw: "a card with [Leopardmon] in its name or [X Antibody] is in this Digimon's digivolution cards",
+      },
     };
   }
 }
@@ -27,7 +30,7 @@ if (playWatcher?.kind === "SubTrigger") {
   const bounce = playWatcher.actions.find((action) => action.kind === "Return");
   if (bounce?.kind === "Return") {
     bounce.target.filter.dp = { op: "lte", value: 5000 };
-    bounce.target.filter.dp = { op: "lte", value: 5000 };
+    bounce.dpCeilingScaling = {
       amount: 3000,
       per: 1,
       filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true },
