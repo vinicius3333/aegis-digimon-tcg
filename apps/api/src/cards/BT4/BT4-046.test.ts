@@ -40,4 +40,16 @@ describe("BT4-046 WarGrowlmon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
+
+  it("does not give its host DP at 4 security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT4-047", as: "host", under: ["BT4-046"] }],
+        security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+      },
+    });
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });
