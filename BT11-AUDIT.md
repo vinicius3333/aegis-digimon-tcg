@@ -518,6 +518,24 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Source audit correction: shared IR omitted the direct card's optional self-delete/abort boundary and watched the singular stack-discard event rather than the effect-trash batch event. It now matches direct IR's optional declaration behavior and `onDigivolutionCardsDiscardedBatch` watcher, preserving the physical source filter.
 - Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2105 external-deletion path, self-delete decline, Save, effect versus non-effect stack trash, opponent-turn boundary, and direct/shared equality require observable proof.
 
+## BT11-078 — Soulmon — source audit pending focused verification
+
+- Catalog and KB evidence: purple level-4 4000-DP Digimon, play cost 5 and purple-level-3 evolution cost 2; Retaliation; All Turns gives all friendly Digimon with Retaliation +2000 DP. The local KB has no rulings, errata, or restrictions.
+- Source audit: direct IR grants Soulmon static Retaliation and applies an all-turns +2000 modifier to all controller-owned Digimon currently carrying Retaliation, correctly including Soulmon itself and excluding opposing or non-Retaliation Digimon. Coverage is full, residuals are empty, and registration is exclusively `registerIrCard("BT11-078", compiled)`.
+- Verification status: no test was launched under the requested static-only policy. This remains below 10/10 pending observable proof of evolution cost/stack movement, self and allied recipients, opponent/non-keyword exclusions, dynamic entry and keyword loss, executable Retaliation battle cleanup, and registry/IR equality.
+
+## BT11-079 — DarkLizardmon — source audit pending focused verification
+
+- Catalog and KB evidence: purple level-4 4000-DP Digimon, play cost 5 and purple-level-3 evolution cost 2; Retaliation; On Deletion draws 1 and then trashes exactly 1 card from hand. The local KB has no rulings, errata, or restrictions.
+- Source audit: direct IR grants static Retaliation and sequences controller Draw 1 before a mandatory one-card controller-hand Trash on deletion. Coverage is full, residuals are empty, and registration is exclusively `registerIrCard("BT11-079", compiled)`.
+- Verification status: no test was launched under the requested static-only policy. This remains below 10/10 pending observable proof of evolution, Retaliation battle semantics, deletion snapshot/source ownership, draw-before-trash ordering, empty-deck and empty-hand boundaries, opponent-controlled copies, and registry/IR equality.
+
+## BT11-080 — Devimon — source audit pending focused verification
+
+- Catalog and KB evidence: purple level-4 5000-DP Digimon, play cost 5, evolving from either purple or yellow level 3 for 2. During the controller's turn, while they have a yellow Digimon or yellow Tamer, Devimon gains Rush and Retaliation. The local KB has no rulings, errata, or restrictions.
+- Source audit: direct IR has two controller-turn self auras sharing a live controller-owned battle-area predicate whose exact union is yellow Digimon or yellow Tamer; the auras independently grant Rush and Retaliation only while that condition holds. Both printed evolution routes are catalog-backed. Coverage is full, residuals are empty, and registration is exclusively `registerIrCard("BT11-080", compiled)`.
+- Verification status: no test was launched under the requested static-only policy. This remains below 10/10 pending observable proof of both evolution routes, yellow Digimon/Tamer positive branches, opposing and non-yellow exclusions, turn and condition expiry, Rush summoning-sickness bypass, Retaliation battle cleanup, and registry/IR equality.
+
 ## BT11-081 — MadLeomon: Armed Mode — source correction pending focused verification
 
 - Catalog evidence: MadLeomon: Armed Mode's DigiXros recipe needs MadLeomon plus one Bagra Army trait Digimon. Opponent turn, once per turn, it may trash a source to draw two when an effect adds cards to the opponent's hand; On Deletion it has Save, and inherited it gains memory only when an effect trashes this card from digivolution cards during the opponent's turn.
