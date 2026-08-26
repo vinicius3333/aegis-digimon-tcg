@@ -1145,7 +1145,11 @@ export async function payCost(
         }
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
-        if (cost.to === "deckBottom") {
+        // Some generated return costs encode the destination as `position: "bottom"`
+        // (rather than the legacy `to: "deckBottom"`). Preserve that distinction here:
+        // EX6-073's seven distinct-name self-stack payment must actually bottom-deck the
+        // selected cards, while `pickLoose` enforces the distinct-name constraint.
+        if (cost.to === "deckBottom" || cost.position === "bottom") {
           await ctx.fx.returnToDeck(chosen, { toTop: false });
         } else {
           await ctx.fx.returnToHand(chosen);
