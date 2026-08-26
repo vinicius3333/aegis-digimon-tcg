@@ -235,7 +235,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --poolOptions.forks.singleFork=true --fileParallelism=false`. LM-025 remains below 10/10 pending
   relevant mechanism and refreshed collection gates.
 
-## LM-026 — Megidramon — pending focused execution
+## LM-026 — Megidramon — focused proof green; pending mechanism and collection gates
 
 - Catalog and Q4029/Q4030 map to a self-bound optional leave replacement that plays a
   qualifying Guilmon from this stack or trash and relocates Megidramon beneath it; the
@@ -245,7 +245,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   DP-reference effects as Q4032 requires.
 - Existing behavioral focused cases cover the 11000 threshold, both Guilmon source zones and
   final stack order, the ChaosGallantmon alias, and modifier positive/negative boundaries.
-  They are deliberately unrun under PID 82901; the card remains below 10/10.
+- The authorized serialized focused command passed 1/1 file and 7/7 tests in 3.65s on 2026-08-26:
+  `vitest run src/cards/LM/LM-026.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-026 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
 ## LM-027 — Red Scramble — pending focused execution
 
