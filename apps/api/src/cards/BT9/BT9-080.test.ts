@@ -1,10 +1,37 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-080.js";
 import "./BT9-080.js";
 
 describe("BT9-080 Raguelmon", () => {
+  it("matches catalog values and both security-dependent trash-play branches", () => {
+    expect(getCardDefinition("BT9-080")).toMatchObject({
+      colors: ["Purple", "Yellow"], level: 6, playCost: 12, dp: 12000,
+      evoCosts: [{ color: "Purple", level: 5, memoryCost: 4 }, { color: "Yellow", level: 5, memoryCost: 4 }],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [],
+      effects: [
+        { trigger: "OnPlay", actions: [
+          { kind: "PlayWithoutCost", from: ["trash"], payCost: false, condition: { kind: "zoneCount", zone: "security", op: "gte", value: 2 } },
+          {
+            kind: "Modal", condition: { kind: "zoneCount", zone: "security", op: "lte", value: 1 },
+            options: [
+              [{ kind: "PlayWithoutCost", from: ["trash"] }],
+              [{
+                kind: "PlayWithoutCost", from: ["trash"],
+                target: { filter: { levelComparison: { op: "lte", value: 6 }, nameOrTrait: [{ tokens: ["Angel", "Fallen Angel"], match: "trait" }] } },
+              }],
+            ],
+          },
+        ] },
+        { trigger: "EndOfYourTurn", actions: [{ kind: "DnaDigivolve", optional: true, payCost: true, materials: [{ filter: { isSelfRef: true } }, { filter: { excludeSelf: true } }] }] },
+      ],
+    });
+  });
+
   it("with one security, may play an Angel level 6 from trash instead of the normal target", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
