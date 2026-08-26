@@ -1,5 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-060.js";
 
 // A3 for BT18-060 (Vemmon) — [On Play] reveal top 3; add 1 [Vemmon]-text card to hand AND
@@ -68,6 +70,10 @@ describe("BT18-060 [On Play] reveal 3 → add a Vemmon to hand + place a Vemmon 
     // A Vemmon-named card was added to the hand (net hand count unchanged: -1 played +1 added).
     expect(p0?.hand.some((c) => VEMMON_NAMED.has(c.cardId))).toBe(true);
     expect(p0?.hand.length).toBe(handCountBefore);
+    expect(p0?.hand.map(({ cardId }) => cardId)).toContain("BT11-061");
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toContain("BT21-056");
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    expect(s.state.memory).toBe(0);
 
     // The unclaimed filler card (BT1-009) genuinely moves to the BOTTOM of the deck —
     // not merely flipped face-down in place at the top, which manual deck-array splicing
@@ -77,5 +83,78 @@ describe("BT18-060 [On Play] reveal 3 → add a Vemmon to hand + place a Vemmon 
     const fillerIndex = deck.findIndex((c) => c.cardId === "BT1-009");
     expect(fillerIndex).toBe(deck.length - 1);
     expect(deck.every((c) => c.faceUp === false)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("Q2992 adds every available result even when the named-card branch is unavailable", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-060", as: "vemmon" }],
+          deck: ["BT11-065", "BT1-009", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true },
+    );
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vemmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT11-065"));
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT11-065");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
+    expect(s.state.players[0]!.deck.slice(-2).map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010"]);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("reduces a Vemmon-text evolution by one only once per turn and only from its host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT11-065", as: "host", under: ["BT18-060"] },
+          { card: "BT11-065", as: "other", under: ["BT18-060"] },
+          { card: "BT11-065", as: "plain" },
+        ],
+        hand: [
+          { card: "BT11-070", as: "destromonA" },
+          { card: "BT11-070", as: "destromonB" },
+          { card: "BT11-111", as: "galacticmon" },
+        ],
+        deck: ["BT1-001", "BT1-002"],
+      },
+    });
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("host"), getCardDefinition("BT11-070"))).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("destromonA").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT11-070");
+
+    expect(s.state.memory).toBe(6);
+    expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("other"), getCardDefinition("BT11-070"))).toBe(1);
+    expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("plain"), getCardDefinition("BT11-070"))).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("galacticmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT11-111");
+    expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("host"), getCardDefinition("BT1-078"))).toBe(0);
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("other"), getCardDefinition("BT11-070"))).toBe(0);
+    assertNoLoudGap(s);
   });
 });
