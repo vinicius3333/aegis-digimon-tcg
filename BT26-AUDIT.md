@@ -332,3 +332,33 @@ git diff --check
 ```
 
 The audit found and corrected one fidelity defect: the previous `hostFilter: { isSelfRef: true }` on the combined hand/stack target incorrectly rejected all hand candidates. The source restriction is now encoded with `target.source: "thisDigimon"`, and the Link-capability gate is explicit. A broader peer command also exposed unrelated failures in BT26-019, BT26-084, and BT26-086 (none of those modules or tests was touched by this diff); the directly affected Link mechanism suites and BT26-007 focused proof pass. No commit or push was made, per the audit task instructions.
+
+## BT26-008 — Kotemon — 10/10
+
+### Contract and implementation evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-008` (`Kotemon`), red level 3 Rookie/Data Digimon, play cost 3, DP 1000, printed red level 2 evolution cost 0, traits [Reptile]/[Shambala]/[TB]/[TS]. Main text is `[Digivolve] Lv.2 w/[Shambala]/[TS] trait: Cost 0` and `[When Moving] [On Play] 1 of your [Shambala] or [TS] trait Digimon gains ＜Piercing＞ and +3000 DP for the turn.` Inherited text is `[Your Turn] This Digimon gets +2000 DP.`
+- Knowledge base: `node tools/kb/query.mjs card BT26-008` reports no entries; no card-specific errata, ruling, or restriction applies.
+- `apps/api/src/cards/BT26/BT26-008.ts` uses exclusive `registerIrCard("BT26-008", compiled)`, `coverage: "full"`, and `residual: []`. Both main triggers use one `SelectBind` of one controller-owned Digimon with Shambala OR TS, then `GainKeyword` and `ModifyDP` through the same selection reference for the turn. The inherited effect uses `YourTurn` and +2000 on `isSelf`. The alternate requirement is parsed by the shared `digivolutionRequirementsFor` catalog path.
+- Shared primitive trace: `SelectBind` + `fromSelectionRef` ensures Piercing and DP affect the same selected permanent; `controller: "mine"`, `kind: ["Digimon"]`, and `nameOrTrait` provide the printed controller/type/disjunctive trait boundaries; `forTheTurn` expires both bonuses; inherited `YourTurn` follows the standard peer encoding.
+
+### Behavioral proof
+
+`apps/api/src/cards/BT26/BT26-008.test.ts` has 8 passing tests covering compiled trigger shape, exact zero-cost Shambala/TS evolution, legal off-color TS and Shambala eggs, rejection of a non-trait near-match, On Play and When Moving timing, TS-only positive targeting, controller and trait filtering, same-target binding for both bonuses, end-of-turn expiry, and inherited +2000 DP only on the controller's turn. Real `digivolve` and `moveFromBreeding` intents prove stack/source transitions. The mixed-board case includes an opponent trait match and non-matching Digimon.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-008
+  PASS (no knowledge-base entries)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-008.test.ts
+  PASS (8 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-008.ts apps/api/src/cards/BT26/BT26-008.test.ts BT26-AUDIT.md
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved card-text ambiguity remains. The audit added only card-specific behavioral cases and made no changes to the implementation module because it already faithfully compiled the complete contract.
