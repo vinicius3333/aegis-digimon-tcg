@@ -10038,7 +10038,34 @@
               "count": 1,
               "from": ["trash"]
             },
-            "underFilter": { "controller": "mine", "kind": ["Tamer"] }
+            "underFilter": { "controller": "mine", "kind": ["Tamer"] },
+            "condition": {
+              "kind": "not",
+              "condition": {
+                "kind": "anyOf",
+                "conditions": [
+                  {
+                    "kind": "youHave",
+                    "filter": {
+                      "zone": "battleArea",
+                      "controller": "mine",
+                      "kind": ["Digimon"],
+                      "nameOrTrait": [{ "tokens": ["Dorulumon"], "match": "name" }]
+                    }
+                  },
+                  {
+                    "kind": "youHave",
+                    "filter": {
+                      "zone": "digivolutionCards",
+                      "controller": "mine",
+                      "kind": ["Digimon"],
+                      "nameOrTrait": [{ "tokens": ["Dorulumon"], "match": "name" }]
+                    }
+                  }
+                ],
+                "raw": "you have a Digimon with [Dorulumon] in its name or with [Dorulumon] in its digivolution cards"
+              }
+            }
           },
           {
             "kind": "PlaceUnder",
@@ -10055,15 +10082,27 @@
             },
             "underFilter": { "controller": "mine", "kind": ["Tamer"] },
             "condition": {
-              "kind": "youHave",
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [
-                  { "tokens": ["Dorulumon"], "match": "name" },
-                  { "tokens": ["Dorulumon"], "match": "name" }
-                ]
-              },
+              "kind": "anyOf",
+              "conditions": [
+                {
+                  "kind": "youHave",
+                  "filter": {
+                    "zone": "battleArea",
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Dorulumon"], "match": "name" }]
+                  }
+                },
+                {
+                  "kind": "youHave",
+                  "filter": {
+                    "zone": "digivolutionCards",
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["Dorulumon"], "match": "name" }]
+                  }
+                }
+              ],
               "raw": "you have a Digimon with [Dorulumon] in its name or with [Dorulumon] in its digivolution cards"
             }
           }
