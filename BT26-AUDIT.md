@@ -701,3 +701,58 @@ git diff --check
 ```
 
 No card implementation or test change was necessary. Only this BT26-015 ledger section was added for coordinator review; no commit or push was made.
+
+## BT26-016 — Chronomon: Holy Mode — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-016` (`Chronomon: Holy Mode`), a red/yellow level 6 Mega Digimon with 12000 DP, Vaccine attribute, and `Shaman`/`Iliad`/`TS` traits. Its normal evolution requirements are red or yellow Lv.5 for 4; its alternate requirement is `[Digivolve] Lv.5 w/[TS] trait: Cost 3`.
+- Printed text: `＜Piercing＞`, `＜Engage＞`; `[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may delete 1 of your opponent's Digimon with as much DP as this Digimon or less. Then, by returning 3 cards in trashes to the bottom of the deck, ＜Recovery +1＞`; and `[All Turns] [Once Per Turn] When this Digimon would leave the battle area, by returning your top security card to the bottom of the deck, it doesn't leave.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-016`; it reports Q6976–Q6981 and no erratum, restriction, or unresolved card-text ambiguity. Q6976 requires all three trash cards for the `by` condition; Q6977 confirms that a deleted card returned during the effect cannot activate its pending On Deletion effect; Q6978 permits any combination of both players' trashes; Q6979 gives both selection and ordering to the activating player; Q6980 counts a Digi-Egg returned to the Digi-Egg deck; and Q6981 says the top security card returned by the replacement cannot be looked at.
+- Comprehensive Rules evidence: §15-7-1–5 defines optional processing conditions, all-or-nothing `by` payment, and payment even when the following processing cannot be performed; §15-8-3-7–9 defines trigger-time references and trigger activation; §15-16-2–3 and §16-6 define On Play/When Digivolving/When Attacking and Recovery; §3-1-3-3–5, §3-2-2–3, and §3-7-2–3 define simultaneous bottom-deck ordering and private face-down deck/security state; and §16-13/§16-14 define Piercing and Engage.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-016.ts` is a complete IR module. The three discrete timing entries share `BT26-016/delete-recover`, so the printed Once Per Turn limit is one budget across On Play, When Digivolving, and When Attacking. Each targets exactly one opposing Digimon with live DP `lte` the source's current DP, then exposes an optional recovery clause whose mandatory payment returns exactly three cards from the union of both players' trashes to their owners' deck bottoms, with controller-selected ordering, before `Recovery +1` adds one card from the source owner's deck.
+- The All Turns replacement is a once-per-turn `wouldLeavePlay` prevention anchored by `isSelfRef`; its cost targets only the source controller's top security card and returns it to that card's owner's deck bottom. The standard security/deck primitives keep the move face-down and do not expose card information. The module publishes Piercing and Engage and has `coverage: "full"` with an empty residual list.
+- Registration is exclusively `registerIrCard("BT26-016", compiled)`; there is no `registerCard` registration for this card. Shared primitive tracing covered live relative-DP matching, all-or-nothing loose-card return costs, mixed-seat `orFilters`, controller-owned ordering, Digi-Egg routing, Recovery, leave-prevention costs, once-per-turn ledgers, and keyword consumers.
+- Relevant peers inspected: BT26-015 for Chronomon/TS adjacent DP and deck-return behavior; BT26-017 for TS/Shambala alternate-evolution and keyword conventions; BT26-001 and BT26-060 for Chronomon text and deck-add interactions; BT15-009/BT19-014 for relative-to-source DP boundaries; and shared `security.ts`, `costs.ts`, `loose.ts`, `permanent.ts`, `replacement.ts`, `leavePrevention.ts`, and conformance suites. Their target, controller, zone, ordering, visibility, and replacement semantics are consistent with Chronomon: Holy Mode.
+
+### Behavioral proof
+
+The existing `apps/api/src/cards/BT26/BT26-016.test.ts` suite has 15 passing tests proving:
+
+- alternate evolution from a legal Lv.5 `[TS]` Digimon for exactly 3 memory and rejection of a non-TS base;
+- the three shared once-per-turn trigger windows, full IR shape, and the All Turns leave replacement;
+- deletion of an opposing Digimon at the inclusive 12000-DP boundary while leaving a 13000-DP Digimon;
+- the same delete/recovery body resolving positively from both the When Digivolving and When Attacking windows;
+- exact three-card recovery from a mixed own/opponent trash pool, activating-player selection, ordering, owner deck destinations, and Recovery +1;
+- Q6977's source-continuation behavior, where a deleted Digimon is returned before its pending On Deletion effect can activate;
+- Q6976's rejection of partial two-card payment without moving cards or recovering;
+- independent optional refusal of the deletion and recovery clauses;
+- the shared budget preventing a second use through When Attacking after On Play;
+- Q6980's Digi-Egg routing to the owner's Digi-Egg deck while counting toward the three-card payment;
+- printed Piercing and Engage through real deletion/battle and end-of-turn attack flows;
+- optional refusal of the leave replacement; and
+- Q6981's top-security replacement, which moves the exact top card face-down without a selection/look decision and is limited to one use per turn.
+
+The focused and regression suites resolve the full effect stack and assert observable zones, owners, ordering decisions, DP boundaries, source/controller attribution, pending deletion triggers, security privacy, evolution transitions, attack behavior, and once-per-turn state. No unresolved card-text ambiguity remains.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-016
+  PASS (Q6976–Q6981; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-016.test.ts
+  PASS (1 file, 15 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-016.test.ts src/cards/BT26/BT26-015.test.ts src/cards/BT26/BT26-017.test.ts src/engine/cards/bt26Assembly.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/conformance/ch15-01-effect-basics.test.ts src/engine/conformance/ch16a-security-blocker-draw.test.ts src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts
+  PASS (9 files, 386 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-016.ts apps/api/src/cards/BT26/BT26-016.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No card implementation change was necessary. Two focused tests were added to prove the positive When Digivolving and When Attacking paths. Only this BT26-016 ledger section and its focused test additions are left uncommitted for coordinator review; no commit or push was made.
