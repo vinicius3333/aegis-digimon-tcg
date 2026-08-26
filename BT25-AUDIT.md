@@ -183,3 +183,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-009.
+
+## BT25-010 — Hawkmon — 10/10
+
+- Catalog evidence: Red/green level-3 Digimon, play cost 3, 2000 DP, `Rookie`/`Free`, `Avian`/`Iliad`/`TS`; standard red or yellow level-2 evolution for 1; alternate Poromon or level-2 `TS` evolution for 0; controller-turn cost -1 when this Digimon would evolve into a Digimon with Avian/Bird/Beast/Animal/Sovereign in any trait other than Sea Animal; inherited controller-turn +2000 DP.
+- Knowledge base: Q6254 explicitly says the main reduction does not trigger while Hawkmon is in the breeding area.
+- Implementation: the direct IR installs a controller-turn `wouldDigivolve` replacement scoped to self, uses the exact positive trait set and `Sea Animal` exclusion, and reduces cost by exactly 1. The inherited modifier and both alternate evolution paths are complete. Runtime replacement/continuous gates exclude breeding-area activation as ruled. The module has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-010", compiled)`.
+- Behavioral proof: the existing focused suite verifies the complete IR contract. The delegated audit additionally ran catalog-sync/interpreter/primitives regressions and evolution-legality/peer suites, covering the real replacement seam, legal alternate paths, negative destination filter, inherited stack behavior, and Q6254 area boundary. No defect was found, so no test or implementation change was needed.
+- Verification: focused suite — 1 passed; catalog-sync/interpreter/primitives regressions — 326 passed; evolution legality plus BT25-009/012 peers — 13 passed; `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-010 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-010
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-010.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-010.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-010.
