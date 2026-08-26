@@ -16,33 +16,21 @@ export const compiled: CompiledCard = {
           options: [
             [
               {
-                kind: "PlayWithoutCost",
-                target: {
-                  filter: {
-                    name: "Fujitsumon",
-                    isToken: true,
-                  },
-                  count: 1,
-                },
+                kind: "PlayToken",
+                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+                count: 1,
                 payCost: false,
-                suspend: true,
-                controller: "self",
+                suspended: true,
               },
             ],
             [
               {
                 kind: "PlayToken",
-                target: {
-                  filter: {
-                    name: "Fujitsumon",
-                    isToken: true,
-                  },
-                  count: 1,
-                },
-                to: "opponentBattleArea",
-                suspend: true,
-                controller: "self",
-                asOpponentDigimon: true,
+                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+                count: 1,
+                payCost: false,
+                suspended: true,
+                placedAs: "opponentDigimon",
               },
             ],
           ],
@@ -86,33 +74,21 @@ export const compiled: CompiledCard = {
           options: [
             [
               {
-                kind: "PlayWithoutCost",
-                target: {
-                  filter: {
-                    name: "Fujitsumon",
-                    isToken: true,
-                  },
-                  count: 1,
-                },
+                kind: "PlayToken",
+                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+                count: 1,
                 payCost: false,
-                suspend: true,
-                controller: "self",
+                suspended: true,
               },
             ],
             [
               {
                 kind: "PlayToken",
-                target: {
-                  filter: {
-                    name: "Fujitsumon",
-                    isToken: true,
-                  },
-                  count: 1,
-                },
-                to: "opponentBattleArea",
-                suspend: true,
-                controller: "self",
-                asOpponentDigimon: true,
+                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+                count: 1,
+                payCost: false,
+                suspended: true,
+                placedAs: "opponentDigimon",
               },
             ],
           ],
