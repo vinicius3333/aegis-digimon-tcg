@@ -299,8 +299,8 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("button", { name: "Trial of the Four Great Dragons" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Select Azulongmon" })).toBeTruthy();
     expect(screen.getByText(/hand 1/i)).toBeTruthy();
-    expect(screen.getByText(/1 card moved: deck → hand/i)).toBeTruthy();
-    expect(screen.getByText(/1 card moved: hand → battle area/i)).toBeTruthy();
+    expect(screen.getByText(/moved: deck → hand/i)).toBeTruthy();
+    expect(screen.getByText(/moved: hand → battle area/i)).toBeTruthy();
   });
 
   it("shows Trial placed by Security without drawing a card", () => {
@@ -317,7 +317,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("button", { name: "Trial of the Four Great Dragons" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Select Azulongmon" })).toBeNull();
     expect(screen.getByText(/hand 0/i)).toBeTruthy();
-    expect(screen.getByText(/1 card moved: security → battle area/i)).toBeTruthy();
+    expect(screen.getByText(/moved: security → battle area/i)).toBeTruthy();
   });
 
   it("shows every opposing Digimon as a God Flame DP-reduction target", () => {
@@ -600,7 +600,7 @@ describe("CardEffectsDemo", () => {
 
     expect(screen.getByRole("button", { name: "Hina Kurihara" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "Memory: 0" })).toBeTruthy();
-    expect(screen.getByText(/1 card moved: security → battle area/i)).toBeTruthy();
+    expect(screen.getByText(/moved: security → battle area/i)).toBeTruthy();
   });
 
   it("shows Megidramon's ordinary and Trial-raised On Play boundaries", () => {
@@ -662,7 +662,7 @@ describe("CardEffectsDemo", () => {
     );
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.getByRole("button", { name: "Trial of the Four Great Dragons" })).toBeTruthy();
-    expect(screen.getByText(/1 card moved: hand → battle area/i)).toBeTruthy();
+    expect(screen.getByText(/moved: hand → battle area/i)).toBeTruthy();
     expect(screen.getAllByRole("img", { name: "deck · 36" })).toHaveLength(2);
   });
 
@@ -1537,7 +1537,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getAllByRole("button", { name: /Commandramon/ })).toHaveLength(2);
     expect(screen.queryByRole("button", { name: "Sealsdramon" })).toBeNull();
     expect(screen.getByRole("button", { name: "trash · 1" })).toBeTruthy();
-    expect(screen.getByText(/1 card moved: battle area → trash/i)).toBeTruthy();
+    expect(screen.getByText(/moved: battle area → trash/i)).toBeTruthy();
   });
 
   it("shows Parasaurmon's reducer as a friendly optional action that can be accepted or declined", () => {
@@ -1811,10 +1811,12 @@ describe("CardEffectsDemo", () => {
       </I18nProvider>,
     );
     const dialog = screen.getByRole("dialog", { name: /Slayerdramon · effect/i });
+    // Anchored on the tile's own label ("<name>, <dp> DP, …"), so the dialog's title,
+    // which now links the source card by name, cannot answer for a tile.
     for (const name of ["Slayerdramon", "Wingdramon", "Examon"]) {
-      expect((within(dialog).getByRole("button", { name: new RegExp(name) }) as HTMLButtonElement).disabled).toBe(
-        false,
-      );
+      expect(
+        (within(dialog).getByRole("button", { name: new RegExp(`^${name},`) }) as HTMLButtonElement).disabled,
+      ).toBe(false);
     }
     expect((within(dialog).getByRole("button", { name: /WarGreymon/i }) as HTMLButtonElement).disabled).toBe(true);
   });
@@ -2285,7 +2287,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("button", { name: "Opponent security · 4" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "trash · 2" })).toBeTruthy();
     expect(screen.getByText(/Breakdramon venceu a batalha e descartou a carta do topo da segurança/i)).toBeTruthy();
-    expect(screen.getByText(/1 card moved: security → trash/i)).toBeTruthy();
+    expect(screen.getByText(/moved: security → trash/i)).toBeTruthy();
   });
 
   it("shows Breakdramon's inherited security effect on a distinct host", () => {
@@ -2403,8 +2405,8 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("button", { name: /Gabumon.*Suspended/i })).toBeTruthy();
     expect(screen.getByRole("img", { name: "deck · 37" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "trash · 1" })).toBeTruthy();
-    expect(screen.getByText(/1 card moved: battle area → deck/i)).toBeTruthy();
-    expect(screen.getByText(/1 card moved: digivolutionCards → trash/i)).toBeTruthy();
+    expect(screen.getByText(/moved: battle area → deck/i)).toBeTruthy();
+    expect(screen.getByText(/moved: digivolutionCards → trash/i)).toBeTruthy();
   });
 
   it("shows both inherited reveal cards in trash after declining Commandramon per Q3419", () => {
@@ -2856,7 +2858,7 @@ describe("CardEffectsDemo", () => {
     );
 
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.getByRole("button", { name: /Magnadramon/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Magnadramon" })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Inspect opponent Digimon: Elecmon/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Inspect opponent Digimon: Gabumon/ })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Inspect opponent Digimon: Agumon/ })).toBeTruthy();
@@ -3646,7 +3648,7 @@ describe("CardEffectsDemo", () => {
     expect(within(dialog).getByText(/Four Sovereigns.*gain 2 memory/i)).toBeTruthy();
     expect(within(dialog).getByRole("button", { name: /Elecmon, 2,000 DP, 0 sources/i })).toBeTruthy();
     const gabumon = within(dialog).getByRole("button", { name: /Gabumon, 2,000 DP, 1 source/i });
-    expect(within(dialog).queryByRole("button", { name: /Majiramon/i })).toBeNull();
+    expect(within(dialog).queryByRole("button", { name: /^Majiramon,/i })).toBeNull();
     fireEvent.click(gabumon);
     expect(within(dialog).getByRole("button", { name: /Gabumon.*selected/i })).toBeTruthy();
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirm targets" }));
@@ -3839,9 +3841,9 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByText(/efeito herdado de AeroVeedramon deu Blocker somente a Magnadramon/i)).toBeTruthy();
     const dialog = screen.getByRole("dialog", { name: "Block window" });
     expect(within(dialog).getByRole("button", { name: /Magnadramon, 12,000 DP, 0 sources/i })).toBeTruthy();
-    expect(within(dialog).queryByRole("button", { name: /Goldramon/i })).toBeNull();
-    expect(within(dialog).queryByRole("button", { name: /Angemon/i })).toBeNull();
-    expect(within(dialog).queryByRole("button", { name: /Agumon/i })).toBeNull();
+    expect(within(dialog).queryByRole("button", { name: /^Goldramon,/i })).toBeNull();
+    expect(within(dialog).queryByRole("button", { name: /^Angemon,/i })).toBeNull();
+    expect(within(dialog).queryByRole("button", { name: /^Agumon,/i })).toBeNull();
     fireEvent.click(within(dialog).getByRole("button", { name: /Magnadramon, 12,000 DP, 0 sources/i }));
     expect(screen.queryByRole("dialog")).toBeNull();
 

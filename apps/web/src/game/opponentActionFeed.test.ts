@@ -173,6 +173,25 @@ describe("opponent action narration", () => {
     ).toEqual({ card: "Agumon" });
   });
 
+  it("never narrates the engine's own IR summary of an effect", () => {
+    const detail = opponentActionFromEvent(
+      event({
+        kind: "effectResolved",
+        seat: 1,
+        sourceCardId: "BT1-010",
+        effectKey: "on-play",
+        // The shape the engine renders when a card carries no handwritten description.
+        description: "[On Play] Delete 1 target(s), Place 1 card(s) under",
+        timing: "OnPlay",
+      }),
+      0,
+      "effect",
+    )?.detailText;
+
+    expect(detail).not.toContain("target(s)");
+    expect(detail).not.toContain("card(s)");
+  });
+
   it("shows only the chosen card for an opponent's public reveal", () => {
     expect(
       opponentActionFromEvent(
@@ -264,5 +283,53 @@ describe("opponent action queue", () => {
     expect(state.current?.id).toBe("attack");
     expect(state.current?.detailKey).toBe("feed.combatDeleted");
     expect(state.pending).toEqual([]);
+  });
+});
+
+describe("opponent action card links", () => {
+  it("lists the attacker and its target in the order the title names them", () => {
+    expect(
+      opponentActionFromEvent(
+        event({
+          kind: "attackDeclared",
+          seat: 1,
+          attackerPermanentId: "p1",
+          attackerCardId: "BT1-010",
+          target: { kind: "permanent", permanentId: "p2" },
+          targetCardId: "BT1-045",
+        }),
+        0,
+        "event-1",
+      )?.titleCardIds,
+    ).toEqual(["BT1-010", "BT1-045"]);
+  });
+
+  it("names the source before the revealed card, as the title reads", () => {
+    // Both printings are called Agumon: only the order separates the two links.
+    expect(
+      opponentActionFromEvent(
+        event({ kind: "cardRevealed", seat: 1, cardId: "ST1-03", sourceCardId: "BT1-010" }),
+        0,
+        "event-2",
+      )?.titleCardIds,
+    ).toEqual(["BT1-010", "ST1-03"]);
+  });
+
+  it("links the clause back to the card that printed it", () => {
+    const item = opponentActionFromEvent(
+      event({
+        kind: "effectResolved",
+        seat: 1,
+        sourceCardId: "BT1-045",
+        effectKey: "onPlay",
+        description: "Draw 1 card.",
+        timing: "OnPlay",
+      }),
+      0,
+      "event-3",
+    );
+
+    expect(item?.titleCardIds).toEqual(["BT1-045"]);
+    expect(item?.detailCardIds).toEqual(["BT1-045"]);
   });
 });

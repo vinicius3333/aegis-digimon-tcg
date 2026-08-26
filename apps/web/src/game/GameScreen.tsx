@@ -69,6 +69,7 @@ import {
   decisionPermanentDetails,
   decisionVisibleCards,
   distinctCardIdsAllow,
+  digivolveBasePermanentIds,
   findDnaMaterialCombination,
   attackTargetIdsOf,
   attackTargetsOf,
@@ -123,6 +124,7 @@ import { OpponentActionFeed, PlayLogSidebar } from "./OpponentActionFeedView";
 import { hasOpenCombatPrompt } from "./opponentActionFeed";
 import { AttackAnnouncementBanner, SidePanelStack } from "./SidePanelStack";
 import { NoticeStack } from "./NoticeStack";
+import { CardOpenerProvider } from "./cardLinks";
 import { SecurityBranch, SecurityClash, SecurityEdgeFlash } from "./SecurityClashView";
 import { ZoneShowcase } from "./ZoneShowcase";
 import { CardBurst } from "./CardBurst";
@@ -1173,6 +1175,19 @@ export function GameScreen({
 
   const hoveredDragIntent = dragIntentAt(dragHover);
 
+  // The bases in the battle area the card in the air would digivolve onto. Releasing it on
+  // any other permanent plays it, which the battle row underneath already offers, so only
+  // these permanents mark themselves — a Tamer never among them.
+  const dragBasePermanentIds = new Set(
+    dragIsPlay && drag
+      ? digivolveBasePermanentIds(drag.cardId, you.battleArea, digivolveTargetsOf(drag.instanceId))
+      : [],
+  );
+
+  /** The `data-drag-intent` an own permanent wears: only while it is a base for the drag. */
+  const baseDropIntentAttrs = (permanentId: string): Record<string, string> =>
+    dragBasePermanentIds.has(permanentId) ? dropIntentAttrs("perm-you", permanentId) : {};
+
   // ----- drag plumbing -----
   const startHandDrag = (index: number, e: React.PointerEvent) => {
     const entry = handEntries[index];
@@ -2106,767 +2121,782 @@ export function GameScreen({
   );
 
   return (
-    <main
-      className="game-layout"
-      style={{
-        height: "100%",
-        display: "flex",
-        background: "var(--ds-background)",
-        overflow: "hidden",
-        ...BATTLE_TIMING_STYLE,
-      }}
-    >
-      <div
-        className="game-board"
-        ref={boardRef}
-        // Clicking through an opponent's sequence fast-forwards it, the way the
-        // reference client lets a player skip their cut-ins. Capture-phase and
-        // passive: it never swallows the click the board was going to handle.
-        onPointerDownCapture={() => cues.skipAnimations()}
-        style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", ...battlefield }}
+    // Every surface that names a card — notices, side panels, combat prompts,
+    // decision dialogs — opens it through this one blow-up.
+    <CardOpenerProvider onOpenCard={setZoomCardId}>
+      <main
+        className="game-layout"
+        style={{
+          height: "100%",
+          display: "flex",
+          background: "var(--ds-background)",
+          overflow: "hidden",
+          ...BATTLE_TIMING_STYLE,
+        }}
       >
-        {/* opponent identity bar */}
-        <header
-          className="game-opponent-bar"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "12px 26px",
-            borderBottom: "1px solid var(--ds-border)",
-            background: "var(--ds-surface)",
-          }}
-        >
-          <div className="game-opponent-identity" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <Avatar name={opp.displayName || t("game.opponent")} color={oppColor} size={40} />
-            <div>
-              <div className="game-name-plate" style={{ fontWeight: 600, fontSize: 15, color: "var(--ds-foreground)" }}>
-                {opp.displayName || t("game.opponent")}
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontSize: 12,
-                  color: "var(--ds-foreground-muted)",
-                }}
-              >
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: opp.connected ? "var(--ds-success)" : "var(--ds-danger)",
-                  }}
-                />
-                {opp.connected ? t("game.connected") : t("game.disconnected")} ·{" "}
-                {state.turnSeat === otherSeat(viewerSeat) ? t("game.theirTurn") : t("game.waiting")}
-              </div>
-            </div>
-          </div>
-          <div
-            className="game-opponent-hand"
-            ref={oppHandStripRef}
-            style={{ display: "flex", alignItems: "center", gap: 7 }}
-          >
-            {Array.from({ length: Math.min(opp.handCount, 8) }).map((_, i) => (
-              <div key={i} aria-hidden style={{ marginLeft: i ? -22 : 0 }}>
-                <div
-                  style={{
-                    width: 30,
-                    height: 42,
-                    borderRadius: 5,
-                    background: "linear-gradient(150deg, var(--ds-surface-muted), var(--ds-surface))",
-                    border: "1px solid var(--ds-border-strong)",
-                  }}
-                />
-              </div>
-            ))}
-            <span
-              style={{
-                fontFamily: "var(--ds-font-mono)",
-                fontSize: 12,
-                color: "var(--ds-foreground-muted)",
-                marginLeft: 8,
-              }}
-            >
-              {t("game.handCount", { count: opp.handCount })}
-            </span>
-          </div>
-          <div className="game-mobile-turn">
-            <strong>
-              {state.turnSeat === viewerSeat ? t("game.yourTurn") : t("game.opponentsTurn")} · {state.turnCount}
-            </strong>
-            <span>
-              {t(`game.phase.${state.phase}` as const)} · {memory > 0 ? "+" : ""}
-              {memory}
-            </span>
-          </div>
-          {narrowGameLayout ? (
-            <>
-              {/* Touch layout: the sidebar footer is out of reach mid-match, so both match-level
-                  controls live in the header instead. */}
-              <button
-                className="game-mobile-bug"
-                onClick={() => setBugReportOpen(true)}
-                aria-label={t("bugReport.button")}
-              >
-                <Icons.Bug size={16} />
-              </button>
-              <button
-                className="game-mobile-surrender"
-                onClick={() => room && intents.surrender(room)}
-                aria-label={t("game.surrender")}
-              >
-                <Icons.LogOut size={16} />
-              </button>
-            </>
-          ) : (
-            /* Desktop dropped the sidebar, so its match-level controls live here as
-               the reference client's circular header buttons. */
-            <div className="game-topbar-actions">
-              <button
-                className="game-topbar-button"
-                onClick={() => setHistoryOpen(true)}
-                aria-label={t("game.matchLog")}
-              >
-                <Icons.ScrollText size={17} />
-              </button>
-              <button
-                className="game-topbar-button"
-                onClick={() => setBugReportOpen(true)}
-                aria-label={t("bugReport.button")}
-              >
-                <Icons.Bug size={17} />
-              </button>
-              <button
-                className="game-topbar-button game-topbar-button--danger"
-                onClick={() => room && intents.surrender(room)}
-                aria-label={t("game.surrender")}
-              >
-                <Icons.LogOut size={17} />
-              </button>
-            </div>
-          )}
-        </header>
-
-        {!feedPaused && !state.gameOver ? (
-          <OpponentActionFeed
-            current={opponentFeed.current}
-            trail={opponentFeed.trail}
-            pendingCount={opponentFeed.pending.length}
-            onOpenHistory={() => setHistoryOpen(true)}
-          />
-        ) : null}
-
-        {!state.gameOver ? <SidePanelStack panels={sidePanels} onDismiss={cues.dismissPanel} /> : null}
-
-        {!state.gameOver ? <NoticeStack notices={cues.notices} onDismiss={cues.dismissNotice} /> : null}
-
-        {attackAnnouncement && !state.gameOver ? <AttackAnnouncementBanner announcement={attackAnnouncement} /> : null}
-
-        {/* Desktop replaced the sidebar with this slim ticker: the turn/memory
-            readout plus the running match log, kept unobtrusive at the board's
-            right edge. The header's log button opens the full history sheet. */}
-        {!narrowGameLayout ? (
-          <aside className="game-log-ticker" aria-label={t("game.matchLog")}>
-            <div className="game-log-ticker__status">
-              <span data-my-turn={isMyTurn || undefined}>
-                {isMyTurn ? t("game.yourTurn") : t("game.opponentsTurn")}
-              </span>
-              <span>
-                {t("game.turnAndMemory", { turn: state.turnCount, memory: `${memory > 0 ? "+" : ""}${memory}` })}
-              </span>
-            </div>
-            <ol className="game-log-ticker__lines">
-              {log.map((e, i) => (
-                <li key={i} data-kind={e.kind}>
-                  {e.text}
-                </li>
-              ))}
-            </ol>
-          </aside>
-        ) : null}
-
-        {phaseBanner ? (
-          <div className="game-phase-banner" key={phaseBanner.key} role="status">
-            <span>{t(phaseBanner.labelKey)}</span>
-          </div>
-        ) : null}
-
-        {turnTransition ? (
-          <div
-            className={`game-turn-banner${
-              turnTransition.nextSeat === viewerSeat ? " game-turn-banner--you" : " game-turn-banner--opp"
-            }`}
-          >
-            <span>{turnTransition.nextSeat === viewerSeat ? t("game.yourTurn") : t("game.opponentsTurn")}</span>
-          </div>
-        ) : null}
-
-        {/* field: left column / center / right column */}
         <div
-          className="game-field"
-          style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
+          className="game-board"
+          ref={boardRef}
+          // Clicking through an opponent's sequence fast-forwards it, the way the
+          // reference client lets a player skip their cut-ins. Capture-phase and
+          // passive: it never swallows the click the board was going to handle.
+          onPointerDownCapture={() => cues.skipAnimations()}
+          style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", ...battlefield }}
         >
-          {/* The breeding step is about one slot: the field dims behind the dock,
-              which keeps the raising area, the hand that digivolves into it and
-              the turn control lit. Notices, panels and dialogs all sit above. */}
-          {breedingWindow ? <div className="game-breeding-mode" aria-hidden="true" /> : null}
-          {/* The board darkens around exactly the cards the server offered. It is
-              a drawing only — the lit cards underneath keep every pointer event. */}
-          {spotlightOpen ? (
-            <TargetingSpotlight subjects={spotlightSubjects} width={boardSize.width} height={boardSize.height} />
-          ) : null}
-          {/* left column: opp deck+trash (top) | your security (bottom) */}
-          <aside
-            className="game-pile-column game-pile-column--left"
+          {/* opponent identity bar */}
+          <header
+            className="game-opponent-bar"
             style={{
-              width: 130,
-              flexShrink: 0,
-              borderRight: "1px solid var(--ds-border)",
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
-              padding: "14px 10px",
-              gap: 8,
+              justifyContent: "space-between",
+              padding: "12px 26px",
+              borderBottom: "1px solid var(--ds-border)",
+              background: "var(--ds-surface)",
             }}
           >
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
-              {/* The ref rides a wrapper so the pile itself keeps the exact prop
-                  shape opponentSleeves.test.ts pins for sleeve privacy. */}
-              <div
-                ref={(el) => {
-                  oppDeckRef.current = el;
+            <div className="game-opponent-identity" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <Avatar name={opp.displayName || t("game.opponent")} color={oppColor} size={40} />
+              <div>
+                <div
+                  className="game-name-plate"
+                  style={{ fontWeight: 600, fontSize: 15, color: "var(--ds-foreground)" }}
+                >
+                  {opp.displayName || t("game.opponent")}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 12,
+                    color: "var(--ds-foreground-muted)",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: opp.connected ? "var(--ds-success)" : "var(--ds-danger)",
+                    }}
+                  />
+                  {opp.connected ? t("game.connected") : t("game.disconnected")} ·{" "}
+                  {state.turnSeat === otherSeat(viewerSeat) ? t("game.theirTurn") : t("game.waiting")}
+                </div>
+              </div>
+            </div>
+            <div
+              className="game-opponent-hand"
+              ref={oppHandStripRef}
+              style={{ display: "flex", alignItems: "center", gap: 7 }}
+            >
+              {Array.from({ length: Math.min(opp.handCount, 8) }).map((_, i) => (
+                <div key={i} aria-hidden style={{ marginLeft: i ? -22 : 0 }}>
+                  <div
+                    style={{
+                      width: 30,
+                      height: 42,
+                      borderRadius: 5,
+                      background: "linear-gradient(150deg, var(--ds-surface-muted), var(--ds-surface))",
+                      border: "1px solid var(--ds-border-strong)",
+                    }}
+                  />
+                </div>
+              ))}
+              <span
+                style={{
+                  fontFamily: "var(--ds-font-mono)",
+                  fontSize: 12,
+                  color: "var(--ds-foreground-muted)",
+                  marginLeft: 8,
                 }}
               >
+                {t("game.handCount", { count: opp.handCount })}
+              </span>
+            </div>
+            <div className="game-mobile-turn">
+              <strong>
+                {state.turnSeat === viewerSeat ? t("game.yourTurn") : t("game.opponentsTurn")} · {state.turnCount}
+              </strong>
+              <span>
+                {t(`game.phase.${state.phase}` as const)} · {memory > 0 ? "+" : ""}
+                {memory}
+              </span>
+            </div>
+            {narrowGameLayout ? (
+              <>
+                {/* Touch layout: the sidebar footer is out of reach mid-match, so both match-level
+                    controls live in the header instead. */}
+                <button
+                  className="game-mobile-bug"
+                  onClick={() => setBugReportOpen(true)}
+                  aria-label={t("bugReport.button")}
+                >
+                  <Icons.Bug size={16} />
+                </button>
+                <button
+                  className="game-mobile-surrender"
+                  onClick={() => room && intents.surrender(room)}
+                  aria-label={t("game.surrender")}
+                >
+                  <Icons.LogOut size={16} />
+                </button>
+              </>
+            ) : (
+              /* Desktop dropped the sidebar, so its match-level controls live here as
+                 the reference client's circular header buttons. */
+              <div className="game-topbar-actions">
+                <button
+                  className="game-topbar-button"
+                  onClick={() => setHistoryOpen(true)}
+                  aria-label={t("game.matchLog")}
+                >
+                  <Icons.ScrollText size={17} />
+                </button>
+                <button
+                  className="game-topbar-button"
+                  onClick={() => setBugReportOpen(true)}
+                  aria-label={t("bugReport.button")}
+                >
+                  <Icons.Bug size={17} />
+                </button>
+                <button
+                  className="game-topbar-button game-topbar-button--danger"
+                  onClick={() => room && intents.surrender(room)}
+                  aria-label={t("game.surrender")}
+                >
+                  <Icons.LogOut size={17} />
+                </button>
+              </div>
+            )}
+          </header>
+
+          {!feedPaused && !state.gameOver ? (
+            <OpponentActionFeed
+              current={opponentFeed.current}
+              trail={opponentFeed.trail}
+              pendingCount={opponentFeed.pending.length}
+              onOpenHistory={() => setHistoryOpen(true)}
+              onOpenCard={setZoomCardId}
+            />
+          ) : null}
+
+          {!state.gameOver ? <SidePanelStack panels={sidePanels} onDismiss={cues.dismissPanel} /> : null}
+
+          {!state.gameOver ? <NoticeStack notices={cues.notices} onDismiss={cues.dismissNotice} /> : null}
+
+          {attackAnnouncement && !state.gameOver ? (
+            <AttackAnnouncementBanner announcement={attackAnnouncement} />
+          ) : null}
+
+          {/* Desktop replaced the sidebar with this slim ticker: the turn/memory
+              readout plus the running match log, kept unobtrusive at the board's
+              right edge. The header's log button opens the full history sheet. */}
+          {!narrowGameLayout ? (
+            <aside className="game-log-ticker" aria-label={t("game.matchLog")}>
+              <div className="game-log-ticker__status">
+                <span data-my-turn={isMyTurn || undefined}>
+                  {isMyTurn ? t("game.yourTurn") : t("game.opponentsTurn")}
+                </span>
+                <span>
+                  {t("game.turnAndMemory", { turn: state.turnCount, memory: `${memory > 0 ? "+" : ""}${memory}` })}
+                </span>
+              </div>
+              <ol className="game-log-ticker__lines">
+                {log.map((e, i) => (
+                  <li key={i} data-kind={e.kind}>
+                    {e.text}
+                  </li>
+                ))}
+              </ol>
+            </aside>
+          ) : null}
+
+          {phaseBanner ? (
+            <div className="game-phase-banner" key={phaseBanner.key} role="status">
+              <span>{t(phaseBanner.labelKey)}</span>
+            </div>
+          ) : null}
+
+          {turnTransition ? (
+            <div
+              className={`game-turn-banner${
+                turnTransition.nextSeat === viewerSeat ? " game-turn-banner--you" : " game-turn-banner--opp"
+              }`}
+            >
+              <span>{turnTransition.nextSeat === viewerSeat ? t("game.yourTurn") : t("game.opponentsTurn")}</span>
+            </div>
+          ) : null}
+
+          {/* field: left column / center / right column */}
+          <div
+            className="game-field"
+            style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}
+          >
+            {/* The breeding step is about one slot: the field dims behind the dock,
+                which keeps the raising area, the hand that digivolves into it and
+                the turn control lit. Notices, panels and dialogs all sit above. */}
+            {breedingWindow ? <div className="game-breeding-mode" aria-hidden="true" /> : null}
+            {/* The board darkens around exactly the cards the server offered. It is
+                a drawing only — the lit cards underneath keep every pointer event. */}
+            {spotlightOpen ? (
+              <TargetingSpotlight subjects={spotlightSubjects} width={boardSize.width} height={boardSize.height} />
+            ) : null}
+            {/* left column: opp deck+trash (top) | your security (bottom) */}
+            <aside
+              className="game-pile-column game-pile-column--left"
+              style={{
+                width: 130,
+                flexShrink: 0,
+                borderRight: "1px solid var(--ds-border)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                padding: "14px 10px",
+                gap: 8,
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
+                {/* The ref rides a wrapper so the pile itself keeps the exact prop
+                    shape opponentSleeves.test.ts pins for sleeve privacy. */}
+                <div
+                  ref={(el) => {
+                    oppDeckRef.current = el;
+                  }}
+                >
+                  <Pile
+                    compact={compactPiles}
+                    count={opp.deckCount}
+                    label={t("game.pile.deck")}
+                    riffling={deckRiffles.has(`${otherSeat(viewerSeat)}:deck`)}
+                    useSelectedSleeve={false}
+                  />
+                </div>
                 <Pile
+                  className={trashEffectSource(otherSeat(viewerSeat))}
                   compact={compactPiles}
-                  count={opp.deckCount}
-                  label={t("game.pile.deck")}
-                  riffling={deckRiffles.has(`${otherSeat(viewerSeat)}:deck`)}
+                  count={opp.trash.length}
+                  label={t("game.pile.trash")}
+                  topCardId={opp.trash[opp.trash.length - 1]?.cardId}
+                  onClick={opp.trash.length ? () => setTrashView("opp") : undefined}
                   useSelectedSleeve={false}
                 />
               </div>
+              <div style={{ flex: 1 }} />
               <Pile
-                className={trashEffectSource(otherSeat(viewerSeat))}
+                className={`game-security-pile${securityHitSeat === viewerSeat ? " game-security-shield--hit" : ""}`}
                 compact={compactPiles}
-                count={opp.trash.length}
-                label={t("game.pile.trash")}
-                topCardId={opp.trash[opp.trash.length - 1]?.cardId}
-                onClick={opp.trash.length ? () => setTrashView("opp") : undefined}
-                useSelectedSleeve={false}
+                count={you.securityCount}
+                shield="you"
+                armed={securityBreak?.seat === viewerSeat && securityBreak.phase === "arm"}
+                breaking={securityBreak?.seat === viewerSeat && securityBreak.phase === "break"}
+                faceUp={hasFaceUpSecurity(you.security)}
+                landing={securityFlights.has(viewerSeat)}
+                label={t("game.yourSecurityPile")}
+                refEl={(el) => {
+                  yourSecRef.current = el;
+                }}
+                onClick={you.securityCount ? () => setSecurityView("you") : undefined}
               />
-            </div>
-            <div style={{ flex: 1 }} />
-            <Pile
-              className={`game-security-pile${securityHitSeat === viewerSeat ? " game-security-shield--hit" : ""}`}
-              compact={compactPiles}
-              count={you.securityCount}
-              shield="you"
-              armed={securityBreak?.seat === viewerSeat && securityBreak.phase === "arm"}
-              breaking={securityBreak?.seat === viewerSeat && securityBreak.phase === "break"}
-              faceUp={hasFaceUpSecurity(you.security)}
-              landing={securityFlights.has(viewerSeat)}
-              label={t("game.yourSecurityPile")}
-              refEl={(el) => {
-                yourSecRef.current = el;
-              }}
-              onClick={you.securityCount ? () => setSecurityView("you") : undefined}
-            />
-          </aside>
+            </aside>
 
-          {/* center: opp battle | memory gauge | your battle */}
-          <section
-            className="game-battle-zones"
-            style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}
-          >
-            <div
-              className="game-battle-row game-battle-row--opp"
-              role="group"
-              aria-label={t("game.oppBattleArea")}
+            {/* center: opp battle | memory gauge | your battle */}
+            <section
+              className="game-battle-zones"
+              style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}
+            >
+              <div
+                className="game-battle-row game-battle-row--opp"
+                role="group"
+                aria-label={t("game.oppBattleArea")}
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: "flex",
+                  gap: 18,
+                  justifyContent: "safe center",
+                  alignItems: "center",
+                  minHeight: 110,
+                  // Bottom room for the activate-effect pill, which hangs below its
+                  // permanent inside a row that clips vertical overflow.
+                  padding: "12px 18px 26px",
+                }}
+              >
+                {opp.battleArea.length === 0 ? (
+                  <span
+                    style={{ fontSize: 12, color: "var(--ds-foreground-disabled)", fontFamily: "var(--ds-font-mono)" }}
+                  >
+                    {t("game.noDigimon")}
+                  </span>
+                ) : null}
+                {opp.battleArea.map((p, index) => {
+                  // A drag is always a normal declaration; only the tap path can be in ＜Vortex＞ mode.
+                  const isCand =
+                    attackTargetIdsOf(attackerPerm, vortexMode).includes(p.permanentId) ||
+                    attackTargetIdsOf(draggedAttackerPerm, false).includes(p.permanentId);
+                  return (
+                    <PermanentView
+                      key={p.permanentId}
+                      perm={p}
+                      compact={narrowGameLayout || shortBoard}
+                      width={landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : undefined}
+                      refCb={(el) => {
+                        permRefs.current[p.permanentId] = el;
+                      }}
+                      drop={{
+                        "data-drop": "perm-opp",
+                        "data-id": p.permanentId,
+                        ...dropIntentAttrs("perm-opp", p.permanentId),
+                      }}
+                      candidate={isCand}
+                      effectSource={effectSourcePermanentIds.has(p.permanentId)}
+                      highlight={decisionHighlightPermanentId === p.permanentId}
+                      burst={permanentBursts.get(p.permanentId)}
+                      pending={pendingPermanentIds.has(p.permanentId)}
+                      fate={fateBadges.get(p.permanentId)}
+                      shake={combatImpactIds.has(p.permanentId)}
+                      claw={combatImpactIds.has(p.permanentId)}
+                      dpPulse={dpPulses.get(p.permanentId)}
+                      freezePulse={freezePulses.get(p.permanentId)}
+                      lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
+                      suspendDelayMs={unsuspendStagger(otherSeat(viewerSeat), index)}
+                      onClick={onOppPerm(p)}
+                      onInspectStart={
+                        !selPerm && !dragIsAttack
+                          ? (element, immediate) => showOpponentInspector(p.permanentId, element, immediate)
+                          : undefined
+                      }
+                      onInspectEnd={!selPerm && !dragIsAttack ? hideOpponentInspector : undefined}
+                    />
+                  );
+                })}
+              </div>
+              <div className="game-memory-band" style={{ flexShrink: 0, position: "relative" }}>
+                <MemoryGauge
+                  value={memory}
+                  compact={compactPiles}
+                  phaseLabel={t(`game.phase.${state.phase}` as const)}
+                  phaseSweeping={unsuspendSweep !== null}
+                  prediction={memoryPrediction}
+                />
+                <TurnControl
+                  state={turnControlState({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat })}
+                  onEndPhase={() => room && intents.endPhase(room)}
+                />
+              </div>
+              <div
+                data-drop="battle-you"
+                {...dropIntentAttrs("battle-you")}
+                className="game-battle-row game-battle-row--you"
+                role="group"
+                aria-label={t("game.yourBattleArea")}
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: "flex",
+                  gap: 18,
+                  justifyContent: "safe center",
+                  alignItems: "center",
+                  minHeight: 110,
+                  // Bottom room for the activate-effect pill, which hangs below its
+                  // permanent inside a row that clips vertical overflow.
+                  padding: "12px 18px 26px",
+                  borderRadius: 14,
+                  transition: "background 150ms, box-shadow 150ms",
+                  background: dragIsPlay ? "var(--ds-primary-light)" : "transparent",
+                  boxShadow: dragIsPlay ? "inset 0 0 0 2px var(--ds-primary)" : "none",
+                }}
+              >
+                {you.battleArea.length === 0 ? (
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: dragIsPlay ? "var(--ds-primary)" : "var(--ds-foreground-disabled)",
+                      fontFamily: "var(--ds-font-mono)",
+                    }}
+                  >
+                    {dragIsPlay ? t("game.dropToPlay") : t("game.noDigimon")}
+                  </span>
+                ) : null}
+                {you.battleArea.map((p, index) => {
+                  const isBase = (handIsDigi && eligibleBase(p)) || dragBasePermanentIds.has(p.permanentId);
+                  const draggable = canAttackWith(p);
+                  return (
+                    <PermanentView
+                      key={p.permanentId}
+                      perm={p}
+                      compact={narrowGameLayout || shortBoard}
+                      width={landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : undefined}
+                      refCb={(el) => {
+                        permRefs.current[p.permanentId] = el;
+                      }}
+                      candidate={isBase}
+                      effectSource={effectSourcePermanentIds.has(p.permanentId)}
+                      // A board-mode optional prompt points at the permanent whose
+                      // effect is asking, so the rail and the field read as one.
+                      highlight={selPerm === p.permanentId || decisionHighlightPermanentId === p.permanentId}
+                      burst={permanentBursts.get(p.permanentId)}
+                      pending={pendingPermanentIds.has(p.permanentId)}
+                      fate={fateBadges.get(p.permanentId)}
+                      shake={combatImpactIds.has(p.permanentId)}
+                      claw={combatImpactIds.has(p.permanentId)}
+                      dpPulse={dpPulses.get(p.permanentId)}
+                      freezePulse={freezePulses.get(p.permanentId)}
+                      lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
+                      suspendDelayMs={unsuspendStagger(viewerSeat, index)}
+                      drop={{
+                        "data-drop": "perm-you",
+                        "data-id": p.permanentId,
+                        ...baseDropIntentAttrs(p.permanentId),
+                      }}
+                      onClick={draggable ? undefined : onYourPerm(p)}
+                      onPointerDown={draggable ? (e) => startPermDrag(p, e) : undefined}
+                      // Drag-only permanents still need a pointer-free path: Enter or
+                      // Space selects them like a tap would.
+                      onKeyboardActivate={draggable ? onYourPerm(p) : undefined}
+                    />
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* right column: opp breeding+security (top) | your deck+trash (bottom) */}
+            <aside
+              className="game-pile-column game-pile-column--right"
               style={{
-                flex: 1,
-                minWidth: 0,
+                width: 130,
+                flexShrink: 0,
+                borderLeft: "1px solid var(--ds-border)",
                 display: "flex",
-                gap: 18,
-                justifyContent: "safe center",
+                flexDirection: "column",
                 alignItems: "center",
-                minHeight: 110,
-                // Bottom room for the activate-effect pill, which hangs below its
-                // permanent inside a row that clips vertical overflow.
-                padding: "12px 18px 26px",
+                padding: "14px 10px",
+                gap: 8,
               }}
             >
-              {opp.battleArea.length === 0 ? (
-                <span
-                  style={{ fontSize: 12, color: "var(--ds-foreground-disabled)", fontFamily: "var(--ds-font-mono)" }}
-                >
-                  {t("game.noDigimon")}
-                </span>
-              ) : null}
-              {opp.battleArea.map((p, index) => {
-                // A drag is always a normal declaration; only the tap path can be in ＜Vortex＞ mode.
-                const isCand =
-                  attackTargetIdsOf(attackerPerm, vortexMode).includes(p.permanentId) ||
-                  attackTargetIdsOf(draggedAttackerPerm, false).includes(p.permanentId);
-                return (
-                  <PermanentView
-                    key={p.permanentId}
-                    perm={p}
-                    compact={narrowGameLayout || shortBoard}
-                    width={landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : undefined}
-                    refCb={(el) => {
-                      permRefs.current[p.permanentId] = el;
-                    }}
-                    drop={{
-                      "data-drop": "perm-opp",
-                      "data-id": p.permanentId,
-                      ...dropIntentAttrs("perm-opp", p.permanentId),
-                    }}
-                    candidate={isCand}
-                    effectSource={effectSourcePermanentIds.has(p.permanentId)}
-                    highlight={decisionHighlightPermanentId === p.permanentId}
-                    burst={permanentBursts.get(p.permanentId)}
-                    pending={pendingPermanentIds.has(p.permanentId)}
-                    fate={fateBadges.get(p.permanentId)}
-                    shake={combatImpactIds.has(p.permanentId)}
-                    claw={combatImpactIds.has(p.permanentId)}
-                    dpPulse={dpPulses.get(p.permanentId)}
-                    freezePulse={freezePulses.get(p.permanentId)}
-                    lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
-                    suspendDelayMs={unsuspendStagger(otherSeat(viewerSeat), index)}
-                    onClick={onOppPerm(p)}
-                    onInspectStart={
-                      !selPerm && !dragIsAttack
-                        ? (element, immediate) => showOpponentInspector(p.permanentId, element, immediate)
-                        : undefined
-                    }
-                    onInspectEnd={!selPerm && !dragIsAttack ? hideOpponentInspector : undefined}
-                  />
-                );
-              })}
-            </div>
-            <div className="game-memory-band" style={{ flexShrink: 0, position: "relative" }}>
-              <MemoryGauge
-                value={memory}
-                compact={compactPiles}
-                phaseLabel={t(`game.phase.${state.phase}` as const)}
-                phaseSweeping={unsuspendSweep !== null}
-                prediction={memoryPrediction}
-              />
-              <TurnControl
-                state={turnControlState({ phase: state.phase, turnSeat: state.turnSeat, viewerSeat })}
-                onEndPhase={() => room && intents.endPhase(room)}
-              />
-            </div>
-            <div
-              data-drop="battle-you"
-              {...dropIntentAttrs("battle-you")}
-              className="game-battle-row game-battle-row--you"
-              role="group"
-              aria-label={t("game.yourBattleArea")}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                display: "flex",
-                gap: 18,
-                justifyContent: "safe center",
-                alignItems: "center",
-                minHeight: 110,
-                // Bottom room for the activate-effect pill, which hangs below its
-                // permanent inside a row that clips vertical overflow.
-                padding: "12px 18px 26px",
-                borderRadius: 14,
-                transition: "background 150ms, box-shadow 150ms",
-                background: dragIsPlay ? "var(--ds-primary-light)" : "transparent",
-                boxShadow: dragIsPlay ? "inset 0 0 0 2px var(--ds-primary)" : "none",
-              }}
-            >
-              {you.battleArea.length === 0 ? (
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: dragIsPlay ? "var(--ds-primary)" : "var(--ds-foreground-disabled)",
-                    fontFamily: "var(--ds-font-mono)",
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
+                {/* In the narrow rail the slot matches the pile width, so the card it
+                  holds cannot overflow the rail and get clipped. */}
+                <BreedingSlot
+                  perm={opp.breeding}
+                  label={t("game.pile.raising")}
+                  compact={compactPiles}
+                  burst={opp.breeding ? permanentBursts.get(opp.breeding.permanentId) : undefined}
+                  width={compactPiles ? 42 : narrowRail ? NARROW_RAIL_SLOT_WIDTH : undefined}
+                  onClick={
+                    narrowGameLayout && opp.breeding ? () => showCardMenu(opp.breeding!.permanentId, "opp") : undefined
+                  }
+                />
+                <Pile
+                  className={`game-security-pile${securityHitSeat === otherSeat(viewerSeat) ? " game-security-shield--hit" : ""}`}
+                  compact={compactPiles}
+                  count={opp.securityCount}
+                  shield="opp"
+                  armed={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "arm"}
+                  breaking={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "break"}
+                  faceUp={hasFaceUpSecurity(opp.security)}
+                  landing={securityFlights.has(otherSeat(viewerSeat))}
+                  attackLabel={
+                    canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)
+                      ? t(securityAttackLabelKey(opp.securityCount))
+                      : undefined
+                  }
+                  label={t("game.opponentSecurity")}
+                  useSelectedSleeve={false}
+                  refEl={(el) => {
+                    oppSecRef.current = el;
                   }}
-                >
-                  {dragIsPlay ? t("game.dropToPlay") : t("game.noDigimon")}
-                </span>
-              ) : null}
-              {you.battleArea.map((p, index) => {
-                const isBase =
-                  (handIsDigi && eligibleBase(p)) ||
-                  (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(p.permanentId));
-                const draggable = canAttackWith(p);
-                return (
-                  <PermanentView
-                    key={p.permanentId}
-                    perm={p}
-                    compact={narrowGameLayout || shortBoard}
-                    width={landscapePhone ? LANDSCAPE_PHONE_PERMANENT_WIDTH : undefined}
-                    refCb={(el) => {
-                      permRefs.current[p.permanentId] = el;
-                    }}
-                    candidate={isBase}
-                    effectSource={effectSourcePermanentIds.has(p.permanentId)}
-                    // A board-mode optional prompt points at the permanent whose
-                    // effect is asking, so the rail and the field read as one.
-                    highlight={selPerm === p.permanentId || decisionHighlightPermanentId === p.permanentId}
-                    burst={permanentBursts.get(p.permanentId)}
-                    pending={pendingPermanentIds.has(p.permanentId)}
-                    fate={fateBadges.get(p.permanentId)}
-                    shake={combatImpactIds.has(p.permanentId)}
-                    claw={combatImpactIds.has(p.permanentId)}
-                    dpPulse={dpPulses.get(p.permanentId)}
-                    freezePulse={freezePulses.get(p.permanentId)}
-                    lunge={attackLunge?.permanentId === p.permanentId ? attackLunge.direction : undefined}
-                    suspendDelayMs={unsuspendStagger(viewerSeat, index)}
-                    drop={{
-                      "data-drop": "perm-you",
-                      "data-id": p.permanentId,
-                      ...dropIntentAttrs("perm-you", p.permanentId),
-                    }}
-                    onClick={draggable ? undefined : onYourPerm(p)}
-                    onPointerDown={draggable ? (e) => startPermDrag(p, e) : undefined}
-                    // Drag-only permanents still need a pointer-free path: Enter or
-                    // Space selects them like a tap would.
-                    onKeyboardActivate={draggable ? onYourPerm(p) : undefined}
-                  />
-                );
-              })}
-            </div>
-          </section>
+                  drop={{ "data-drop": "opp-security", ...dropIntentAttrs("opp-security") }}
+                  glow={canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)}
+                  onClick={
+                    selPerm && canAttackSecurity
+                      ? () => attack(selPerm, { kind: "player" }, vortexMode)
+                      : opp.securityCount
+                        ? () => setSecurityView("opp")
+                        : undefined
+                  }
+                />
+              </div>
+              <div style={{ flex: 1 }} />
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
+                <Pile
+                  compact={compactPiles}
+                  count={you.deckCount}
+                  label={t("game.pile.deck")}
+                  riffling={deckRiffles.has(`${viewerSeat}:deck`)}
+                  refEl={(el) => {
+                    yourDeckRef.current = el;
+                  }}
+                />
+                <Pile
+                  className={trashEffectSource(viewerSeat)}
+                  compact={compactPiles}
+                  count={you.trash.length}
+                  label={t("game.pile.trash")}
+                  topCardId={you.trash[you.trash.length - 1]?.cardId}
+                  onClick={you.trash.length ? () => setTrashView("you") : undefined}
+                />
+              </div>
+            </aside>
+          </div>
 
-          {/* right column: opp breeding+security (top) | your deck+trash (bottom) */}
-          <aside
-            className="game-pile-column game-pile-column--right"
+          {/* bottom strip: breeding area (left) + action bar + hand (right) */}
+          <footer
+            className="game-player-dock"
             style={{
-              width: 130,
               flexShrink: 0,
-              borderLeft: "1px solid var(--ds-border)",
+              borderTop: "1px solid var(--ds-border)",
+              background: "var(--ds-surface)",
               display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              padding: "14px 10px",
-              gap: 8,
+              alignItems: "stretch",
             }}
           >
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
-              {/* In the narrow rail the slot matches the pile width, so the card it
-                holds cannot overflow the rail and get clipped. */}
-              <BreedingSlot
-                perm={opp.breeding}
-                label={t("game.pile.raising")}
-                compact={compactPiles}
-                burst={opp.breeding ? permanentBursts.get(opp.breeding.permanentId) : undefined}
-                width={compactPiles ? 42 : narrowRail ? NARROW_RAIL_SLOT_WIDTH : undefined}
-                onClick={
-                  narrowGameLayout && opp.breeding ? () => showCardMenu(opp.breeding!.permanentId, "opp") : undefined
-                }
+            {/* breeding area (bottom-left) */}
+            <div
+              className="game-breeding-dock"
+              style={{
+                width: 228,
+                flexShrink: 0,
+                borderRight: "1px solid var(--ds-border)",
+                padding: "8px 12px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  color: "var(--ds-foreground-muted)",
+                }}
+              >
+                {t("game.breedingArea")}
+              </div>
+              <div style={{ flex: 1, display: "flex", gap: 8, alignItems: "center" }}>
+                {/* Hatching is the egg deck's own click during the breeding step —
+                    the step used to open a dialog to ask for the same thing. */}
+                <Pile
+                  className={breedingActionsOpen && canHatchEgg ? "game-egg-deck--hatchable" : undefined}
+                  compact={compactPiles}
+                  count={you.eggDeckCount}
+                  label={t("game.pile.eggs")}
+                  glow={breedingActionsOpen && canHatchEgg}
+                  riffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
+                  onClick={breedingActionsOpen && canHatchEgg ? onBreeding : undefined}
+                />
+                <BreedingSlot
+                  perm={you.breeding}
+                  label={t("game.pile.raising")}
+                  compact={compactPiles}
+                  burst={you.breeding ? permanentBursts.get(you.breeding.permanentId) : undefined}
+                  // On a phone the dock is a row above the hand; a smaller slot gives
+                  // its height back to the battle rows while staying a 44px+ target.
+                  width={narrowGameLayout ? 46 : undefined}
+                  candidate={
+                    (breedingActionsOpen && canMoveOutOfBreeding) ||
+                    (!!you.breeding &&
+                      (eligibleBase(you.breeding) ||
+                        (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(you.breeding.permanentId))))
+                  }
+                  focused={breedingWindow}
+                  drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
+                  // Inside the breeding step the slot is the move-out action itself
+                  // rather than the card menu — `onBreeding` still digivolves first
+                  // when a hand card is selected.
+                  onClick={
+                    you.breeding && !(breedingActionsOpen && canMoveOutOfBreeding)
+                      ? onYourPerm(you.breeding)
+                      : onBreeding
+                  }
+                />
+              </div>
+              {/* What the old breeding dialog said, beside the pieces that answer it
+                  instead of on top of the board. */}
+              {breedingActionsOpen ? (
+                <p className="game-breeding-hint" role="status">
+                  {canHatchEgg
+                    ? t("game.breedingHint.hatch")
+                    : canMoveOutOfBreeding
+                      ? t("game.breedingHint.move")
+                      : t("game.breedingHint.end")}
+                </p>
+              ) : null}
+            </div>
+
+            {/* action bar + hand */}
+            <div
+              className="game-hand-dock"
+              ref={yourHandDockRef}
+              style={{ flex: 1, minWidth: 0, padding: "8px 20px 12px" }}
+            >
+              <ActionBar
+                youName={you.displayName || joinOptions.displayName}
+                youColor={youColor}
+                avatarId={identityAvatarId}
+                avatarUrl={identityAvatarUrl}
+                handCount={you.handCount}
+                selCardId={handPreview ? undefined : selCardId}
+                attackerCardId={attackerPerm?.topCard?.cardId}
+                attackTargets={attackTargets}
+                canAttackSecurity={canAttackSecurity}
+                vortexMode={vortexMode}
+                canPlay={selEntry?.playableFromHand === true}
+                hasBase={(selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0}
+                onPlay={() => handSel && playCard(handSel)}
+                onAttackSec={() => selPerm && attack(selPerm, { kind: "player" }, vortexMode)}
+                onAttackPerm={(pid) => selPerm && attack(selPerm, { kind: "permanent", permanentId: pid }, vortexMode)}
+                onCancel={clearSel}
               />
-              <Pile
-                className={`game-security-pile${securityHitSeat === otherSeat(viewerSeat) ? " game-security-shield--hit" : ""}`}
-                compact={compactPiles}
-                count={opp.securityCount}
-                shield="opp"
-                armed={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "arm"}
-                breaking={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "break"}
-                faceUp={hasFaceUpSecurity(opp.security)}
-                landing={securityFlights.has(otherSeat(viewerSeat))}
-                attackLabel={
-                  canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)
-                    ? t(securityAttackLabelKey(opp.securityCount))
+              <Hand
+                cardWidth={compactPiles ? HAND_CARD_WIDTH_COMPACT : HAND_CARD_WIDTH}
+                minExposure={compactPiles ? HAND_MIN_EXPOSURE_TOUCH : undefined}
+                cards={handEntries}
+                selectedInstanceId={handSel ?? undefined}
+                effectSourceInstanceId={
+                  handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined
+                }
+                selection={
+                  answerOnBoard && viewerDecision?.kind === "selectCards"
+                    ? {
+                        selectableInstanceIds: viewerDecision.options?.candidateInstanceIds ?? [],
+                        pickedInstanceIds: picks,
+                        onToggle: toggleDecisionPick,
+                      }
                     : undefined
                 }
-                label={t("game.opponentSecurity")}
-                useSelectedSleeve={false}
-                refEl={(el) => {
-                  oppSecRef.current = el;
+                startDrag={startHandDrag}
+                selectCard={(index) => {
+                  const entry = handEntries[index];
+                  if (entry) selectHandCard(entry);
                 }}
-                drop={{ "data-drop": "opp-security", ...dropIntentAttrs("opp-security") }}
-                glow={canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)}
-                onClick={
-                  selPerm && canAttackSecurity
-                    ? () => attack(selPerm, { kind: "player" }, vortexMode)
-                    : opp.securityCount
-                      ? () => setSecurityView("opp")
-                      : undefined
-                }
+                draggingInstanceId={dragIsPlay && drag?.kind === "play" ? drag.instanceId : undefined}
+                shakeInstanceId={shakeHandInstanceId}
+                onHoverChange={setHoveredHandInstanceId}
               />
             </div>
-            <div style={{ flex: 1 }} />
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
-              <Pile
-                compact={compactPiles}
-                count={you.deckCount}
-                label={t("game.pile.deck")}
-                riffling={deckRiffles.has(`${viewerSeat}:deck`)}
-                refEl={(el) => {
-                  yourDeckRef.current = el;
-                }}
-              />
-              <Pile
-                className={trashEffectSource(viewerSeat)}
-                compact={compactPiles}
-                count={you.trash.length}
-                label={t("game.pile.trash")}
-                topCardId={you.trash[you.trash.length - 1]?.cardId}
-                onClick={you.trash.length ? () => setTrashView("you") : undefined}
-              />
-            </div>
-          </aside>
+          </footer>
+
+          {arrow ? <AttackArrow from={arrow.from} to={arrow.to} /> : null}
+
+          {/* The persistent arrow: it flashes twice as it extends and then stays up,
+              following its endpoints until the attack or the effect is over. */}
+          {trackingArrow ? (
+            <AttackArrow
+              key={trackingArrow.key}
+              from={trackingArrow.from}
+              to={trackingArrow.to}
+              kind={trackingArrow.kind}
+              tracking
+            />
+          ) : null}
+
+          {deleteBursts.map((burst) => (
+            <span
+              key={burst.key}
+              aria-hidden="true"
+              className="game-delete-burst"
+              style={{ left: burst.x, top: burst.y }}
+            >
+              {/* The card's own art breaking apart where it stood, when the board still
+                  remembers which card that was; a plain burst otherwise. */}
+              {burst.cardId ? (
+                <CardShatter cardId={burst.cardId} width={72} color={burst.color ?? "Neutral"} />
+              ) : (
+                <CardBurst variant="delete" />
+              )}
+            </span>
+          ))}
+
+          {drawBursts.map((burst) => (
+            <span
+              key={burst.key}
+              aria-hidden="true"
+              className="game-draw-burst"
+              style={{ left: burst.x, top: burst.y }}
+            >
+              <CardBurst variant="draw" />
+            </span>
+          ))}
+
+          {drawFlights.map((flight) => (
+            <div
+              key={flight.key}
+              aria-hidden="true"
+              className="game-draw-flight"
+              style={
+                {
+                  left: flight.x,
+                  top: flight.y,
+                  "--battle-flight-dx": `${flight.dx}px`,
+                  "--battle-flight-dy": `${flight.dy}px`,
+                } as CSSProperties
+              }
+            />
+          ))}
         </div>
 
-        {/* bottom strip: breeding area (left) + action bar + hand (right) */}
-        <footer
-          className="game-player-dock"
-          style={{
-            flexShrink: 0,
-            borderTop: "1px solid var(--ds-border)",
-            background: "var(--ds-surface)",
-            display: "flex",
-            alignItems: "stretch",
-          }}
-        >
-          {/* breeding area (bottom-left) */}
-          <div
-            className="game-breeding-dock"
-            style={{
-              width: 228,
-              flexShrink: 0,
-              borderRight: "1px solid var(--ds-border)",
-              padding: "8px 12px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 4,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                color: "var(--ds-foreground-muted)",
-              }}
-            >
-              {t("game.breedingArea")}
-            </div>
-            <div style={{ flex: 1, display: "flex", gap: 8, alignItems: "center" }}>
-              {/* Hatching is the egg deck's own click during the breeding step —
-                  the step used to open a dialog to ask for the same thing. */}
-              <Pile
-                className={breedingActionsOpen && canHatchEgg ? "game-egg-deck--hatchable" : undefined}
-                compact={compactPiles}
-                count={you.eggDeckCount}
-                label={t("game.pile.eggs")}
-                glow={breedingActionsOpen && canHatchEgg}
-                riffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
-                onClick={breedingActionsOpen && canHatchEgg ? onBreeding : undefined}
-              />
-              <BreedingSlot
-                perm={you.breeding}
-                label={t("game.pile.raising")}
-                compact={compactPiles}
-                burst={you.breeding ? permanentBursts.get(you.breeding.permanentId) : undefined}
-                // On a phone the dock is a row above the hand; a smaller slot gives
-                // its height back to the battle rows while staying a 44px+ target.
-                width={narrowGameLayout ? 46 : undefined}
-                candidate={
-                  (breedingActionsOpen && canMoveOutOfBreeding) ||
-                  (!!you.breeding &&
-                    (eligibleBase(you.breeding) ||
-                      (dragIsPlay && digivolveTargetsOf(drag?.instanceId).includes(you.breeding.permanentId))))
-                }
-                focused={breedingWindow}
-                drop={{ "data-drop": "breeding-you", ...dropIntentAttrs("breeding-you") }}
-                // Inside the breeding step the slot is the move-out action itself
-                // rather than the card menu — `onBreeding` still digivolves first
-                // when a hand card is selected.
-                onClick={
-                  you.breeding && !(breedingActionsOpen && canMoveOutOfBreeding) ? onYourPerm(you.breeding) : onBreeding
-                }
-              />
-            </div>
-            {/* What the old breeding dialog said, beside the pieces that answer it
-                instead of on top of the board. */}
-            {breedingActionsOpen ? (
-              <p className="game-breeding-hint" role="status">
-                {canHatchEgg
-                  ? t("game.breedingHint.hatch")
-                  : canMoveOutOfBreeding
-                    ? t("game.breedingHint.move")
-                    : t("game.breedingHint.end")}
-              </p>
-            ) : null}
-          </div>
-
-          {/* action bar + hand */}
-          <div
-            className="game-hand-dock"
-            ref={yourHandDockRef}
-            style={{ flex: 1, minWidth: 0, padding: "8px 20px 12px" }}
-          >
-            <ActionBar
-              youName={you.displayName || joinOptions.displayName}
-              youColor={youColor}
-              avatarId={identityAvatarId}
-              avatarUrl={identityAvatarUrl}
-              handCount={you.handCount}
-              selCardId={handPreview ? undefined : selCardId}
-              attackerCardId={attackerPerm?.topCard?.cardId}
-              attackTargets={attackTargets}
-              canAttackSecurity={canAttackSecurity}
-              vortexMode={vortexMode}
-              canPlay={selEntry?.playableFromHand === true}
-              hasBase={(selEntry?.digivolveTargetPermanentIds.length ?? 0) > 0}
-              onPlay={() => handSel && playCard(handSel)}
-              onAttackSec={() => selPerm && attack(selPerm, { kind: "player" }, vortexMode)}
-              onAttackPerm={(pid) => selPerm && attack(selPerm, { kind: "permanent", permanentId: pid }, vortexMode)}
-              onCancel={clearSel}
-            />
-            <Hand
-              cardWidth={compactPiles ? HAND_CARD_WIDTH_COMPACT : HAND_CARD_WIDTH}
-              minExposure={compactPiles ? HAND_MIN_EXPOSURE_TOUCH : undefined}
-              cards={handEntries}
-              selectedInstanceId={handSel ?? undefined}
-              effectSourceInstanceId={
-                handEffectSourceInstanceId?.zone === "hand" ? handEffectSourceInstanceId.instanceId : undefined
-              }
-              selection={
-                answerOnBoard && viewerDecision?.kind === "selectCards"
-                  ? {
-                      selectableInstanceIds: viewerDecision.options?.candidateInstanceIds ?? [],
-                      pickedInstanceIds: picks,
-                      onToggle: toggleDecisionPick,
-                    }
-                  : undefined
-              }
-              startDrag={startHandDrag}
-              selectCard={(index) => {
-                const entry = handEntries[index];
-                if (entry) selectHandCard(entry);
-              }}
-              draggingInstanceId={dragIsPlay && drag?.kind === "play" ? drag.instanceId : undefined}
-              shakeInstanceId={shakeHandInstanceId}
-              onHoverChange={setHoveredHandInstanceId}
-            />
-          </div>
-        </footer>
-
-        {arrow ? <AttackArrow from={arrow.from} to={arrow.to} /> : null}
-
-        {/* The persistent arrow: it flashes twice as it extends and then stays up,
-            following its endpoints until the attack or the effect is over. */}
-        {trackingArrow ? (
-          <AttackArrow
-            key={trackingArrow.key}
-            from={trackingArrow.from}
-            to={trackingArrow.to}
-            kind={trackingArrow.kind}
-            tracking
+        {/* Desktop plays without the sidebar — its controls moved to the header
+            cluster and the end-turn orb; the log opens from the header/action feed.
+            The narrow layout keeps it: there it collapses into the touch strip. */}
+        {narrowGameLayout ? (
+          <Sidebar
+            phase={state.phase}
+            turnCount={state.turnCount}
+            memory={memory}
+            isMyTurn={isMyTurn}
+            canMove={canMoveFromBreeding(you.breeding)}
+            hasBreeding={!!you.breeding}
+            canHatch={you.eggDeckCount > 0 && !you.breeding}
+            narrow
+            log={log}
+            onHatchOrMove={onBreeding}
+            onSurrender={() => room && intents.surrender(room)}
+            onReportBug={() => setBugReportOpen(true)}
           />
         ) : null}
 
-        {deleteBursts.map((burst) => (
-          <span
-            key={burst.key}
-            aria-hidden="true"
-            className="game-delete-burst"
-            style={{ left: burst.x, top: burst.y }}
-          >
-            {/* The card's own art breaking apart where it stood, when the board still
-                remembers which card that was; a plain burst otherwise. */}
-            {burst.cardId ? (
-              <CardShatter cardId={burst.cardId} width={72} color={burst.color ?? "Neutral"} />
-            ) : (
-              <CardBurst variant="delete" />
-            )}
-          </span>
-        ))}
+        {stageEl ? createPortal(overlays, stageEl) : overlays}
 
-        {drawBursts.map((burst) => (
-          <span key={burst.key} aria-hidden="true" className="game-draw-burst" style={{ left: burst.x, top: burst.y }}>
-            <CardBurst variant="draw" />
-          </span>
-        ))}
+        {dragCardId
+          ? createPortal(
+              <div
+                style={{
+                  position: "fixed",
+                  left: drag!.x,
+                  top: drag!.y,
+                  transform: "translate(-50%, -52%) rotate(-4deg)",
+                  pointerEvents: "none",
+                  zIndex: 9999,
+                  opacity: 0.95,
+                  filter: "drop-shadow(0 18px 30px rgba(15,23,42,0.4))",
+                }}
+              >
+                <CardFull cardId={dragCardId} width={124} />
+              </div>,
+              document.body,
+            )
+          : null}
 
-        {drawFlights.map((flight) => (
-          <div
-            key={flight.key}
-            aria-hidden="true"
-            className="game-draw-flight"
-            style={
-              {
-                left: flight.x,
-                top: flight.y,
-                "--battle-flight-dx": `${flight.dx}px`,
-                "--battle-flight-dy": `${flight.dy}px`,
-              } as CSSProperties
-            }
-          />
-        ))}
-      </div>
-
-      {/* Desktop plays without the sidebar — its controls moved to the header
-          cluster and the end-turn orb; the log opens from the header/action feed.
-          The narrow layout keeps it: there it collapses into the touch strip. */}
-      {narrowGameLayout ? (
-        <Sidebar
-          phase={state.phase}
-          turnCount={state.turnCount}
-          memory={memory}
-          isMyTurn={isMyTurn}
-          canMove={canMoveFromBreeding(you.breeding)}
-          hasBreeding={!!you.breeding}
-          canHatch={you.eggDeckCount > 0 && !you.breeding}
-          narrow
-          log={log}
-          onHatchOrMove={onBreeding}
-          onSurrender={() => room && intents.surrender(room)}
-          onReportBug={() => setBugReportOpen(true)}
-        />
-      ) : null}
-
-      {stageEl ? createPortal(overlays, stageEl) : overlays}
-
-      {dragCardId
-        ? createPortal(
-            <div
-              style={{
-                position: "fixed",
-                left: drag!.x,
-                top: drag!.y,
-                transform: "translate(-50%, -52%) rotate(-4deg)",
-                pointerEvents: "none",
-                zIndex: 9999,
-                opacity: 0.95,
-                filter: "drop-shadow(0 18px 30px rgba(15,23,42,0.4))",
-              }}
-            >
-              <CardFull cardId={dragCardId} width={124} />
-            </div>,
-            document.body,
-          )
-        : null}
-
-      {/* The name of the intent the hovered area would send, floated clear of the
-          ghost and of the finger holding it. */}
-      {dragCardId && hoveredDragIntent
-        ? createPortal(
-            <span
-              className="game-drag-intent"
-              data-intent={hoveredDragIntent}
-              style={{ left: drag!.x, top: drag!.y - dragIntentLabelOffsetPx(coarsePointer) }}
-            >
-              {t(dragIntentLabelKey(hoveredDragIntent))}
-            </span>,
-            document.body,
-          )
-        : null}
-    </main>
+        {/* The name of the intent the hovered area would send, floated clear of the
+            ghost and of the finger holding it. */}
+        {dragCardId && hoveredDragIntent
+          ? createPortal(
+              <span
+                className="game-drag-intent"
+                data-intent={hoveredDragIntent}
+                style={{ left: drag!.x, top: drag!.y - dragIntentLabelOffsetPx(coarsePointer) }}
+              >
+                {t(dragIntentLabelKey(hoveredDragIntent))}
+              </span>,
+              document.body,
+            )
+          : null}
+      </main>
+    </CardOpenerProvider>
   );
 }
 

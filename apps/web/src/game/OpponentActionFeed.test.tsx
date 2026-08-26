@@ -91,3 +91,58 @@ describe("PlayLogSidebar", () => {
     expect(screen.queryByRole("button", { name: /^Open / })).toBeNull();
   });
 });
+
+describe("OpponentActionFeed card links", () => {
+  function revealAction(): OpponentActionItem {
+    return {
+      id: "reveal",
+      kind: "revealed",
+      cardId: "ST1-03",
+      titleKey: "feed.cardRevealedBy",
+      titleParams: { card: "Agumon", source: "Tsukaimon" },
+      titleCardIds: ["BT1-045", "ST1-03"],
+      durationMs: TIMINGS.feedAction,
+    };
+  }
+
+  it("opens the card a trail line names, by pointer and by keyboard alike", () => {
+    const opened: string[] = [];
+    render(
+      <I18nProvider>
+        <OpponentActionFeed
+          current={action("current", "Greymon")}
+          trail={[revealAction()]}
+          pendingCount={0}
+          onOpenHistory={() => undefined}
+          onOpenCard={(cardId) => opened.push(cardId)}
+        />
+      </I18nProvider>,
+    );
+
+    const link = screen.getByRole("button", { name: "Open Agumon" });
+    expect(link.tabIndex).toBe(0);
+    fireEvent.click(link);
+    expect(opened).toEqual(["ST1-03"]);
+  });
+
+  it("links the newest line even while the history button sits beside it", () => {
+    // The history used to wrap the whole line, and a button inside a button is
+    // invalid markup and unreachable by keyboard. It is its own button now.
+    const opened: string[] = [];
+    render(
+      <I18nProvider>
+        <OpponentActionFeed
+          current={revealAction()}
+          trail={[]}
+          pendingCount={0}
+          onOpenHistory={() => undefined}
+          onOpenCard={(cardId) => opened.push(cardId)}
+        />
+      </I18nProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Open Tsukaimon" }));
+    expect(opened).toEqual(["BT1-045"]);
+    expect(screen.getByRole("button", { name: "Open match history" })).toBeTruthy();
+  });
+});

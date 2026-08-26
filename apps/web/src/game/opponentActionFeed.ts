@@ -10,6 +10,7 @@
 
 import { getCardDefinition, type Seat, type ServerEvent } from "@aegis/shared";
 import type { TranslationKey, TranslationParams } from "../i18n";
+import { playerFacingEffectClause } from "./overlays";
 import { TIMINGS } from "./timings";
 
 export type OpponentActionKind = "movedFromBreeding" | "attack" | "combatResult" | "revealed" | "effect";
@@ -23,6 +24,14 @@ export interface OpponentActionItem {
   detailKey?: TranslationKey;
   detailParams?: TranslationParams;
   detailText?: string;
+  /**
+   * The cards the title names, in the order it names them, so the feed can link them the
+   * way the play log does. Order carries the meaning when two cards share a printed name
+   * ("Agumon revealed Agumon"), which is why this is a list and not a name lookup.
+   */
+  titleCardIds?: readonly string[];
+  /** The cards the detail line names, same contract as {@link titleCardIds}. */
+  detailCardIds?: readonly string[];
   durationMs: number;
   correlationKey?: string;
 }
@@ -44,6 +53,15 @@ function belongsToOpponent(eventSeat: Seat, viewerSeat: Seat): boolean {
   return eventSeat !== viewerSeat;
 }
 
+/**
+ * The feed narrates an effect with the same text the notices use, so the engine's
+ * own IR summary is replaced by the printed clause — or by nothing, when the card
+ * offers no clause under this timing. An internal identifier is never shown.
+ */
+function effectDetail(cardId: string, description: string, timing?: string): string | undefined {
+  return playerFacingEffectClause({ cardId, timing, description });
+}
+
 export function opponentActionFromEvent(event: ServerEvent, viewerSeat: Seat, id: string): OpponentActionItem | null {
   switch (event.kind) {
     case "movedFromBreeding":
@@ -54,6 +72,7 @@ export function opponentActionFromEvent(event: ServerEvent, viewerSeat: Seat, id
         cardId: event.cardId,
         titleKey: "feed.movedFromBreeding",
         titleParams: { card: cardName(event.cardId) },
+        titleCardIds: [event.cardId],
         durationMs: SHORT_DURATION_MS,
       };
     case "attackDeclared":
@@ -72,6 +91,11 @@ export function opponentActionFromEvent(event: ServerEvent, viewerSeat: Seat, id
           card: cardName(event.attackerCardId),
           ...(event.targetCardId === undefined ? {} : { target: cardName(event.targetCardId) }),
         },
+        // The title names the attacker first, then the target it hit.
+        titleCardIds:
+          event.target.kind === "player" || event.targetCardId === undefined
+            ? [event.attackerCardId]
+            : [event.attackerCardId, event.targetCardId],
         durationMs: SHORT_DURATION_MS,
         correlationKey: `attack:${event.attackerPermanentId}`,
       };
@@ -97,6 +121,8 @@ export function opponentActionFromEvent(event: ServerEvent, viewerSeat: Seat, id
           event.sourceCardId === undefined
             ? { card: cardName(event.cardId) }
             : { card: cardName(event.cardId), source: cardName(event.sourceCardId) },
+        // "{source} revealed {card}" names the source first, so the ids follow that order.
+        titleCardIds: event.sourceCardId === undefined ? [event.cardId] : [event.sourceCardId, event.cardId],
         durationMs: SHORT_DURATION_MS,
         correlationKey: event.sourceCardId === undefined ? undefined : `effect:${event.seat}:${event.sourceCardId}`,
       };
@@ -108,7 +134,11 @@ export function opponentActionFromEvent(event: ServerEvent, viewerSeat: Seat, id
         cardId: event.sourceCardId,
         titleKey: "feed.effectActivated",
         titleParams: { card: cardName(event.sourceCardId) },
-        detailText: event.description,
+        titleCardIds: [event.sourceCardId],
+        detailText: effectDetail(event.sourceCardId, event.description),
+        // Only the card whose clause this is can be linked: every other name in a printed
+        // clause is text, with no card id behind it to open.
+        detailCardIds: [event.sourceCardId],
         durationMs: EFFECT_DURATION_MS,
         correlationKey: `effect:${event.seat}:${event.sourceCardId}:${event.effectKey}`,
       };
@@ -120,7 +150,9 @@ export function opponentActionFromEvent(event: ServerEvent, viewerSeat: Seat, id
         cardId: event.sourceCardId,
         titleKey: "feed.effectResolved",
         titleParams: { card: cardName(event.sourceCardId) },
-        detailText: event.description,
+        titleCardIds: [event.sourceCardId],
+        detailText: effectDetail(event.sourceCardId, event.description, event.timing),
+        detailCardIds: [event.sourceCardId],
         durationMs: EFFECT_DURATION_MS,
         correlationKey: `effect:${event.seat}:${event.sourceCardId}:${event.effectKey}`,
       };

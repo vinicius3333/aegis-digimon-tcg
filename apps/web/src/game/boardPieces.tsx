@@ -554,9 +554,12 @@ export function PermanentView({
       })}
       {/* Re-keying on the entry signature remounts the wrapper, which is what
           restarts the CSS entrance: the card sparkles when it reaches the board
-          and again on every digivolution. */}
+          and again on every digivolution. `pending` is part of the signature
+          because the permanent mounts while it is still hidden behind the
+          centre-screen showcase — without it the entrance ran out its whole
+          duration under `visibility: hidden` and the card simply appeared. */}
       <div
-        key={`${perm.permanentId}:${perm.stack.length}`}
+        key={`${perm.permanentId}:${perm.stack.length}:${pending ? "held" : "shown"}`}
         className={`game-card-enter${burst ? " game-card-landing" : ""}`}
         style={{ position: "relative", zIndex: 1 }}
       >

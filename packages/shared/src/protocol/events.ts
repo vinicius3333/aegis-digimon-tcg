@@ -147,6 +147,54 @@ export type ServerEvent =
 export type ServerEventKind = ServerEvent["kind"];
 
 /**
+ * Runtime enumeration of ServerEventKind, pinned to the type in both directions the
+ * same way DECISION_KINDS is: `satisfies` rejects an entry that isn't a real kind, and
+ * `_ServerEventKindsComplete` rejects a kind missing from this array.
+ *
+ * It exists so the client can assert that every event the server can send reaches a
+ * player-facing surface (match log, opponent action feed, combat-prompt overlay) or is
+ * listed as deliberately silent — see uiCompleteness.test.ts. Without it, a new event
+ * kind could ship narrating nothing and no test would notice.
+ */
+export const SERVER_EVENT_KINDS = [
+  "matchStarted",
+  "phaseChanged",
+  "cardPlayed",
+  "digivolved",
+  "hatched",
+  "movedFromBreeding",
+  "memoryChanged",
+  "attackDeclared",
+  "blockWindowOpened",
+  "blocked",
+  "blockDeclined",
+  "counterWindowOpened",
+  "counterResolved",
+  "alliancePrompt",
+  "allianceResolved",
+  "evadePrompt",
+  "evadeResolved",
+  "barrierPrompt",
+  "barrierResolved",
+  "combatResolved",
+  "securityChecked",
+  "securityRecovered",
+  "deckShuffled",
+  "cardRevealed",
+  "effectActivated",
+  "effectResolved",
+  "cardsMoved",
+  "turnEnded",
+  "actionRejected",
+  "gameOver",
+] as const satisfies readonly ServerEventKind[];
+
+type _ServerEventKindsComplete =
+  Exclude<ServerEventKind, (typeof SERVER_EVENT_KINDS)[number]> extends never ? true : never;
+const _serverEventKindsComplete: _ServerEventKindsComplete = true;
+void _serverEventKindsComplete;
+
+/**
  * `cardsMoved.to` for a return that lands UNDER the whole deck rather than on top.
  *
  * Not a {@link Zone} member: the deck bottom is a POSITION within the deck, while `Zone`

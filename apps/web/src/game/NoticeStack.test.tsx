@@ -3,6 +3,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
+import { CardOpenerProvider } from "./cardLinks";
 import { NoticeStack } from "./NoticeStack";
 import { NOTICE_CROWDED_LIFETIME_MS, NOTICE_LIFETIME_MS, type MatchNotice } from "./notices";
 
@@ -81,6 +82,32 @@ describe("NoticeStack", () => {
       </I18nProvider>,
     );
     expect(durationOf()).toBe(`${NOTICE_CROWDED_LIFETIME_MS}ms`);
+  });
+
+  it("names the card behind an effect and opens it", () => {
+    const opened: string[] = [];
+    render(
+      <I18nProvider>
+        <CardOpenerProvider onOpenCard={(cardId) => opened.push(cardId)}>
+          <NoticeStack notices={[notice()]} nowMs={0} onDismiss={() => undefined} />
+        </CardOpenerProvider>
+      </I18nProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Open Agumon" }));
+    expect(opened).toEqual(["BT1-010"]);
+  });
+
+  it("keeps the name plain when there is nowhere to open a card", () => {
+    renderStack([notice()]);
+    expect(screen.getByTestId("match-notice").textContent).toContain("Agumon");
+    expect(screen.queryByRole("button", { name: /^Open / })).toBeNull();
+  });
+
+  it("names a card the definitions do not know without showing its id", () => {
+    renderStack([notice({ body: { variant: "keyword", keyword: "digiXros", cardId: "ZZ9-999" } })]);
+    const shown = screen.getByTestId("match-notice");
+    expect(shown.textContent).toContain("Card");
+    expect(shown.textContent).not.toContain("ZZ9-999");
   });
 
   it("dismisses a notice through its close button", () => {

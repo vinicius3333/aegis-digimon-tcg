@@ -4,18 +4,46 @@
    it has left. The panel contents come from ./sidePanels; this file only draws
    them. */
 
-import { getCardDefinition } from "@aegis/shared";
 import { CardMini } from "../design/cards";
 import { useTranslation } from "../i18n";
+import { CardLink, CardLinkedText, cardDisplayName, useCardOpener } from "./cardLinks";
 import {
   sidePanelColumn,
   sidePanelRemaining,
   type AttackAnnouncement,
   type SidePanel,
+  type SidePanelCard,
   type SidePanelSide,
 } from "./sidePanels";
 
 const PANEL_CARD_WIDTH = 78;
+
+/**
+ * One card in a panel: its art, its number, and its name.
+ *
+ * The panel used to be art alone, which left a player unable to read what had
+ * just been deleted — the art is small, and a phone has no hover to enlarge it.
+ * The name is the link, so pointer and keyboard reach the card the same way; the
+ * art is a second pointer target for the same card.
+ */
+function SidePanelCardView({ card, numbered }: { card: SidePanelCard; numbered: boolean }) {
+  const openCard = useCardOpener();
+  return (
+    <li className="side-panel__card">
+      <span className="side-panel__art" aria-hidden="true">
+        <CardMini
+          cardId={card.cardId}
+          width={PANEL_CARD_WIDTH}
+          zoomOnHover={false}
+          onClick={openCard ? () => openCard(card.cardId) : undefined}
+        />
+        {/* Numbered only when the event put its cards in an order worth reading. */}
+        {numbered ? <span className="side-panel__badge">{card.badge}</span> : null}
+      </span>
+      <CardLink cardId={card.cardId} className="side-panel__name" />
+    </li>
+  );
+}
 
 function SidePanelView({
   panel,
@@ -47,15 +75,11 @@ function SidePanelView({
       </header>
       <ol className="side-panel__cards">
         {panel.cards.map((card) => (
-          <li className="side-panel__card" key={`${panel.id}:${card.badge}`}>
-            <CardMini cardId={card.cardId} width={PANEL_CARD_WIDTH} zoomOnHover={false} />
-            {/* Numbered only when the event put its cards in an order worth reading. */}
-            {panel.ordered || panel.cards.length > 1 ? (
-              <span className="side-panel__badge" aria-hidden="true">
-                {card.badge}
-              </span>
-            ) : null}
-          </li>
+          <SidePanelCardView
+            key={`${panel.id}:${card.badge}`}
+            card={card}
+            numbered={panel.ordered || panel.cards.length > 1}
+          />
         ))}
       </ol>
     </section>
@@ -113,7 +137,8 @@ export function SidePanelStack({
 
 export function AttackAnnouncementBanner({ announcement }: { announcement: AttackAnnouncement }) {
   const { t } = useTranslation();
-  const name = getCardDefinition(announcement.cardId)?.nameEn ?? announcement.cardId;
+  const openCard = useCardOpener();
+  const { cardId } = announcement;
   return (
     <div
       className="attack-announcement"
@@ -121,8 +146,17 @@ export function AttackAnnouncementBanner({ announcement }: { announcement: Attac
       data-testid="attack-announcement"
       key={announcement.id}
     >
-      <CardMini cardId={announcement.cardId} width={44} zoomOnHover={false} />
-      <strong className="attack-announcement__copy">{t("panel.attacking", { card: name })}</strong>
+      <span aria-hidden="true">
+        <CardMini
+          cardId={cardId}
+          width={44}
+          zoomOnHover={false}
+          onClick={openCard ? () => openCard(cardId) : undefined}
+        />
+      </span>
+      <strong className="attack-announcement__copy">
+        <CardLinkedText text={t("panel.attacking", { card: cardDisplayName(cardId, t) })} cardIds={[cardId]} />
+      </strong>
     </div>
   );
 }

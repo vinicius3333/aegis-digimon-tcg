@@ -378,6 +378,29 @@ describe("effectClauseForTiming", () => {
     expect(inherited).not.toContain("SubTrigger");
   });
 
+  it("replaces an IR summary whose action phrases carry punctuation", () => {
+    // Xeno's watcher renders as phrases, not bare action kinds, so the older
+    // shape test let "card(s)" and "target(s)" through to the board.
+    const clause = playerFacingEffectClause({
+      cardId: "EX11-066",
+      timing: "AllTurns",
+      description: "[All Turns] Reveal top 2 and add, Place 2 card(s) under",
+    });
+
+    expect(clause).not.toContain("card(s)");
+    expect(clause).not.toContain("Reveal top 2 and add");
+  });
+
+  it("keeps a keyword grant from reaching the board as an IR phrase", () => {
+    const clause = playerFacingEffectClause({
+      cardId: "EX3-049",
+      timing: "YourTurn",
+      description: "[Your Turn] Gain ＜Rush＞",
+    });
+
+    expect(clause).not.toBe("[Your Turn] Gain ＜Rush＞");
+  });
+
   it("separates Jazarichmon's On Play sequence from its inherited Security Attack condition", () => {
     const onPlay = playerFacingEffectClause({
       cardId: "EX3-052",

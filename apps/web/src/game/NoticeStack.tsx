@@ -7,10 +7,10 @@
    reading time runs out, and a close button for a player who has read it
    already. */
 
-import { getCardDefinition } from "@aegis/shared";
 import { CardMini } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
+import { CardLink, useCardOpener } from "./cardLinks";
 import { TIMING_LABELS, playerFacingEffectClause } from "./overlays";
 import {
   noticeRemaining,
@@ -24,20 +24,40 @@ import {
 
 const NOTICE_THUMB_WIDTH = 46;
 
+/**
+ * The notice's art, opening the card when the board has somewhere to open it.
+ *
+ * Decorative: the notice already names the card next to it as a link, and a
+ * second accessible copy would make every card on screen ambiguous.
+ */
+function NoticeThumb({ cardId }: { cardId: string }) {
+  const openCard = useCardOpener();
+  return (
+    <span className="match-notice__thumb" aria-hidden="true">
+      <CardMini
+        cardId={cardId}
+        width={NOTICE_THUMB_WIDTH}
+        zoomOnHover={false}
+        onClick={openCard ? () => openCard(cardId) : undefined}
+      />
+    </span>
+  );
+}
+
 function EffectNoticeBody({ cardId, timing, description }: { cardId: string; timing?: string; description?: string }) {
   const { t } = useTranslation();
   const clause = playerFacingEffectClause({ cardId, timing, description });
   const label = (timing ? TIMING_LABELS[timing] : undefined) ?? t("overlay.effect");
   return (
     <>
-      {/* Decorative: the notice already names the card in its title, and a second
-          accessible copy would make every card on screen ambiguous. */}
-      <span className="match-notice__thumb" aria-hidden="true">
-        <CardMini cardId={cardId} width={NOTICE_THUMB_WIDTH} zoomOnHover={false} />
-      </span>
+      <NoticeThumb cardId={cardId} />
       <div className="match-notice__copy">
         <span className="match-notice__label">{label}</span>
-        <strong className="match-notice__title">{getCardDefinition(cardId)?.nameEn ?? cardId}</strong>
+        <strong className="match-notice__title">
+          <CardLink cardId={cardId} />
+        </strong>
+        {/* The clause is the card's printed text: it names other cards, but only as
+            prose this client cannot resolve to ids, so it stays unlinked. */}
         {clause ? <p className="match-notice__text">{clause}</p> : null}
       </div>
     </>
@@ -64,12 +84,12 @@ function KeywordNoticeBody({ keyword, cardId }: { keyword: NoticeKeyword; cardId
   const { t } = useTranslation();
   return (
     <>
-      <span className="match-notice__thumb" aria-hidden="true">
-        <CardMini cardId={cardId} width={NOTICE_THUMB_WIDTH} zoomOnHover={false} />
-      </span>
+      <NoticeThumb cardId={cardId} />
       <div className="match-notice__copy">
         <strong className="match-notice__keyword">{t(`notice.keyword.${keyword}` as const)}</strong>
-        <span className="match-notice__label">{getCardDefinition(cardId)?.nameEn ?? cardId}</span>
+        <span className="match-notice__label">
+          <CardLink cardId={cardId} />
+        </span>
       </div>
     </>
   );

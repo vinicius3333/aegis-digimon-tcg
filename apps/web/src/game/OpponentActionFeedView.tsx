@@ -1,19 +1,36 @@
-import { getCardDefinition } from "@aegis/shared";
 import { Button, Dialog } from "../design/primitives";
 import { Sigil } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import type { LogLine } from "./boardModel";
-import { logSegments } from "./matchLogLinks";
+import { CardLinkedText } from "./cardLinks";
 import type { OpponentActionItem } from "./opponentActionFeed";
 
-function ActionCopy({ item }: { item: OpponentActionItem }) {
+function ActionCopy({
+  item,
+  live = false,
+  onOpenCard,
+}: {
+  item: OpponentActionItem;
+  /** The newest line announces itself, so there is no second sr-only copy to read past. */
+  live?: boolean;
+  onOpenCard?: (cardId: string) => void;
+}) {
   const { t } = useTranslation();
   return (
-    <div className="opponent-action-feed__copy">
-      <strong>{t(item.titleKey, item.titleParams)}</strong>
+    <div
+      className="opponent-action-feed__copy"
+      {...(live ? { role: "status" as const, "aria-live": "polite" as const } : {})}
+    >
+      <strong>
+        <CardLinkedText text={t(item.titleKey, item.titleParams)} cardIds={item.titleCardIds} onOpenCard={onOpenCard} />
+      </strong>
       {item.detailKey ? <small>{t(item.detailKey, item.detailParams)}</small> : null}
-      {item.detailText ? <small>{item.detailText}</small> : null}
+      {item.detailText ? (
+        <small>
+          <CardLinkedText text={item.detailText} cardIds={item.detailCardIds} onOpenCard={onOpenCard} />
+        </small>
+      ) : null}
     </div>
   );
 }
@@ -28,85 +45,59 @@ export function OpponentActionFeed({
   trail,
   pendingCount,
   onOpenHistory,
+  onOpenCard,
 }: {
   current?: OpponentActionItem;
   trail: readonly OpponentActionItem[];
   pendingCount: number;
   onOpenHistory?: () => void;
+  onOpenCard?: (cardId: string) => void;
 }) {
   const { t } = useTranslation();
   if (!current) return null;
 
-  const content = (
-    <>
-      <span className="opponent-action-feed__icon" aria-hidden="true">
-        <ActionIcon item={current} />
-      </span>
-      <ActionCopy item={current} />
-      <span className="aegis-sr-only" role="status" aria-live="polite">
-        {t(current.titleKey, current.titleParams)}
-      </span>
-      {pendingCount > 0 ? (
-        <span className="opponent-action-feed__pending">{t("feed.pendingActions", { count: pendingCount })}</span>
-      ) : null}
-    </>
-  );
-
+  // The whole line used to be the button that opened the history, which left a card
+  // link with nowhere valid to go: a button inside a button is neither valid markup
+  // nor reachable by a keyboard. The history is its own small button beside the copy,
+  // so every line — newest and trail alike — can link the cards it names.
   return (
     <div className="opponent-action-feed" data-testid="opponent-action-feed">
-      <div className="opponent-action-feed__trail" aria-hidden="true">
+      <div className="opponent-action-feed__trail">
         {trail.map((item, index) => (
           <div className="opponent-action-feed__trail-item" data-depth={index + 1} key={item.id}>
-            <ActionCopy item={item} />
+            <ActionCopy item={item} onOpenCard={onOpenCard} />
           </div>
         ))}
       </div>
-      {onOpenHistory ? (
-        <button
-          className="opponent-action-feed__current"
-          type="button"
-          aria-label={t("feed.openHistory")}
-          onClick={onOpenHistory}
-        >
-          {content}
-        </button>
-      ) : (
-        <div className="opponent-action-feed__current">{content}</div>
-      )}
+      <div className="opponent-action-feed__current">
+        <span className="opponent-action-feed__icon" aria-hidden="true">
+          <ActionIcon item={current} />
+        </span>
+        <ActionCopy item={current} live onOpenCard={onOpenCard} />
+        <span className="opponent-action-feed__aside">
+          {pendingCount > 0 ? (
+            <span className="opponent-action-feed__pending">{t("feed.pendingActions", { count: pendingCount })}</span>
+          ) : null}
+          {onOpenHistory ? (
+            <button
+              className="opponent-action-feed__history"
+              type="button"
+              aria-label={t("feed.openHistory")}
+              onClick={onOpenHistory}
+            >
+              <Icons.ScrollText size={16} />
+            </button>
+          ) : null}
+        </span>
+      </div>
     </div>
   );
 }
 
-/** The card names inside one line, keyed by the name the line actually printed. */
-function namedCards(line: LogLine): Map<string, string> {
-  const named = new Map<string, string>();
-  for (const cardId of line.cardIds ?? []) {
-    const name = getCardDefinition(cardId)?.nameEn;
-    if (name) named.set(name, cardId);
-  }
-  return named;
-}
-
 function LogLineText({ line, onOpenCard }: { line: LogLine; onOpenCard?: (cardId: string) => void }) {
-  const { t } = useTranslation();
-  const segments = logSegments(line.text, namedCards(line));
   return (
     <p>
-      {segments.map((segment, index) =>
-        segment.cardId && onOpenCard ? (
-          <button
-            key={index}
-            type="button"
-            className="play-log__card"
-            aria-label={t("feed.openCard", { card: segment.text })}
-            onClick={() => onOpenCard(segment.cardId!)}
-          >
-            {segment.text}
-          </button>
-        ) : (
-          <span key={index}>{segment.text}</span>
-        ),
-      )}
+      <CardLinkedText text={line.text} cardIds={line.cardIds} onOpenCard={onOpenCard} />
     </p>
   );
 }

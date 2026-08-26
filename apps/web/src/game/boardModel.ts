@@ -34,6 +34,9 @@ export interface LogLine {
    * The cards this line names, so the play log can turn their names into links
    * (`PlayLog.cs`). The names are already inside `text`; this says which card each
    * one is, rather than making the reader guess from the printed name.
+   *
+   * Listed in the order the sentence names them: two cards can share a printed name,
+   * and order is the only thing that then tells the reader's link apart from the other.
    */
   cardIds?: readonly string[];
 }
@@ -125,6 +128,22 @@ export function handCardEvolutionRoute(
   if (normal && materialPermanentIds) return { kind: "both", materialPermanentIds };
   if (normal) return { kind: "normal" };
   return materialPermanentIds ? { kind: "dna", materialPermanentIds } : undefined;
+}
+
+/**
+ * The battle-area permanents a digivolution of `cardId` would build on: the bases the
+ * server offered for this hand card (`CardInstance.digivolveTargetPermanentIds`, passed in
+ * as `serverBasePermanentIds`) plus the materials a DNA declaration would consume. Dropping
+ * the card anywhere else on the field plays it instead — an offer the battle area itself
+ * carries — so no other permanent, Tamer or Digimon, is a digivolution target.
+ */
+export function digivolveBasePermanentIds(
+  cardId: string,
+  battleArea: readonly Permanent[],
+  serverBasePermanentIds: readonly string[],
+): string[] {
+  const bases = new Set([...serverBasePermanentIds, ...(findDnaMaterialCombination(cardId, battleArea) ?? [])]);
+  return battleArea.filter((permanent) => bases.has(permanent.permanentId)).map((permanent) => permanent.permanentId);
 }
 
 export function parseActivatable(json: string): ActivatableEntry[] {
@@ -883,7 +902,41 @@ export function decisionEffectSource(request: DecisionRequest, events: ServerEve
 }
 
 /**
+ * Record the card identities an event itself publishes.
+ *
+ * The log narrates history, so it cannot resolve a name through the CURRENT board:
+ * `buildInstanceIndex` forgets a permanent the moment it is deleted or bounced, which
+ * silently rewrote every past line about it. The event stream never forgets, so the
+ * identities it carries are accumulated as the log walks forward through it.
+ */
+function rememberEventIdentities(identities: Map<string, string>, event: ServerEvent): void {
+  switch (event.kind) {
+    case "cardPlayed":
+      if (event.permanentId !== undefined) identities.set(event.permanentId, event.cardId);
+      return;
+    case "digivolved":
+    case "hatched":
+    case "movedFromBreeding":
+      identities.set(event.permanentId, event.cardId);
+      return;
+    case "attackDeclared":
+      identities.set(event.attackerPermanentId, event.attackerCardId);
+      if (event.target.kind === "permanent" && event.targetCardId !== undefined) {
+        identities.set(event.target.permanentId, event.targetCardId);
+      }
+      return;
+    default:
+      return;
+  }
+}
+
+/**
  * The most recent `limit` events as match-log lines, newest first.
+ *
+ * Walks the stream forwards, not backwards, so each line is described against the card
+ * identities known AT that point in the match (see `rememberEventIdentities`) rather than
+ * against a board that has moved on. `instanceIndex` seeds those identities, which is what
+ * still names a permanent whose arrival predates the rolling event window.
  *
  * A paid play emits separate `playCard` and `payCost` memory events carrying the same
  * before/after values, which would render as duplicate player-facing lines; consecutive identical
@@ -898,24 +951,31 @@ export function buildMatchLog(
   t: Translate,
   limit = 30,
 ): LogLine[] {
-  const log: LogLine[] = [];
-  for (let i = events.length - 1; i >= 0 && log.length < limit; i -= 1) {
-    const event = events[i]!;
-    const line = describeEvent(event, viewerSeat, instanceIndex, t);
+  const identities = new Map(instanceIndex);
+  const chronological: LogLine[] = [];
+  for (const event of events) {
+    rememberEventIdentities(identities, event);
+    const line = describeEvent(event, viewerSeat, identities, t);
     if (!line) continue;
-    const previous = log.at(-1);
+    const previous = chronological.at(-1);
     const duplicateMemoryLine =
       event.kind === "memoryChanged" && previous?.text === line.text && previous.kind === line.kind;
-    if (!duplicateMemoryLine) log.push(line);
+    if (!duplicateMemoryLine) chronological.push(line);
   }
-  return log;
+  return chronological.reverse().slice(0, limit);
 }
 
-/** Turn the server's event into a one-line match-log entry, or null to skip it. */
+/**
+ * Turn the server's event into a one-line match-log entry, or null to skip it.
+ *
+ * `identities` maps permanent and card-instance ids to card ids. Pass the accumulating
+ * map `buildMatchLog` maintains; a live board index alone loses every card that has left
+ * the field, which is exactly what a history line must keep naming.
+ */
 export function describeEvent(
   event: ServerEvent,
   viewerSeat: Seat,
-  instanceIndex: Map<string, string>,
+  identities: ReadonlyMap<string, string>,
   t: Translate,
 ): LogLine | null {
   const mine = (seat: Seat): LogKind => (seat === viewerSeat ? "you" : "opp");
@@ -971,25 +1031,68 @@ export function describeEvent(
       // this line focused on the observable memory change.
       return { text: t("log.memoryChanged", { from: event.from, to: event.to }), kind: "sys" };
     case "attackDeclared": {
-      const who = instanceIndex.get(event.attackerPermanentId);
-      const target = t(event.target.kind === "player" ? "log.targetSecurity" : "log.targetDigimon");
+      // The event carries the attacker's identity, so the line keeps its name (and its
+      // link) after the attacker has been deleted. Naming the target too gives the
+      // `targetCardId` the line already carried something to link to.
+      const targetCardId = event.target.kind === "player" ? undefined : event.targetCardId;
+      const target =
+        event.target.kind === "player"
+          ? t("log.targetSecurity")
+          : targetCardId === undefined
+            ? t("log.targetDigimon")
+            : cardName(targetCardId);
       return {
-        text: who ? t("log.attackOnBy", { target, card: cardName(who) }) : t("log.attackOn", { target }),
+        text: t("log.attackOnBy", { target, card: cardName(event.attackerCardId) }),
         kind: "sys",
-        cardIds: [who, event.targetCardId].filter((id): id is string => id !== undefined),
+        // Ordered as the sentence names them: the target, then the attacker.
+        cardIds: [targetCardId, event.attackerCardId].filter((id): id is string => id !== undefined),
       };
     }
     case "blockWindowOpened":
       return { text: t("log.blockWindow"), kind: "sys" };
     case "blocked":
       return { text: t("log.blocked"), kind: "sys" };
-    case "combatResolved":
+    case "blockDeclined":
+      // The open block window is logged, so its outcome has to be too; otherwise the
+      // history ends on a question the reader can't answer.
+      return { text: t("log.blockDeclined"), kind: "sys" };
+    case "counterResolved":
+      // A passed window is a non-event: only an activated [Counter] changed anything.
+      return event.activated ? { text: t("log.counterActivated"), kind: "sys" } : null;
+    case "evadeResolved": {
+      if (!event.accepted) return null; // declining leaves the deletion to be logged on its own
+      const cardId = identities.get(event.permanentId);
       return {
-        text: event.deletedPermanentIds.length
-          ? t("log.combatResolvedDeleted", { count: event.deletedPermanentIds.length })
-          : t("log.combatResolved"),
+        text: t("log.evadeUsed", { card: cardId === undefined ? t("log.targetDigimon") : cardName(cardId) }),
+        kind: "sys",
+        ...(cardId === undefined ? {} : { cardIds: [cardId] }),
+      };
+    }
+    case "barrierResolved": {
+      if (!event.accepted) return null;
+      const cardId = identities.get(event.permanentId);
+      return {
+        text: t("log.barrierUsed", { card: cardId === undefined ? t("log.targetDigimon") : cardName(cardId) }),
+        kind: "sys",
+        ...(cardId === undefined ? {} : { cardIds: [cardId] }),
+      };
+    }
+    case "combatResolved": {
+      const deleted = event.deletedPermanentIds.map((id) => identities.get(id));
+      const named = deleted.filter((id): id is string => id !== undefined);
+      // All or nothing: a partial list would read as the complete one.
+      if (named.length > 0 && named.length === deleted.length) {
+        return {
+          text: t("log.combatResolvedDeletedNamed", { cards: named.map(cardName).join(", ") }),
+          kind: "sys",
+          cardIds: named,
+        };
+      }
+      return {
+        text: deleted.length ? t("log.combatResolvedDeleted", { count: deleted.length }) : t("log.combatResolved"),
         kind: "sys",
       };
+    }
     case "securityChecked":
       return {
         text: t(event.seat === viewerSeat ? "log.securityCheckYou" : "log.securityCheckOpp", {
@@ -1023,22 +1126,49 @@ export function describeEvent(
       };
     }
     case "effectActivated":
+      // Only the source card is linked. The description is generated text: the card names
+      // inside it cannot be tied back to a card id without guessing which printing is meant,
+      // and a wrong link is worse than none.
       return {
         text: t("log.effectActivated", { card: cardName(event.sourceCardId), description: event.description }),
         kind: "sys",
         cardIds: [event.sourceCardId],
       };
     case "effectResolved":
-      return null; // shown as a transient left-side clause overlay, not a log line
-    case "cardsMoved":
+      // The transient clause overlay disappears, so the log is the only permanent record a
+      // triggered effect gets. It records THAT the effect resolved and leaves the wording to
+      // the overlay: repeating the description here would print the same sentence twice on
+      // screen at the same moment, and the log cannot narrow a raw engine description down
+      // to the printed clause the way the overlay does.
+      return {
+        text: t("log.effectResolved", { card: cardName(event.sourceCardId) }),
+        kind: "sys",
+        cardIds: [event.sourceCardId],
+      };
+    case "cardsMoved": {
+      const from = logZoneLabel(event.from, t);
+      const to = logZoneLabel(event.to, t);
+      // A single move is the case worth naming; several cards would push the names past
+      // what one log line can carry. `cardsMoved` publishes no identity of its own, so this
+      // name comes from wherever the card is now — the line falls back to the count once
+      // nothing on the board can identify that instance any more.
+      const movedCardId = event.instanceIds.length === 1 ? identities.get(event.instanceIds[0]!) : undefined;
+      if (movedCardId !== undefined) {
+        return {
+          text: t("log.cardMovedNamed", { card: cardName(movedCardId), from, to }),
+          kind: "sys",
+          cardIds: [movedCardId],
+        };
+      }
       return {
         text: t(event.instanceIds.length === 1 ? "log.cardMoved" : "log.cardsMoved", {
           count: event.instanceIds.length,
-          from: logZoneLabel(event.from, t),
-          to: logZoneLabel(event.to, t),
+          from,
+          to,
         }),
         kind: "sys",
       };
+    }
     case "gameOver": {
       if (event.result.outcome === "draw") {
         return { text: t("log.gameOverDraw", { reason: event.reason }), kind: "sys" };

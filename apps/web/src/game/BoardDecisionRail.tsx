@@ -5,10 +5,10 @@
    only draws them. */
 
 import { useEffect, type ReactNode } from "react";
-import { getCardDefinition } from "@aegis/shared";
 import { Button } from "../design/primitives";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
+import { CardLink, cardDisplayName } from "./cardLinks";
 
 function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
   useEffect(() => {
@@ -33,7 +33,7 @@ function BoardPromptRail({
   children,
 }: {
   label: string;
-  eyebrow?: string;
+  eyebrow?: ReactNode;
   prompt: string;
   clause?: string;
   detail?: string;
@@ -129,11 +129,14 @@ export function BoardOptionalPrompt({
   onOpenDialog?: () => void;
 }) {
   const { t } = useTranslation();
-  const sourceName = sourceCardId ? (getCardDefinition(sourceCardId)?.nameEn ?? sourceCardId) : undefined;
+  const sourceName = sourceCardId ? cardDisplayName(sourceCardId, t) : undefined;
   return (
     <BoardPromptRail
       label={sourceName ? t("overlay.cardEffect", { name: sourceName }) : t("overlay.useEffectPrompt")}
-      eyebrow={sourceName}
+      // The prompt and the clause below are the card's own printed text, which names
+      // other cards only as prose this client cannot resolve to ids. The source is the
+      // one card the rail holds an id for, so it is the one name that links.
+      eyebrow={sourceCardId ? <CardLink cardId={sourceCardId} /> : undefined}
       prompt={prompt ?? (clause ? t("overlay.willYouUse", { effect: clause }) : t("overlay.useEffectPrompt"))}
       clause={prompt && clause ? clause : undefined}
       onOpenDialog={onOpenDialog}

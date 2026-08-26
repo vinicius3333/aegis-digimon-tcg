@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { BoardOptionalPrompt, BoardSelectionRail, OpponentSelectingPill } from "./BoardDecisionRail";
+import { CardOpenerProvider } from "./cardLinks";
 import { Hand } from "./boardPieces";
 
 afterEach(() => cleanup());
@@ -115,6 +116,17 @@ describe("BoardOptionalPrompt", () => {
   it("names itself after the source card so the rail is addressable", () => {
     renderIn(<BoardOptionalPrompt sourceCardId="ST1-07" clause="Draw 1 card." onUse={noop} onDecline={noop} />);
     expect(screen.getByRole("region", { name: /· effect/i })).toBeTruthy();
+  });
+
+  it("opens the source card from the rail's own eyebrow", () => {
+    const opened: string[] = [];
+    renderIn(
+      <CardOpenerProvider onOpenCard={(cardId) => opened.push(cardId)}>
+        <BoardOptionalPrompt sourceCardId="ST1-07" clause="Draw 1 card." onUse={noop} onDecline={noop} />
+      </CardOpenerProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /^Open / }));
+    expect(opened).toEqual(["ST1-07"]);
   });
 });
 

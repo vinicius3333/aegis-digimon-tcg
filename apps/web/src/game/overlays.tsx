@@ -24,6 +24,7 @@ import { gameOverSplash, type GameOverOutcome } from "./gameOverSplash";
 import { pendingFateBadge, type PendingFateBadge } from "./pendingFate";
 import { inspectorPlacement, type PermanentDetail } from "./permanentDetail";
 import { useTranslation, type Translate } from "../i18n";
+import { CardLink, CardLinkedText } from "./cardLinks";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
 import { useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
 
@@ -225,7 +226,14 @@ export function BlockOverlay({
             {t("overlay.blockWindow")}
           </div>
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
-            {attackerCardId ? t("overlay.isAttacking", { name: name(attackerCardId) }) : t("overlay.attackIncoming")}
+            {attackerCardId ? (
+              <CardLinkedText
+                text={t("overlay.isAttacking", { name: name(attackerCardId) })}
+                cardIds={[attackerCardId]}
+              />
+            ) : (
+              t("overlay.attackIncoming")
+            )}
           </div>
         </div>
       </div>
@@ -351,7 +359,7 @@ export function AllianceOverlay({
             </Badge>
           </div>
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", marginTop: 1 }}>
-            {triggerName} {kw.action}
+            {triggerCardId ? <CardLink cardId={triggerCardId} /> : triggerName} {kw.action}
           </div>
         </div>
       </div>
@@ -473,7 +481,14 @@ export function CounterOverlay({
             {t("overlay.counterTiming")}
           </div>
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
-            {attackerCardId ? t("overlay.isAttacking", { name: name(attackerCardId) }) : t("overlay.attackIncoming")}
+            {attackerCardId ? (
+              <CardLinkedText
+                text={t("overlay.isAttacking", { name: name(attackerCardId) })}
+                cardIds={[attackerCardId]}
+              />
+            ) : (
+              t("overlay.attackIncoming")
+            )}
           </div>
         </div>
       </div>
@@ -500,8 +515,10 @@ export function CounterOverlay({
                   textAlign: "left",
                 }}
               >
+                {/* Inside the button that activates the counter, so the name cannot also be a
+                    link — a button inside a button is invalid and unreachable by keyboard. */}
                 <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ds-fg)" }}>
-                  {cardId ? name(cardId) : c.instanceId}
+                  {cardId ? name(cardId) : t("overlay.card")}
                 </span>
                 <span style={{ fontSize: 11.5, color: "var(--ds-fg-muted)" }}>{c.description}</span>
               </button>
@@ -568,12 +585,20 @@ export function EvadeOverlay({
             ＜Evade＞
           </div>
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
-            {t("overlay.wouldBeDeleted", { name: cardId ? name(cardId) : t("overlay.yourDigimon") })}
+            {cardId ? (
+              <CardLinkedText text={t("overlay.wouldBeDeleted", { name: name(cardId) })} cardIds={[cardId]} />
+            ) : (
+              t("overlay.wouldBeDeleted", { name: t("overlay.yourDigimon") })
+            )}
           </div>
         </div>
       </div>
       <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 18, lineHeight: 1.5 }}>
-        {t("overlay.evadePrompt", { name: cardId ? name(cardId) : t("overlay.thisDigimon") })}
+        {cardId ? (
+          <CardLinkedText text={t("overlay.evadePrompt", { name: name(cardId) })} cardIds={[cardId]} />
+        ) : (
+          t("overlay.evadePrompt", { name: t("overlay.thisDigimon") })
+        )}
       </div>
       <div className="game-actions-row">
         <Button full icon={Icons.Shield} onClick={onAccept}>
@@ -637,12 +662,20 @@ export function BarrierOverlay({
             ＜Barrier＞
           </div>
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
-            {t("overlay.wouldBeDeleted", { name: cardId ? name(cardId) : t("overlay.yourDigimon") })}
+            {cardId ? (
+              <CardLinkedText text={t("overlay.wouldBeDeleted", { name: name(cardId) })} cardIds={[cardId]} />
+            ) : (
+              t("overlay.wouldBeDeleted", { name: t("overlay.yourDigimon") })
+            )}
           </div>
         </div>
       </div>
       <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 18, lineHeight: 1.5 }}>
-        {t("overlay.barrierPrompt", { name: cardId ? name(cardId) : t("overlay.thisDigimon") })}
+        {cardId ? (
+          <CardLinkedText text={t("overlay.barrierPrompt", { name: name(cardId) })} cardIds={[cardId]} />
+        ) : (
+          t("overlay.barrierPrompt", { name: t("overlay.thisDigimon") })
+        )}
       </div>
       <div className="game-actions-row">
         <Button full icon={Icons.Shield} onClick={onAccept}>
@@ -927,6 +960,65 @@ export function resolvedEffectClause(cardId: string, timing: string | undefined)
 // this recognizable fallback shape with the printed clause from the card catalog.
 const INTERNAL_IR_DESCRIPTION = /^\[[^\]]+\](?:\s+＜[^＞]+＞)?\s+[A-Z][A-Za-z0-9 -]*(?:,\s*[A-Z][A-Za-z0-9 -]*)*$/;
 
+/**
+ * Every phrase `describeAction` can render (the engine's
+ * interpreter/describe.ts), as the shape it reaches the client in. The engine
+ * builds a fallback description by joining these with ", " behind the effect's
+ * trigger label, so a description whose every segment is one of them is a
+ * generated summary rather than card text.
+ *
+ * The list is matched positively on purpose. Guessing at what prose looks like
+ * fails on real clauses — a printed clause need not end in a period, because it
+ * can close on a parenthetical — while the generated grammar is bounded and
+ * enumerable. An unrecognized segment is therefore taken as card text and shown.
+ */
+const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
+  /^Draw -?\d+$/,
+  /^Delete \d+ target\(s\)$/,
+  /^(?:Suspend|Unsuspend) \d+ target\(s\)$/,
+  /^Trash \d+ card\(s\)$/,
+  /^Trash (?:up to )?-?\d+ card\(s\) from the top of the deck$/,
+  /^Return \d+ to [A-Za-z]+$/,
+  /^Modify DP by -?\d+$/,
+  /^Set base DP to -?\d+$/,
+  /^Set memory to -?\d+$/,
+  /^(?:Gain|Lose) \d+ memory$/,
+  /^Play without paying the cost$/,
+  /^Place (?:up to )?\d+ card\(s\) under$/,
+  /^Reveal top \d+ and add$/,
+  /^Gain (?:＜[^＞]+＞|<[^>]+>|keyword)$/,
+  /^Hatch a Digi-Egg$/,
+  /^Search your deck$/,
+  /^(?:Digivolve|DNA digivolve|De-Digivolve)$/,
+  // The last resort in describeAction: an unmapped action kind, either raw
+  // ("SubTrigger", "Aura") or spaced out of camel case ("Place in battle area self").
+  /^[A-Z][A-Za-z0-9]*$/,
+  /^[A-Z][a-z0-9]*(?: [a-z0-9]+)+$/,
+];
+
+/**
+ * Whether a description is the engine's own summary of an effect rather than the
+ * card's text.
+ *
+ * The shape above only catches summaries whose actions are bare kinds joined into
+ * one string. Everything `describeAction` renders as a phrase escaped it —
+ * "Delete 1 target(s)" and "Place 1 card(s) under" carry parentheses, "Gain
+ * ＜Rush＞" carries a keyword bracket — and reached the board as-is.
+ */
+function isInternalEffectDescription(text: string): boolean {
+  if (INTERNAL_IR_DESCRIPTION.test(text)) return true;
+  const body = text
+    .replace(/^(?:\s*\[[^\]]*\])+/, "")
+    .replace(/^\s*＜[^＞]+＞/, "")
+    .trim();
+  // A trigger label with no actions behind it carries nothing to read.
+  if (body.length === 0) return true;
+  return body
+    .split(",")
+    .map((segment) => segment.trim())
+    .every((segment) => segment.length > 0 && GENERATED_ACTION_PHRASES.some((shape) => shape.test(segment)));
+}
+
 // An "activate this?" prompt built from an unmapped IR action kind arrives as a bare
 // identifier ("GainMemory", "gainMemory"): readable in a log, meaningless in a modal. Drop
 // it so the overlay falls back to its generic prompt and the printed clause carries the
@@ -957,7 +1049,7 @@ export function playerFacingEffectClause({
   description: string | undefined;
 }): string | undefined {
   const supplied = description?.trim();
-  if (supplied && !INTERNAL_IR_DESCRIPTION.test(supplied)) {
+  if (supplied && !isInternalEffectDescription(supplied)) {
     const definition = getCardDefinition(cardId);
     const isFullMainText = definition?.effectText?.trim() === supplied;
     return isFullMainText && timing !== undefined ? effectClauseForTiming(supplied, timing) : supplied;
@@ -1138,6 +1230,11 @@ export function DecisionOverlay({
         description: request.options?.effectText,
       })
     : request.options?.effectText;
+  /* The dialog is named by a plain string rather than by its visible title: that title
+     now carries the source card as a link, and an aria-labelledby would read the link's
+     own label ("Open …") in place of the card's name. */
+  const dialogLabel = sourceCardId ? t("overlay.cardEffect", { name: name(sourceCardId) }) : t("overlay.effect");
+
   const promptText =
     request.options?.promptKey === "activateBlitz"
       ? t("overlay.activateBlitzPrompt")
@@ -1179,7 +1276,7 @@ export function DecisionOverlay({
       tabIndex={-1}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="aegis-decision-title"
+      aria-label={dialogLabel}
       className={`game-modal__panel game-modal__panel--bare decision-overlay${wideDialog ? " decision-overlay--wide" : ""}`}
       onKeyDown={containDialogFocus}
       style={{
@@ -1219,7 +1316,6 @@ export function DecisionOverlay({
         </div>
         <div className="decision-overlay__heading">
           <div
-            id="aegis-decision-title"
             style={{
               fontSize: 11,
               fontWeight: 700,
@@ -1228,7 +1324,11 @@ export function DecisionOverlay({
               color: "var(--ds-accent)",
             }}
           >
-            {sourceCardId ? t("overlay.cardEffect", { name: name(sourceCardId) }) : t("overlay.effect")}
+            {sourceCardId ? (
+              <CardLinkedText text={t("overlay.cardEffect", { name: name(sourceCardId) })} cardIds={[sourceCardId]} />
+            ) : (
+              t("overlay.effect")
+            )}
           </div>
           <div
             style={{
@@ -1479,7 +1579,7 @@ export function DecisionOverlay({
                     </span>
                   </div>
                   <span style={{ flex: 1, fontWeight: 600 }}>
-                    {card?.cardId ? name(card.cardId) : t("overlay.card")}
+                    <CardLink cardId={card?.cardId} />
                   </span>
                   <Button
                     variant="ghost"

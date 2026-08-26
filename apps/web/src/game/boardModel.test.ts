@@ -15,6 +15,7 @@ import {
   decisionSourceCounts,
   decisionPermanentDetails,
   decisionVisibleCards,
+  digivolveBasePermanentIds,
   distinctCardIdsAllow,
   eventsAfter,
   describeEvent,
@@ -320,6 +321,38 @@ describe("findDnaMaterialCombination", () => {
       linked: [],
     } as unknown as Permanent;
     expect(findDnaMaterialCombination("ST10-06", [yellow])).toBeUndefined();
+  });
+});
+
+describe("digivolveBasePermanentIds", () => {
+  // Bug: dragging a hand Digimon marked every permanent on the field, Tamers included,
+  // because the board painted "this area accepts the drop" rather than "this is a base".
+  const digimon = permOf("ST10-05");
+  const tamer = permOf("BT7-085");
+
+  it("leaves a Tamer out of the bases the server offered", () => {
+    expect(digivolveBasePermanentIds("ST10-06", [digimon, tamer], [digimon.permanentId])).toEqual([
+      digimon.permanentId,
+    ]);
+  });
+
+  it("marks nothing when the card has no base on the field", () => {
+    expect(digivolveBasePermanentIds("BT17-012", [digimon, tamer], [])).toEqual([]);
+  });
+
+  it("adds the Digimon a DNA declaration would consume, and only those", () => {
+    const purple = permOf("ST10-12");
+
+    expect(digivolveBasePermanentIds("ST10-06", [digimon, purple, tamer], [])).toEqual([
+      digimon.permanentId,
+      purple.permanentId,
+    ]);
+  });
+
+  it("keeps a base outside the battle area, such as the raised Digimon, off the field", () => {
+    // The lone battle-area Digimon is no consolation prize: a DNA declaration needs
+    // two materials, so dropping the breeding base leaves nothing to mark.
+    expect(digivolveBasePermanentIds("ST10-06", [digimon], ["perm-breeding"])).toEqual([]);
   });
 });
 
@@ -763,5 +796,133 @@ describe("canMoveFromBreeding", () => {
 
   it("treats an empty breeding area as nothing to move", () => {
     expect(canMoveFromBreeding(undefined)).toBe(false);
+  });
+});
+
+describe("match log card identity", () => {
+  const attack = (attackerCardId: string): ServerEvent => ({
+    kind: "attackDeclared",
+    seat: 0,
+    attackerPermanentId: "attacker",
+    attackerCardId,
+    target: { kind: "player" },
+  });
+
+  it("keeps naming the attacker after the attacker has left the field", () => {
+    // An empty index is the board as it looks once the attacker is deleted: the line has
+    // to stay readable, so it reads the identity out of the event instead.
+    const log = buildMatchLog([attack("BT1-010")], 0, new Map(), t);
+
+    expect(log[0]?.text).toBe("Attack on security by Agumon");
+    expect(log[0]?.cardIds).toEqual(["BT1-010"]);
+  });
+
+  it("names the attacked Digimon instead of calling it a Digimon", () => {
+    const declared: ServerEvent = {
+      kind: "attackDeclared",
+      seat: 0,
+      attackerPermanentId: "attacker",
+      attackerCardId: "BT1-010",
+      target: { kind: "permanent", permanentId: "victim" },
+      targetCardId: "BT1-045",
+    };
+
+    const line = buildMatchLog([declared], 0, new Map(), t)[0];
+    expect(line?.text).toBe("Attack on Tsukaimon by Agumon");
+    // Ordered as the sentence names them, so each name links to its own card.
+    expect(line?.cardIds).toEqual(["BT1-045", "BT1-010"]);
+  });
+
+  it("names the Digimon combat deleted", () => {
+    const events: ServerEvent[] = [
+      attack("BT1-010"),
+      { kind: "combatResolved", seat: 0, attackerPermanentId: "attacker", deletedPermanentIds: ["attacker"] },
+    ];
+
+    const line = buildMatchLog(events, 0, new Map(), t)[0];
+    expect(line?.text).toBe("Combat resolved. Agumon deleted");
+    expect(line?.cardIds).toEqual(["BT1-010"]);
+  });
+
+  it("falls back to the count when a deleted permanent was never identified", () => {
+    const events: ServerEvent[] = [
+      { kind: "combatResolved", seat: 0, attackerPermanentId: "attacker", deletedPermanentIds: ["ghost"] },
+    ];
+
+    expect(buildMatchLog(events, 0, new Map(), t)[0]?.text).toBe("Combat resolved. 1 deleted");
+  });
+
+  it("names a single moved card when the board still identifies it", () => {
+    const events: ServerEvent[] = [{ kind: "cardsMoved", instanceIds: ["c1"], from: "hand", to: "trash" }];
+
+    const line = buildMatchLog(events, 0, new Map([["c1", "BT1-045"]]), t)[0];
+    expect(line?.text).toBe("Tsukaimon moved: hand → trash");
+    expect(line?.cardIds).toEqual(["BT1-045"]);
+  });
+
+  it("keeps counting when several cards move at once", () => {
+    const events: ServerEvent[] = [{ kind: "cardsMoved", instanceIds: ["c1", "c2"], from: "deck", to: "trash" }];
+
+    expect(buildMatchLog(events, 0, new Map([["c1", "BT1-045"]]), t)[0]?.text).toBe("2 cards moved: deck → trash");
+  });
+
+  it("lists a reveal's cards in the order the sentence names them", () => {
+    // Both printings are called Agumon, so only the order tells the link apart.
+    const revealed: ServerEvent = { kind: "cardRevealed", seat: 0, cardId: "ST1-03", sourceCardId: "BT1-010" };
+
+    const line = describeEvent(revealed, 0, new Map(), t);
+    expect(line?.text).toBe("You revealed Agumon with Agumon");
+    expect(line?.cardIds).toEqual(["ST1-03", "BT1-010"]);
+  });
+});
+
+describe("match log combat responses", () => {
+  it("records that the defender fired a Counter effect", () => {
+    const activated: ServerEvent = { kind: "counterResolved", attackerPermanentId: "attacker", activated: true };
+    const passed: ServerEvent = { kind: "counterResolved", attackerPermanentId: "attacker", activated: false };
+
+    expect(describeEvent(activated, 0, new Map(), t)?.text).toBe("The defender activated a [Counter] effect");
+    expect(describeEvent(passed, 0, new Map(), t)).toBeNull();
+  });
+
+  it("records an accepted Evade and Barrier, naming the Digimon they saved", () => {
+    const played: ServerEvent = { kind: "cardPlayed", seat: 1, cardId: "BT1-010", permanentId: "saved" };
+    const evade: ServerEvent = { kind: "evadeResolved", permanentId: "saved", accepted: true };
+    const barrier: ServerEvent = { kind: "barrierResolved", permanentId: "saved", accepted: true };
+
+    const log = buildMatchLog([played, evade, barrier], 0, new Map(), t);
+    expect(log.map((line) => line.text)).toEqual([
+      "＜Barrier＞ trashed a security card to save Agumon",
+      "＜Evade＞ suspended Agumon to avoid deletion",
+      "Opponent played Agumon",
+    ]);
+    expect(log[0]?.cardIds).toEqual(["BT1-010"]);
+  });
+
+  it("stays quiet about a declined Evade or Barrier", () => {
+    expect(describeEvent({ kind: "evadeResolved", permanentId: "p", accepted: false }, 0, new Map(), t)).toBeNull();
+    expect(describeEvent({ kind: "barrierResolved", permanentId: "p", accepted: false }, 0, new Map(), t)).toBeNull();
+  });
+
+  it("closes the block window it opened", () => {
+    expect(describeEvent({ kind: "blockDeclined", attackerPermanentId: "a" }, 0, new Map(), t)?.text).toBe(
+      "No block was declared",
+    );
+  });
+
+  it("keeps a permanent record of a triggered effect resolving", () => {
+    const resolved: ServerEvent = {
+      kind: "effectResolved",
+      seat: 0,
+      sourceCardId: "BT1-045",
+      effectKey: "onPlay",
+      description: "Draw 1 card.",
+      timing: "OnPlay",
+    };
+
+    // The wording stays with the overlay: the log records that it resolved, not the clause.
+    const line = describeEvent(resolved, 0, new Map(), t);
+    expect(line?.text).toBe("Tsukaimon's effect resolved");
+    expect(line?.cardIds).toEqual(["BT1-045"]);
   });
 });

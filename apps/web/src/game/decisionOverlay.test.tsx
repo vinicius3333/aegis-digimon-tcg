@@ -6,6 +6,7 @@ import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider, translator } from "../i18n";
 import { AllianceOverlay, BlockOverlay, DecisionOverlay, EvoCostChoiceOverlay, WaitingOverlay } from "./overlays";
+import { CardOpenerProvider } from "./cardLinks";
 
 afterEach(() => cleanup());
 
@@ -2989,5 +2990,79 @@ describe("decision board preview", () => {
 
     expect(screen.getByRole("dialog")).toBeTruthy();
     expect(screen.getByText("Second decision")).toBeTruthy();
+  });
+});
+
+describe("card links in prompts", () => {
+  it("opens the attacker a block window names", () => {
+    const opened: string[] = [];
+    render(
+      <I18nProvider>
+        <CardOpenerProvider onOpenCard={(cardId) => opened.push(cardId)}>
+          <BlockOverlay
+            attackerCardId="BT1-009"
+            blockers={[{ permanentId: "empty", cardId: "EX1-073", currentDP: 11000, sourceCount: 0 }]}
+            onBlock={vi.fn<(permanentId: string) => void>()}
+            onDecline={vi.fn<() => void>()}
+          />
+        </CardOpenerProvider>
+      </I18nProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /^Open / }));
+    expect(opened).toEqual(["BT1-009"]);
+  });
+
+  it("opens the source card a decision names, and still names the dialog after it", () => {
+    const opened: string[] = [];
+    render(
+      <I18nProvider>
+        <CardOpenerProvider onOpenCard={(cardId) => opened.push(cardId)}>
+          <DecisionOverlay
+            request={{
+              decisionId: "link-1",
+              seat: 0,
+              kind: "optional",
+              promptText: "Activate the effect?",
+            }}
+            sourceCardId="BT1-010"
+            candidates={[]}
+            picks={[]}
+            onTogglePick={vi.fn<(instanceId: string) => void>()}
+            onRespond={vi.fn<(response: DecisionResponse) => void>()}
+          />
+        </CardOpenerProvider>
+      </I18nProvider>,
+    );
+
+    expect(screen.getByRole("dialog", { name: "Agumon · effect" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Open Agumon" }));
+    expect(opened).toEqual(["BT1-010"]);
+  });
+
+  it("leaves a name that only exists in server prose unlinked", () => {
+    // The client holds no id for a card the engine merely wrote about, and a link
+    // to the wrong card is worse than none.
+    render(
+      <I18nProvider>
+        <CardOpenerProvider onOpenCard={vi.fn<(cardId: string) => void>()}>
+          <DecisionOverlay
+            request={{
+              decisionId: "link-2",
+              seat: 0,
+              kind: "optional",
+              promptText: "Trash Greymon to draw 1 card?",
+            }}
+            candidates={[]}
+            picks={[]}
+            onTogglePick={vi.fn<(instanceId: string) => void>()}
+            onRespond={vi.fn<(response: DecisionResponse) => void>()}
+          />
+        </CardOpenerProvider>
+      </I18nProvider>,
+    );
+
+    expect(screen.getByText("Trash Greymon to draw 1 card?")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^Open / })).toBeNull();
   });
 });
