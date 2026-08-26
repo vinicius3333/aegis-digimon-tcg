@@ -380,6 +380,62 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: BT11-041's focused suite verifies catalog/IR registration, hand payment, alternate Sukamon evolution for exactly 3 followed by payment with the new evolution source, -3000 and Security Attack -1, friendly and opposing Q2075 costs, and the Q2076 nested re-entry boundary. BT11-040 provides the comparative shared prevention and Sukamon-cost peer.
 - Verification: `pnpm --filter @aegis/api exec vitest run src/cards/BT11/BT11-041.test.ts src/cards/BT11/BT11-040.test.ts` — 15 passed; workspace typecheck — passed; `git diff --check` — passed. The broader `capabilities.test.ts` rerun has five unrelated pre-existing failures in CAP-E14 Delay fixture registration and CAP-G3 breeding movement (300/305 pass); neither failure executes the changed trash-cost path.
 
+## BT11-051 — Ogremon — 10/10 static audit
+
+- Catalog evidence: Green level 4 Digimon, play cost 5, 7000 DP; evolves from green level 3 for 2; Champion, Virus, Demon; no effect, inherited, Security, or alternate-evolution text.
+- Knowledge base: `node tools/kb/query.mjs card BT11-051` returned no entries; no local rulings, errata, restrictions, or unresolved ambiguity.
+- Implementation evidence: `BT11-051.ts` is a vanilla compiled IR module with `effects: []`, `coverage: "full"`, and `residual: []`, registered exclusively with `registerIrCard("BT11-051", compiled)`. The colocated test checks the catalog identity/stats, exact empty IR, and registry presence.
+- Causal gap: none found in static tracing; no behavioral suite was run per static-audit scope.
+
+## BT11-050 — Ninjamon — 10/10 static audit
+
+- Catalog evidence: Green level 4 Digimon, play cost 5, 5000 DP; green level 3 for 2; Champion, Data, Mutant; inherited `[Your Turn][Once Per Turn] When you play a Tamer, suspend 1 of your opponent's Digimon.`
+- Knowledge base: query returned no entries.
+- Implementation evidence: inherited `YourTurn` `SubTrigger` watches controller-owned Tamer plays, is once-per-turn, and suspends one opposing Digimon; full coverage, empty residual, exclusive IR registration. Colocated test verifies catalog and compiled effect shape.
+- Causal gap: no static gap found; no behavioral suite run.
+
+## BT11-049 — Vegiemon — 10/10 static audit
+
+- Catalog evidence: Green level 4 Digimon, play cost 4, 3000 DP; green level 3 for 2; Champion, Virus, Carnivorous Plant; `[Start of Your Turn] Gain 1 memory.`
+- Knowledge base: query returned no entries.
+- Implementation evidence: direct IR has one `StartOfYourTurn` `GainMemory` action for 1, full coverage and empty residual, exclusively registered via `registerIrCard`; colocated test is present.
+- Causal gap: none found statically; no behavioral suite run.
+
+## BT11-048 — ModokiBetamon — 10/10 static audit
+
+- Catalog evidence: Green level 3 Digimon, play cost 3, 4000 DP; green level 2 for 0; Rookie, Data, Amphibian; no effect text.
+- Knowledge base: query returned no entries.
+- Implementation evidence: vanilla empty compiled IR with full coverage, empty residual, and exclusive `registerIrCard` registration; colocated test is present.
+- Causal gap: none found statically; no behavioral suite run.
+
+## BT11-047 — Palmon — 10/10 static audit
+
+- Catalog evidence: Green level 3 Digimon, play cost 3, 2000 DP; green level 2 for 0; Rookie, Data, Vegetation; `[Start of Your Turn] Draw 1.`
+- Knowledge base: query returned no entries.
+- Implementation evidence: one `StartOfYourTurn` draw action targeting the controller, full coverage, empty residual, exclusive IR registration; colocated test is present.
+- Causal gap: none found statically; no behavioral suite run.
+
+## BT11-046 — Agumon — 10/10 static audit
+
+- Catalog evidence: Green level 3 Digimon, play cost 3, 1000 DP; green level 2 for 0; Rookie, Vaccine, Reptile. On Play reveals 4, adds one Tamer, and bottoms the rest. Inherited `[Your Turn] While you have a Tamer in play, this Digimon gets +2000 DP.`
+- Knowledge base: query returned no entries.
+- Implementation evidence: `RevealAdd` reveals four, selects one controller-owned Tamer, and bottoms remainder; inherited YourTurn Aura grants self +2000 while a controller-owned battle-area Tamer exists. Full coverage, empty residual, exclusive IR registration; colocated test is present.
+- Causal gap: none found in static clause mapping; no behavioral suite run.
+
+## BT11-045 — ClavisAngemon — 10/10 static audit
+
+- Catalog evidence: Yellow level 6 Digimon, play cost 12, 12000 DP; yellow level 5 for 4; Mega, Vaccine, Virtue. When Digivolving, if security is 5 or fewer, Recovery +1. Opponent's Turn: whenever a security card is removed, one opposing Digimon gets -4000 DP for the turn.
+- Knowledge base: Q2086 confirms the opponent-turn effect may activate separately for each security card checked, including Security Attack +1; no other local ambiguity.
+- Implementation evidence: direct IR has a `WhenDigivolving` conditional `SecurityManipulation addTop` from deck and an opponent-turn `whenSecurityRemoved` subtrigger applying -4000 for-the-turn to one opposing Digimon. Full coverage, empty residual, exclusive registration; colocated test is present.
+- Causal gap: none found statically; no behavioral suite run.
+
+## BT11-044 — MetalEtemon — 10/10 static audit
+
+- Catalog evidence: Yellow/Black level 6 Digimon, play cost 11, 11000 DP; yellow or black level 5 for 3; Mega, Virus, Cyborg. On Play/When Digivolving reveals 4 and may play any number of Chuumon-, Sukamon-, or Etemon-named Digimon totaling 7 or less without paying; trashes the rest.
+- Knowledge base: Q2085 confirms selecting any number with total play cost at or below 7 is allowed, including intentionally below the cap.
+- Implementation evidence: shared reveal action is used for both triggers, filters controller-owned Digimon by the three printed names, uses `costBudget: 7`, plays optionally, and trashes remainder. Full coverage, empty residual, exclusive IR registration; colocated test is present.
+- Causal gap: none found statically; no behavioral suite run.
+
 ## BT11-043 — KingSukamon — source correction pending focused verification
 
 - Catalog and KB evidence: the printed When Attacking clause grants Security Attack +1 for **each other Digimon with Sukamon in its name in play**, with no controller qualifier. Q2080-Q2084 confirm the separate original-information rewrite; Q2078-Q2079 match the shared any-controller prevention and non-reentry behavior.
