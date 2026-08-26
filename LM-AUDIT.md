@@ -202,8 +202,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   dependencies, while `tsc --noCheck` refreshed the local ignored artifact afterward. A fresh
   authorized focus was then run once and again reported 5/6 for the same reason: this worktree's
   `node_modules` symlinks still resolved `@aegis/shared` to the main checkout. Offline frozen
-  installation has now relinked that dependency to this worktree; no third run was performed.
-  LM-018 remains below 10/10 pending a fresh authorized focus and later gates.
+  installation has now relinked that dependency to this worktree. The next authorized focus passed
+  1/1 file and 6/6 tests in 3.01s on 2026-08-26 using
+  `vitest run src/cards/LM/LM-018.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-018 remains below 10/10 pending mechanism and collection gates.
 
 ## LM-019 — Bokomon — pending focused execution
 
