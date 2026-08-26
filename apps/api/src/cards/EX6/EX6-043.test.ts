@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-043.js";
 
 describe("EX6-043 Diaboromon", () => {
-  it("plays a Diaboromon token from Main, start of main, and when digivolving", () => {
-    for (const trigger of ["Main", "StartOfYourMainPhase", "WhenDigivolving"] as const)
+  it("plays a Diaboromon token at start of main and when digivolving", () => {
+    expect(compiled.effects?.some((entry) => entry.trigger === "Main")).toBe(false);
+    for (const trigger of ["StartOfYourMainPhase", "WhenDigivolving"] as const)
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
         kind: "PlayToken",
         tokens: ["Diaboromon"],
@@ -17,7 +18,7 @@ describe("EX6-043 Diaboromon", () => {
     expect(allTurns?.[0]?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
-      actions: [{ kind: "ActivateEffect", effectType: "WhenDigivolving" }],
+      actions: [{ kind: "ActivateEffect", effectType: "WhenDigivolving", inherited: false }],
     });
     expect(allTurns?.[1]?.actions[0]).toMatchObject({
       kind: "GainKeyword",
