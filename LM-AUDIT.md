@@ -64,3 +64,13 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Existing behavioral cases cover cost reduction, Delay ordering, size cap, no-opponent gate,
   empty-trash Q4036 activation, and Security follow-up. They remain unrun under PID 43774, so
   this card is below 10/10.
+
+## LM-028 — Blue Scramble — pending focused execution
+
+- The direct IR is the blue-scoped analogue of the Scramble contract: ordinary legal blue
+  hand evolution with cost reduced by three, battle-area placement, opponent-Digimon-gated
+  Delay, mandatory blue-trash return before optional 2000-DP-or-lower revival, and Security
+  play followed by self hand return. Q4038-Q4042 align with these paths.
+- Existing behavioral tests cover cost reduction and post-use placement, Delay ordering and
+  opponent absence, Security positive and above-2000 negative boundaries. They remain unrun
+  under PID 43774, so this card is below 10/10.
