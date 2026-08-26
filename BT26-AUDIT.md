@@ -1334,3 +1334,49 @@ git diff --check
 ```
 
 No unresolved ambiguity or unsupported BT26-029 clause remains. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-029; no later card section was touched.
+
+## BT26-030 — Pumpkinmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-030` (`Pumpkinmon`), a yellow/purple level 5 Ultimate Digimon with play cost 6, 6000 DP, Data attribute, and `Puppet`/`Iliad`/`TS` traits. Its normal evolution requirements are yellow Lv.4 for cost 4 and purple Lv.4 for cost 4; its alternate requirement is `[Digivolve] Lv.4 w/[TS] trait: Cost 3`. The printed text is `[Security] You may play 1 [Angel] or [TS] trait card with a play cost of 4 or less from your hand or trash without paying the cost.` and `[On Play] [When Digivolving] By trashing 1 card in your hand, 1 of your [Iliad] trait Digimon gains ＜Execute＞ and ＜Ascension＞ for the turn.` There is no inherited text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-030 --json`; it returns Q6996 (2026-08-18), confirming that when this card is checked from security its `[Security]` effect activates before it battles the attacking Digimon. There is no erratum or banlist restriction.
+- Comprehensive/manual rules evidence: §§2-3-5 and 8-1-3 cover alternate digivolution requirements, payment, stacking, and the evolution draw; §§3-5-3/3-6-3/3-7-2 cover hand privacy, public face-up trash, and private ordered security; §§13-1-7/13-1-8 and 15-16-10-1/2 cover Security Digimon battle and `[Security]` precedence; §§15-7-1–5 define optional `By` processing and its payment gate; §§15-16-2-1 and 15-16-3-1 define On Play and When Digivolving windows; §§16-38-1–4 and 16-43-1–3 define the granted Execute and Ascension behavior and their optional processing.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-030.ts` is compiled IR and registers exactly once through `registerIrCard("BT26-030", compiled)`; no `registerCard` call exists. The alternate requirement is exact (`level: 4`, `traits: ["TS"]`, `cost: 3`, `isAlternate: true`), while the two normal color requirements remain handled by the shared evolution path.
+- The Security effect is an optional `PlayWithoutCost` from `hand` or `trash`, with `payCost: false`, exact `playCostLte: 4`, OR trait matching for `Angel`/`TS`, and `kind: ["Digimon", "Tamer"]`. This is the executable meaning of playing a trait card: Options are used rather than played, while dual Digimon/Option cards remain eligible through their Digimon side. The source/controller is the security card's owner (`mine`), and the Q6996 sequence is preserved by the Security timing and play lifecycle.
+- The On Play and When Digivolving actions share the same `CostGatedBlock`: optional hand trash of exactly one own card, abort-on-decline, then binding exactly one own Digimon with the `Iliad` trait and granting both Execute and Ascension for the turn. `GainKeyword` publishes the keywords and `GrantStatic` supplies the named Execute behavior when the selected target is the source itself; the shared custom-effect ledger deduplicates the same token/instance. No once-per-turn, inherited, security-text, controller, target, or zone clause is approximated.
+- Shared seams inspected: alternate/normal evolution legality and stack transition; Security timing/precedence and post-effect battle; `candidateLooseInstances`/`PlayWithoutCost` zone and kind filtering; `CostGatedBlock` payment, optional refusal, and abort behavior; OR trait matching; keyword publication and synthesized Execute/Ascension; duration sweep; source identity and owner/controller resolution. Relevant peers inspected: BT26-012/021/022/023/033/048/053/075/094/097/100/101/102 and BT24-019/035, plus `interpreter`, `primitives`, `subtriggers`, security, and advanced-keyword conformance suites.
+
+### Behavioral proof
+
+The existing focused `apps/api/src/cards/BT26/BT26-030.test.ts` suite has 8 passing tests proving:
+
+- exact TS Lv.4 alternate evolution cost 3, legal stack transition, memory payment, and When Digivolving grant;
+- Security play from hand/trash without cost, exact cost-4 ceiling, Angel/TS trait filtering, and retention of over-cost/unrelated cards;
+- Q6996 ordering: the Security effect resolves before the checked Pumpkinmon battles the attacker;
+- On Play hand-trash payment, selection of an Iliad Digimon, both granted keywords, and the full Execute attack/self-delete plus Ascension security transition;
+- optional refusal and unavailable-cost negative paths without keyword grants or hand movement.
+
+The focused assertions exercise a real evolution stack and a mixed eligible/ineligible Security pool. Shared mechanism coverage proves the exact hand/trash visibility and ownership boundaries, `By` optionality/cost sequencing, duration cleanup, Security battle sequencing, and Execute/Ascension behavior.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-030 --json
+  PASS (Q6996; no errata/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-030.test.ts
+  PASS (1 file, 8 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-030.test.ts src/cards/BT26/BT26-023.test.ts src/cards/BT26/BT26-033.test.ts src/cards/BT26/BT26-075.test.ts src/cards/BT26/BT26-097.test.ts src/cards/BT26/BT26-101.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts src/engine/security/securityCheck.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts
+  PASS (11 files, 432 tests)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-030.ts apps/api/src/cards/BT26/BT26-030.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-030 ambiguity or unsupported clause remains. No implementation, shared-engine, or test changes were needed. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-030 and does not mark the collection complete.
