@@ -13513,6 +13513,8 @@
           {
             "kind": "GrantAuraToOpponents",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
+            "event": "whenSuspended",
+            "actions": [{ "kind": "GainMemory", "amount": -1 }],
             "effectText": "[All Turns] When this Digimon becomes suspended, lose 1 memory.",
             "duration": "untilOpponentTurnEnd"
           }
