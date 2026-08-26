@@ -107,7 +107,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-039 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing own-turn optional level-4-or-lower Chessmon deletion play, inherited static Reboot, and the alternative yellow/black level-3 Chessmon evolution cost against non-Chessmon normal and invalid paths.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-039.test.ts` passed (8 tests): level/turn negatives, Reboot, alternate and normal evolution costs across both colors, and alternate-requirement rejection.
-- BT13-040 — Pending
+- BT13-040 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, leaving-play replacement ordering (draw before optional free Veemon play), self-source isolation, and the Veemon alternate-evolution requirement.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-040.test.ts` passed (10 tests): live Blocker, source/hand/drawn Veemon paths, refusal and foreign-source negatives, and alternate/normal evolution boundaries.
 - BT13-041 — Pending
 - BT13-042 — Pending
 - BT13-043 — Pending
