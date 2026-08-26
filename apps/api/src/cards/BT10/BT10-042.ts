@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // gate and restricted ALL opponent Digimon. The keyword filter below restores the gate
 // (permanentMatchesFilter reads both printed ＜Security Attack＞ text and granted SA
 // keywords — e.g. the SA-1 this card's [When Digivolving] clause confers).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

@@ -942,7 +942,7 @@ export async function runSubTrigger(
       ? {
           oncePerTurnKey: action.oncePerTurnKey.startsWith("global:")
             ? action.oncePerTurnKey.slice("global:".length)
-            : `${ctx.source.instanceId}/${action.oncePerTurnKey}`,
+            : `${ctx.source.instanceId}/${ctx.conferralGranterInstanceId ?? "printed"}/${action.oncePerTurnKey}`,
         }
       : {}),
     description: playerScoped ? `${action.raw ?? event} [${ctx.source.instanceId}]` : (action.raw ?? event),

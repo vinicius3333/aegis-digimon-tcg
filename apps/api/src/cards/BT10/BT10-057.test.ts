@@ -1,14 +1,25 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-057.js";
+import { compiled } from "./BT10-057.js";
 describe("BT10-057 Bloomlordmon", () => {
+  it("matches its catalog and exact scaling IR", () => {
+    const d = getCardDefinition("BT10-057")!;
+    expect([d.colors, d.level, d.playCost, d.dp]).toEqual([["Green"], 6, 12, 12000]);
+    expect(d.evoCosts).toEqual([{ color: "Green", level: 5, memoryCost: 4 }]);
+    expect([d.forms, d.attributes, d.types]).toEqual([["Mega"], ["Vaccine"], ["Fairy"]]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toHaveLength(2);
+    expect(compiled.effects.map(({ trigger }) => trigger)).toEqual(["WhenDigivolving", "YourTurn"]);
+  });
+
   it("gains memory for suspended Vegetation/Plant/Fairy Digimon, then unsuspends and gains Piercing", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT10-043", as: "toSuspend" },
+            { card: "BT1-071", as: "toSuspend" },
             { card: "BT10-046", as: "alreadySuspended", suspended: true },
             { card: "AD1-011", as: "base", suspended: true },
           ],
@@ -85,5 +96,20 @@ describe("BT10-057 Bloomlordmon", () => {
     expect(s.perm("bloom").currentDP).toBe(16000);
     expect(observe(s.engine).keywordAmount(s.perm("bloom"), "SecurityAttack")).toBe(2);
     expect([...s.perm("bloom").keywords]).toContain("SecurityAttack");
+  });
+
+  it("does not retain the Your Turn scaling during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-057", as: "bloom", suspended: true },
+          { card: "BT10-043", suspended: true },
+        ],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("bloom").currentDP).toBe(12000);
+    expect(observe(s.engine).keywordAmount(s.perm("bloom"), "SecurityAttack")).toBe(0);
   });
 });

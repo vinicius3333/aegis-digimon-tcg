@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const optionFilter = {
   kind: ["Option"],
-  orFilters: [{ nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] }, { colors: ["Yellow"], playCostLte: 5 }],
+  or: [{ nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] }, { colors: ["Yellow"], playCostLte: 5 }],
 };
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const compiled: CompiledCard = {
@@ -17,6 +17,8 @@ const compiled: CompiledCard = {
           target: { filter: optionFilter, count: 1, from: ["hand"] },
           payCost: false,
           optional: true,
+          waiveColorRequirement: true,
+          allowMultiColor: true,
         },
         {
           kind: "SecurityManipulation",

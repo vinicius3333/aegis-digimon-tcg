@@ -1,9 +1,28 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-031.js";
+import { compiled } from "./BT10-031.js";
 
 describe("BT10-031 Pulsemon", () => {
+  it("encodes the opponent-turn security aura and exact Bibimon alternate evolution", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "OpponentsTurn",
+        actions: [
+          expect.objectContaining({
+            kind: "Aura",
+            effect: expect.objectContaining({
+              kind: "keyword",
+              keyword: expect.objectContaining({ keyword: "Blocker" }),
+            }),
+            while: expect.objectContaining({ kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 }),
+          }),
+        ],
+      }),
+    ]);
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Bibimon"], cost: 0, isAlternate: true }]);
+  });
+
   it("has Blocker only on the opponent's turn at 3 or fewer security", async () => {
     const atThree = setupEngine({
       0: { battleArea: [{ card: "BT10-031", as: "pulsemon" }], security: 3 },

@@ -15,19 +15,22 @@ describe("BT10-080 SkullBaluchimon", () => {
             { card: "BT4-079", as: "discarder" },
             { card: "BT10-080", as: "skull" },
           ],
-          deck: ["BT1-001"],
+          deck: [],
         },
         1: { battleArea: [{ card: "BT1-015", as: "victim" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
+    await s.ready();
     s.state.memory = 10;
+    const skull = s.inst("skull");
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("discarder").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("base").topCard?.instanceId === s.inst("skull").instanceId, 120);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("skull").instanceId)).toBe(false);
+    await settle(() => s.perm("base").topCard?.instanceId === skull.instanceId, 120);
+    expect(s.perm("base").topCard).toBe(skull);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === skull.instanceId)).toBe(false);
     await settle(() => observe(s.engine).subscriptions("onDeletionOf", s.perm("base").permanentId).length > 0);
     expect(observe(s.engine).subscriptions("onDeletionOf", s.perm("base").permanentId)).toHaveLength(1);
     expect(s.state.memory).toBe(4);

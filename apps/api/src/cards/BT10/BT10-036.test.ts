@@ -1,8 +1,25 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-036.js";
+import { compiled } from "./BT10-036.js";
 
 describe("BT10-036 Kyubimon", () => {
+  it("encodes one optional two-mode choice with a mandatory paid Draw 2 after selection", () => {
+    const modal = compiled.effects[0]?.actions[0];
+    expect(modal).toMatchObject({ kind: "Modal", choose: 1, optional: true });
+    if (modal?.kind !== "Modal") throw new Error("expected Kyubimon modal");
+    expect(modal.options[0]).toEqual([
+      expect.objectContaining({ kind: "Return", to: "hand", target: expect.objectContaining({ count: 1 }) }),
+    ]);
+    expect(modal.options[1]).toEqual([
+      expect.objectContaining({
+        kind: "Draw",
+        amount: 2,
+        cost: expect.objectContaining({ kind: "trash", target: expect.objectContaining({ count: 1 }) }),
+      }),
+    ]);
+    expect(modal.options[1]?.[0]).not.toHaveProperty("optional");
+  });
+
   it("returns only a Plug-In Option from trash through its first modal choice", async () => {
     const s = setupEngine(
       {
@@ -28,21 +45,6 @@ describe("BT10-036 Kyubimon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.decisions.at(-1)?.req.kind === "chooseOption");
-
-    const modal = s.state.pendingDecision!;
-    expect(s.decisions.at(-1)!.req).toMatchObject({
-      kind: "chooseOption",
-      sourceCardId: "BT10-036",
-      options: { choices: ["Return 1 to hand", "Draw 2"] },
-    });
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: modal.decisionId,
-        response: { kind: "chooseOption", optionIndex: 0 },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.decisions.at(-1)?.req.kind === "selectCards");

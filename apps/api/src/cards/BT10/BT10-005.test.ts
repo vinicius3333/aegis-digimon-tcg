@@ -8,6 +8,10 @@ describe("BT10-005 Monimon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT10-066", as: "host", under: ["BT10-005"] }] } });
     await s.ready();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
 
   it("removes the inherited bonus when De-Digivolve exposes a non-Twilight top", async () => {

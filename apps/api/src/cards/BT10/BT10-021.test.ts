@@ -3,9 +3,29 @@ import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-021.js";
+import { compiled } from "./BT10-021.js";
 
 describe("BT10-021 MailBirdramon", () => {
+  it("encodes mutually exclusive Kiriha branches, Save, and inherited dual restriction", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({ trigger: "OnPlay", actions: expect.any(Array) }),
+      expect.objectContaining({ trigger: "OnDeletion", keywords: [expect.objectContaining({ keyword: "Save" })] }),
+      expect.objectContaining({
+        trigger: "WhenAttacking",
+        frequency: "OncePerTurn",
+        isInherited: true,
+        actions: [
+          expect.objectContaining({ kind: "Restrict", restriction: "attack" }),
+          expect.objectContaining({
+            kind: "Restrict",
+            restriction: "block",
+            target: expect.objectContaining({ sameTarget: true }),
+          }),
+        ],
+      }),
+    ]);
+  });
+
   it("plays Kiriha Aonuma from hand when none is in play", async () => {
     const s = setupEngine(
       {
@@ -25,6 +45,10 @@ describe("BT10-021 MailBirdramon", () => {
     });
     await settle(() => !player.hand.some((c) => c.instanceId === s.inst("kiriha").instanceId));
     expect(player.hand.some((c) => c.instanceId === s.inst("kiriha").instanceId)).toBe(false);
+    expect(player.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("kiriha").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.memory).toBe(0);
   });
 
   it("recovers an exact MetalGreymon when Kiriha Aonuma is already in play", async () => {
@@ -96,6 +120,11 @@ describe("BT10-021 MailBirdramon", () => {
     const restricted = ["first", "second"].filter((alias) => observe(s.engine).isRestricted(s.perm(alias), "attack"));
     expect(restricted).toHaveLength(1);
     expect(observe(s.engine).isRestricted(s.perm(restricted[0]!), "block")).toBe(true);
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+    expect(["first", "second"].filter((alias) => observe(s.engine).isRestricted(s.perm(alias), "attack"))).toHaveLength(
+      1,
+    );
   });
 
   it("does not restrict an opponent when fewer than 2 Digimon are in play", async () => {
@@ -112,5 +141,25 @@ describe("BT10-021 MailBirdramon", () => {
 
     expect(observe(s.engine).isRestricted(s.perm("onlyOpponent"), "attack")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("onlyOpponent"), "block")).toBe(false);
+  });
+
+  it("may Save itself under a friendly Tamer on deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-021", as: "mailBirdramon" },
+            { card: "BT10-088", as: "kiriha" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const sourceId = s.inst("mailBirdramon").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("mailBirdramon").permanentId])).toBe(1);
+    await settle(() => s.perm("kiriha").stack.some((card) => card.instanceId === sourceId));
+
+    expect(s.perm("kiriha").stack.some((card) => card.instanceId === sourceId)).toBe(true);
   });
 });

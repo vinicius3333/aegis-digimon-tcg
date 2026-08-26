@@ -750,9 +750,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // so the gate fails (a plain play can never satisfy a DigiXros material-count check).
       return (ctx.trigger.digiXrosMaterialCount ?? 0) >= (cond.minimum ?? 1);
     case "triggerOptionCostAtLeast":
-      // whenOptionUsed: the used Option's ORIGINAL use cost is >= value (BT19-040 "an Option card
-      // with a cost of 2 or more"). KB Q5471-Q5473: the gate reads the card's cost itself, not a
-      // paid/reduced cost. Unset payload (cost unknown) is conservative => does not fire.
+      // whenOptionUsed: use cost after card-level changes, before payment-only reductions
+      // (BT10-032 Q1956/Q1957). Unset payload is conservative => does not fire.
       return (ctx.trigger.usedOptionCost ?? -1) >= (cond.value ?? 0);
     case "triggerOptionMatchesFilter": {
       const instanceId = ctx.trigger.subjectPermanentId;

@@ -484,7 +484,10 @@ export async function applyPlayCard(
   // [Main] effect has finished and the card has completed its post-use routing.  Firing
   // from inside the resolvingOption window made watchers observe a card in no area and
   // allowed their effects to resolve before the Option reached trash/delay/battle.
-  await deps.fireOptionUsed?.(instance.instanceId, definition.playCost);
+  // Carry the rules-relevant use cost: continuous/card-level modifiers have
+  // already produced `passiveCost`, while BeforePayCost changes only payment.
+  // This distinction implements BT10-032 Q1956/Q1957.
+  await deps.fireOptionUsed?.(instance.instanceId, passiveCost);
 
   return {
     ok: true,

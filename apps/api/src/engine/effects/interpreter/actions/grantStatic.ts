@@ -6,7 +6,6 @@ import { unsupported } from "../errors.js";
 import { COLOR_MAP, PROTECTION_STRING_TOKEN_MAP, PROTECTION_TOKEN_MAP } from "../maps.js";
 import { DefinitionFacts, definitionMatches, parseCopyEffectsFilterText } from "../matching/definition.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
-import { printedKeywordsOf } from "../../../combat/keywords.js";
 import { CardColor, CardKind } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
 
@@ -201,11 +200,9 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           );
           const sources = action.topmostOnly === true ? matches.slice(-1) : matches;
           for (const stackCard of sources) {
-            const def = ctx.game.definitionOf(stackCard);
-            ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration);
-            for (const keyword of printedKeywordsOf(def.effectText)) {
-              ctx.fx.grantKeyword(permanentId, keyword, duration);
-            }
+            ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, {
+              granterInstanceId: ctx.source.instanceId,
+            });
           }
         }
         return false;
@@ -368,7 +365,10 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           for (const stackCard of permanent.stack) {
             const def = ctx.game.definitionOf(stackCard);
             if (!definitionMatches(parsedFilter, def as DefinitionFacts)) continue;
-            ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, { trigger: copySpec?.trigger });
+            ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, {
+              trigger: copySpec?.trigger,
+              granterInstanceId: ctx.source.instanceId,
+            });
           }
         }
         return false;
@@ -593,7 +593,9 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         for (const stackCard of permanent.stack) {
           const def = ctx.game.definitionOf(stackCard);
           if (!definitionMatches(action.filter, def as DefinitionFacts)) continue;
-          ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration);
+          ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, {
+            granterInstanceId: ctx.source.instanceId,
+          });
         }
       }
       return false;

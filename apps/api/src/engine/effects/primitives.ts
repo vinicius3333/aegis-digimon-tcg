@@ -4380,12 +4380,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     _duration: EffectDuration,
-    opts?: { trigger?: string; inheritedOnly?: boolean },
+    opts?: { trigger?: string; inheritedOnly?: boolean; granterInstanceId?: string },
   ): void => {
     continuous.conferStackEffects(targetPermanentId, stackInstanceId, {
       ...continuousOpt(),
       trigger: opts?.trigger,
       inheritedOnly: opts?.inheritedOnly,
+      granterInstanceId: opts?.granterInstanceId,
     });
   };
   const stackEffectConferrals: NonNullable<Primitives["stackEffectConferrals"]> = () =>

@@ -263,11 +263,17 @@ function replaceIfChanged(target: ArraySchema<string>, values: readonly string[]
 /**
  * A watcher's identity ACROSS continuous recomputes. Every recompute clears the continuous
  * subscriptions and re-installs them, so `sub.id` is stable only within one recompute cycle;
- * the (event, anchor, description) triple is what `SubTriggerRegistry.subscribe` itself treats
- * as "the same subscription", and it survives the reinstall.
+ * the (event, anchor, description, per-turn identity) tuple is what distinguishes the same
+ * watcher across reinstalls while preserving separately conferred copies (BT10-011 Q1943).
  */
 function subTriggerIdentity(sub: SubTriggerSubscription): string {
-  return [sub.event, sub.sourcePermanentId ?? "", sub.sourceInstanceId ?? "", sub.description].join("|");
+  return [
+    sub.event,
+    sub.sourcePermanentId ?? "",
+    sub.sourceInstanceId ?? "",
+    sub.description,
+    sub.oncePerTurnKey ?? "",
+  ].join("|");
 }
 
 /** A watcher that triggered, with the EffectContext bound at the moment its event fired. */
@@ -2489,7 +2495,13 @@ export class GameEngine {
       // only thing keeping a trash/hand/security watcher from firing after its card moved
       // (CR §15-4-4-3; KB Q2671, Q2805). Checked before the lookup so a security card flipped
       // face-down — which `findLooseInstance` simply stops seeing — still latches as departed.
-      if (this.looseSourceLeftInstallZone(sub, sub.sourceInstanceId)) return undefined;
+      // A hand-resident watcher for "when this card is trashed from your hand" activates
+      // because its source JUST moved from hand to trash. Preserve that one event's source
+      // through context construction; every later event still observes the departed hand
+      // root and drops the watcher normally.
+      const activatesFromItsOwnHandTrash =
+        sub.event === "whenTrashedFromHand" && payload.trashedFromHandInstanceId === sub.sourceInstanceId;
+      if (!activatesFromItsOwnHandTrash && this.looseSourceLeftInstallZone(sub, sub.sourceInstanceId)) return undefined;
       const loose = this.findLooseInstance(sub.sourceInstanceId);
       if (loose === undefined) return undefined;
       return this.buildEffectContext(this.cardSourceOf(loose), payload);
@@ -2699,20 +2711,22 @@ export class GameEngine {
       EffectTiming.None,
       this.continuous.listStackEffectConferrals(),
       (instanceId) => sourceByInstanceId.get(instanceId),
-      (source, effect, conferredToPermanentId) => ({
+      (source, effect, conferredToPermanentId, conferralGranterInstanceId) => ({
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
         conferredToPermanentId,
+        conferralGranterInstanceId,
       }),
       this.tracker,
     );
-    for (const { source, effect, conferredToPermanentId } of conferredContinuous) {
+    for (const { source, effect, conferredToPermanentId, conferralGranterInstanceId } of conferredContinuous) {
       const ctx: EffectContext = {
         ...this.buildEffectContext(source, {}, noPromptAsk),
         activeTiming: EffectTiming[EffectTiming.None],
         activeEffectText: effect.description,
         conferredToPermanentId,
+        conferralGranterInstanceId,
       };
       await effect.resolve(ctx);
     }
@@ -3464,9 +3478,7 @@ export class GameEngine {
       },
     );
     if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
-    for (const reducer of selfReducers) {
-      await applyWouldBePlayedSelfReducer(ctx, reducer);
-    }
+    for (const reducer of selfReducers) await applyWouldBePlayedSelfReducer(ctx, reducer);
     // A self-reducer's cost body may have selected a permanent (BT12-112's chosen [Shoutmon]) to
     // relocate under the played card's own permanent — which does not exist yet at this point. Stash
     // it for `placePendingDigivolution` to relocate once it does (see `pendingSelfReducerRelocations`).

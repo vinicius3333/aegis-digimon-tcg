@@ -38,9 +38,30 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: self,
+          grant: "effects",
+          filter: { zone: "digivolutionStack", nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }] },
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      names: ["Gammamon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT10-011", compiled);

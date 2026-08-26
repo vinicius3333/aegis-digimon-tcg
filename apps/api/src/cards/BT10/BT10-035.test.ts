@@ -2,9 +2,30 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-035.js";
+import { compiled } from "./BT10-035.js";
 
 describe("BT10-035 Darcmon", () => {
+  it("encodes one inherited once-per-turn opposing Security Attack -1 grant", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "WhenAttacking",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [
+          expect.objectContaining({
+            kind: "GainKeyword",
+            target: expect.objectContaining({
+              filter: expect.objectContaining({ controller: "opponent", kind: ["Digimon"] }),
+              count: 1,
+            }),
+            keyword: expect.objectContaining({ keyword: "SecurityAttack", amount: -1 }),
+            duration: "untilOpponentTurnEnd",
+          }),
+        ],
+      }),
+    ]);
+  });
+
   it("gives exactly one chosen opponent Digimon Security Attack -1 only once per turn", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

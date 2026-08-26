@@ -1,240 +1,257 @@
-import { describe, it, expect } from "vitest";
-import { CardKind, EffectTiming, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
-import "./BT10-041.js";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT4/BT4-105.js";
+import "../BT5/BT5-044.js";
+import "../BT9/BT9-103.js";
+import "../BT1/BT1-107.js";
+import "../BT12/BT12-104.js";
+import "../P/P-037.js";
+import "../ST22/ST22-08.js";
+import "./BT10-039.js";
+import { compiled } from "./BT10-041.js";
 
-// A3 for BT10-041 (Sakuyamon: Maid Mode)
-//
-// [When Digivolving] Use 1 Option card with [Plug-In] in its name, or yellow cost ≤5,
-//   from hand without cost. Place the used Option on top of security instead of trash.
-// [When Attacking] This Digimon may digivolve into a [Sakuyamon] from hand for cost 1,
-//   ignoring digivolution requirements.
-//
-// Primary effect under test: [When Digivolving] — after useOptionFromHand, the Option
-// (found in trash) is moved to owner's security via addSecurity. Without this routing,
-// addSecurity would never be called.
-//
-const CARD_ID = "BT10-041";
-
-function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
-  return {
-    cardId: over.cardId ?? CARD_ID,
-    set: "BT10",
-    nameEn: over.nameEn ?? "Sakuyamon: Maid Mode",
-    kinds: (over.kinds as never) ?? (["Digimon"] as never),
-    colors: (over.colors as never) ?? (["Yellow"] as never),
-    playCost: over.playCost ?? 13,
-    dp: 12000,
-    evoCosts: [],
-    maxCountInDeck: 4,
-    ...over,
-  };
-}
-
-function makePermanent(permanentId: string, seat: Seat, cardId: string): Permanent {
-  return {
-    permanentId,
-    controllerSeat: seat,
-    topCard: { instanceId: `${permanentId}-top`, cardId, ownerSeat: seat },
-    stack: [] as never,
-    linked: [] as never,
-    baseDP: 6000,
-    currentDP: 6000,
-    isSuspended: false,
-    inBreeding: false,
-  } as unknown as Permanent;
-}
-
-function makeSource(over: Partial<CardSource> = {}): CardSource {
-  const perm = makePermanent("self-p1", 0, CARD_ID);
-  return {
-    instanceId: "inst-self",
-    cardId: CARD_ID,
-    ownerSeat: 0 as Seat,
-    definition: fakeDefinition(),
-    permanent: () => perm,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => false,
-    ...over,
-  };
-}
-
-function makeContext(opts: {
-  source?: CardSource;
-  ownerHand?: { instanceId: string; cardId: string }[];
-  ownerTrash?: { instanceId: string; cardId: string }[];
-  ownerSecurity?: { instanceId: string; cardId: string }[];
-  ownerBattleArea?: Permanent[];
-  useOptionFromHandCalled?: { ids: string[] };
-  addSecurityCalled?: { seat: Seat; ids: string[] };
-  definitions?: Record<string, Partial<CardDefinition>>;
-}): EffectContext {
-  const {
-    source,
-    ownerHand = [],
-    ownerTrash = [],
-    ownerSecurity = [],
-    ownerBattleArea = [],
-    useOptionFromHandCalled = { ids: [] },
-    addSecurityCalled = { seat: -1 as Seat, ids: [] },
-    definitions = {},
-  } = opts;
-
-  const players = [
-    {
-      seat: 0 as Seat,
-      battleArea: ownerBattleArea,
-      hand: ownerHand,
-      trash: ownerTrash,
-      security: ownerSecurity,
-      deck: [],
-    },
-    { seat: 1 as Seat, battleArea: [], hand: [], trash: [], security: [], deck: [] },
-  ];
-  const state = { memory: 10, players, turnSeat: 0 as Seat } as unknown as GameState;
-
-  const game: GameAccess = {
-    state,
-    player: (seat: Seat) => players[seat] as never,
-    opponentOf: (s) => (s === 0 ? 1 : 0),
-    permanentById: (id) => ownerBattleArea.find((p) => p.permanentId === id),
-    definitionOf: (card: { cardId: string }) => {
-      const over = definitions[card.cardId] ?? {};
-      return fakeDefinition({ cardId: card.cardId, ...over });
-    },
-  };
-
-  const fx: Primitives = {
-    useOptionFromHand: async (_ctx: EffectContext, instanceId: string) => {
-      useOptionFromHandCalled.ids.push(instanceId);
-      // simulate the card being moved to trash after use
-      const idx = ownerHand.findIndex((c) => c.instanceId === instanceId);
-      if (idx >= 0) {
-        const [card] = ownerHand.splice(idx, 1);
-        if (card) ownerTrash.push(card);
-      }
-      return [];
-    },
-    addSecurity: async (seat: Seat, ids: string[]) => {
-      addSecurityCalled.seat = seat;
-      addSecurityCalled.ids = ids;
-      return;
-    },
-    digivolveFromInstance: async () => undefined,
-    draw: async () => [],
-    gainMemory: () => {},
-    gainMemoryForSeat: () => {},
-    restrictMemoryGain: () => {},
-    restrictCostReduction: () => {},
-    declareWinner: () => {},
-    setMemory: () => {},
-    modifyDP: () => {},
-    setBaseDP: () => {},
-    playFromHand: async () => [],
-    playFromSecurity: async () => undefined,
-    playInstances: async () => [],
-    dnaDigivolveInto: async () => undefined,
-    deDigivolve: () => [],
-    placeUnder: async () => [],
-    placeOwnTopAtStackBottom: () => false,
-    relocatePermanent: () => false,
-    link: async () => [],
-    trash: async () => [],
-    trashDigivolutionCards: async () => [],
-    trashFromSecurity: async () => [],
-    deletePermanent: async () => 0,
-    suspend: async () => [],
-    unsuspend: () => {},
-    returnToHand: async () => [],
-    returnToDeck: async () => [],
-    reveal: async () => [],
-    searchDeck: async () => [],
-    grantPierce: () => {},
-    changeEvoCost: () => {},
-    changePlayCost: () => {},
-    grantNameTrait: () => {},
-    grantKeyword: () => {},
-    grantLinkMax: () => {},
-    grantLinkCostReduction: () => {},
-    waiveColorRequirement: () => {},
-    shuffleSecurity: () => {},
-    securityToHand: () => [],
-    recoverToSecurity: async () => [],
-    flipTopSecurity: () => false,
-    flipSecurityFaceUp: () => false,
-    forceAttack: async () => {},
-    redirectAttack: async () => {},
-    subscribeSubTrigger: () => 0,
-    subscribeReplacement: () => 0,
-    conferStackEffects: () => {},
-    fireOptionUsed: async () => {},
-    fireOnDiscardLibrary: async () => {},
-    fireWhenTrashedFromDeck: async () => {},
-    restrict: () => {},
-    cannotIgnoreDigivolution: () => {},
-    addColorGrant: () => {},
-    movePermanentZone: async () => false,
-    hatch: () => undefined,
-    placeUnderFromEggDeck: async () => undefined,
-    placeAsTopFromEggDeck: async () => undefined,
-    endAttack: () => {},
-  } as unknown as Primitives;
-
-  const ask: DecisionApi = {
-    optional: async () => true,
-    chooseTargets: async (_c, o) => o.candidates.slice(0, o.max ?? 1),
-    selectPermanents: async (_c, o) => o.candidates.slice(0, o.max ?? 1),
-    selectCards: async (_c, o) => o.candidates.slice(0, o.max ?? 1),
-    chooseOption: async () => 0,
-  };
-
-  return { source: source ?? makeSource(), trigger: {}, game, fx, ask };
-}
-
-describe("BT10-041 (Sakuyamon: Maid Mode)", () => {
-  const module = getEffectModule(CARD_ID);
-
-  it("is registered", () => {
-    expect(module, "BT10-041 must self-register on import").toBeDefined();
+describe("BT10-041 Sakuyamon: Maid Mode", () => {
+  it("encodes free color-waived Option use, trash replacement, and attack evolution", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "WhenDigivolving",
+        actions: [
+          expect.objectContaining({
+            kind: "UseOptionWithoutCost",
+            payCost: false,
+            optional: true,
+            waiveColorRequirement: true,
+            allowMultiColor: true,
+          }),
+          expect.objectContaining({
+            kind: "SecurityManipulation",
+            op: "placeAsSecurity",
+            source: "lastOptionUsed",
+            from: ["trash"],
+            toTop: true,
+            faceUp: false,
+            condition: { kind: "ifThisEffectUsed" },
+          }),
+        ],
+      }),
+      expect.objectContaining({
+        trigger: "WhenAttacking",
+        actions: [
+          expect.objectContaining({
+            kind: "Digivolve",
+            payCost: true,
+            costOverride: 1,
+            ignoreRequirements: true,
+            optional: true,
+          }),
+        ],
+      }),
+    ]);
   });
 
-  it("routes [When Digivolving] to WhenDigivolving timing", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source).length).toBeGreaterThanOrEqual(1);
-    expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
-  });
-
-  it("[When Digivolving] uses option from hand and moves it to security", async () => {
-    // Primary A3: after [When Digivolving] resolves with a Plug-In option in hand,
-    // useOptionFromHand is called and the card is placed on security via addSecurity.
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
-    expect(effects.length).toBeGreaterThanOrEqual(1);
-
-    const handCard = { instanceId: "plugin-inst", cardId: "P-037" };
-    const ownerHand = [handCard];
-    const ownerTrash: { instanceId: string; cardId: string }[] = [];
-    const useOptionFromHandCalled = { ids: [] as string[] };
-    const addSecurityCalled = { seat: -1 as Seat, ids: [] as string[] };
-
-    const ctx = makeContext({
-      source,
-      ownerHand,
-      ownerTrash,
-      useOptionFromHandCalled,
-      addSecurityCalled,
-      definitions: {
-        "P-037": {
-          cardId: "P-037",
-          nameEn: "Plug-In",
-          kinds: [CardKind.Option] as never,
-          playCost: 4,
-          colors: ["Yellow"] as never,
+  it("offers Plug-Ins and yellow cost-5 Options, including multicolor, but rejects near-matches", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-039", as: "taomon" }],
+          hand: [
+            { card: "BT10-041", as: "maid" },
+            { card: "BT10-105", as: "blackPlugin" },
+            { card: "BT12-104", as: "multicolorYellow" },
+            { card: "BT1-107", as: "costNearMiss" },
+            { card: "BT1-109", as: "nameNearMiss" },
+          ],
         },
       },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("taomon").permanentId,
+        instanceId: s.inst("maid").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(s.decisions.at(-1)!.req.options?.candidateInstanceIds).toEqual([
+      s.inst("blackPlugin").instanceId,
+      s.inst("multicolorYellow").instanceId,
+    ]);
+    assertNoLoudGap(s);
+  });
+
+  it("leaves a Memory Boost in the battle area instead of moving it to security (Q1961)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-039", as: "taomon" }],
+          hand: [
+            { card: "BT10-041", as: "maid" },
+            { card: "P-037", as: "boost" },
+          ],
+          deck: ["BT1-045", "BT1-046", "BT1-047", "BT1-048"],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderCards: true, autoSelectCards: true },
+    );
+    const boostId = s.inst("boost").instanceId;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("taomon").permanentId,
+        instanceId: s.inst("maid").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === boostId));
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === boostId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === boostId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("leaves an Option linked by its Main out of security (Q5451)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-039", as: "taomon" }],
+          hand: [
+            { card: "BT10-041", as: "maid" },
+            { card: "ST22-08", as: "plugin" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const pluginId = s.inst("plugin").instanceId;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("taomon").permanentId,
+        instanceId: s.inst("maid").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("taomon").linked.some((card) => card.instanceId === pluginId));
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === pluginId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === pluginId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("places Tactical Retreat above Maid Mode after its Main moves the Digimon (Q1962)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-039", as: "taomon" }],
+          hand: [
+            { card: "BT10-041", as: "maid" },
+            { card: "BT4-105", as: "retreat" },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const maidId = s.inst("maid").instanceId;
+    const retreatId = s.inst("retreat").instanceId;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("taomon").permanentId,
+        instanceId: maidId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === retreatId));
+    expect(s.state.players[0]!.security.slice(0, 2).map((card) => card.instanceId)).toEqual([retreatId, maidId]);
+    expect(s.state.players[0]!.security.slice(0, 2).every((card) => card.faceUp === false)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT10-039")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("trashes the used Option when Kongou prevents adding it to security (Q1960)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-039", as: "taomon" }],
+          hand: [
+            { card: "BT10-041", as: "maid" },
+            { card: "BT10-105", as: "plugin" },
+          ],
+        },
+        1: {
+          battleArea: ["BT2-056"],
+          hand: [{ card: "BT9-103", as: "kongou" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const pluginId = s.inst("plugin").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("kongou").instanceId })).toEqual({
+      ok: true,
     });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT9-103"));
+    expect(advance(s.engine).ledgers.continuous.cannotAddSecurityFromEffect(0)).toBe(true);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("taomon").permanentId,
+        instanceId: s.inst("maid").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === pluginId));
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === pluginId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("uses both catalog evolution recipes and attack-digivolves into Sakuyamon for 1", async () => {
+    const alternate = setupEngine({
+      0: {
+        battleArea: [{ card: "BT5-044", as: "levelSix" }],
+        hand: [{ card: "BT10-041", as: "maid" }],
+      },
+    });
+    alternate.state.memory = 2;
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("levelSix").permanentId,
+        instanceId: alternate.inst("maid").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => alternate.perm("levelSix").topCard.cardId === "BT10-041");
+    expect(alternate.state.memory).toBe(0);
+
+    const attacking = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-041", as: "maid" }],
+          hand: [{ card: "BT5-044", as: "sakuyamon" }],
+        },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    attacking.state.memory = 1;
+    await attacking.ready();
+    expect(
+      attacking.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacking.perm("maid").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => attacking.perm("maid").topCard.cardId === "BT5-044");
+    expect(attacking.state.memory).toBe(0);
+    expect(attacking.perm("maid").stack.map((card) => card.cardId)).toContain("BT10-041");
+    assertNoLoudGap(alternate);
+    assertNoLoudGap(attacking);
   });
 });

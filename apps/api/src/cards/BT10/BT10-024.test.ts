@@ -2,11 +2,30 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-024.js";
+import { compiled } from "./BT10-024.js";
 
 describe("BT10-024 MetalGreymon", () => {
-  it("gains Rush on play", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT10-024", as: "source" }] } });
+  it("encodes Material Save 2, Rush, three-target freeze, and both exact DigiXros slots", () => {
+    expect(compiled.effects[0]?.keywords).toEqual([expect.objectContaining({ keyword: "MaterialSave", amount: 2 })]);
+    expect(compiled.effects[1]?.actions).toEqual([
+      expect.objectContaining({ kind: "GainKeyword", keyword: expect.objectContaining({ keyword: "Rush" }) }),
+      expect.objectContaining({
+        kind: "Restrict",
+        target: expect.objectContaining({ count: 3 }),
+        restriction: "attackOrBlock",
+        condition: expect.objectContaining({ kind: "digiXrosCount", minimum: 1 }),
+      }),
+    ]);
+    expect(compiled.digiXrosRequirement).toEqual([
+      { materials: [{ names: ["Greymon"] }, { names: ["MailBirdramon"] }], count: 2 },
+    ]);
+  });
+
+  it("gains Rush on play and immediately attacks despite summoning sickness", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT10-024", as: "source" }] },
+      1: { security: ["BT1-001"] },
+    });
     s.state.memory = 7;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
@@ -17,6 +36,16 @@ describe("BT10-024 MetalGreymon", () => {
     });
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT10-024");
     expect(played !== undefined && observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: played!.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("DigiXroses from a Blue Flare board and freezes only Digimon with no more sources than itself", async () => {

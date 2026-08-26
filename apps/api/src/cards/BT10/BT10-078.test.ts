@@ -5,6 +5,14 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-078.js";
 
 describe("BT10-078 GulusGammamon", () => {
+  it("uses its exact Gammamon alternate evolution at cost 2", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT8-008", as: "base" }], hand: [{ card: "BT10-078", as: "gulus" }] } });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("gulus").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT10-078");
+    expect(s.state.memory).toBe(1);
+  });
+
   it("plays Gammamon from trash suspended on deletion", async () => {
     const s = setupEngine(
       {

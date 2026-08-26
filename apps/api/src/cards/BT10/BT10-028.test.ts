@@ -1,8 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-028.js";
+import { compiled } from "./BT10-028.js";
 describe("BT10-028 Cannondramon", () => {
+  it("encodes Blocker, evolution unsuspend, and a self-anchored opponent-turn battle watcher", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({ trigger: "Static", keywords: [expect.objectContaining({ keyword: "Blocker" })] }),
+      expect.objectContaining({
+        trigger: "WhenDigivolving",
+        actions: [expect.objectContaining({ kind: "Unsuspend" })],
+      }),
+      expect.objectContaining({
+        trigger: "OpponentsTurn",
+        frequency: "OncePerTurn",
+        actions: [
+          expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenDeletesInBattle",
+            sourceFilter: { isSelfRef: true },
+          }),
+        ],
+      }),
+    ]);
+  });
+
   it("unsuspends itself when digivolving", async () => {
     const s = setupEngine({
       0: {

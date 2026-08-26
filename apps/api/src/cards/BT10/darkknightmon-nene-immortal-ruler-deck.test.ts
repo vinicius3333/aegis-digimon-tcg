@@ -92,15 +92,27 @@ describe("BT10 DarkKnightmon / Nene / Immortal Ruler deck gauntlet", () => {
     expect(observe(s.engine).hasKeyword(darkKnightmon, "Blocker")).toBe(true);
 
     preferred.push(s.inst("chosenSkullKnightmon").instanceId, s.inst("chosenDeadlyAxemon").instanceId);
-    expect(await advance(s.engine).verb.deletePermanent([darkKnightmon.permanentId], "byEffect")).toBe(1);
+    // The optional deletion replacement opens a decision.  Start the verb before
+    // resolving its mandatory play selection after the optional payment is accepted.
+    const deletion = advance(s.engine).verb.deletePermanent([darkKnightmon.permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const splitDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: splitDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("chosenDeadlyAxemon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("chosenSkullKnightmon").instanceId) &&
         s.state.players[0]!.battleArea.some(
           ({ topCard }) => topCard.instanceId === s.inst("chosenDeadlyAxemon").instanceId,
-        ),
+        ) && s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("darkKnightmon").instanceId),
       5000,
     );
+    expect(await deletion).toBe(1);
 
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("darkKnightmon").instanceId)).toBe(
       true,

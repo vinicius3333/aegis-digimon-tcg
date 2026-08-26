@@ -2,9 +2,32 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-030.js";
+import { compiled } from "./BT10-030.js";
 
 describe("BT10-030 Tinkermon", () => {
+  it("encodes one mandatory opposing level-5-or-lower Security Attack -1 grant", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "OnPlay",
+        actions: [
+          expect.objectContaining({
+            kind: "GainKeyword",
+            target: expect.objectContaining({
+              count: 1,
+              filter: expect.objectContaining({
+                controller: "opponent",
+                kind: ["Digimon"],
+                levelComparison: { op: "lte", value: 5 },
+              }),
+            }),
+            keyword: expect.objectContaining({ keyword: "SecurityAttack", amount: -1 }),
+            duration: "untilOpponentTurnEnd",
+          }),
+        ],
+      }),
+    ]);
+  });
+
   it("offers only opposing level-5-or-lower Digimon and gives the chosen one exactly -1 check", async () => {
     const s = setupEngine(
       {

@@ -1,12 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { requireCardDefinition } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-063.js";
+import { compiled } from "./BT10-063.js";
 
 describe("BT10-063 Hi-VisionMonitamon", () => {
-  it("defines the printed black level 3 digivolution cost", () => {
+  it("matches its catalog and exact three-slot DigiXros IR", () => {
     const definition = requireCardDefinition("BT10-063");
-    expect(definition.evoCosts).toContainEqual({ color: "Black", level: 3, memoryCost: 2 });
+    expect([definition.colors, definition.level, definition.playCost, definition.dp]).toEqual([["Black"], 4, 6, 7000]);
+    expect(definition.evoCosts).toEqual([{ color: "Black", level: 3, memoryCost: 2 }]);
+    expect([definition.forms, definition.attributes, definition.types]).toEqual([
+      ["Champion"],
+      ["Data"],
+      ["LCD", "Twilight", "Xros Heart"],
+    ]);
+    expect(compiled).toEqual({
+      effects: [],
+      coverage: "full",
+      residual: [],
+      digiXrosRequirement: [
+        {
+          materials: [{ names: ["Monitamon"] }, { names: ["Monitamon"] }, { names: ["Monitamon"] }],
+          count: 2,
+        },
+      ],
+    });
   });
 
   it("places three exact Monitamon materials and reduces the play cost to zero", async () => {

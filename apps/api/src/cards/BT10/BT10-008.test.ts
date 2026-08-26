@@ -6,6 +6,49 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-008.js";
 
 describe("BT10-008 Shoutmon", () => {
+  it("supports both the standard red and off-color Xros Heart level 2 evolution paths for 0", async () => {
+    const standard = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-001", as: "redBase" }],
+        hand: [{ card: "BT10-008", as: "standardShoutmon" }],
+      },
+    });
+    standard.state.memory = 0;
+
+    expect(
+      standard.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: standard.perm("redBase").permanentId,
+        instanceId: standard.inst("standardShoutmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => standard.perm("redBase").topCard.instanceId === standard.inst("standardShoutmon").instanceId,
+    );
+    expect(standard.state.memory).toBe(0);
+
+    const alternate = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-003", as: "xrosHeartBase" }],
+        hand: [{ card: "BT10-008", as: "traitShoutmon" }],
+      },
+    });
+    alternate.state.memory = 0;
+    expect(
+      alternate.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: alternate.perm("xrosHeartBase").permanentId,
+        instanceId: alternate.inst("traitShoutmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => alternate.perm("xrosHeartBase").topCard.instanceId === alternate.inst("traitShoutmon").instanceId,
+    );
+
+    expect(alternate.state.memory).toBe(0);
+  });
+
   it("adds one Xros Heart Digimon and Tamer from the top three cards", async () => {
     const s = setupEngine(
       {
@@ -205,5 +248,9 @@ describe("BT10-008 Shoutmon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("shoutmonHost"), "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("otherHost"), "Rush")).toBe(false);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(s.perm("shoutmonHost"), "Rush")).toBe(false);
   });
 });
