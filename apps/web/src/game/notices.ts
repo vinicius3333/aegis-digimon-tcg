@@ -75,7 +75,7 @@ export function effectNoticeFromEvent(
   return {
     id,
     side: sideOf(event.seat, viewerSeat),
-    fromSecurity,
+    fromSecurity: fromSecurity || event.duringSecurityCheck === true,
     body: { variant: "effect", cardId: event.sourceCardId, timing: event.timing, description: event.description },
     createdAt: nowMs,
   };

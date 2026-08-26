@@ -345,6 +345,11 @@ export function useMatchCues({
   // read out yet. A newer check replaces that track, so they are flushed rather than
   // dropped with it — a lost animation is a shrug, a lost effect description is not.
   const heldNoticesRef = useRef<readonly MatchNotice[]>([]);
+  // True while the held notices came in AHEAD of their `securityChecked` — the server
+  // announces a check's effects before the event that closes the check, and a decision
+  // inside the effect splits the two across batches. The check that arrives next owns
+  // them, so it must not flush them as a superseded check's leftovers.
+  const heldAwaitingCheckRef = useRef(false);
   // `cardsMoved` names only instance ids, so the panels need the board's current
   // identity and ownership index to name the cards that just moved.
   const sidePanelLookupRef = useRef<SidePanelLookup>({ cardId: () => undefined, seat: () => undefined });
@@ -423,8 +428,9 @@ export function useMatchCues({
   /** Raises whatever a security check has still not said, on the clock it is raised at. */
   function flushHeldNotices() {
     const held = heldNoticesRef.current;
-    if (held.length === 0) return;
     heldNoticesRef.current = [];
+    heldAwaitingCheckRef.current = false;
+    if (held.length === 0) return;
     for (const notice of held) openNotice({ ...notice, createdAt: Date.now() });
   }
 
@@ -449,6 +455,10 @@ export function useMatchCues({
     // are handed to the centre-stage sequence below instead of being raised here, where
     // they would talk over — or ahead of — the reveal they describe.
     let heldNotices: readonly MatchNotice[] = [];
+    // The ones the server itself stamped as fired mid-check. Their `securityChecked`
+    // may not even be in this batch yet — a decision inside the effect splits the two —
+    // so they are held for the check that arrives, this pass or a later one.
+    const checkOwnedNotices: MatchNotice[] = [];
 
     if (!replayingHistory) {
       for (const event of fresh) {
@@ -479,7 +489,13 @@ export function useMatchCues({
           keywordNoticeFromEvent(event, viewerSeat, noticeId, now);
         if (notice) {
           if (notice.body.variant === "effect") securityEffectPendingRef.current = false;
-          raised.push(notice);
+          // An effect the server marked as fired mid-check announces a card the viewer
+          // has not been shown yet, so it never talks ahead of the reveal it describes.
+          if (event.kind === "effectTriggered" && event.duringSecurityCheck === true) {
+            checkOwnedNotices.push(notice);
+          } else {
+            raised.push(notice);
+          }
         }
       }
       // The cut-in owns the centre of the screen ahead of the showcase, so the
@@ -600,6 +616,13 @@ export function useMatchCues({
       } else {
         for (const notice of raised) openNotice(notice);
       }
+      // A check-owned notice whose check is not in this batch waits for the
+      // `securityChecked` that closes it. The flag marks the held stack as belonging
+      // to the check that arrives next, not to a superseded one.
+      if (!securityCheck && checkOwnedNotices.length > 0) {
+        heldNoticesRef.current = [...heldNoticesRef.current, ...checkOwnedNotices];
+        heldAwaitingCheckRef.current = true;
+      }
       if (announcement) {
         const shown = announcement;
         enqueue({
@@ -669,8 +692,9 @@ export function useMatchCues({
       // guarantees that: a parallel track with a fixed lead-in cannot know when this one
       // actually gets to the reveal, so it can and does run ahead of it. The break carries
       // the `replace`, so a check still cancels whatever showcase was mid-flight.
-      // Whatever the check it cancels had not said yet is said now, before it goes.
-      flushHeldNotices();
+      // Whatever the check it cancels had not said yet is said now, before it goes —
+      // unless the held stack is this very check's own notices, arrived ahead of it.
+      if (!heldAwaitingCheckRef.current) flushHeldNotices();
       enqueue(shieldBreakStep(breakScene));
       // Everything the check will present is held back from here until the reveal has
       // been seen. Cleared by the outcome step below, and by the queue going idle in
@@ -702,19 +726,19 @@ export function useMatchCues({
           }
         },
       });
-      if (heldNotices.length > 0) {
-        heldNoticesRef.current = heldNotices;
-        // Step 10b: the card has been shown, so now it can be read out. The clock on
-        // each notice starts here rather than when the server named it.
-        enqueue({
-          id: `security-notices-${key}`,
-          track: CENTER_STAGE_TRACK,
-          skippable: false,
-          run() {
-            flushHeldNotices();
-          },
-        });
-      }
+      heldNoticesRef.current = [...heldNoticesRef.current, ...heldNotices, ...checkOwnedNotices];
+      heldAwaitingCheckRef.current = false;
+      // Step 10b: the card has been shown, so now it can be read out. The clock on
+      // each notice starts here rather than when the server named it. Always queued —
+      // it also reads out check-owned notices that arrive while the scene still plays.
+      enqueue({
+        id: `security-notices-${key}`,
+        track: CENTER_STAGE_TRACK,
+        skippable: false,
+        run() {
+          flushHeldNotices();
+        },
+      });
       if (branch) {
         // The card detours to the half of the screen the side panels leave free, next
         // to the notice raised a beat earlier, and the centre of the board is given back.
@@ -820,6 +844,9 @@ export function useMatchCues({
     if (turnEnd?.kind === "turnEnded") {
       securityAttackerRef.current = undefined;
       securityEffectPendingRef.current = false;
+      // No check survives its turn: anything still held has no reveal left to wait
+      // for. A check observed this pass still owns its queued flush, so it keeps it.
+      if (!securityCheck) flushHeldNotices();
       const transition: TurnTransitionCue = {
         endingSeat: turnEnd.endingSeat,
         nextSeat: turnEnd.nextSeat,

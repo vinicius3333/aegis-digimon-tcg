@@ -128,6 +128,12 @@ export type ServerEvent =
       effectKey: string;
       description: string;
       timing?: string;
+      /**
+       * The effect fired while a security check was resolving. `securityChecked` closes
+       * the check and so is emitted AFTER these effects; the flag lets the client hold
+       * what they announce until the checked card's reveal has actually been shown.
+       */
+      duringSecurityCheck?: boolean;
     }
   | {
       // A triggered effect (On Play / When Digivolving / On Deletion / ...) finished

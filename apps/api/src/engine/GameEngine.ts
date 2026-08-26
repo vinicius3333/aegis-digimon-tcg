@@ -3706,6 +3706,9 @@ export class GameEngine {
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
           timing: EffectTiming[timing],
+          // `securityChecked` closes the check AFTER these effects have resolved, so the
+          // client needs this to hold the announcement until the reveal has been shown.
+          ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
         });
       },
       onResolved: (timing, collected) => {
@@ -4378,6 +4381,13 @@ export class GameEngine {
    *   - dpOf / securityCardDp / isDigimon / deletePermanents: backed by the shared
    *     GameStateAccess + card data, identical to combat's own reads.
    */
+  /**
+   * Non-zero while `runSecurityCheck` is resolving. Effects triggered inside the check
+   * announce themselves before the closing `securityChecked` event, so their
+   * `effectTriggered` is stamped `duringSecurityCheck` for the client to hold.
+   */
+  private securityCheckDepth = 0;
+
   private async runSecurityCheck(defenderSeat: Seat, attackerPermanentId: string): Promise<void> {
     // Re-derive the continuous tier at the start of the live security battle so the
     // continuous ModifySecurityDP (ST3-12's [Opponent's Turn] +2000) is re-applied under its
@@ -4447,9 +4457,14 @@ export class GameEngine {
         log("[securityCheck]", "securityChecked event:", JSON.stringify(event));
       }
     };
-    await runSecurityCheck(this.state, emitWithLog, this.win, deps, defenderSeat, {
-      permanentId: attackerPermanentId,
-    });
+    this.securityCheckDepth += 1;
+    try {
+      await runSecurityCheck(this.state, emitWithLog, this.win, deps, defenderSeat, {
+        permanentId: attackerPermanentId,
+      });
+    } finally {
+      this.securityCheckDepth -= 1;
+    }
   }
 
   /**

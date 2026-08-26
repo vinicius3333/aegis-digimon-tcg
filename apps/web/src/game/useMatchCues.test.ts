@@ -497,6 +497,56 @@ describe("notices", () => {
     expect(result.current.securityBranch).not.toBeNull();
   });
 
+  const CHECK_OWNED_EFFECT: ServerEvent = { ...EFFECT, duringSecurityCheck: true };
+
+  // The reported bug's other half: the server announces a check's effect BEFORE the
+  // `securityChecked` that closes the check, and a decision inside the effect delivers
+  // the two in separate batches — so the effect used to read out ahead of the clash.
+  it("holds a mid-check effect announced ahead of its check until the reveal has played", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([CHECK_OWNED_EFFECT]);
+    await advance(0);
+    expect(result.current.notices).toEqual([]);
+
+    rerender([CHECK_OWNED_EFFECT, EFFECT_CHECK]);
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS - 1);
+    expect(result.current.notices).toEqual([]);
+
+    await advance(1);
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.notices[0]?.fromSecurity).toBe(true);
+  });
+
+  it("reads a check-owned effect that arrives while the scene is still playing after the reveal", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([EFFECT_CHECK]);
+    await advance(TIMINGS.securityArm);
+
+    rerender([EFFECT_CHECK, CHECK_OWNED_EFFECT]);
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS - TIMINGS.securityArm - 1);
+    expect(result.current.notices).toEqual([]);
+
+    await advance(1);
+    expect(result.current.notices).toHaveLength(1);
+  });
+
+  it("flushes a held mid-check effect at turn end when no check ever closes it", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([CHECK_OWNED_EFFECT]);
+    await advance(0);
+    expect(result.current.notices).toEqual([]);
+
+    rerender([CHECK_OWNED_EFFECT, TURN_END]);
+    await advance(0);
+    expect(result.current.notices).toHaveLength(1);
+  });
+
   it("still says what a superseded check did before the next one takes the screen", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
