@@ -459,17 +459,26 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
           ? zoneList(action.target.filter.zone)
           : ["hand", "trash", "deck"];
   const looseCandidates = candidateLooseInstances(ctx, action.target, zones);
+  const requiredNamesExactUpTo = action.target.requiredNamesExactUpTo ?? [];
+  const eligibleLooseCandidates =
+    requiredNamesExactUpTo.length > 0
+      ? looseCandidates.filter((candidate) =>
+          requiredNamesExactUpTo.includes(
+            ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn ?? "",
+          ),
+        )
+      : looseCandidates;
   // A named "up to one of each" selection may legitimately contain only the names
   // currently available. It still needs one candidate to make the optional action
   // meaningful, but must not be suppressed merely because a different required name
   // is absent (BT6-075 Q1465).
   const required =
-    (action.target.requiredNamesExactUpTo?.length ?? 0) > 0
+    requiredNamesExactUpTo.length > 0
       ? 1
       : action.target.count === "all"
-        ? looseCandidates.length
+        ? eligibleLooseCandidates.length
         : effectiveTargetCount(ctx, action.target);
-  if (required <= 0 || (action.target.upTo !== true && looseCandidates.length < required)) return false;
+  if (required <= 0 || (action.target.upTo !== true && eligibleLooseCandidates.length < required)) return false;
 
   if (action.destination !== undefined) {
     return (
