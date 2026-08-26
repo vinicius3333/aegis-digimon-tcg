@@ -10829,7 +10829,7 @@
         "actions": [
           {
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "suspended": false }, "count": 1 },
             "scaling": {
               "per": 1,
               "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Tamer"], "colors": ["Green", "Black"] },
@@ -10849,7 +10849,7 @@
         "actions": [
           {
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"], "suspended": false }, "count": 1 },
             "scaling": {
               "per": 1,
               "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Tamer"], "colors": ["Green", "Black"] },
