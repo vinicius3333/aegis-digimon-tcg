@@ -112,6 +112,22 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-024 (Lekismon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-024 Lekismon | Blue level 4 Digimon; alternate level-3 `[TS]` evolution cost 2; on play/when digivolving draws 1; during your turn, when your Digimon is played or digivolves, if that Digimon is red, this Digimon may digivolve into `[Crescemon]` in hand with cost reduced by 1; inherited `[Jamming]`. Q6287 confirms non-red events still trigger the watcher but cannot activate it; Q6288 uses the post-digivolution Digimon. | **Causal IR gap.** The hand-authored watcher correctly listens to both events, applies the red post-event subject condition, targets Crescemon by name, and applies the reduction. However, both effect-driven `Digivolve` actions omit `payCost: true`. The interpreter treats omitted `payCost` as false, so the `reduceCost: 1` evolution is free rather than paid at the reduced cost. Draws, optionality, alternate requirement, and inherited Jamming are represented. | The colocated tests cover the watcher structure and live On Play draw, but do not assert memory payment or reduced-cost evolution. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-024
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-024` (Q6287 and Q6288).
+- Direct module/test and shared `runDigivolve` semantics were inspected. Its `pays` flag is
+  true only when `action.payCost === true` (or a numeric payCost is supplied), establishing
+  that the missing property waives the reduced evolution payment.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-023 (Gaogamon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
