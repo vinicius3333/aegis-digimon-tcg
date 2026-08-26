@@ -3,7 +3,13 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const csTamer = {
-  filter: { controller: "mine", zone: "hand", kind: ["Tamer"], nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
+  filter: {
+    controller: "mine",
+    zone: "hand",
+    kind: ["Tamer"],
+    nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+    excludeSameNameAsOwnTamers: true,
+  },
   count: 1,
 };
 const csDigimon = {
@@ -21,7 +27,6 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
-          notSameNameAs: ["battleArea"],
         },
       ],
     },
@@ -34,7 +39,6 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
-          notSameNameAs: ["battleArea"],
         },
       ],
     },
