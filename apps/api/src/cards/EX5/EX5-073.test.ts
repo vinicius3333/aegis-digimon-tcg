@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX5-073.js";
 
-describe("EX5-073 Fanglongmon", () => {
+describe("EX5-073 GraceNovamon", () => {
   it("trashes up to eight evolution cards on DNA digivolving and deletes an opposing Digimon with no more cards than this Digimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([
       {
@@ -20,12 +20,17 @@ describe("EX5-073 Fanglongmon", () => {
     ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions[0]).toMatchObject({
       kind: "Delete",
-      condition: { kind: "isDnaDigivolving" },
       target: {
         count: 1,
         filter: { controller: "opponent", kind: ["Digimon"], digivolutionCardsCompareToSource: "lte" },
       },
     });
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[1]).not.toHaveProperty(
+      "condition",
+    );
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions[0]).not.toHaveProperty(
+      "condition",
+    );
   });
   it("prevents leaving play by trashing two same-level evolution cards", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({

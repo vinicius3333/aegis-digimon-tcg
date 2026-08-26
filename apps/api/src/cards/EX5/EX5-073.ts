@@ -36,10 +36,6 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          condition: {
-            kind: "isDnaDigivolving",
-            raw: "DNA digivolving",
-          },
         },
       ],
     },
@@ -55,10 +51,6 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-          },
-          condition: {
-            kind: "isDnaDigivolving",
-            raw: "DNA digivolving",
           },
         },
       ],
