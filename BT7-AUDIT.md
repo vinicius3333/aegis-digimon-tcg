@@ -60,3 +60,20 @@ Remaining work is execution of the focused suite plus Hybrid waiver and Security
 10. **Reproducible behavioral proof (0/1):** The colocated test covers only the ordinary Purple level-5 play and was not executed in this static-only pass; the 10-card optional choice, decline fallback, and Security path remain unproven.
 
 Remaining work is behavioral proof of the alternative and fallback branches plus Security activation; this card is not formally complete at 10/10.
+
+## BT7-108 — Schwarz Lehrsatz — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies BT7-108 as a Purple Option costing 6 with the Hybrid/Tamer scaling deletion and Security Main activation.
+2. **Main timing and recipient (1/1):** The compiled Main effect deletes opposing Digimon only.
+3. **Level boundary (1/1):** The deletion target is explicitly an opponent Digimon with level `lte 5`.
+4. **Scaling population (1/1):** Scaling counts owner battle-area cards from the union of Hybrid-trait Digimon and Tamers.
+5. **Pairing ruling (1/1):** The single scaling population produces one deletion per qualifying card, not one per Hybrid/Tamer pair, matching Q1675.
+6. **Security behavior (1/1):** Security uses `ActivateMain` and is marked as a Security effect.
+7. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-108` returns Q1675, with no unresolved ambiguity.
+8. **Direct IR and registration (1/1):** The module has full compiled coverage, an empty residual list, and exactly one `registerIrCard("BT7-108", compiled)` registration.
+9. **Static primitive trace (1/1):** The target controller/kind/level filter, battle-area scaling zone, Hybrid trait branch, Tamer branch, and unit `cards` are explicit.
+10. **Reproducible behavioral proof (0/1):** The colocated test covers only a basic deletion and was not executed in this static-only pass; multi-source scaling, exact level boundary, mixed trait population, and Security behavior remain unproven.
+
+Remaining work is behavioral proof of Q1675 scaling and all applicable boundaries; this card is not formally complete at 10/10.
