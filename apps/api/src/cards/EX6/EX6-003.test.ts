@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-003.js";
 
 describe("EX6-003 Cupimon", () => {
@@ -25,5 +28,25 @@ describe("EX6-003 Cupimon", () => {
         },
       ],
     });
+  });
+
+  it("exchanges top security for an eligible Angel at security bottom when its host attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-007", as: "host", under: ["EX6-003"] }],
+          hand: [{ card: "BT1-053", as: "angel" }],
+          security: [{ card: "BT1-009", as: "securityTop" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("securityTop").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("angel").instanceId, faceUp: true });
   });
 });
