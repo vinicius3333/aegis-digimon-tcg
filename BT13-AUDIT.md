@@ -140,7 +140,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-050 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing optional self-suspension as the cost to evolve an own Digimon into a hand Fairy at -2, plus inherited own-green-Tamer reduction with once-per-turn scope.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-050.test.ts` passed (6 tests): positive cost/evolution path, no-Fairy and refusal negatives, inherited reduction, and normal evolution cost.
-- BT13-051 — Pending
+- BT13-051 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing On Play own-Digimon-only temporary Piercing and inherited own-turn +2000 DP aura for Beast/Animal/Sovereign excluding Sea Animal or Royal Knight hosts.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-051.test.ts` passed (5 tests): controller-scoped Piercing, trait and turn aura positives/negatives, and evolution cost.
 - BT13-052 — Pending
 - BT13-053 — Pending
 - BT13-054 — Pending
