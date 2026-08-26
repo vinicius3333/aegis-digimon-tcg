@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-013.js";
 
-describe("EX6-013 Bukamon", () => {
+describe("EX6-013 Xiquemon", () => {
   it("draws on play and gains memory when played from digivolution cards", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
       { kind: "Draw", amount: 1 },
