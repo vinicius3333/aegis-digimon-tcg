@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./BT3-070.js";
+import "./BT3-071.js";
 import "./BT3-106.js";
 
 describe("BT3-106 Final Zubagon Punch", () => {

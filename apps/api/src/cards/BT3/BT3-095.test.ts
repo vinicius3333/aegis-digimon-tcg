@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import "./BT3-070.js";
+import "./BT3-075.js";
 import "./BT3-095.js";
 
 describe("BT3-095 Joe Kido", () => {
