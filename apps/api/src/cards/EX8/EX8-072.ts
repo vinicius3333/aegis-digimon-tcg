@@ -28,6 +28,7 @@ export const compiled: CompiledCard = {
               kind: "Return",
               to: "deckBottom",
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              from: ["trash"],
               optional: true,
               abortOnDecline: true,
             },

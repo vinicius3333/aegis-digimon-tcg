@@ -76,21 +76,6 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
-          kind: "Delete",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              dp: {
-                op: "lte",
-                value: 8000,
-              },
-            },
-            count: 1,
-          },
-          optional: true,
-        },
-        {
           kind: "CostModifier",
           mode: "raiseCeiling",
           costType: "dpDeletion",
@@ -105,6 +90,21 @@ export const compiled: CompiledCard = {
             },
             unit: "cards",
           },
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 8000,
+              },
+            },
+            count: 1,
+          },
+          optional: true,
         },
       ],
     },
