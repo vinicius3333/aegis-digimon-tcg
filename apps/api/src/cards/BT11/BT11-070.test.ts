@@ -1,10 +1,24 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "./BT11-070.js";
+import { compiled } from "./BT11-070.js";
 describe("BT11-070 Destromon", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-070")).toMatchObject({
+      cardId: "BT11-070",
+      colors: ["Black"],
+      level: 5,
+      playCost: 10,
+      dp: 10000,
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "WhenDigivolving", actions: [{ kind: "RevealAdd", revealCount: 3 }, { kind: "Delete" }] },
+      { trigger: "OpponentsTurn", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger" }] },
+    ]);
+  });
+
   it("resolves the reveal-and-trash timing", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT11-070", as: "destromon" }], deck: ["BT1-001"] } },
