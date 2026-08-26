@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { dnaDigivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { dnaDigivolutionRequirementsFor, EffectTiming, requireCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { canPayCost } from "../../engine/effects/interpreter/costs.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-073.js";
 
@@ -68,6 +69,47 @@ describe("EX5-073 GraceNovamon", () => {
         },
       ],
     });
+  });
+
+  it("cannot pay its leave-play cost from another stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX5-073", as: "grace", under: ["BT1-010"] },
+          { card: "BT1-024", as: "other", under: ["BT1-010", "BT1-011"] },
+        ],
+      },
+    });
+    await s.ready();
+    const source = {
+      instanceId: "grace-source",
+      cardId: "EX5-073",
+      ownerSeat: 0,
+      definition: requireCardDefinition("EX5-073"),
+      permanent: () => s.perm("grace"),
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => false,
+    };
+    const ctx = {
+      source,
+      trigger: {},
+      game: {
+        state: s.state,
+        player: (seat: 0 | 1) => s.state.players[seat]!,
+        opponentOf: (seat: 0 | 1) => (seat === 0 ? 1 : 0),
+        permanentById: (id: string) => [...s.state.players[0]!.battleArea, ...s.state.players[1]!.battleArea].find((p) => p.permanentId === id),
+        definitionOf: (card: { cardId: string }) => requireCardDefinition(card.cardId),
+        linkMax: () => 1,
+      },
+      fx: {},
+      ask: {},
+      selections: new Map(),
+    } as never;
+    const replacement = compiled.effects!.find((effect) => effect.trigger === "AllTurns")!.actions[0]!;
+    if (replacement.kind !== "Replacement" || replacement.actions[0]?.kind !== "Prevent") throw new Error("EX5-073 prevention missing");
+
+    expect(canPayCost(ctx, replacement.actions[0].cost!)).toBe(false);
   });
 
   it("still deletes an eligible opponent when attacking without DNA digivolving, per Q3687/Q3688", async () => {
