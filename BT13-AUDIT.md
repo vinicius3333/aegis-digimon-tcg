@@ -170,7 +170,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-060 — 10/10
   - Evidence: catalog and KB Q2304/Q2305 reviewed; compiled IR exclusively uses `registerIrCard`, tracing own-Yoshino Burst return, end-turn top-source trash, separate opponent Digimon/Tamer suspension plus all suspended unsuspend lock, and two-total-suspended-card security-trash scaling.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-060.test.ts` passed (2 tests): IR coverage for Q2304/Q2305 boundaries and live evolution suspension of both required permanent kinds.
-- BT13-061 — Pending
+- BT13-061 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker and opponent-turn-only On Deletion top-three reveal/add of one black card with rest to deck bottom.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-061.test.ts` passed (2 tests): IR clause proof and live Blocker observation.
 - BT13-062 — Pending
 - BT13-063 — Pending
 - BT13-064 — Pending
