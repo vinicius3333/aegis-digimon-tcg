@@ -82,3 +82,26 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 ## Validation queue
 
 All 74 individual focused files remain queued. After PID group 11091 clears, each must be run in an isolated single-fork process, followed by the coordinator-approved serial collection gate, typecheck, inventory recheck, and diff check. Until then this ledger is static evidence only, not a 10/10 closure claim.
+
+## Direct IR clause trace (static pass)
+
+This index records the executable trigger/action route inspected for each card; it is deliberately concise and supplements the catalog/KB evidence in the main ledger.
+
+| Card | Direct executable clause route |
+| --- | --- |
+| EX5-001 | All Turns: add-source subtrigger → hand Digivolve. |
+| EX5-002–006 | Tamer/trait play subtrigger; suspended DP aura; named attack draw; deletion draw; effect-play draw. |
+| EX5-007–011 | Main memory/stack rotation; reveal-add; Deva play plus deletion/inherited security routes. |
+| EX5-012–014 | play/digivolve cost replacements; deletion threshold; Blast Digivolve, self-delete cost, security and deletion routes. |
+| EX5-015–020 | reveal/trash and replacement; memory/return; reveal/DP; draw/trash/reactivation; Deva play/source trash; cost replacement/restrict/DP. |
+| EX5-021–025 | Deva play/Option memory; source-trash; trash-two return; Blast return/unsuspend/delete; source trash plus live suspend restriction and unsuspend subtrigger. |
+| EX5-026–030 | Blocker/granted opponent attack-memory effect; search/security; security-scaled play/DP; trash cost; attack Digivolve and rule grant. |
+| EX5-031–035 | trash-cost unsuspend/security; Fortitude DP/Blocker aura; play/Rush/Barrier/security; replacement/bound target buff; reveal/DP aura. |
+| EX5-036–040 | Fortitude/DP aura; Deva play/Option memory/Piercing; Deva play/unsuspend/Piercing; Fortitude suspend/DP; Deva play/deletion draw/Piercing. |
+| EX5-041–045 | Blast suspend/restrict/delete; Fortitude reveal/Rush; generated DP ceiling override; reveal/De-Digivolve; reveal/conditional play. |
+| EX5-046–050 | Blocker return/replacement; attack Digivolve/De-Digivolve; DP plus forced attack/reveal; Fortitude returns/Piercing; Decoy Deva play/Blocker aura. |
+| EX5-051–055 | Blocker Deva play/aura; Deva play/Tamer restriction; generated Deva play override; delete/redirect; Fortitude De-Digivolve/trash/return/end-attack. |
+| EX5-056–060 | draw/trash and deletion memory; return/trash and play memory; modal Deva/token; retaliation/reactivation; Deva play/Delay/Piercing. |
+| EX5-061–065 | Deva play/reactivation/self-delete unsuspend; generated Anubismon condition; generated Leviamon deletion-memory; Tamer evolution/stack rotation/security; generated DNA play/delay/add-source watcher. |
+| EX5-066–070 | delete/return option; attack/Tamer restriction option; color waiver/suspend/DP/attack option; delete-to-Tamer/Delay option; generated Proto Form stack-name/replacement override. |
+| EX5-071–074 | color waiver/reveal option; cost replacement/play/security return option; security/blocker/DNA-trash/delete/trash replacement; generated Fanglongmon scale/immunity override. |
