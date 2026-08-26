@@ -913,3 +913,38 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   only the known unrelated API errors outside BT5-019; repository-wide card
   formatting has unrelated baseline findings while these files are clean.
 - Remaining ambiguity: none identified.
+
+## BT5-020 — Gabumon — 10/10
+
+- Catalog evidence: Blue Lv.3 Rookie Digimon, Data/Reptile, play cost 3,
+  2000 DP, and blue Lv.2 evolution cost 0. `[On Play]` reveals the top three
+  cards, adds one Digimon with Garurumon in its name and one Digimon with
+  Omnimon in its name, then places every unselected card at deck bottom in any
+  order.
+- Knowledge-base and rules evidence: Q1301 confirms that when only one name
+  category is present, that matching card may still be added. Local On Play,
+  reveal/search, name-substring, and deck-bottom rules govern the remaining
+  text. No errata, restriction, or unresolved ambiguity applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-020.ts` uses a residual-free
+  `RevealAdd` with `revealCount: 3`, two independent count-one Digimon slots
+  matching Garurumon and Omnimon names, and `rest: "deckBottom"`. It declares
+  `coverage: "full"` and registers exclusively through
+  `registerIrCard("BT5-020", compiled)`.
+- Primitive, peer, and stack evidence: RevealAdd evaluates both slots over the
+  revealed set, prevents reuse of one card instance across slots, permits a
+  one-slot partial result per Q1301, moves selected cards to hand, and bottoms
+  all others. Shared RevealAdd regressions cover slot/disposition semantics;
+  BT5-024 proves BT5-020's legal evolution-source and inherited-host peer
+  interaction.
+- Behavioral proof: 5 focused tests prove full residual-free registration,
+  one Garurumon plus one Omnimon, Garurumon-only, Omnimon-only, and no-match
+  outcomes, including exact hand counts and deck-bottom remainder identities.
+- Defect corrected: none in the IR or engine. The audit added only the missing
+  registration, second partial-category, and no-match assertions to
+  `BT5-020.test.ts`.
+- Verification: focused BT5-020 — 1 file, 5 tests passed. Shared RevealAdd
+  regression — 7 tests passed; BT5-024 peer regression — 3 tests passed.
+  Targeted Oxfmt and `git diff --check` passed. Workspace `pnpm typecheck`
+  retains only the known unrelated API errors outside BT5-020; repository-wide
+  card formatting has unrelated baseline findings while these files are clean.
+- Remaining ambiguity: none identified.
