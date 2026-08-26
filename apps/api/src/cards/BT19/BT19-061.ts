@@ -102,7 +102,7 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: {
             filter: {
               isSelfRef: true,
@@ -110,11 +110,14 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          keyword: {
-            keyword: "Collision",
-            raw: "＜Collision＞",
+          effect: {
+            kind: "keyword",
+            keyword: { keyword: "Collision", raw: "＜Collision＞" },
           },
-          duration: "permanent",
+          while: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] },
+          },
         },
       ],
       isInherited: true,
