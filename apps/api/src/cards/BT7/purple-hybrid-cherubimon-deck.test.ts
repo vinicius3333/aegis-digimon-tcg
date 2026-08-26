@@ -107,31 +107,9 @@ describe("BT7 Purple Hybrid Cherubimon historical deck", () => {
     await settle(() =>
       s.decisions.some(
         ({ req }) =>
-          req.decisionId !== tamerDecision.decisionId && req.kind === "selectCards" && req.sourceCardId === "BT7-091",
-      ),
-    );
-
-    const koichiDiscardDecision = s.decisions.find(
-      ({ req }) =>
-        req.decisionId !== tamerDecision.decisionId && req.kind === "selectCards" && req.sourceCardId === "BT7-091",
-    )!.req;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: koichiDiscardDecision.decisionId,
-        response: {
-          kind: "selectCards",
-          instanceIds: [s.inst("koichiDiscard").instanceId],
-        },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() =>
-      s.decisions.some(
-        ({ req }) =>
           req.decisionId !== playTamerOptional.decisionId && req.kind === "optional" && req.sourceCardId === "BT7-079",
       ),
     );
-
     const deleteOptional = s.decisions
       .filter(
         ({ req }) =>
@@ -164,6 +142,27 @@ describe("BT7 Purple Hybrid Cherubimon historical deck", () => {
         response: {
           kind: "chooseTargets",
           instanceIds: [s.perm("firstLevelFour").permanentId, s.perm("secondLevelFour").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.decisions.some(
+        ({ req }) =>
+          req.decisionId !== tamerDecision.decisionId && req.kind === "selectCards" && req.sourceCardId === "BT7-091",
+      ),
+    );
+
+    const koichiDiscardDecision = s.decisions.find(
+      ({ req }) =>
+        req.decisionId !== tamerDecision.decisionId && req.kind === "selectCards" && req.sourceCardId === "BT7-091",
+    )!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: koichiDiscardDecision.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("koichiDiscard").instanceId],
         },
       }),
     ).toEqual({ ok: true });
