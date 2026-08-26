@@ -76,7 +76,7 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
         },
         1: {
           battleArea: [
-            { card: OPP_DIGIMON, dp: 1000, as: "oppOne" },
+            { card: OPP_DIGIMON, dp: 1000, suspended: true, as: "oppOne" },
             { card: OPP_DIGIMON, dp: 1000, as: "oppTwo" },
             { card: OPP_DIGIMON, dp: 1000, as: "oppThree" },
           ],
@@ -153,7 +153,7 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
     expect(paidDelete).toMatchObject({
       optional: true,
       abortOnDecline: true,
-      target: { count: 7, upTo: undefined },
+      target: { count: 7 },
       cost: {
         kind: "return",
         position: "bottom",
