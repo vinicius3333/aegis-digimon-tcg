@@ -51,7 +51,7 @@ describe("LM-034 Wisteria Memory Boost!", () => {
     });
   });
 
-  it("counts a red Digimon in the breeding area too, per Q4064", async () => {
+  it("counts a red Digimon in the breeding area too, per Q4066", async () => {
     const s = setupEngine(
       {
         0: {

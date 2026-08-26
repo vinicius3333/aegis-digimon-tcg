@@ -51,7 +51,7 @@ describe("LM-036 Jade Memory Boost!", () => {
     });
   });
 
-  it("counts a blue Digimon in the breeding area too, per Q4064", async () => {
+  it("counts a blue Digimon in the breeding area too, per Q4070", async () => {
     const s = setupEngine(
       {
         0: {

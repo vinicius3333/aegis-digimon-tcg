@@ -51,7 +51,7 @@ describe("LM-035 Amber Memory Boost!", () => {
     });
   });
 
-  it("counts a purple Digimon in the breeding area too, per Q4064", async () => {
+  it("counts a purple Digimon in the breeding area too, per Q4068", async () => {
     const s = setupEngine(
       {
         0: {

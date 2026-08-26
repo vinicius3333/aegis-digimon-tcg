@@ -51,7 +51,7 @@ describe("LM-037 Sepia Memory Boost!", () => {
     });
   });
 
-  it("counts a yellow Digimon in the breeding area too, per Q4064", async () => {
+  it("counts a yellow Digimon in the breeding area too, per Q4072", async () => {
     const s = setupEngine(
       {
         0: {

@@ -51,7 +51,7 @@ describe("LM-038 Grape Memory Boost!", () => {
     });
   });
 
-  it("counts a green Digimon in the breeding area too, per Q4064", async () => {
+  it("counts a green Digimon in the breeding area too, per Q4074", async () => {
     const s = setupEngine(
       {
         0: {

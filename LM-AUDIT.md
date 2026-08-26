@@ -196,7 +196,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   before the optional small red-trash play, matching Q4036/Q4037. Security independently performs
   optional small-red play then returns Red Scramble to hand.
 - Existing behavioral cases cover cost reduction, Delay ordering, size cap, no-opponent gate,
-  empty-trash Q4036 activation, and Security follow-up. They remain unrun under PID 43774, so
+  empty-trash Q4036 activation, and Security follow-up. They remain unrun under PID 82901, so
   this card is below 10/10.
 
 ## LM-028 — Blue Scramble — pending focused execution
@@ -207,7 +207,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   play followed by self hand return. Q4038-Q4042 align with these paths.
 - Existing behavioral tests cover cost reduction and post-use placement, Delay ordering and
   opponent absence, Security positive and above-2000 negative boundaries. They remain unrun
-  under PID 43774, so this card is below 10/10.
+  under PID 82901, so this card is below 10/10.
 
 ## LM-029 — Yellow Scramble — pending focused execution
 
@@ -218,7 +218,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   describe an absent `[Your Turn]` Option-use/unsuspend clause; the same rulings and wording are
   implemented for EX8-037, so this is a knowledge-base card-association conflict rather than
   sufficient authority to add unprinted LM-029 behavior. It remains explicitly unresolved.
-- Existing focused scenarios are behavioral but unrun under PID 43774. The unresolved KB linkage
+- Existing focused scenarios are behavioral but unrun under PID 82901. The unresolved KB linkage
   and absent authoritative printed clause keep LM-029 below 10/10.
 
 ## LM-030 — Green Scramble — pending focused execution
@@ -229,7 +229,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Security independently offers the optional 2000-DP-or-lower green play, then returns Green
   Scramble to hand. Existing behavioral fixtures cover the legal cost reduction and placement,
   Delay order and no-opponent negative, Security positive and over-2000 negative boundaries.
-- Those proofs remain deliberately unrun while PID 43774 holds the test slot, so LM-030 remains
+- Those proofs remain deliberately unrun while PID 82901 holds the test slot, so LM-030 remains
   below 10/10.
 
 ## LM-031 — Black Scramble — pending focused execution
@@ -240,7 +240,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - The opponent-Digimon-gated Delay performs the mandatory black-trash deck-top return before its
   optional 2000-DP-or-lower play; Security is the independent optional play followed by self hand
   return. Existing behavioral fixtures prove those positive and no-opponent/over-2000 boundaries.
-- The focused fixtures remain unrun under PID 43774, so LM-031 remains below 10/10.
+- The focused fixtures remain unrun under PID 82901, so LM-031 remains below 10/10.
 
 ## LM-032 — Purple Scramble — pending focused execution
 
@@ -250,7 +250,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Security's optional 2000-DP-or-lower purple revival and self hand return are separately
   compiled. Existing behavioral tests cover the positive paths plus no-opponent and over-2000
   negative boundaries.
-- The focused suite is intentionally unrun while PID 43774 holds the test slot, so LM-032 remains
+- The focused suite is intentionally unrun while PID 82901 holds the test slot, so LM-032 remains
   below 10/10.
 
 ## LM-033 — Garnet Memory Boost! — pending focused execution
@@ -262,7 +262,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Option; Delay separately gains two memory; Security places it. The focused module proves red,
   black battle, black breeding, and no-colour-source paths, and the shared Delay suite exercises
   cost/payment removal and the two-memory payload.
-- All focused proof remains unrun under PID 43774, so LM-033 remains below 10/10.
+- All focused proof remains unrun under PID 82901, so LM-033 remains below 10/10.
 
 ## LM-034 — Wisteria Memory Boost! — pending focused execution
 
@@ -274,7 +274,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   battle, red breeding, no eligible source, reveal results, and Security, while the shared Delay
   suite covers activation/payment/result behavior. The stale Q&A reference in the test comment
   was corrected from Q4063/Q4064 to Q4065/Q4066.
-- Proof is deliberately unrun under PID 43774, so LM-034 remains below 10/10.
+- Proof is deliberately unrun under PID 82901, so LM-034 remains below 10/10.
 
 ## LM-035 — Amber Memory Boost! — pending focused execution
 
@@ -285,7 +285,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Focused fixtures cover native yellow, alternate purple in battle and breeding, refusal, reveal
   result, and Security, while the shared Delay suite covers payment and payload. The stale Q&A
   references in both focused-test comments are corrected to their card-specific rulings.
-- All focused proof is intentionally unrun under PID 43774, so LM-035 remains below 10/10.
+- All focused proof is intentionally unrun under PID 82901, so LM-035 remains below 10/10.
 
 ## LM-036 — Jade Memory Boost! — pending focused execution
 
@@ -296,7 +296,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Delay gains two memory and Security places it. Focused fixtures cover native green, alternate
   blue in battle/breeding, refusal, reveal output, and Security; shared Delay proof covers the
   activation lifecycle. The focused comment's stale ruling reference was corrected to Q4069/Q4070.
-- Tests are deliberately unrun under PID 43774, so LM-036 remains below 10/10.
+- Tests are deliberately unrun under PID 82901, so LM-036 remains below 10/10.
 
 ## LM-037 — Sepia Memory Boost! — pending focused execution
 
@@ -307,7 +307,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Focused behavior covers native black, alternate yellow in battle and breeding, rejection with
   neither colour, search resolution, and Security. The shared Delay suite supplies lifecycle
   proof; the focused comment's stale ruling reference is corrected to Q4071/Q4072.
-- Tests remain deliberately unrun under PID 43774, so LM-037 remains below 10/10.
+- Tests remain deliberately unrun under PID 82901, so LM-037 remains below 10/10.
 
 ## LM-038 — Grape Memory Boost! — pending focused execution
 
@@ -318,7 +318,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Focused behavior covers the native/alternative colour-source paths, breeding ruling, rejection,
   search resolution, and Security. Shared Delay proof covers lifecycle behavior, and the stale
   card-comment citations are corrected to Q4073/Q4074.
-- Tests remain deliberately unrun under PID 43774, so LM-038 remains below 10/10.
+- Tests remain deliberately unrun under PID 82901, so LM-038 remains below 10/10.
 
 ## LM-039 — Valkyrimon — pending focused execution
 
@@ -329,7 +329,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - The permanent Your Turn restriction is self-bound and read by combat legality for attack-target
   changes. Existing focused fixtures prove bottom-deck destination, empty and above-threshold
   Security Attack fallback, shared budget, named-source digivolution, and restriction activation.
-- No local Q&A exists. The unrun focused proof under PID 43774 keeps LM-039 below 10/10.
+- No local Q&A exists. The unrun focused proof under PID 82901 keeps LM-039 below 10/10.
 
 ## LM-040 — Vikemon — pending focused execution
 
