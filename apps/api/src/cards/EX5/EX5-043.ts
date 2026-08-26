@@ -9,12 +9,25 @@ export const compiled: CompiledCard = structuredClone(generated);
 // The generated record already contains the printed play trigger; attach the
 // supported dynamic DP ceiling and retire its stale residual marker.
 const playTrigger = compiled.effects.find((effect) => effect.trigger === "YourTurn" && !effect.isInherited);
+for (const effect of compiled.effects ?? []) {
+  if (effect.trigger !== "Main" && effect.trigger !== "WhenDigivolving") continue;
+  effect.actions = effect.actions.filter((action) => action.kind !== "Replacement");
+  const play = effect.actions.find((action) => action.kind === "PlayWithoutCost");
+  if (play?.kind === "PlayWithoutCost") {
+    play.reduceCostBy = 4;
+    play.reduceCostByScaling = {
+      per: 1,
+      unit: "cards",
+      filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Leopardmon", "X Antibody"], match: "name" }] },
+    };
+  }
+}
 const playWatcher = playTrigger?.actions.find((action) => action.kind === "SubTrigger");
 if (playWatcher?.kind === "SubTrigger") {
   const bounce = playWatcher.actions.find((action) => action.kind === "Return");
   if (bounce?.kind === "Return") {
     bounce.target.filter.dp = { op: "lte", value: 5000 };
-    bounce.dpCeilingScaling = {
+    bounce.target.filter.dp = { op: "lte", value: 5000 };
       amount: 3000,
       per: 1,
       filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true },
