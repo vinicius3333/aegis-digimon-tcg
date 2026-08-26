@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-027 (MachGaogamon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-027 MachGaogamon | Blue/black level 5 Digimon; alternate level-4 `[DATA SQUAD]` evolution cost 3; when digivolving/attacking once per turn, may return 1 opposing level-4-or-lower Digimon to hand, then by trashing the bottom face-down card under any own Tamer unsuspend this Digimon; all turns once per turn, the card prevents its own leaving the battle area by the same cost; inherited version protects a Digimon with `[Gaogamon]` in its name or `[DATA SQUAD]` trait. | **No card-specific causal mismatch found statically.** The two trigger windows share one once-per-turn key and preserve the printed return-then-unsuspend sequence. Return targeting is opponent Digimon level 4 or lower; the unsuspend target is self and the shared cost correctly trashes a bottom face-down Tamer card. The self replacement and inherited Gaogamon/DATA SQUAD replacement carry the proper once-per-turn scope, controller, and cost. | Structural test only; no execution of shared once-per-turn consumption, optional return/refusal, cost payment, replacement prevention, inherited trait/name matching, or leaving-play edge cases. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-027
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-027` (no entries).
+- Direct module/test and shared once-per-turn keys, face-down Tamer-cost primitive, return
+  level filtering, and leave-play replacement paths were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-026 (Crescemon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
