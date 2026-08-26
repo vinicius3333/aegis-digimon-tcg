@@ -948,3 +948,49 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   retains only the known unrelated API errors outside BT5-020; repository-wide
   card formatting has unrelated baseline findings while these files are clean.
 - Remaining ambiguity: none identified.
+
+## BT5-021 — Syakomon — 10/10
+
+- Catalog evidence: Blue Lv.3 Rookie Digimon, Virus/Crustacean, play cost 3,
+  3000 DP, and blue Lv.2 evolution cost 0. Its only effect is
+  `[Opponent's Turn] Your opponent can't reduce digivolution costs.` It has no
+  inherited or Security text.
+- Knowledge-base and rules evidence: Q1302-Q1303 establish that the effect
+  blocks numerical reductions such as Digisorption and Hidden Potential
+  Discovered. Q1304 distinguishes a specified-cost, requirement-ignoring
+  digivolution from a reduction and permits it. Q6869, Q6872, Q6875, and Q7148
+  confirm that an effect-driven digivolution may still occur while its cost
+  reduction is suppressed. No errata, restriction, or unresolved ambiguity
+  applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-021.ts` has one
+  `OpponentsTurn` effect applying `RestrictCostReduction` to the opponent for
+  the `digivolve` cost type with permanent continuous duration. It declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-021", compiled)`.
+- Primitive and stack evidence: continuous recomputation scopes the
+  restriction to the source card's opponent and only during that opponent's
+  turn; a Syakomon buried as a digivolution card has no main effect. The
+  production digivolution path now consults the restriction for ordinary,
+  replacement, intrinsic, interactive, and Digisorption reductions using the
+  evolving permanent's controller seat. Explicit specified-cost effect
+  digivolutions remain legal and pay that specified cost, matching Q1304.
+- Behavioral proof: 4 focused tests prove the opponent-turn, seat, and cost
+  type boundaries; clearing on Syakomon's controller's turn; a real
+  Digisorption evolution rejected when full printed cost is unaffordable; no
+  effect from Syakomon only in an evolution stack; and a successful
+  fixed-cost, requirement-ignoring effect evolution while the restriction is
+  active.
+- Defect corrected: the restriction ledger was populated, but the real paid
+  digivolution path still applied replacement, intrinsic, interactive, and
+  Digisorption reductions. `GameEngine.ts` now suppresses those reduction
+  paths while preserving specified-cost digivolutions.
+- Verification: focused BT5-021 and relevant peers/mechanisms — 6 files, 172
+  tests passed. The targeted RestrictCostReduction IR regression also passed
+  (1 passed, 14 skipped). The changed card test passes targeted Oxfmt and
+  `git diff --check` passes; the shared file retains unrelated pre-existing
+  Oxfmt findings outside the changed cost-reduction lines.
+  Workspace `pnpm typecheck` built shared and typechecked shared/web, then
+  retained only the known unrelated API errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and `primitives.test.ts`.
+- Remaining ambiguity: none identified.
