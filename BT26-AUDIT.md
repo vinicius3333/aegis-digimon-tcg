@@ -136,3 +136,52 @@ git diff --check                                                            PASS
 ```
 
 No unresolved card-text ambiguity remains. No card-specific test or implementation changes were needed, and no commit or push was made, per the audit task instructions.
+
+## BT26-004 — Pagumon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-004` (`Pagumon`), a purple Digi-Egg, level 2 In-Training, traits `Lesser`, `Glowing Dawn`, and `BEATBREAK`; it has no main or Security effect.
+- Printed inherited text: `[When Attacking] [Once Per Turn] By placing 1 card from your hand face down under any of your [Glowing Dawn] trait Tamers, ＜Draw 1＞.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-004`; it reports Q6954–Q6957 and no card-specific erratum, restriction, or unresolved ambiguity.
+- Q6954 requires a newly placed card to be at the bottom of an existing Tamer stack. Q6955 prohibits changing the order of face-down cards. Q6956 limits inspection/search of face-down cards under a Tamer to their owner. Q6957 requires a trashed face-down Tamer-stack card to enter the trash face-up. Comprehensive Rules §4-4-2 and §4-7-3/§4-7-9/§4-7-10 establish the same placement, ordering, and visibility semantics.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-004.ts` contains exactly one inherited `WhenAttacking` effect with `frequency: "OncePerTurn"`. Its `Draw` action draws exactly one card for the effect controller.
+- The draw's placement cost selects exactly one card from the controller's hand, restricted to the printed card categories (`Digimon`, `Tamer`, or `Option`), and places it face-down under one of the controller's Tamer permanents whose trait is `Glowing Dawn`. The placement cost is optional and aborts the draw when declined or unpayable, matching the effect's “By” activation structure.
+- With no explicit position, the shared place-cost interpreter uses the normal Tamer placement rule (push to the stack's bottom); `faceDown: true` preserves hidden state. The shared visibility view exposes the card ID only to its owner, and `trashDigivolutionCards` flips a face-down stacked card face-up when it enters the trash.
+- Registration is exclusively `registerIrCard("BT26-004", compiled)`; no legacy `registerCard` registration exists for this card.
+- Relevant peers inspected: BT26-003 and BT26-005 for the inherited BT26 Tamer-stack costs, BT26-025 and BT26-089 for Glowing Dawn Tamer placement, ST24-02 for the same generic hand-card-to-trait-Tamer draw cost, and BT19-016 for the same `By placing ... under any of your Tamers` timing/cost pattern. Their target, controller, stack-order, and optional-cost conventions are consistent.
+
+### Behavioral proof
+
+Existing `apps/api/src/cards/BT26/BT26-004.test.ts` cases prove:
+
+- successful inherited attack activation places a hand card face-down at the bottom of an existing Tamer stack, draws exactly one, and exposes the hidden card ID only to its owner (Q6954/Q6956);
+- the destination is restricted to an own `Glowing Dawn` Tamer, excluding an opponent's Tamer and an own plain Tamer;
+- the inherited effect resolves only once per turn after successful payment;
+- without an eligible own `Glowing Dawn` Tamer, neither the hand card nor the deck changes;
+- declining the optional placement leaves both hand and deck unchanged; and
+- trashing the hidden placed card reveals it face-up in the trash (Q6957), while the structural assertion confirms the `faceDown` placement shape and inherited once-per-turn trigger.
+
+The inherited effect is exercised from a real battle-area evolution stack (`BT26-004` under an attacking Digimon). The six focused tests are mutation-sensitive to the inherited trigger, once-per-turn ledger, controller/trait destination filter, optional payment, face-down placement, draw amount, and visibility/trash semantics. No card or engine change was necessary.
+
+### Verification
+
+Commands and results:
+
+```text
+node tools/kb/query.mjs card BT26-004
+  PASS (Q6954–Q6957; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-004.test.ts
+  PASS (6 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-004.test.ts src/engine/state/visibility.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts
+  PASS (4 files, 341 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+git diff --check
+  PASS
+```
+
+No unresolved card-text ambiguity remains. No card or engine change was necessary, and no commit or push was made, per the audit task instructions.
