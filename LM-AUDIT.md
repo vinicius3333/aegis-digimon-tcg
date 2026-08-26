@@ -291,7 +291,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --poolOptions.forks.singleFork=true --fileParallelism=false`. LM-029 remains below 10/10 pending
   relevant mechanism and refreshed collection gates.
 
-## LM-030 — Green Scramble — pending focused execution
+## LM-030 — Green Scramble — focused proof green; pending mechanism and collection gates
 
 - Catalog and Q4048-Q4052 align with the direct `registerIrCard` IR: ordinary legal green
   hand evolution at minus three and self placement, followed by opponent-Digimon-gated Delay
@@ -299,8 +299,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Security independently offers the optional 2000-DP-or-lower green play, then returns Green
   Scramble to hand. Existing behavioral fixtures cover the legal cost reduction and placement,
   Delay order and no-opponent negative, Security positive and over-2000 negative boundaries.
-- Those proofs remain deliberately unrun while PID 82901 holds the test slot, so LM-030 remains
-  below 10/10.
+- The authorized serialized focused command passed 1/1 file and 6/6 tests in 5.91s on 2026-08-26:
+  `vitest run src/cards/LM/LM-030.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-030 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
 ## LM-031 — Black Scramble — pending focused execution
 
