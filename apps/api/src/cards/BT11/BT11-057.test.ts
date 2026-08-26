@@ -1,9 +1,16 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-057.js";
+import { compiled } from "./BT11-057.js";
 
 describe("BT11-057 Titamon", () => {
+  it("maps its dual-color mega, Piercing, and conditional trash/suspend/memory sequence", () => {
+    expect(getCardDefinition("BT11-057")).toMatchObject({ cardId: "BT11-057", colors: ["Green", "Purple"], level: 6, playCost: 12, dp: 12000, types: ["Shaman"] });
+    expect(compiled.effects[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Piercing" }] });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "Trash" }, { kind: "Suspend" }, { kind: "GainMemory" }] });
+  });
+
   it("trashes up to 3, suspends that many opposing Digimon, then gains memory for all suspended opposing Digimon", async () => {
     const s = setupEngine(
       {
