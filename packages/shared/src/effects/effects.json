@@ -11360,17 +11360,18 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "GainKeyword",
-            "target": {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "name" }]
-              },
-              "count": 1
-            },
-            "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
-            "duration": "untilOpponentTurnEnd"
+            "kind": "SubTrigger",
+            "event": "onDigivolutionCardReturnToDeckBottom",
+            "sourceFilter": { "isSelfRef": true, "nameOrTrait": [{ "tokens": ["Vemmon"], "match": "name" }] },
+            "actions": [
+              { "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } },
+              {
+                "kind": "GainKeyword",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
+                "duration": "untilOpponentTurnEnd"
+              }
+            ]
           }
         ],
         "isInherited": true,
