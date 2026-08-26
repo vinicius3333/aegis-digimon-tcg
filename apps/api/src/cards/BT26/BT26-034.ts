@@ -27,7 +27,13 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
+      actions: [
+        {
+          kind: "Suspend",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          optional: true,
+        },
+      ],
     },
   ],
   coverage: "full",

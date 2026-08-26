@@ -1519,3 +1519,44 @@ git diff --check
 ```
 
 No unresolved BT26-033 ambiguity or unsupported printed clause remains. No implementation, shared-engine, or test changes were needed. The audit entry is intentionally uncommitted and unpushed, and this audit is limited to BT26-033; no later card section was touched.
+
+## BT26-034 — Palmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-034` (`Palmon`), a green level-3 Rookie Digimon with play cost 3, 1000 DP, Data attribute, and `Vegetation`/`Iliad`/`TS` traits. Its normal evolution requirement is green Lv.2 for cost 0, and its alternate requirement is `[Digivolve] Lv.2 w/[TS] trait: Cost 0`. The main text is `[Start of Your Main Phase] If you have 4 or less memory, this Digimon may digivolve into a Digimon card with the [Vegetation] or [TS] trait in the hand without paying the cost.` Its inherited text is `[When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon.` It has no Security text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-034 --json`; it returns Q7007 and no erratum or banlist restriction. Q7007 confirms that “4 or less memory” means positions at 4 and to the right on the activating player's side of the memory gauge.
+- Comprehensive/manual rules evidence: §§2-3-5-1–3 and 8-1-2–3 define normal/alternate evolution requirements, payment, and stack transition; §§4-7-1–10 and 4-8-1–2 define evolution-stack order and top-card identity; §§11-2-1–5 define attack declaration and suspension; §§15-7-1–5 define optional processing; §§15-8-3-1–9 define trigger-type effects and activation; §§15-14-1-1–5 define Once Per Turn identity/reset; §§15-16-5-1 and 15-16-13-1 define When Attacking and Start of Your Main Phase timing. No additional card-specific ambiguity remains after Q7007.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-034.ts` is compiled IR with `coverage: "full"` and `residual: []`. The alternate evolution requirement is exact (`level: 2`, `traits: ["TS"]`, `cost: 0`, `isAlternate: true`), while the catalog supplies the normal green Lv.2/cost-0 requirement. Registration is exclusively `registerIrCard("BT26-034", compiled)`; no `registerCard` registration exists.
+- The Start of Your Main Phase action is optional, targets this Digimon, draws only from the controller's hand, requires `kind: ["Digimon"]`, and OR-matches the complete `Vegetation`/`TS` trait set. `payCost: false` waives only memory payment; shared `runDigivolve` still enforces the chosen card's ordinary/alternate evolution requirement. The `memoryAtMost` condition uses `controller: "mine"`, preserving Q7007's controller-side gauge semantics.
+- The inherited When Attacking effect is `frequency: "OncePerTurn"` and targets exactly one opponent-controlled Digimon. Its `Suspend` action is explicitly `optional: true`, implementing the printed “You may”; the effect ledger counts the activation by physical inherited copy and resets at turn/new-card boundaries. Shared target resolution excludes Tamers and own Digimon.
+- Shared seams inspected: `actions/digivolve.ts` for source-zone/trait filtering, requirement legality, free-cost stack transition, and suppression of unintended candidate triggers; `conditions.ts` for controller-relative memory thresholds; suspend targeting/optional-decision resolution; attack timing and inherited-effect collection; and the Once Per Turn ledger. Relevant peers inspected: BT26-035/036/038 for TS/Vegetation evolution and inherited attack/suspend vocabulary, BT26-042/043 for opponent Digimon/Tamer target boundaries, and BT26-090 for the same Q7007 memory-condition encoding.
+
+### Behavioral proof and correction
+
+- The audit found one real fidelity gap: the inherited optional suspension had been compiled without `optional: true`, making a legal opponent Digimon suspension mandatory whenever the effect activated. The minimal correction adds that flag; no shared-engine change was necessary.
+- `apps/api/src/cards/BT26/BT26-034.test.ts` now has 7 passing tests proving the exact alternate evolution and full IR shape, free evolution of both a `Vegetation` and a `TS` card from hand at 4 memory, Q7007's no-activation boundary at 5 memory, optional refusal of the free evolution without movement/payment, inherited suspension of exactly one opponent Digimon, inherited Once Per Turn behavior across repeated attacks, and optional refusal of the inherited suspension. The inherited proof uses a real Palmon evolution stack and a mixed two-Digimon opponent board; the main-path tests use real stack transitions and final hand/stack/memory assertions.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-034 --json
+  PASS (Q7007; banlist: null; errata: null)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-034.test.ts
+  PASS (1 file, 7 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-034.test.ts src/cards/BT26/BT26-035.test.ts src/cards/BT26/BT26-036.test.ts src/cards/BT26/BT26-038.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts
+  PASS (7 files, 363 tests)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxlint apps/api/src/cards/BT26/BT26-034.ts apps/api/src/cards/BT26/BT26-034.test.ts
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-034.ts apps/api/src/cards/BT26/BT26-034.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-034 ambiguity or unsupported printed clause remains. The implementation and focused tests were corrected only for the inherited optionality gap; no shared-engine or peer-card files were changed. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-034; the collection is not marked complete.
