@@ -15,3 +15,17 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   rather than Security or Delay activation.
 - Focused behavioral case for the Q5516 reduced-cost boundary is authored but deliberately
   unrun while the broad Vitest process holds the test slot.
+
+## LM-024 — Shivamon — pending focused execution
+
+- Catalog and Q4026: the direct `registerIrCard` IR independently applies the
+  three-or-more suspend/own +3000 DP branch and the three-or-fewer suspended-opponent
+  return branch, so exactly three security executes both.
+- Q4027/Q4028: the all-turns grant is live only while the source is suspended and is
+  specifically limited to opponent Digimon effects; the shared grant interpreter records a
+  Digimon-source-qualified `beAffected` restriction.
+- Existing focused behavioral cases cover security counts two, exactly three, and four; an
+  own-Digimon suspension choice; and the suspension-to-unsuspension immunity transition.
+  They remain unrun while PID 43774 holds the test slot. The security-Digimon example in Q4027
+  is currently mechanism-traced rather than exercised as a card-level fixture, so this card
+  remains below 10/10.
