@@ -1034,3 +1034,31 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   `primitives.test.ts`.
 - Remaining ambiguity: none identified.
+
+## BT5-023 — Gesomon — 10/10
+
+- Catalog evidence: Blue Lv.4 Champion Digimon, Virus/Mollusk, play cost 3,
+  4000 DP, and blue Lv.3 evolution cost 2. It has no main, inherited, or
+  Security text.
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-023`
+  returns the card identity with no QA, errata, restriction, or ruling entries.
+  Because the card is vanilla, no effect-specific rules or ambiguity apply.
+- Implementation: `apps/api/src/cards/BT5/BT5-023.ts` contains an empty effect
+  list with `coverage: "full"` and `residual: []`. It registers exclusively
+  through `registerIrCard("BT5-023", compiled)` and has no duplicate legacy
+  registration.
+- Peer and stack evidence: BT5-013 and BT5-027 use the same residual-free
+  vanilla-card representation. BT5-020 exercises BT5-023 as an unmatched
+  revealed card that remains in the deck-bottom result, and BT5-108 exercises
+  it as a real Lv.4 board target, without surfacing any unintended effect.
+- Behavioral proof: the 2 existing focused tests prove unchanged base DP with
+  no continuous effect and a defined runtime module with complete,
+  residual-free coverage. No additional test was necessary for a correct
+  vanilla implementation.
+- Defect corrected: none. No source or test file changed.
+- Verification: focused BT5-023 plus BT5-020 and BT5-108 peers — 3 files, 10
+  tests passed. `git diff --check` passed. Workspace `pnpm typecheck` retains
+  only the known unrelated API errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and `primitives.test.ts`.
+- Remaining ambiguity: none identified.
