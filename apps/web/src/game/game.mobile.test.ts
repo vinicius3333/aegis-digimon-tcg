@@ -112,6 +112,25 @@ describe("mobile portrait match layout", () => {
     expect(portraitRules).toMatch(/\.game-modal__panel > div \{\s*min-width:\s*0/);
   });
 
+  it("declares the board metrics where the portalled overlays can read them", () => {
+    // The rail and the other match overlays portal into #aegis-stage, a sibling of
+    // the layout: a metric scoped to .game-layout is undefined there, and the
+    // rail's `bottom: calc(var(--game-hand-h) …)` fell back to `auto` — the stage
+    // clipped away the pending decision's only exit.
+    expect(portraitRules).toMatch(/:root \{[^}]*--game-hand-h:\s*calc\(var\(--hand-card-width\)/);
+    expect(phonePortraitRules).toMatch(/:root \{[^}]*--game-rail:\s*4rem/);
+    expect(gameCss).not.toMatch(/\.game-layout \{[^}]*--game-(rail|hand-h|sidebar-h)/);
+    expect(gameCss).not.toMatch(/\.game-layout \{[^}]*--hand-card-width/);
+  });
+
+  it("keeps the contextual action bar under the whole dialog tier", () => {
+    // On the toast tier the bar held its band at the bottom of the screen while a
+    // bottom sheet was open there, and painted over the sheet's own action row.
+    expect(portraitRules).toMatch(/\.game-action-bar--contextual \{[^}]*z-index:\s*calc\(var\(--ds-z-dialog\) - 6\)/);
+    expect(landscapeRules).toMatch(/\.game-action-bar--contextual \{[^}]*z-index:\s*calc\(var\(--ds-z-dialog\) - 6\)/);
+    expect(gameCss).not.toMatch(/\.game-action-bar--contextual \{[^}]*var\(--ds-z-toast\)/);
+  });
+
   it("keeps the pending-decision return control below the mobile opponent bar", () => {
     expect(gameCss).toMatch(
       /\.decision-board-return \{[^}]*position:\s*fixed[^}]*z-index:\s*calc\(var\(--ds-z-toast\) - 1\)[^}]*env\(safe-area-inset-top/,
@@ -241,6 +260,15 @@ describe("nothing on the phone board is clipped by its neighbour", () => {
     );
   });
 
+  it("sizes the bottom action strip by the button it holds", () => {
+    // At 3.25rem the row left a 36px content box for a control the touch rules
+    // floor at 44px, and the sidebar's own clip took the missing 8px off the
+    // bottom of the breeding step's only action.
+    expect(phonePortraitRules).toMatch(
+      /\.game-sidebar > div:nth-child\(2\) \{[^}]*height:\s*auto[^}]*min-height:\s*calc\(44px/,
+    );
+  });
+
   it("fits the security shields inside their rail", () => {
     // The rail is 3.5rem wide; the desktop shield is 4.1rem and hung off both
     // screen edges with a slice of the chevron cut away.
@@ -276,6 +304,26 @@ describe("floating chrome keeps clear of the hand and the memory band", () => {
     expect(phonePortraitRules).toMatch(/\.side-panel-stack\[data-side="you"\] \{[^}]*bottom:\s*calc\(17rem/);
     // The notices keep the corner they already had.
     expect(gameCss).toMatch(/\.match-notice-stack\[data-anchor\^="bottom-"\] \{[^}]*bottom:\s*calc\(11rem/);
+    // …but not the tablet block's 9rem, which landed them on the egg deck and the
+    // raising slot. A notice takes the tap meant for either.
+    expect(phonePortraitRules).toMatch(/\.match-notice-stack\[data-anchor\^="bottom-"\] \{[^}]*bottom:\s*calc\(17rem/);
+  });
+
+  it("drops the opponent's notices and the attack call-out below the phone feed", () => {
+    // The feed starts at 6.75rem and is 3.25rem tall in portrait, so the base
+    // 9.5rem put both of them underneath it: the player never read who attacked.
+    expect(phonePortraitRules).toMatch(/\.match-notice-stack\[data-anchor\^="top-"\] \{[^}]*top:\s*calc\(10\.5rem/);
+    expect(phonePortraitRules).toMatch(/\.attack-announcement \{[^}]*top:\s*calc\(10\.5rem/);
+  });
+
+  it("gives both dismiss buttons a finger-sized target", () => {
+    // Each is the only early way out of a notice or a reveal panel, and the chip
+    // itself has to stay small — the target rides behind it instead.
+    expect(phonePortraitRules).toMatch(/\.match-notice__close::after \{[^}]*width:\s*44px[^}]*height:\s*44px/);
+    expect(phonePortraitRules).toMatch(/\.side-panel__close::after \{[^}]*width:\s*44px[^}]*height:\s*44px/);
+    // The notice's chip sits at the top edge of a stack that clips to its band, so
+    // its target grows inward from that corner rather than around the chip.
+    expect(phonePortraitRules).not.toMatch(/\.match-notice__close::after \{[^}]*translate:/);
   });
 
   it("clears the full-size fanned hand at pointer widths", () => {
@@ -294,12 +342,91 @@ describe("floating chrome keeps clear of the hand and the memory band", () => {
   });
 });
 
+describe("an animation ends with the thing it is drawn on", () => {
+  it("runs the shield's burst on the shatter's clock", () => {
+    // The burst is unmounted with the break phase, which is a fraction of the
+    // generic card-landing burst: on that clock it was cut a third of the way
+    // through and popped away at its brightest. The fallback tracks
+    // TIMINGS.shieldBreak, like the shard rule above it.
+    expect(gameCss).toMatch(
+      /\.game-security-shield__burst \.battle-burst__ring \{\s*animation-duration:\s*var\(--t-shield-break, 250ms\)/,
+    );
+  });
+});
+
 describe("the drag intent label reads the pointer, not the viewport", () => {
   it("asks the pointer media query rather than guessing from the width", () => {
     // A touchscreen laptop is wide, so a width breakpoint would leave the label
     // under the finger on exactly the devices that need it lifted.
     expect(gameScreenSource).toMatch(/COARSE_POINTER_QUERY/);
     expect(gameScreenSource).toMatch(/top:\s*drag!\.y - dragIntentLabelOffsetPx\(coarsePointer\)/);
+  });
+});
+
+describe("the portrait phone spends its height on the cards, not on empty rows", () => {
+  it("hands the recovered height to bigger hand cards", () => {
+    // The 21vw card was 83px wide and hard to read; the rows above pay for it.
+    expect(phonePortraitRules).toMatch(/--hand-card-width:\s*clamp\(5\.5rem, 25vw, 7rem\)/);
+  });
+
+  it("gives the hand dock one row of its own so the cards cannot be cut off", () => {
+    // The hand's bottom ~15% sat below the dock, where the board's overflow
+    // clipped it and the action strip painted over it.
+    expect(phonePortraitRules).toMatch(
+      /\.game-hand-dock \{[^}]*grid-template-rows:\s*minmax\(var\(--game-hand-h\), auto\)[^}]*align-content:\s*center/,
+    );
+    // A classic sideways scrollbar takes its height out of the row's content box,
+    // so a row pinned to the card's height clips the card tops by the bar.
+    expect(phonePortraitRules).toMatch(
+      /\[data-testid="hand"\] \{[^}]*height:\s*auto !important[^}]*min-height:\s*var\(--game-hand-h\)/,
+    );
+    // The desktop fan's negative margin hangs the row past the dock it sits in.
+    expect(phonePortraitRules).toMatch(/\.game-player-dock \[data-testid="hand"\] \{\s*margin:\s*0 !important/);
+  });
+
+  it("drops the rotated breeding caption and keeps the band one row", () => {
+    expect(phonePortraitRules).toMatch(/\.game-breeding-dock > div:first-child \{\s*display:\s*none/);
+    expect(phonePortraitRules).toMatch(/\.game-breeding-dock \{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/);
+  });
+});
+
+describe("nothing on the portrait phone board paints past the screen edge", () => {
+  it("widens the rail to hold the pile's depth and the slot beside it", () => {
+    // Six depth layers reach ~16px down-right of the pile's own 42px box, and
+    // the opponent's raising slot read as cut off against the right edge.
+    expect(phonePortraitRules).toMatch(/--game-rail:\s*4rem/);
+    expect(phonePortraitRules).toMatch(/\.game-pile__layer:nth-child\(n \+ 4\) \{\s*display:\s*none/);
+  });
+
+  it("floors the pile buttons at a finger's width", () => {
+    // The pile is the 42px compact card wide and nothing more, which is under the
+    // touch minimum on the horizontal axis; the 4rem rail has the room to spare.
+    expect(phonePortraitRules).toMatch(/:has\(> \.game-pile\)[^}]*\{[^}]*min-width:\s*44px/);
+  });
+
+  it("keeps the pile's depth layers off its caption", () => {
+    // The layers are drawn 2.6px further down-right each and hang out of the
+    // pile's box; being positioned they paint over what follows them in flow, and
+    // the compact 2px gap put the caption's letters right there.
+    expect(phonePortraitRules).toMatch(/\.game-pile \+ span \{[^}]*margin-top:\s*6px/);
+  });
+
+  it("keeps the end-turn orb inside the memory band", () => {
+    // The overhang rides the divider on a desktop board. Here the band is barely
+    // taller than the orb, and the half-rem below it was the slice of the circle
+    // the player saw cut off.
+    expect(phonePortraitRules).toMatch(/\.game-end-turn-orb \{\s*margin:\s*0 0\.5rem/);
+  });
+
+  it("pulls the card sparkles inside the card they belong to", () => {
+    expect(phonePortraitRules).toMatch(/\.game-card-sparkles \{\s*inset:\s*-18% 0 45%/);
+    expect(phonePortraitRules).toMatch(/\.game-card-sparkle \{\s*translate:\s*-50% 0/);
+  });
+});
+
+describe("the mulligan sheet keeps the opening hand next to its copy", () => {
+  it("stops the card grid centring itself in the track it sits in", () => {
+    expect(phonePortraitRules).toMatch(/\.mulligan-cards \{\s*align-content:\s*start/);
   });
 });
 

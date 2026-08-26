@@ -69,14 +69,34 @@
   pointer-events: none;
   animation: aegis-rise 180ms ease-out;
 }
-button.opponent-action-feed__current {
-  cursor: pointer;
+/* The feed itself is see-through so it never blocks the board; only what a
+   player can actually press takes the pointer back. */
+.opponent-action-feed button {
   pointer-events: auto;
 }
-button.opponent-action-feed__current:hover {
+.opponent-action-feed__aside {
+  display: grid;
+  gap: var(--ds-space-1);
+  align-self: start;
+  justify-items: end;
+}
+.opponent-action-feed__history {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  color: var(--ds-fg-muted);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface);
+  cursor: pointer;
+  place-items: center;
+}
+.opponent-action-feed__history:hover {
+  color: var(--ds-fg);
   border-color: color-mix(in srgb, var(--ds-danger) 62%, var(--ds-border));
 }
-button.opponent-action-feed__current:focus-visible {
+.opponent-action-feed__history:focus-visible {
   outline: 2px solid var(--ds-accent);
   outline-offset: 2px;
 }
@@ -231,19 +251,21 @@ button.opponent-action-feed__current:focus-visible {
 }
 
 /* A named card is a link into its own art, so a player can check what just hit
-   them without leaving the board. */
-.play-log__card {
+   them without leaving the board. Every surface that names a card uses this one
+   affordance: the play log, the notices, the side panels and the prompts. */
+.card-link {
   padding: 0;
   color: var(--ds-accent);
   font: inherit;
+  text-align: inherit;
   text-decoration: underline;
   text-underline-offset: 2px;
   background: none;
   border: 0;
   cursor: pointer;
 }
-.play-log__card:hover,
-.play-log__card:focus-visible {
+.card-link:hover,
+.card-link:focus-visible {
   color: var(--ds-fg);
 }
 
@@ -2129,6 +2151,15 @@ button.opponent-action-feed__current:focus-visible {
   animation: battle-shield-shard var(--t-shield-break, 250ms) cubic-bezier(0.32, 0, 0.67, 0) both;
 }
 
+/* The shield's burst is unmounted with the break phase, which is far shorter
+   than the generic card-landing burst: on that clock it was cut off a third of
+   the way through and popped away at its brightest. It runs on the shatter's. */
+.game-security-shield__burst .battle-burst__core,
+.game-security-shield__burst .battle-burst__rays i,
+.game-security-shield__burst .battle-burst__ring {
+  animation-duration: var(--t-shield-break, 250ms);
+}
+
 @keyframes battle-shield-shard {
   0% {
     translate: -50% -50%;
@@ -2700,8 +2731,35 @@ button.opponent-action-feed__current:focus-visible {
 }
 
 .side-panel__card {
+  display: grid;
+  width: 4.875rem;
+  gap: 0.2rem;
+  justify-items: center;
+}
+
+.side-panel__art {
   position: relative;
   line-height: 0;
+}
+
+/* The panel used to be art alone, so a deleted card had no readable name. */
+.side-panel__name {
+  overflow-wrap: anywhere;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* The panel is navy, so the link tints towards white rather than down into it. */
+button.side-panel__name {
+  color: color-mix(in srgb, #fff 45%, var(--ds-accent));
+}
+
+button.side-panel__name:hover,
+button.side-panel__name:focus-visible {
+  color: #fff;
 }
 
 /* The reference client numbers each card in the panel with a blue circle at its top-left. */
@@ -3602,8 +3660,14 @@ button.opponent-action-feed__current:focus-visible {
     width: 100%;
   }
   /* Mobile board metrics. The rail width matches the compact pile (42px card +
-     column padding) that boardPieces renders when `compact` is set. */
-  .game-layout {
+     column padding) that boardPieces renders when `compact` is set.
+
+     On :root, not on .game-layout: the board-mode rail and the other match
+     overlays portal into #aegis-stage, a sibling of the layout, and a metric
+     scoped to the layout is undefined there — the `var()` in the rail's own
+     `bottom` resolved to nothing, `bottom` fell back to `auto` and the stage's
+     clip took the pending decision's only exit off the screen. */
+  :root {
     --game-rail: 3.5rem;
     --game-sidebar-h: 3.25rem;
     --hand-card-width: clamp(4.75rem, 21vw, 5.75rem);
@@ -3843,9 +3907,12 @@ button.opponent-action-feed__current:focus-visible {
   .game-action-bar--idle {
     display: none !important;
   }
+  /* Below the whole dialog tier: on the toast tier the bar kept its band at the
+     bottom of the screen even while a bottom sheet was open there, and it was
+     the sheet's own action row it painted over. */
   .game-action-bar--contextual {
     position: fixed;
-    z-index: calc(var(--ds-z-toast) - 2);
+    z-index: calc(var(--ds-z-dialog) - 6);
     right: var(--ds-space-2);
     bottom: max(var(--ds-space-2), env(safe-area-inset-bottom));
     left: var(--ds-space-2);
@@ -4338,6 +4405,88 @@ button.opponent-action-feed__current:focus-visible {
    on: each gets a band of its own down the screen instead, notices hugging the
    edge and the card panels inboard of them, and neither may grow into the other. */
 @media (width < 600px) and (orientation: portrait) {
+  /* Portrait board metrics, retuned against a 393x852 screen.
+
+     The rail is half a rem wider than the 42px pile it holds: a full deck is
+     drawn as six depth layers, each offset further down-right than the last, and
+     at 3.5rem those layers — and the opponent's raising slot beside them — ran
+     into the screen edge with nowhere to be clipped but off it.
+
+     The hand card grows from 21vw to 25vw — readable at arm's length, and still
+     more than three cards across the row before it has to be scrolled. The
+     dock is an `auto` track, so the field above it gives up the height. */
+  :root {
+    --game-rail: 4rem;
+    --hand-card-width: clamp(5.5rem, 25vw, 7rem);
+  }
+
+  /* One row for the hand and nothing else, so nothing the dock holds can push
+     the cards past its bottom edge, where the board's overflow cut them off.
+     The track may grow past the card: the row scrolls sideways, and a classic
+     scrollbar takes its height out of the content box — pinned to the card's
+     own height, the bar pushed the card tops out of the row instead. */
+  .game-hand-dock {
+    display: grid;
+    grid-template-rows: minmax(var(--game-hand-h), auto);
+    align-content: center;
+  }
+  .game-player-dock [data-testid="hand"] {
+    height: auto !important;
+    min-height: var(--game-hand-h) !important;
+  }
+  /* The desktop fan hangs below the dock on a negative margin so its arc reaches
+     the screen edge. There is no arc here, so the row was only hanging its
+     bottom edge into the action strip. */
+  .game-player-dock [data-testid="hand"] {
+    margin: 0 !important;
+  }
+
+  /* The rotated caption spends a whole column of a 393px screen to name what the
+     egg pile and the raising slot under it already show. Without it the band is
+     one row, and the height it gives back goes to the hand. */
+  .game-breeding-dock {
+    padding: var(--ds-space-1) var(--ds-space-3) !important;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .game-breeding-dock > div:first-child {
+    display: none;
+  }
+
+  /* Only three of the six depth layers: each sits 2.6px further down-right than
+     the last, and six of them reach past the rail and off the screen. Three
+     still read as a stack. */
+  .game-pile__layer:nth-child(n + 4) {
+    display: none;
+  }
+  /* The pile a finger opens is the 42px card wide and nothing more, which is
+     under the touch minimum on the horizontal axis. The rail has the room. */
+  .game-pile-column :has(> .game-pile),
+  .game-breeding-dock :has(> .game-pile) {
+    min-width: 44px;
+  }
+  /* The three depth layers still hang 7.8px below the pile's own box, and being
+     positioned they paint over anything in flow after them — at the compact 2px
+     gap that was the top of the caption's letters. */
+  .game-pile + span {
+    margin-top: 6px;
+  }
+  /* Both are painted outside the card they belong to, which is fine mid-board and
+     off the screen at the right edge of it: the arc is pulled inside the card's
+     own box and each star is centred on its point instead of starting there. */
+  .game-card-sparkles {
+    inset: -18% 0 45%;
+  }
+  .game-card-sparkle {
+    translate: -50% 0;
+  }
+
+  /* The opening hand centred its rows inside the `fr` track it sits in, which
+     opened ~130px between the copy explaining the mulligan and the cards it is
+     about. */
+  .mulligan-cards {
+    align-content: start;
+  }
+
   .match-notice-stack,
   .side-panel-stack {
     max-height: 7rem;
@@ -4354,6 +4503,20 @@ button.opponent-action-feed__current:focus-visible {
   }
   .side-panel-stack[data-side="you"] {
     bottom: calc(17rem + env(safe-area-inset-bottom, 0px));
+  }
+  /* The same band as the viewer's panels. A notice takes its taps rather than
+     letting them through, and at the tablet block's 9rem it was sitting on the
+     egg deck and the raising slot — the two pieces the breeding step is about. */
+  .match-notice-stack[data-anchor^="bottom-"] {
+    bottom: calc(17rem + env(safe-area-inset-bottom, 0px));
+  }
+  /* Below the opponent's feed, which starts at 6.75rem and is 3.25rem tall here:
+     at the base 9.5rem the feed painted over the call-out naming the attacker. */
+  .match-notice-stack[data-anchor^="top-"] {
+    top: calc(10.5rem + env(safe-area-inset-top, 0px));
+  }
+  .attack-announcement {
+    top: calc(10.5rem + env(safe-area-inset-top, 0px));
   }
 
   /* The board-mode rail becomes a bottom sheet above the hand: as a left rail it
@@ -4383,6 +4546,49 @@ button.opponent-action-feed__current:focus-visible {
     min-width: 0;
     min-height: 44px;
   }
+
+  /* Sized by the button it holds. At 3.25rem the row left a 36px content box for
+     a control the touch rules floor at 44px, and the sidebar's own clip took the
+     missing 8px off the bottom of the breeding step's only action. */
+  .game-sidebar > div:nth-child(2) {
+    height: auto;
+    min-height: calc(44px + var(--ds-space-2) * 2);
+  }
+
+  /* Both dismiss buttons float over the board and are the only early way out of
+     a notice or a reveal panel, so each keeps its compact chip — the chrome has
+     no room for a 44px one — and carries a 44px target behind it.
+
+     The notice's target grows down and left from the corner the chip sits in
+     rather than around it: the stack clips to its own band, and a target centred
+     on a chip that close to the top edge would have lost a quarter of itself. */
+  .match-notice__close::after {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.35rem;
+    width: 44px;
+    height: 44px;
+    content: "";
+  }
+  .side-panel__close {
+    position: relative;
+  }
+  .side-panel__close::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: "";
+    translate: -50% -50%;
+  }
+
+  /* The orb's overhang rides the band's divider on a desktop board. Here the
+     band is barely taller than the orb, so the half-rem hanging below it was
+     the slice of the circle the player saw cut off: it sits inside instead. */
+  .game-end-turn-orb {
+    margin: 0 0.5rem;
+  }
 }
 
 /* Keyed on width alone: a landscape phone is ~844px wide and fits all three
@@ -4405,10 +4611,12 @@ button.opponent-action-feed__current:focus-visible {
    NARROW_LAYOUT_QUERY carries the same condition, so the touch sheets and the
    strip come along with these rules. */
 @media (height < 520px) and (orientation: landscape) {
-  .game-layout {
+  :root {
     --game-rail: 6.25rem;
     --hand-card-width: 3.5rem;
     --game-hand-h: calc(var(--hand-card-width) * 1.4 + var(--ds-space-1));
+  }
+  .game-layout {
     height: 100dvh !important;
     display: grid !important;
     grid-template-rows: minmax(0, 1fr);
@@ -4680,7 +4888,7 @@ button.opponent-action-feed__current:focus-visible {
      whole viewport once the strip takes a column. */
   .game-action-bar--contextual {
     position: fixed;
-    z-index: calc(var(--ds-z-toast) - 2);
+    z-index: calc(var(--ds-z-dialog) - 6);
     right: var(--ds-space-2);
     bottom: max(var(--ds-space-2), env(safe-area-inset-bottom));
     left: var(--ds-space-2);
