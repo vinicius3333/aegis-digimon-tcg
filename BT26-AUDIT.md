@@ -277,3 +277,58 @@ pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-006.ts apps/api/src/cards/B
 ```
 
 The audit found and corrected one fidelity defect: the play branch previously admitted only `Digimon`, excluding valid Bagra Army Tamers despite the printed “card” wording. It now admits `Digimon` and `Tamer`, with focused behavioral proof. No unresolved card-text ambiguity remains. No commit or push was made, per the audit task instructions.
+
+## BT26-007 — Swipemon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-007` (`Swipemon`), a white level 2 Digi-Egg/In-Training with `Appmon` form, `Navi` attribute, and `Swipe` trait. It has no main or Security effect.
+- Printed inherited text: `[When Attacking] [Once Per Turn] You may link 1 [Seven Code] trait Digimon card from your hand or this Digimon's digivolution cards to this Digimon with the cost reduced by 2.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-007`; it reports Q6962 and no local erratum, restriction, or other card-specific ruling. Q6962 confirms that a card without `<Link>` cannot be linked by this optional effect.
+- Comprehensive Rules §2-3-11-4-1–4-3 define the structured Link requirement and link cost; §10-1-1, §10-1-2-1–2, and §10-1-3-1–3 define legal Link cards, hand/battle-area sourcing, bottom insertion, cost payment, and final attachment.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-007.ts` contains exactly one inherited `WhenAttacking` effect with `frequency: "OncePerTurn"` and one optional `Link` action.
+- The action selects exactly one own `Digimon` carrying the `Seven Code` trait and an actual `linkRequirement` (`hasLinkRequirement: true`), sources it from `hand` or `digivolutionCards`, and applies `costDelta: -2`. `target.source: "thisDigimon"` narrows only the stack branch to the source permanent, while preserving the printed hand branch; the omitted recipient uses the source permanent as “this Digimon.”
+- The shared `candidateLooseInstances` resolver applies `source: "thisDigimon"` only to hosted stack candidates, and `definitionMatches` applies the kind, trait, controller, and structured Link-capability predicates. `runLink` parses the candidate's printed Link cost, floors the reduced cost at zero, pays it through the shared memory plumbing, and `primitives.link` moves the selected card to the bottom of the host's existing linked cards and makes it face-up.
+- The timing/sub-trigger machinery installs inherited effects from a real evolution stack and tracks the physical-copy `OncePerTurn` ledger across repeated attack windows. Registration is exclusively `registerIrCard("BT26-007", compiled)`; no legacy `registerCard` registration exists for this card.
+- Relevant peers inspected: BT25-089 for hand/stack Link with `hasLinkRequirement` and cost reduction; BT26-028, BT26-037, BT26-084, and BT26-086 for Seven Code/Appmon Link sourcing and self-recipient patterns; BT26-010 and BT26-019 for the Seven Code Link cards and their cost-3 requirements; and the shared Link action, loose-card targeting, Link eligibility, cost, and placement primitives. Their controller, trait, Link-capability, cost, and stack-order conventions are consistent with Swipemon.
+
+### Behavioral proof
+
+The existing `apps/api/src/cards/BT26/BT26-007.test.ts` suite has 8 passing tests proving:
+
+- inherited `WhenAttacking` timing, `OncePerTurn`, optionality, exact Link action shape, and the `-2` reduction;
+- linking an eligible cost-3 `Seven Code` Digimon from hand for cost 1, with memory and final linked zone asserted;
+- linking an eligible card from this Digimon's own digivolution cards, preserving the remaining stack;
+- rejection of a matching card in another Digimon's stack, proving the source-stack boundary;
+- suppression across repeated attack windows after one successful activation;
+- Q6962's rejection of a Digimon without `<Link>`;
+- rejection of a Link-capable Digimon without the `Seven Code` trait; and
+- optional refusal with no memory payment or card movement.
+
+The focused suite is mutation-sensitive: restoring the prior `hostFilter` encoding makes the hand and once-per-turn positive cases fail because the shared loose-card resolver treats that host filter as inapplicable to the hand branch; removing `source: "thisDigimon"` makes the cross-stack negative fail. No unresolved card-text ambiguity remains.
+
+### Verification
+
+Commands and results:
+
+```text
+node tools/kb/query.mjs card BT26-007
+  PASS (Q6962; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-007.test.ts
+  PASS (8 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-007.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/subTriggerSeams.test.ts
+  PASS (4 files, 350 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-089.test.ts src/cards/BT26/BT26-028.test.ts
+  PASS (2 files, 14 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-007.ts apps/api/src/cards/BT26/BT26-007.test.ts BT26-AUDIT.md
+  PASS
+git diff --check
+  PASS
+```
+
+The audit found and corrected one fidelity defect: the previous `hostFilter: { isSelfRef: true }` on the combined hand/stack target incorrectly rejected all hand candidates. The source restriction is now encoded with `target.source: "thisDigimon"`, and the Link-capability gate is explicit. A broader peer command also exposed unrelated failures in BT26-019, BT26-084, and BT26-086 (none of those modules or tests was touched by this diff); the directly affected Link mechanism suites and BT26-007 focused proof pass. No commit or push was made, per the audit task instructions.

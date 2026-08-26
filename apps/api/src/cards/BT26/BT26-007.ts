@@ -15,10 +15,11 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              hasLinkRequirement: true,
               nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }],
-              hostFilter: { isSelfRef: true },
             },
             count: 1,
+            source: "thisDigimon",
           },
           from: ["hand", "digivolutionCards"],
           costDelta: -2,
