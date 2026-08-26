@@ -496,7 +496,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   focused fixture covers the direct module path, and tests remain deliberately unrun per
   coordinator instruction, so LM-039 remains below 10/10.
 
-## LM-040 — Vikemon — pending focused execution
+## LM-040 — Vikemon — static audit complete; pending focused authorization
 
 - Catalog's named Shakkoumon/Zudomon alternate evolution, Ice Clad, and evolution trash are
   direct compiled IR. `TrashDigivolution` selects all qualifying opponent hosts and uses the
@@ -507,7 +507,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   `ModifySecurityDP` action writes the opponent security-Digimon ledger rather than attempting to
   target security loose cards as permanents. Existing behavior covers pooled trash, both stack
   comparison outcomes, mandatory Then, and once-per-turn.
-- Focused proof remains unrun while PID 82901 is active, so LM-040 remains below 10/10.
+- The direct module is behaviorally aligned with the catalog and Q4843, but the committed
+  `packages/shared/src/effects/effects.json` snapshot remains stale: it encodes the evolution
+  trash as `count: 1`/`amount: 4` without the direct module's pooled `acrossDigimon` selection,
+  and encodes the mandatory Security-Digimon debuff as permanent `ModifyDP` rather than
+  `ModifySecurityDP`. `registerIrCard` overwrites the snapshot when the direct module is loaded,
+  so the focused fixture exercises the corrected direct path; an isolated shared-artifact consumer
+  would not. This is a static shared-artifact gap. Tests remain deliberately unrun per coordinator
+  instruction, so LM-040 remains below 10/10.
 
 ## LM-041 — Regalecusmon — pending focused execution
 
