@@ -873,3 +873,43 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   formatting and `git diff --check` passed. Workspace `pnpm typecheck`
   retains only the known unrelated API errors outside BT5-018.
 - Remaining ambiguity: none identified.
+
+## BT5-019 — Shoutmon DX — 10/10
+
+- Catalog evidence: Red Lv.6 Mega Digimon, Data/Composite, play cost 12,
+  12000 DP, with red Lv.5 evolution cost 4 and red Lv.6 evolution cost 2.
+  Its first `[When Digivolving]` grants `<Blitz>`. Its second may place one red
+  Digimon from hand at the top of its digivolution cards, then deletes one
+  opposing Digimon with 5000 DP or less for each OmniShoutmon or ZeigGreymon
+  in its digivolution cards.
+- Knowledge-base and rules evidence: Q1289 confirms Shoutmon DX can satisfy
+  both Shoutmon-name and Blitz search slots. Q1295 allows a red Digimon of any
+  level to be placed. Q1296-Q1297 describe the resulting de-digivolution
+  stack. Q1298-Q1299 establish simultaneous When Digivolving ordering and that
+  the second effect resolves before counter timing even when Blitz goes first.
+- Implementation: `apps/api/src/cards/BT5/BT5-019.ts` uses two
+  WhenDigivolving effects: a Blitz keyword grant and an optional `PlaceUnder`
+  from own hand filtered to red Digimon with `asTop: true`, followed by a
+  count-one opponent delete capped at DP 5000 and scaled per matching named
+  source. It declares `coverage: "full"`, `residual: []`, and registers only
+  through `registerIrCard("BT5-019", compiled)`.
+- Primitive, peer, and stack evidence: placement preserves exact selected
+  instance identity and top-of-sources order independent of normal evolution
+  level. The scaled delete counts OmniShoutmon and ZeigGreymon sources after
+  placement, resolves distinct targets, and remains independent of optional
+  refusal. BT5-016, BT5-017, BT5-109, BT5-110, and the historical Shoutmon DX
+  deck cover related name, Blitz, stack, and ordering interactions.
+- Behavioral proof: 6 focused tests prove Blitz, inclusive DP 5000/rejection
+  at 5001, one deletion per matching source, exact two-target scaling, optional
+  refusal with unchanged hand/stack while deletion continues, exact top
+  placement of red Lv.3 and Lv.7 cards per Q1295, and rejection of a blue hand
+  card.
+- Defect corrected: none in the IR or engine. The audit added only missing
+  scaling, refusal, top-order, arbitrary-level, and color-filter assertions to
+  `BT5-019.test.ts`.
+- Verification: focused BT5-019 — 1 file, 6 tests passed. Relevant BT5 and
+  historical-deck regressions — 6 files, 27 tests passed. Targeted Oxfmt,
+  Oxlint, and `git diff --check` passed. Workspace `pnpm typecheck` retains
+  only the known unrelated API errors outside BT5-019; repository-wide card
+  formatting has unrelated baseline findings while these files are clean.
+- Remaining ambiguity: none identified.
