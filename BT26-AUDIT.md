@@ -455,3 +455,46 @@ git diff --check
 ```
 
 No unresolved card-text ambiguity remains. No card-specific implementation or test change was required, and no push was made. The audit evidence is delivered in the atomic commit for BT26-010.
+
+## BT26-011 — Buraimon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-011` (`Buraimon`), red level 4 Champion Digimon, play cost 5, DP 5000, Vaccine attribute, and `Birdkin`/`Iliad`/`TS` traits. Its printed normal evolution is red Lv.3 for 2; its alternate evolution is `[Digivolve] Lv.3 w/[TS] trait: Cost 2`. Main text is `＜Raid＞ [On Play] [When Digivolving] By trashing 1 card with [Chronomon] in its text or the [Shaman] trait from your hand, ＜Draw 2＞`; inherited text is `＜Raid＞`.
+- Knowledge base: `node tools/kb/query.mjs card BT26-011` reports Q6965 and no erratum, restriction, or other card-specific ruling. Q6965 defines “a card with [Chronomon] in its text” as a card containing the text/icon in its name, traits, effects, inherited effects, Rule text, or any evolution, DNA Digivolve, DigiXros, Burst Digivolve, App Fusion, Link, or Assembly requirement. Comprehensive Rules §15-7 identifies “by X” as an optional processing condition and requires the following processing only after that condition succeeds; §16-23 defines Raid as an optional attack-target switch to the opponent's unsuspended Digimon with the highest DP. The timing clauses are covered by §15-16-2/3/5.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-011.ts` is a complete IR module (`coverage: "full"`, `residual: []`) with two non-inherited effects: `OnPlay` and `WhenDigivolving` each execute `Draw` amount 2 behind one hand-trash cost, and one inherited static `Raid` keyword. The cost restricts candidates to `zone: "hand"`, `controller: "mine"`, count exactly 1, and the union of `[Chronomon]` text and `[Shaman]` trait. `optional: true` plus `abortOnDecline: true` models the §15-7 optional “by trashing” condition and prevents Draw 2 when it is declined or unpayable.
+- The non-inherited static effect publishes Raid on Buraimon itself; the inherited static effect publishes Raid from a real evolution stack. The committed `generated-digivolve-overrides.json` entry supplies the exact alternate Lv.3/TS/cost-2 requirement, while the catalog supplies the normal red Lv.3/cost-2 requirement. Registration is exclusively `registerIrCard("BT26-011", compiled)`; no legacy `registerCard` registration exists.
+- Shared primitive trace: the interpreter maps `OnPlay`/`WhenDigivolving` to their discrete timing windows, resolves the hand cost before the gated Draw action, and carries the static inherited keyword through stack source resolution. `candidateLooseInstances` plus `definitionMatches` enforce the own-hand zone/controller and OR filter; `matchNameOrTrait(..., match: "text")` spans the full printed-text union required by Q6965. Raid's shared attack resolver selects the highest-DP unsuspended opponent target. Relevant peers inspected: BT26-009 and BT26-062 for the same optional hand-trash-to-draw cost family, BT18-058 for a Chronomon-style `match: "text"` cost, EX12-006 for shared “By trashing ... Draw” sequencing, and BT26-012/BT26-013 for neighboring BT26 trigger/effect conventions.
+
+### Behavioral proof
+
+Existing `apps/api/src/cards/BT26/BT26-011.test.ts` has 9 passing tests proving:
+
+- complete IR shape with both Raid keyword entries and both draw-two trigger windows;
+- alternate Lv.3 `[TS]` evolution for exactly 2 from an off-color TS Digimon, with rejection of a non-TS peer and unchanged memory;
+- On Play payment of exactly one eligible hand card followed by exactly two draws;
+- When Digivolving payment with a `[Shaman]` card and draw ordering after the evolution draw;
+- Q6965 matching when `[Chronomon]` appears only in a card's inherited text;
+- optional refusal and the no-eligible-card path, with no trash or draws;
+- Raid publication on the top card and from a real evolution stack; and
+- Raid's printed attack redirection to the highest-DP unsuspended opponent Digimon.
+
+The cases resolve the full effect stack and assert observable zones, memory, stack transitions, hand/deck contents, and attack outcomes. The positive/negative evolution cases prove the alternate requirement, while the mixed eligible/ineligible hand cases and Q6965 inherited-text case prove the cost filter and text union. No card-specific implementation or test change was necessary because the existing module and nine behavioral tests already prove the complete contract.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-011
+  PASS (Q6965; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-011.test.ts
+  PASS (9 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-011.test.ts src/cards/BT26/BT26-009.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts
+  PASS (4 files, 335 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-011.test.ts src/engine/subTriggerSeams.test.ts src/engine/conformance/ch15-01-effect-basics.test.ts src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts
+  PASS (4 files, 53 tests)
+```
+
+No unresolved card-text ambiguity remains. No implementation or test change was required, no duplicate legacy registration exists, and no push was made. The BT26-011 audit evidence is left uncommitted for coordinator review.
