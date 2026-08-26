@@ -11781,28 +11781,23 @@
         "trigger": "OnDeletion",
         "actions": [
           {
+            "kind": "Return",
+            "to": "deckBottom",
+            "target": {
+              "filter": { "zone": "battleArea", "controller": "mine", "nameOrTrait": [{ "tokens": ["Analogman"], "match": "name" }] },
+              "count": 1
+            },
+            "optional": true,
+            "abortOnDecline": true
+          },
+          {
             "kind": "PlayWithoutCost",
             "target": {
               "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Machinedramon"], "match": "name" }] },
               "count": 1
             },
             "from": ["hand"],
-            "payCost": false,
-            "cost": {
-              "kind": "MovePermanent",
-              "direction": "toDeckBottom",
-              "target": {
-                "filter": {
-                  "zone": "battleArea",
-                  "controller": "mine",
-                  "nameOrTrait": [{ "tokens": ["Analogman"], "match": "name" }]
-                },
-                "count": 1
-              },
-              "raw": "By placing 1 of your [Analogman]s in play at the bottom of its owner's deck"
-            },
-            "optional": true,
-            "abortOnDecline": true
+            "payCost": false
           }
         ]
       }
