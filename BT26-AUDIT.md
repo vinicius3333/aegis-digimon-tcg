@@ -1648,3 +1648,48 @@ git diff --check
 ```
 
 No unresolved BT26-036 ambiguity or unsupported printed clause remains. The implementation and focused tests were corrected only for the two identified fidelity gaps; no shared-engine files were changed. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-036; the collection is not marked complete.
+
+## BT26-037 — Weatherdramon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-037` (`Weatherdramon`), a green level-4 Sup./Appmon Digimon with 5000 DP, play cost 5, Navi attribute, and `Weather (App Name)`/`Seven Code` traits. Its normal evolution requirement is green Lv.3 for cost 2. The special requirements are `[App Fusion] [Weathermon] & [Rocketmon] & [Newsmon]: Cost 0` and `[Assembly -2] Lv.3 [Navi]/[System]/[Seven Code] trait Digimon card`. The printed main text is `＜Blocker＞`, `＜Detach ([Seven Code] trait)＞`, and `[On Play] [When Digivolving] You may link 1 level 3 Digimon card with the [Navi], [System] or [Seven Code] trait from this Digimon's digivolution cards to this Digimon without paying the cost.` Its link requirement is `[Link] [Appmon] trait: Cost 3`, and its link text is `[When Linking] This Digimon may battle 1 of your opponent's Digimon.` It has no inherited or Security text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-037 --json`; it returns no erratum or banlist restriction and Q7014–Q7017. Q7014 confirms that only cards with `<Link>` may be linked; Q7015 defines “may battle” as an immediate standard battle; Q7016 confirms that effect immunity does not prevent choosing a Digimon for that battle; Q7017 confirms all six ordered pairs of two distinct names among Weathermon, Rocketmon, and Newsmon.
+- Comprehensive Rules evidence: §§2-3-9 and 8-4-1–3 define App Fusion and the two-distinct-name pairing; §§2-3-10 and 7-3-1–3 define Assembly, exact material count, cost reduction, and stack placement; §§4-8-1–2 and 4-9-1–5 distinguish digivolution cards from link cards and enforce link requirements/limits; §§6-5-1-4 and 10-1-1–3 define linking, paying its cost, and placing the link; §§15-16-2-1 and 15-16-3-1 define On Play and When Digivolving; §15-16-6-1 defines When Linking; §§14-1–2 define DP comparison and battle deletion; §16-5-1–2 defines Blocker; and §16-46-1–3 defines the optional Detach prevention. No card-specific ambiguity remains after Q7014–Q7017.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-037.ts` is compiled IR with `coverage: "full"` and `residual: []`. It registers exactly once through `registerIrCard("BT26-037", compiled)`; no `registerCard` registration exists.
+- `appFusionRequirement` exactly captures the three printed names and cost 0. The shared `appFusionCostFor` seam requires the top name plus one linked card with a different required name, matching Q7017 and rejecting duplicates/unrelated names.
+- `assemblyRequirement` exactly captures Assembly -2 and one level-3 Digimon with the OR trait set. The focused Assembly test proves the material is taken from trash, stacked under Weatherdramon, and removed from trash.
+- `linkRequirement` now captures `[Appmon]` and cost 3. The On Play/When Digivolving `Link` actions are optional, free (`payCost: false`), source exactly one level-3 Digimon with `<Link>` and Navi/System/Seven Code, and are restricted by `controllerDefault: "mine"` plus `hostFilter: { isSelfRef: true }` to this Weatherdramon's own digivolution cards. The host restriction is necessary for the printed “this Digimon's” boundary.
+- The static keyword window supplies Blocker and Detach with the exact Seven Code trait parameter. The linked static window fires a `whenLinked` SubTrigger whose optional `Battle` uses this linked host as attacker and exactly one opponent Digimon as defender; the combat seam performs the immediate DP battle and honors Q7015/Q7016.
+- Shared seams inspected: `effects/interpreter/actions/link.ts` and loose-card targeting for `<Link>` eligibility, link cost, source zone, owner, host filtering, and relocation; `effects/interpreter/actions/combat.ts` and `combat/controller.ts` for immediate Battle and effect-immunity bypass; `actions/assembly.ts` for trash material selection and cost reduction; keyword registration/continuous projection for Blocker and Detach; and `data.ts` for App Fusion/Assembly metadata. Relevant peers inspected: BT26-010, BT26-019, BT26-028, BT26-051, BT26-063, and BT26-084 for Seven Code/Detach, Appmon link costs, linked triggers, and this-Digimon stack filtering.
+
+### Behavioral proof and correction
+
+- The audit found two real fidelity gaps and corrected only this card: `compiled.linkRequirement` was missing despite the catalog's `[Link] [Appmon] trait: Cost 3`, and the source filter could select a qualifying level-3 link card from another own Digimon's stack because it lacked `hostFilter: { isSelfRef: true }` (and the explicit own-controller default). No shared-engine change was necessary.
+- `apps/api/src/cards/BT26/BT26-037.test.ts` now has 9 passing tests. It proves the exact App Fusion/Assembly/link metadata and keyword/trigger shape; all six distinct ordered App Fusion pairs plus duplicate rejection; linking an eligible source and resolving the linked-face battle; Q7014 rejection of a level-3 card without `<Link>`; optional refusal of the On Play link; exclusion of an eligible card under another own Digimon; Q7015/Q7016 battle against an effect-immune Digimon; optional refusal of that linked battle; and actual Assembly -2 from trash.
+- The mixed-stack test uses an illegal source under Weatherdramon and a legal Navi link card under a separate own Digimon, proving the latter remains untouched. The battle test uses a real link intent and a 3000-DP opponent; the effect-immune restriction is applied before linking and the direct battle still deletes the lower-DP opponent. All assertions occur after effect settlement.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-037 --json
+  PASS (Q7014–Q7017; banlist: null; errata: null)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-037.test.ts
+  PASS (1 file, 9 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-037.test.ts src/cards/BT26/BT26-035.test.ts src/cards/BT26/BT26-036.test.ts src/cards/BT26/BT26-038.test.ts src/engine/cards/bt26Assembly.test.ts src/engine/conformance/ch02-card-information.test.ts src/engine/conformance/ch08-digivolution.test.ts
+  PASS (7 files, 73 tests)
+  Note: the additional `src/engine/conformance/ch10-link.test.ts` regression run has one pre-existing failure in `src/engine/linkState.test.ts` (BT25-056 cost integration expects a link that is not created); no BT26-037 test or shared file is implicated.
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxlint apps/api/src/cards/BT26/BT26-037.ts apps/api/src/cards/BT26/BT26-037.test.ts
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-037.ts apps/api/src/cards/BT26/BT26-037.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-037 ambiguity or unsupported printed clause remains. Only the card module and colocated focused test were changed; changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-037; the collection is not marked complete.
