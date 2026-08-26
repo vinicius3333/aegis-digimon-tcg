@@ -1,9 +1,22 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT10-066.js";
+import { compiled } from "./BT10-066.js";
 
 describe("BT10-066 DarkKnightmon", () => {
+  it("matches its catalog and exact DigiXros, On Play, and deletion-window IR", () => {
+    const d = getCardDefinition("BT10-066")!;
+    expect([d.colors, d.level, d.playCost, d.dp]).toEqual([["Black"], 5, 8, 7000]);
+    expect(d.evoCosts).toEqual([{ color: "Black", level: 4, memoryCost: 4 }]);
+    expect([d.forms, d.attributes, d.types]).toEqual([["Ultimate"], ["Virus"], ["Dark Knight", "Twilight"]]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects.map(({ trigger }) => trigger)).toEqual(["OnPlay", "AllTurns"]);
+    expect(compiled.digiXrosRequirement).toEqual([
+      { materials: [{ names: ["SkullKnightmon"] }, { names: ["DeadlyAxemon"] }], count: 2 },
+    ]);
+  });
+
   it("De-Digivolves an opposing Digimon on play", async () => {
     const s = setupEngine(
       {
@@ -90,5 +103,34 @@ describe("BT10-066 DarkKnightmon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     assertNoLoudGap(s);
+  });
+
+  it("returns one source, freely plays the other named source, then completes deletion", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT10-066",
+              as: "source",
+              under: [
+                { card: "BT7-059", as: "cost" },
+                { card: "BT7-058", as: "played" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("played").instanceId, s.inst("cost").instanceId);
+    await s.ready();
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.players[0]!.hand.length === 1);
+    const sourceIds = new Set([s.inst("cost").instanceId, s.inst("played").instanceId]);
+    expect(sourceIds).toContain(s.state.players[0]!.battleArea[0]!.topCard.instanceId);
+    expect(sourceIds).toContain(s.state.players[0]!.hand[0]!.instanceId);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT10-066");
   });
 });
