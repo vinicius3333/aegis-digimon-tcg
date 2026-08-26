@@ -5,7 +5,7 @@ import { relocateByEffect } from "../costs.js";
 import { unsupported } from "../errors.js";
 import { matchNameOrTrait } from "../matching/definition.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
-import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import { EffectDuration } from "@aegis/shared";
 import type { Action, Target, ZoneRef } from "@aegis/shared";
 
@@ -459,7 +459,16 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
           ? zoneList(action.target.filter.zone)
           : ["hand", "trash", "deck"];
   const looseCandidates = candidateLooseInstances(ctx, action.target, zones);
-  const required = action.target.count === "all" ? looseCandidates.length : (action.target.count ?? 1);
+  // A named "up to one of each" selection may legitimately contain only the names
+  // currently available. It still needs one candidate to make the optional action
+  // meaningful, but must not be suppressed merely because a different required name
+  // is absent (BT6-075 Q1465).
+  const required =
+    (action.target.requiredNamesExactUpTo?.length ?? 0) > 0
+      ? 1
+      : action.target.count === "all"
+        ? looseCandidates.length
+        : effectiveTargetCount(ctx, action.target);
   if (required <= 0 || (action.target.upTo !== true && looseCandidates.length < required)) return false;
 
   if (action.destination !== undefined) {

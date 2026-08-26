@@ -123,7 +123,9 @@ describe("BT6-075 Ginkakumon Promote", () => {
         instanceId: s.inst("promote").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea[0]!.stack.length === 1);
+    await settle(() =>
+      s.state.players[0]!.battleArea[0]!.stack.some((card) => card.instanceId === s.inst("onlyKinkakumon").instanceId),
+    );
 
     expect(s.state.players[0]!.battleArea[0]!.stack[0]!.instanceId).toBe(s.inst("onlyKinkakumon").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(0);
