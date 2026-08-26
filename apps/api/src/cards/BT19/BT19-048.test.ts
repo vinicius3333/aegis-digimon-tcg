@@ -11,16 +11,17 @@ describe("BT19-048 ForgeBeemon", () => {
       level: 3, traits: ["Royal Base"], cost: 2, isAlternate: true,
     });
     const s = setupEngine({ 0: {
-      battleArea: [{ card: "BT19-045", as: "base" }],
+      battleArea: [{ card: "BT18-044", as: "base" }],
       hand: [{ card: "BT19-048", as: "forge" }], deck: ["BT19-030"],
     } });
     s.state.memory = 5;
     await s.ready();
     expect(s.engine.applyIntent(0, {
       type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("forge").instanceId,
+      useAlternateCost: true, alternateRequirementIndex: 0,
     })).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT19-048");
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT19-045"]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT18-044"]);
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT19-048")).toBe(false);
   });
