@@ -112,8 +112,14 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // Bind the delete OUTCOME on ctx (effect-result binding): the count actually removed, read
       // by a subsequent "if this effect didn't delete" Condition (KB BT23-069 Q5338). A resolve
       // that chose 0 targets (none eligible) is also "didn't delete" => bind 0.
+      const selectedLevels = ids.map((id) => {
+        const permanent = ctx.game.permanentById(id);
+        return permanent?.topCard === undefined ? undefined : ctx.game.definitionOf(permanent.topCard).level;
+      });
       ctx.lastDeleteCount = ids.length > 0 ? await ctx.fx.deletePermanent(ids) : 0;
       ctx.lastDeletedByThisEffectIds = ids.filter((id) => ctx.game.permanentById(id) === undefined);
+      ctx.lastDeletedLevel =
+        ctx.lastDeletedByThisEffectIds.length > 0 ? selectedLevels.find((level) => level !== undefined) : undefined;
       ctx.deletedThisEffectIds = [
         ...(ctx.deletedThisEffectIds ?? []),
         ...ctx.lastDeletedByThisEffectIds.filter((id) => !(ctx.deletedThisEffectIds ?? []).includes(id)),
