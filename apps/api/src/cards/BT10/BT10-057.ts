@@ -1,13 +1,13 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Filter } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const bloom = {
+const bloom: Filter = {
   controllerDefault: "mine",
   kind: ["Digimon"],
   suspended: true,
   nameOrTrait: [{ tokens: ["Vegetation", "Plant", "Ancient Plant", "Carnivorous Plant", "Fairy"], match: "trait" }],
 };
-const suspendedDigimon = { controllerDefault: "mine", kind: ["Digimon"], suspended: true };
+const suspendedDigimon: Filter = { controllerDefault: "mine", kind: ["Digimon"], suspended: true };
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const compiled: CompiledCard = {
   effects: [
@@ -37,14 +37,14 @@ const compiled: CompiledCard = {
           kind: "ModifyDP",
           target: self,
           amount: 2000,
-          duration: "untilEachTurnEnd",
+          duration: "forTheTurn",
           scaling: { per: 2, unit: "cards", filter: suspendedDigimon },
         },
         {
           kind: "GainKeyword",
           target: self,
           keyword: { keyword: "SecurityAttack", amount: 1 },
-          duration: "untilEachTurnEnd",
+          duration: "forTheTurn",
           scaling: { per: 2, unit: "cards", filter: suspendedDigimon },
         },
       ],
