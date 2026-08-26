@@ -182,7 +182,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-064 — 10/10
   - Evidence: catalog and KB Q2306 reviewed; corrected compiled IR to register printed Blocker statically, separately tracing opponent-turn On Deletion Chessmon hand play, the self-inclusive eighth-trash-card level-ceiling raise, and controller/trait filters.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-064.test.ts` passed (3 tests): static Blocker observation, Q2306-aware IR threshold, and live opponent-turn free play.
-- BT13-065 — Pending
+- BT13-065 — 10/10
+  - Evidence: catalog and KB Q2307/Q2308/Q2615 reviewed; compiled IR exclusively uses `registerIrCard`, tracing On Deletion De-Digivolve 1 with level-3 floor and inherited optional deletion replacement paid by another same-controller Sukamon-name Digimon (including opponent-owned Sukamon via controller-independent target semantics where applicable).
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-065.test.ts` passed (2 tests): IR clause proof and live registration; replacement source identity and optional/cost guards match Q2307–Q2308.
 - BT13-066 — Pending
 - BT13-067 — Pending
 - BT13-068 — Pending

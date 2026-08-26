@@ -40,7 +40,7 @@ export const compiled: CompiledCard = {
                 kind: "deleteOwn",
                 target: {
                   filter: {
-                    controller: "mine",
+                    controller: "any",
                     excludeSelf: true,
                     kind: ["Digimon"],
                     nameOrTrait: [
