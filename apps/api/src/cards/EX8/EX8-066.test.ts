@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PlayerState } from "@aegis/shared";
+import { EffectTiming, PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-066.js";
 
@@ -56,5 +57,59 @@ describe("EX8-066", () => {
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("opponent").stack).toHaveLength(0);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === stackedInstanceId)).toBe(true);
+  });
+  it("gains memory only with an opposing Digimon and triggers on a real Ice-Snow evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-066", as: "tamer" },
+            { card: "EX8-019", as: "iceBase" },
+          ],
+          hand: [{ card: "EX8-022", as: "iceEvolution" }],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "opponent", under: ["BT1-010", "BT1-011"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("tamer"));
+    expect(s.state.memory).toBe(1);
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("iceBase").permanentId,
+        instanceId: s.inst("iceEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").isSuspended && s.perm("opponent").stack.length === 1);
+    expect(s.perm("opponent").stack).toHaveLength(1);
+
+    const noOpponent = setupEngine({ 0: { battleArea: [{ card: "EX8-066", as: "tamer" }] } });
+    await advance(noOpponent.engine).fire(EffectTiming.StartOfYourMainPhase, noOpponent.perm("tamer"));
+    expect(noOpponent.state.memory).toBe(0);
+  });
+
+  it("may refuse the Ice-Snow play trigger without suspending or trashing a source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-066", as: "tamer" }], hand: [{ card: "EX8-019", as: "ice" }] },
+      1: { battleArea: [{ card: "AD1-001", as: "opponent", under: ["BT1-010"] }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ice").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });
