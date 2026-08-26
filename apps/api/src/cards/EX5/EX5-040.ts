@@ -34,6 +34,7 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           breeding: true,
           notSameNameAs: ["battleArea", "trash"],
+          optional: true,
         },
       ],
     },
@@ -77,18 +78,9 @@ export const compiled: CompiledCard = {
             },
           },
           while: {
-            kind: "youHave",
-            filter: {
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Four Sovereigns", "God Beast"],
-                  match: "trait",
-                },
-              ],
-              isSelfRef: true,
-            },
-            count: 1,
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Four Sovereigns", "God Beast"], match: "trait" }] },
+            raw: "this Digimon has the [Four Sovereigns]/[God Beast] trait",
           },
         },
       ],
