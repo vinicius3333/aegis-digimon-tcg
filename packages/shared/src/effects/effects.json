@@ -12553,9 +12553,15 @@
             }
           },
           {
+            "kind": "SelectBind",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "bindAs": "movedDigimon" },
+            "optional": true
+          },
+          {
             "kind": "PlaceUnder",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "underFilter": { "controller": "opponent", "excludeSelf": true, "kind": ["Digimon"] },
+            "target": { "filter": {}, "count": 1, "fromSelectionRef": "movedDigimon" },
+            "targetIsPermanent": true,
+            "underFilter": { "controller": "opponent", "kind": ["Digimon"] },
             "condition": {
               "kind": "opponentHas",
               "filter": { "zone": "battleArea", "controllerDefault": "opponent", "kind": ["Digimon"] },
