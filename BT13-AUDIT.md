@@ -272,7 +272,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-093 — 10/10
   - Registration: exclusive `registerIrCard("BT13-093", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-093.test.ts` passed (2 tests): On Play draw and optional Royal Knight placement under breeding King Drasil are covered.
-- BT13-094 — Pending
+- BT13-094 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-094", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-094.test.ts` passed (3 tests): phase memory gate, Biyomon aura effect library entry, and security play clause are covered.
 - BT13-095 — Pending
 - BT13-096 — Pending
 - BT13-097 — Pending
