@@ -1,8 +1,33 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-095.js";
 import "./BT9-095.js";
 
 describe("BT9-095 Gaia Force ZERO", () => {
+  it("matches catalog values and exact-source reduction, attack, and security IR", () => {
+    expect(getCardDefinition("BT9-095")).toMatchObject({
+      colors: ["Red"], kinds: ["Option"], playCost: 8,
+      securityEffectText: "[Security] Delete 1 of your opponent's Digimon.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        {
+          trigger: "Static",
+          actions: [{
+            kind: "Replacement", event: "wouldBePlayed",
+            actions: [{
+              kind: "Replacement", mode: "reduceCost", amount: 2,
+              condition: { kind: "youHave", filter: { digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] } },
+            }],
+          }],
+        },
+        { trigger: "Main", actions: [{ kind: "Delete", target: { filter: { dp: { op: "lte", value: 13000 } } } }, { kind: "Attack", attackPlayer: true, optional: true, target: { filter: { nameOrTrait: [{ tokens: ["Greymon"], match: "name" }] } } }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "Delete" }] },
+      ],
+    });
+  });
+
   it("deletes an opposing Digimon at 13000 DP or less", async () => {
     const s = setupEngine(
       { 0: { battleArea: ["BT9-007"], hand: [{ card: "BT9-095", as: "option" }] }, 1: { battleArea: ["BT9-032"] } },

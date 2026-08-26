@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Q1898-Q1901: the reducer requires the exact [X Antibody] card name; the
 // optional Greymon attack must be legal, targets only the player, and runs the
 // ordinary attack lifecycle (including [When Attacking] effects).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
