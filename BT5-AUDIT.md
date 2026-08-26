@@ -1878,3 +1878,46 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-045 — LordKnightmon — 10/10
+
+- Catalog evidence: Yellow Lv.6 Mega Digimon, Virus/Holy Warrior/Royal
+  Knight, play cost 13, 11000 DP, and yellow Lv.5 evolution cost 3. When
+  attacking, it may play from hand without cost either a yellow Lv.3 Digimon
+  or a yellow Warrior Digimon. During all turns, it gets +1000 DP for each
+  other own Digimon in play.
+- Knowledge-base and rules evidence: Q1332 confirms the play pool is one
+  shared union: 1 yellow Lv.3 or 1 yellow Warrior Digimon. The applicable
+  rules cover attack-declaration timing, optional refusal, play without cost
+  with normal On Play processing, and continuously recalculated DP.
+- Implementation: `apps/api/src/cards/BT5/BT5-045.ts` uses an optional
+  `WhenAttacking` `PlayWithoutCost` from hand with common yellow/Digimon gates
+  and an OR of Lv.3 versus Warrior trait. Its `AllTurns` self `ModifyDP`
+  continuously scales +1000 per own battle-area Digimon while excluding self.
+  It declares `coverage: "full"`, `residual: []`, and registers exclusively
+  through `registerIrCard("BT5-045", compiled)`.
+- Primitive, trait, stack, and peer evidence: loose-card targeting combines
+  the common color/kind constraints with either branch, so neither a red Lv.3
+  nor a yellow non-Warrior higher-level card qualifies. Optional play preserves
+  the hand on refusal and normal play processing fires the selected card's
+  On Play effects. BT5-034 proves LordKnightmon's Holy Warrior trait while
+  BT5-042 supplies a real yellow Warrior target. A legal BT5-042 Lv.5 stack
+  reaches LordKnightmon for the printed cost. The historical deck plays
+  Knightmon during attack, resolves its DP deletion, and dynamically grows
+  LordKnightmon when the new ally enters.
+- Behavioral proof: 6 focused tests prove both Q1332 positive branches, the
+  mixed invalid-filter boundary, optional refusal, legal yellow Lv.5
+  evolution with retained stack, exact +1000 per other own Digimon, and
+  exclusion of opposing Digimon from scaling. The historical deck adds a full
+  attack/play/On Play/deletion/recompute flow.
+- Defect corrected: none in the module. The implementation was faithful; the
+  audit added missing negative-filter, refusal, legal-stack, and opposing-board
+  assertions.
+- Verification: focused and historical BT5-045, BT5-034/078/079 peers,
+  complete interpreter, and BT20-051/BT15-003 optional-play peers — 8 files,
+  206 tests passed. Targeted Oxfmt, Oxlint, and `git diff --check` pass.
+  Workspace typecheck retains only the known unrelated baseline errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
