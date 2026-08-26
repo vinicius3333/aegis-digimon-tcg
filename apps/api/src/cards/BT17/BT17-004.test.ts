@@ -23,4 +23,12 @@ describe("BT17-004", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
+
+  it("does not grant Blocker to a non-Argomon host during the opponent's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-030", as: "host", under: ["BT17-004"] }] } });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
+  });
 });
