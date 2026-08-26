@@ -1593,3 +1593,42 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-037 — Gladimon — 10/10
+
+- Catalog evidence: Yellow Lv.4 Champion Digimon, Vaccine/Warrior, play cost
+  4, 4000 DP, and yellow Lv.3 evolution cost 2. On play, its controller may
+  search their Security for 1 Digimon with Warrior or Holy Warrior in its
+  type, reveal and add it to hand, recover 1 from deck only if a card was
+  added, and then shuffle Security.
+- Knowledge-base and rules evidence: Q1320 confirms the controller privately
+  sees the entire Security stack while only the chosen card is revealed to
+  the opponent. Q1321 confirms that no eligible card means no Recovery, but
+  Security is still shuffled before the effect ends.
+- Implementation: `apps/api/src/cards/BT5/BT5-037.ts` performs an optional
+  own-Security `Search` for one Digimon using a trait OR of Warrior/Holy
+  Warrior and binds the result. `SecurityManipulation addTop` from deck is
+  gated by that binding, followed unconditionally by Security shuffle. The
+  module declares `coverage: "full"`, `residual: []`, and registers
+  exclusively through `registerIrCard("BT5-037", compiled)`.
+- Primitive and peer evidence: Security search decisions expose every private
+  card identity to the owning seat while candidate IDs remain filter-limited;
+  only the selected card moves to hand. Empty or declined optional searches
+  leave the result binding absent, suppressing Recovery without skipping the
+  following shuffle. BT18-037 proves equivalent private Security search and
+  refusal behavior; BT11-042 proves refusal/no-Recovery/shuffle sequencing;
+  the capability suite proves `nameOrTrait` entries are a union.
+- Behavioral proof: 3 focused tests prove Warrior selection plus Recovery
+  preserves Security size, the full stack is privately visible while a
+  non-Warrior is disabled, and no eligible Warrior suppresses Recovery.
+  Sixteen peer tests cover optional refusal, shuffle, and related Security
+  search boundaries without duplicating sufficient focused coverage.
+- Defect corrected: none. The compiled IR and existing tests were already
+  faithful, so no changes were made.
+- Verification: focused BT5-037, BT18-037 and BT11-042 peers — 3 files, 16
+  tests passed. Filtered trait-OR mechanism — 1/1 passed (289 unrelated cases
+  skipped). `git diff --check` passes. Workspace typecheck retains only the
+  known unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
