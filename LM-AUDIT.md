@@ -250,3 +250,15 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   deletion path rather than merely asserting its marker.
 - No local Q&A exists. This new focused case is intentionally unrun under PID 43774, so LM-043
   remains below 10/10.
+
+## LM-044 — Ghoulmon — pending focused execution
+
+- Catalog maps directly to hand Counter Blast Digivolve, static Blocker/Retaliation, and the
+  sequential On Deletion clauses. The first independently checks opponent hand at five-or-more
+  before trashing one; the second observes the resulting hand size and deletes an opponent level
+  six-or-lower Digimon only at four-or-fewer.
+- Q4844 confirms the second condition is evaluated independently even when the discard condition
+  was initially false. Existing behavioral tests prove initial five (discard then delete), four
+  (no discard but delete), and six (discard leaves five, so no delete) boundaries, plus keyword
+  registration. No source semantic gap was found.
+- The focused suite remains unrun under PID 43774, so LM-044 remains below 10/10.
