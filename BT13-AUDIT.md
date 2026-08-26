@@ -50,7 +50,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-020 — 10/10
   - Evidence: catalog and KB Q2278/Q2279/Q3677/Q5992–Q5996 reviewed; compiled IR exclusively uses `registerIrCard`, with Marcus-return Burst requirement/end-turn top-card trash, optional free Marcus play, temporary kind/12000 DP/Rush/digivolve restriction, and own-turn Tamer-suspension security trash traced through shared evolution, event, duration, and frequency seams.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-020.test.ts` passed (7 tests): IR/Burst shape, temporary Marcus state, alternate Burst flow/end-turn cleanup, normal-evolution refusal, and own-turn once-per-turn/opponent-turn security boundaries.
-- BT13-021 — Pending
+- BT13-021 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing the own-attacking once-per-turn draw for each controller and All Turns inherited opponent-hand threshold aura through attack timing, controller routing, frequency, and live zone count.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-021.test.ts` passed (5 tests): both draw recipients, same-turn frequency, inherited threshold at 8, and live 7-to-8 boundary.
 - BT13-022 — Pending
 - BT13-023 — Pending
 - BT13-024 — Pending
