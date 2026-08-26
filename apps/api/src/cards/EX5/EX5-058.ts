@@ -152,3 +152,33 @@ export const compiled: CompiledCard = {
 };
 
 registerIrCard("EX5-058", compiled);
+
+// Fujitsumon is synthetic, but its printed reminder text is executable card
+// behavior. Register it beside its creating card so every token-placement route
+// receives the same continuous and deletion clauses.
+registerIrCard("TOKEN-Fujitsumon-Token", {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "Restrict",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          restriction: "unsuspend",
+          duration: "permanent",
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "Trash",
+          target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+});

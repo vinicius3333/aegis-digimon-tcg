@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX5-058.js";
 
 describe("EX5-058 Octomon", () => {
+  it("registers Fujitsumon's no-unsuspend and mandatory deletion hand-trash clauses", () => {
+    expect(registeredCompiledCards.get("TOKEN-Fujitsumon-Token")).toMatchObject({
+      effects: [
+        { trigger: "Static", actions: [{ kind: "Restrict", restriction: "unsuspend", duration: "permanent" }] },
+        { trigger: "OnDeletion", actions: [{ kind: "Trash", target: { filter: { controller: "mine", zone: "hand" } } }] },
+      ],
+    });
+  });
   it("creates or gives an opponent a suspended Fujitsumon token based on the four-Digimon threshold", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({

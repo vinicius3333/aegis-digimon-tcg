@@ -61,7 +61,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-055 | HeavyLeomon | 1 | Direct IR now correctly uses De-Digivolve alone (which already trashes the former top card) before the ≤6000 bottom-deck sequence for evolution/deletion; bound end-attack return controls the fallback unsuspend. | Pending focused proof |
 | EX5-056 | Syakomon | 1 | On Play draw scales over live opposing Digimon before mandatory hand trash; inherited once-per-turn watcher uses shared effect-driven opponent-Digimon `whenPlayed` gate for memory. | Pending focused proof |
 | EX5-057 | Labramon | 1 | Optional On Play hand-trash cost gates exact Dark Animal/Shaman trash recovery; inherited memory watcher is owner-turn, effect-driven friendly-Digimon entry, Once Per Turn. | Pending focused proof |
-| EX5-058 | Octomon | 6 | Entry modal branches on live total Digimon/token count: ≥4 self-side or ≤3 opponent-side suspended Fujitsumon Token creation now uses executable `PlayToken`, with printed Purple/3000 identity; inherited opponent effect-play watcher uses shared entry payload and Once Per Turn. | Pending focused run |
+| EX5-058 | Octomon | 6 | Entry modal branches on live total Digimon/token count: ≥4 self-side or ≤3 opponent-side suspended Fujitsumon Token creation uses executable `PlayToken`, Purple/3000 identity, plus registered token no-unsuspend and mandatory On Deletion hand-trash clauses; inherited effect-play watcher remains Once Per Turn. | Pending focused run |
 | EX5-059 | Dobermon (X Antibody) | 2 | On Play grants Retaliation through opponent-turn end; evolution draw/trash may reactivate that route only from a live Dobermon/X Antibody trait stack, and inherited effect-play watcher gains memory Once Per Turn. | Pending focused proof |
 | EX5-060 | Dragomon | 13 | Opponent-trash play is a suspended, On-Play-suppressed level≤4 placement; effect-driven opponent entry then feeds the shared `whenPlayed` snapshot gate, allowing one optional Purple trash play at level≤the captured entrant. | Pending focused proof |
 | EX5-061 | Cerberusmon (X Antibody) | 1 | On Play optional Purple level-3 trash play; evolution draw/trash may reactivate the On Play route only from a live Cerberusmon/X Antibody stack, and inherited attack unsuspend pays deletion of another own Digimon. | Pending focused proof |
@@ -158,7 +158,7 @@ This index records the executable trigger/action route inspected for each card; 
 | EX5-055 | Fortitude; De-Digivolve/trash/return; end-attack return. |
 | EX5-056 | draw/trash; deletion memory subtrigger. |
 | EX5-057 | return/trash; play memory subtrigger. |
-| EX5-058 | modal Deva/token; deletion memory subtrigger. |
+| EX5-058 | modal token placement; registered token no-unsuspend/deletion-trash; inherited memory subtrigger. |
 | EX5-059 | Retaliation; reactivate; deletion memory. |
 | EX5-060 | Deva play; Delay grant/play; Piercing. |
 | EX5-061 | Deva play/reactivate; self-delete unsuspend. |
