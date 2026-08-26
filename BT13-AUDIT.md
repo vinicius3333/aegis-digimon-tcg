@@ -143,7 +143,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-051 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing On Play own-Digimon-only temporary Piercing and inherited own-turn +2000 DP aura for Beast/Animal/Sovereign excluding Sea Animal or Royal Knight hosts.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-051.test.ts` passed (5 tests): controller-scoped Piercing, trait and turn aura positives/negatives, and evolution cost.
-- BT13-052 — Pending
+- BT13-052 — 10/10
+  - Evidence: catalog and KB Q2294 reviewed; compiled IR exclusively uses `registerIrCard`, tracing static Jamming separately from inherited +1000 DP when the opponent has no unsuspended Digimon, including zero-opponent and dynamic suspension states.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-052.test.ts` passed (5 tests): live-vs-inherited keyword separation, Q2294 zero-opponent condition, dynamic state boundaries, and evolution cost.
 - BT13-053 — Pending
 - BT13-054 — Pending
 - BT13-055 — Pending
