@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-035 (Cougarmon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-035 Cougarmon | Yellow level 4 Digimon; alternate level-3 `[Glowing Dawn]` evolution cost 2; on play/when digivolving, 1 opposing Digimon gets -3000 DP for the turn, then this Digimon may digivolve into a `[Glowing Dawn]` Digimon in hand for free by trashing 2 bottom face-down cards from under any own Tamers. Q6299-Q6301 cover zero-DP rule-check timing and require both cards, allowing them to be spread across Tamers. | **No card-specific causal mismatch found statically.** The two trigger windows sequence the -3000 modification before the optional free evolution. The evolution action uses a Glowing Dawn trait destination, `payCost: false`, and a count-2 bottom-face-down-under-Tamer cost that can aggregate across Tamers. Inherited Barrier and alternate evolution are represented. | Structural test only; no execution of mandatory two-card aggregation, one-card refusal, bottom-card order, zero-DP rule-check timing, free evolution legality, or Barrier. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-035
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-035` (Q6299-Q6301).
+- Direct module/test and shared bottom-face-down Tamer cost, multi-Tamer aggregation,
+  free digivolution, and post-effect zero-DP handling were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-034 (Angemon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
