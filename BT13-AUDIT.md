@@ -74,7 +74,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-028 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing Kiyoshiro-gated hand evolution, exact Jellymon/TeslaJellymon identities, bottom-source placement, overridden cost, and the inherited three-card Jellymon-text return/unsuspend frequency.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-028.test.ts` passed (7 tests): full hand-evolution path, missing prerequisites, exact-name negative, three-card return, and once-per-turn boundary.
-- BT13-029 — Pending
+- BT13-029 — 10/10
+  - Evidence: catalog and KB Q2280 reviewed; compiled IR exclusively uses `registerIrCard`, correctly distinguishes the attack-target-switch restriction from only preventing Blocker and traces the inclusive opponent 8-card hand boundary, turn duration, inherited opponent-hand event, and once-per-turn source anchoring.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-029.test.ts` passed (4 tests): blocked target switching at 8, Blocker behavior at 7, opponent-only inherited event, and once-per-turn boundary.
 - BT13-030 — Pending
 - BT13-031 — Pending
 - BT13-032 — Pending
