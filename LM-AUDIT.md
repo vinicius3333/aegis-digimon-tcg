@@ -118,3 +118,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   negative boundaries.
 - The focused suite is intentionally unrun while PID 43774 holds the test slot, so LM-032 remains
   below 10/10.
+
+## LM-033 — Garnet Memory Boost! — pending focused execution
+
+- Catalog and Q4063/Q4064 map to a self-bound Static `WaiveColorRequirement` with
+  `alsoColor: black`, not a blanket waiver. The interpreter's option-legality path includes both
+  battle and breeding area colour sources, and keeps a red-or-black source mandatory.
+- Main correctly reveals three, adds one red-or-black Digimon, bottoms the rest, then places the
+  Option; Delay separately gains two memory; Security places it. The focused module proves red,
+  black battle, black breeding, and no-colour-source paths, and the shared Delay suite exercises
+  cost/payment removal and the two-memory payload.
+- All focused proof remains unrun under PID 43774, so LM-033 remains below 10/10.
