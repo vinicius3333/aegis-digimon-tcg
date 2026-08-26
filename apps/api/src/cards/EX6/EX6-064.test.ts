@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-064.js";
 
-describe("EX6-064 Lopmon", () => {
+describe("EX6-064 Shu-Chong Wong", () => {
   it("reveals three for Beast-family cards", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "RevealAdd",
