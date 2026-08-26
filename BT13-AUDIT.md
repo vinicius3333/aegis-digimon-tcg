@@ -209,7 +209,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-073 — 10/10
   - Evidence: catalog and KB Q2311 reviewed; compiled IR exclusively uses `registerIrCard`, tracing static Blocker, alternate level-5 Chessmon evolution at 3, and all-turn own Chessmon actual-deletion event into self-unsuspend (not replacement prevention).
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-073.test.ts` passed (2 tests): IR clause proof and live own-Chessmon deletion unsuspend.
-- BT13-074 — Pending
+- BT13-074 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, traces separate On Play/evolution top-three optional free-play of a Mamemon costing 10 or less with rest trash, and all-turn Jamming/Reboot auras for own Mamemon-name and Royal Knight Digimon.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-074.test.ts` passed (2 tests): IR clause proof and live dual-keyword aura on both trait branches.
 - BT13-075 — Pending
 - BT13-076 — Pending
 - BT13-077 — Pending
