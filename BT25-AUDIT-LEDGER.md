@@ -112,6 +112,22 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-025 (Aegiochusmon: Blue)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-025 Aegiochusmon: Blue | Blue/black level 5 Digimon; alternate `[Aegiomon]` evolution cost 3; Blocker and Decode ([Aegiomon]); on play/when digivolving De-Digivolve 1 opposing Digimon, then if the controller has 3 or fewer security cards, unsuspend 1 own Digimon; inherited all-turn once-per-turn: when the controller's security stack is removed from, may unsuspend 1 own Shaman Digimon. Q6289 specifies security-effect and triggered-effect ordering. | **No card-specific causal mismatch found statically.** Both main trigger windows sequence De-Digivolve before the conditional own unsuspend, with the correct `<= 3` security boundary and controller scopes. The inherited watcher uses `whenSecurityRemoved`, `sourceFilter.controller: mine`, an optional Shaman target, and once-per-turn frequency. The shared security-removal gate maps `mine` to the watcher's owner seat, covering both checks and effect-driven removal. Blocker, Decode, alternate evolution, and exact target filters are present. | The colocated test is structural only; it does not execute De-Digivolve sequencing, the 3/4 security boundary, optional refusal, Shaman/non-Shaman selection, once-per-turn consumption, or Q6289 ordering. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-025
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-025` (Q6289).
+- Direct module/test and shared `whenSecurityRemoved` routing were inspected. Security
+  removal payloads identify `removedFromSecuritySeat`, and the dedicated gate correctly
+  interprets `sourceFilter.controller: mine` relative to the watcher source owner.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-024 (Lekismon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
