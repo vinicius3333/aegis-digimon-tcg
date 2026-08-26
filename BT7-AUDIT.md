@@ -248,6 +248,23 @@ Remaining work is behavioral proof of Q1664's evolution-stack boundary and the G
 
 Remaining work is focused behavioral proof of the full Security sequence and inherited duration; this card is not formally complete at 10/10.
 
+## BT7-087 — Koji Minamoto — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog/rulings (1/1):** Purple Tamer with Main placement of exactly five Hybrid hand cards and optional MagnaGarurumon digivolution, Security free play, and inherited Your Turn effect-triggered memory/block restriction; Q1657–Q1662 are available.
+2. **Main placement (1/1):** `PlaceUnder` selects five Hybrid cards from hand and places them beneath this Tamer in bottom/any order.
+3. **Optional evolution (1/1):** Digivolution is gated on the tracked count reaching five, targets only MagnaGarurumon from hand, and charges its evolution cost.
+4. **Rulings fidelity (1/1):** The count gate and optional destination align with Q1659/Q1660; `virtualBase` preserves the Tamer's blue level-5 evolution context.
+5. **Inherited trigger (1/1):** Your Turn inherited subtrigger listens for effect-driven hand additions, gains 1 memory, and prevents blocking for the turn.
+6. **Security (1/1):** Security plays this card without cost from security.
+7. **Direct IR/registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-087", compiled)` registration are present.
+8. **Static primitive trace (1/1):** Hybrid filter, exact five count, source/destination, MagnaGarurumon name, payment, once-per-turn keys, inherited timing, and restriction duration are explicit.
+9. **Clause completeness (1/1):** Main, inherited, and Security clauses map directly to compiled actions; Q1661 persistence is delegated to shared duration/state handling.
+10. **Reproducible behavioral proof (0/1):** Tests exist for the main evolution, wrong-color boundary, and inherited behavior but were not executed in this static-only pass; optional decline, four-card refusal, and Security proof remain unclaimed.
+
+Remaining work is behavioral proof of Q1659/Q1660 optional/count boundaries and inherited persistence; this card is not formally complete at 10/10.
+
 ## BT7-101 — Thunder Laser — 9/10 (static audit)
 
 ### Clause-by-clause score
