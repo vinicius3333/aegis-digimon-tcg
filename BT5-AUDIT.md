@@ -111,3 +111,63 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `primitives.test.ts`; it reports no BT5-002 errors. Changed-file
   `pnpm exec oxfmt --check apps/api/src/cards/BT5/BT5-002.test.ts` and
   `git diff --check` pass.
+
+## BT5-003 — Pickmon — 10/10
+
+- Catalog evidence: Yellow Digi-Egg, Lv.2 In-Training, play cost -1, DP 0,
+  no digivolution costs, [Minor] trait, rarity U, and max 4 copies. It has no
+  main, regular, or Security text. Its sole inherited clause is
+  "[When Attacking] If you have 3 or more Digimon in play, 1 of your
+  opponent's Digimon gets -1000 DP for the turn."
+- Knowledge base and rules evidence: `node tools/kb/query.mjs card BT5-003`
+  returns the card identity and Q1282, which confirms that the Digimon this
+  card is part of counts toward its inherited effect. The local manual's
+  Digivolution Cards section says cards under a Digimon are not themselves
+  cards on the field while their inherited effects are usable by the host;
+  its effect basics say unspecified effects reference the battle area, and
+  its effect timing section defines When Attacking as triggering when the
+  Digimon declares an attack. No errata or restriction changes the catalog
+  clause.
+- Implementation: `apps/api/src/cards/BT5/BT5-003.ts` contains one inherited
+  `WhenAttacking` effect. Its `youHave` condition counts at least 3 of the
+  source controller's battle-area Digimon, and its only action targets exactly
+  one opponent Digimon for `ModifyDP` amount -1000 with `forTheTurn` duration.
+  The module is registered exclusively with
+  `registerIrCard("BT5-003", compiled)`, and declares `coverage: "full"` with
+  `residual: []`.
+- Primitive trace: `evaluateCondition` implements `youHave` as a minimum
+  count using the source owner as `mine`; `countMatching` scans battle-area
+  permanents for the explicit zone and kind filter, so opponent permanents,
+  Tamers, and breeding-area Digimon do not satisfy the gate. The
+  `WhenAttacking` trigger is emitted at attack declaration, and
+  `candidatePermanents` resolves the target's opponent/kind filter over the
+  battle area, with count 1. `ModifyDP` routes `forTheTurn` through the
+  modifier ledger, which recomputes `currentDP`, survives attack end, and is
+  removed by the turn-end sweep.
+- Peer and stack evidence: BT5-001 and BT5-002 provide the neighboring
+  Digi-Egg inherited-effect patterns; their tests also verify that inherited
+  sources follow the host stack. The focused suite now includes a real legal
+  BT5-003 Yellow Lv.2 -> BT1-045 Yellow Lv.3 breeding digivolution, asserts
+  the source-card transition and stack, moves the evolved host to the battle
+  area, and proves the inherited effect. It also proves that two battle-area
+  Digimon plus one breeding-area Digimon do not meet the gate, and that the
+  effect selects one opposing Digimon while leaving the other opposing and
+  all own Digimon unchanged.
+- Behavioral proof: 6 focused tests pass. They cover the positive 3-Digimon
+  path, the exact 2-Digimon negative boundary (including an opponent Digimon
+  that must not count), the legal breeding evolution stack, explicit breeding
+  exclusion, exact-one opponent targeting, and persistence through attack end
+  followed by expiry at the owner's turn end. Q1282's host-counting case is
+  represented by the legal stack test's host plus two other battle-area
+  Digimon.
+- Defect corrected: none in the card module or shared engine. The audit added
+  only the missing BT5-003 behavioral proof to
+  `apps/api/src/cards/BT5/BT5-003.test.ts`.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-003.test.ts` — 1 file, 6 tests passed. No shared engine
+  seam changed, so no mechanism regression suite was required. Workspace
+  `pnpm typecheck` is expected to retain the repository's pre-existing
+  unrelated errors in `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  `primitives.test.ts`; it reports no BT5-003 source errors. Changed-file
+  formatting and `git diff --check` are required below and are clean.
