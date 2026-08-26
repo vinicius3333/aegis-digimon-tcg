@@ -28,3 +28,10 @@
 - Implementation trace: `BT10-004.ts` exclusively registers compiled IR. Its inherited `YourTurn` `SubTrigger(whenEffectSuspends)` accepts a Digimon source, targets only the host with `ModifyDP(+1000, forTheTurn)`, and has `OncePerTurn` frequency.
 - Behavioral proof: `BT10-004.test.ts` proves the errata frequency across own and opponent Digimon, independent arming of two inherited copies without duplicate watchers after recompute, and the opponent-turn negative case. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-004.test.ts`.
 - Stack/ownership evidence: the first case proves Q1930 from an actual Bosamon host stack; the dual-stack case confirms that controller-owned inherited sources each observe effect-driven suspension once, without recompute multiplying either trigger.
+
+## BT10-005 — Monimon — 10/10
+
+- Catalog contract: `[All Turns]` inherited effect grants +1000 DP while the host has the `[Twilight]` trait. The catalog identifies a black, level 2 CRT/Twilight/Xros Heart DigiEgg; the knowledge base has no card-specific entry.
+- Implementation trace: `BT10-005.ts` exclusively calls `registerIrCard`; its inherited All Turns Aura targets only the host, applies `modifyDP(+1000)`, and continuously gates on the host having the exact Twilight trait.
+- Behavioral proof: `BT10-005.test.ts` proves the positive Twilight host and removes the bonus after an observable De-Digivolve exposes a non-Twilight top card while retaining Monimon in the stack. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-005.test.ts`.
+- Peer/stack evidence: the De-Digivolve scenario uses a layered, real evolution stack and a nonmatching BT10-020 comparator, proving live host-trait recomputation rather than a one-time source-card trait check.
