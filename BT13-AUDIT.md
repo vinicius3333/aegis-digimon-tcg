@@ -68,7 +68,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-026 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing the non-OPT attack draw and inherited opponent-only bottom digivolution-card trash through attack timing, controller filtering, evolution-stack ordering, and trash routing.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-026.test.ts` passed (4 tests): direct draw, repeated attacks without a frequency limit, inherited bottom-card trash, and source/owner boundaries.
-- BT13-027 — Pending
+- BT13-027 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; corrected compiled IR to register printed Blocker as a static keyword (rather than an opponent-turn-only keyword), while separately tracing the optional opponent-attack level-4-or-lower play from this stack through controller, level, source-zone, and cost primitives.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-027.test.ts` passed (4 tests): static Blocker on both turns, stack play, refusal, and level/source-zone selection.
 - BT13-028 — Pending
 - BT13-029 — Pending
 - BT13-030 — Pending
