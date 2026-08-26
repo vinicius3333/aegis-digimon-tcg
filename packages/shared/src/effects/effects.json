@@ -8708,7 +8708,7 @@
               "count": 1,
               "from": ["hand", "trash"]
             },
-            "underFilter": { "isSelfRef": true },
+            "underFilter": { "controllerDefault": "mine", "kind": ["Digimon"] },
             "optional": true
           },
           {
@@ -11345,7 +11345,7 @@
               "upTo": true,
               "from": ["trash"]
             },
-            "underFilter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "underFilter": { "isSelfRef": true },
             "optional": true
           },
           {
