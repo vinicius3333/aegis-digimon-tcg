@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-016.js";
 
-describe("EX6-016 Ghostmon", () => {
+describe("EX6-016 Salamon", () => {
   it("gains memory at the start of the main phase if you have a purple Digimon or Tamer", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase")?.actions[0]).toMatchObject({
       kind: "GainMemory",
