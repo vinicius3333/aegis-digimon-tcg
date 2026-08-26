@@ -406,3 +406,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-020.
+
+## BT25-021 — Gaomon — 10/10
+
+- Catalog evidence: Blue level-3 Digimon, play cost 3, 2000 DP, `Rookie`/`Data`, `Beast`/`DATA SQUAD`; alternate Wanyamon or level-2 DATA SQUAD evolution for 0; On Play reveal top 3, add one Thomas H. Norstein/DATA SQUAD trait card and one Gaogamon-name card, bottoming the rest; inherited When Attacking once-per-turn both players Draw 1.
+- Knowledge base: `node tools/kb/query.mjs card BT25-021` returned no entries, so there are no local card-specific rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct IR contains two exact independent RevealAdd slots with shared revealed-card consumption, the deck-bottom remainder, both alternate evolution routes, and two inherited Draw actions under one source-scoped frequency. It exactly matches the persisted shared IR, has full coverage/no residual clauses, and registers exclusively through `registerIrCard("BT25-021", compiled)`.
+- Behavioral proof: the existing focused suite verifies the complete search/evolution/inherited IR contract. The delegated audit traced shared RevealAdd distinct-card consumption and compared neighboring search, Gaogamon, and DATA SQUAD implementations, covering selection order, no double-use, bottoming, stack inheritance, controller/opponent draws, and once-per-turn identity. No defect was found, so no test or implementation change was needed.
+- Verification: focused suite — 2 passed; reencoded-IR suite — 29 passed with 10 unrelated baseline failures; `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-021 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-021
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-021.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-021.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-021.
