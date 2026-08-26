@@ -10,11 +10,16 @@ describe("BT5-099 Spiral Masquerade", () => {
     expect(runtimeCompiledCard("BT5-099")).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("activates -3000 DP separately once for each Digimon you control", async () => {
+  it("Q1374 activates -3000 DP separately once for each Digimon you control", async () => {
     const s = setupEngine(
       {
         0: { battleArea: ["BT5-033", "BT5-034"], hand: [{ card: "BT5-099", as: "option" }] },
-        1: { battleArea: [{ card: "BT5-046", as: "target", dp: 10000 }] },
+        1: {
+          battleArea: [
+            { card: "BT5-046", as: "first", dp: 10000 },
+            { card: "BT5-046", as: "second", dp: 10000 },
+          ],
+        },
       },
       { autoSelectCards: true },
     );
@@ -22,8 +27,9 @@ describe("BT5-099 Spiral Masquerade", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("target").currentDP === 4000);
-    expect(s.perm("target").currentDP).toBe(4000);
+    await settle(() => s.perm("first").currentDP === 4000);
+    expect(s.perm("first").currentDP).toBe(4000);
+    expect(s.perm("second").currentDP).toBe(10000);
   });
 
   it("activates the scaled Main effect from security", async () => {

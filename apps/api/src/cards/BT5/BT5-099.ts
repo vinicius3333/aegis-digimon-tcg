@@ -11,24 +11,26 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
+          // Each loop is a separate activation and therefore may choose a
+          // different opposing Digimon (KB Q1374).
+          kind: "RepeatPerCount",
+          countSource: "youHave",
+          countFilter: {
+            zone: "battleArea",
+            controller: "mine",
+            kind: ["Digimon"],
           },
-          amount: -3000,
-          duration: "forTheTurn",
-          scaling: {
-            per: 1,
-            filter: {
-              zone: "battleArea",
-              controller: "mine",
-              kind: ["Digimon"],
+          action: {
+            kind: "ModifyDP",
+            target: {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
+              },
+              count: 1,
             },
-            unit: "cards",
+            amount: -3000,
+            duration: "forTheTurn",
           },
         },
       ],
