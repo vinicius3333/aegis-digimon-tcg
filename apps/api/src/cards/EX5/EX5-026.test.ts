@@ -14,7 +14,12 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
       duration: "untilOpponentTurnEnd",
       condition: {
         kind: "selfDigivolutionStackHasTrait",
-        filter: { nameOrTrait: [{ match: "name", tokens: ["MetalGarurumon", "X Antibody"] }] },
+        filter: {
+          nameOrTrait: [
+            { match: "name", tokens: ["MetalGarurumon"] },
+            { match: "trait", tokens: ["X Antibody"] },
+          ],
+        },
       },
     });
   });
@@ -31,6 +36,13 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
     const action = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0];
     const installs: unknown[] = [];
     const grants: unknown[][] = [];
+    const sourcePermanent = {
+      permanentId: "source-permanent",
+      controllerSeat: 0,
+      currentDP: 11000,
+      stack: [{ cardId: "x-antibody-source", instanceId: "x-antibody-source-top", ownerSeat: 0 }],
+      topCard: { cardId: "EX5-026", instanceId: "source-top", ownerSeat: 0 },
+    };
     const currentOpponent = {
       permanentId: "current-opponent",
       controllerSeat: 1,
@@ -59,12 +71,13 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
     ]);
     const definition = { kinds: ["Digimon"], colors: [], types: [] };
     const ctx = {
-      source: { ownerSeat: 0, definition, permanent: () => undefined },
+      source: { ownerSeat: 0, definition, permanent: () => sourcePermanent },
       game: {
         opponentOf: () => 1,
         permanentById: (id: string) => permanents.get(id),
         player: (seat: number) => ({ battleArea: seat === 1 ? [currentOpponent] : [], breeding: undefined }),
-        definitionOf: () => definition,
+        definitionOf: (card: { cardId?: string }) =>
+          card.cardId === "x-antibody-source" ? { ...definition, types: ["X Antibody"] } : definition,
       },
       fx: {
         grantCustomEffect: (...args: unknown[]) => grants.push(args),

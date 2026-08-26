@@ -151,6 +151,10 @@ export function permanentMatchesFilter(
   source: CardSource,
 ): boolean {
   if (permanent.topCard === undefined) return false;
+  // Controller is a live permanent property, not part of the card definition. Keep
+  // watcher-side matching (for example, a later entrant to an opponent-only aura)
+  // subject to the same source-relative seat scope used during target enumeration.
+  if (!seatsForController(ctx, filter).includes(permanent.controllerSeat)) return false;
   // A permanent filter naming a field zone must distinguish the breeding area from
   // the battle area. Cost-modifier predicates receive both kinds of permanent directly,
   // so relying on the caller's candidate scan would let battle-area-only reducers apply
