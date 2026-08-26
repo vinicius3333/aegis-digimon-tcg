@@ -262,3 +262,15 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   (no discard but delete), and six (discard leaves five, so no delete) boundaries, plus keyword
   registration. No source semantic gap was found.
 - The focused suite remains unrun under PID 43774, so LM-044 remains below 10/10.
+
+## LM-045 — Vermilion Memory Boost! — pending focused execution
+
+- Catalog maps to direct Static `alsoColor: yellow` rather than a blanket color waiver. The
+  executable option-legality path accepts the printed red or alternate yellow source in battle or
+  breeding, and rejects a player with neither. Main reveals three, adds one red-or-yellow
+  Digimon, bottoms the rest, then places the Option; Delay gains two memory and Security places it.
+- Existing focused behavior covers native/alternate battle and breeding sources, refusal, reveal
+  resolution, and Security; shared Delay tests cover its activation lifecycle. The LM-033-specific
+  Q4063/Q4064 citations in this card's comments were removed because LM-045 has no local KB entry
+  and the catalog is the only card-specific authority available.
+- Tests remain deliberately unrun under PID 43774, so LM-045 remains below 10/10.
