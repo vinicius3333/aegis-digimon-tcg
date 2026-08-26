@@ -33,7 +33,6 @@ const compiled: CompiledCard = {
                 controller: "mine",
                 kind: ["Digimon"],
                 colors: ["Blue"],
-                keywords: ["Decode"],
               },
               count: 1,
             },
