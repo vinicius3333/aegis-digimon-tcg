@@ -572,6 +572,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: two focused cases assert complete catalog identity, exact empty IR, legal evolution and retained stack, printed-cost play, final memory and zones, and absence of an effect decision.
 - Verification: focused suite — 2 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-065 — Assaultmon — 10/10
+
+- Catalog evidence: black level 5 Digimon, play cost 7, 10000 DP; evolves from black level 4 for 3; form `Ultimate`, attribute `Virus`, type `Cyborg`; it has no main, inherited, or Security effect text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-065` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct compiled module intentionally has an empty effect list with full coverage and no residual clauses, and registers exclusively through `registerIrCard("BT10-065", compiled)`. All executable behavior is catalog-driven ordinary play and evolution.
+- Primitive trace: normal evolution validates the exact black level-4 recipe, charges 3, performs the evolution draw, and retains the base as a source; normal play charges printed cost 7 and creates a 10000-DP permanent without an effect window.
+- Cross-card and stack proof: real black level-4 Golemon proves the catalog evolution transition, while a second physical Assaultmon proves direct play independently in the same fixture.
+- Behavioral proof: two focused cases assert complete catalog identity, exact empty IR, legal evolution and retained stack, printed-cost play, final memory and zones, and absence of an effect decision.
+- Verification: focused suite — 2 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
