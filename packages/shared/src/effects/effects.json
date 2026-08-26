@@ -13612,27 +13612,28 @@
         "trigger": "Main",
         "actions": [
           {
+            "kind": "PlaceUnder",
+            "target": {
+              "filter": {
+                "zone": "trash",
+                "controllerDefault": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Vemmon", "Destromon"], "match": "name" }]
+              },
+              "count": 1
+            },
+            "from": ["trash"],
+            "underFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "position": "bottom",
+            "bindHostAs": "fusionizeHost"
+          },
+          {
             "kind": "Digivolve",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "into": "[Destromon] or [Galacticmon]",
+            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Destromon", "Galacticmon"], "match": "name" }] },
             "from": "trash",
-            "freeCost": false,
-            "cost": {
-              "kind": "place",
-              "target": {
-                "filter": {
-                  "zone": "trash",
-                  "controller": "mine",
-                  "nameOrTrait": [{ "tokens": ["Vemmon", "Destromon"], "match": "name" }]
-                },
-                "count": 1,
-                "from": ["trash"]
-              },
-              "raw": "By placing 1 [Vemmon] or [Destromon] from your trash under 1 of your Digimon as its bottom digivolution card",
-              "underFilter": { "controller": "mine", "kind": ["Digimon"] }
-            },
-            "optional": true,
-            "abortOnDecline": true
+            "payCost": true,
+            "optional": true
           }
         ]
       },
