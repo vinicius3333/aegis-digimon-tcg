@@ -196,11 +196,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Static review found a real shared-token fidelity gap: the catalog requires the Gyuukimon Token to
   be Lv.5, 3000 DP, play cost 7, Ultimate/Virus/Dark Animal, while the token registry had Lv.4,
   4000 DP, play cost 4, and no form/attribute/type. The registry and token proof now encode the
-  catalog identity. The authorized post-fix focus ran once and reported 5/6 tests passing; the
-  metadata assertion still observed the stale Lv.4/4000 DP/cost 4 token because `@aegis/shared`
+  catalog identity. The first authorized post-fix focus ran once and reported 5/6 tests passing;
+  the metadata assertion observed the stale Lv.4/4000 DP/cost 4 token because `@aegis/shared`
   resolved the ignored, pre-build `dist` artifact. Normal shared build was blocked by missing local
-  dependencies, while `tsc --noCheck` refreshed the local ignored artifact afterward; no rerun was
-  performed. LM-018 remains below 10/10 pending a fresh authorized focus and later gates.
+  dependencies, while `tsc --noCheck` refreshed the local ignored artifact afterward. A fresh
+  authorized focus was then run once and again reported 5/6 for the same reason: this worktree's
+  `node_modules` symlinks still resolved `@aegis/shared` to the main checkout. Offline frozen
+  installation has now relinked that dependency to this worktree; no third run was performed.
+  LM-018 remains below 10/10 pending a fresh authorized focus and later gates.
 
 ## LM-019 — Bokomon — pending focused execution
 
