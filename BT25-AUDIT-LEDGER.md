@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-038 (Shakkoumon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-038 Shakkoumon | Yellow/black level 5; on play/when digivolving may place an Angel/Archangel/Three Great Angels/Iliad Digimon from hand or a Digimon's digivolution cards as top/bottom security, then if DNA digivolving trash both players' top security cards; all turns once per turn when own security is added, De-Digivolve 1 opposing Digimon; inherited all turns once per turn when own security is removed, one opposing Digimon gets -4000 DP. Q6305 defines ordering with Security effects. | **No card-specific causal mismatch found statically.** The hand-fixed IR uses top/bottom placement, hand/digivolution source locations, a mandatory both-player top-security trash gated by DNA-digivolving, and separate `whenAddSecurity`/`whenSecurityRemoved` once-per-turn watchers with the correct own-stack direction. Main and inherited target scopes, duration, and amounts are represented. | Structural test only; no execution of DNA timing, source-zone selection, top/bottom choice, both-player trash ordering, security watcher budgets, or Q6305 ordering. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-038
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-038` (Q6305).
+- Direct module and shared security placement, DNA condition, both-player top-security trash,
+  and add/remove-security SubTrigger routing were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-037 (Pegasusmon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
