@@ -52,4 +52,13 @@ describe("BT4-032 MachGaogamon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 2000);
   });
+
+  it("does not give its host DP without a Tamer", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-034", as: "host", under: ["BT4-032"] }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });
