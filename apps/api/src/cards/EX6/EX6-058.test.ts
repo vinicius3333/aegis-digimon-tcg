@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-058.js";
 
 describe("EX6-058 Creepymon", () => {
-  it("has Blocker and deletes the opponent's lowest-DP Digimon, then trashes cards based on your Digimon count", () => {
+  it("has Blocker and deletes the opponent's lowest-DP Digimon, then trashes cards based on its level", () => {
     expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords?.[0]?.keyword).toBe("Blocker");
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
       { kind: "Delete", target: { filter: { superlative: "lowestDP" } } },
