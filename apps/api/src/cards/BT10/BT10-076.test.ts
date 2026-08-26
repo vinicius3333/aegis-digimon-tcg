@@ -65,4 +65,17 @@ describe("BT10-076 Troopmon", () => {
     });
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
   });
+
+  it("uses Save to place its physical card under a friendly Tamer", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT10-076", as: "troopmon" }, { card: "BT10-093", as: "yuu" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const troopmonId = s.perm("troopmon").topCard.instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("troopmon").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.perm("yuu").stack.some(({ instanceId }) => instanceId === troopmonId));
+
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === troopmonId)).toBe(false);
+  });
 });
