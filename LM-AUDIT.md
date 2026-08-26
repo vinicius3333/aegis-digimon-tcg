@@ -169,10 +169,15 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   D-Reaper special movement semantics. Catalog proof was tightened in fd8b25340; nine tests are
   unrun in the current serial campaign, so LM-020 remains below 10/10.
 
-## LM-021 — Agumon - Bond of Bravery — pending focused execution
+## LM-021 — Agumon - Bond of Bravery — focused proof green; pending mechanism and collection gates
 
 - Q4012-Q4018 require live ≤2-security named evolution legality and selectable total-DP deletion
-  bounded by source DP. Direct IR and seven focused cases cover those paths but are unrun, so below 10/10.
+  bounded by source DP. The direct aggregate-DP resolver makes an eligible choice mandatory (`min: 1`),
+  as Q4018 requires, and reads the source's live DP.
+- The authorized serialized focused command passed 1/1 file and 7/7 tests in 2.89s on 2026-08-26:
+  `vitest run src/cards/LM/LM-021.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-021 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
 ## LM-022 — Gabumon - Bond of Friendship — pending focused execution
 
