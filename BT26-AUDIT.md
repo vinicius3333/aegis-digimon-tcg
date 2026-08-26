@@ -90,3 +90,49 @@ pnpm exec oxfmt --check <changed files>                                      PAS
 ```
 
 The missing `byEffect: true` gate was corrected in the card module and covered by the added negative behavioral test. No commit or push was made, per the audit task instructions.
+
+## BT26-003 — Kyaromon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-003` (`Kyaromon`), a black Digi-Egg, level 2 In-Training, traits `Lesser`, `Glowing Dawn`, and `BEATBREAK`; it has no main, Security, or other effect text.
+- Printed inherited text: `[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, by trashing the bottom face-down card from under any of your Tamers, change the attack target to 1 of your [Glowing Dawn] trait Digimon.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-003 --json` (the required non-JSON query was also run); it reports no banlist or errata entry and the card rulings Q6952 and Q6953.
+- Q6952 confirms that this attack-target change can affect an attacking Digimon that is unaffected by effects. Q6953 confirms that the inherited effect may be activated and pay its Tamer-stack cost even when no [Glowing Dawn] Digimon is available as a redirect target.
+- Comprehensive rules §11-2-7-2–5 cover effect-based target switching, the prohibition on switching to an existing target, and switching targets involving unaffected Digimon. Sections §4-7-5 and §4-7-9–10 establish bottom-card ordering and the face-down/hidden state relevant to the cost.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-003.ts` contains one inherited `OpponentsTurn`/`OncePerTurn` effect with a `whenOpponentAttacks` sub-trigger.
+- Its `RedirectAttack` action selects exactly one Digimon controlled by the watcher controller whose trait matches `Glowing Dawn`, pays `trashBottomFaceDownUnderTamer` for exactly one of that controller's Tamers, and is optional. `abortOnDecline: true` preserves the unchanged attack when the optional processing is declined; `allowCostWithoutTarget: true` implements Q6953 by allowing the cost to resolve without a redirect candidate.
+- Registration is exclusively `registerIrCard("BT26-003", compiled)`; no `registerCard` registration exists for this card.
+- Shared primitive trace: `runAction` preflights redirect candidates unless `allowCostWithoutTarget` is set, then delegates candidate resolution to the controller chooser and attack switching to `redirectAttack`; the combat primitive preserves target switching for unaffected attackers/targets and emits the attack-target-switched event only after a successful switch. The structured cost preflight and payer enumerate only the bottom (`stack[0]`) face-down card of each matching Tamer, select across any of the controller's Tamers, and trash it through `trashDigivolutionCards`.
+- Relevant peers inspected: BT15-085, BT18-073, BT19-065, BT19-072, and BT19-078 for opponent-turn/once-per-turn redirect patterns; BT26-005, BT26-031, BT26-053, BT26-076, and BT26-082 for the shared bottom-face-down-under-Tamer cost; and BT26-075/BT26-090 for Glowing Dawn and Tamer-stack fixtures. Their controller, trait, timing, and stack-order conventions are consistent.
+
+### Behavioral proof
+
+Existing `apps/api/src/cards/BT26/BT26-003.test.ts` cases prove:
+
+- the inherited trigger, opponent-turn scope, once-per-turn frequency, exact `whenOpponentAttacks` event, optional redirect, and printed cost shape;
+- successful redirection to a Glowing Dawn Digimon while trashing the bottom face-down Tamer card and leaving the upper card under the Tamer;
+- Q6953's no-target path, which still trashes the eligible bottom face-down Tamer card;
+- optional refusal with no cost payment and the original attack proceeding to Security;
+- Q6952's unaffected Progress attacker being redirected successfully;
+- once-per-turn suppression across two opponent attacks, including preservation of the second stack card; and
+- the negative face-up-bottom boundary, which neither pays the cost nor redirects.
+
+The focused behavioral suite passes all 7 tests. It exercises the inherited effect in a real stacked Digimon (`BT26-003` under a Digimon), both an eligible-target path and the ruling-backed no-target path, paid-cost final zones, target switching, optional refusal, immunity interaction, and the once-per-turn ledger. No card or engine change was necessary.
+
+### Verification
+
+Commands and results:
+
+```text
+node tools/kb/query.mjs card BT26-003                                      PASS (Q6952, Q6953; no errata/banlist)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-003.test.ts    PASS (7 tests)
+pnpm --filter @aegis/api exec vitest run src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/subTriggerSeams.test.ts PASS
+pnpm typecheck                                                              PASS
+git diff --check                                                            PASS
+```
+
+No unresolved card-text ambiguity remains. No card-specific test or implementation changes were needed, and no commit or push was made, per the audit task instructions.
