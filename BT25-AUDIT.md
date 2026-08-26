@@ -63,3 +63,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported executable behavior remains for BT25-003.
+
+## BT25-004 — Tapmon — 10/10
+
+- Catalog evidence: Green level-2 Digi-Egg, `Appmon` form, `Tool` attribute, `Tap` type, no evolution recipe, no main or Security text, and inherited `[Your Turn] [Once Per Turn] When a [Social], [Tool] or [Game] trait card would link to this Digimon, you may reduce the cost by 1`.
+- Knowledge base: `node tools/kb/query.mjs card BT25-004` returned no card-specific entries. The audit also applied the general Link rulings Q6422/Q6423, including Link eligibility and the rule that simultaneous reductions do not stack on one declaration.
+- Implementation: `BT25-004.ts` installs an inherited, controller-turn, optional, once-per-turn recipient grant for exactly the three printed traits and amount 1. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-004", compiled)`.
+- Defect corrected: after a once-per-turn recipient grant had been consumed, the declaration-time resolver correctly returned no grant, but `runLink` fell back to an older amount-only reader and reapplied the reduction. The shared Link action now treats an installed grant resolver's `undefined` result as authoritative while retaining the legacy fallback only for lightweight contexts that do not provide that resolver.
+- Behavioral proof: the focused suite verifies the IR shape, optional acceptance/refusal, exact reduction amount, once-per-turn consumption across two declarations, Q6423 non-stacking, a revert-sensitive no-grant path, and a legal Tapmon-under-Appmon live evolution stack. The strengthened test fails against the prior fallback behavior.
+- Verification: focused suite — 6 passed; effect-resolution regression — 7 passed; Link-eligibility regression — 3 passed; targeted Oxfmt/Oxlint and `git diff --check` — passed. `linkState.test.ts` retains an unrelated pre-existing BT25-056 failure, and workspace typecheck retains the already-recorded unrelated errors.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-004
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-004.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-004.test.ts
+pnpm --filter @aegis/api exec vitest run src/engine/effects/resolution.test.ts src/engine/linkEligible.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-004.

@@ -184,8 +184,19 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
     // not stack on one declaration (the store returns its largest single matching grant); both the
     // self delta and the recipient reduction are signed-summed and floored at 0 by linkCostOf.
     const cardTraits = [...(def.types ?? []), ...(def.forms ?? []), ...(def.attributes ?? [])];
-    const grant = ctx.game.linkCostReductionGrant?.(recipientId, cardTraits);
-    let recipientReduction = grant?.amount ?? ctx.game.linkCostReduction?.(recipientId, cardTraits) ?? 0;
+    const grantResolver = ctx.game.linkCostReductionGrant;
+    const grant = grantResolver?.(recipientId, cardTraits);
+    // When the live engine exposes the declaration-time grant resolver, its `undefined`
+    // result is authoritative: it can mean a matching once-per-turn grant was already
+    // consumed. Falling back to the legacy amount-only reader in that case would silently
+    // re-apply the reduction on later Link declarations. Lightweight contexts that only
+    // implement the legacy reader still retain that compatibility path.
+    let recipientReduction =
+      grant !== undefined
+        ? grant.amount
+        : grantResolver === undefined
+          ? (ctx.game.linkCostReduction?.(recipientId, cardTraits) ?? 0)
+          : 0;
     if (grant?.oncePerTurnKey !== undefined && ctx.fx.linkCostReductionUsed?.(grant.oncePerTurnKey)) {
       recipientReduction = 0;
     } else if (recipientReduction > 0 && grant?.optional === true) {
