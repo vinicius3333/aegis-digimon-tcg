@@ -1062,3 +1062,42 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and `primitives.test.ts`.
 - Remaining ambiguity: none identified.
+
+## BT5-024 — Garurumon — 10/10
+
+- Catalog evidence: Blue Lv.4 Champion Digimon, Vaccine/Beast, play cost 5,
+  5000 DP, and blue Lv.3 evolution cost 2. `[When Digivolving]` gains 1 memory
+  if this Digimon has Gabumon in its digivolution cards. Its inherited
+  `[All Turns]` effect gives the host +1000 DP while its name contains
+  Garurumon or Omnimon.
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-024`
+  returns no card-specific QA, errata, restriction, or ruling entries. Local
+  When Digivolving, digivolution-card, exact-name source, name-substring,
+  inherited-effect, and continuous DP rules govern the printed clauses.
+- Implementation: `apps/api/src/cards/BT5/BT5-024.ts` has a
+  `WhenDigivolving` GainMemory action conditioned by an exact Gabumon card in
+  the source stack, plus an inherited `AllTurns` self Aura of +1000 DP gated
+  by the live host name containing Garurumon or Omnimon. It declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-024", compiled)`.
+- Primitive, peer, and stack evidence: source inspection reads the actual
+  digivolution stack and exact Gabumon identity, while the inherited aura
+  reads the live top-card name and persists on either player's turn. A legal
+  blue stack from BT5-020 Gabumon through BT5-024, BT1-040 WereGarurumon,
+  BT5-031 MetalGarurumon, and BT5-086 Omnimon preserves the source order and
+  inherited bonus. BT5-002, BT5-029, BT5-031, BT5-086, and exact-name
+  mechanism tests cover related name and evolution behavior.
+- Behavioral proof: 6 focused tests prove the Gabumon-source memory gain and
+  no-source negative; Omnimon and Garurumon-name positives; persistence during
+  the opponent's turn; an unrelated-name negative; and the full legal
+  Gabumon-to-Omnimon evolution stack with exact +1000 DP.
+- Defect corrected: none in the IR or engine. The audit added only the missing
+  Garurumon-name, all-turn, unrelated-name, and realistic-stack assertions to
+  `BT5-024.test.ts`.
+- Verification: focused BT5-024 plus five relevant peer/mechanism files — 6
+  files, 22 tests passed. Targeted Oxfmt and `git diff --check` passed.
+  Workspace `pnpm typecheck` retains only the known unrelated API errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  `primitives.test.ts`.
+- Remaining ambiguity: none identified.
