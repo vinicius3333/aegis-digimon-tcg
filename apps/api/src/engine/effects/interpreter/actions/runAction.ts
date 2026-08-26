@@ -114,7 +114,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   const placementCosts = [
     ...(action.cost?.kind === "place" ? [action.cost] : []),
     ...(action.additionalCost?.kind === "place" ? [action.additionalCost] : []),
-    ...((action.additionalCosts ?? []).filter((cost): cost is Cost => cost.kind === "place")),
+    ...(action.additionalCosts ?? []).filter((cost): cost is Cost => cost.kind === "place"),
   ];
   const placeCostProducesDeleteTarget =
     action.kind === "Delete" &&
@@ -173,6 +173,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "Unsuspend" &&
     action.cost !== undefined &&
+    action.allowCostWithoutTarget !== true &&
     !(action.cost.bindHostAs !== undefined && action.cost.bindHostAs === action.target.fromSelectionRef) &&
     (await resolvePermanentTargets(ctx, action.target)).every((id) => {
       const permanent = ctx.game.permanentById(id);
@@ -283,7 +284,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // player may choose to USE the card; asking again while recomputing a hand
     // card makes the permission inert in continuous contexts (EX1-071, BT6 Options).
     action.kind !== "WaiveColorRequirement" &&
-    action.optional && action.cost?.optional !== true
+    action.optional &&
+    action.cost?.optional !== true
   ) {
     if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
       return action.abortOnDecline === true;

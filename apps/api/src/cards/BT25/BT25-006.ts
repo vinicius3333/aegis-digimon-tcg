@@ -27,19 +27,23 @@ export const compiled: CompiledCard = {
                 },
                 count: 1,
               },
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    zone: "hand",
+                    controller: "mine",
+                  },
+                  count: 1,
+                },
+                raw: "by trashing 1 card in your hand",
+              },
+              optional: true,
+              abortOnDecline: true,
+              preserveOncePerTurnOnDecline: true,
+              allowCostWithoutTarget: true,
             },
           ],
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                zone: "hand",
-                controller: "mine",
-              },
-              count: 1,
-            },
-            raw: "by trashing 1 card in your hand",
-          },
         },
       ],
       isInherited: true,

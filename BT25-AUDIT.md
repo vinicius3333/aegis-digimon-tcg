@@ -103,3 +103,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-005.
+
+## BT25-006 — Dorimon — 10/10
+
+- Catalog evidence: Purple level-2 Digi-Egg, `In-Training` form, `Lesser`, `X Antibody`, `Titan`, and `TS` traits, no evolution recipe, no main or Security text, and inherited `[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, by trashing 1 card in your hand, 1 of your [Titan] trait Digimon unsuspends`.
+- Knowledge base: `node tools/kb/query.mjs card BT25-006` returned no card-specific entries. Comprehensive Rules §15-7-1/4/5 establish that “by X” is optional processing and may be paid even when the following payload has no legal target; §15-14-1-4 establishes that an accepted activation consumes its limit even if later processing cannot resolve. Q1818/Q6946 establish that declining an optional once-per-turn activation preserves the opportunity for a later trigger that turn.
+- Implementation: `BT25-006.ts` installs an inherited opponent-turn, once-per-turn watcher restricted to an opposing Digimon's attack. The nested `Unsuspend` selects exactly one controller-owned `Titan`, carries the one-card hand-trash processing condition, permits that condition without a target, and preserves the frequency only when declined. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-006", compiled)`.
+- Defects corrected: the generated IR placed the trash condition on the outer watcher, so it could be charged before the nested target/action decision and could not model decline correctly. The condition now belongs to the `Unsuspend` action with explicit optional/abort/preserve semantics. The reusable Unsuspend preflight now honors the existing `allowCostWithoutTarget` action flag, matching §15-7-5.
+- Behavioral proof: the focused suite covers a real opponent attack with Dorimon in a legal evolution stack, exact one-of-many mixed `Titan` targeting, accepted payment with no legal Titan followed by once-per-turn suppression, and a declined first trigger followed by a successful later activation in the same turn. The new tests fail against the prior IR/preflight behavior.
+- Verification: focused suite — 4 passed; subtrigger regression — 23 passed; targeted Oxfmt check and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-006 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-006
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-006.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-006.test.ts src/engine/effects/subtriggers.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-006.ts apps/api/src/cards/BT25/BT25-006.test.ts apps/api/src/engine/effects/interpreter/actions/runAction.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-006.
