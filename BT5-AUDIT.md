@@ -1672,3 +1672,38 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-039 — ShootingStarmon — 10/10
+
+- Catalog evidence: Yellow Lv.4 Champion Digimon, Data/Super Major, play
+  cost 5, 4000 DP, and yellow Lv.3 evolution cost 2. Its only effect is
+  `[On Deletion]` giving exactly 1 opposing Digimon -3000 DP for the turn.
+- Knowledge-base and rules evidence: the card query returns no QA, errata,
+  restriction, or ruling entry, so the catalog text is controlling. The
+  applicable local rules cover On Deletion collection after the card reaches
+  trash, one-target selection, DP modification, 0-DP processing, and
+  end-of-turn duration cleanup.
+- Implementation: `apps/api/src/cards/BT5/BT5-039.ts` contains one
+  `OnDeletion` effect with a `ModifyDP` action targeting one opponent-owned
+  Digimon, amount -3000, duration `forTheTurn`. The module declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-039", compiled)`.
+- Primitive and peer evidence: deletion processing retains the deleted card
+  as an On Deletion source, opens the appropriate effect window, and applies
+  the chosen permanent modifier before 0-DP rule processing. Turn-duration
+  grants are swept at the correct turn boundary. The deletion-DP cluster and
+  permanent-grant-duration suites directly exercise these shared seams;
+  nearby BT5-036 and BT5-038 cover the same opponent targeting and continuous
+  modifier infrastructure.
+- Behavioral proof: the focused test deletes ShootingStarmon through the
+  real deletion primitive, observes exactly -3000 DP on one selected opposing
+  Digimon, and confirms a second opposing Digimon remains at base DP.
+- Defect corrected: none. The compiled IR and existing focused proof were
+  already faithful, so no changes were made.
+- Verification: focused BT5-039, BT5-036/038 peers, deletion-DP cluster, and
+  duration suite — 5 files, 25 tests passed. Targeted Oxlint/Oxfmt and
+  `git diff --check` pass. Workspace typecheck retains only the known
+  unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
