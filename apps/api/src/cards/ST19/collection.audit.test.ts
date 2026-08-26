@@ -1,8 +1,12 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { allCards, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { hasRegisteredCompiledCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./index.js";
 
+const collectionDirectory = fileURLToPath(new URL(".", import.meta.url));
+const indexSource = readFileSync(new URL("./index.ts", import.meta.url), "utf8");
 const st19Ids = allCards()
   .filter((card) => /^ST19-\d{2}$/.test(card.cardId))
   .map((card) => card.cardId)
@@ -23,7 +27,18 @@ describe("ST19 collection audit gate", () => {
     expect(st19Ids).toEqual(expectedIds);
   });
 
+  it("imports every catalog card through the ST19 index", () => {
+    for (const cardId of st19Ids) {
+      expect(indexSource.match(new RegExp(`^import "\\./${cardId}\\.js";$`, "gm")), `${cardId} index import`).toHaveLength(1);
+    }
+  });
+
   it.each(expectedIds)("%s is registered as complete executable IR", (cardId) => {
+    const moduleSource = readFileSync(`${collectionDirectory}/${cardId}.ts`, "utf8");
+
+    expect(moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*["']${cardId}["']\\s*,\\s*compiled\\s*\\)`, "g"))).toHaveLength(1);
+    expect(moduleSource, `${cardId} legacy registerCard call`).not.toMatch(/\bregisterCard\s*\(/);
+    expect(hasRegisteredCompiledCard(cardId), `${cardId} direct compiled registration`).toBe(true);
     expect(getCompiledCard(cardId), `${cardId} must have committed IR`).toBeDefined();
     expect(effects(cardId).length, `${cardId} must retain executable behavior`).toBeGreaterThan(0);
   });
