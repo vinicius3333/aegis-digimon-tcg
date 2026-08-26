@@ -27,14 +27,45 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
     });
     expect(action).not.toHaveProperty("optional");
   });
-  it("installs a duration-bound entrant watcher alongside grants for current opponents", async () => {
+  it("grants later matching battle entrants exactly once through opponent-turn end", async () => {
     const action = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0];
     const installs: unknown[] = [];
-    const grants: unknown[] = [];
-    const opponent = { permanentId: "opponent", topCard: { instanceId: "opponent-top", ownerSeat: 1 } };
+    const grants: unknown[][] = [];
+    const currentOpponent = {
+      permanentId: "current-opponent",
+      controllerSeat: 1,
+      currentDP: 3000,
+      stack: [],
+      topCard: { instanceId: "current-opponent-top", ownerSeat: 1 },
+    };
+    const laterOpponent = {
+      permanentId: "later-opponent",
+      controllerSeat: 1,
+      currentDP: 3000,
+      stack: [],
+      topCard: { instanceId: "later-opponent-top", ownerSeat: 1 },
+    };
+    const ownEntrant = {
+      permanentId: "own-entrant",
+      controllerSeat: 0,
+      currentDP: 3000,
+      stack: [],
+      topCard: { instanceId: "own-entrant-top", ownerSeat: 0 },
+    };
+    const permanents = new Map([
+      [currentOpponent.permanentId, currentOpponent],
+      [laterOpponent.permanentId, laterOpponent],
+      [ownEntrant.permanentId, ownEntrant],
+    ]);
+    const definition = { kinds: ["Digimon"], colors: [], types: [] };
     const ctx = {
-      source: { ownerSeat: 0 },
-      game: { opponentOf: () => 1, permanentById: (id: string) => (id === "opponent" ? opponent : undefined) },
+      source: { ownerSeat: 0, definition, permanent: () => undefined },
+      game: {
+        opponentOf: () => 1,
+        permanentById: (id: string) => permanents.get(id),
+        player: (seat: number) => ({ battleArea: seat === 1 ? [currentOpponent] : [], breeding: undefined }),
+        definitionOf: () => definition,
+      },
       fx: {
         grantCustomEffect: (...args: unknown[]) => grants.push(args),
         subscribeSubTrigger: (install: unknown) => (installs.push(install), 1),
@@ -44,5 +75,31 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
     await runStaticAction(ctx, action);
     expect(grants).toHaveLength(1);
     expect(installs).toHaveLength(1);
+    const watcher = installs[0] as {
+      event: string;
+      expiresOnTurnEndOf?: number;
+      matches: (subCtx: unknown) => boolean;
+      run: (subCtx: unknown) => Promise<void>;
+    };
+    expect(watcher.event).toBe("onEnterFieldAnyone");
+    expect(watcher.expiresOnTurnEndOf).toBe(1);
+
+    const entrantContext = (id: string) =>
+      ({
+        ...ctx,
+        trigger: { subjectPermanentId: id, entryCause: "move" },
+      }) as never;
+    // Movement from breeding is an actual battle-area entry, but not a play.
+    const laterContext = entrantContext("later-opponent");
+    expect(watcher.matches(laterContext)).toBe(true);
+    await watcher.run(laterContext);
+    await watcher.run(laterContext);
+    expect(grants).toHaveLength(2);
+
+    // A friendly entrant never receives the opponent-only grant.
+    expect(watcher.matches(entrantContext("own-entrant"))).toBe(false);
+    // `expiresOnTurnEndOf` is swept by SubTriggerRegistry at the opponent's turn end;
+    // retaining it here makes the cleanup boundary part of the card's focused contract.
+    expect(watcher.expiresOnTurnEndOf).toBe(ctx.game.opponentOf(ctx.source.ownerSeat));
   });
 });

@@ -15,7 +15,7 @@ import type { EffectContext, Primitives } from "./effects/EffectContext.js";
 // Self-register every compiled-IR card module (so real definitions resolve in the deck).
 import "../cards/index.js";
 import { advance } from "./testkit/advance.js";
-import { setupEngine } from "./testkit/harness.js";
+import { setupEngine, settle } from "./testkit/harness.js";
 
 /**
  * A3 for the three Phase-8 Wave-1 SubTrigger event seams, following the Phase-7
@@ -123,6 +123,26 @@ function primitivesOf(s: Setup): Primitives {
   return (s.engine as unknown as { primitives: Primitives }).primitives;
 }
 
+function watchBattleEntry(s: ReturnType<typeof setupEngine>, sourcePermanentId: string) {
+  const entries: { subjectPermanentId?: string; entryCause?: string; controllerSeat?: Seat }[] = [];
+  advance(s.engine).ledgers.subTriggers.subscribe({
+    event: "onEnterFieldAnyone",
+    sourcePermanentId,
+    once: false,
+    description: "test: observe broad battle-area entry",
+    run: async (ctx) => {
+      const subject =
+        ctx.trigger.subjectPermanentId === undefined ? undefined : ctx.game.permanentById(ctx.trigger.subjectPermanentId);
+      entries.push({
+        subjectPermanentId: ctx.trigger.subjectPermanentId,
+        entryCause: ctx.trigger.entryCause,
+        controllerSeat: subject?.controllerSeat,
+      });
+    },
+  });
+  return entries;
+}
+
 describe("whenLinkTrashed SubTrigger event — a genuine link-card trash fires it once", () => {
   it("trashing a card that sits as a link card fires whenLinkTrashed exactly once", async () => {
     const s = setup();
@@ -180,6 +200,61 @@ describe("whenLinkTrashed SubTrigger event — a genuine link-card trash fires i
 
     expect(moved.length).toBe(1); // the hand card was trashed
     expect(fireCount).toBe(0); // but it was not a LINK card => no fire (KB Q5172/Q5188)
+  });
+});
+
+describe("OnEnterFieldAnyone broad battle-entry seam", () => {
+  it("fires once with the entered subject, controller, and cause for normal and effect plays", async () => {
+    const normal = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "watcher" }], hand: [{ card: "BT1-010", as: "played" }] } });
+    normal.state.memory = 10;
+    const normalEntries = watchBattleEntry(normal, normal.perm("watcher").permanentId);
+    expect(normal.engine.applyIntent(0, { type: "playCard", instanceId: normal.inst("played").instanceId })).toEqual({ ok: true });
+    await settle(() => normalEntries.length === 1);
+    expect(normalEntries).toEqual([{ subjectPermanentId: normal.perm("played").permanentId, entryCause: "play", controllerSeat: 0 }]);
+
+    const effect = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "watcher" }], trash: [{ card: "BT1-010", as: "played" }] } });
+    const effectEntries = watchBattleEntry(effect, effect.perm("watcher").permanentId);
+    await advance(effect.engine).verb.playInstances([effect.inst("played").instanceId], "test-effect-play");
+    expect(effectEntries).toEqual([{ subjectPermanentId: effect.perm("played").permanentId, entryCause: "play", controllerSeat: 0 }]);
+  });
+
+  it("fires once for manual and effect-driven digivolution", async () => {
+    const manual = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }, { card: "BT1-010", as: "watcher" }], hand: [{ card: "BT1-015", as: "into" }] },
+    });
+    manual.state.memory = 10;
+    const manualEntries = watchBattleEntry(manual, manual.perm("watcher").permanentId);
+    expect(manual.engine.applyIntent(0, { type: "digivolve", permanentId: manual.perm("base").permanentId, instanceId: manual.inst("into").instanceId })).toEqual({ ok: true });
+    await settle(() => manualEntries.length === 1);
+    expect(manualEntries).toEqual([{ subjectPermanentId: manual.perm("base").permanentId, entryCause: "digivolve", controllerSeat: 0 }]);
+
+    const effect = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "base" }, { card: "BT1-010", as: "watcher" }], hand: [{ card: "BT1-015", as: "into" }] },
+    });
+    const effectEntries = watchBattleEntry(effect, effect.perm("watcher").permanentId);
+    await advance(effect.engine).verb.digivolveFromInstance(effect.perm("base").permanentId, effect.inst("into").instanceId, { ignoreRequirements: true });
+    expect(effectEntries).toEqual([{ subjectPermanentId: effect.perm("base").permanentId, entryCause: "digivolve", controllerSeat: 0 }]);
+  });
+
+  it("covers breeding movement, leaves existing breeding watchers ordered, and excludes non-entry movement", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "watcher" }, { card: "BT1-010", as: "returned" }], breeding: { card: "BT1-011", as: "bred" } } });
+    s.state.phase = Phase.Breeding;
+    const entries = watchBattleEntry(s, s.perm("watcher").permanentId);
+    let breedingWatcherFires = 0;
+    advance(s.engine).ledgers.subTriggers.subscribe({
+      event: "whenMovedFromBreeding",
+      sourcePermanentId: s.perm("watcher").permanentId,
+      once: false,
+      description: "test: existing breeding watcher remains after broad entry fire",
+      run: async () => {
+        breedingWatcherFires += 1;
+      },
+    });
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("bred").permanentId })).toEqual({ ok: true });
+    await settle(() => entries.length === 1 && breedingWatcherFires === 1);
+    expect(entries).toEqual([{ subjectPermanentId: s.perm("bred").permanentId, entryCause: "move", controllerSeat: 0 }]);
+    await advance(s.engine).verb.returnToHand([s.inst("returned").instanceId]);
+    expect(entries).toHaveLength(1);
   });
 });
 

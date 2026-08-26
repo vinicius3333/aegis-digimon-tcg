@@ -68,6 +68,9 @@ export type Restriction = EnforcedRestriction | DeprecatedRestriction;
 
 /** Future events a delayed/triggered sub-effect can watch (delayed-and-rule-effects). */
 export type SubTriggerEventName =
+  // Every actual entry into the battle area; mirrors OnEnterFieldAnyone rather
+  // than the narrower whenPlayed bus (which excludes breeding movement/digivolve).
+  | "onEnterFieldAnyone"
   | "whenAttacking"
   | "whenOpponentAttacks"
   | "whenBlocked"
@@ -269,8 +272,8 @@ export interface TriggerInfo {
   playedPlayCost?: number;
   /** Permanent that just moved breeding -> battle area (OnMove). */
   movedPermanentId?: string;
-  /** Why an OnEnterFieldAnyone subject entered: a play or a digivolution. */
-  entryCause?: "play" | "digivolve";
+  /** Why an OnEnterFieldAnyone subject entered the battle area. */
+  entryCause?: "play" | "digivolve" | "move";
   /**
    * The permanent whose ENTRY drove this SubTrigger event — the played card
    * (whenPlayed), the linked/host card (whenLinked / whenOneOfYoursDigivolves), or the

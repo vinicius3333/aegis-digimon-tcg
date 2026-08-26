@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { compiled } from "./EX5-037.js";
 import "../index.js";
@@ -109,5 +111,32 @@ describe("EX5-037 [On Play] draws 1 then plays Deva to breeding slot", () => {
       while: { kind: "selfHasTrait" },
     });
     expect(inherited).not.toHaveProperty("frequency");
+  });
+
+  it("binds inherited Piercing to each qualifying Four Sovereigns or God Beast host and lapses live", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX5-013", as: "sovereign", under: [VAJRAMON] },
+          { card: "EX5-033", as: "godBeast", under: [VAJRAMON] },
+          { card: "BT1-015", as: "nonmatching", under: [VAJRAMON] },
+        ],
+        hand: [{ card: "BT1-015", as: "plainTop" }],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasPierce(s.perm("sovereign"))).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("godBeast"))).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("nonmatching"))).toBe(false);
+
+    // The inherited source remains under the same host, but a later non-qualifying top
+    // card must make the continuous `selfHasTrait` aura lapse rather than leaving a grant.
+    await advance(s.engine).verb.digivolveFromInstance(
+      s.perm("sovereign").permanentId,
+      s.inst("plainTop").instanceId,
+      { ignoreRequirements: true },
+    );
+    expect(s.perm("sovereign").stack.some((card) => card.cardId === VAJRAMON)).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("sovereign"))).toBe(false);
   });
 });
