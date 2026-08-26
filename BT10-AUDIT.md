@@ -452,6 +452,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: six focused cases prove catalog/IR fidelity, Digisorption acceptance/decline/unpayable cases, exact memory and suspension, Q1975 self-redirection, preserved security, physical deletion result, and Q1976 simultaneous production timing.
 - Verification: focused suite — 6 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-053 — Ajatarmon — 10/10
+
+- Catalog evidence: green level 5 Digimon, play cost 8, 7000 DP; evolves from green level 4 for 3; form `Ultimate`, attribute `Vaccine`, type `Vegetation`. Its once-per-turn Main may suspend one allied green Digimon to freely play one Vegetation- or Fairy-trait Digimon with at most 3000 DP from hand. Its inherited Your Turn once-per-turn effect gains 1 memory when an effect suspends one of its controller's Digimon.
+- Knowledge base: Q1977 permits Ajatarmon itself to pay its Main suspend cost. Q1978 confirms suspension caused by declaring a Blitz attack is not suspension by an effect and does not trigger the inherited effect. No errata, restriction, or unresolved ambiguity remains.
+- Implementation: the optional Main `PlayWithoutCost` atomically couples a green-Digimon suspend cost with exact hand, kind, trait, and DP filters and is frequency-limited on the source. The inherited `whenEffectSuspends` watcher filters controller-owned Digimon, owner turn, and source-instance frequency before gaining 1. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-053", compiled)`.
+- Primitive trace: activation preflight confirms both a payable suspend cost and playable hand candidate; accepting selects and suspends one legal permanent before playing the chosen identity without payment, while declining changes no zones or state. Attack declaration suspension follows the combat path and emits no effect-suspension event, whereas effect verbs do; frequency is consumed only by the matching path.
+- Cross-card and stack proof: manual decisions expose Ajatarmon itself and another green Digimon as cost candidates under Q1977, and admit two legal Vegetation cards while rejecting wrong-trait and over-3000 near-matches. Ajatarmon beneath a real green level-6 host gains memory from allied effect suspension but not ordinary attack suspension under Q1978, a second suspension, or an off-turn suspension.
+- Behavioral proof: five focused cases prove catalog/IR fidelity, exact cost and play candidates, self-suspension, free play, Main once-per-turn, decline atomicity, Q1978 attack negative, allied effect positive, inherited frequency, and owner-turn negative.
+- Verification: focused suite — 5 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
