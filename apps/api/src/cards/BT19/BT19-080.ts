@@ -42,7 +42,11 @@ const compiled = {
             },
             {
               kind: "Attack",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              target: {
+                filter: { controllerDefault: "mine", kind: ["Digimon"] },
+                count: 1,
+                sourceRef: "triggerSubject",
+              },
               withoutSuspending: true,
               attackPlayer: true,
               mandatory: true,
