@@ -23,7 +23,22 @@ describe("EX5-043 Leopardmon (X Antibody)", () => {
     expect(watcher?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenPlayed" });
     for (const trigger of ["Main", "WhenDigivolving"] as const) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions).toContainEqual(
-        expect.objectContaining({ kind: "PlayWithoutCost", reduceCostBy: 4, reduceCostByIf: { amount: 3 } }),
+        expect.objectContaining({
+          kind: "PlayWithoutCost",
+          reduceCostBy: 4,
+          reduceCostByIf: {
+            amount: 3,
+            condition: expect.objectContaining({
+              kind: "selfDigivolutionStackHasTrait",
+              filter: {
+                nameOrTrait: [
+                  { tokens: ["Leopardmon"], match: "name" },
+                  { tokens: ["X Antibody"], match: "trait" },
+                ],
+              },
+            }),
+          },
+        }),
       );
     }
     expect((watcher?.actions[0] as { actions?: unknown[] }).actions).toContainEqual(
