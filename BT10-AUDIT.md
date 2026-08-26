@@ -542,6 +542,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: five focused cases prove catalog/IR fidelity, exact DigiXros roles/reduction, reveal add and trash routing, Q1987 independence and target deletion, one-material negative, play-cost results, and Q1988 effective-name use in hand.
 - Verification: focused suite — 5 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-062 — Golemon — 10/10
+
+- Catalog evidence: black level 4 Digimon, play cost 5, 5000 DP; evolves from black level 3 for 1; form `Champion`, attribute `Virus`, type `Mineral`; it has no main, inherited, or Security effect text.
+- Knowledge base: `node tools/kb/query.mjs card BT10-062` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct compiled module intentionally has an empty effect list with full coverage and no residual clauses, and registers exclusively through `registerIrCard("BT10-062", compiled)`. All executable behavior is catalog-driven ordinary play and evolution.
+- Primitive trace: normal evolution validates the exact black level-3 recipe, charges 1, performs the evolution draw, and retains the base as a source; normal play charges printed cost 5 and creates a 5000-DP permanent without an effect window.
+- Cross-card and stack proof: real black level-3 Monitamon proves the catalog evolution transition, while a second physical Golemon proves direct play independently in the same fixture.
+- Behavioral proof: two focused cases assert complete catalog identity, exact empty IR, legal evolution and retained stack, printed-cost play, final memory and zones, and absence of an effect decision.
+- Verification: focused suite — 2 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
