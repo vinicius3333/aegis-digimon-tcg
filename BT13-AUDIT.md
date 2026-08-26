@@ -173,7 +173,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-061 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Blocker and opponent-turn-only On Deletion top-three reveal/add of one black card with rest to deck bottom.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-061.test.ts` passed (2 tests): IR clause proof and live Blocker observation.
-- BT13-062 — Pending
+- BT13-062 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing mandatory own-hand Sukamon/Etemon name trash cost for returning own-trash Sukamon, plus inherited optional suspended Chuumon play from trash after Sukamon/Etemon-name host deletion.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-062.test.ts` passed (2 tests): IR clause proof and live mandatory cost/return resolution.
 - BT13-063 — Pending
 - BT13-064 — Pending
 - BT13-065 — Pending
