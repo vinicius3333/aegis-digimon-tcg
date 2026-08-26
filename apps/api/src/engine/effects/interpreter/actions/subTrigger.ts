@@ -860,6 +860,32 @@ export async function runSubTrigger(
       ? (subCtx: EffectContext): boolean =>
           subCtx.trigger.removalCause === (sourceDeleteCause === "byEffect" ? "byEffect" : "byRule")
       : undefined;
+  // Leave-play watchers use the same relative cause vocabulary as replacements.  Preserve the
+  // event's effect-owner provenance so "other than by one of your effects" can distinguish an
+  // opponent effect, battle, and rules departure from the watcher's controller's own effect.
+  const leaveCauseGate =
+    event === "whenLeavesPlay" && action.leaveCause !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const cause = subCtx.trigger.removalCause ?? "byRule";
+          const resolvingSeat = subCtx.trigger.byEffectSeat;
+          switch (action.leaveCause) {
+            case "opponentEffect":
+            case "byOpponentEffect":
+              return cause === "byEffect" && resolvingSeat !== undefined && resolvingSeat !== subCtx.source.ownerSeat;
+            case "otherThanYourEffect":
+              return !(cause === "byEffect" && resolvingSeat === subCtx.source.ownerSeat);
+            case "byEffect":
+              return cause === "byEffect";
+            case "byBattle":
+              return cause === "byBattle";
+            case "otherThanBattle":
+              return cause !== "byBattle";
+            case "any":
+            default:
+              return true;
+          }
+        }
+      : undefined;
   const trashedDigivolutionTopGate =
     event === "whenDigivolutionTrashed" && action.requireTrashedDigivolutionCardWasTop === true
       ? (subCtx: EffectContext): boolean => subCtx.trigger.trashedDigivolutionCardWasTop === true
@@ -913,6 +939,7 @@ export async function runSubTrigger(
     inheritedHostNameGate,
     hostFilterGate,
     deleteCauseGate,
+    leaveCauseGate,
     notSimultaneousGate,
     trashedDigivolutionTopGate,
     faceDownDigivolutionBatchGate,

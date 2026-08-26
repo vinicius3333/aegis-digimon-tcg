@@ -572,7 +572,7 @@ is the unrelated Vitest PID 82901.
 ## EX6-065 — Mythical Arms of Salvation! — evidence in progress
 
 - Catalog/KB evidence: the optional trash placement is followed by mandatory battle-area placement; its non-self-effect leave condition arms Delay, whose play must use the triggering Digimon's stack. Q3815 defines leave scope and Q3816 confirms the resulting play timing can activate RaijiLudomon's inherited prevention.
-- Direct IR/primitive trace: Main now has optional `PlaceUnder` then mandatory `PlaceInBattleAreaSelf`; `whenDigimonWouldLeave` grants Delay, and the delayed Main play requires that armed Delay while sourcing only `sourceRef: triggerSubject` digivolution cards. Registration is exclusive `registerIrCard("EX6-065", compiled)`.
+- Direct IR/primitive trace: Main now has optional `PlaceUnder` then mandatory `PlaceInBattleAreaSelf`; `whenDigimonWouldLeave` explicitly gates `otherThanYourEffect` using preserved removal cause/effect-owner provenance before granting Delay, and the delayed Main play requires that armed Delay while sourcing only `sourceRef: triggerSubject` digivolution cards. Registration is exclusive `registerIrCard("EX6-065", compiled)`.
 - Status: focused contract changes are unexecuted while PID group 43774 persists; not rated 10/10.
 
 ## EX6-066 — Sea of Destruction — evidence in progress

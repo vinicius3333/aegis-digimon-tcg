@@ -13,7 +13,7 @@ describe("EX6-065 Mythical Arms of Salvation!", () => {
     ]);
   });
   it("arms Delay when your Digimon would leave and uses the armed delayed play from its stack", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenDigimonWouldLeave", actions: [{ kind: "GainKeyword", keyword: { keyword: "Delay" } }] });
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenDigimonWouldLeave", leaveCause: "otherThanYourEffect", actions: [{ kind: "GainKeyword", keyword: { keyword: "Delay" } }] });
     expect(compiled.effects?.filter((entry) => entry.trigger === "Main").at(-1)?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["digivolutionCards"], requiresDelayArmed: true, target: { filter: { hostFilter: { sourceRef: "triggerSubject" } } } });
   });
 });

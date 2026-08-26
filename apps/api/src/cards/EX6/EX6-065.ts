@@ -73,6 +73,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDigimonWouldLeave",
+          leaveCause: "otherThanYourEffect",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
