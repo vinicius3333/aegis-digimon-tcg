@@ -41,10 +41,20 @@ describe("BT18-042 MagnaGarurumon", () => {
   });
 
   it("shares its once-per-turn use between When Digivolving and End of Opponent's Turn", async () => {
+    const preferredInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-042", as: "source", under: ["BT1-009", "BT1-060"] }],
+          battleArea: [
+            {
+              card: "BT18-042",
+              as: "source",
+              under: [
+                { card: "BT1-009", as: "level3Source" },
+                { card: "BT1-060", as: "level5Source" },
+              ],
+            },
+          ],
           security: ["BT1-001"],
         },
         1: {
@@ -54,9 +64,10 @@ describe("BT18-042 MagnaGarurumon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
     await s.ready();
+    preferredInstanceIds.push(s.inst("level5Source").instanceId);
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
     await settle(() => s.perm("source").stack.length === 1);

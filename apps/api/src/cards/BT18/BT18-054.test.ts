@@ -44,7 +44,9 @@ describe("BT18-054 AncientKazemon", () => {
   it("applies the same DP threshold and global unsuspend lock when digivolving", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT18-053", as: "base" }],
+        // Use a plain red level 5 so the 11,000 DP threshold is not changed by
+        // an inherited effect before AncientKazemon's When Digivolving effect resolves.
+        battleArea: [{ card: "BT1-021", as: "base" }],
         hand: [{ card: "BT18-054", as: "ancient" }],
         deck: ["BT1-001"],
       },
