@@ -125,7 +125,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-045 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing the self-only eight-Chessmon trash play-cost reduction, optional other-Digimon deletion for non-King Chessmon play on play/evolution, and the alternate yellow/black level-5 Chessmon evolution.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-045.test.ts` passed (7 tests): cost threshold/controller boundary, On Play/evolution paths, payment/target negatives, and alternate/normal evolution requirements.
-- BT13-046 — Pending
+- BT13-046 — 10/10
+  - Evidence: catalog and KB Q2291–Q2293 reviewed; compiled IR exclusively uses `registerIrCard`, tracing combined-security-six mandatory reveal/memory sequence, yellow-inclusive multicolor top-security placement, non-yellow return, and optional top-security unsuspend/-7000 DP attack sequence with once-per-turn scope.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-046.test.ts` passed (7 tests): Q2291 threshold, Q2292 mandatory reveal, Q2293 multicolor behavior, above-threshold negative, attack cost/refusal/frequency, and evolution cost.
 - BT13-047 — Pending
 - BT13-048 — Pending
 - BT13-049 — Pending
