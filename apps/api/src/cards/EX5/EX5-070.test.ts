@@ -52,6 +52,7 @@ describe("EX5-070 X Antibody Proto Form", () => {
   it("excludes own-effect leaves and keeps the first stack return mandatory before security placement", () => {
     const replacement = compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0];
     if (replacement?.kind !== "Replacement") throw new Error("EX5-070 inherited replacement missing");
+    if (replacement.actions === undefined) throw new Error("EX5-070 replacement actions missing");
     expect(replacement.leaveCause).toBe("otherThanYourEffect");
     expect(replacement.actions[0]).toMatchObject({ kind: "Return", to: "hand" });
     expect(replacement.actions[0]).not.toHaveProperty("optional");
@@ -100,14 +101,15 @@ describe("EX5-070 X Antibody Proto Form", () => {
       fx: {},
       ask: {},
       selections: new Map(),
-    } as never;
+    } as any;
 
     expect(permanentMatchesFilter(ctx, s.perm("withProto"), targetFilter.target.filter, ctx.source)).toBe(false);
     expect(permanentMatchesFilter(ctx, s.perm("withoutProto"), targetFilter.target.filter, ctx.source)).toBe(true);
 
     const inherited = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
-    const replacement = inherited.actions.find((action) => action.kind === "Replacement")!;
-    if (replacement.kind !== "Replacement") throw new Error("EX5-070 inherited replacement missing");
+    const replacement = inherited.actions.find((action) => action.kind === "Replacement");
+    if (replacement?.kind !== "Replacement") throw new Error("EX5-070 inherited replacement missing");
+    if (replacement.actions === undefined) throw new Error("EX5-070 replacement actions missing");
     const returnAction = replacement.actions.find((action) => action.kind === "Return")!;
     if (returnAction.kind !== "Return") throw new Error("EX5-070 inherited return missing");
 

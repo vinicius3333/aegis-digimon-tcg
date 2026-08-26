@@ -41,9 +41,8 @@ describe("EX5-033 Mitamamon", () => {
       duration: "untilOpponentTurnEnd",
       target: { whileMatchesTargetFilter: true },
     });
-    expect(
-      compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]?.target.filter.levelComparison,
-    ).toMatchObject({
+    const opponentAction = compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0] as any;
+    expect(opponentAction?.target.filter.levelComparison).toMatchObject({
       op: "gte",
       value: { kind: "dynamicCount", filter: { zone: "security", controller: "any" } },
     });
