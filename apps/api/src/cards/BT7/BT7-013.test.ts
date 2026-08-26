@@ -34,4 +34,26 @@ describe("BT7-013 MetalGreymon", () => {
     await settle(() => s.state.memory === 2);
     expect(s.state.memory).toBe(2);
   });
+
+  it("Q1514 plays a red Tamer for free instead of gaining memory when none is already in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT7-013", as: "source" },
+            { card: "BT7-085", as: "takuya" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("takuya").instanceId),
+    );
+
+    expect(s.state.memory).toBe(0);
+  });
 });
