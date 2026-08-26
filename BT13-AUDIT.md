@@ -284,7 +284,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-097 — 10/10
   - Registration: exclusive `registerIrCard("BT13-097", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-097.test.ts` passed (5 tests): memory floor and both accept/decline branches of the Gaomon/GaoGamon suspension draw watcher are live.
-- BT13-098 — Pending
+- BT13-098 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-098", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-098.test.ts` passed (3 tests): security discard play, total-security memory gate, and suspension-paid Kudamon-to-Kentaurosmon digivolution are covered.
 - BT13-099 — Pending
 - BT13-100 — Pending
 - BT13-101 — Pending
