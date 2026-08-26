@@ -409,3 +409,49 @@ git diff --check
 ```
 
 No unresolved card-text ambiguity remains. No implementation or test change was required, no duplicate legacy registration exists, and this audit created no push. The audit evidence is delivered in the atomic commit for BT26-009.
+
+## BT26-010 — Roleplaymon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-010` (`Roleplaymon`), red level 3 Digimon, play cost 4, DP 4000, `Appmon` form, and `Game`, `Role-playing (App Name)`, and `Seven Code` traits. Printed evolution is `[Digivolve] Lv.2 w/[Appmon] trait: Cost 0`. Main text is `＜Detach ([Seven Code] trait)＞ [When Attacking] By trashing 1 [Game], [Open] or [Seven Code] trait card from your hand, ＜Draw 2＞`; Link requirement is `[Appmon] trait: Cost 3`, with linked effects `＜Progress＞ ＜Piercing＞`.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-010`; it reports Q6964 and no erratum, restriction, or unresolved card-specific ruling. Q6964 confirms that Detach occurs immediately before both equal-DP battle losers would be deleted, and that detaching a link with Piercing removes Piercing before the opponent's Digimon is deleted, so Piercing cannot activate.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-010.ts` uses `coverage: "full"`, `residual: []`, and exactly one `registerIrCard("BT26-010", compiled)` registration. No legacy `registerCard` registration exists.
+- The module publishes Detach as a non-inherited static keyword, places the `[When Attacking]` Draw 2 effect as non-inherited with an optional trash cost restricted to the controller's hand and the union of the printed `Game`, `Open (App Name)`, and `Seven Code` traits, and grants linked Progress plus Piercing through a linked static effect. The alternate evolution and Link requirements match the catalog exactly.
+- Shared primitive trace: the IR interpreter resolves the structured hand trash cost before Draw 2 and aborts cleanly when declined or unpayable; the Link resolver enforces the candidate's Appmon trait and cost 3 requirement and removes linked static keywords when the link leaves. Combat's Detach seam evaluates eligible Seven Code links immediately before battle deletion and before Piercing consumption, matching Q6964.
+- Relevant peers inspected: BT26-019 for the same Seven Code Detach and cost-3 Appmon Link requirement, BT26-028/BT26-037/BT26-084 for Appmon/Seven Code Link and Detach patterns, BT26-007 for Appmon evolution and Link filtering, and the combat keyword/controller and Link/hand-cost primitives. Their timing, controller, trait, cost, and linked-zone behavior is consistent with Roleplaymon.
+
+### Behavioral proof
+
+Existing `apps/api/src/cards/BT26/BT26-010.test.ts` has 15 passing tests proving:
+
+- exact Lv.2 Appmon cost-0 evolution, including rejection of a non-Appmon Lv.2;
+- non-inherited When Attacking behavior and Detach publication;
+- successful Draw 2 after trashing each printed cost trait (`Game`, `Open`, and `Seven Code`), plus no eligible-card and optional-decline paths;
+- Link through the public action only to Appmon, payment of exactly 3 memory, and linked Progress/Piercing visibility; rejection preserves memory for an invalid recipient;
+- removal of both linked keywords when Roleplaymon leaves the link area; and
+- Q6964 equal-DP battle timing, including survival after detaching, two simultaneous Detach decisions, decline deleting both Digimon, non-Seven-Code links not qualifying, and Detach not being offered for effect deletion.
+
+The tests exercise Roleplaymon in a real evolution stack and a real linked host, assert final zones and memory, and include the ruling-backed Piercing boundary. No implementation or test change was necessary because the existing proof is complete and mutation-sensitive to the card's clauses.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-010
+  PASS (Q6964; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-010.test.ts
+  PASS (15 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-010.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/subTriggerSeams.test.ts
+  PASS (4 files, 357 tests)
+pnpm typecheck
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-010.ts apps/api/src/cards/BT26/BT26-010.test.ts BT26-AUDIT.md
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved card-text ambiguity remains. No card-specific implementation or test change was required, and no push was made. The audit evidence is delivered in the atomic commit for BT26-010.
