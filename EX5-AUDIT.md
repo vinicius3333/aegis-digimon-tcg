@@ -38,14 +38,14 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-032 | LoaderLeomon | 0 | Fortitude is static; either entry timing applies opponent-turn −3000 DP, and inherited opponent-turn Blocker aura uses the host’s live Leomon-name predicate. | Pending focused proof |
 | EX5-033 | Mitamamon | 3 | Q3599 opponent-turn SEC−2 now re-evaluates live total-security threshold (`whileMatchesTargetFilter`); corrected focused fixture distinguishes level 4 at total 4 from level 3 after total falls to 3. | Pending focused run |
 | EX5-034 | BanchoLeomon | 1 | Q3600 total-security threshold is represented by the static hand-play replacement; the All Turns watcher binds one optional opponent target once, then applies both −4000 DP and SEC−1 through that binding until opponent-turn end. | Pending focused proof |
-| EX5-035 | Hawkmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-036 | Aquilamon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-035 | Hawkmon | 0 | On Play reveal-three adds every Fortitude Digimon match then bottoms remainder; inherited +1000 DP aura continuously follows the suspended host state. | Pending focused proof |
+| EX5-036 | Aquilamon | 0 | Fortitude is static and inherited +1000 DP aura is suspended-state live. | Pending focused proof |
 | EX5-037 | Vajramon | 11 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-038 | Vikaralamon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-039 | Garudamon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-039 | Garudamon | 1 | Fortitude static; both entry routes suspend one opponent at DP≤source’s live DP, while inherited +1000 DP aura continuously follows suspended host state. | Pending focused proof |
 | EX5-040 | Kumbhiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-041 | Ebonwumon | 0 | Blast is hand-only; both entry routes suspend up to live Deva/Four Sovereigns count and restrict every opponent Digimon’s next unsuspend phase, while deletion selects only a currently suspended opponent. | Pending focused proof |
-| EX5-042 | Merukimon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-042 | Merukimon | 0 | Fortitude static; entry reveal-one can play a level≤5 Fortitude Digimon and otherwise sends it to hand, while Your Turn grants permanent Rush only to own Fortitude Digimon with no sources. | Pending focused proof |
 | EX5-043 | Leopardmon (X Antibody) | 2 | Generated `whenPlayed` watcher is retained and its Return target uses base 5000 plus the normalized +3000-per-other-friendly-Digimon dynamic ceiling; shared source/target scaling supplies live evaluation. | Pending focused proof |
 | EX5-044 | Elecmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-045 | Chuumon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
