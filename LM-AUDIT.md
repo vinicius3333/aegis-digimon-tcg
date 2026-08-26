@@ -207,18 +207,24 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   `vitest run src/cards/LM/LM-018.test.ts --pool=forks --poolOptions.forks.singleFork=true
   --fileParallelism=false`. LM-018 remains below 10/10 pending mechanism and collection gates.
 
-## LM-019 — Bokomon — pending focused execution
+## LM-019 — Bokomon — focused proof green; pending mechanism and collection gates
 
 - Q4002 supports the simultaneous-leaving self-deletion replacement; direct IR uses a replacement
   rather than post-leave trigger. Static review found no new causal gap across the Bokomon exclusion,
-  Gammamon-text filter, own-effect leave boundary, or self-deletion cost. Existing focused cases are
-  unrun, so LM-019 remains below 10/10.
+  Gammamon-text filter, own-effect leave boundary, or self-deletion cost. The authorized serialized
+  focused command passed 1/1 file and 6/6 tests in 3.11s on 2026-08-26:
+  `vitest run src/cards/LM/LM-019.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-019 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
-## LM-020 — Quantumon — pending focused execution
+## LM-020 — Quantumon — focused proof green; published correction; pending mechanism and collection gates
 
 - Q4003-Q4011 map to declared-category immunity and security manipulation, including token/Mother
-  D-Reaper special movement semantics. Catalog proof was tightened in fd8b25340; nine tests are
-  unrun in the current serial campaign, so LM-020 remains below 10/10.
+  D-Reaper special movement semantics. The published correction `b6226b239` adds `allowTokens: true`
+  to the Digimon placement filter and asserts that eligibility in the focused proof; this state was
+  compared directly and was not duplicated here. Orchestration reports the corrected branch clean
+  with the authorized focused proof green at 9/9 on 2026-08-26. LM-020 remains below 10/10 pending
+  relevant mechanism and refreshed collection gates.
 
 ## LM-021 — Agumon - Bond of Bravery — focused proof green; pending mechanism and collection gates
 
@@ -368,7 +374,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --fileParallelism=false`. LM-031 remains below 10/10 pending relevant mechanism and refreshed
   collection gates.
 
-## LM-032 — Purple Scramble — pending focused execution
+## LM-032 — Purple Scramble — static audit complete; pending focused authorization
 
 - Catalog and Q4058-Q4062 align with the direct IR: purple Digimon-only ordinary legal hand
   evolution reduced by three and self placement, excluding altered routes and Tamers; the
@@ -376,8 +382,11 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Security's optional 2000-DP-or-lower purple revival and self hand return are separately
   compiled. Existing behavioral tests cover the positive paths plus no-opponent and over-2000
   negative boundaries.
-- The focused suite is intentionally unrun while PID 82901 holds the test slot, so LM-032 remains
-  below 10/10.
+- Static review found no new causal gap: the Main action uses ordinary Digivolve (so it neither
+  ignores requirements nor permits Burst/DNA/Tamer routes), the Delay return is mandatory whenever
+  possible before the optional revival, and the opponent-Digimon gate is independent of purple-trash
+  availability. The focused suite remains unrun; LM-032 stays below 10/10 pending explicit
+  authorization and the relevant mechanism/collection gates.
 
 ## LM-033 — Garnet Memory Boost! — pending focused execution
 
