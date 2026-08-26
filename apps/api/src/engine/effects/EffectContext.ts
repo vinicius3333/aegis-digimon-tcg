@@ -643,6 +643,11 @@ export interface Primitives {
   /** Current play cost of a live permanent after active play-cost modifiers. */
   effectivePlayCost?(permanent: Permanent): number;
   /**
+   * Current cost of a loose card when used by its controller, after the same
+   * continuous hand-use reductions as an ordinary Option use.
+   */
+  effectiveLooseUseCost?(instanceId: string, controllerSeat: Seat): number | undefined;
+  /**
    * Play specific loose card instances as new battle-area permanents, locating each
    * one wherever it currently sits (hand, trash, deck, security, breeding, or as a
    * digivolution/linked card under another permanent). Generalizes `playFromHand` to

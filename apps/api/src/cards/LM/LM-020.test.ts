@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type GameState, type Seat } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type CardDefinition, type GameState, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -149,12 +149,38 @@ function makeContext(opts: ContextOpts): EffectContext {
 }
 
 describe("LM-020 Quantumon", () => {
+  it("matches the committed Quantumon catalog contract", () => {
+    const definition = getCardDefinition("LM-020");
+
+    expect(definition).toMatchObject({
+      cardId: "LM-020",
+      nameEn: "Quantumon",
+      colors: ["Yellow", "Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      evoCosts: [
+        { color: "Yellow", level: 5, memoryCost: 5 },
+        { color: "Green", level: 5, memoryCost: 5 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Data"],
+      types: ["Fairy"],
+    });
+  });
+
   it("registers complete security-exchange and category-immunity IR", () => {
     const compiled = runtimeCompiledCard("LM-020")!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
       actions: [
-        { kind: "SecurityManipulation", op: "placeAsSecurity", optional: true },
+        {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          optional: true,
+          source: { filter: { kind: ["Digimon"], allowTokens: true } },
+        },
         { kind: "SecurityManipulation", op: "revealAllChooseToDeckTopShuffleRest", controller: "opponent" },
       ],
     });

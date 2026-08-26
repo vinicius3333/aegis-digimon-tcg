@@ -100,6 +100,7 @@ import { collectConferredEffects, collectGrantedCustomEffects, effectsOf } from 
 import {
   applyWouldBePlayedSelfReducer,
   applyWouldDigivolveSelfReducer,
+  potentialWouldBePlayedSelfReduction,
   wouldBePlayedSelfReducersFor,
   wouldDigivolveSelfReducersFor,
   potentialWouldDigivolveSelfReduction,
@@ -864,6 +865,7 @@ export class GameEngine {
         const instance = this.findLooseInstance(instanceId);
         return instance === undefined ? baseCost : this.fireBeforePayCost(instance, baseCost, useAsOption);
       },
+      effectiveLooseUseCost: (instanceId, controllerSeat) => this.projectLooseUseCost(instanceId, controllerSeat),
       fireWhenLinking: async (instanceIds, targetPermanentId) => {
         for (const instanceId of instanceIds) {
           await this.fireTimingForInstance(EffectTiming.OnLinking, instanceId, {
@@ -3379,6 +3381,28 @@ export class GameEngine {
     await chosen.effect.resolve(chosen.ctx);
     await this.recomputeContinuousEffects();
     return true;
+  }
+
+  /**
+   * Read-only hand-use-cost projection for card filters such as LM-023's Q5516 clause.
+   * It mirrors only automatic card-local would-be-played reducers; paid/optional reducers remain
+   * unknown until the actual payment window and must not be assumed or consumed by targeting.
+   */
+  private projectLooseUseCost(instanceId: string, controllerSeat: Seat): number | undefined {
+    const instance = this.findLooseInstance(instanceId);
+    if (instance === undefined) return undefined;
+    const source = this.cardSourceOf(instance);
+    const baseCost = this.modifiers.playCostFor(
+      { def: source.definition, controllerSeat },
+      Math.max(0, source.definition.playCost),
+    );
+    if (this.continuous.blocksCostReduction(controllerSeat, "play")) return baseCost;
+    const ctx: EffectContext = { ...this.buildEffectContext(source, {}), selections: new Map() };
+    const reduction = wouldBePlayedSelfReducersFor(instance.cardId).reduce(
+      (total, reducer) => total + potentialWouldBePlayedSelfReduction(ctx, reducer),
+      0,
+    );
+    return Math.max(0, baseCost - reduction);
   }
 
   /**

@@ -250,7 +250,7 @@ export async function runSubTrigger(
   // `byEffectSeat`/`byEffectCardId`; remove only that play-specific field from the permanent
   // match and enforce the trash provenance in the dedicated gate below.
   const subjectFilter =
-    event === "whenDigivolutionTrashed" && sourceFilter?.byEffect === true
+    (event === "whenDigivolutionTrashed" || event === "onAddDigivolutionCards") && sourceFilter?.byEffect === true
       ? { ...sourceFilter, byEffect: undefined }
       : sourceFilter;
   const filterMatch =
@@ -296,6 +296,13 @@ export async function runSubTrigger(
       : (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, subjectFilter);
   const digivolutionTrashByEffectGate =
     event === "whenDigivolutionTrashed" && sourceFilter?.byEffect === true
+      ? (subCtx: EffectContext): boolean =>
+          subCtx.trigger.byEffectSeat !== undefined || subCtx.trigger.byEffectCardId !== undefined
+      : undefined;
+  // "When an effect adds digivolution cards" (LM-017) is distinct from ordinary
+  // digivolution. The add-card bus carries effect provenance only for the former.
+  const addDigivolutionByEffectGate =
+    event === "onAddDigivolutionCards" && sourceFilter?.byEffect === true
       ? (subCtx: EffectContext): boolean =>
           subCtx.trigger.byEffectSeat !== undefined || subCtx.trigger.byEffectCardId !== undefined
       : undefined;
@@ -897,6 +904,7 @@ export async function runSubTrigger(
   const gates = [
     filterMatch,
     digivolutionTrashByEffectGate,
+    addDigivolutionByEffectGate,
     digimonReturnsToHandGate,
     requireByEffectGate,
     deletionSourceFilterGate,

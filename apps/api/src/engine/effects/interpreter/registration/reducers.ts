@@ -523,3 +523,18 @@ export async function applyWouldBePlayedSelfReducer(
   const scale = reducer.scaling !== undefined ? scaleFactor(ctx, reducer.scaling) : 1;
   ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount * scale);
 }
+
+/**
+ * Read the reduction which automatically applies while this card remains in hand.
+ *
+ * This deliberately excludes every reducer with a payment or choice: targeting effects such
+ * as LM-023 need the card's current use cost, not a speculative cost after a player might pay
+ * an optional reducer. It is therefore the read-only counterpart to the final automatic branch
+ * of {@link applyWouldBePlayedSelfReducer}.
+ */
+export function potentialWouldBePlayedSelfReduction(ctx: EffectContext, reducer: WouldBePlayedSelfReducer): number {
+  if (reducer.pay !== undefined || reducer.cost !== undefined || reducer.costActions !== undefined) return 0;
+  if (reducer.condition !== undefined && !evaluateCondition(ctx, reducer.condition)) return 0;
+  const scale = reducer.scaling !== undefined ? scaleFactor(ctx, reducer.scaling) : 1;
+  return Math.max(0, reducer.amount * scale);
+}

@@ -98,6 +98,32 @@ describe("LM-003 TeslaJellymon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
   });
 
+  it("is still deleted by Retaliation, which is effect deletion rather than battle deletion, per Q3992", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "LM-003", as: "attacker", dp: 6000 }], hand: [{ card: "BT1-029", as: "blueCost" }] },
+        1: { battleArea: [{ card: "BT2-074", as: "retaliation", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: s.perm("retaliation").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== attackerId), 2000);
+
+    // Retaliation deletes by effect (Q3992), so the battle-only grant cannot save it;
+    // once the permanent leaves play its temporary grant is no longer observable either.
+    expect(observe(s.engine).isRestricted(attackerId, "beDeletedInBattle")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
+  });
+
   it("draws from the inherited effect at seven cards", async () => {
     const s = setupEngine(
       {
@@ -120,6 +146,32 @@ describe("LM-003 TeslaJellymon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 8);
+
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+  });
+
+  it("draws only once from two inherited copies at seven cards, per Q3993", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-004", as: "host", under: ["LM-003", "LM-003"], dp: 7000 }],
+          hand: ["BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029", "BT1-029"],
+          deck: ["BT1-027", "BT1-028"],
+        },
+        1: { security: 2 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length >= 8, 2000);
 
     expect(s.state.players[0]!.hand).toHaveLength(8);
   });

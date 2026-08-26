@@ -48,6 +48,14 @@ const compiled: CompiledCard = {
             },
           ],
         },
+      ],
+    },
+    // Keep the digivolution reducer separate from the play reducer. A mixed effect is
+    // classified as BeforePayCost because of wouldBePlayed, which leaves the direct
+    // digivolution path without this continuous subscription.
+    {
+      trigger: "YourTurn",
+      actions: [
         {
           kind: "Replacement",
           event: "wouldDigivolve",
