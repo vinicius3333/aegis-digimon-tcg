@@ -48,6 +48,9 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
+          // Q3586/Q3587: this is a live set, not the targets that happened to
+          // have no sources when the effect resolved.
+          whileMatchesTargetFilter: true,
         },
       ],
       frequency: "OncePerTurn",
@@ -87,6 +90,9 @@ export const compiled: CompiledCard = {
           },
           restriction: "suspend",
           duration: "untilOpponentTurnEnd",
+          // Q3586/Q3587: this is a live set, not the targets that happened to
+          // have no sources when the effect resolved.
+          whileMatchesTargetFilter: true,
         },
       ],
       frequency: "OncePerTurn",

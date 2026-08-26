@@ -24,6 +24,7 @@ describe("EX5-025 Dianamon", () => {
     });
     expect(digivolving?.actions?.[1]).toMatchObject({
       target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], digivolutionCards: "none" }, count: "all" },
+      whileMatchesTargetFilter: true,
     });
   });
   it("unsuspends once per turn when an opponent's Digimon loses a digivolution card", () => {

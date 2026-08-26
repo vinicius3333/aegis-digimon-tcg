@@ -28,7 +28,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. Every row h
 | EX5-022 | Mihiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-023 | WereGarurumon (X Antibody) | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-024 | Azulongmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-025 | Dianamon | 4 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-025 | Dianamon | 4 | Catalog Q3584-Q3587, direct IR, and live player restriction primitive reviewed. Corrected the all/no-source suspend lock to re-evaluate entrants and source changes; shared Once Per Turn trigger verified structurally. | Pending focused proof |
 | EX5-026 | MetalGarurumon (X Antibody) | 3 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-027 | Liollmon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-028 | Kudamon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
