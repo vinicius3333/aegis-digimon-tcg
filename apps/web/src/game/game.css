@@ -651,7 +651,19 @@
   font-weight: 600;
   box-shadow: var(--ds-shadow-lg);
   translate: -50% 0;
-  animation: battle-board-prompt-in var(--t-board-prompt-in, 200ms) ease-out both;
+  /* Its own keyframes, not battle-board-prompt-in: that one fills to `translate:
+     0 -50%`, which would cancel the horizontal centring above for good. */
+  animation: aegis-opponent-pill-in var(--t-board-prompt-in, 200ms) ease-out both;
+}
+@keyframes aegis-opponent-pill-in {
+  from {
+    opacity: 0;
+    translate: -50% -8px;
+  }
+  to {
+    opacity: 1;
+    translate: -50% 0;
+  }
 }
 .board-opponent-pill__dots {
   display: flex;
