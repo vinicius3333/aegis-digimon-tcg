@@ -122,7 +122,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 
 - Q4000 confirms the no-opponent branch grants Blocker despite no suspension target; direct IR
   keeps the clauses independent and targets any one owned Digimon; the inherited aura stays bound
-  to the host. Existing focused proof is unrun, so LM-011 remains below 10/10.
+  to the host. The authorized single serialized run passed 1/1 file and 6/6 tests in 3.12s on
+  2026-08-26 using
+  `vitest run src/cards/LM/LM-011.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-011 remains below 10/10 pending mechanism and collection gates.
 
 ## LM-012 — Lamortmon — pending focused execution
 
