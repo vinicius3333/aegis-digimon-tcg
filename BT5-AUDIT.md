@@ -839,3 +839,37 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   EX6-010, interpreter action/removal/runAction/targeting files, and the
   primitive capability fixture.
 - Remaining ambiguity: none identified.
+
+## BT5-018 — Dorbickmon — 10/10
+
+- Catalog evidence: Red Lv.6 Mega Digimon, Data/Dragonkin, play cost 11,
+  11000 DP, and red Lv.5 evolution cost 3. `[When Attacking]`, the controller
+  may trash one red Digimon card from hand to add that exact card's DP to
+  Dorbickmon for the turn.
+- Knowledge-base and rules evidence: Q1294 confirms that separate activations
+  during the same turn accumulate their DP modifiers. Local When Attacking,
+  optional-cost, zone-movement, and turn-duration rules govern the remaining
+  text. No errata, restriction, or unresolved ambiguity applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-018.ts` uses an optional Trash
+  action filtering exactly one own red Digimon in hand, followed by
+  `AddDPFromTrashedCard` targeting self with `forTheTurn` duration. It reads
+  the actual paid card's DP and creates independent accumulating modifiers.
+  The module declares `coverage: "full"`, `residual: []`, and registers only
+  through `registerIrCard("BT5-018", compiled)`.
+- Primitive, peer, and stack evidence: cost resolution preserves the selected
+  trashed instance for the dependent DP action, rejects wrong-color/non-Digimon
+  cards, and aborts cleanly on optional refusal. Shared modifier bookkeeping
+  accumulates distinct activations and sweeps them at owner-turn end. The card
+  has no inherited, Security, trait-dependent, or alternate-stack clause.
+- Behavioral proof: 4 focused tests prove +3000 from a valid red Digimon,
+  Q1294 accumulation of +3000 then +2000, rejection of an ineligible blue
+  Digimon, optional refusal with unchanged hand/trash/DP, and removal of the
+  accumulated modifier at turn end.
+- Defect corrected: none in the IR or engine. The audit added only missing
+  eligibility, refusal, accumulation, and duration assertions to
+  `BT5-018.test.ts`.
+- Verification: focused BT5-018 — 1 file, 4 tests passed. Shared capability
+  regressions filtered for DP/trashed behavior — 22 tests passed. Targeted
+  formatting and `git diff --check` passed. Workspace `pnpm typecheck`
+  retains only the known unrelated API errors outside BT5-018.
+- Remaining ambiguity: none identified.
