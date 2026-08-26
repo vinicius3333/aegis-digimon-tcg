@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX6-070.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { getEffectModule } from "../../engine/registry.js";
 import "../index.js";
 
 describe("EX6-070 Phantom Pain", () => {
@@ -13,5 +15,34 @@ describe("EX6-070 Phantom Pain", () => {
     expect(runtime?.effects?.filter((entry) => entry.trigger === "Main").at(-1)).toMatchObject({ keywords: [{ keyword: "Delay" }], actions: [{ kind: "Delete", optional: true, requiresDelayArmed: true, target: { filter: { unsuspended: true } } }] });
     expect(runtime?.effects?.filter((entry) => entry.trigger === "Main").at(-1)?.actions[0]?.cost).toBeUndefined();
     expect(runtime).toEqual(compiled);
+  });
+
+  it("does not execute the armed Delete when Delay source trash is prevented", async () => {
+    const sourcePermanent = { permanentId: "phantom-pain", enterFieldTurnCount: 0 };
+    const source = {
+      cardId: "EX6-070",
+      instanceId: "phantom-pain-card",
+      ownerSeat: 0,
+      permanent: () => sourcePermanent,
+    } as never;
+    const effect = getEffectModule("EX6-070")?.effectsForTiming(EffectTiming.OnDeclaration, source)[0];
+    const deleted: string[][] = [];
+    const ctx = {
+      source,
+      activeEffectKey: undefined,
+      game: { state: { turnCount: 1 } },
+      fx: {
+        grantedKeywords: () => [{ keyword: "Delay" }],
+        revokeKeyword: () => undefined,
+        deletePermanent: async (ids: string[]) => {
+          deleted.push(ids);
+          return 0;
+        },
+      },
+    } as never;
+
+    expect(effect).toBeDefined();
+    await effect!.resolve(ctx);
+    expect(deleted).toEqual([["phantom-pain"]]);
   });
 });

@@ -598,7 +598,8 @@ root-worktree Vitest workload has cleared.
 ## EX6-070 — Phantom Pain — evidence in progress
 
 - Catalog/KB evidence: Main gives an opposing Digimon delayed end-turn self-deletion then places this Option in battle; at opponent end, a controller Lilithmon condition arms Delay to optionally delete an unsuspended opponent Digimon. Q3820/Q4255 cover target immunity expiry and breeding relocation timing.
-- Defect corrected: automatic Delete with a self-delete cost did not model an executable Delay. End-of-opponent-turn now grants Delay under the Lilithmon condition, and a Delay-keyword Main entry carries optional armed-only unsuspended opponent deletion; its self-trash activation cost is paid once by the Delay wrapper, not again by the payload.
+- Defect corrected: automatic Delete with a self-delete cost did not model an executable Delay. End-of-opponent-turn now grants Delay under the Lilithmon condition, and a Delay-keyword Main entry carries optional armed-only unsuspended opponent deletion; its self-trash activation cost is paid once by the Delay wrapper, not again by the payload. The shared OnDeclaration wrapper now also stops that payload when source trash is prevented or fails, matching the other Delay wrappers.
+- Focused unrun proof: a direct EX6-070 OnDeclaration regression supplies an armed source whose Delay-trash returns zero and asserts that only the attempted source trash occurs—no opponent Delete payload can run.
 - Status: focused contract is unexecuted while PID group 43774 persists; not rated 10/10.
 
 ## EX6-071 — Pandemonium Lost — evidence in progress
