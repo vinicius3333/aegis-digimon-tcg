@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import "./BT5-019.js";
 import "./BT5-109.js";
 
 describe("BT5-109 Mega Digimon Fusion!", () => {
@@ -21,7 +22,7 @@ describe("BT5-109 Mega Digimon Fusion!", () => {
         deck: ["BT5-001"],
       },
       1: { deck: ["BT5-001"] },
-    });
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     const basePermanentId = s.perm("base").permanentId;
     const baseTopId = s.perm("base").topCard.instanceId;
     s.state.memory = 2;
@@ -36,7 +37,9 @@ describe("BT5-109 Mega Digimon Fusion!", () => {
         instanceId: s.inst("level7").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.instanceId === s.inst("level7").instanceId);
+    await settle(
+      () => s.perm("base").topCard.instanceId === s.inst("level7").instanceId && s.state.pendingDecision === undefined,
+    );
     expect(s.state.memory).toBe(2);
     await advance(s.engine).fireSubTrigger("endOfTurn");
     await settle(() => s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("level7").instanceId));
