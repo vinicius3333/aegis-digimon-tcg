@@ -274,3 +274,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Q4063/Q4064 citations in this card's comments were removed because LM-045 has no local KB entry
   and the catalog is the only card-specific authority available.
 - Tests remain deliberately unrun under PID 43774, so LM-045 remains below 10/10.
+
+## LM-046 — Navy Memory Boost! — pending focused execution
+
+- Catalog maps to direct Static `alsoColor: purple`, preserving blue-or-purple color legality in
+  both battle and breeding rather than waiving requirements. Main reveal/add/bottom/place,
+  separate two-memory Delay, and Security placement all compile directly and use the established
+  executable paths.
+- Existing focused cases cover native/alternate sources, breeding, rejection, reveal resolution,
+  and Security; shared Delay behavior covers activation lifecycle. Removed LM-033-specific
+  Q4063/Q4064 citations because LM-046 has no local KB ruling.
+- Tests remain deliberately unrun under PID 43774, so LM-046 remains below 10/10.
