@@ -18,6 +18,8 @@ export function toDuration(ref: EffectDurationRef): EffectDuration {
       return EffectDuration.UntilOwnerTurnEnd;
     case "untilOpponentTurnEnd":
       return EffectDuration.UntilOpponentTurnEnd;
+    case "untilOpponentNextTurnEnd":
+      return EffectDuration.UntilNextOpponentTurnEnd;
     case "endOfOpponentTurn":
       return EffectDuration.UntilOpponentTurnEnd;
     case "untilEndOfAttack":
@@ -33,4 +35,10 @@ export function toDuration(ref: EffectDurationRef): EffectDuration {
     default:
       return EffectDuration.UntilEachTurnEnd;
   }
+}
+
+/** Resolve "opponent's next turn" relative to the turn in which the source acts. */
+export function toSourceRelativeDuration(ref: EffectDurationRef, isOwnersTurn: boolean): EffectDuration {
+  if (ref === "untilOpponentNextTurnEnd" && isOwnersTurn) return EffectDuration.UntilOpponentTurnEnd;
+  return toDuration(ref);
 }

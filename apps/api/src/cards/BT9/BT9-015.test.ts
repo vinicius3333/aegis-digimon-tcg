@@ -1,9 +1,10 @@
-import { getCardDefinition, Phase } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT10/BT10-042.js";
+import "./BT9-109.js";
 import { compiled } from "./BT9-015.js";
 describe("BT9-015 MetalGreymon (X Antibody)", () => {
   it("matches the complete catalog, timed grants, condition, and evolution IR", () => {
@@ -33,7 +34,7 @@ describe("BT9-015 MetalGreymon (X Antibody)", () => {
             {
               kind: "ModifyDP",
               amount: 3000,
-              duration: "untilOpponentTurnEnd",
+              duration: "untilOpponentNextTurnEnd",
               condition: {
                 kind: "selfHasInDigivolutionCards",
                 nameOrTrait: [{ tokens: ["MetalGreymon", "X Antibody"], match: "nameExact" }],
@@ -126,6 +127,33 @@ describe("BT9-015 MetalGreymon (X Antibody)", () => {
     await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "SecurityAttack"));
 
     expect(s.perm("base").currentDP).toBe(8000);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("separates current-opponent-turn Security Attack expiry from next-opponent-turn DP expiry", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT9-015", as: "host", under: ["BT1-021"] }] },
+    });
+    s.state.turnSeat = 1;
+
+    // No player intent can digivolve during an ordinary opposing Main phase. Fire the
+    // production timing directly to model an effect-driven opponent-turn evolution.
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("host"));
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(true);
+    expect(s.perm("host").currentDP).toBe(11000);
+
+    advance(s.engine).ledgers.continuous.sweep(s.state, "opponentTurnEnd", 1);
+    advance(s.engine).ledgers.modifiers.sweep(s.state, "opponentTurnEnd", 1);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
+    expect(s.perm("host").currentDP).toBe(11000);
+
+    advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 0);
+    advance(s.engine).ledgers.modifiers.sweep(s.state, "ownerTurnEnd", 0);
+    expect(s.perm("host").currentDP).toBe(11000);
+
+    advance(s.engine).ledgers.continuous.sweep(s.state, "opponentTurnEnd", 1);
+    advance(s.engine).ledgers.modifiers.sweep(s.state, "opponentTurnEnd", 1);
+    expect(s.perm("host").currentDP).toBe(8000);
   });
 
   it("does not mistake an X Antibody trait for the [X Antibody] card name (Q1808)", async () => {
@@ -193,8 +221,10 @@ describe("BT9-015 MetalGreymon (X Antibody)", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-017", as: "base" }],
-        hand: [{ card: "BT9-015", as: "evolving" }],
-        trash: [{ card: "BT9-109", as: "lateX" }],
+        hand: [
+          { card: "BT9-015", as: "evolving" },
+          { card: "BT9-109", as: "lateX" },
+        ],
       },
     });
     s.state.memory = 3;
@@ -207,7 +237,10 @@ describe("BT9-015 MetalGreymon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "SecurityAttack"));
     expect(s.perm("base").currentDP).toBe(8000);
-    await advance(s.engine).verb.placeUnder(s.perm("base").permanentId, [s.inst("lateX").instanceId]);
+    s.state.memory = 1;
+    const lateXId = s.inst("lateX").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: lateXId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.some(({ instanceId }) => instanceId === lateXId));
     expect(s.perm("base").currentDP).toBe(8000);
   });
 });

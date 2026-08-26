@@ -37,7 +37,7 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           amount: 3000,
-          duration: "untilOpponentTurnEnd",
+          duration: "untilOpponentNextTurnEnd",
           condition: {
             kind: "selfHasInDigivolutionCards",
             nameOrTrait: [

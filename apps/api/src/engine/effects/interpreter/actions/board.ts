@@ -3,7 +3,7 @@
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { type ActionScope, runAction } from "../dispatch.js";
-import { toDuration } from "../duration.js";
+import { toDuration, toSourceRelativeDuration } from "../duration.js";
 import { ACTION_TYPE_KEYWORDS, unsupported } from "../errors.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
@@ -154,7 +154,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         return false;
       }
       const ids = await resolvePermanentTargets(ctx, action.target);
-      const duration = toDuration(action.duration);
+      const duration = toSourceRelativeDuration(action.duration, ctx.source.isOwnersTurn());
       const effectSourceBound = (action as Action & { effectSourceBound?: boolean }).effectSourceBound === true;
       for (const id of ids) {
         const targetScale =

@@ -129,9 +129,11 @@ export enum EffectDuration {
   /**
    * A genuinely-permanent grant (name/trait/color) installed by a resolved
    * (triggered, non-static) effect. No boundary sweep ever clears it. Appended
-   * as the FINAL member so every preceding implicit ordinal is unchanged.
+   * after the original duration members so their implicit ordinals stay unchanged.
    */
   Permanent,
+  /** Skip a currently-running opponent turn, then clear at the following opponent turn end. */
+  UntilNextOpponentTurnEnd,
 }
 
 // Seat index. The match is always exactly two seats.
