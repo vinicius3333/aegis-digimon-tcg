@@ -13,7 +13,12 @@ describe("BT26-031 compiled fidelity", () => {
     expect(card?.effects?.[0]?.actions).toMatchObject([
       { kind: "RecoverByTrashingMostSecurity", recover: false },
       { kind: "SelectBind", condition: { kind: "ifThisEffectActed" } },
-      { kind: "Restrict", restriction: "suspend", condition: { kind: "ifThisEffectActed" } },
+      {
+        kind: "Restrict",
+        restriction: "suspend",
+        blocksCombatSuspend: true,
+        condition: { kind: "ifThisEffectActed" },
+      },
     ]);
     expect(card?.effects?.slice(1, 3)).toMatchObject([
       {
@@ -82,7 +87,7 @@ describe("BT26-031 compiled fidelity", () => {
       (
         s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string) => boolean } }
       ).continuous.hasRestriction(s.perm("target").permanentId, "beSuspended"),
-    ).toBe(false);
+    ).toBe(true);
     expect(
       (
         s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string) => boolean } }

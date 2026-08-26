@@ -1380,3 +1380,46 @@ git diff --check
 ```
 
 No unresolved BT26-030 ambiguity or unsupported clause remains. No implementation, shared-engine, or test changes were needed. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-030 and does not mark the collection complete.
+
+## BT26-031 — Murasamemon / Gonozan: Murashigure — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-031` (`Murasamemon` / `Gonozan: Murashigure`). This is a yellow/blue DUAL level-5 Ultimate Digimon/Option with play cost 4, 8000 DP, `Beastkin`/`Glowing Dawn`/`BEATBREAK` traits, normal yellow/blue Lv.4 evolution for cost 4, and alternate Lv.4 `[Glowing Dawn]` evolution for cost 3. Its Digimon text is `[When Digivolving] By trashing the top security card of 1 player with the most security cards, 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.` and `[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card from under any of your Tamers, ＜Recovery +1＞`. Its Option text is `＜Use Req. ([GlowingDawn] trait)＞ [Main] 1 of your opponent's Digimon gets -8000 DP until their turn ends. By trashing your top security card, it further gets -5000 DP.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-031`; it returns Q6997 (a tied largest-security stack is chosen by the activating player), Q6998 (0-DP deletion waits for the rule check after the used Option is trashed or Arts Digivolve completes), and Q6999 (the two When Digivolving effects trigger simultaneously and may be ordered). `data/kb/errata.json` and `data/kb/banlist.json` contain no BT26-031 entry.
+- Comprehensive Rules evidence: §§4-6-1–6 define DUAL card mode/category information; §§4-20-1–2 define Arts Digivolve replacing Option trashing; §4-24-1 defines the `Digimon/Tamers` union; §§11-2-1–5 establish that a normal attack declaration suspends the attacker and cannot be made by a Digimon that can't suspend; §§15-7-1–5 define `By ...` as optional processing and allow paying the condition even if later target processing is impossible; §§15-10-2/15-11-1 define exact individual targets; §§16-6-1–2 define Recovery; and §§17-1-2-2/17-1-3-1 define the post-effect DP-0 rule check.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-031.ts` compiles the Digimon When Digivolving clause as `RecoverByTrashingMostSecurity` with `recover: false`, then binds exactly one opponent `Digimon` or `Tamer` and applies the `suspend` restriction until the target's turn ends. The restriction now includes `blocksCombatSuspend: true`: the interpreter records both normalized `beSuspended` (effect-driven suspension) and `suspend` (the suspension required by ordinary attack declaration). This is required by §11-2-5 and the engine's `canAttackerDeclare` consumer; a without-suspending effect attack remains outside this guard. Tied security stacks use the shared sentinel chooser and preserve hidden top-card identity.
+- The shared When Digivolving/When Attacking recovery effects use one `sharedUseKey` and `OncePerTurn` frequency. Their optional `CostGatedBlock` trashes exactly the bottom face-down card from any controller-owned Tamer, then performs exactly one Recovery; the cost is paid before recovery and face-up/upper-stack boundaries are handled by the shared Tamer-stack primitive.
+- The Static color waiver is conditioned on having an own `[Glowing Dawn]` card, enabling the yellow-requirement Option side for a non-yellow board card while preserving the DUAL card's normal mode rules. The Main Option effect binds exactly one opponent Digimon, gives it -8000 DP until the opponent's turn ends, then optionally pays the own top-security cost for the same bound target's further -5000 DP. `ModifyDP` duration and the Option-to-trash/Arts-Digivolve lifecycle preserve Q6998's deferred rule deletion.
+- Registration is exclusive: the module contains only `registerIrCard("BT26-031", compiled)`; no `registerCard` registration exists. Relevant peers and seams inspected: BT26-003 (same Glowing Dawn inherited Tamer cost), BT26-019 (same `can't suspend` link effect and `blocksCombatSuspend` requirement), BT26-029/BT26-033 (security and DUAL/waiver patterns), BT26-057/BT26-076 (bottom face-down Tamer costs), and the restriction, combat-legality, security, duration, DUAL, and rule-check primitives.
+
+### Behavioral proof and correction
+
+- The prescribed focused failure was real: the existing test expected `hasRestriction(..., "beSuspended")` to be false, but the runtime correctly normalized the printed `suspend` prohibition to `beSuspended`. After correcting that stale assertion, the same proof exposed that the ordinary attack still returned `{ ok: true }`; the missing `blocksCombatSuspend` flag was therefore a card implementation gap, not merely stale test data. The minimal fix adds that flag and updates the structural/observable restriction expectations so both `beSuspended` and `suspend` are asserted.
+- `apps/api/src/cards/BT26/BT26-031.test.ts` proves full IR coverage and exact action shapes; leading-security trash and lock on a Digimon; Q6997 tie selection; face-up-bottom Tamer cost rejection; shared recovery once-per-turn identity across When Digivolving and When Attacking; alternate Glowing Dawn evolution; Q6999 simultaneous trigger ordering; DUAL Option use with waiver, one-target -8000/-5000 binding, optional refusal of the second cost, and correct Option trash ordering; and Q6998 Arts-Digivolve rule deletion after all active effects resolve. The lock proof now confirms an opponent Digimon cannot declare a normal attack while the restriction is active.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-031
+  PASS (Q6997–Q6999; no errata/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-031.test.ts
+  PASS (1 file, 10 tests)
+pnpm --filter @aegis/api exec vitest run src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/continuous.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/combat/legality.test.ts
+  PASS (5 files, 395 tests)
+pnpm --filter @aegis/api exec vitest run src/engine/cards/combatRestrictCluster.test.ts src/engine/combat/restrictionProjection.test.ts src/engine/effects/restrictionConsumers.guard.test.ts src/cards/BT26/BT26-019.test.ts src/cards/BT26/BT26-031.test.ts
+  PASS (5 files, 61 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-019.test.ts src/cards/BT26/BT26-029.test.ts src/cards/BT26/BT26-032.test.ts
+  FAIL (BT26-032 pre-existing unrelated Digisorption expectation; BT26-019 and BT26-029 pass)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-031.ts apps/api/src/cards/BT26/BT26-031.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-031 ambiguity or unsupported card clause remains. The only broader-suite failure is the unrelated pre-existing BT26-032 Digisorption expectation. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-031; no later card section was touched.
