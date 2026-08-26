@@ -158,7 +158,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-056 — 10/10
   - Evidence: catalog and KB Q2299–Q2301 reviewed; compiled IR exclusively uses `registerIrCard`, shares the Once Per Turn key between evolution/Main cost-reduced green-or-Royal-Knight plays, and applies the all-turn Blocker grant to all qualifying current and subsequently played Digimon.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-056.test.ts` passed (3 tests): shared IR frequency/cost structure, live registration, and Q2301 existing/new green-Digimon Blocker persistence through the opponent turn.
-- BT13-057 — Pending
+- BT13-057 — 10/10
+  - Evidence: catalog and KB Q2302 reviewed; hand-fixed compiled IR exclusively uses `registerIrCard`, ensuring both opponent suspension selections exclude already suspended permanents, while preserving the unsuspend-before-cost sequence and all-turn once-per-turn suspension watcher.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-057.test.ts` passed (2 tests): compiled source-filter proof for both clauses and live registration; hand-fixed IR documents the selection/runtime guards for Q2302.
 - BT13-058 — Pending
 - BT13-059 — Pending
 - BT13-060 — Pending
