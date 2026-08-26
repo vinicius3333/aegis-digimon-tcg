@@ -144,3 +144,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-007.
+
+## BT25-008 — Coronamon — 10/10
+
+- Catalog evidence: Red level-3 Digimon, play cost 3, 1000 DP, `Rookie`/`Vaccine`, `Beast`/`Iliad`/`TS`; standard red or blue level-2 evolution for 0 plus alternate level-2 `TS` evolution for 0; `[When Moving] [On Play] By trashing up to 2 [Iliad] or [TS] trait cards from your hand, <Draw 1> for each card trashed`; inherited `[Your Turn] This Digimon gets +2000 DP`.
+- Knowledge base: `node tools/kb/query.mjs card BT25-008` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: two trigger-specific Draw actions share the exact optional up-to-2 filtered hand-trash cost and scale by paid count. The inherited modifier is self-scoped and controller-turn-gated, and the alternate evolution accepts only `TS`. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-008", compiled)`.
+- Behavioral proof: the strengthened focused suite proves both live triggers, one- and two-card payment scaling, refusal without zone changes, exact trait inclusion/exclusion, zero-cost legal `TS` evolution and invalid non-TS rejection, plus inherited +2000 DP on the controller's turn and expiration off-turn. No production defect was found; the added proof is card-specific and revert-sensitive.
+- Verification: focused suite — 6 passed; targeted Oxlint/Oxfmt and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-008 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-008
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-008.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-008.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-008.
