@@ -43,3 +43,23 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-002.
+
+## BT25-003 — Frimon — 10/10
+
+- Catalog evidence: Yellow level-2 Digi-Egg, `In-Training` form, `Lesser` and `Glowing Dawn` traits, no evolution recipe, no main or Security text, and inherited `[When Attacking] [Once Per Turn] By trashing your top security card, this Digimon may digivolve into a [Glowing Dawn] trait Digimon card in the hand with the digivolution cost reduced by 1`.
+- Knowledge base: `node tools/kb/query.mjs card BT25-003` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: `BT25-003.ts` contains one inherited `WhenAttacking`, `OncePerTurn` optional self-digivolution. Its cost targets exactly the top of the controller's security, its hand candidate filter requires `Glowing Dawn`, and it pays the printed evolution cost reduced by 1. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-003", compiled)`.
+- Behavioral proof: the existing focused suite proves the cost and reduced-cost evolution on a realistic stack, excludes a nonmatching hand card, and proves declining preserves security, memory, hand, and board. The audit found no executable defect, so no test or implementation change was needed.
+- Data-path trace: API boot imports the direct module, and `registerIrCard` builds the runtime module from its exported `compiled` value. The generated shared `effects.json` snapshot lacks the direct module's `position: "top"`, but `packages/shared/src/effects/data.ts` explicitly identifies card modules as authoritative; the API's executable action contains the boundary and the catalog/candidate/primitives regressions pass.
+- Verification: focused suite — 2 passed; catalog synchronization, candidate-legality, and primitives regressions — 148 passed; `git diff --check` — passed. Workspace typecheck reports only the already-recorded unrelated pre-existing errors and no BT25-003 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-003
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-003.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-003.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported executable behavior remains for BT25-003.
