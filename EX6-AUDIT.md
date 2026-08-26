@@ -540,3 +540,21 @@ root-worktree Vitest workload has cleared.
 - Direct IR and primitive trace: optional hand trash records `trashedCards`; `RepeatPerCount` resolves one legal suspend per actual trash; the final all-target delete selects only suspended opponent Digimon tied for lowest play cost. The exact-self `otherThanBattle` replacement sources only existing trash and targets only an executable `breeding`-zone Gate at bottom, preserving Q3801/Q3802. Coverage is full, residual text is empty, and registration is exclusively `registerIrCard("EX6-060", compiled)`.
 - Existing observable proof: shared up-to hand-trash, recorded-count repeat, suspend legality, tied-superlative deletion, leave-cause replacement, and trash-to-breeding stack suites cover the primitives. The colocated assertion covers the shape; a card-level repeat/no-double-suspend runtime fixture remains queued as a material boundary once capacity permits.
 - Status: corrected source and focused contract are unexecuted in this dispatch while PID group 43774 remains active; not yet rated 10/10.
+
+## EX6-061 — Leviamon — evidence in progress
+
+- Catalog/KB evidence: the All Turns once-per-turn watcher triggers on an opponent Digimon play **or** a controller `Seven Great Demon Lords` Digimon play, trashes one hand card to return bottom three sources of an opposing Digimon to deck bottom, then conditionally deletes a stackless opponent Digimon; Q3803 confirms self play can trigger it, while Q3804/Q3805 define its non-battle Gate replacement and exclude the departing card from trash selection.
+- Defect corrected: generated IR encoded an AND-like opponent+trait watcher, a whole-permanent return, and a detached delete. Hand-fixed IR uses an executable OR source filter, a new bottom-stack mode on `ReturnTopDigivolutionCards`, nested mandatory Then delete with `boardCountCompare`, and trash-to-`breeding` Gate bottom placement.
+- Proof/status: the focused assertion protects the reconstructed contract; shared play-watch, stack return, board-count, replacement, and placement seams are traced. Runtime proof remains required and unexecuted while PID group 43774 persists; not rated 10/10.
+
+## EX6-062 — UltimateChaosmon — evidence in progress
+
+- Catalog/KB evidence: DNA evolution may optionally add up to two level-6 trash cards of any color as bottom sources, then returns one opposing Digimon to deck bottom for each level-6 source; Q3806/Q3807 constrain Partition color pairing and Q4736 requires the Then return even without DNA.
+- Defect corrected: the pre-placement candidate filter incorrectly restricted level-6 cards to the Partition colors, and the mandatory Then return was optional. The direct IR now accepts any level-6 trash card and retains a non-optional scaled return.
+- Proof/status: focused IR assertions protect both boundaries; shared DNA context, placement, stack-count scaling, and return primitives supply existing mechanism proof. Runtime execution is deferred while PID group 43774 persists; not rated 10/10.
+
+## EX6-063 — T.K. Takaishi & Kari Kamiya — evidence in progress
+
+- Catalog/KB evidence: On Play/Start Main gives a yellow Digimon Barrier through opponent turn; Your Turn, when a controller Digimon is played or digivolves and has an Angel/Archangel/Three Great Angels trait, suspending this Tamer may gain one memory. Q3808 confirms the digivolved result is evaluated after evolution.
+- Defect corrected: generated `raw` trait conditions could not execute. Hand-fixed IR uses `triggerSubjectMatchesFilter` for the exact trait union on both play and digivolve watchers, retaining optional self-suspend cost and Security free play.
+- Proof/status: focused assertion protects the executable condition; shared subject-filter and post-digivolve predicate machinery provides mechanism coverage. Runtime execution is deferred while PID group 43774 persists; not rated 10/10.
