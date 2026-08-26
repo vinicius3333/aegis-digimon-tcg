@@ -16,7 +16,7 @@ describe("BT19-058 SkullKnightmon", () => {
 
   it("Save moves deleted SkullKnightmon beneath a controller Tamer", async () => {
     const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-058", as: "skull" }, { card: "BT19-081", as: "tamer" },
+      { card: "BT19-058", as: "skull" }, { card: "BT19-083", as: "tamer" },
     ] } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("skull").permanentId], "byEffect");

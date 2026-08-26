@@ -8,7 +8,7 @@ import "../index.js";
 describe("BT19-057 Sparrowmon", () => {
   it("When Attacking may evolve into exact RaptorSparrowmon under a Tamer at no cost", async () => {
     const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-057", as: "sparrow" }, { card: "BT19-081", as: "tamer", under: ["BT19-061"] },
+      { card: "BT19-057", as: "sparrow" }, { card: "BT19-083", as: "tamer", under: ["BT19-061"] },
     ] } }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 0;
     await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("sparrow"));
@@ -19,7 +19,7 @@ describe("BT19-057 Sparrowmon", () => {
 
   it("may decline its attack evolution", async () => {
     const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-057", as: "sparrow" }, { card: "BT19-081", as: "tamer", under: ["BT19-061"] },
+      { card: "BT19-057", as: "sparrow" }, { card: "BT19-083", as: "tamer", under: ["BT19-061"] },
     ] } }, { autoDeclineOptional: true, autoSelectCards: true });
     await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("sparrow"));
     expect(s.perm("sparrow").topCard?.cardId).toBe("BT19-057");
@@ -28,7 +28,7 @@ describe("BT19-057 Sparrowmon", () => {
 
   it("Save places deleted Sparrowmon under its controller's Tamer", async () => {
     const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-057", as: "sparrow" }, { card: "BT19-081", as: "tamer" },
+      { card: "BT19-057", as: "sparrow" }, { card: "BT19-083", as: "tamer" },
     ] } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("sparrow").permanentId], "byEffect");
@@ -38,7 +38,7 @@ describe("BT19-057 Sparrowmon", () => {
 
   it("inherits Collision only on an Xros Heart host during its controller's turn", async () => {
     const s = setupEngine({ 0: { battleArea: [
-      { card: "BT19-061", as: "host", under: ["BT19-057"] }, { card: "BT19-015", as: "other", under: ["BT19-057"] },
+      { card: "BT19-061", as: "host", under: ["BT19-057"] }, { card: "BT19-046", as: "other", under: ["BT19-057"] },
     ] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Collision")).toBe(true);
