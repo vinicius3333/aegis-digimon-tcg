@@ -112,6 +112,20 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-033 (Aegiomon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-033 Aegiomon | Yellow level 4 Digimon; alternate level-3 `[TS]` evolution cost 2; Barrier; on play/when digivolving, by adding the top security card to hand, 1 opposing Digimon gets -5000 DP for the turn; inherited Barrier. Local card query has no entries. | **No card-specific causal mismatch found statically.** Both trigger windows use a mandatory security-to-hand cost before applying -5000 DP to one opposing Digimon for the turn. The target controller, kind, amount, duration, alternate evolution, and both Barrier keyword instances are represented. | Structural test only; no execution of mandatory cost failure with empty security, target selection, DP duration, alternate evolution, or Barrier prevention. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-033
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-033` (no entries).
+- Direct module and shared security-to-hand cost plus ModifyDP resolution paths were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-032 (Liollmon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
