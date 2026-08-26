@@ -239,7 +239,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-083 — 10/10
   - Registration: exclusive `registerIrCard("BT13-083", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-083.test.ts` passed (4 tests): level-3 replacement, draw-two/trash-two order, digivolve restriction, and optional Gizmon recursion cost are covered.
-- BT13-084 — Pending
+- BT13-084 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-084", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-084.test.ts` passed (3 tests): both Belphemon digivolution clauses, purple deletion cost, and inherited trash-from-hand watcher are covered with live resolution.
 - BT13-085 — Pending
 - BT13-086 — Pending
 - BT13-087 — Pending
