@@ -1,9 +1,26 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT9-046.js";
+import { compiled } from "./BT9-046.js";
 
 describe("BT9-046 Kokuwamon (X Antibody)", () => {
+  it("matches catalog and Q1841-Q1843 mandatory dual-category search IR", () => {
+    expect(getCardDefinition("BT9-046")).toMatchObject({
+      cardId: "BT9-046", nameEn: "Kokuwamon (X Antibody)", colors: ["Green"], kinds: ["Digimon"], level: 3,
+      playCost: 3, dp: 2000, evoCosts: [{ color: "Green", level: 2, memoryCost: 0 }], forms: ["Rookie"],
+      attributes: ["Data"], types: ["Machine", "X Antibody"],
+    });
+    for (const trigger of ["OnPlay", "WhenDigivolving"]) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
+        actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [
+          { filter: { nameOrTrait: [{ tokens: ["Insectoid", "Machine"], match: "trait" }] }, count: 1 },
+          { filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }] }, count: 1 },
+        ] }],
+      });
+    }
+    expect(compiled).toMatchObject({ coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Kokuwamon"], cost: 0, isAlternate: true }] });
+  });
+
   it("adds an Insectoid card and X Antibody Option from three revealed cards", async () => {
     const s = setupEngine(
       {
