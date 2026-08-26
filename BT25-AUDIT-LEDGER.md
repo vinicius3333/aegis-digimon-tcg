@@ -112,6 +112,22 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-023 (Gaogamon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-023 Gaogamon | Blue level 4 Digimon; alternate level-3 `[DATA SQUAD]` evolution cost 2; on play and when digivolving, if the controller has 1 or fewer Tamers, they may play 1 `[Thomas H. Norstein]` from hand without paying its cost; inherited `[When Attacking] [Once Per Turn]` makes both players draw 1. Local card query has no entries. | **Causal filter mismatch.** The two play effects target a Tamer with `nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "trait" }]`. In the committed catalog, the eligible BT25 Thomas H. Norstein cards have `nameEn: "Thomas H. Norstein"`; BT25-087's only type is `DATA SQUAD`, while BT4-093 and BT13-097 have no types. Therefore the trait-only filter cannot select the printed named card. The Tamer-count condition, optionality, free play, trigger windows, inherited draw actions, and alternate evolution requirement are otherwise represented. | The colocated test asserts the same incorrect trait matcher and inherited draw structure, so it cannot detect the named-card selection failure. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-023
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-023` (no entries).
+- Direct module/test and shared `permanentCount` condition plus `nameOrTrait` matching were
+  inspected. Catalog inspection confirmed the named Thomas cards do not expose
+  `Thomas H. Norstein` as a trait, establishing the filter mismatch without running tests.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-021 and BT25-023 through BT25-030
 
 | Card | Contract and direct implementation diagnosis | Status |
