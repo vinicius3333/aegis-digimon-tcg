@@ -110,6 +110,13 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
           definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)),
         )
       );
+    case "lastTrashedMatchesFilter":
+      return (
+        cond.filter !== undefined &&
+        (ctx.lastTrashedCards ?? []).some((card) =>
+          definitionMatches(cond.filter!, ctx.game.definitionOf({ cardId: card.cardId } as never)),
+        )
+      );
     case "triggerAttackBy":
       return ctx.trigger.attackMechanic === cond.keyword;
     case "allYoursMatchFilter":

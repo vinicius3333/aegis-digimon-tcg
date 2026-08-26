@@ -36,6 +36,7 @@ export interface Condition {
     | "triggerRevealedFromDeck" // the source card is among the cards this effect revealed from a deck
     | "triggerRevealedMatchesFilter" // any card in the current reveal window matches `filter`
     | "triggerAllRevealedMatchFilter"
+    | "lastTrashedMatchesFilter" // a card moved by the preceding Trash action matches `filter`
     | "triggerAttackBy" // the current attack was declared through the named attack mechanic
     | "allYoursMatchFilter" // every permanent you control in the battle area matches `filter`
     | "breedingAreaEmpty"
