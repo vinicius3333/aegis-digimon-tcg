@@ -303,3 +303,47 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   BT5-005 errors. Changed TypeScript file `pnpm exec oxfmt --check
   apps/api/src/cards/BT5/BT5-005.test.ts` and `git diff --check` pass. No
   shared engine seam was changed. Remaining ambiguity: none identified.
+
+## BT5-006 — Gigimon — 10/10
+
+- Catalog evidence: Purple Digi-Egg, Lv.2 In-Training, play cost -1, DP 0,
+  no digivolution costs, [Lesser] trait, rarity U, and max 4 copies. Its sole
+  inherited clause is "[Your Turn][Once Per Turn] When one of your other
+  Digimon is deleted, this Digimon gets +2000 DP for the turn." There is no
+  regular, Main, or Security text.
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-006`
+  returns Q1283, ruling that simultaneous 0-DP deletion occurs before this
+  inherited effect can protect the host. Applicable local rules are §4-3-3
+  and §15-3-1 (inherited effects), §15-8-3-1 (trigger effects), and
+  §15-14-1-2/3/5 (once-per-turn identity, per-copy counting, and turn reset),
+  plus glossary entries for `Your Turn`, `Once Per Turn`, `Digivolution Card`,
+  and `for the turn`. No errata, restriction, or unresolved ambiguity applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-006.ts` contains one inherited
+  `YourTurn` effect with an `onDeletionOf` SubTrigger. Its source filter is
+  controller `mine`, `excludeSelf: true`, and kind `Digimon`; the action is a
+  self-targeted `ModifyDP` of 2000 with `forTheTurn` duration and
+  `frequency: OncePerTurn`. It has `coverage: "full"`, `residual: []`, and
+  registers exclusively through `registerIrCard("BT5-006", compiled)`.
+- Primitive and peer evidence: the interpreter arms `YourTurn` watchers only
+  for the inherited source's controller turn, matches deletion payloads by
+  controller/kind and excludes the source permanent, keys once-per-turn usage
+  per inherited source, and removes turn-duration DP modifiers at turn end.
+  BT5-004 and BT5-081 provide neighboring `YourTurn` + `onDeletionOf` IR
+  patterns; BT5-002 supplies the comparable inherited owner-turn DP pattern.
+- Evolution-stack evidence: the focused suite uses a legal purple Lv.2
+  Gigimon -> BT5-071 Guilmon stack and verifies the inherited source remains
+  active. The Q1283 scenario uses simultaneous 0-DP deletion of the host and
+  another Digimon and confirms both reach trash before protection can resolve.
+- Behavioral proof: 3 focused tests pass. They prove the positive own-other
+  deletion path, no second trigger in the same turn, +2000 expiry at turn end,
+  no trigger during the opponent's turn, no trigger from an opponent's
+  deletion, legal-stack inherited behavior, and Q1283's simultaneous 0-DP
+  ordering. No optional refusal, target choice, cost, or Security case applies.
+- Defect corrected: none in the card module or shared engine. Added only
+  focused BT5-006 assertions for turn ownership, opponent filtering, legal
+  evolution stack, and duration expiry.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-006.test.ts` — 1 file, 3 tests passed. No shared engine
+  seam changed, so no mechanism regression suite was required. Typecheck,
+  changed-file formatting, and `git diff --check` are run for delivery.
+- Remaining ambiguity: none identified.
