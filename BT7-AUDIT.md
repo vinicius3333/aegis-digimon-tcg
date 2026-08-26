@@ -111,3 +111,20 @@ Remaining work is behavioral proof of the Q1673/Q1674 boundaries and the current
 10. **Reproducible behavioral proof (0/1):** Existing tests cover the ordinary and loaded alternative paths but were not executed in this static-only pass; exact boundaries, refusal, Security, and mixed X/non-X target pools remain unproven here.
 
 Remaining work is behavioral proof of Q1671/Q1672 boundaries and modal/Security behavior; this card is not formally complete at 10/10.
+
+## BT7-105 — Pride Memory Boost! — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a Black Option costing 4 with reveal/play/trash, Delay, and Security placement text.
+2. **Reveal and play (1/1):** Main reveals 3 cards and optionally plays one owner Black Digimon with play cost 4 or less without memory cost.
+3. **Remaining cards (1/1):** `rest: "trash"` sends all unrecruited revealed cards to trash, including when no eligible card is played, matching Q1670.
+4. **Placement (1/1):** Main places this card in its battle area after the reveal sequence; Security places it in its owner's battle area.
+5. **Delay (1/1):** A separate Main effect with `Delay` gains 2 memory; the engine's Delay lifecycle supplies trash-as-cost and same-turn activation prevention as documented in the module.
+6. **Knowledge base (1/1):** The KB returns Q1670, confirming placement is independent of whether an eligible revealed Digimon is played.
+7. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-105", compiled)` registration are present.
+8. **Static primitive trace (1/1):** Reveal count, Black filter, play-cost ceiling, optional play, free cost, rest destination, self-placement, Delay keyword, and Security placement are explicit.
+9. **Ordering and ownership (1/1):** The reveal action precedes self-placement, and all card movement uses owner/controller defaults consistent with the printed text.
+10. **Reproducible behavioral proof (0/1):** A colocated test exists but was not executed in this static-only pass; no proof is claimed for no-eligible/no-play trash handling, exact reveal boundaries, Delay timing, or Security placement.
+
+Remaining work is behavioral proof of Q1670 and Delay/Security lifecycle boundaries; this card is not formally complete at 10/10.
