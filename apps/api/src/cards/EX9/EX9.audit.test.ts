@@ -25,6 +25,7 @@ describe("EX9 collection registration and IR audit", () => {
     for (const cardId of EX9_IDS) {
       const source = readFileSync(new URL(`./${cardId}.ts`, import.meta.url), "utf8");
       expect(source.match(new RegExp(`\\bregisterIrCard\\(\\s*[\"']${cardId}[\"']`, "g")), `${cardId} IR registrations`).toHaveLength(1);
+      expect(source.match(/\bregisterIrCard\s*\(/g), `${cardId} total IR registrations`).toHaveLength(1);
       expect(source).not.toMatch(/\bregisterCard\s*\(/);
     }
   });
