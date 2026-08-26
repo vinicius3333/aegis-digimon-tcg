@@ -1,8 +1,23 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT9-064.js";
+import { compiled } from "./BT9-064.js";
 
 describe("BT9-064 Grademon", () => {
+  it("matches catalog and complete reveal, placement, and inherited deletion IR", () => {
+    expect(getCardDefinition("BT9-064")).toMatchObject({
+      cardId: "BT9-064", nameEn: "Grademon", colors: ["Black"], kinds: ["Digimon"], level: 5,
+      playCost: 8, dp: 8000, evoCosts: [{ color: "Black", level: 4, memoryCost: 3 }], forms: ["Ultimate"],
+      attributes: ["Vaccine"], types: ["Warrior", "X Antibody"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "WhenDigivolving", actions: [{ kind: "RevealAdd", revealCount: 3, rest: "trash", add: [{ to: "hand" }, { to: "placeUnder" }] }] },
+        { trigger: "EndOfAttack", isInherited: true, actions: [{ kind: "Delete", target: { filter: { playCostLte: 5 } }, condition: { kind: "selfHasNameContaining", names: ["Alphamon"] } }] },
+      ],
+    });
+  });
+
   it("adds Alphamon, places an X Antibody card under itself, and trashes the rest", async () => {
     const s = setupEngine(
       {
