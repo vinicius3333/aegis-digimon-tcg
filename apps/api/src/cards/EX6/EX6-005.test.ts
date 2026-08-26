@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-005.js";
 
 describe("EX6-005 Kakkinmon", () => {
@@ -27,5 +30,24 @@ describe("EX6-005 Kakkinmon", () => {
         },
       ],
     });
+  });
+
+  it("returns an eligible Legend-Arms source from its host and gains exactly 1 memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-005", { card: "EX6-007", as: "legendArms" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("legendArms").instanceId);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["EX6-005"]);
   });
 });
