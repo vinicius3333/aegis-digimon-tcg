@@ -8,7 +8,7 @@ describe("EX8-068", () => {
   it("waives its color requirement with no face-up security cards and protects DS Digimon from battle deletion at 1 or more memory", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "WaiveColorRequirement",
-      condition: { kind: "youHaveNone", filter: { faceUp: true } },
+      condition: { kind: "noFaceUpSecurity" },
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "Aura",

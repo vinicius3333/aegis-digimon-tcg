@@ -42,11 +42,7 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           condition: {
-            kind: "youHaveNone",
-            filter: {
-              controllerDefault: "mine",
-              faceUp: true,
-            },
+            kind: "noFaceUpSecurity",
             raw: "you have no face-up security cards",
           },
         },
