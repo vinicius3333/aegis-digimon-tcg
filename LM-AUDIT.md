@@ -40,3 +40,15 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   the no-revealed-Tamer negative, free play at zero memory, and inherited once-per-turn use.
 - No local rulings add ambiguity. The focused suite is unrun while PID 43774 holds the serial
   slot, so this card remains below 10/10.
+
+## LM-026 — Megidramon — pending focused execution
+
+- Catalog and Q4029/Q4030 map to a self-bound optional leave replacement that plays a
+  qualifying Guilmon from this stack or trash and relocates Megidramon beneath it; the
+  existing interpreter path keeps the relocation out of Overflow's leaving-area handling.
+- The rule-name alias is an executable name grant. The inherited `DeletionMaxDpModifier` raises
+  only this host's numeric DP deletion ceiling, matching Q4031 and excluding nonnumeric
+  DP-reference effects as Q4032 requires.
+- Existing behavioral focused cases cover the 11000 threshold, both Guilmon source zones and
+  final stack order, the ChaosGallantmon alias, and modifier positive/negative boundaries.
+  They are deliberately unrun under PID 43774; the card remains below 10/10.
