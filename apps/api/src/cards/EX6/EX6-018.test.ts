@@ -16,11 +16,20 @@ describe("EX6-018 Lucemon", () => {
       rest: "trash",
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn")?.actions[0]).toMatchObject({
-      kind: "Digivolve",
-      from: ["trash"],
-      payCost: false,
+      kind: "CostGatedBlock",
       optional: true,
+      abortOnDecline: true,
       cost: { kind: "place", destination: "security", position: "top", targetIsPermanent: true },
+      actions: [{ kind: "Digivolve", from: ["trash"], payCost: false, optional: true }],
     });
+  });
+  it("pays the level-6 security cost before independently offering the optional trash evolution", () => {
+    const action = compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn")?.actions[0];
+    expect(action).toMatchObject({
+      kind: "CostGatedBlock",
+      cost: { kind: "place", destination: "security", targetIsPermanent: true },
+      actions: [{ kind: "Digivolve", optional: true, from: ["trash"] }],
+    });
+    expect(action).not.toHaveProperty("into");
   });
 });

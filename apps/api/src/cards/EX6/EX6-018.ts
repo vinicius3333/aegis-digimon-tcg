@@ -94,25 +94,9 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          into: {
-            nameOrTrait: [
-              {
-                tokens: ["Lucemon: Chaos Mode"],
-                match: "name",
-              },
-            ],
-          },
-          payCost: false,
-          from: ["trash"],
+          kind: "CostGatedBlock",
           optional: true,
+          abortOnDecline: true,
           cost: {
             kind: "place",
             target: {
@@ -128,7 +112,29 @@ export const compiled: CompiledCard = {
             targetIsPermanent: true,
             raw: "By placing one of your level 6 Digimon on top of your security stack",
           },
-          abortOnDecline: true,
+          actions: [
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              into: {
+                nameOrTrait: [
+                  {
+                    tokens: ["Lucemon: Chaos Mode"],
+                    match: "name",
+                  },
+                ],
+              },
+              payCost: false,
+              from: ["trash"],
+              optional: true,
+            },
+          ],
         },
       ],
       frequency: "OncePerTurn",
