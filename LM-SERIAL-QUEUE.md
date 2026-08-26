@@ -11,6 +11,10 @@ Do not wrap these paths in a shell loop or pass multiple files to one process. A
 files and applicable mechanism files are green, request coordinator permission before the single
 collection gate.
 
+Before executing LM-050–053, update this worktree from `origin/main` after EX6 commit
+`d1082a712` has merged. That commit is the generic Delay-engine integration dependency; the LM
+suite proves card integration and must not reimplement the generic engine repair.
+
 1. `LM-001.test.ts`
 2. `LM-002.test.ts`
 3. `LM-003.test.ts`
@@ -64,12 +68,13 @@ collection gate.
 51. `LM-051.test.ts`
 52. `LM-052.test.ts`
 53. `LM-053.test.ts`
-54. `LM-054.test.ts`
-55. `LM-055.test.ts`
-56. `LM-056.test.ts`
-57. `LM-057.test.ts`
-58. `LM-058.test.ts`
-59. `LM-059.test.ts`
-60. `LM-060.test.ts`
-61. `LM-061.test.ts`
-62. `LM-062.test.ts`
+54. `LM-050-053.delay.test.ts` (four explicit parameterized card cases; run this one file alone)
+55. `LM-054.test.ts`
+56. `LM-055.test.ts`
+57. `LM-056.test.ts`
+58. `LM-057.test.ts`
+59. `LM-058.test.ts`
+60. `LM-059.test.ts`
+61. `LM-060.test.ts`
+62. `LM-061.test.ts`
+63. `LM-062.test.ts`

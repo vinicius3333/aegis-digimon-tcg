@@ -446,6 +446,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   source tests cover native/alternate battle and breeding sources, rejection, reveal, and Security.
 - LM-050 has no local KB entry; removed unrelated LM-033 Q&A citations. Tests are unrun under PID
   43774, so it remains below 10/10.
+- Added shared card-level Delay integration proof for LM-050–053: on a later turn, activation must
+  trash the exact placed Option and leave memory at exactly +2. This explicitly depends on EX6
+  Delay-engine commit `d1082a712`; do not duplicate that generic engine repair in LM. Before any
+  LM validation/PR, update this worktree from `origin/main` after the EX6 merge and re-check it.
 
 ## LM-051 — Alexandrite Memory Boost! — pending focused execution
 
@@ -468,6 +472,8 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   placement, Delay, and Security behavior. Existing focused tests cover native/alternate/breeding
   legality, refusal, search result, and Security; no local ruling exists.
 - Tests remain unrun under PID 43774, so LM-053 remains below 10/10.
+- Its Delay case is included in `LM-050-053.delay.test.ts` and shares the explicit EX6
+  `d1082a712` integration dependency/update-before-validation requirement recorded at LM-050.
 
 ## LM-054 — Treadmill Training — pending focused execution
 
