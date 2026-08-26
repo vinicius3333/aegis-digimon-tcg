@@ -31,4 +31,11 @@ describe("EX5-033 Mitamamon", () => {
       sharedUseKey: "ir-shared-0",
     });
   });
+  it("applies the opponent-turn Security Attack reduction only through that turn", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]).toMatchObject({
+      kind: "GainKeyword",
+      keyword: { keyword: "SecurityAttack", amount: -2 },
+      duration: "untilOpponentTurnEnd",
+    });
+  });
 });

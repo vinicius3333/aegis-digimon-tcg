@@ -159,7 +159,7 @@ export const compiled: CompiledCard = {
             amount: -2,
             raw: "＜Security Attack -2＞",
           },
-          duration: "permanent",
+          duration: "untilOpponentTurnEnd",
         },
       ],
     },
