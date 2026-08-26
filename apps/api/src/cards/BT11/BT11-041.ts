@@ -21,7 +21,7 @@ const actions = [
     abortOnDecline: true,
   },
 ];
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     { trigger: "WhenDigivolving", actions },
     { trigger: "OnPlay", actions },
@@ -39,7 +39,9 @@ const compiled: CompiledCard = {
                 kind: "deleteOwn",
                 target: {
                   filter: {
-                    controller: "opponent",
+                    // "other Digimon" has no controller restriction. Q2075 explicitly
+                    // permits the opponent's Sukamon, but a friendly one is legal too.
+                    controller: "any",
                     excludeSelf: true,
                     kind: ["Digimon"],
                     nameOrTrait: [{ tokens: ["Sukamon"], match: "name" }],
