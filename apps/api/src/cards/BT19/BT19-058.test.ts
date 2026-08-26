@@ -19,8 +19,9 @@ describe("BT19-058 SkullKnightmon", () => {
       { card: "BT19-058", as: "skull" }, { card: "BT19-083", as: "tamer" },
     ] } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
+    const selfId = s.perm("skull").topCard!.instanceId;
     await advance(s.engine).verb.deletePermanent([s.perm("skull").permanentId], "byEffect");
-    await settle(() => s.perm("tamer").stack.some((card) => card.cardId === "BT19-058"));
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT19-058")).toBe(false);
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === selfId));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === selfId)).toBe(false);
   });
 });

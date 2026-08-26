@@ -11,9 +11,11 @@ describe("BT19-057 Sparrowmon", () => {
       { card: "BT19-057", as: "sparrow" }, { card: "BT19-083", as: "tamer", under: ["BT19-061"] },
     ] } }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 0;
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("sparrow"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("sparrow"), {
+      attackerPermanentId: s.perm("sparrow").permanentId,
+    });
     expect(s.perm("sparrow").topCard?.cardId).toBe("BT19-061");
-    expect(s.perm("tamer").stack).toEqual([]);
+    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual([]);
     expect(s.state.memory).toBe(0);
   });
 
@@ -21,7 +23,9 @@ describe("BT19-057 Sparrowmon", () => {
     const s = setupEngine({ 0: { battleArea: [
       { card: "BT19-057", as: "sparrow" }, { card: "BT19-083", as: "tamer", under: ["BT19-061"] },
     ] } }, { autoDeclineOptional: true, autoSelectCards: true });
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("sparrow"));
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("sparrow"), {
+      attackerPermanentId: s.perm("sparrow").permanentId,
+    });
     expect(s.perm("sparrow").topCard?.cardId).toBe("BT19-057");
     expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT19-061"]);
   });
@@ -31,9 +35,10 @@ describe("BT19-057 Sparrowmon", () => {
       { card: "BT19-057", as: "sparrow" }, { card: "BT19-083", as: "tamer" },
     ] } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
+    const selfId = s.perm("sparrow").topCard!.instanceId;
     await advance(s.engine).verb.deletePermanent([s.perm("sparrow").permanentId], "byEffect");
-    await settle(() => s.perm("tamer").stack.some((card) => card.cardId === "BT19-057"));
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT19-057")).toBe(false);
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === selfId));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === selfId)).toBe(false);
   });
 
   it("inherits Collision only on an Xros Heart host during its controller's turn", async () => {

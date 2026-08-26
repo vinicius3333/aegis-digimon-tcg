@@ -24,24 +24,26 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["RaptorSparrowmon"],
-                match: "nameExact",
+                match: "name",
               },
             ],
           },
-          onto: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-            },
-            count: 1,
-          },
+          from: ["digivolutionCardsUnderTamers"],
+          payCost: false,
           optional: true,
         },
       ],
     },
     {
       trigger: "OnDeletion",
-      actions: [],
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
+          optional: true,
+        },
+      ],
       keywords: [
         {
           keyword: "Save",
@@ -53,7 +55,7 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: {
             filter: {
               isSelfRef: true,
@@ -61,11 +63,14 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          keyword: {
-            keyword: "Collision",
-            raw: "＜Collision＞",
+          effect: {
+            kind: "keyword",
+            keyword: { keyword: "Collision", raw: "＜Collision＞" },
           },
-          duration: "permanent",
+          while: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] },
+          },
         },
       ],
       isInherited: true,
