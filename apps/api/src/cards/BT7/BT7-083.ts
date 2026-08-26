@@ -11,6 +11,27 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Sistermon Ciel"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+            from: ["hand", "trash"],
+          },
+          underFilter: { isSelfRef: true },
+          position: "bottom",
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
           kind: "Delete",
           target: {
             filter: {
@@ -20,29 +41,7 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Sistermon Ciel"],
-                    match: "name",
-                  },
-                ],
-              },
-              count: 1,
-              from: ["hand", "trash"],
-            },
-            raw: "by placing 1 [Sistermon Ciel] from your hand or trash at the bottom of this Digimon's digivolution cards",
-            destination: "digivolutionStack",
-            position: "bottom",
-            host: "self",
-          },
-          optional: true,
-          abortOnDecline: true,
+          condition: { kind: "ifThisEffectActed" },
         },
       ],
     },
