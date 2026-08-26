@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-046.js";
+import { compiled } from "./BT11-046.js";
 
 describe("BT11-046 Agumon", () => {
+  it("maps its green rookie catalog facts and reveal/aura clauses", () => {
+    expect(getCardDefinition("BT11-046")).toMatchObject({ cardId: "BT11-046", colors: ["Green"], level: 3, playCost: 3, dp: 1000, types: ["Reptile"] });
+    expect(compiled.effects[0]).toMatchObject({ trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 4, rest: "deckBottom" }] });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "YourTurn", isInherited: true, actions: [{ kind: "Aura", effect: { kind: "modifyDP", amount: 2000 } }] });
+  });
+
   it("reveals 4, adds a Tamer to hand and bottom-decks the rest", async () => {
     const s = setupEngine(
       {
@@ -46,3 +52,4 @@ describe("BT11-046 Agumon", () => {
     expect(s.perm("host").currentDP).toBe(4000);
   });
 });
+import { getCardDefinition } from "@aegis/shared";
