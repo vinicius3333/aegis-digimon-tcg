@@ -89,7 +89,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-033 — 10/10
   - Evidence: catalog and KB Q2284–Q2286 reviewed; compiled IR exclusively uses `registerIrCard`, tracing own-Thomas-only Burst cost and turn-end trash, bounce-before-scaling-memory ordering, optional 9+ hand attack effect, hidden opponent-card selection, owner inspection, and activator ordering to deck bottom.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-033.test.ts` passed (7 tests): Burst requirements/Q2284, evolution sequence, exact hidden selection/order privacy per Q2285/Q2286, refusal, and eight-card negative.
-- BT13-034 — Pending
+- BT13-034 — 10/10
+  - Evidence: catalog and KB Q2287 reviewed; compiled IR exclusively uses `registerIrCard`, tracing top-three yellow Vaccine/yellow Tamer selection and rest ordering, plus inherited opponent-only -2000 DP at the inclusive combined-security-six boundary and once-per-turn frequency.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-034.test.ts` passed (6 tests): positive/negative reveal filters, bottom ordering, Q2287 both-security total boundary, frequency, and yellow level-2 evolution.
 - BT13-035 — Pending
 - BT13-036 — Pending
 - BT13-037 — Pending
