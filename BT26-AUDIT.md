@@ -1286,3 +1286,51 @@ The focused assertions are mutation-sensitive: removing the `hostFilter` reintro
 - The prescribed `meteor npm run quave-check-ci` and `meteor npm run quave-check` commands are unavailable because this repository's `package.json` has neither script; equivalent changed-file Oxlint/Oxfmt checks pass.
 
 No unresolved BT26-028 ambiguity or unsupported card clause remains. The two named regression failures reproduce outside BT26-028's focused suite and are unrelated to the three changed files. Changes are intentionally uncommitted and unpushed, per the audit task; this section is limited to BT26-028.
+
+## BT26-029 — Aegiochusmon: Holy — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-029` (`Aegiochusmon: Holy`), a yellow/black level 5 Ultimate Digimon with play cost 8, 8000 DP, Vaccine attribute, and `Shaman`/`Iliad`/`TS` traits. Its normal requirements are yellow Lv.4 for cost 4 and black Lv.4 for cost 4; the alternate requirement is `[Digivolve] [Aegiomon]: Cost 3`. The main text is `＜Decode ([Aegiomon])＞`, `＜Ascension＞`, `[On Play] [When Digivolving] By trashing your top security card, until your opponent's turn ends, their effects can't reduce the DP of 1 of your Digimon, trash any of its stacked cards, or return them to hands or decks.`, `[All Turns] [Once Per Turn] When your security stack is removed from, 3 of your opponent's Digimon get -5000 DP for the turn.`, and `[Rule] Trait: Has [Angel] Type.` The inherited text is `[All Turns] [Once Per Turn] When your security stack is removed from, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-029`; it returns Q6994 (2026-08-18), which confirms that `[Security]` effects resolve before other simultaneous security-removal triggers and that the turn player orders the other triggers, and Q6995 (2026-08-18), which confirms that the stacked-card lock covers both cards placed on top (`De-Digivolve`) and cards placed on the bottom (effects trashing digivolution cards). No errata, banlist restriction, or unresolved card-specific ruling is present.
+- Comprehensive Rules evidence: §§2-3-5/8-1-3 cover the alternate/normal evolution requirements, cost, stack transition, and evolution draw; §§3-6-3/3-7-2–5 cover public trash, private ordered security, face state, and simultaneous security movement; §§15-7-1–5 define `By ...` as an optional processing condition and require all subsequent protection only after successful payment; §§15-14-1-1–5 define Once Per Turn identity and reset boundaries; §§15-16-2-1/15-16-3-1/15-16-9-1/15-16-10-1–2 define On Play, When Digivolving, All Turns, and Security timing; §§16-36-1–3 define optional Decode on non-battle leave; and §§16-43-1–3 define optional Ascension to the top of security.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-029.ts` is compiled IR and registers exactly once through `registerIrCard("BT26-029", compiled)`; no `registerCard` registration exists. The alternate requirement is exact (`level: 4`, `names: ["Aegiomon"]`, `cost: 3`, `isAlternate: true`), while the catalog's yellow/black normal routes remain handled by the shared evolution path.
+- The shared On Play/When Digivolving `CostGatedBlock` models the optional `By` condition, pays exactly one top own-security card, then binds exactly one own Digimon. It installs opponent-effect-only DP immunity and return-to-hand/deck immunity through `untilOpponentTurnEnd`, and installs the reusable stacked-card lock whose consumers cover opponent De-Digivolve and opponent effects returning stacked cards while leaving the controller's own effects usable. Declining or lacking the security cost aborts the gated payload without protection.
+- The Static effect publishes Decode and Ascension and installs a `wouldLeavePlay` replacement restricted to this source and `leaveCause: "otherThanBattle"`. Decode plays exactly one matching `[Aegiomon]` Digimon from this card's own evolution stack without cost, preserving source ownership and stack transition; the shared Ascension deletion seam captures the live keyword before deletion and optionally places the same card on top of its controller's security stack. Battle deletion does not invoke Decode.
+- The All Turns watcher listens to both generic `whenSecurityRemoved` and effect-specific `whenEffectRemovesFromSecurity` events, gated to this card's controller's security stack. Both watcher variants share one stable once-per-turn identity, so effect-driven removal cannot double-fire the trigger. The main body targets exactly 3 opponent Digimon for -5000 DP until the turn ends. The inherited body is separately marked `isInherited` and `OncePerTurn`, targets exactly 1 opposing Digimon, and performs De-Digivolve 1; inherited source identity is retained through a real evolution stack.
+- The Rule Static grant adds the effective `Angel` trait to the top card. Shared `candidatePermanents`/`resolvePermanentTargets`, security-removal seams, `deDigivolve`, `returnToHand`/`returnToDeck`, DP restriction enforcement, duration cleanup, and keyword registration were traced through their consumers. Relevant peers inspected include BT19-024/EX9 Decode implementations, BT26-085's opponent-only stack/DP protection, BT26-089/BT26-103 security-removal watchers, BT24-101 and BT15-084 security-trigger conventions, and the Aegiomon/Aegiochusmon neighboring cards.
+
+### Behavioral proof
+
+The existing `apps/api/src/cards/BT26/BT26-029.test.ts` suite has 10 passing tests proving:
+
+- IR coverage is `full`, residuals are empty, Decode/Ascension markers are present, the security-paid protection has the exact cost/selection/restriction structure, both removal watcher events share the intended once-per-turn key, and the inherited De-Digivolve effect is marked and shaped correctly;
+- security-top payment, one selected own Digimon, all three protection classes, and optional refusal without security movement or restrictions;
+- Q6995's boundary: opposing DP reduction, De-Digivolve/stack trash, and stacked-card return are blocked, while the controller's own DP reduction and stack trash remain legal;
+- exactly 3 opposing Digimon receive -5000 DP once per turn, including a real opponent security check through the non-effect removal window;
+- inherited once-per-turn De-Digivolve from a real host stack, exact Aegiomon alternate evolution for cost 3, and retention of the protection after When Digivolving;
+- Decode/Ascension publication, Angel effective trait, and Decode playing Aegiomon from the own evolution stack when leaving by effect.
+
+The focused suite exercises a legal evolution-stack transition and the inherited stack source. The existing shared tests cover security ordering/visibility, opponent-only restriction consumers, stack-trash/de-Digivolve/return boundaries, keyword deletion reactions, and duration/once-per-turn machinery. No card-specific implementation or test change was necessary because the committed proof and shared mechanism coverage are sufficient.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-029
+  PASS (Q6994, Q6995; no errata/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-029.test.ts
+  PASS (1 file, 10 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-029.test.ts src/cards/BT26/BT26-089.test.ts src/cards/BT26/BT26-103.test.ts src/cards/BT24/BT24-101.test.ts src/cards/BT24/BT24-034.test.ts src/cards/BT15/BT15-084.test.ts src/engine/security/securityCheck.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/effects/leavePrevent.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts
+  PASS (10 files, 123 tests)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-029.ts apps/api/src/cards/BT26/BT26-029.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved ambiguity or unsupported BT26-029 clause remains. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-029; no later card section was touched.
