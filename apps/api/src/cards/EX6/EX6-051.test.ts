@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-051.js";
 
 describe("EX6-051 NeoDevimon", () => {
-  it("deletes a level 4 or lower opposing Digimon at five or fewer hand cards and trashes your hand card at seven or more", () =>
+  it("deletes a level 4 or lower opposing Digimon at five or fewer hand cards and trashes an opponent hand card at seven or more", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
       { kind: "Delete", condition: { kind: "zoneCount", op: "lte", value: 5 } },
       {
