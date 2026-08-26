@@ -8,6 +8,7 @@ describe("BT25-006 Dorimon", () => {
     expect(effect).toMatchObject({ trigger: "OpponentsTurn", frequency: "OncePerTurn" });
     expect(effect?.actions?.[0]).toMatchObject({
       event: "whenOpponentAttacks",
+      sourceFilter: { controller: "opponent", kind: ["Digimon"] },
       cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 1 } },
     });
     const watcher = effect?.actions?.[0] as { actions?: unknown[] } | undefined;

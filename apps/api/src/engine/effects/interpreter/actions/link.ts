@@ -184,7 +184,17 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
     // not stack on one declaration (the store returns its largest single matching grant); both the
     // self delta and the recipient reduction are signed-summed and floored at 0 by linkCostOf.
     const cardTraits = [...(def.types ?? []), ...(def.forms ?? []), ...(def.attributes ?? [])];
-    const recipientReduction = ctx.game.linkCostReduction?.(recipientId, cardTraits) ?? 0;
+    const grant = ctx.game.linkCostReductionGrant?.(recipientId, cardTraits);
+    let recipientReduction = grant?.amount ?? ctx.game.linkCostReduction?.(recipientId, cardTraits) ?? 0;
+    if (grant?.oncePerTurnKey !== undefined && ctx.fx.linkCostReductionUsed?.(grant.oncePerTurnKey)) {
+      recipientReduction = 0;
+    } else if (recipientReduction > 0 && grant?.optional === true) {
+      const accepted = await ctx.ask.optional(ctx, `Reduce this Link cost by ${recipientReduction}?`);
+      if (!accepted) recipientReduction = 0;
+    }
+    if (recipientReduction > 0 && grant?.oncePerTurnKey !== undefined) {
+      ctx.fx.markLinkCostReductionUsed?.(grant.oncePerTurnKey);
+    }
     const cost = action.payCost === false ? 0 : linkCostOf(def, (action.costDelta ?? 0) - recipientReduction);
     if (cost > 0) ctx.fx.gainMemory(-cost);
   }
