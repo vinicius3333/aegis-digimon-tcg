@@ -1,11 +1,23 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT9-030.js";
-import "./BT9-033.js";
+import { compiled } from "./BT9-033.js";
 
 describe("BT9-033 Pillomon", () => {
+  it("matches its catalog and all-turn effect-play restriction IR", () => {
+    expect(getCardDefinition("BT9-033")).toMatchObject({
+      cardId: "BT9-033", nameEn: "Pillomon", colors: ["Yellow"], kinds: ["Digimon"], level: 3,
+      playCost: 3, dp: 2000, evoCosts: [{ color: "Yellow", level: 2, memoryCost: 0 }], forms: ["Rookie"],
+      attributes: ["Vaccine"], types: ["Mammal"],
+    });
+    expect(compiled).toEqual({
+      effects: [{ trigger: "AllTurns", actions: [{ kind: "RestrictPlay", seat: "any", filter: { kind: ["Digimon"] }, mode: "play", byEffectOnly: true, duration: "permanent" }] }],
+      coverage: "full", residual: [],
+    });
+  });
+
   it("prevents effect plays but permits a normal Digimon play", async () => {
     const s = setupEngine(
       {
