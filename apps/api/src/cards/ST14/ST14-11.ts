@@ -54,18 +54,18 @@ const compiled: CompiledCard = {
             },
             raw: "suspend this Tamer",
           },
-          additionalCost: {
-            kind: "return",
-            target: {
-              filter: { zone: "hand", controller: "mine" },
-              count: 1,
-            },
-            to: "deckTop",
-            raw: "return 1 card from your hand to your deck",
-          },
           optional: true,
-          raw: "suspend this Tamer and return 1 card from your hand to your deck to gain 1 memory",
+          raw: "suspend this Tamer to gain 1 memory",
           actions: [
+            {
+              // Q803: this clause resolves even with no hand card; return one whenever able.
+              kind: "Return",
+              target: {
+                filter: { zone: "hand", controller: "mine" },
+                count: 1,
+              },
+              to: "deckTop",
+            },
             {
               kind: "GainMemory",
               amount: 1,
