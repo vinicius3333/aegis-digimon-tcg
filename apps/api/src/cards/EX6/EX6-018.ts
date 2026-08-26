@@ -14,7 +14,7 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldBePlayed",
           sourceFilter: {
-            controllerDefault: "mine",
+            isSelfRef: true,
           },
           actions: [
             {
@@ -125,6 +125,7 @@ export const compiled: CompiledCard = {
             },
             destination: "security",
             position: "top",
+            targetIsPermanent: true,
             raw: "By placing one of your level 6 Digimon on top of your security stack",
           },
           abortOnDecline: true,

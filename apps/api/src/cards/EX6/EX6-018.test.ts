@@ -5,6 +5,7 @@ describe("EX6-018 Lucemon", () => {
   it("reduces play cost by 5 when you have no level 5 or lower Digimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "Replacement",
+      sourceFilter: { isSelfRef: true },
       actions: [{ kind: "Replacement", mode: "reduceCost", amount: 5, condition: { kind: "youHaveNone" } }],
     });
   });
@@ -19,7 +20,7 @@ describe("EX6-018 Lucemon", () => {
       from: ["trash"],
       payCost: false,
       optional: true,
-      cost: { kind: "place", destination: "security", position: "top" },
+      cost: { kind: "place", destination: "security", position: "top", targetIsPermanent: true },
     });
   });
 });
