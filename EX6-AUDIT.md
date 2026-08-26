@@ -612,3 +612,15 @@ root-worktree Vitest workload has cleared.
 - Catalog/KB evidence: color requirements waive against an opposing level-6-or-higher Digimon; Main optionally DNA digivolves one controller level-6 battle Digimon and one controller hand card into a level-7 hand Digimon, retaining required material legality (Q3822); Security returns one level-6-or-higher trash Digimon then adds this Option to hand.
 - Direct IR/primitive trace: independent battle/hand material slots feed `DnaDigivolve`, with target level seven and normal requirements; Security sequences loose trash return then `AddToHandSelf`. The focused test now correctly identifies Mega Digimon Assembly!, with full coverage and exclusive registration.
 - Status: runtime execution remains deferred while PID group 43774 persists; not rated 10/10.
+
+## EX6-073 — Ogudomon — evidence in progress
+
+- Catalog/KB evidence: When Digivolving/Attacking it places up to seven distinct-named Seven Great Demon Lords cards from trash under itself; four or more placed in one activation enables deletion. Its attack cost returns seven qualifying cards from this Digimon's stack to deck bottom, then deletes up to seven opponent Digimon/Tamers and trashes opponent security for seven minus actual deletions. Q3823–Q3827 define name distinctions, per-activation Q3825, all-seven Q3826, and actual-delete scaling Q3827.
+- Defect corrected: placement now writes a per-action `trackDistinctNames` result, so the four-card gate evaluates only distinct names placed by the current activation. Attack-cost sources are self-stack scoped and bottom-returned; the security amount reads the actual deletion receipt.
+- Status: existing focused security-reduction fixture and strengthened IR paths remain unexecuted while PID group 43774 persists; not rated 10/10.
+
+## EX6-074 — Mirei Mikagura — evidence in progress
+
+- Catalog evidence: after a controller Holy Beast/Archangel/Fallen Angel Digimon is played, suspending this Tamer gains one memory, then one controller Digimon may digivolve into Angewomon/LadyDevimon from trash with cost reduced by one. End of turn once-per-turn offers normal-requirement DNA Digivolve; Security plays this Tamer.
+- Defect corrected: the reduced Digivolve was detached as a top-level Your Turn action. It is now nested after the qualifying-play watcher’s self-suspend GainMemory action, preserving the printed Then sequence and optional Digivolve boundary.
+- Status: focused contract changes are unexecuted while PID group 43774 persists; not rated 10/10.
