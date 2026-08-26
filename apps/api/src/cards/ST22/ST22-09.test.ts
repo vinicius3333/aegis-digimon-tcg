@@ -20,6 +20,6 @@ describe("ST22-09 High-Speed Plug-In H", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === option));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === option)).toBe(true);
-    expect(observe(s.engine).isRestricted(opponent, "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(opponent, "beSuspended")).toBe(true);
   });
 });
