@@ -3,9 +3,31 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-056.js";
+import { compiled } from "./BT10-056.js";
 
 describe("BT10-056 Lotosmon", () => {
+  it("matches its catalog and exact bound restriction plus granted-effect IR", () => {
+    const d = getCardDefinition("BT10-056")!;
+    expect([d.colors, d.level, d.playCost, d.dp]).toEqual([["Green"], 6, 11, 11000]);
+    expect(d.evoCosts).toEqual([{ color: "Green", level: 5, memoryCost: 4 }]);
+    expect([d.forms, d.attributes, d.types]).toEqual([["Mega"], ["Data"], ["Fairy"]]);
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "WhenDigivolving",
+        actions: [
+          expect.objectContaining({ kind: "SelectBind" }),
+          expect.objectContaining({ kind: "Suspend" }),
+          expect.objectContaining({ kind: "Restrict", restriction: "unsuspend", duration: "untilOpponentTurnEnd" }),
+        ],
+      }),
+      expect.objectContaining({
+        trigger: "OpponentsTurn",
+        actions: [expect.objectContaining({ kind: "GrantStatic" })],
+      }),
+    ]);
+  });
+
   it("binds the chosen opponent and prevents only it from unsuspending through the next opponent turn", async () => {
     const s = setupEngine(
       {
@@ -88,64 +110,54 @@ describe("BT10-056 Lotosmon", () => {
   });
 
   it("keeps the Plant grant through simultaneous deletion and resolves its mandatory trash choice", async () => {
-    const recipientDefinition = getCardDefinition("BT10-043")!;
-    const originalTypes = recipientDefinition.types;
-    (recipientDefinition as { types?: string[] }).types = ["Plant"];
-
-    try {
-      const s = setupEngine(
-        {
-          0: {
-            battleArea: [
-              { card: "BT10-056", as: "lotosmon" },
-              { card: "BT10-043", as: "plant" },
-              { card: "BT1-009", as: "unrelated" },
-            ],
-            trash: [
-              { card: "BT1-064", as: "chosenReturn" },
-              { card: "BT1-045", as: "otherEligible" },
-              { card: "BT1-078", as: "tooLarge" },
-            ],
-          },
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-056", as: "lotosmon" },
+            { card: "BT1-071", as: "plant" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+          trash: [
+            { card: "BT1-064", as: "chosenReturn" },
+            { card: "BT1-045", as: "otherEligible" },
+            { card: "BT1-078", as: "tooLarge" },
+          ],
         },
-        { autoSelectCards: false },
-      );
-      s.state.turnSeat = 1;
-      s.state.memory = 0;
-      await s.engine.recomputeContinuousEffects();
+      },
+      { autoSelectCards: false },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.engine.recomputeContinuousEffects();
 
-      const deletion = advance(s.engine).verb.deletePermanent(
-        [s.perm("lotosmon").permanentId, s.perm("plant").permanentId, s.perm("unrelated").permanentId],
-        "byEffect",
-      );
-      await settle(() => s.state.pendingDecision?.kind === "selectCards");
-      const decision = s.decisions.at(-1)!.req;
-      expect(decision.sourceCardId).toBe("BT10-043");
-      expect(decision.options?.candidateInstanceIds).toEqual(
-        expect.arrayContaining([s.inst("chosenReturn").instanceId, s.inst("otherEligible").instanceId]),
-      );
-      expect(decision.options?.candidateInstanceIds).not.toContain(s.inst("tooLarge").instanceId);
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: decision.decisionId,
-          response: {
-            kind: "selectCards",
-            instanceIds: [s.inst("chosenReturn").instanceId],
-          },
-        }),
-      ).toEqual({ ok: true });
-      expect(await deletion).toBe(3);
+    const deletion = advance(s.engine).verb.deletePermanent(
+      [s.perm("lotosmon").permanentId, s.perm("plant").permanentId, s.perm("unrelated").permanentId],
+      "byEffect",
+    );
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.decisions.at(-1)!.req;
+    expect(decision.sourceCardId).toBe("BT1-071");
+    expect(decision.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("chosenReturn").instanceId, s.inst("otherEligible").instanceId]),
+    );
+    expect(decision.options?.candidateInstanceIds).not.toContain(s.inst("tooLarge").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("chosenReturn").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    expect(await deletion).toBe(3);
 
-      expect(s.state.memory).toBe(-2);
-      expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("chosenReturn").instanceId)).toBe(true);
-      expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("otherEligible").instanceId)).toBe(
-        true,
-      );
-      expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tooLarge").instanceId)).toBe(true);
-      assertNoLoudGap(s);
-    } finally {
-      (recipientDefinition as { types?: string[] }).types = originalTypes as string[] | undefined;
-    }
+    expect(s.state.memory).toBe(-2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("chosenReturn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("otherEligible").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tooLarge").instanceId)).toBe(true);
+    assertNoLoudGap(s);
   });
 });

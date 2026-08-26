@@ -482,6 +482,16 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Behavioral proof: two focused cases assert complete catalog identity, exact empty IR, both legal evolution colors and cost, direct play cost, final memory and zones, and absence of effect decisions.
 - Verification: focused suite — 2 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
 
+## BT10-056 — Lotosmon — 10/10
+
+- Catalog evidence: green level 6 Digimon, play cost 11, 11000 DP; evolves from green level 5 for 4; form `Mega`, attribute `Data`, type `Fairy`. When Digivolving suspends one opposing Digimon and prevents that exact Digimon from unsuspending in the opponent's next unsuspend phase. During the opponent's turn, every other allied Vegetation-, Plant-, or Fairy-trait Digimon gains an On Deletion effect that gains 2 memory and mandatorily returns one Digimon card with at most 3000 DP from trash to hand.
+- Knowledge base: Q1979 confirms the granted On Deletion remains available when Lotosmon and the recipient are deleted simultaneously. Plant wording includes compound Plant traits consistently with the collection's Plant ruling. No errata, restriction, or unresolved ambiguity remains.
+- Implementation: `SelectBind` preserves one chosen opponent identity across Suspend and an `untilOpponentTurnEnd` unsuspend restriction. The opponent-turn grant excludes Lotosmon itself and now uses compound-aware trait matching for Vegetation, Plant variants, and Fairy; its shared granted effect performs +2 memory and one mandatory 3000-DP-or-less trash return. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-056", compiled)`.
+- Primitive trace: evolution binds before mutation so only the chosen permanent receives both suspension and the duration restriction; turn-bound cleanup blocks the next opponent unsuspend and expires afterward. Continuous grants snapshot qualifying recipients before simultaneous deletion, allowing the departing recipient's physical source to enqueue its gained effect even as Lotosmon also leaves.
+- Cross-card and stack proof: legal evolution selects one of two opponent Digimon and a multi-turn production flow proves exact target persistence and expiry. Real Carnivorous Plant BT1-071 proves compound Plant matching without catalog mutation; simultaneous deletion with Lotosmon proves Q1979, exact +2 memory, mandatory candidate filtering, chosen return, and near-match retention in trash.
+- Behavioral proof: three focused cases prove catalog/IR fidelity, chosen-only suspension/restriction, next-opponent-turn duration and expiry, exclude-self granted effect, real compound Plant eligibility, simultaneous-deletion retention, memory amount, mandatory one-target choice, and 3000-DP threshold.
+- Verification: focused Lotosmon suite — 3 passed; Palmon compound-Plant regression — 4 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
 ## BT10-045 — Kokuwamon — 10/10
 
 - Catalog evidence: green level 3 Digimon, play cost 3, 2000 DP; evolves from green level 2 for 0; form `Rookie`, attribute `Data`, type `Machine`; it has no main effect. Its inherited Your Turn once-per-turn effect gains 1 memory when its host deletes an opposing Digimon in battle.
