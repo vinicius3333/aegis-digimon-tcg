@@ -5,7 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-047.js";
 
-// "Green also meets this card's colour requirements" (Q4063/Q4064): the printed requirement
+// "Green also meets this card's colour requirements": the printed requirement
 // still has to be met — by Yellow or by Green — it is not waived outright.
 describe("LM-047 Chartreuse Memory Boost!", () => {
   it("reveals three, adds a yellow or green Digimon, bottoms the rest and places itself", async () => {
@@ -51,7 +51,7 @@ describe("LM-047 Chartreuse Memory Boost!", () => {
     });
   });
 
-  it("counts a green Digimon in the breeding area too, per Q4064", async () => {
+  it("counts a green Digimon in the breeding area too", async () => {
     const s = setupEngine(
       {
         0: {

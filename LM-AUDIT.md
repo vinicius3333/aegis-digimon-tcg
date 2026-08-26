@@ -285,3 +285,13 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   and Security; shared Delay behavior covers activation lifecycle. Removed LM-033-specific
   Q4063/Q4064 citations because LM-046 has no local KB ruling.
 - Tests remain deliberately unrun under PID 43774, so LM-046 remains below 10/10.
+
+## LM-047 — Chartreuse Memory Boost! — pending focused execution
+
+- Catalog maps to direct Static `alsoColor: green`, retaining yellow-or-green color legality in
+  battle and breeding. Main reveals three, adds one yellow-or-green Digimon, bottoms the rest,
+  then places the Option; Delay gains two memory and Security places it.
+- Existing focused behavior covers the native/alternate source paths, breeding, rejection, reveal
+  resolution, and Security; shared Delay proof covers activation. Removed unrelated LM-033 Q&A
+  citations because LM-047 has no card-specific KB entry.
+- Tests remain deliberately unrun under PID 43774, so LM-047 remains below 10/10.
