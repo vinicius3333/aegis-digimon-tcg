@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX5-072.js";
+import { wouldBePlayedSelfReducersFor } from "../../engine/effects/interpreter/registration/reducers.js";
 
 describe("EX5-072 Holy Beasts Great Cardinal Positions", () => {
+  it("queues the paid Option reduction once per distinct qualifying trash name", () => {
+    const reduction = compiled.effects?.find((entry) => entry.trigger === "BeforePayCost")?.actions?.[0];
+    expect(reduction).toMatchObject({
+      kind: "Replacement",
+      actions: [{ kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 1 }],
+    });
+    expect(wouldBePlayedSelfReducersFor("EX5-072")).toContainEqual(expect.objectContaining({ amount: 1 }));
+  });
   it("reduces its use cost per unique Deva/Four Sovereigns trash name and can play Fanglongmon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "BeforePayCost")?.actions[0]).toMatchObject({
       kind: "Replacement",

@@ -50,6 +50,7 @@ export const compiled: CompiledCard = {
               kind: "Replacement",
               event: "wouldBePlayed",
               mode: "reduceCost",
+              amount: 1,
               scaling: {
                 per: 1,
                 filter: {

@@ -15,7 +15,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-009 | Indramon | 6 | On Play draw then optional distinct-name Deva breeding play; deletion draw is independent, and inherited Security Attack aura continuously follows the host’s live Four Sovereigns/God Beast trait. | Pending focused proof |
 | EX5-010 | Sandiramon | 6 | On Play draw then optional distinct-name Deva breeding play; deletion deletes one opponent DP≤5000, while inherited owner-turn Security Attack aura continuously checks Four Sovereigns/God Beast on its host. | Pending focused proof |
 | EX5-011 | Pajiramon | 6 | On Play draw then optional distinct-name Deva breeding play; deletion memory is gated by a live opponent Tamer, while inherited owner-turn Security Attack aura continuously checks Four Sovereigns/God Beast on its host. | Pending focused proof |
-| EX5-012 | Flaremon | 1 | Q3549 is represented by separate self-scoped play and digivolve-into cost replacements, each gated by a live qualifying stack with ≥3 sources; both entry timings delete DP≤5000 and inherited DP is owner-turn scoped. | Pending focused proof |
+| EX5-012 | Flaremon | 1 | Q3549 now uses verified self-scoped pay-time play and digivolve-into reducers, each gated by a live qualifying trait stack with ≥3 sources; both entry timings delete DP≤5000 and inherited DP is owner-turn scoped. | Pending focused proof |
 | EX5-013 | Zhuqiaomon | 1 | Q3550 confirms the payment can delete either player's eligible Digimon; direct IR uses an unrestricted Deva-or-DP≤6000 `deleteOwn` cost, and shared cost selection preserves that scope before the shared Once Per Turn SEC+ grant. | Pending focused proof |
 | EX5-014 | Apollomon | 1 | Direct IR gives digivolving-only Blitz, owner-turn SEC+ scaling per three own Digimon sources, and a shared Once Per Turn `whenSecurityRemoved` watcher whose deletion ceiling is the source’s live DP. | Pending focused proof |
 | EX5-015 | Gabumon (X Antibody) | 3 | On Play/When Digivolving share reveal-four/add-up-to-two then conditional hand trash; inherited battle-only deletion replacement is named-host scoped, once per turn, and pays two non-Egg trash returns before prevention. | Pending focused proof |
@@ -75,7 +75,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-069 | Biting Crush | 6 | Catalog Q3674-Q3678 → Main delete/trash binding and conditional self-placement; watcher is effect-driven opponent Digimon battle-area entry only, then the shared Delay wrapper consumes an armed grant before optional trash-Leviamon play. Runtime dependency: EX6 commit d1082a712 fixes generic Delay source-trash consumption; merge EX6 before updating EX5 from origin/main and serial validation, with no duplicate engine change here. | Pending focused proof |
 | EX5-070 | X Antibody Proto Form | 5 | Catalog Q3679-Q3682/Q4260 → hand-authored Main stack-name exclusion plus inherited replacement; replacement now excludes own-effect leaves and mandatorily returns a valid own-stack source before ordered security placement. Live filter/candidate and new replacement-contract fixtures remain unrun. | Pending focused run |
 | EX5-071 | Loyalty Deeper than the Sea | 2 | Catalog Main/ Security clauses → live Deva/Four Sovereigns color waiver, RevealAdd of one trait match with explicit place-under-or-hand disposition, and Security ActivateMain; shared reveal/placement mechanism is proven elsewhere, card file is structural. | Pending focused proof |
-| EX5-072 | Holy Beasts Great Cardinal Positions | 1 | Catalog cost/Main/Security clauses → live Deva/Four Sovereigns waiver, distinct-name trash scaling replacement, exact-name Fanglongmon free play and recovery; shared cost/reveal/return mechanisms are observable, card file is structural. | Pending focused proof |
+| EX5-072 | Holy Beasts Great Cardinal Positions | 1 | Catalog cost/Main/Security clauses → live Deva/Four Sovereigns waiver, verified pay-time distinct-name trash scaling reducer, exact-name Fanglongmon free play and recovery; runtime proof remains queued. | Pending focused proof |
 | EX5-073 | GraceNovamon | 4 | Catalog Q3687/Q3688 → fixed zero-cost DNA route, static keywords and non-DNA deletion; attack fixture and cost-seam fixture prove deletion path and self-stack payment scope, with focused execution pending. | Pending focused run |
 | EX5-074 | Fanglongmon | 2 | Catalog scaling/immunity clauses → generated scaling normalization and self-only permanent Digimon-effect immunity; harness cases cover security and paid-count DP branches, while shared targeting proves the intentionally narrower immunity scope. | Pending rerun |
 
@@ -112,7 +112,7 @@ This index records the executable trigger/action route inspected for each card; 
 | EX5-009 | Deva play, deletion draw, inherited Security Attack. |
 | EX5-010 | Deva play, deletion delete, inherited Security Attack. |
 | EX5-011 | Deva play, deletion memory, inherited Security Attack. |
-| EX5-012 | play/digivolve cost replacement; deletion; inherited DP. |
+| EX5-012 | verified pay-time play/digivolve reducers; deletion; inherited DP. |
 | EX5-013 | Blast; shared self-delete/SEC+; deletion delete. |
 | EX5-014 | Digivolving Blitz; inherited SEC+; deletion subtrigger. |
 | EX5-015 | reveal/trash; return replacement. |
@@ -172,6 +172,6 @@ This index records the executable trigger/action route inspected for each card; 
 | EX5-069 | delete-to-Tamer; Delay play; Security activates Main. |
 | EX5-070 | Generated Proto Form stack-name/replacement override. |
 | EX5-071 | color waiver/reveal option. |
-| EX5-072 | cost replacement/play/security return option. |
+| EX5-072 | verified pay-time distinct-name reducer/play/security return option. |
 | EX5-073 | SEC+/Blocker; DNA-trash/delete; trash replacement. |
 | EX5-074 | Generated Fanglongmon scale/immunity override. |

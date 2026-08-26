@@ -90,6 +90,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "ST9-09", // condition: you have a blue Digimon in play -> -1
   "EX2-045", // condition: you have Guilmon/Terriermon/Renamon/Impmon in play -> -2
   "EX5-012", // qualifying 3+ source Light Fang/Night Claw/Galaxy stack -> self play cost -2 (Q3549)
+  "EX5-072", // -1 per distinct Deva/Four Sovereigns name in trash -> self Option cost reduction
   "BT9-112", // scaling: -3 per opponent Digimon/Tamer in play (KB Q1928)
   "BT10-098", // condition: opponent has 2+ Digimon -> Option use cost -2
   "BT10-103", // condition: you have 2+ suspended green Digimon -> Option use cost -2
