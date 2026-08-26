@@ -9,7 +9,7 @@ describe("EX8-069", () => {
   it("waives its color requirement with no face-up security cards and grants all NSp Digimon Alliance", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
       kind: "WaiveColorRequirement",
-      condition: { kind: "youHaveNone", filter: { faceUp: true } },
+      condition: { kind: "noFaceUpSecurity" },
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "GainKeyword",
@@ -62,5 +62,31 @@ describe("EX8-069", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("nsp"), "Alliance")).toBe(true);
+  });
+  it("does not grant Alliance to a non-NSp peer and performs ordered face-up Main placement", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-010", as: "nonNsp" },
+          { card: "BT1-030", as: "blueSource" },
+        ],
+        hand: [{ card: "EX8-069", as: "option" }],
+        security: [
+          { card: "BT1-001", as: "top" },
+          { card: "BT1-002", as: "bottom" },
+        ],
+      },
+    });
+    const optionId = s.inst("option").instanceId;
+    const topId = s.inst("top").instanceId;
+    const bottomId = s.inst("bottom").instanceId;
+    s.state.memory = 5;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("nonNsp"), "Alliance")).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === optionId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === bottomId)).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([topId, optionId]);
+    expect(s.state.players[0]!.security[1]!.faceUp).toBe(true);
   });
 });
