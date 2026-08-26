@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-055 (Deramon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-055 Deramon | Green level 5; on play/when digivolving may suspend any Digimon, then if 2+ are suspended may unsuspend 1 own Digimon; all turns once per turn when this Digimon suspends, may play a 4000 DP-or-lower Digimon with Vegetation/Plant/Avian/Bird in any trait or TS from hand free; inherited opponent's turn once per turn when an opponent's Digimon attacks, may redirect to one suspended own Digimon. Q6338 confirms either-player suspension; Q6339 defines the play filter. | **Causal source-filter gaps.** The `whenSuspended` watcher has no `sourceFilter`, so it can react when any permanent suspends rather than specifically this Deramon. The inherited `whenOpponentAttacks` watcher also lacks an attacker filter, so it can accept any attacker subject instead of only an opponent's Digimon. Main suspension/unsuspend sequencing, count condition, free-play filter, inherited scope, and alternate evolution are otherwise represented. | Structural test only; no execution of self-suspension versus unrelated suspension, either-player suspension, 2-suspended boundary, trait/DP union, opponent-attacker filtering, or redirect timing. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-055
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-055` (Q6338 and Q6339).
+- Direct module and shared `whenSuspended`/`whenOpponentAttacks` payload filtering, target
+  unions, and once-per-turn watcher handling were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-054 (GreatGrizzlymon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
