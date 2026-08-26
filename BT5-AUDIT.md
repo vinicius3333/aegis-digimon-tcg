@@ -392,3 +392,59 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/targeting/loose.ts`, and `primitives.test.ts`; it reports no
   BT5-007 errors. Changed-file formatting and `git diff --check` pass.
 - Remaining ambiguity: none identified.
+
+## BT5-008 — Gaossmon — 10/10
+
+- Catalog evidence: Red Lv.3 Rookie Digimon, Virus/Reptile, play cost 3, 2000
+  DP, red Lv.2 evolution cost 0, rarity C, and four-copy limit. Its complete
+  text is `[Your Turn] Your other [Gaossmon] all get +3000 DP.` and
+  `[Opponent's Turn] Your opponent can't reduce digivolution costs.`
+- Knowledge-base and rules evidence: `node tools/kb/query.mjs card BT5-008`
+  returns Q1285-Q1287. Q1285-Q1286 establish that the restriction negates
+  effects that reduce a digivolution's printed memory cost, including
+  Digisorption and Hidden Potential Discovered, while Q1287 distinguishes
+  fixed-cost digivolution effects that ignore requirements (which remain
+  usable). The local name-matching rule treats `[Gaossmon]` as a name
+  substring reference; Your Turn/Opponent's Turn continuous timing and
+  controller-relative opponent semantics apply. No errata or unresolved
+  ambiguity applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-008.ts` contains one
+  `YourTurn` continuous `Aura` targeting all controller-owned permanents whose
+  name contains `Gaossmon`, excluding the source itself, with `modifyDP: 3000`,
+  plus one `OpponentsTurn` `RestrictCostReduction` for the opposing seat and
+  `costType: "digivolve"`. It declares `coverage: "full"`, `residual: []`,
+  and registers exclusively through `registerIrCard("BT5-008", compiled)`.
+- Primitive and peer evidence: `timingForTrigger` routes both turn clauses
+  through continuous recomputation and its turn-owner guard. `Aura` resolves
+  live battle-area targets, applies a continuous DP modifier, and removes it
+  when the turn gate lapses; `excludeSelf` compares the source permanent.
+  `RestrictCostReduction` records a seat-scoped digivolution block consumed by
+  `continuous.blocksCostReduction`. BT5-021 and BT5-033 provide matching
+  restriction peers, while BT5-002 provides the neighboring owner-turn aura
+  pattern.
+- Behavioral proof: 3 focused tests pass. The mixed board proves exactly the
+  two other own Gaossmon cards receive +3000, the source is excluded, an
+  unrelated own Digimon and an opponent Gaossmon are untouched, and the exact
+  DP amount is applied; the source also carries a legal BT5-001 Digi-Egg stack.
+  The turn-boundary case proves each aura follows its active owner's turn and
+  the cost-reduction block applies only to the source card's opponent during
+  Opponent's Turn. The existing restriction case proves the source seat
+  remains unblocked and only digivolution reduction is restricted.
+- Defect corrected: none in the card module or shared engine. Added only the
+  missing mixed-pool/controller and turn-gate behavioral assertions to
+  `apps/api/src/cards/BT5/BT5-008.test.ts`.
+- Verification: focused `pnpm --filter @aegis/api exec vitest run
+  src/cards/BT5/BT5-008.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --no-file-parallelism` — 1 file, 3 tests passed. The affected
+  `irKindTier1Cluster.test.ts` mechanism suite ran 15/16 tests; its sole
+  failure is the pre-existing BT1-093 fixture assertion (missing Security IR),
+  while all 15 unrelated mechanism tests passed. `pnpm typecheck` builds
+  shared and web successfully but retains pre-existing API errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  `primitives.test.ts`; it reports no BT5-008 errors. Changed TypeScript
+  formatting `pnpm exec oxfmt --check
+  apps/api/src/cards/BT5/BT5-008.test.ts` and `git diff --check` pass.
+- Remaining ambiguity: none identified; Q1287's fixed-cost exception is
+  documented by the KB but belongs to the shared digivolution-cost consumer,
+  not this card's restriction declaration.
