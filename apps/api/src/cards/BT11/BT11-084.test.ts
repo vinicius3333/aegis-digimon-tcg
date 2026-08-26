@@ -1,10 +1,20 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-084.js";
+import { compiled } from "./BT11-084.js";
 
 describe("BT11-084 BlueMeramon", () => {
+  it("maps catalog facts and every printed effect to IR", () => {
+    expect(getCardDefinition("BT11-084")).toMatchObject({ cardId: "BT11-084", colors: ["Purple"], level: 5, playCost: 8, dp: 6000, types: ["Flame"] });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", keywords: [{ keyword: "Retaliation" }] },
+      { trigger: "WhenDigivolving", actions: [{ kind: "Draw", amount: 2 }, { kind: "Trash" }] },
+      { trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger" }] },
+    ]);
+  });
+
   it("draws 2 then trashes 2 when digivolving and has Retaliation", async () => {
     const s = setupEngine(
       {
