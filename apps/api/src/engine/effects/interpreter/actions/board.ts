@@ -3,7 +3,7 @@
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { type ActionScope, runAction } from "../dispatch.js";
-import { toDuration, toSourceRelativeDuration } from "../duration.js";
+import { toDuration } from "../duration.js";
 import { ACTION_TYPE_KEYWORDS, unsupported } from "../errors.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
@@ -145,6 +145,17 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       return false;
     }
     case "ModifyDP": {
+      const nextOpponentTurnDuration = action.duration === "untilOpponentNextTurnEnd";
+      if (
+        nextOpponentTurnDuration &&
+        (action.playerWide === true ||
+          (action.alsoGainKeywords?.length ?? 0) > 0 ||
+          action.continuous === true ||
+          ctx.continuousPass === true)
+      ) {
+        unsupported(ctx, action, '"untilOpponentNextTurnEnd" is supported only for one-shot single-target DP');
+        return false;
+      }
       if (action.playerWide === true) {
         const controller = action.target.filter.controller;
         if (controller !== "mine" && controller !== "opponent") return false;
@@ -154,7 +165,8 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         return false;
       }
       const ids = await resolvePermanentTargets(ctx, action.target);
-      const duration = toSourceRelativeDuration(action.duration, ctx.source.isOwnersTurn());
+      const skipsCurrentOpponentTurnEnd = nextOpponentTurnDuration && !ctx.source.isOwnersTurn();
+      const duration = nextOpponentTurnDuration ? toDuration("untilOpponentTurnEnd") : toDuration(action.duration);
       const effectSourceBound = (action as Action & { effectSourceBound?: boolean }).effectSourceBound === true;
       for (const id of ids) {
         const targetScale =
@@ -174,10 +186,11 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             ? ctx.continuousPass === true
               ? { continuous: true, ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}) }
               : effectSourceBound
-                ? { sourceInstanceId: ctx.source.instanceId }
-                : undefined
+                ? { sourceInstanceId: ctx.source.instanceId, skipsCurrentOpponentTurnEnd }
+                : { skipsCurrentOpponentTurnEnd }
             : {
                 continuous: action.continuous,
+                skipsCurrentOpponentTurnEnd,
                 ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}),
               },
         );

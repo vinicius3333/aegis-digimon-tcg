@@ -414,7 +414,7 @@ No ambiguity or unsupported behavior remains for BT9-014.
 4. **Q1808 exact names (1/1):** Exact `MetalGreymon` and exact `X Antibody` card-name branches qualify; an X Antibody trait and the longer `MetalGreymon (X Antibody)` name do not.
 5. **Q1809 activation-time snapshot (1/1):** A public `playCard` intent resolves BT9-109's `[Main]` placement after evolution; adding exact X Antibody at that point does not retroactively grant +3000 DP.
 6. **Q1967 Venusmon ordering (1/1):** On a complete legal stack facing Venusmon, this evolution's actions finish and reach 11000 DP before Venusmon suppresses later `[When Digivolving]`/`[When Attacking]` activations.
-7. **Distinct durations (1/1):** An opponent-turn activation proves `Security Attack +1` expires at that current opponent-turn end, while `+3000 DP` (encoded as `untilOpponentNextTurnEnd`) survives the current boundary and the owner's following turn before expiring at the next opponent-turn end.
+7. **Distinct durations (1/1):** An opponent-turn activation driven inside `runOneTurn()` proves `Security Attack +1` expires through the real current close-turn sequence, while `+3000 DP` (encoded as `untilOpponentNextTurnEnd`) survives that close and the owner's following real turn before expiring at the next opponent close. The special marker is rejected by the generic duration mapper and accepted only by one-shot, single-target `ModifyDP`, excluding player-wide, continuous, and combined-keyword leakage.
 8. **Legal alternate evolution (1/1):** Public intents build Koromon-to-Agumon-X-to-Greymon-to-MetalGreymon, move it from breeding, and use the exact MetalGreymon alternate route for 0.
 9. **Direct IR, registration, and live keyword seam (1/1):** The full/no-residual module registers exactly once with `registerIrCard` and is indexed; live keyword filtering now respects an authoritative `false` instead of re-promoting conditional grant prose through raw text.
 10. **Reproducible verification (1/1):** Focused proof passed 9/9, including exact 3-memory payment, public Q1809 placement, and opponent-turn duration boundaries; Venusmon and keyword regressions, typecheck, focused formatting, and `git diff --check` passed.
@@ -428,7 +428,7 @@ rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-015.ts
 pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-015.test.ts --reporter=dot
 pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-042.test.ts src/engine/combat/keywords.test.ts --reporter=dot
 pnpm typecheck
-pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-015.ts apps/api/src/cards/BT9/BT9-015.test.ts apps/api/src/engine/effects/interpreter/duration.ts apps/api/src/engine/effects/interpreter/actions/board.ts apps/api/src/engine/effects/modifiers.ts apps/api/src/engine/effects/continuous.ts packages/shared/src/effects/ir/durations.ts packages/shared/src/schema/enums.ts
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-015.ts apps/api/src/cards/BT9/BT9-015.test.ts apps/api/src/engine/effects/EffectContext.ts apps/api/src/engine/effects/interpreter/duration.ts apps/api/src/engine/effects/interpreter/actions/board.ts apps/api/src/engine/effects/modifiers.ts apps/api/src/engine/effects/primitives.ts packages/shared/src/effects/ir/durations.ts packages/shared/src/schema/enums.ts
 git diff --check
 ```
 

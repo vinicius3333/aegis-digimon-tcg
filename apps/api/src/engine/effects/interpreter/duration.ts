@@ -19,7 +19,7 @@ export function toDuration(ref: EffectDurationRef): EffectDuration {
     case "untilOpponentTurnEnd":
       return EffectDuration.UntilOpponentTurnEnd;
     case "untilOpponentNextTurnEnd":
-      return EffectDuration.UntilNextOpponentTurnEnd;
+      throw new Error('"untilOpponentNextTurnEnd" is valid only for a single-target ModifyDP action');
     case "endOfOpponentTurn":
       return EffectDuration.UntilOpponentTurnEnd;
     case "untilEndOfAttack":
@@ -35,10 +35,4 @@ export function toDuration(ref: EffectDurationRef): EffectDuration {
     default:
       return EffectDuration.UntilEachTurnEnd;
   }
-}
-
-/** Resolve "opponent's next turn" relative to the turn in which the source acts. */
-export function toSourceRelativeDuration(ref: EffectDurationRef, isOwnersTurn: boolean): EffectDuration {
-  if (ref === "untilOpponentNextTurnEnd" && isOwnersTurn) return EffectDuration.UntilOpponentTurnEnd;
-  return toDuration(ref);
 }

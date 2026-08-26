@@ -471,8 +471,6 @@ function clearsAt(duration: EffectDuration, boundary: DurationBoundary, ownerSea
     case EffectDuration.Permanent:
       // A genuinely-permanent grant is never cleared by any boundary sweep (WR-03 / ENG-02).
       return false;
-    case EffectDuration.UntilNextOpponentTurnEnd:
-      return false;
     default:
       return false;
   }

@@ -1,6 +1,7 @@
 import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { toDuration } from "../../engine/effects/interpreter/duration.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT10/BT10-042.js";
@@ -47,6 +48,11 @@ describe("BT9-015 MetalGreymon (X Antibody)", () => {
       residual: [],
       digivolutionRequirement: [{ names: ["MetalGreymon"], cost: 0, isAlternate: true }],
     });
+    const dpAction = compiled.effects[0]!.actions[1]!;
+    expect(dpAction).not.toHaveProperty("playerWide");
+    expect(dpAction).not.toHaveProperty("alsoGainKeywords");
+    expect(dpAction).not.toHaveProperty("continuous");
+    expect(() => toDuration("untilOpponentNextTurnEnd")).toThrow(/single-target ModifyDP/);
   });
 
   it("uses the 0-cost MetalGreymon route on a complete legal stack and resolves before Venusmon suppresses later effects (Q1967)", async () => {
@@ -132,27 +138,44 @@ describe("BT9-015 MetalGreymon (X Antibody)", () => {
 
   it("separates current-opponent-turn Security Attack expiry from next-opponent-turn DP expiry", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT9-015", as: "host", under: ["BT1-021"] }] },
+      0: {
+        battleArea: [{ card: "BT9-015", as: "host", under: ["BT1-021"] }],
+        hand: ["BT1-010"],
+        deck: ["BT1-001"],
+      },
+      1: { hand: ["BT1-010"], deck: ["BT1-002"] },
     });
     s.state.turnSeat = 1;
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const closeTurn = async (seat: 0 | 1): Promise<void> => {
+      const turn = s.engine.runOneTurn();
+      await settle(() => mainPhase.isOpen && s.state.turnSeat === seat && s.state.phase === Phase.Main);
+      expect(s.engine.applyIntent(seat, { type: "endPhase" })).toEqual({ ok: true });
+      await turn;
+    };
 
     // No player intent can digivolve during an ordinary opposing Main phase. Fire the
-    // production timing directly to model an effect-driven opponent-turn evolution.
+    // production timing directly inside the real opponent turn to model an effect-driven evolution.
+    const currentOpponentTurn = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.turnSeat === 1 && s.state.phase === Phase.Main);
+    s.state.memory = 10;
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("host"));
     expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(true);
     expect(s.perm("host").currentDP).toBe(11000);
 
-    advance(s.engine).ledgers.continuous.sweep(s.state, "opponentTurnEnd", 1);
-    advance(s.engine).ledgers.modifiers.sweep(s.state, "opponentTurnEnd", 1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await currentOpponentTurn;
     expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
     expect(s.perm("host").currentDP).toBe(11000);
 
-    advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 0);
-    advance(s.engine).ledgers.modifiers.sweep(s.state, "ownerTurnEnd", 0);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+    await closeTurn(0);
     expect(s.perm("host").currentDP).toBe(11000);
 
-    advance(s.engine).ledgers.continuous.sweep(s.state, "opponentTurnEnd", 1);
-    advance(s.engine).ledgers.modifiers.sweep(s.state, "opponentTurnEnd", 1);
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await closeTurn(1);
     expect(s.perm("host").currentDP).toBe(8000);
   });
 

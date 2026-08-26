@@ -593,7 +593,7 @@ export interface Primitives {
     permanentId: string,
     delta: number,
     duration: EffectDuration,
-    opts?: { continuous?: boolean; sourceInstanceId?: string },
+    opts?: { continuous?: boolean; sourceInstanceId?: string; skipsCurrentOpponentTurnEnd?: boolean },
   ): void;
   /** Modify every current and future Digimon controlled by `seat` for the duration. */
   modifyPlayerDP(seat: Seat, delta: number, duration: EffectDuration): void;

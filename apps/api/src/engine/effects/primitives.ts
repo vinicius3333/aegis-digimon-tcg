@@ -561,6 +561,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     ledger.addDpModifier(state, permanentId, delta, durationForTarget(permanentId, duration), {
       ...(opts?.continuous === undefined ? continuousOpt() : { continuous: opts.continuous }),
       ...(opts?.sourceInstanceId !== undefined ? { sourceInstanceId: opts.sourceInstanceId } : {}),
+      ...(opts?.skipsCurrentOpponentTurnEnd === true ? { skipsCurrentOpponentTurnEnd: true } : {}),
     });
     // currentDP was recomputed by the ledger; no dedicated ServerEvent in the
     // protocol for a DP change — the schema delta (currentDP) is the source of truth.

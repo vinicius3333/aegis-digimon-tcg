@@ -47,6 +47,8 @@ export interface DpModifier {
   duration: EffectDuration;
   /** Card instance whose continued presence sustains this modifier. */
   sourceInstanceId?: string;
+  /** Ignore only the canonical opponent-turn end already in progress. */
+  skipsCurrentOpponentTurnEnd?: boolean;
   /**
    * True when this delta was produced by a PERSISTENT (static / `EffectTiming.None`)
    * effect rather than a one-shot triggered effect. The continuous-recompute pass
@@ -230,32 +232,12 @@ function clearsAt(
     case EffectDuration.Permanent:
       // A genuinely-permanent grant is never cleared by any boundary sweep (WR-03 / ENG-02).
       return false;
-    case EffectDuration.UntilNextOpponentTurnEnd:
-      // The first matching boundary arms normal opponent-turn expiry; `expiresAt`
-      // performs that transition without removing the entry.
-      return false;
     default: {
       const _exhaustive: never = duration;
       void _exhaustive;
       return false;
     }
   }
-}
-
-function expiresAt<T extends { duration: EffectDuration }>(
-  entry: T,
-  boundary: DurationBoundary,
-  modifierOwnerSeat: Seat,
-  sweepSeat: Seat,
-): boolean {
-  if (entry.duration === EffectDuration.UntilNextOpponentTurnEnd) {
-    const matchingOpponentBoundary =
-      (boundary === "ownerTurnEnd" || boundary === "opponentTurnEnd" || boundary === "eachTurnEnd") &&
-      modifierOwnerSeat !== sweepSeat;
-    if (matchingOpponentBoundary) entry.duration = EffectDuration.UntilOpponentTurnEnd;
-    return false;
-  }
-  return clearsAt(entry.duration, boundary, modifierOwnerSeat, sweepSeat);
 }
 
 export class ModifierLedger {
@@ -287,7 +269,7 @@ export class ModifierLedger {
     permanentId: string,
     delta: number,
     duration: EffectDuration,
-    opts?: { continuous?: boolean; sourceInstanceId?: string },
+    opts?: { continuous?: boolean; sourceInstanceId?: string; skipsCurrentOpponentTurnEnd?: boolean },
   ): DpModifier {
     const modifier: DpModifier = {
       permanentId,
@@ -295,6 +277,7 @@ export class ModifierLedger {
       duration,
       continuous: opts?.continuous,
       sourceInstanceId: opts?.sourceInstanceId,
+      skipsCurrentOpponentTurnEnd: opts?.skipsCurrentOpponentTurnEnd,
     };
     this.dpModifiers.push(modifier);
     this.recomputeDP(state, permanentId);
@@ -691,7 +674,7 @@ export class ModifierLedger {
     const touched = new Set<string>();
 
     this.playerDpModifiers = this.playerDpModifiers.filter((modifier) => {
-      const expires = expiresAt(modifier, boundary, modifier.seat, sweepSeat);
+      const expires = clearsAt(modifier.duration, boundary, modifier.seat, sweepSeat);
       if (expires) {
         for (const permanent of state.players[modifier.seat]!.battleArea) touched.add(permanent.permanentId);
       }
@@ -700,28 +683,32 @@ export class ModifierLedger {
 
     this.dpModifiers = this.dpModifiers.filter((m) => {
       const ownerSeat = ownerSeatOfPermanent(state, m.permanentId);
-      const expires = expiresAt(m, boundary, ownerSeat, sweepSeat);
+      if (m.skipsCurrentOpponentTurnEnd === true) {
+        if (boundary === "opponentTurnEnd" && ownerSeat !== sweepSeat) m.skipsCurrentOpponentTurnEnd = false;
+        return true;
+      }
+      const expires = clearsAt(m.duration, boundary, ownerSeat, sweepSeat);
       if (expires) touched.add(m.permanentId);
       return !expires;
     });
 
     this.baseDpOverrides = this.baseDpOverrides.filter((o) => {
       const ownerSeat = ownerSeatOfPermanent(state, o.permanentId);
-      const expires = expiresAt(o, boundary, ownerSeat, sweepSeat);
+      const expires = clearsAt(o.duration, boundary, ownerSeat, sweepSeat);
       if (expires) touched.add(o.permanentId);
       return !expires;
     });
 
     this.minDpFloors = this.minDpFloors.filter((f) => {
       const ownerSeat = ownerSeatOfPermanent(state, f.permanentId);
-      const expires = expiresAt(f, boundary, ownerSeat, sweepSeat);
+      const expires = clearsAt(f.duration, boundary, ownerSeat, sweepSeat);
       if (expires) touched.add(f.permanentId);
       return !expires;
     });
 
     this.pierceGrants = this.pierceGrants.filter((g) => {
       const ownerSeat = ownerSeatOfPermanent(state, g.permanentId);
-      return !expiresAt(g, boundary, ownerSeat, sweepSeat);
+      return !clearsAt(g.duration, boundary, ownerSeat, sweepSeat);
     });
 
     // Evo-cost/play-cost adjustments are keyed to their SOURCE (a predicate closure),
@@ -729,8 +716,12 @@ export class ModifierLedger {
     // placeholder. It is never actually consulted: the only durations these ever carry
     // are `Permanent` (seat-independent — never clears) and `UntilEachTurnEnd` (also
     // seat-independent per `clearsAt`), so the placeholder cannot affect the outcome.
-    this.evoCostAdjustments = this.evoCostAdjustments.filter((a) => !expiresAt(a, boundary, 0 as Seat, sweepSeat));
-    this.playCostAdjustments = this.playCostAdjustments.filter((a) => !expiresAt(a, boundary, 0 as Seat, sweepSeat));
+    this.evoCostAdjustments = this.evoCostAdjustments.filter(
+      (a) => !clearsAt(a.duration, boundary, 0 as Seat, sweepSeat),
+    );
+    this.playCostAdjustments = this.playCostAdjustments.filter(
+      (a) => !clearsAt(a.duration, boundary, 0 as Seat, sweepSeat),
+    );
 
     for (const permanentId of touched) {
       this.recomputeDP(state, permanentId);
