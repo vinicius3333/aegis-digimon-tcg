@@ -634,13 +634,15 @@ export function permanentMatchesFilter(
     const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
     const hasKeyword = (kw: string | { keyword?: string }): boolean => {
       const token = typeof kw === "string" ? kw : (kw.keyword ?? "");
+      const liveKeyword = ctx.game.hasKeyword?.(permanent.permanentId, token);
       return (
-        ctx.game.hasKeyword?.(permanent.permanentId, token) === true ||
+        liveKeyword === true ||
         granted.has(token) ||
-        textHasKeyword(def, token) ||
-        permanent.stack.some((card) =>
-          textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, token),
-        )
+        (liveKeyword === undefined &&
+          (textHasKeyword(def, token) ||
+            permanent.stack.some((card) =>
+              textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, token),
+            )))
       );
     };
     if (!filter.keywords.every(hasKeyword)) return false;
@@ -651,13 +653,15 @@ export function permanentMatchesFilter(
     const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
     const hasKeyword = (kw: string | { keyword?: string }): boolean => {
       const token = typeof kw === "string" ? kw : (kw.keyword ?? "");
+      const liveKeyword = ctx.game.hasKeyword?.(permanent.permanentId, token);
       return (
-        ctx.game.hasKeyword?.(permanent.permanentId, token) === true ||
+        liveKeyword === true ||
         granted.has(token) ||
-        textHasKeyword(def, token) ||
-        permanent.stack.some((card) =>
-          textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, token),
-        )
+        (liveKeyword === undefined &&
+          (textHasKeyword(def, token) ||
+            permanent.stack.some((card) =>
+              textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, token),
+            )))
       );
     };
     if (filter.excludeKeywords.some(hasKeyword)) return false;
