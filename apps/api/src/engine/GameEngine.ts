@@ -2464,7 +2464,13 @@ export class GameEngine {
       // only thing keeping a trash/hand/security watcher from firing after its card moved
       // (CR §15-4-4-3; KB Q2671, Q2805). Checked before the lookup so a security card flipped
       // face-down — which `findLooseInstance` simply stops seeing — still latches as departed.
-      if (this.looseSourceLeftInstallZone(sub, sub.sourceInstanceId)) return undefined;
+      // A hand-resident watcher for "when this card is trashed from your hand" activates
+      // because its source JUST moved from hand to trash. Preserve that one event's source
+      // through context construction; every later event still observes the departed hand
+      // root and drops the watcher normally.
+      const activatesFromItsOwnHandTrash =
+        sub.event === "whenTrashedFromHand" && payload.trashedFromHandInstanceId === sub.sourceInstanceId;
+      if (!activatesFromItsOwnHandTrash && this.looseSourceLeftInstallZone(sub, sub.sourceInstanceId)) return undefined;
       const loose = this.findLooseInstance(sub.sourceInstanceId);
       if (loose === undefined) return undefined;
       return this.buildEffectContext(this.cardSourceOf(loose), payload);
