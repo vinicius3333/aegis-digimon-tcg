@@ -214,6 +214,23 @@ Remaining work is behavioral proof of Q1665's evolution-stack boundary and On Pl
 
 Remaining work is focused behavioral proof of the Start-of-Turn boundary and top-4 search/remainder behavior; this card is not formally complete at 10/10.
 
+## BT7-089 — J.P. Shibayama — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Green Tamer costing 3 with Your Turn digivolution-cost reduction, inherited Piercing, and Security free play.
+2. **Turn/cost condition (1/1):** Your Turn grants a -1 digivolution cost modifier when the destination is an owner Green Digimon.
+3. **Inherited effect (1/1):** Piercing is represented as an inherited permanent keyword.
+4. **Security behavior (1/1):** Security plays this card without cost via self-reference.
+5. **Rules evidence (1/1):** Q1664 confirms the inherited Piercing effect activates when a Digimon legally digivolves onto this Tamer; IR marks it inherited.
+6. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-089` returns Q1664 with no unresolved ambiguity.
+7. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-089", compiled)` registration are present.
+8. **Static primitive trace (1/1):** Turn timing, digivolution cost type, reduction amount, Green destination filter, inherited keyword, and free Security play are explicit.
+9. **Clause completeness (1/1):** Main, inherited, and Security clauses map directly to compiled effects.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; Green/off-color evolution, inherited stack activation, and Security play remain unproven.
+
+Remaining work is behavioral proof of Q1664's evolution-stack boundary and the Green destination restriction; this card is not formally complete at 10/10.
+
 ## BT7-101 — Thunder Laser — 9/10 (static audit)
 
 ### Clause-by-clause score
