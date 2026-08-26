@@ -391,7 +391,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --fileParallelism=false`. LM-032 remains below 10/10 pending relevant mechanism and refreshed
   collection gates.
 
-## LM-033 — Garnet Memory Boost! — static audit complete; pending focused authorization
+## LM-033 — Garnet Memory Boost! — focused proof green; pending mechanism and collection gates
 
 - Catalog and Q4063/Q4064 map to a self-bound Static `WaiveColorRequirement` with
   `alsoColor: black`, not a blanket waiver. The interpreter's option-legality path includes both
@@ -402,10 +402,13 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   cost/payment removal and the two-memory payload.
 - Static review found no new causal gap: the self-bound `WaiveColorRequirement` preserves the
   printed red requirement while admitting black Digimon/Tamers in battle or breeding, and the
-  Main, Delay, and Security effects remain independent. The focused suite remains unrun; LM-033
-  stays below 10/10 pending explicit authorization and the relevant mechanism/collection gates.
+  Main, Delay, and Security effects remain independent. The authorized serialized focused command
+  passed 1/1 file and 6/6 tests in 3.19s on 2026-08-26:
+  `vitest run src/cards/LM/LM-033.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-033 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
-## LM-034 — Wisteria Memory Boost! — pending focused execution
+## LM-034 — Wisteria Memory Boost! — static audit complete; pending focused authorization
 
 - Catalog and Q4065/Q4066 map to the direct Static `WaiveColorRequirement` with
   `alsoColor: red`; interpreter legality treats a blue or red source in battle or breeding as
@@ -415,7 +418,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   battle, red breeding, no eligible source, reveal results, and Security, while the shared Delay
   suite covers activation/payment/result behavior. The stale Q&A reference in the test comment
   was corrected from Q4063/Q4064 to Q4065/Q4066.
-- Proof is deliberately unrun under PID 82901, so LM-034 remains below 10/10.
+- Static review found no new causal gap: the self-bound `WaiveColorRequirement` preserves the
+  printed blue requirement while admitting red Digimon/Tamers in battle or breeding, and the
+  Main, Delay, and Security effects remain independent. The focused suite remains unrun; LM-034
+  stays below 10/10 pending explicit authorization and the relevant mechanism/collection gates.
 
 ## LM-035 — Amber Memory Boost! — pending focused execution
 
