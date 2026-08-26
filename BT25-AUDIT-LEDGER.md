@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-034 (Angemon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-034 Angemon | Yellow level 4 Digimon; alternate level-3 `[TS]` evolution cost 2; when an effect trashes this card from the security stack, may play 1 level-4-or-lower `[Angel]` or `[Iliad]` trait card from hand without paying; Ascension; inherited Barrier. Q6298 limits activation to direct effect trash from security, not reveal/search. | **No card-specific causal mismatch found statically.** The `OnDiscardSecurity` timing is the dedicated effect-driven direct-trash seam, excluding reveal/search cases; the hand target correctly combines level <=4 with Angel/Iliad traits and pays no cost. Ascension, inherited Barrier, and alternate evolution are represented. | Structural test only; no execution of direct versus indirect security movement, optional refusal, level/trait filtering, Ascension, alternate evolution, or Barrier. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-034
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-034` (Q6298).
+- Direct module and shared `OnDiscardSecurity`/`fireDiscardedFromSecurity` routing were
+  inspected, including the distinction from generic security removal.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-033 (Aegiomon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
