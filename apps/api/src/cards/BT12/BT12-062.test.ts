@@ -48,6 +48,56 @@ describe("BT12-062 Greymon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("accepts compound-name Tai Kamiya & Matt Ishida and places that exact card in battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-059", as: "base" }],
+          hand: [
+            { card: "BT12-062", as: "evo" },
+            { card: "BT5-093", as: "compoundTai" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const taiId = s.inst("compoundTai").instanceId;
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evo").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === taiId));
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(taiId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(taiId);
+  });
+
+  it("grants inherited DP on a realistic stack created through public evolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT12-062", as: "greymon" }],
+        hand: [{ card: "BT12-068", as: "metalGreymon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("greymon").permanentId,
+        instanceId: s.inst("metalGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("greymon").topCard.cardId === "BT12-068");
+    expect(s.perm("greymon").stack.map(({ cardId }) => cardId)).toEqual(["BT12-062"]);
+    expect(s.perm("greymon").currentDP).toBe(s.perm("greymon").baseDP + 1000);
+  });
+
   it.each(["BT1-015", "BT1-084"])("gives a Greymon or Omnimon host %s +1000 DP", async (host) => {
     const s = setupEngine({ 0: { battleArea: [{ card: host, as: "host", under: ["BT12-062"] }] } });
     await s.ready();
