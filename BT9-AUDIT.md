@@ -493,3 +493,33 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT9-017.
+
+## BT9-018 — Dinorexmon — 10/10
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Red/green level-6 Digimon, play cost 13, 13000 DP, `Mega`/`Data`, complete `Dinosaur`/`X Antibody` traits, both level-5 evolution routes for 5, and all printed text were checked.
+2. **Legal evolution routes (1/1):** Public digivolve intents exercise both a legal red level-5 and a legal green level-5 source and pay exactly 5 memory on each route.
+3. **Scaled suspension (1/1):** Two opposing Tamers cause two opposing Digimon to become suspended, correcting the prior one-target interpretation of “for each Tamer.”
+4. **Q1816/Q1817 memory scaling (1/1):** Evolution gains exactly 1 memory per opposing Tamer, and still gains the full amount when fewer opposing Digimon are available to suspend.
+5. **Q1818 optional budget (1/1):** A declined deletion leaves the first target in play and does not consume `[Once Per Turn]`; a later suspension in the same turn can be accepted and deleted.
+6. **Q1819 Blocker timing (1/1):** A public attack and public block declaration suspend the 6000-DP Blocker; Dinorexmon deletes it before battle, so no battle resolves and security is untouched.
+7. **Q1820 simultaneous subjects (1/1):** One effect-driven suspension batch containing two eligible Digimon opens one activation and deletes both trigger subjects together.
+8. **Q4287 activation snapshot (1/1):** After the eligible 3000-DP Digimon suspends and the deletion activates, raising it to 7000 DP before accepting does not invalidate the pending deletion.
+9. **Direct IR and registration (1/1):** The full/no-residual module contains both clauses, registers exactly once with `registerIrCard`, contains no legacy registration, and is imported by the BT9 index.
+10. **Reproducible verification (1/1):** Focused proof passes 9/9, including both evolution colors and every Q1816–Q1820/Q4287 ruling; suspension/sub-trigger mechanisms, typecheck, formatting, and `git diff --check` pass.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT9-018
+rg -n 'Q1816|Q1817|Q1818|Q1819|Q1820|Q4287' data/kb/qa.json
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT9/BT9-018.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT9/BT9-018.test.ts --reporter=dot
+pnpm --filter @aegis/api exec vitest run src/engine/effects/subtriggers.test.ts src/engine/effects/primitives.test.ts src/engine/conformance/ch12-blocking.test.ts --reporter=dot
+pnpm typecheck
+pnpm format:files:check BT9-AUDIT.md apps/api/src/cards/BT9/BT9-018.ts apps/api/src/cards/BT9/BT9-018.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT9-018.
