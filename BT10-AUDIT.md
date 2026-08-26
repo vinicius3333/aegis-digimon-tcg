@@ -491,3 +491,13 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Cross-card and stack proof: green Palmon and off-color Xros Heart Shoutmon independently prove both legal evolution routes. Taiki supplies the other Xros Heart Tamer for Blocker, while a lone Ballistamon proves exclude-self and turn switching proves exact duration. Ballistamon beneath Shoutmon versus an unrelated host proves the inherited name boundary; deletion beside Taiki proves Save zones.
 - Behavioral proof: six focused cases prove catalog/IR fidelity, both evolution recipes and cost, Blocker turn/another-permanent boundaries, Shoutmon-name inherited Piercing, nonmatching negative, optional Save, and retained physical identity.
 - Verification: focused suite — 6 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
+
+## BT10-050 — WezenGammamon — 10/10
+
+- Catalog evidence: green level 4 Digimon, play cost 5, 6000 DP; evolves from green level 3 for 2 and alternatively from a Gammamon-name Digimon for 2; form `Champion`, attribute `Data`, type `Ceratopsian`; it has static Piercing.
+- Knowledge base: `node tools/kb/query.mjs card BT10-050` returned no entries, so there are no local rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: a static keyword record publishes Piercing continuously, and the alternate evolution requirement matches the live base name Gammamon at cost 2 alongside the ordinary green level-3 recipe. Coverage is full, residuals empty, and registration exclusively uses `registerIrCard("BT10-050", compiled)`.
+- Primitive trace: evolution legality independently evaluates catalog color/level recipes and alternate name recipes before retaining the source stack and charging the selected cost. Combat reads live Piercing from the static keyword set; after this attacker deletes a suspended opposing Digimon in battle, combat continues into its normal security checks.
+- Cross-card and stack proof: off-color BT8 Gammamon proves the name route while green Palmon proves the catalog route, both at cost 2 with retained stacks. A real attack into a lower-DP suspended Gammamon proves deletion followed by the security check rather than merely inspecting keyword metadata.
+- Behavioral proof: five focused cases prove catalog/IR fidelity, continuous Piercing, both evolution routes and exact cost, retained sources, real battle deletion, continued security checking, and attacker survival.
+- Verification: focused suite — 5 passed; API typecheck, focused lint/format, and `git diff --check` — passed.
