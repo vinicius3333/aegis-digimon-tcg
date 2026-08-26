@@ -65,6 +65,9 @@ interface ContextOpts {
   turnSeat?: Seat;
   ownerBattleArea?: { permanentId: string; topCard: { instanceId: string; cardId: string; ownerSeat: Seat } }[];
   oppSecurity?: { instanceId: string; cardId: string; ownerSeat: Seat }[];
+  oppDeck?: { instanceId: string; cardId: string; ownerSeat: Seat; faceUp?: boolean }[];
+  sourcePermanent?: { permanentId: string; topCard: { instanceId: string; cardId: string; ownerSeat: Seat } };
+  chooseOptionIndexes?: number[];
 }
 
 function makeContext(opts: ContextOpts): EffectContext {
@@ -72,6 +75,7 @@ function makeContext(opts: ContextOpts): EffectContext {
   const oppSeat = 1 as Seat;
   const ownerBattleArea = opts.ownerBattleArea ?? [];
   const oppSecurity = opts.oppSecurity ?? [];
+  const oppDeck = opts.oppDeck ?? [];
 
   const players = [
     {
@@ -87,7 +91,7 @@ function makeContext(opts: ContextOpts): EffectContext {
       battleArea: [],
       security: oppSecurity,
       hand: [],
-      deck: [],
+      deck: oppDeck,
       trash: [],
     },
   ];
@@ -124,9 +128,10 @@ function makeContext(opts: ContextOpts): EffectContext {
     addSecurity: record("addSecurity"),
     trashFromSecurity: record("trashFromSecurity"),
     shuffleSecurity: record("shuffleSecurity"),
-    reveal: async (...args: unknown[]) => {
-      opts.recorder.calls.push({ verb: "reveal", args });
-      return [] as never;
+    reveal: async (seat: Seat, count: number) => {
+      const revealed = players[seat]!.deck.slice(0, count);
+      opts.recorder.calls.push({ verb: "reveal", args: [seat, count] });
+      return revealed as never;
     },
     restrict: record("restrict"),
     returnToDeck: record("returnToDeck"),
@@ -137,11 +142,11 @@ function makeContext(opts: ContextOpts): EffectContext {
     chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
     selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
     selectCards: async (_c, o) => o.candidates.slice(0, o.max),
-    chooseOption: async () => 0,
+    chooseOption: async () => opts.chooseOptionIndexes?.shift() ?? 0,
   };
 
   const source = makeSource({
-    permanent: () => undefined,
+    permanent: () => opts.sourcePermanent as never,
     isOnBattleArea: () => true,
   });
 
@@ -312,5 +317,35 @@ describe("LM-020 Quantumon", () => {
     // The IR wrongly calls trashFromSecurity instead.
     const addCalls = recorder.calls.filter((c) => c.verb === "addSecurity");
     expect(addCalls.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("declares a matching category, grants only that category immunity, and returns the revealed card to the bottom", async () => {
+    const recorder: Recorder = { calls: [] };
+    const quantumon = {
+      permanentId: "PERM#quantumon",
+      topCard: { instanceId: "INST#quantumon", cardId: "LM-020", ownerSeat: 0 as Seat },
+    };
+    const ctx = makeContext({
+      recorder,
+      ownerBattleArea: [quantumon],
+      sourcePermanent: quantumon,
+      oppDeck: [
+        { instanceId: "INST#top", cardId: "BT1-001", ownerSeat: 1 as Seat },
+        { instanceId: "INST#tail", cardId: "BT1-085", ownerSeat: 1 as Seat },
+      ],
+      // Digimon, then return the revealed card to the bottom.
+      chooseOptionIndexes: [0, 1],
+    });
+
+    const effect = module!.effectsForTiming(EffectTiming.OnStartTurn, ctx.source)[0]!;
+    await effect.resolve(ctx);
+
+    expect(recorder.calls).toContainEqual(
+      expect.objectContaining({
+        verb: "restrict",
+        args: expect.arrayContaining(["PERM#quantumon", "beAffected", expect.anything(), { fromSourceKind: ["Digimon"] }]),
+      }),
+    );
+    expect(ctx.game.player(1).deck.map((card) => card.instanceId)).toEqual(["INST#tail", "INST#top"]);
   });
 });
