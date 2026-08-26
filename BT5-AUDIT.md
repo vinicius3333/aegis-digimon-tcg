@@ -1212,3 +1212,45 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   `primitives.test.ts`.
 - Remaining ambiguity: none identified.
+
+## BT5-028 — CrysPaledramon — 10/10
+
+- Catalog evidence: Blue Lv.5 Ultimate Digimon, Data/Dragonkin, play cost 8,
+  7000 DP, and blue Lv.4 evolution cost 3. `[When Digivolving]` trashes the
+  bottom digivolution card of all opposing Digimon. Its inherited `[Your
+  Turn]` effect grants `<Security Attack +1>` while the opponent has a Digimon
+  with no digivolution cards in play.
+- Knowledge-base and rules evidence: the card query returns no card-specific
+  QA, errata, restriction, or ruling entries. Local When Digivolving,
+  all-target processing, bottom-stack, inherited, Your Turn, continuous
+  condition, and Security Attack rules govern the two clauses.
+- Implementation: `apps/api/src/cards/BT5/BT5-028.ts` uses a
+  `TrashDigivolution` action targeting all opponent Digimon that have a source,
+  amount 1 from the bottom. Its inherited YourTurn action grants the host
+  SecurityAttack amount 1 while `opponentHas` a battle-area Digimon whose
+  source state is `none`. It declares `coverage: "full"`, `residual: []`, and
+  registers exclusively through `registerIrCard("BT5-028", compiled)`.
+- Primitive, peer, and stack evidence: all-target resolution processes every
+  matching opponent permanent independently, ignores source-free permanents,
+  and never includes the controller's board. Continuous recomputation reads
+  the live opponent stack state and removes the inherited keyword outside the
+  owner's turn. The focused board uses legal blue Lv.4-to-Lv.5 stacks, while
+  BT5-032 and the historical Hexeblaumon deck cover related source-stripping
+  and source-free-opponent interactions.
+- Behavioral proof: 5 focused tests prove the exact bottom source of every
+  sourced opposing Digimon is trashed, mixed source-free opponents are
+  unchanged, the controller's own stack is excluded, the inherited condition
+  has positive and negative states, dynamically appears and disappears with
+  source state, is inactive on the opponent's turn, and produces two actual
+  security checks against neutral vanilla security Digimon.
+- Defect corrected: none in the IR or engine. The audit strengthened only the
+  previously missing controller, mixed-board, dynamic-turn, and observable
+  Security Attack assertions in `BT5-028.test.ts`.
+- Verification: focused BT5-028 — 5 tests passed; BT5-032 peer and historical
+  Hexeblaumon deck — 4 tests passed; targeted TrashDigivolution mechanic and
+  interpreter subsets — 5 tests passed. Targeted Oxfmt and
+  `git diff --check` passed. Workspace `pnpm typecheck` retains only the known
+  unrelated API errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and `primitives.test.ts`.
+- Remaining ambiguity: none identified.
