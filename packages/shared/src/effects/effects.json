@@ -90315,11 +90315,11 @@
                   { "tokens": ["Shaman", "TS"], "match": "trait" }
                 ]
               },
-              "count": 1
+              "count": 1,
+              "sameTarget": true
             },
             "amount": 3000,
-            "duration": "forTheTurn",
-            "sameTarget": true
+            "duration": "forTheTurn"
           }
         ]
       },
@@ -90355,11 +90355,11 @@
                   { "tokens": ["Shaman", "TS"], "match": "trait" }
                 ]
               },
-              "count": 1
+              "count": 1,
+              "sameTarget": true
             },
             "amount": 3000,
-            "duration": "forTheTurn",
-            "sameTarget": true
+            "duration": "forTheTurn"
           }
         ]
       },

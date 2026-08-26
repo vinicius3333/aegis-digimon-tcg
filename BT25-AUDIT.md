@@ -221,3 +221,23 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-011.
+
+## BT25-012 — Grizzlymon — 10/10
+
+- Catalog evidence: Red/green level-4 Digimon, play cost 5, 6000 DP, `Champion`/`Vaccine`, `Beast`/`Iliad`/`TS`; standard red or green level-3 evolution for 3 plus alternate level-3 `TS` evolution for 2; On Play/When Digivolving one controller-owned Digimon matching Beast/Animal/Sovereign except Sea Animal, or Shaman/TS, gains Raid and +3000 DP for the turn; inherited all-turn +1000 DP.
+- Knowledge base: `node tools/kb/query.mjs card BT25-012` returned no entries, so there are no local card-specific rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: both entry triggers use the exact inclusive and exclusive trait filters, select one controller-owned Digimon, then reuse that selected target for the DP modifier. The alternate evolution and inherited self modifier are complete. The module has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-012", compiled)`.
+- Defect corrected: the generated DP actions stored `sameTarget` at action level, where the runtime ignored it, allowing Raid and +3000 DP to resolve on different Digimon. Both direct-module targets and both committed shared-IR targets now carry `sameTarget: true` in the location consumed by the selector.
+- Behavioral proof: the focused suite proves one chosen recipient receives both clauses, mixed valid peers remain unchanged, `Sea Animal` and nonmatching cards are excluded, When Digivolving prompts only once and reuses the first target, alternate `TS` evolution legality/invalidity, and inherited DP visibility. The new identity assertions fail against the prior IR.
+- Verification: focused suite — 5 passed; targeted formatting and `git diff --check` — passed. Workspace typecheck's shared/web portions pass while API retains only the already-recorded unrelated errors and no BT25-012 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-012
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-012.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-012.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-012.
