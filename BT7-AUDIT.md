@@ -231,6 +231,23 @@ Remaining work is focused behavioral proof of the Start-of-Turn boundary and top
 
 Remaining work is behavioral proof of Q1664's evolution-stack boundary and the Green destination restriction; this card is not formally complete at 10/10.
 
+## BT7-088 — Zoe Orimoto — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Yellow Tamer costing 3 with optional security search for Hybrid/Ten Warriors, conditional Recovery +1, shuffle, inherited opponent-turn Security Digimon +3000 DP, and Security free play.
+2. **Security search (1/1):** On Play optionally takes one owner security card matching either Hybrid or Ten Warriors to hand.
+3. **Conditional recovery (1/1):** Recovery is gated on the successful hand-add binding and places one deck card on top of security.
+4. **Shuffle (1/1):** Security is shuffled after the search/recovery sequence.
+5. **Inherited effect (1/1):** Opponent-turn inherited modifier applies +3000 to all owner Security Digimon permanently for the active inherited duration.
+6. **Security behavior (1/1):** Security self-plays this Tamer without cost.
+7. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-088` returns Q1663; no unresolved ambiguity is surfaced for this card's printed clauses.
+8. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-088", compiled)` registration are present.
+9. **Static primitive trace (1/1):** Optional selection, trait OR filter, binding, conditional recovery, deck source, shuffle, opponent-turn timing, all-security scope, and free play are explicit.
+10. **Reproducible behavioral proof (0/1):** Existing tests cover search/recovery, decline/no-match, and inherited Security DP but were not executed in this static-only pass; shuffle order and Security free-play lifecycle remain unproven.
+
+Remaining work is focused behavioral proof of the full Security sequence and inherited duration; this card is not formally complete at 10/10.
+
 ## BT7-101 — Thunder Laser — 9/10 (static audit)
 
 ### Clause-by-clause score
