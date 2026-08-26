@@ -121,8 +121,7 @@ import {
   type DigiXrosEligibleExpander,
   type StackCard,
 } from "./overlays";
-import { OpponentActionFeed, PlayLogSidebar } from "./OpponentActionFeedView";
-import { hasOpenCombatPrompt } from "./opponentActionFeed";
+import { PlayLogSidebar } from "./OpponentActionFeedView";
 import { AttackAnnouncementBanner, SidePanelStack } from "./SidePanelStack";
 import { NoticeStack } from "./NoticeStack";
 import { CardOpenerProvider } from "./cardLinks";
@@ -135,7 +134,6 @@ import { useMatchCues } from "./useMatchCues";
 import { BATTLE_TIMING_STYLE, TIMINGS } from "./timings";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
 import { pressGesture, swallowNextClick } from "./pressGesture";
-import { useOpponentActionFeed } from "./useOpponentActionFeed";
 import { COARSE_POINTER_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { TargetingSpotlight } from "./TargetingSpotlight";
 import type { SpotlightSubject } from "./spotlight";
@@ -487,29 +485,6 @@ export function GameScreen({
     setSelPerm(null);
     setVortexMode(false);
   };
-
-  const feedPaused = Boolean(
-    decision ||
-    handPreview ||
-    cardMenu ||
-    stackView ||
-    trashView ||
-    securityView ||
-    evoCostChoice ||
-    digiXrosPick ||
-    actionConfirm ||
-    securityClash ||
-    historyOpen ||
-    hasOpenCombatPrompt(events) ||
-    state?.gameOver,
-  );
-  const opponentFeed = useOpponentActionFeed({
-    events,
-    viewerSeat,
-    paused: feedPaused,
-    trailCapacity: narrowGameLayout ? 1 : 2,
-    matchKey: room?.roomId ?? roomCode ?? "pending-match",
-  });
 
   useEffect(
     () => () => {
@@ -2296,16 +2271,6 @@ export function GameScreen({
             )}
           </header>
 
-          {!feedPaused && !state.gameOver ? (
-            <OpponentActionFeed
-              current={opponentFeed.current}
-              trail={opponentFeed.trail}
-              pendingCount={opponentFeed.pending.length}
-              onOpenHistory={() => setHistoryOpen(true)}
-              onOpenCard={setZoomCardId}
-            />
-          ) : null}
-
           {!state.gameOver ? <SidePanelStack panels={sidePanels} onDismiss={cues.dismissPanel} /> : null}
 
           {!state.gameOver ? <NoticeStack notices={cues.notices} onDismiss={cues.dismissNotice} /> : null}
@@ -2870,7 +2835,7 @@ export function GameScreen({
         </div>
 
         {/* Desktop plays without the sidebar — its controls moved to the header
-            cluster and the end-turn orb; the log opens from the header/action feed.
+            cluster and the end-turn orb; the log opens from the header.
             The narrow layout keeps it: there it collapses into the touch strip. */}
         {narrowGameLayout ? (
           <Sidebar
