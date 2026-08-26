@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-031 (Patamon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-031 Patamon | Yellow level 3 Digimon; alternate level-2 `[TS]` evolution cost 0; on play reveals top 3, adds 1 `[Angel]`, `[Archangel]`, `[Three Great Angels]`, or `[Four Great Dragons]` trait card and 1 `[TS]` trait card, then bottoms the rest; inherited Barrier. Local card query has no entries. | **No card-specific causal mismatch found statically.** The first RevealAdd slot represents the four-way trait union, the second represents TS, and the shared `taken` instance set prevents one physical revealed card from filling both slots. Unselected cards use `deckBottom`; alternate evolution and inherited Barrier are present. | Structural test only; no execution of trait-union matching, overlapping Angel/TS selection, missing-slot behavior, bottom-deck order, alternate evolution, or Barrier protection. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-031
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-031` (no entries).
+- Direct module/test and shared `RevealAdd` OR-trait matching, taken-instance exclusion,
+  and deck-bottom remainder handling were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-030 (Elecmon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
