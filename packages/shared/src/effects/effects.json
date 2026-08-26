@@ -47941,6 +47941,7 @@
             },
             "from": ["hand"],
             "reduceCost": 1,
+            "payCost": true,
             "optional": true
           }
         ]
@@ -47952,6 +47953,7 @@
             "kind": "Replacement",
             "event": "wouldLeavePlay",
             "sourceFilter": { "isSelfRef": true },
+            "leaveCause": "otherThanYourEffect",
             "actions": [
               {
                 "kind": "PlayWithoutCost",
@@ -47960,6 +47962,7 @@
                   "count": 1
                 },
                 "from": ["digivolutionCards"],
+                "fromOwnDigivolutionStack": true,
                 "payCost": false,
                 "optional": true
               }
