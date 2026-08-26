@@ -117,9 +117,11 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       ? action.cost
       : undefined;
   const deleteTargetBoundByItsCost =
-    deleteOwnCost !== undefined && action.target.filter.levelComparison?.relativeTo === "lastDeleted";
+    action.kind === "Delete" &&
+    deleteOwnCost !== undefined &&
+    action.target.filter.levelComparison?.relativeTo === "lastDeleted";
   const deleteOwnLevelTargetAvailable = (() => {
-    if (!deleteTargetBoundByItsCost || deleteOwnCost.target === undefined) return false;
+    if (action.kind !== "Delete" || !deleteTargetBoundByItsCost || deleteOwnCost.target === undefined) return false;
     const highestCostLevel = Math.max(
       ...candidatePermanents(ctx, deleteOwnCost.target)
         .map((permanent) => {
