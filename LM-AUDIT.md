@@ -722,3 +722,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   reduce-cost-by-two behavior, which the direct IR executes as paid ordinary evolution at minus two.
 - Existing focused tests cover waiver lifecycle, reveal/placement, reduction, and Security. No
   local ruling exists; tests remain unrun under PID 82901, so LM-062 remains below 10/10.
+- Static shared-artifact risk remains: `packages/shared/src/effects/effects.json` encodes the
+  Delay digivolution as an unreduced `Digivolve` plus `RawUnparsed` “yellowuce the cost by 2”,
+  while the direct IR executes `reduceCost: 2` and `payCost: true`. The same stale partial Delay
+  shape is present for LM-054 through LM-061; this is an artifact mismatch, not a direct-module gap.
