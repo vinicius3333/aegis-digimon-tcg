@@ -16,7 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    The effect pays no memory cost (payCost: false) but MUST satisfy digivolution requirements.
 //    Fix: payCost: false, remove freeCost, remove ignoreReqs (not present but make explicit).
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
