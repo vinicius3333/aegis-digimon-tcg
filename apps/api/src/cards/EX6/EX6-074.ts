@@ -33,7 +33,7 @@ export const compiled: CompiledCard = {
             },
             {
               kind: "Digivolve",
-              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              target: { sourceRef: "triggerSubject", filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
               into: {
                 controllerDefault: "mine",
                 nameOrTrait: [{ tokens: ["Angewomon", "LadyDevimon"], match: "name" }],

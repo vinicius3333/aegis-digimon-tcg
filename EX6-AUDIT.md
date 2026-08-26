@@ -628,6 +628,8 @@ is the unrelated Vitest PID 82901.
 
 ## EX6-074 — Mirei Mikagura — evidence in progress
 
+- Static causal follow-up: the chained `Digivolve` after Mirei's qualifying `[When Played]` watcher was previously free to select any own Digimon, losing the printed “that Digimon” identity. The target now binds to `sourceRef: "triggerSubject"`, while retaining normal requirement validation and the printed -1 cost reduction. No test suite was run per the static follow-up scope.
+
 - Catalog evidence: after a controller Holy Beast/Archangel/Fallen Angel Digimon is played, suspending this Tamer gains one memory, then one controller Digimon may digivolve into Angewomon/LadyDevimon from trash with cost reduced by one. End of turn once-per-turn offers normal-requirement DNA Digivolve; Security plays this Tamer.
 - Defect corrected: the reduced Digivolve was detached as a top-level Your Turn action. It is now nested after the qualifying-play watcher’s optional, aborting self-suspend GainMemory head, preserving the printed Then sequence: a declined or unpayable Mirei cannot continue to the optional Digivolve, while the controller may decline activation.
 - Status: focused contract changes are unexecuted while PID group 43774 persists; not rated 10/10.
