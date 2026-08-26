@@ -47,7 +47,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-019 — 10/10
   - Evidence: catalog and KB Q2277 reviewed; compiled IR exclusively uses `registerIrCard`, with Blocker and optional trash-or-breeding free-play paths traced through zone-specific card selection, controller ownership, exact-name Omnimon/Gankoomon exclusions, and X-Antibody name allowance.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-019.test.ts` passed (6 tests): IR registration shape, trash play/refusal, On Play and evolution timing, breeding Royal Knight play including Q2277, and excluded-name negative.
-- BT13-020 — Pending
+- BT13-020 — 10/10
+  - Evidence: catalog and KB Q2278/Q2279/Q3677/Q5992–Q5996 reviewed; compiled IR exclusively uses `registerIrCard`, with Marcus-return Burst requirement/end-turn top-card trash, optional free Marcus play, temporary kind/12000 DP/Rush/digivolve restriction, and own-turn Tamer-suspension security trash traced through shared evolution, event, duration, and frequency seams.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-020.test.ts` passed (7 tests): IR/Burst shape, temporary Marcus state, alternate Burst flow/end-turn cleanup, normal-evolution refusal, and own-turn once-per-turn/opponent-turn security boundaries.
 - BT13-021 — Pending
 - BT13-022 — Pending
 - BT13-023 — Pending
