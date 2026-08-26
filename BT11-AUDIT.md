@@ -457,3 +457,9 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Catalog evidence: Gigadramon has printed Jamming and an inherited Reboot keyword. The local knowledge base has no specific ruling or erratum.
 - Source audit correction: direct IR correctly uses static Jamming plus an inherited static Reboot keyword. Shared IR added an immediate Unsuspend action to the inherited static effect, bypassing the printed opponent-unsuspend-phase timing; that action is removed.
 - Verification status: no focused test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Jamming security-battle protection, inherited Reboot phase timing, stack persistence, and direct/shared equality remain required.
+
+## BT11-068 — Mamemon — source correction pending focused verification
+
+- Catalog evidence: Mamemon has black/green level-4 routes for 3; On Play/When Digivolving it may reveal five and free-play a Tamer with play cost 4 or less, returning the remainder top or bottom in any order. Its inherited Your Turn once-per-turn clause fires only when another friendly Digimon is played **by an effect**, then grants Blocker through the end of the opponent's turn.
+- Source audit correction: shared IR matched the reveal/play clauses but omitted `byEffect: true` from the inherited `whenPlayed` filter. Direct IR already carries that exact trigger provenance, so shared IR now rejects ordinary plays as printed.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; both entry timing paths, reveal order choice, effect-play versus normal-play, host exclusion, once-per-turn, and direct/shared equality require observable proof.
