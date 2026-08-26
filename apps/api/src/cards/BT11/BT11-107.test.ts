@@ -2,9 +2,18 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import "./BT11-107.js";
+import { compiled } from "./BT11-107.js";
 
 describe("BT11-107 Hades Force", () => {
+  it("maps catalog facts and each printed effect to IR", () => {
+    expect(getCardDefinition("BT11-107")).toMatchObject({ cardId: "BT11-107", colors: ["Black", "Red"], kinds: ["Option"], playCost: 7 });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
+      { trigger: "Main", actions: [{ kind: "SelectBind" }, { kind: "Delete" }, { kind: "Attack" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "Delete" }] },
+    ]);
+  });
+
   it("deletes opponent Digimon and Tamers within the selected Greymon's play-cost budget", async () => {
     const s = setupEngine(
       {
