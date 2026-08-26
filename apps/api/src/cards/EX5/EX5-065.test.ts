@@ -87,20 +87,19 @@ describe("EX5-065 Sayo & Koh", () => {
 
   it("does not trigger for ordinary digivolution-card addition, per Q3669", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX5-065", as: "sayo" }, { card: "BT1-080", as: "host", under: ["BT1-010"] }] } },
+      { 0: { battleArea: [{ card: "EX5-065", as: "sayo" }, { card: "BT1-069", as: "host" }], hand: [{ card: "BT1-080", as: "evolver" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    const memoryBefore = s.state.memory;
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("host").permanentId,
+      instanceId: s.inst("evolver").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.cardId === "BT1-080", 2000);
 
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: s.perm("host").permanentId,
-      addedDigivolutionCardsPosition: "bottom",
-      placedOwnTopAtStackBottom: false,
-      byEffectSeat: 0,
-    });
-
+    expect(s.perm("host").topCard?.cardId).toBe("BT1-080");
     expect(s.perm("sayo").isSuspended).toBe(false);
-    expect(s.state.memory).toBe(memoryBefore);
   });
 });
