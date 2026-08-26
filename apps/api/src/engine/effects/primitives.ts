@@ -2652,8 +2652,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // "Can't be deleted" (Comprehensive Rules §15-1-3: a prohibiting effect takes precedence).
     // Filtered FIRST: an outright prohibition means the deletion never approaches, so neither
     // the would-be-deleted timing nor the ＜Evade＞/＜Barrier＞ cost prompts should fire for it.
-    // Battle deaths never reach this primitive (they go through GameStateAccess.deletePermanent),
-    // so `beDeletedInBattle` stays the battle-scoped kind and this covers byEffect + byRule.
+    // Field-battle deaths use CombatController's dedicated replacement pipeline; security
+    // battles and the no-controller force-battle fallback can reach this primitive as byBattle.
+    // `beDeletedInBattle` therefore stays the battle-scoped kind while this prohibition check
+    // covers byEffect + byRule.
     // A rule deletion has no controlling effect, so an opponent-scoped entry cannot apply to it.
     permanentIds = permanentIds.filter((permanentId) =>
       cause === "byRule"
@@ -2703,14 +2705,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       }
       if (evaded.size > 0) toDelete = toDelete.filter((id) => !evaded.has(id));
     }
-    // ＜Barrier＞ keyword: when this Digimon would be deleted, you MAY trash the top card of
-    // your security stack to prevent that deletion (Comprehensive Rules §16-25-3: also an
-    // optional processing condition), once per turn per permanent (shared `barrierFired` /
+    // ＜Barrier＞ keyword: when this Digimon would be deleted IN BATTLE, you MAY trash the top
+    // card of your security stack to prevent that deletion (Comprehensive Rules §16-25-1/3:
+    // Barrier is battle-only), once per turn per permanent (shared `barrierFired` /
     // `markBarrierFired` ledger with the combat path). Prompted through the same
     // barrierPrompt/respondBarrier window as the combat (battle-loss) path.
     {
       const barriered = new Set<string>();
-      for (const permanentId of toDelete) {
+      for (const permanentId of cause === "byBattle" ? toDelete : []) {
         if (!continuous.hasKeyword(permanentId, "Barrier")) continue;
         const perm = access.permanentById(permanentId);
         if (perm === undefined) continue;

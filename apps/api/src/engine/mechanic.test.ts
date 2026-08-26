@@ -4070,7 +4070,7 @@ describe("A3 SubTrigger — BT14-004 whenEffectSuspends fires ONLY for an effect
   });
 });
 
-describe("A3 Evade/Barrier — effect-deletion path prompts the controller (Comprehensive Rules §16-22-3/§16-25-3)", () => {
+describe("A3 Evade/Barrier — effect-deletion and battle-deletion paths (Comprehensive Rules §16-22-3/§16-25-3)", () => {
   // BT13-011's [On Play] deletes the lone opponent Digimon with DP<=3000 (used elsewhere in
   // this file as the plain-Delete oracle). Reused here as the "an effect would delete this
   // Digimon" trigger for ＜Evade＞/＜Barrier＞, granted via the continuous ledger the same way
@@ -4140,7 +4140,7 @@ describe("A3 Evade/Barrier — effect-deletion path prompts the controller (Comp
     assertNoLoudGap(s);
   });
 
-  it("Barrier ACCEPT: the effect-deletion prompt fires and, when accepted, trashes the top security card and the Digimon survives", async () => {
+  it("Barrier does not offer an effect-deletion prompt because it is battle-only", async () => {
     const s = setup({ autoSelectCards: true });
     const p1 = s.state.players[1] as PlayerState;
     const target = digimon(1, 3000);
@@ -4150,46 +4150,13 @@ describe("A3 Evade/Barrier — effect-deletion path prompts the controller (Comp
     p1.security.push(securityCard);
 
     playDeleteEffect(s);
-    await settle(() => barrierPromptFor(s, target.permanentId));
-
-    expect(barrierPromptFor(s, target.permanentId)).toBe(true);
-
-    expect(s.engine.applyIntent(1, { type: "respondBarrier", permanentId: target.permanentId, accept: true })).toEqual({
-      ok: true,
-    });
-    await settle(() => p1.security.length === 0);
-
-    expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(true);
-    expect(s.events).toContainEqual({ kind: "barrierResolved", permanentId: target.permanentId, accepted: true });
-    expect(p1.security).toHaveLength(0);
-    expect(p1.trash.some((c) => c.instanceId === securityCard.instanceId)).toBe(true);
-    expect(p1.trash.some((c) => c.instanceId === target.topCard?.instanceId)).toBe(false);
-    assertNoLoudGap(s);
-  });
-
-  it("Barrier DECLINE: the controller may refuse to trash security, and the Digimon is deleted with security untouched", async () => {
-    const s = setup({ autoSelectCards: true });
-    const p1 = s.state.players[1] as PlayerState;
-    const target = digimon(1, 3000);
-    p1.battleArea.push(target);
-    ledgerWrite(s).addKeywordGrant(target.permanentId, "Barrier", EffectDuration.Permanent);
-    const securityCard = instance("BT1-010", 1, false);
-    p1.security.push(securityCard);
-
-    playDeleteEffect(s);
-    await settle(() => barrierPromptFor(s, target.permanentId));
-
-    expect(s.engine.applyIntent(1, { type: "respondBarrier", permanentId: target.permanentId, accept: false })).toEqual(
-      { ok: true },
-    );
     await settle(() => !p1.battleArea.some((p) => p.permanentId === target.permanentId));
 
+    expect(barrierPromptFor(s, target.permanentId)).toBe(false);
     expect(p1.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(false);
-    expect(s.events).toContainEqual({ kind: "barrierResolved", permanentId: target.permanentId, accepted: false });
-    expect(p1.trash.some((c) => c.instanceId === target.topCard?.instanceId)).toBe(true);
-    // Declining does NOT pay the cost: security stays intact.
     expect(p1.security).toHaveLength(1);
     expect(p1.security[0]).toBe(securityCard);
+    expect(p1.trash.some((c) => c.instanceId === target.topCard?.instanceId)).toBe(true);
     assertNoLoudGap(s);
   });
 });

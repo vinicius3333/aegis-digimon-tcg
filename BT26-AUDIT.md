@@ -993,3 +993,49 @@ git diff --check
 ```
 
 Only this BT26-021 ledger section is left uncommitted for coordinator review; no code/test change, commit, or push was made.
+
+## BT26-022 — Sorcermon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-022` (`Sorcermon`), a blue/yellow level 4 Champion Digimon with 4000 DP, Vaccine attribute, and `Wizard`/`Witchelny`/`Iliad`/`TS` traits. It has normal blue Lv.3 and yellow Lv.3 evolution requirements, each cost 3; its alternate requirement is `[Digivolve] Lv.3 w/[TS] trait: Cost 2`. The printed effects are `[On Play] [When Digivolving] Add your top security card to the hand and ＜Recovery +1＞`, then `[End of Your Turn] If you have a red or purple Digimon, by placing this Digimon as the bottom security card, you may play 1 blue or red [Iliad] trait Digimon card from your hand with the cost reduced by 4.` The inherited effect is `＜Barrier＞`.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-022`; it reports Q6985 (2026-08-18): with 0 security cards, the recovery effect may still activate and perform Recovery +1 without adding a card to hand. No errata, restrictions, or additional unresolved card-specific rulings were returned.
+- Comprehensive Rules evidence: §2-3-5-3 includes text after `[Digivolve]` in the requirement; §3-4-7-5 excludes breeding-area cards from effect selection unless explicitly specified; §8-1-3-1/3 describes requirement choice, stacking, memory payment, and draw; §15-1-2 requires printed processing order; §15-4-1-2 carries a resolving effect through its source becoming a new card or leaving play; §15-16-2/3 covers On Play and When Digivolving timing; §15-16-12-1 covers End of Your Turn; §16-6-1/2 defines Recovery as placing deck cards face-down on top of security; and §16-25-1/3 limits Barrier to optional prevention of battle deletion by trashing top security.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-022.ts` is IR-only and registers exclusively via `registerIrCard("BT26-022", compiled)`. The alternate evolution requirement is exact level 3 + `TS` trait + cost 2; catalog-generated normal requirements remain available through registration. Both On Play and When Digivolving use the ordered `SecurityManipulation(toHand, securityTop)` followed by `SecurityManipulation(addTop, deck)`, preserving Q6985's empty-security behavior and face-down recovery semantics.
+- End-of-turn uses a conditional, optional `CostGatedBlock`: the condition requires an own battle-area red or purple Digimon; the cost places this Sorcermon permanently at the bottom of its controller's security; the nested optional `PlayWithoutCost` is restricted to one own hand Digimon that is blue or red and has the `Iliad` trait, pays its play cost with `reduceCostBy: 4`, and leaves the source effect resolving after Sorcermon changes zones. The battle-area zone on the condition is explicit so a breeding-area red/purple Digimon cannot satisfy the printed condition.
+- The inherited `Static` keyword marker grants Barrier only through an evolution stack. The shared deletion primitive was corrected so Barrier processing is entered only for `cause === "byBattle"`; effect deletion now proceeds normally, matching §16-25. No `registerCard` registration exists in the BT26-022 module.
+- Relevant peers/seams inspected: BT26-021 for TS evolution and bottom-source inherited timing; BT26-033 and BT26-081 for Iliad filter/controller conventions; BT26-020 for Recovery/keyword stack proof; shared security, loose-card targeting, play-cost reduction, CostGatedBlock, condition, registration, and combat Barrier primitives.
+
+### Behavioral proof
+
+The focused `apps/api/src/cards/BT26/BT26-022.test.ts` suite has 13 passing tests proving:
+
+- both printed blue Lv.3 and yellow Lv.3 normal evolution paths in real stacks, the exact alternate Lv.3 TS cost-2 path, and rejection of a non-TS base;
+- ordered security-to-hand then face-down deck-top recovery on play and digivolution, including Q6985 with zero security cards;
+- the end-of-turn red/purple battle-area condition, exact cost reduction behavior using a cost-7 blue Iliad, blue and red branch acceptance, exclusion of a yellow Iliad/non-trait card from the mixed hand pool, bottom-security source movement, and independent refusal of the nested optional play;
+- refusal to activate the end-of-turn clause when the only red Digimon is in breeding; and
+- inherited Barrier only under a host, battle deletion prevention with top-security payment, and no Barrier prompt or payment against effect deletion.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-022
+  PASS (Q6985; no errata/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-022.test.ts
+  PASS (1 file, 13 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-020.test.ts src/cards/BT26/BT26-021.test.ts src/cards/BT26/BT26-022.test.ts src/cards/BT26/BT26-033.test.ts src/cards/BT26/BT26-081.test.ts src/engine/effects/primitives.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts
+  PASS (7 files; focused card/Barrier regressions green)
+pnpm --filter @aegis/api exec vitest run src/engine/mechanic.test.ts
+  115/117 PASS, including the adjusted Barrier coverage; 2 unrelated pre-existing failures remain: BT15-020 timeout and BLK-04 missing targeted DigiBurst costs for BT7-040/ST4-13/ST6-13.
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-022.ts apps/api/src/cards/BT26/BT26-022.test.ts apps/api/src/engine/effects/primitives.ts apps/api/src/engine/mechanic.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+The card module, focused proof, Barrier seam correction, and its adjusted shared regression assertions remain uncommitted for coordinator review; no commit or push was made.
