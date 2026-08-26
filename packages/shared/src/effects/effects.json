@@ -11062,16 +11062,6 @@
   "BT11-061": {
     "effects": [
       {
-        "trigger": "Static",
-        "actions": [
-          {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): include up to 50 copies of cards with this card's card number in your deck",
-            "optional": true
-          }
-        ]
-      },
-      {
         "trigger": "Main",
         "actions": [
           {
@@ -11130,10 +11120,8 @@
         "frequency": "OncePerTurn"
       }
     ],
-    "coverage": "partial",
-    "residual": [
-      "missing-primitive(unaudited): include up to 50 copies of cards with this card's card number in your deck"
-    ]
+  "coverage": "full",
+  "residual": []
   },
   "BT11-062": {
     "effects": [
