@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { CardKind, type CardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
-import "./EX6-010.js";
+import { compiled } from "./EX6-010.js";
 
 // A3 for EX6-010 (Durandamon) — Red Lv.6 Digimon (Legend-Arms).
 //
@@ -70,6 +70,14 @@ describe("EX6-010 [Inherited] RagnaLoardmon host disables security effects (reco
 // trait, delete 1 of your opponent's Digimon with as much or less DP as that Digimon."
 //
 describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete opponent Digimon", () => {
+  it("structurally gates Delete on the complete payment-and-placement activation condition", () => {
+    const action = compiled.effects
+      .find((effect) => effect.effectKey === "EX6-010/main-place-and-delete")
+      ?.actions.at(0);
+
+    expect(action?.abortOnDecline).toBe(true);
+  });
+
   it("places itself under the eligible level-6 host and deletes a lower-DP opponent Digimon, paying 3 memory", async () => {
     const s = setupEngine(
       {
