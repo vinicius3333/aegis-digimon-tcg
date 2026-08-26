@@ -98,7 +98,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-036 — 10/10
   - Evidence: catalog and KB Q2288 reviewed; compiled IR exclusively uses `registerIrCard`, tracing own-turn, own-security-removal memory gain with once-per-turn scope and inherited opponent-only -2000 DP at the inclusive combined-security-six boundary.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-036.test.ts` passed (6 tests): seat/turn/frequency security-removal paths, Q2288 combined-security boundaries, and yellow level-2 evolution.
-- BT13-037 — Pending
+- BT13-037 — 10/10
+  - Evidence: catalog and KB Q2289 reviewed; compiled IR exclusively uses `registerIrCard`, tracing the optional own-top-security trash cost and exact opponent -4000 DP target, plus inherited once-per-turn -2000 DP at the inclusive combined-security-six boundary.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-037.test.ts` passed (7 tests): exact security cost routing, refusal/unpayable negatives, Q2289 total-security bounds, frequency, and evolution cost.
 - BT13-038 — Pending
 - BT13-039 — Pending
 - BT13-040 — Pending
