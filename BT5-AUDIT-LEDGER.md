@@ -127,6 +127,6 @@ The final collection gate runs only after all individual serial proofs. Detailed
 
 ## Validation record
 
-- Individual serial card-test results: BT5-001, BT5-002, and BT5-003 passed in this worktree using one fork and no file parallelism. BT5-003's Q1282 is covered by the three-Digimon fixture, which includes the host.
-- Final serial collection gate: pending.
-- Typecheck and whitespace validation: pending.
+- Individual serial card-test results: all 112 catalog cards, BT5-001 through BT5-112, passed in this worktree using one fork and no file parallelism. Targeted fidelity repairs cover BT5-006, BT5-016, BT5-018, BT5-070, BT5-099, BT5-102, and BT5-109; BT5-003's Q1282 remains covered by its three-Digimon host fixture.
+- Final serial collection gate: `pnpm --filter @aegis/api exec vitest run src/cards/BT5 --pool=forks --poolOptions.forks.maxForks=1 --no-file-parallelism` — 121 files / 291 tests passed.
+- Typecheck: `pnpm typecheck` passed. Whitespace validation: `git diff --check` passed before ledger closeout; re-run after the ledger commit for final delivery.
