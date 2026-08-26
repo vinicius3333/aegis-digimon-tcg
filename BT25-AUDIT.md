@@ -343,3 +343,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-017.
+
+## BT25-018 — Apollomon — 10/10
+
+- Catalog evidence: Red/yellow level-6 Digimon, play cost 12, 12000 DP, `Mega`/`Vaccine`, `Shaman`/`Olympos XII`/`Iliad`/`TS`; standard red or yellow level-5 evolution for 4 plus alternate level-5 `TS` evolution for 3; self play cost -5 if the opponent has a 12000+ DP Digimon; On Play/When Digivolving all opposing Digimon get -2000 DP per friendly Digimon for the turn, then delete one at or below this Digimon's DP; end-turn optional DNA into GraceNovamon followed independently by an optional friendly attack; inherited When Attacking once-per-turn relative-DP deletion.
+- Knowledge base: Q6267 delays the 0-DP rule check until the activated effect fully resolves; Q6268 permits the DNA result to perform the following attack; Q6269 preserves the following attack even when the DNA choice is declined.
+- Implementation: the direct IR contains the conditional self reducer, both scaling DP/deletion entry sequences, the ordered optional DNA and attack actions, the alternate evolution, and inherited once-per-turn deletion. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-018", compiled)`.
+- Defect corrected: the play-cost replacement existed in IR but BT25-018 was absent from the verified pay-time self-reducer registry, so the engine charged the full 12 at the printed 12000-DP boundary. Registering the card activates its already-faithful condition and exact -5 amount.
+- Behavioral proof: the focused suite covers reducer boundary/below-boundary payment, scaling by the post-play friendly count, live relative-DP deletion after On Play and a legal `TS` evolution, Q6268 DNA-result attack, Q6269 declined-DNA-followed-by-attack, and inherited relative deletion/once-per-turn across two attacks from a realistic stack. The reducer assertion fails against the prior registry. The chapter-17 rule-check suite proves Q6267's 0-DP target remains through the next clause and is rule-deleted only after full resolution.
+- Verification: focused suite — 9 passed; reducer/registration regressions — 32 passed; chapter-17 rule checks — 4 passed; BT25 collection checkpoint — 100 passed with 8 pre-existing failures in later unaudited cards; targeted Oxfmt and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-018 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-018
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-018.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-018.test.ts src/engine/conformance/ch17-rule-checks.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-018.test.ts apps/api/src/engine/effects/interpreter/registration/reducers.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-018.
