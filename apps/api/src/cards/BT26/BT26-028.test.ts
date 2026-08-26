@@ -21,7 +21,10 @@ describe("BT26-028 Medicmon", () => {
     expect(appFusionCostFor("BT26-028", { topName: "Aidmon", linkedNames: ["Aidmon"] })).toBeUndefined();
     expect(appFusionCostFor("BT26-028", { topName: "Aidmon", linkedNames: ["Roleplaymon"] })).toBeUndefined();
     expect(assemblyRequirementFor("BT26-028")).toEqual([
-      { reduceCost: 2, materials: [{ traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }] },
+      {
+        reduceCost: 2,
+        materials: [{ kinds: ["Digimon"], traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }],
+      },
     ]);
     expect(compiled.appFusionRequirement).toEqual([{ names: ["Aidmon", "Supplemon", "Spamon"], cost: 0 }]);
     expect(compiled.effects).toEqual(
@@ -36,7 +39,15 @@ describe("BT26-028 Medicmon", () => {
         expect.objectContaining({
           trigger: "OnPlay",
           actions: [
-            expect.objectContaining({ kind: "Link", from: ["digivolutionCards"], payCost: false, optional: true }),
+            expect.objectContaining({
+              kind: "Link",
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+              target: expect.objectContaining({
+                filter: expect.objectContaining({ hostFilter: { isSelfRef: true } }),
+              }),
+            }),
           ],
         }),
         expect.objectContaining({ trigger: "WhenDigivolving" }),
@@ -144,6 +155,37 @@ describe("BT26-028 Medicmon", () => {
     expect(observe(s.engine).isRestricted(s.perm("second"), "cannotActivateWhenDigivolving")).toBe(false);
   });
 
+  it("only links from Medicmon's own digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-028", as: "medicmon", under: ["BT1-009"] },
+            { card: "BT21-009", as: "otherHost", under: ["BT26-084"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("medicmon"));
+
+    expect(s.perm("medicmon").linked).toHaveLength(0);
+    expect(s.perm("otherHost").stack.map((card) => card.cardId)).toEqual(["BT26-084"]);
+  });
+
+  it("may decline linking without moving the eligible source", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT26-028", as: "medicmon", under: ["BT26-084"] }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("medicmon"));
+
+    expect(s.perm("medicmon").linked).toHaveLength(0);
+    expect(s.perm("medicmon").stack.map((card) => card.cardId)).toEqual(["BT26-084"]);
+  });
+
   it("does not link a level-3 digivolution card without the required trait or Link text", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT26-028", as: "medicmon", under: ["BT1-009"] }] } },
@@ -207,6 +249,11 @@ describe("BT26-028 Medicmon", () => {
 
     expect(s.perm("target").currentDP).toBe(4000);
     expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
+
+    advance(s.engine).ledgers.modifiers.sweep(s.state, "eachTurnEnd", 1);
+    advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 1);
+    expect(s.perm("target").currentDP).toBe(7000);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(false);
   });
 
   it("suppresses only When Digivolving and preserves a shared once-per-turn effect for When Attacking", async () => {

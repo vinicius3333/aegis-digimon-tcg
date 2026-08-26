@@ -1243,3 +1243,46 @@ The focused `apps/api/src/cards/BT26/BT26-027.test.ts` suite has 6 passing tests
 The affected regression run passed 8 files and 391 tests: BT26-027, BT26-024/025/026/034, `interpreter.test.ts`, `primitives.test.ts`, and `ch16c-deletion-and-advanced-keywords.test.ts`. `pnpm typecheck` passed the shared build plus shared/API/web typechecks. `pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-027.ts apps/api/src/cards/BT26/BT26-027.test.ts` and `git diff --check` both passed.
 
 No implementation, shared-engine, or test changes were needed. No card-text ambiguity or unsupported behavior remains. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-027.
+
+## BT26-028 — Medicmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-028` (`Medicmon`), a yellow level-4 Digimon with play cost 5, 5000 DP, `Sup.`/`Appmon` forms, `Life` attribute, and `Medical (App Name)`/`Seven Code` traits. Its normal evolution requirement is yellow Lv.3 for cost 2. The printed requirements and text are `[App Fusion] [Aidmon] & [Supplemon] & [Spamon]: Cost 0`, `[Assembly -2] Lv.3 [Life]/[System]/[Seven Code] trait Digimon card`, `＜Barrier＞`, `＜Detach ([Seven Code] trait)＞`, `[On Play] [When Digivolving] You may link 1 level 3 Digimon card with the [Life], [System] or [Seven Code] trait from this Digimon's digivolution cards to this Digimon without paying the cost.`, `[Link] [Appmon] trait: Cost 3`, and `[When Linking] Until your opponent's turn ends, 1 of their Digimon can't activate [When Digivolving] effects and gets -3000 DP.` There is no inherited or Security text, and `linkDp` is null.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-028 --json`; it returns no banlist or errata and Q6987–Q6993. Q6987 requires a linked card to carry its own `<Link>` requirement. Q6988–Q6992 define the precise `[When Digivolving]` suppression boundary, including preserving a combined `[When Digivolving] [When Attacking]` effect and not consuming its once-per-turn use when the digivolving timing is suppressed. Q6993 confirms all six ordered pairs of two distinct names from Aidmon/Supplemon/Spamon for App Fusion.
+- Comprehensive/manual rules evidence: §4-7-3/§4-7-7/§4-8-1 cover fixed stack order and digivolution-card identity; §4-9-1–§4-9-6 and §10-1-1–§10-1-3 cover Link source, link eligibility, recipient, cost, placement, and linked-card effects; §7-3-1–§7-3-3 covers Assembly's exact trash-card count, Digimon-only play, reduction, and placement order; §8-4-1–§8-4-3 covers the six App Fusion pairings and cost-0 digivolution; §15-16-2-1/§15-16-3-1/§15-16-6-1 define On Play, When Digivolving, and When Linking timing; §16-25-1–§16-25-3 defines battle-only Barrier; and §4-7-9/§4-7-10 preserve face-down stack visibility boundaries. No applicable local ruling, restriction, or erratum remains unresolved.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-028.ts` is IR-only and registers exactly once through `registerIrCard("BT26-028", compiled)`; no `registerCard` call exists. The compiled App Fusion requirement names all three Appmon cards at cost 0, the Link requirement is Appmon trait at cost 3, and the Assembly recipe is exactly one level-3 Digimon with the Life/System/Seven Code trait, reduced by 2.
+- The Assembly `kinds: ["Digimon"]` gate is present both in the direct compiled module and the shared `ASSEMBLY_REQUIREMENT_OVERRIDES` entry used by `assemblyRequirementFor`; this keeps the executable play-legality path faithful rather than allowing a non-Digimon card with a matching trait/level shape. Assembly remains trash-only, exact-count, face-up-on-entry stack placement, and pays the printed cost after the -2 reduction through the shared Assembly seam.
+- The On Play and When Digivolving actions are optional `Link` actions with `from: ["digivolutionCards"]` and `payCost: false`. Their source filter requires exactly level 3, Digimon kind, any one of the three printed traits, and `hasLinkRequirement: true` (Q6987). The added `hostFilter: { isSelfRef: true }` limits the source to this Medicmon's own evolution stack; without it, the generic digivolution-card enumerator could link a legal card from another one of the controller's stacks. The shared Link primitive makes the selected card face-up/linked, pays no link cost for this effect, and publishes the `whenLinked` event.
+- The linked face is a `Static` `isLinked` watcher. Its `whenLinked` SubTrigger is physically scoped by `sourceFilter: { isSelfRef: true }`, binds exactly one opponent-controlled Digimon, then applies `cannotActivateWhenDigivolving` and -3000 DP to that same bound target, both for `untilOpponentTurnEnd`. The restriction seam suppresses only the When Digivolving timing (not When Attacking), and the duration ledgers clear at the opponent's turn end. The standalone static keywords publish Barrier and Detach; shared combat owns the battle-only Barrier/Detach replacement behavior and the Seven Code linked-card filter.
+- Relevant peers/seams inspected: BT26-010, BT26-019, BT26-037, BT26-051, BT26-063, and BT26-084 for the same Seven Code Detach and linked-face vocabulary; `actions/link.ts`/`interpreter/actions/link.ts` for stack source, Link eligibility, cost, face state, and event publication; `actions/assembly.ts` and shared Assembly overrides; `interpreter/actions/subTrigger.ts` for linked-source identity; `continuous.ts`/`context.ts` for target restrictions and duration; and the Barrier/Detach combat seams. All registration remains exclusive to `registerIrCard`.
+
+### Behavioral proof
+
+The focused `apps/api/src/cards/BT26/BT26-028.test.ts` suite has 10 passing tests proving:
+
+- all six distinct ordered App Fusion pairs, rejection of duplicate/non-requirement names, exact Assembly recipe including the Digimon-kind gate, keyword publication, On Play/When Digivolving Link windows, and linked-face action structure;
+- Assembly from trash with exact level/trait matching, -2 play-cost reduction, final stack placement, and rejection of a near-match;
+- legal level-3 Link selection from this Medicmon's own stack, rejection of a level/trait/no-Link near-match, and the mixed-pool boundary proving another own Digimon's stack cannot supply the source;
+- optional refusal with no link movement;
+- When Digivolving linking after a real evolution-stack transition;
+- linked Medicmon's exact opponent Digimon target, simultaneous -3000 DP and When Digivolving suppression, and expiry after the opponent's turn end;
+- Q6988/Q6989 behavior: suppression of only the opponent's When Digivolving effect while a combined When Digivolving/When Attacking effect still resolves at attack timing; and
+- top-card Barrier/Detach publication.
+
+The focused assertions are mutation-sensitive: removing the `hostFilter` reintroduces cross-stack linking, removing `kinds: ["Digimon"]` weakens the Assembly contract, and removing either linked-face action or its duration fails the corresponding observable assertions. The tests exercise a real evolution stack and full effect settlement.
+
+### Verification
+
+- `node tools/kb/query.mjs card BT26-028 --json`: PASS (Q6987–Q6993; no errata/restriction).
+- Focused `pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-028.test.ts`: PASS (1 file, 10 tests).
+- Link/Detach/Assembly regression run across BT26-028, BT26-019, BT26-037, BT26-051, BT26-063, BT26-084, `bt26Assembly.test.ts`, `ch10-link.test.ts`, and `detach.test.ts`: 7 files passed, 84 tests passed; 2 unrelated pre-existing failures remain. `ch10-link`/`linkState.test.ts:320` expects a BT25-056 link but gets zero links; BT26-084 Q7127 expects BT26-063 in its PAD linked-card array but the runtime result omits it.
+- Shared mechanism run (`primitives.test.ts`, `interpreter.test.ts`, `detach.test.ts`, `subtriggers.test.ts`): PASS (4 files, 348 tests).
+- `pnpm typecheck`: PASS (shared build, shared/API/web typecheck).
+- Changed-file `pnpm exec oxlint ...`: PASS. Changed-file `pnpm exec oxfmt --check ...`: PASS. `git diff --check`: PASS.
+- The prescribed `meteor npm run quave-check-ci` and `meteor npm run quave-check` commands are unavailable because this repository's `package.json` has neither script; equivalent changed-file Oxlint/Oxfmt checks pass.
+
+No unresolved BT26-028 ambiguity or unsupported card clause remains. The two named regression failures reproduce outside BT26-028's focused suite and are unrelated to the three changed files. Changes are intentionally uncommitted and unpushed, per the audit task; this section is limited to BT26-028.
