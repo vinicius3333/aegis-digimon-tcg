@@ -1214,3 +1214,32 @@ git diff --check
 ```
 
 No card-specific ambiguity or unsupported behavior remains. The BT26-031 peer failure is outside this card's files and unchanged by this audit. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-026.
+
+## BT26-027 — Petermon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-027` (`Petermon`), a yellow/green level 4 Champion Digimon with play cost 4, 5000 DP, Data attribute, and `Fairy`/`WG` traits. Its normal evolution requirements are yellow Lv.3 for cost 2 and green Lv.3 for cost 2; its alternate requirement is `[Digivolve] Lv.3 w/[WG] trait: Cost 2`. The main text is `[On Play] [Start of Opponent's Main Phase] By suspending 1 of your Digimon with the [Vegetation], [Fairy] or [WG] trait, give 1 of your opponent's Digimon ＜Security A. -2＞ until their turn ends.` The inherited text is `＜Barrier＞`.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-027 --json`; it returns `banlist: null`, `errata: null`, and `qa: []`. There are no card-specific rulings, errata, restrictions, or unresolved local KB entries.
+- Comprehensive Rules evidence: §§2-3-5 and 8-1-3 cover normal/alternate evolution requirements, requirement selection, payment, stacking, and the evolution draw; §§3-4-7-3/5/8 and 4-3-3/4-7-3/5/7/9/10 cover breeding-area boundaries, stack identity, inherited effects, face state, and visibility; §§15-7-1/2/4/5 define optional `By` processing and allow the payment even when the post-payment target cannot be processed; §§15-8-3-9 and 15-16-2-1/15-16-13-1 define trigger activation and the On Play/start of opponent's main phase windows; §15-4-1-2 preserves a resolving effect through source/card transitions; §16-7-1/2 defines Security Attack modifiers; and §16-25-1/2/3 limits inherited Barrier to the battle-deletion replacement.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-027.ts` is compiled IR and registers exactly once with `registerIrCard("BT26-027", compiled)`; it contains no `registerCard` call. The alternate requirement is exact (`level: 3`, `traits: ["WG"]`, `cost: 2`); the catalog's two normal yellow/green Lv.3 requirements remain handled by the shared normal evolution path.
+- The shared `weaken` action is attached to both `OnPlay` and `StartOfOpponentsMainPhase`, with no `WhenDigivolving` or attack trigger. Its activation cost suspends exactly one own unsuspended Digimon whose trait union is `Vegetation`/`Fairy`/`WG`; `controllerDefault: "mine"`, `kind: ["Digimon"]`, and the OR `nameOrTrait` entries enforce ownership, category, and all three exact trait alternatives. The payload targets exactly one opposing Digimon and grants `SecurityAttack -2` for `untilOpponentTurnEnd`. `optional: true` models the optional `By` activation, while the shared cost preflight prevents payment by an already-suspended or absent eligible Digimon.
+- The inherited `Static` keyword entry publishes `Barrier` only when Petermon is a digivolution card under a host; the shared keyword/replacement seam keeps it unavailable on a standalone top card and battle-only, matching the printed inherited keyword. No once-per-turn, security, face-state, zone, or controller approximation is present.
+- Shared seams inspected: `timingForTrigger`, `runAction` optional/cost sequencing, `canPayCost`/`payCost` suspend targeting, `candidatePermanents`/`permanentMatchesFilter`/`seatsForController`, OR trait matching in `definitionMatches`, continuous duration sweep, inherited keyword publication, Barrier replacement, and normal/alternate digivolution legality. Relevant peers inspected: BT26-024 (same `Fairy`/`WG` family and inherited Barrier), BT26-025/026 (BT26 stack/Barrier and cost conventions), BT26-034 (Vegetation trait), and BT26-028 (Fairy/WG stack interactions), plus interpreter, primitives, and deletion/keyword conformance suites.
+
+### Behavioral proof
+
+The focused `apps/api/src/cards/BT26/BT26-027.test.ts` suite has 6 passing tests proving:
+
+- exact WG alternate evolution metadata, legal level-3 WG stack transition, memory payment, stack source retention, and rejection of a nonmatching base;
+- On Play activation, one eligible own Vegetation Digimon as the suspension payment, exclusion of an own non-trait and opponent Vegetation from the payment, exact opposing target selection, −2 Security Attack, and a real attack producing no security check;
+- optional refusal without suspension or modifier, and no activation when the only eligible payment Digimon is already suspended;
+- the separate start-of-opponent-main-phase window, payment/target behavior, and expiration at that opponent's turn end;
+- inherited Barrier publication only while Petermon is under another Digimon and absence of Barrier on a standalone Petermon.
+
+The affected regression run passed 8 files and 391 tests: BT26-027, BT26-024/025/026/034, `interpreter.test.ts`, `primitives.test.ts`, and `ch16c-deletion-and-advanced-keywords.test.ts`. `pnpm typecheck` passed the shared build plus shared/API/web typechecks. `pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-027.ts apps/api/src/cards/BT26/BT26-027.test.ts` and `git diff --check` both passed.
+
+No implementation, shared-engine, or test changes were needed. No card-text ambiguity or unsupported behavior remains. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-027.
