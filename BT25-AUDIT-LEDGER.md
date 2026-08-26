@@ -190,3 +190,20 @@ focused observable tests pass. No collection result is inferred from this ledger
 - Read the existing ledger first, then inspected catalog records, local KB queries, direct IR modules, and colocated tests newest-to-oldest. Local KB queries exposed no new card-specific ruling requiring a changed diagnosis in this range; BT25-103's existing ruling comments were reviewed.
 - Relevant shared paths inspected included security replacement, reveal/add remainder handling, link and App Fusion, effect-driven evolution, once-per-turn shared keys, replacement effects, suspension/attack restrictions, and superlative DP/play-cost selection.
 - No tests, typecheck, broad gate, or collection gate were run per assignment. All cards remain static/structural evidence only and below 10/10 pending focused behavioral proof. BT25-004 rerun remains pending authorization.
+
+## Existing provenance: BT25-001 through BT25-003 and BT25-017 through BT25-020
+
+| Card | Existing evidence and remaining status |
+| --- | --- |
+| BT25-001 | Commit `60c0b021e` added focused behavioral scenarios for the TS-host attack draw watcher, including once-per-turn repetition and a non-TS host rejection. The tests have not been run in this reconciliation; no passing result is inferred. **Evidence recorded; below 10/10 pending execution.** |
+| BT25-002 | Commit `60c0b021e` added focused behavioral scenarios for the DATA SQUAD Tamer draw watcher, covering both-player once-per-turn behavior and opponent-Tamer gating. The tests have not been run in this reconciliation; no passing result is inferred. **Evidence recorded; below 10/10 pending execution.** |
+| BT25-003 | Commit `60c0b021e` added focused behavioral scenarios for security trash plus reduced-cost Glowing Dawn evolution and optional decline, and corrected the reduced-cost payment path. The tests have not been run in this reconciliation; no passing result is inferred. **Evidence recorded; below 10/10 pending execution.** |
+| BT25-017 | Commit `00402168f` added focused assertions for the self-attack/hand-trash deletion sequence, blue-event Apollomon gating, and inherited Security Attack +1. The colocated tests are evidence only; no passing result is available here. **Below 10/10 pending execution.** |
+| BT25-018 | Commit `35cb04612` added focused assertions for conditional play-cost reduction, DP scaling/deletion, end-turn DNA/attack sequencing, and inherited deletion. The colocated tests are evidence only; no passing result is available here. **Below 10/10 pending execution.** |
+| BT25-019 | Commit `fcf10b654` ported UltimateBrachiomon to `registerIrCard`-only behavior and added assertions for highest-DP deletion, memory-gated immunity, and opponent source/effect scope. The assertions are structural and have not been run here. **Below 10/10 pending execution.** |
+| BT25-020 | Commits `0dee6f398`, `69394057d`, and `f30e6767e` preserve the compiled IR port, engine repair, and focused Marsmon watcher fixture. The colocated tests assert installation and `whenBattleWon` subscription but have not been run here. **Below 10/10 pending execution.** |
+
+### Provenance reconciliation record
+
+- Entries above were reconstructed from existing card tests and commit history only; no implementation, test, typecheck, or collection-gate changes were made.
+- These entries do not promote any card to 10/10. Focused execution and reproducible green evidence remain required.
