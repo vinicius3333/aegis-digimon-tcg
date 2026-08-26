@@ -1165,3 +1165,52 @@ git diff --check
 ```
 
 No unresolved ambiguity or unsupported behavior remains. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-025.
+
+## BT26-026 — Cougarmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-026` (`Cougarmon`), a yellow level 4 Champion Digimon with play cost 4, 4000 DP, Virus attribute, and `Mammal`/`Glowing Dawn`/`BEATBREAK` traits. Its normal requirement is yellow Lv.3 for cost 2, and its printed alternate requirement is `[Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2`. The main text is `＜Barrier＞` and `[When Attacking] [Once Per Turn] By trashing the bottom face-down card from under any of your Tamers or your top security card, you may use 1 Option card with the [Glowing Dawn] trait from your hand with the cost reduced by 2.` The inherited text is `＜Barrier＞`.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-026 --json`; it returns `banlist: null`, `errata: null`, and `qa: []`. No card-specific rulings, errata, restrictions, or unresolved local KB entries exist.
+- Comprehensive Rules evidence: §2-3-5 and §8-1-3 cover alternate digivolution requirements, selecting a legal requirement, paying memory, stacking, and the digivolution draw; §3-5-3, §3-6-3, and §3-7-2/3 define hand privacy, face-up public trash, and face-down/private ordered security; §4-7-3/5/7/9/10 defines fixed stack order, bottom-card semantics, and face-down information; §15-4-2-2/3 covers triggered and pending effects; §15-7-1/2 defines optional `By` processing and its conditional follow-up; §15-16-5-1 defines `[When Attacking]`; §16-25-1/2/3 limits Barrier to optional top-security payment for battle deletion and makes prevention mandatory after payment.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-026.ts` is compiled IR and registers exactly once with `registerIrCard("BT26-026", compiled)`; it has no `registerCard` call. The compiled alternate requirement is exact (`level: 3`, `traits: ["Glowing Dawn"]`, `cost: 2`, `isAlternate: true`), while the generated normal yellow Lv.3 requirement remains available through the catalog/engine path.
+- The top-level `Static` effect publishes Barrier on the top card, and the separate inherited `Static` effect publishes Barrier through an evolution host. The shared Barrier replacement is battle-only; it consumes the controller's top security card only when the Digimon would be deleted in battle, and does not activate for effect deletion.
+- The `[When Attacking]` effect is marked `frequency: "OncePerTurn"` and presents a two-way `Modal`: either trash one bottom face-down card from any own Tamer, or trash one own top security card. Both alternatives use `CostGatedBlock` with `optional: true`/`abortOnDecline: true`, then use exactly one own-hand Option whose kind is `Option` and whose exact `Glowing Dawn` trait is matched, paying its normal cost with `reduceCostBy: 2`. `selectionRequired: true` is a required atomicity guard: the cost is not paid when no eligible Option can be used, while the nested use remains optional after the cost choice.
+- `trashBottomFaceDownUnderTamer` resolves only the bottom stack card, requires the host's top card to be a Tamer and the bottom card to be face-down, trashes it face-up, and allows the controller to choose among multiple eligible Tamers. `trashSecurityTop` removes exactly the own security top card. Option resolution is server-side, retains the source controller, applies the reduction once, runs the Option's Main effect, and moves the used Option out of hand according to the shared lifecycle.
+- Shared seams inspected: modal availability and option selection, `CostGatedBlock` payment/abort flow, `canAttemptUseOptionWithoutCost`, bottom-face-down Tamer cost selection, security-top cost payment, once-per-turn activation ledger, inherited keyword publication, battle-only Barrier replacement, alternate digivolution legality, and source/zone ownership. Relevant peers inspected: BT26-025/BT26-027/BT26-031/BT26-053, plus the shared interpreter, primitive, and deletion conformance suites. The BT26-053 peer already demonstrates the same `selectionRequired` preflight requirement for a cost-gated Option use.
+
+### Behavioral proof
+
+The focused `apps/api/src/cards/BT26/BT26-026.test.ts` suite has 11 passing tests proving:
+
+- exact alternate evolution metadata and a legal Glowing Dawn Lv.3 stack transition versus an invalid near-match;
+- both alternate costs, including security-top trash and bottom face-down Tamer-card trash, with the correct resulting zones, face-up trash state, and reduced Option payment;
+- exact `Glowing Dawn` Option filtering while retaining a nonmatching Option in hand;
+- no cost payment when no eligible Glowing Dawn Option exists;
+- optional refusal after paying the selected alternate cost;
+- Once Per Turn suppression across repeated activations;
+- Barrier publication on the top card and through an inherited evolution source, battle-deletion prevention after security payment, and no Barrier activation for effect deletion.
+
+The card-specific fix is mutation-sensitive: removing `selectionRequired: true` makes the no-eligible-Option test fail because the alternate cost is consumed; restoring the stale effect-deletion cause makes the Barrier battle-boundary test fail.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-026 --json
+  PASS (no QA/ruling, errata, or restriction entries)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-026.test.ts
+  PASS (1 file, 11 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-026.test.ts src/cards/BT26/BT26-006.test.ts src/cards/BT26/BT26-022.test.ts src/cards/BT26/BT26-031.test.ts src/cards/BT26/BT26-053.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts
+  7 files passed, 388 tests passed; BT26-031 has 1 unrelated pre-existing failure (line 85 expects `beSuspended=false`, runtime returns `true`), reproduced in the isolated peer run
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-026.ts apps/api/src/cards/BT26/BT26-026.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No card-specific ambiguity or unsupported behavior remains. The BT26-031 peer failure is outside this card's files and unchanged by this audit. Changes are intentionally uncommitted and unpushed for coordinator review; this audit is limited to BT26-026.

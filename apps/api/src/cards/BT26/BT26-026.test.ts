@@ -213,7 +213,7 @@ describe("BT26-026 Cougarmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
   });
 
-  it("uses top-card Barrier to trash security and prevent effect deletion", async () => {
+  it("uses top-card Barrier to trash security and prevent battle deletion", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT26-026", as: "cougarmon" }],
@@ -225,7 +225,7 @@ describe("BT26-026 Cougarmon", () => {
     });
     const cougarmonId = s.perm("cougarmon").permanentId;
 
-    const deletion = advance(s.engine).verb.deletePermanent([cougarmonId], "byEffect");
+    const deletion = advance(s.engine).verb.deletePermanent([cougarmonId], "byBattle");
     await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
     expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: cougarmonId, accept: true })).toEqual({
       ok: true,
@@ -235,6 +235,75 @@ describe("BT26-026 Cougarmon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("remaining").instanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("barrierCost").instanceId);
+  });
+
+  it("does not activate Barrier for effect deletion", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-026", as: "cougarmon" }],
+        security: [{ card: "BT1-009", as: "barrierCost" }],
+      },
+    });
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("cougarmon").permanentId], "byEffect")).toBe(1);
+    expect(s.events.some((event) => event.kind === "barrierPrompt")).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("does not pay the chosen alternate cost when no eligible Glowing Dawn Option exists", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-026", as: "cougarmon" }],
+          hand: [{ card: "BT1-090", as: "nonGlowingOption" }],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("cougarmon"), {
+      attackerPermanentId: s.perm("cougarmon").permanentId,
+    });
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("nonGlowingOption").instanceId,
+    );
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("enforces the When Attacking Once Per Turn limit across repeated activations", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-026", as: "cougarmon" },
+            { card: "BT26-089", as: "firstTamer", under: [{ card: "BT1-001", as: "firstCost", faceUp: false }] },
+            { card: "BT26-089", as: "secondTamer", under: [{ card: "BT1-002", as: "secondCost", faceUp: false }] },
+          ],
+          hand: [
+            { card: "P-236", as: "firstOption" },
+            { card: "P-236", as: "secondOption" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+
+    for (let index = 0; index < 2; index += 1) {
+      await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("cougarmon"), {
+        attackerPermanentId: s.perm("cougarmon").permanentId,
+      });
+    }
+
+    expect(s.perm("firstTamer").stack).toHaveLength(0);
+    expect(s.perm("secondTamer").stack).toHaveLength(1);
+    expect(s.state.players[0]!.hand.filter(({ cardId }) => cardId === "P-236")).toHaveLength(1);
   });
 
   it("uses the exact level-3 Glowing Dawn cost-2 evolution and rejects a near-match", async () => {
