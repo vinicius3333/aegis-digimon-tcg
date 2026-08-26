@@ -7,11 +7,13 @@ describe("BT13-032 JumboGamemon", () => {
   it("keeps Blocker and the level-5 stack-play trigger", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({
-      trigger: "OpponentsTurn",
+    expect(compiled.effects).toContainEqual(expect.objectContaining({
+      trigger: "Static",
       keywords: [expect.objectContaining({ keyword: "Blocker" })],
-    });
-    expect(compiled.effects[0]?.actions[0]).toMatchObject({
+    }));
+    expect(compiled.effects).toContainEqual(expect.objectContaining({
+      trigger: "OpponentsTurn",
+      actions: [expect.objectContaining({
       kind: "SubTrigger",
       event: "whenOpponentAttacks",
       actions: [
@@ -26,7 +28,8 @@ describe("BT13-032 JumboGamemon", () => {
           },
         },
       ],
-    });
+      })],
+    }));
   });
 
   it("plays a level 5 card from its own stack when the opponent attacks", async () => {

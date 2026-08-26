@@ -83,7 +83,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-031 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing static Evade, evolution-only opponent-Tamer return, and opponent-hand-add event timing into an optional exact-name Thomas hand play with a shared all-turn once-per-turn key.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-031.test.ts` passed (7 tests): Evade deletion replacement, evolution target filter, qualifying-event ownership, optional refusal, and frequency boundary.
-- BT13-032 — Pending
+- BT13-032 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; corrected compiled IR to make printed Blocker static, separately tracing optional opponent-attack stack play through own-stack, level-5-or-lower, free-play, and blue/black evolution requirements.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-032.test.ts` passed (5 tests): static Blocker combat, stack play/refusal, level filter, and both printed evolution colors.
 - BT13-033 — Pending
 - BT13-034 — Pending
 - BT13-035 — Pending
