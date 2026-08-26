@@ -1,10 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-111.js";
 import "./BT9-111.js";
 
 describe("BT9-111 Alphamon: Ouryuken", () => {
+  it("matches catalog values and alternate evolution, tie-delete, and return-count IR", () => {
+    expect(getCardDefinition("BT9-111")).toMatchObject({
+      colors: ["Black"], kinds: ["Digimon"], level: 7, playCost: 15, dp: 16000,
+      evoCosts: [{ color: "Black", level: 6, memoryCost: 7 }], types: ["NODATA", "Royal Knight", "X Antibody"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Alphamon"], cost: 3, isAlternate: true, minNameStackCount: 1, minNameStackNames: ["Ouryumon"] }],
+      effects: [
+        { trigger: "WhenDigivolving", actions: [{ kind: "Delete", target: { count: "all", filter: { superlative: "highestPlayCost" } } }] },
+        { trigger: "EndOfYourTurn", frequency: "OncePerTurn", actions: [{ kind: "Return", to: "deckBottom", order: "any", optional: true, trackCount: "bt9-111-returned", target: { count: 7, upTo: true, filter: { zone: "digivolutionCards", excludeKind: ["Digi-Egg"] } } }, { kind: "GainMemory", scaling: { unit: "namedCount", countSource: "bt9-111-returned" } }] },
+      ],
+    });
+  });
+
   it("deletes every opposing Digimon tied for the highest play cost when digivolving", async () => {
     const s = setupEngine(
       {
