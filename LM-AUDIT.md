@@ -468,7 +468,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   filter is Black-or-Yellow Digimon, and Main Delay/Security remain independent. Tests are
   deliberately unrun per coordinator instruction, so LM-037 remains below 10/10.
 
-## LM-038 — Grape Memory Boost! — pending focused execution
+## LM-038 — Grape Memory Boost! — static audit complete; pending focused authorization
 
 - Catalog and Q4073/Q4074 map to direct Static `alsoColor: green`; interpreter option-legality
   accepts purple or green sources in battle/breeding while rejecting a player with neither.
@@ -477,7 +477,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Focused behavior covers the native/alternative colour-source paths, breeding ruling, rejection,
   search resolution, and Security. Shared Delay proof covers lifecycle behavior, and the stale
   card-comment citations are corrected to Q4073/Q4074.
-- Tests remain deliberately unrun under PID 82901, so LM-038 remains below 10/10.
+- Static audit found no catalog, Q&A, direct-IR, registration, shared-primitive, or focused-fixture gap: the self-bound green alternative preserves the printed Purple requirement, the reveal filter is Purple-or-Green Digimon, and Main Delay/Security remain independent. Tests are deliberately unrun per coordinator instruction, so LM-038 remains below 10/10.
 
 ## LM-039 — Valkyrimon — pending focused execution
 
