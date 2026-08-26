@@ -197,6 +197,9 @@ export const CLASH_TOTAL_MS = CLASH_OUTCOME_AT_MS + TIMINGS.clashOutcome + TIMIN
 /** Shield break, end to end: the arm, the shatter, and the held frames after it. */
 export const SECURITY_BREAK_TOTAL_MS = TIMINGS.securityArm + TIMINGS.shieldBreak + TIMINGS.securityBreakHold;
 
+/** How long the revealed card takes to slide out to the side it reads out from. */
+export const SECURITY_BRANCH_IN_MS = TIMINGS.securityBranchIn;
+
 /** The security-effect branch, end to end: the slide out, the hold, and the exit. */
 export const SECURITY_BRANCH_TOTAL_MS =
   TIMINGS.securityBranchIn + TIMINGS.securityBranchHold + TIMINGS.securityBranchOut;

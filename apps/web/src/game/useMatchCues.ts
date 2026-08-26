@@ -92,6 +92,7 @@ import {
   FIELD_CLASH_IMPACT_AT_MS,
   FIELD_CLASH_LUNGE_AT_MS,
   FIELD_CLASH_TOTAL_MS,
+  SECURITY_BRANCH_IN_MS,
   SHOWCASE_TOTAL_MS,
   TIMINGS,
 } from "./timings";
@@ -739,15 +740,30 @@ export function useMatchCues({
             await context.wait(CLASH_TOTAL_MS - CLASH_OUTCOME_AT_MS);
           } finally {
             setSecurityClash((current) => (current?.key === scene.key ? null : current));
-            setPendingRevealKey((current) => (current === key ? null : current));
           }
         },
       });
       heldNoticesRef.current = [...heldNoticesRef.current, ...heldNotices, ...checkOwnedNotices];
       heldAwaitingCheckRef.current = false;
-      // Step 10b: the card has been shown, so now it can be read out. The clock on
-      // each notice starts here rather than when the server named it. Always queued —
-      // it also reads out check-owned notices that arrive while the scene still plays.
+      // Step 10b: the revealed card takes its place at the side of the screen BEFORE its
+      // clause is read out, so the notice lands beside the card it explains rather than
+      // ahead of it (the reference client flies the card to the execute zone, then opens
+      // the panel). A check that resolves no effect has no detour, so its notices follow
+      // the outcome directly.
+      if (branch) {
+        // The slide itself is decoration, so a click through the scene collapses it and
+        // the card simply appears at the side.
+        enqueue({
+          id: `security-branch-in-${key}`,
+          track: CENTER_STAGE_TRACK,
+          async run(context) {
+            setSecurityBranch(branch);
+            await context.wait(SECURITY_BRANCH_IN_MS);
+          },
+        });
+      }
+      // The clock on each notice starts here rather than when the server named it. Always
+      // queued — it also reads out check-owned notices that arrive while the scene plays.
       enqueue({
         id: `security-notices-${key}`,
         track: CENTER_STAGE_TRACK,
@@ -756,9 +772,20 @@ export function useMatchCues({
           flushHeldNotices();
         },
       });
+      // The check has now said everything it has to say: the card was revealed, it fought
+      // or took its place at the side, and its clause is on screen. Only here do the
+      // decisions that effect asks for get a surface. Clearing this at the outcome beat
+      // instead opened a prompt over a card that had not reached the side yet.
+      enqueue({
+        id: `security-presented-${key}`,
+        track: CENTER_STAGE_TRACK,
+        skippable: false,
+        run() {
+          setPendingRevealKey((current) => (current === key ? null : current));
+        },
+      });
       if (branch) {
-        // The card detours to the half of the screen the side panels leave free, next
-        // to the notice raised a beat earlier, and the centre of the board is given back.
+        // The card holds next to its notice, then the centre of the board is given back.
         enqueue({
           id: `security-branch-${key}`,
           track: CENTER_STAGE_TRACK,
@@ -766,8 +793,7 @@ export function useMatchCues({
           skippable: false,
           async run(context) {
             try {
-              setSecurityBranch(branch);
-              await context.wait(SECURITY_BRANCH_TOTAL_MS);
+              await context.wait(SECURITY_BRANCH_TOTAL_MS - SECURITY_BRANCH_IN_MS);
             } finally {
               setSecurityBranch((current) => (current?.key === branch.key ? null : current));
             }

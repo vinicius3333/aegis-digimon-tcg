@@ -9,12 +9,20 @@ import {
   CLASH_TOTAL_MS,
   FIELD_CLASH_IMPACT_AT_MS,
   FIELD_CLASH_LUNGE_AT_MS,
+  SECURITY_BRANCH_IN_MS,
   SECURITY_BRANCH_TOTAL_MS,
   SECURITY_BREAK_TOTAL_MS,
   SHOWCASE_TOTAL_MS,
   TIMINGS,
   COMBAT_IMPACT_TOTAL_MS,
 } from "./timings";
+
+/**
+ * When a check that resolves an effect is finally allowed to speak: the shield break, the
+ * whole centre-stage clash, and the slide that parks the revealed card at the side it reads
+ * out from. Its notice and the decisions it asks for both land here.
+ */
+const EFFECT_CHECK_NOTICE_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS + SECURITY_BRANCH_IN_MS;
 
 const playSound = vi.hoisted(() => vi.fn<(kind: string) => void>());
 vi.mock("../design/sound", () => ({ playSound }));
@@ -182,7 +190,7 @@ describe("match cues", () => {
     await advance(0);
     expect(result.current.securityRevealPending).toBe(true);
 
-    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS - 1);
+    await advance(EFFECT_CHECK_NOTICE_AT_MS - 1);
     expect(result.current.securityRevealPending).toBe(true);
 
     await advance(1);
@@ -513,7 +521,7 @@ describe("notices", () => {
     await advance(0);
 
     rerender([{ kind: "securityChecked", seat: 0, revealedCardId: "BT1-010", resolution: "effect" }, EFFECT]);
-    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS);
+    await advance(EFFECT_CHECK_NOTICE_AT_MS);
     expect(result.current.notices[0]?.fromSecurity).toBe(true);
   });
 
@@ -527,10 +535,10 @@ describe("notices", () => {
     await advance(0);
     expect(result.current.notices).toEqual([]);
 
-    // Still nothing while the shield is breaking and while the two cards are held.
-    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS - 1);
+    // Still nothing while the shield is breaking, while the two cards are held, and
+    // while the revealed card is still sliding to the side it reads out from.
+    await advance(EFFECT_CHECK_NOTICE_AT_MS - 1);
     expect(result.current.notices).toEqual([]);
-    expect(result.current.securityBranch).toBeNull();
 
     await advance(1);
     expect(result.current.notices).toHaveLength(1);
@@ -551,7 +559,7 @@ describe("notices", () => {
     expect(result.current.notices).toEqual([]);
 
     rerender([CHECK_OWNED_EFFECT, EFFECT_CHECK]);
-    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS - 1);
+    await advance(EFFECT_CHECK_NOTICE_AT_MS - 1);
     expect(result.current.notices).toEqual([]);
 
     await advance(1);
@@ -567,7 +575,7 @@ describe("notices", () => {
     await advance(TIMINGS.securityArm);
 
     rerender([EFFECT_CHECK, CHECK_OWNED_EFFECT]);
-    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS - TIMINGS.securityArm - 1);
+    await advance(EFFECT_CHECK_NOTICE_AT_MS - TIMINGS.securityArm - 1);
     expect(result.current.notices).toEqual([]);
 
     await advance(1);
