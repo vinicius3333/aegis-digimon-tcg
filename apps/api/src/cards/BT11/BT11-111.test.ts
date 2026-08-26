@@ -6,7 +6,7 @@ import { compiled } from "./BT11-111.js";
 import "./BT11-111.js";
 describe("BT11-111 Galacticmon", () => {
   it("models all printed effects, including the Vemmon leave-play replacement", () => {
-    expect(getCardDefinition("BT11-111").effectText).toContain("8 or more [Vemmon]");
+    expect(getCardDefinition("BT11-111")!.effectText).toContain("8 or more [Vemmon]");
     expect(compiled.effects).toHaveLength(3);
     expect(compiled.effects[0]?.actions[1]).toMatchObject({
       kind: "Delete",

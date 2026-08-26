@@ -87,19 +87,22 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // A "by deleting 1 of your Digimon, delete 1 with a level no higher than it" target
   // cannot be matched until the deleteOwn cost captures `lastDeletedLevel`.  Preflighting
   // it before payment makes the target set look empty and silently skips the whole action.
-  const deleteTargetBoundByItsCost =
+  const deleteOwnCost =
     action.kind === "Delete" &&
     action.cost !== undefined &&
     typeof action.cost !== "number" &&
-    action.cost.kind === "deleteOwn" &&
-    action.target.filter.levelComparison?.relativeTo === "lastDeleted";
+    action.cost.kind === "deleteOwn"
+      ? action.cost
+      : undefined;
+  const deleteTargetBoundByItsCost =
+    deleteOwnCost !== undefined && action.target.filter.levelComparison?.relativeTo === "lastDeleted";
   const deleteOwnLevelTargetAvailable = (() => {
-    if (!deleteTargetBoundByItsCost || typeof action.cost === "number" || action.cost.target === undefined) return false;
+    if (!deleteTargetBoundByItsCost || deleteOwnCost.target === undefined) return false;
     const highestCostLevel = Math.max(
-      ...candidatePermanents(ctx, action.cost.target)
+      ...candidatePermanents(ctx, deleteOwnCost.target)
         .map((permanent) => {
           const card = ctx.game.permanentById(permanent.permanentId)?.topCard;
-          return card === undefined ? 0 : ctx.game.definitionOf(card).level;
+          return card === undefined ? 0 : (ctx.game.definitionOf(card).level ?? 0);
         })
         .filter((level) => level > 0),
       0,
@@ -108,7 +111,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     const { levelComparison: _levelComparison, ...filterWithoutBound } = action.target.filter;
     return candidatePermanents(ctx, { ...action.target, filter: filterWithoutBound }).some((permanent) => {
       const card = ctx.game.permanentById(permanent.permanentId)?.topCard;
-      return card !== undefined && ctx.game.definitionOf(card).level <= highestCostLevel;
+      return card !== undefined && (ctx.game.definitionOf(card).level ?? 0) <= highestCostLevel;
     });
   })();
   if (

@@ -86,4 +86,3 @@ describe("BT11-042 Angewomon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("angemon"), "Blocker")).toBe(true);
   });
 });
-import { compiledEffects, getCardDefinition } from "@aegis/shared";

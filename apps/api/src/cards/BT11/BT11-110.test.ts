@@ -7,7 +7,7 @@ import "./BT11-110.js";
 describe("BT11-110 Evil Squall", () => {
   it("models its purple-Tamer cost reduction and all three legal deletion targets", () => {
     const card = getCardDefinition("BT11-110");
-    expect(card.effectText).toContain("reduce the cost by 1");
+    expect(card!.effectText).toContain("reduce the cost by 1");
     expect(compiled.effects).toHaveLength(3);
     expect(compiled.effects[1]?.actions[0]).toMatchObject({
       kind: "Delete",
