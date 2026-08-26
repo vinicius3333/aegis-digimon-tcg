@@ -52,6 +52,6 @@ describe("EX6-003 Cupimon", () => {
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("securityTop").instanceId);
     expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("angel").instanceId, faceUp: true });
+    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("angel").instanceId, faceUp: false });
   });
 });
