@@ -15,4 +15,15 @@ describe("BT4-104 Blinding Ray", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.memory).toBe(3);
   });
+
+  it("gains two memory even with an empty security stack", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: ["BT4-044"], hand: [{ card: "BT4-104", as: "option" }] } },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 3);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
 });
