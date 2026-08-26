@@ -425,3 +425,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-021.
+
+## BT25-022 — Lunamon — 10/10
+
+- Catalog evidence: Blue level-3 Digimon, play cost 3, 2000 DP, `Rookie`/`Data`, `Mammal`/`Iliad`/`TS`; standard blue or red level-2 evolution for 0 plus alternate level-2 `TS` evolution for 0; On Play reveal top 3, add one Iliad trait card and one TS trait card, bottoming the rest; inherited Jamming.
+- Knowledge base: `node tools/kb/query.mjs card BT25-022` returned no entries, so there are no local card-specific rulings, errata, restrictions, or unresolved ambiguities to apply.
+- Implementation: the direct IR contains two exact RevealAdd slots with shared revealed-card consumption, deck-bottom remainder, the alternate evolution, and an inherited static Jamming marker. It has full coverage/no residual clauses and registers exclusively through `registerIrCard("BT25-022", compiled)`.
+- Behavioral proof: the focused suite verifies the complete compiled contract. The delegated audit ran analogous BT23-006 search/evolution cases, security/Jamming conformance, and a Jamming peer, covering distinct selection, bottoming, legal off-color trait evolution, inherited stack visibility, and security-battle survival. No defect was found, so no test or implementation change was needed.
+- Verification: focused suite — 2 passed; reveal/evolution/Jamming peers — 21 passed; `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-022 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-022
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-022.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-022.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-022.
