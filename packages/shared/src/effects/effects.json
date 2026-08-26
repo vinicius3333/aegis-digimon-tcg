@@ -13774,7 +13774,7 @@
                     "zone": "battleArea",
                     "controllerDefault": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["X Antibody"], "match": "name" }]
+                    "digivolutionStackNameOrTrait": [{ "tokens": ["X Antibody"], "match": "name" }]
                   },
                   "raw": "you have a Digimon with [X Antibody] in its digivolution cards in play"
                 }
@@ -13787,8 +13787,25 @@
         "trigger": "Main",
         "actions": [
           {
-            "kind": "RawUnparsed",
-            "text": "missing-primitive(unaudited): Choose any number of your opponent's Digimon and Tamers whose combined play costs are less than or equal to the play cost of 1 of your Digimon with [Greymon] in its name, and delete all of the chosen cards"
+            "kind": "SelectBind",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Greymon"], "match": "name" }]
+              },
+              "count": 1,
+              "bindAs": "budgetDigimon"
+            }
+          },
+          {
+            "kind": "Delete",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+              "count": "all",
+              "upTo": true,
+              "totalPlayCostBudgetFromSelectionRef": "budgetDigimon"
+            }
           },
           {
             "kind": "Attack",
@@ -13819,10 +13836,8 @@
         "isSecurity": true
       }
     ],
-    "coverage": "partial",
-    "residual": [
-      "missing-primitive(unaudited): Choose any number of your opponent's Digimon and Tamers whose combined play costs are less than or equal to the play cost of 1 of your Digimon with [Greymon] in its name, and delete all of the chosen cards"
-    ]
+    "coverage": "full",
+    "residual": []
   },
   "BT11-108": {
     "effects": [
