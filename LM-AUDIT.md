@@ -222,7 +222,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --fileParallelism=false`. LM-024 remains below 10/10 pending relevant mechanism and refreshed
   collection gates.
 
-## LM-025 — Cyberdramon — pending focused execution
+## LM-025 — Cyberdramon — focused proof green; pending mechanism and collection gates
 
 - Catalog contract maps to the direct `registerIrCard` module: optional free play of one
   revealed black cost-4-or-lower Tamer, ordered top-or-bottom return of the remainder, then
@@ -230,8 +230,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   once per turn.
 - Existing focused behavioral fixtures cover successful Tamer play plus Then De-Digivolve,
   the no-revealed-Tamer negative, free play at zero memory, and inherited once-per-turn use.
-- No local rulings add ambiguity. The focused suite is unrun while PID 82901 holds the serial
-  slot, so this card remains below 10/10.
+- No local rulings add ambiguity. The authorized serialized focused command passed 1/1 file and
+  5/5 tests in 2.90s on 2026-08-26: `vitest run src/cards/LM/LM-025.test.ts --pool=forks
+  --poolOptions.forks.singleFork=true --fileParallelism=false`. LM-025 remains below 10/10 pending
+  relevant mechanism and refreshed collection gates.
 
 ## LM-026 — Megidramon — pending focused execution
 
