@@ -350,6 +350,59 @@ describe("new typed RAW-elimination conditions", () => {
 });
 
 describe("Return result bindings", () => {
+  it("keeps the scaled level ceiling when adding a scaled play-cost ceiling", async () => {
+    const allowed = makeFakePermanent({
+      permanentId: "level-five",
+      controllerSeat: 1 as Seat,
+      topCard: { instanceId: "level-five-card", cardId: "LEVEL-FIVE", ownerSeat: 1, faceUp: true } as never,
+    });
+    const aboveLevelCap = makeFakePermanent({
+      permanentId: "level-six",
+      controllerSeat: 1 as Seat,
+      topCard: { instanceId: "level-six-card", cardId: "LEVEL-SIX", ownerSeat: 1, faceUp: true } as never,
+    });
+    const source = makeSource({ cardId: "X-RETURN-SCALED-CAPS" });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownSecurity: [{}],
+      opponentBattleArea: [aboveLevelCap, allowed],
+      definitionOf: (cardId) =>
+        makeFakeDefinition({
+          cardId,
+          kinds: [CardKind.Digimon],
+          level: cardId === "LEVEL-FIVE" ? 5 : 6,
+          playCost: 6,
+        }),
+    });
+    const module = irCardModule("X-RETURN-SCALED-CAPS", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "Return",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+                count: 1,
+              },
+              scaling: { per: 1, unit: "security", levelCeilingAdd: 1 },
+              playCostCeiling: { base: 5, raise: 1, per: 1, unit: "security" },
+              to: "deckBottom",
+            },
+          ],
+        },
+      ],
+    });
+
+    await module.effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+
+    expect(recorder.calls.find((call) => call.verb === "returnToDeck")?.args[0]).toEqual(["level-five-card"]);
+  });
+
   it("aborts an ordered tail when an accepted self Return moves no card", async () => {
     const source = makeSource({ cardId: "X-RETURN-COST" });
     const recorder: Recorder = { calls: [] };

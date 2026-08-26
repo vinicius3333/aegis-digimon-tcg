@@ -552,28 +552,44 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
     }
     case "Return": {
       const scaledTarget =
-        action.scaling !== undefined && typeof action.target.count === "number"
+        action.scaling !== undefined &&
+        action.scaling.levelCeilingAdd === undefined &&
+        typeof action.target.count === "number"
           ? { ...action.target, count: action.target.count * scaleFactor(ctx, action.scaling) }
           : action.target;
-      const returnTarget =
-        action.playCostCeiling === undefined
-          ? scaledTarget
-          : {
-              ...scaledTarget,
-              filter: {
-                ...scaledTarget.filter,
-                playCostLte:
-                  action.playCostCeiling.base +
-                  Math.floor(
-                    scaleFactor(ctx, {
-                      per: action.playCostCeiling.per,
-                      filter: action.playCostCeiling.filter,
-                      unit: action.playCostCeiling.unit,
-                    }),
-                  ) *
-                    action.playCostCeiling.raise,
-              },
-            };
+      let returnTarget = scaledTarget;
+      if (action.scaling?.levelCeilingAdd !== undefined && returnTarget.filter.levelComparison?.value !== undefined) {
+        returnTarget = {
+          ...returnTarget,
+          filter: {
+            ...returnTarget.filter,
+            levelComparison: {
+              ...returnTarget.filter.levelComparison,
+              value:
+                returnTarget.filter.levelComparison.value +
+                scaleFactor(ctx, action.scaling) * action.scaling.levelCeilingAdd,
+            },
+          },
+        };
+      }
+      if (action.playCostCeiling !== undefined) {
+        returnTarget = {
+          ...returnTarget,
+          filter: {
+            ...returnTarget.filter,
+            playCostLte:
+              action.playCostCeiling.base +
+              Math.floor(
+                scaleFactor(ctx, {
+                  per: action.playCostCeiling.per,
+                  filter: action.playCostCeiling.filter,
+                  unit: action.playCostCeiling.unit,
+                }),
+              ) *
+                action.playCostCeiling.raise,
+          },
+        };
+      }
       // Security effects such as BT10-109 encode "add this card to its owner's hand"
       // as Return(isSelfRef). The source is a loose security card, so it has no
       // permanent for resolvePermanentTargets to find.

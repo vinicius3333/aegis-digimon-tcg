@@ -35,12 +35,6 @@ const compiled: CompiledCard = {
             count: 1,
           },
           to: "deckBottom",
-        },
-        {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "level",
-          amount: 1,
           scaling: {
             per: 2,
             filter: {
@@ -48,6 +42,7 @@ const compiled: CompiledCard = {
               kind: ["Tamer"],
             },
             unit: "colors",
+            levelCeilingAdd: 1,
           },
         },
       ],
@@ -69,12 +64,6 @@ const compiled: CompiledCard = {
             count: 1,
           },
           to: "deckBottom",
-        },
-        {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "level",
-          amount: 1,
           scaling: {
             per: 2,
             filter: {
@@ -82,6 +71,7 @@ const compiled: CompiledCard = {
               kind: ["Tamer"],
             },
             unit: "colors",
+            levelCeilingAdd: 1,
           },
         },
       ],

@@ -104,9 +104,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   const placeCostProducesDeleteTarget =
     action.kind === "Delete" &&
     action.cost?.kind === "place" &&
-      ((action.cost.storeAs !== undefined && action.target.filter.levelEq === action.cost.storeAs) ||
-        (action.cost.bindResultAs !== undefined &&
-          action.target.filter.levelComparison?.relativeTo === action.cost.bindResultAs));
+    ((action.cost.storeAs !== undefined && action.target.filter.levelEq === action.cost.storeAs) ||
+      (action.cost.bindResultAs !== undefined &&
+        action.target.filter.levelComparison?.relativeTo === action.cost.bindResultAs));
   // A "by deleting 1 of your Digimon, delete 1 with a level no higher than it" target
   // cannot be matched until the deleteOwn cost captures `lastDeletedLevel`.  Preflighting
   // it before payment makes the target set look empty and silently skips the whole action.
@@ -525,7 +525,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // where a count of 0 is a meaningful absolute cost (e.g. "cost = your security count"
   // with an empty security stack sets the cost to 0). That case resolves its own value.
   const isSetCostModifier = action.kind === "CostModifier" && action.mode === "set";
-  const isDeleteLevelCeilingScaling = action.kind === "Delete" && action.scaling?.levelCeilingAdd !== undefined;
+  // A ceiling bonus changes an action's eligibility, not its base count. With zero
+  // matching units the action still resolves at its printed ceiling (ST21-11).
+  const isLevelCeilingScaling = action.scaling?.levelCeilingAdd !== undefined;
   // A budget scaling ("for every 2 [Argomon] in its digivolution cards, +1 to the maximum",
   // BT17-051) raises a BASE budget the action carries on its own. Zero units means no bonus,
   // never "the action does nothing" — the base budget still deletes.
@@ -539,7 +541,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     scale === 0 &&
     !isPerTargetScaling &&
     !isSetCostModifier &&
-    !isDeleteLevelCeilingScaling &&
+    !isLevelCeilingScaling &&
     !isBudgetScaling
   ) {
     return false;
