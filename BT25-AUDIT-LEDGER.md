@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-029 (MirageGaogamon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-029 MirageGaogamon | Blue/black level 6 Digimon; alternate level-5 `[MachGaogamon]`-in-name or `[DATA SQUAD]` evolution cost 3; Reboot, Blocker, Evade; when digivolving/attacking once per turn, may return an opposing level-5-or-lower Digimon, then by trashing the bottom face-down card under any own Tamer return an opposing lowest-level Digimon; all turns once per turn, when effects add cards to opponent's hand or trash cards under own Tamers, may unsuspend; inherited same replacement. Q6296 confirms the shared once-per-turn budget is available again on attack if declined during digivolution. | **No card-specific causal mismatch found statically.** The digivolving and attacking effects share one once-per-turn key, preserve the optional first return followed by the paid lowest-level return, and use the correct level and bottom-face-down Tamer cost filters. The two All Turns event watchers are optional and share the parent once-per-turn scope; the Tamer source filter aligns with the engine's event payload for cards trashed under Tamers. Name/trait evolution alternatives and all three keywords are represented. | Structural test only; no execution of Q6296 budget reuse, return sequencing, lowest-level tie handling, cost refusal/payment, event watcher scope, once-per-turn interactions, or inherited replacement behavior. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-029
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-029` (Q6296).
+- Direct module/test and shared once-per-turn keys, return superlative, bottom-face-down
+  Tamer-cost primitive, and `whenDigivolutionTrashed` host-source payload were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-028 (Dianamon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
