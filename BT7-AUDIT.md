@@ -281,3 +281,20 @@ Required follow-up: bind the chosen host stack (or establish an engine guarantee
 10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; single-stack selection, destination transformation, optional decline, and Security boundaries remain unproven.
 
 Required follow-up: bind one chosen host stack (or establish the engine guarantee), then add behavioral proof for both Main and Security branches. This card is not formally complete at 10/10.
+
+## BT7-095 — Blue Hawaii Death — 8/10 (static audit; fidelity finding)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Blue Option costing 2; Main gives one owner Digimon +3000 DP and the ability to attack an opponent's unsuspended Digimon without digivolution cards for the turn; Security returns this card to hand.
+2. **DP modifier (1/1):** Main applies +3000 for the turn to exactly one owner Digimon.
+3. **Attack permission (1/1):** Main grants the unsuspended-opponent attack permission for the turn and sets `noDigivolutionCards: true`.
+4. **Security behavior (1/1):** Security uses `AddToHandSelf`.
+5. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-095` reports no rulings or unresolved ambiguity.
+6. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-095", compiled)` registration are present.
+7. **Static primitive trace (1/1):** Owner Digimon filters, exact counts, amount, duration, and no-digivolution-card restriction are explicit.
+8. **Same-target fidelity (0/1):** The printed text applies both effects to “1 of your Digimon,” but the two actions independently select one Digimon; no bound reference proves they must be the same permanent.
+9. **Clause completeness (1/1):** Main and Security clauses are represented, subject to same-target identity.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; same-target enforcement, attack eligibility, duration, and Security behavior remain unproven.
+
+Required follow-up: bind the first selected Digimon for the second modifier (or establish sequential same-target semantics), then add behavioral proof. This card is not formally complete at 10/10.
