@@ -42,3 +42,10 @@
 - Implementation trace: `BT10-006.ts` is a compiled-IR hand-written override that exclusively uses `registerIrCard`. It gates on `OpponentsTurn`, watches the batch digivolution-card discard event, binds the event to its own inherited source with `isSelfRef`, and draws one for the source controller.
 - Behavioral proof: `BT10-006.test.ts` covers positive opponent-turn trashing, own-turn rejection, the Q1931 controller-effect case, and a batch trash containing Tokomon plus a non-Tokomon source. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-006.test.ts`.
 - Stack/ownership evidence: each case places Tokomon under a real host, with the batch comparator proving source-instance identity and the Q1931 case separating current-turn ownership from the controller of the trashing effect.
+
+## BT10-007 — Dondokomon — 10/10
+
+- Catalog contract: red level 3 Musical Instrument/Xros Heart Digimon with standard red level-2 evolution and alternate `Digivolve: 0 from Lv.2 w/[Xros Heart] in traits`; the knowledge base has no card-specific entry.
+- Implementation trace: `BT10-007.ts` exclusively calls `registerIrCard`; the compiled alternate requirement requires level 2, the Xros Heart trait, cost 0, and marks it `isAlternate`, while base catalog evolution remains separate.
+- Behavioral proof: `BT10-007.test.ts` evolves at zero memory from an off-color Xros Heart level 2 and rejects an off-color, same-level non-Xros Heart comparator. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-007.test.ts`.
+- Stack/trait evidence: BT10-003 is a valid blue Xros Heart level-2 base and BT1-003 is the same-color/level near-miss, proving the alternate route relies on the full trait requirement rather than color or level alone.
