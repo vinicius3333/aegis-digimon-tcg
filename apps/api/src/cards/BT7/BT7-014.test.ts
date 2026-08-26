@@ -70,6 +70,7 @@ describe("BT7-014 Aldamon", () => {
     });
     await matching.engine.recomputeContinuousEffects();
     expect(observe(matching.engine).suppressesSecurityEffect(matching.perm("host"), "BT3-101")).toBe(true);
+    expect(observe(matching.engine).suppressesSecurityEffect(matching.perm("host"), "BT1-085")).toBe(false);
 
     const other = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT7-014"] }] },
