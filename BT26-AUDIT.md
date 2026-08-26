@@ -650,3 +650,54 @@ git diff --check
 ```
 
 No card implementation or test change was required. The BT26-014 audit evidence is left uncommitted for coordinator review; no push was made.
+
+## BT26-015 — Butenmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-015` (`Butenmon`), a red/yellow level 5 Ultimate Digimon with 7000 DP, Vaccine attribute, and `Shaman`/`Iliad`/`TS` traits. Its normal evolution requirements are red or yellow Lv.4 for 4; its alternate requirement is `[Digivolve] Lv.4 w/[TS] trait: Cost 3`.
+- Printed text: `[On Play] [When Digivolving] 1 of your opponent's Digimon gets -4000 DP until their turn ends. Then, by returning 1 card in your trash to the bottom of the deck, delete 1 of your opponent's 5000 DP or lower Digimon.` `[Your Turn] [Once Per Turn] When your effects add to decks, 1 of your Digimon may get +3000 DP until your opponent's turn ends and attack.` The inherited text is `[All Turns] [Once Per Turn] When your effects add to decks, this Digimon with [Chronomon] in its text may unsuspend.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-015`; it reports Q6970–Q6975 and no erratum or restriction. Q6970 defines `[Chronomon] in its text` across name, traits, effects, inherited effects, rules, and requirements; Q6971 confirms that 0-DP deletion waits until all activated effects finish; Q6972 makes the buffed Digimon's attack mandatory when possible; Q6973 excludes a revealed card merely restored to the deck; Q6974 includes effects that remove then add deck cards; and Q6975 includes adding cards to the opponent's deck with one of your effects.
+- Comprehensive Rules evidence: §15-7-1–5 defines `by returning` as optional processing and permits paying it even when the following deletion has no legal target; §15-8-3-1–9 defines trigger timing, once-per-turn trigger processing, and state references; §15-9-1–2 and §15-9-2–2 distinguish mandatory attack/debuff processing from optional clauses; §15-16-2–3, §15-16-5, §15-16-8–9 define On Play, When Digivolving, Your Turn, and All Turns timing; and the glossary defines independent once-per-turn budgets.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-015.ts` is a complete IR module. The shared `onPlayBody` is registered for both `OnPlay` and `WhenDigivolving`: it applies -4000 DP to exactly one opponent Digimon until the opponent's turn ends, optionally returns exactly one card from the controller's trash to deck bottom, and gates the following deletion on the return action having acted, targeting exactly one opponent Digimon at the inclusive 5000-DP boundary.
+- The `[Your Turn] [Once Per Turn]` watcher uses `whenEffectAddsToDeck`; the interpreter's dedicated gate credits the effect controller, so it reacts to cards added to either player's deck while excluding deck reveal/restoration. Its body optionally binds one own Digimon, gives it +3000 DP until the opponent's turn ends, and force-attacks it with the mandatory attack action.
+- The inherited `[All Turns] [Once Per Turn]` watcher uses the same deck-add event, gates the live host's top card with `selfTopHasText` for `[Chronomon]` per Q6970, and optionally unsuspends only the host permanent. Registration is exclusively `registerIrCard("BT26-015", compiled)`; no `registerCard` registration exists for this card.
+- Relevant peers inspected: BT26-001 and BT26-060 for deck-add watchers and Chronomon text matching; BT26-009 for genuine draw-then-deck-bottom event sequencing; BT26-014/BT26-016 for adjacent TS evolution and return-cost conventions; and shared subtrigger, return-to-deck, DP-duration, deletion, attack, once-per-turn, and `selfTopHasText` primitives. Their controller, zone, timing, optionality, and stack-source behavior is consistent with Butenmon.
+
+### Behavioral proof
+
+The existing `apps/api/src/cards/BT26/BT26-015.test.ts` suite has 10 passing tests proving:
+
+- complete IR coverage, empty residuals, both printed timing windows, and the alternate TS Lv.4/cost-3 evolution requirement;
+- legal alternate evolution over a TS Lv.4, rejection of a non-TS peer, and correct memory payment/stack transition;
+- the On Play/When Digivolving debuff, exact trash-to-deck-bottom processing, deletion only after the return, and the inclusive post-debuff 5000-DP target boundary;
+- optional refusal of the return condition while retaining the mandatory -4000 DP clause;
+- Q6971's deferred zero-DP rule check after the complete effect resolves;
+- Q6972/Q6975's real reaction to an effect adding an opponent's Digimon to the opponent's deck, including +3000 DP and the forced attack;
+- Q6974's real draw-then-return-to-deck sequence and Q6973's non-triggering deck restoration path;
+- optional refusal of the deck-add buff; and
+- inherited unsuspend only for a Chronomon-text host, exclusion of a nonmatching host, and the once-per-turn limit on a real evolution stack.
+
+The focused and affected regression suites resolve the full effect stack and assert observable zones, DP, suspension, attacks, memory, stack transitions, target boundaries, controller attribution, and pending decisions. No unresolved card-text ambiguity remains.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-015
+  PASS (Q6970–Q6975; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-015.test.ts
+  PASS (1 file, 10 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-015.test.ts src/cards/BT26/BT26-001.test.ts src/cards/BT26/BT26-060.test.ts src/engine/subTriggerSeams.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts
+  PASS (6 files, 368 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-015.ts apps/api/src/cards/BT26/BT26-015.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No card implementation or test change was necessary. Only this BT26-015 ledger section was added for coordinator review; no commit or push was made.
