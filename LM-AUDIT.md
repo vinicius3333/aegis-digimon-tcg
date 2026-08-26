@@ -209,3 +209,16 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   target security loose cards as permanents. Existing behavior covers pooled trash, both stack
   comparison outcomes, mandatory Then, and once-per-turn.
 - Focused proof remains unrun while PID 43774 is active, so LM-040 remains below 10/10.
+
+## LM-041 — Regalecusmon — pending focused execution
+
+- Catalog maps to direct IR for the DS level-5 alternate evolution and the shared On Play/When
+  Digivolving own-DS unsuspend. Its shared once-per-turn later effect keeps the two sequential
+  conditions independent: at memory one both security-to-hand and the Then suspend lock apply;
+  at zero only the lock applies; above one only security return applies.
+- `SecurityManipulation` moves the opponent's top security to hand, and `Restrict` targets either
+  opponent Digimon or Tamer with the duration through the opponent's turn end. The focused zero
+  memory case was strengthened to assert the mandatory Then lock, not merely the absent return;
+  existing cases cover memory-one dual execution, above-one boundary, and On Play DS targeting.
+- No local ruling adds ambiguity. The focused test is deliberately unrun under PID 43774, so
+  LM-041 remains below 10/10.
