@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
 import "../BT3/BT3-014.js";
 // Self-registers every card module (boot side-effect) so the engine can look up
 // BT9-074's [On Deletion] effect.
-import "./BT9-074.js";
+import { compiled } from "./BT9-074.js";
 
 /**
  * A3 for BT9-074 — [On Deletion] (inherited) "If this Digimon has 2 or more colors, gain
@@ -21,6 +21,21 @@ import "./BT9-074.js";
  * BT9-074's own controller, would gain the memory).
  */
 describe("BT9-074 [On Deletion] gain 2 memory credits its OWNER, not the attacking turn player", () => {
+  it("matches catalog and Q1868 security and inherited IR", () => {
+    expect(getCardDefinition("BT9-074")).toMatchObject({
+      cardId: "BT9-074", nameEn: "Meicoomon", colors: ["Purple", "Yellow"], kinds: ["Digimon"], level: 4,
+      playCost: 5, dp: 4000,
+      evoCosts: [{ color: "Purple", level: 3, memoryCost: 3 }, { color: "Yellow", level: 3, memoryCost: 3 }],
+      forms: ["Champion"], attributes: ["Unknown"], types: ["Unknown"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
+        { trigger: "OnDeletion", isInherited: true, actions: [{ kind: "GainMemory", amount: 2, condition: { kind: "selfColorCount", op: "gte", value: 2 } }] },
+      ],
+    });
+  });
+
   it("plays itself after its security battle without paying its play cost", async () => {
     const s = setup(
       {
