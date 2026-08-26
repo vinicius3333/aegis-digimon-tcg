@@ -3,7 +3,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-corrected IR for BT9-098 (Awakening of the Golden Knight).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
