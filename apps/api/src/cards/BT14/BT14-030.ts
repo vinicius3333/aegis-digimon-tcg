@@ -8,7 +8,7 @@ const bounce = {
     filter: {
       controller: "opponent",
       kind: ["Digimon"],
-      levelComparison: { op: "lte", relativeToSelectionRef: "returned" },
+      levelLte: "returned",
     },
     count: 1,
   },
@@ -21,9 +21,11 @@ const bounce = {
       orFilters: [{ controllerDefault: "mine", kind: ["Digimon"] }],
     },
     raw: "By returning 1 of your opponent's level 3 Digimon or 1 of your Digimon to the hand",
+    storeAs: "returned",
   },
   optional: true,
   abortOnDecline: true,
+  allowCostWithoutTarget: true,
 };
 
 export const compiled: CompiledCard = {
@@ -37,7 +39,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDigimonReturnsToHand",
-          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          sourceFilter: { controller: "any", kind: ["Digimon"], excludeSelf: true },
           actions: [{ kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1 }],
         },
       ],

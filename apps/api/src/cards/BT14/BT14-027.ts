@@ -14,7 +14,7 @@ export const compiled: CompiledCard = {
           kind: "Return",
           target: {
             filter: {
-              controllerDefault: "opponent",
+              controller: "any",
               kind: ["Digimon"],
               levels: [3],
             },
@@ -31,7 +31,7 @@ export const compiled: CompiledCard = {
           kind: "Return",
           target: {
             filter: {
-              controllerDefault: "opponent",
+              controller: "any",
               kind: ["Digimon"],
               levels: [3],
             },

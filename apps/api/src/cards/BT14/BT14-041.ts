@@ -9,7 +9,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
-      frequency: "OncePerTurn",
+      actions: [],
       keywords: [
         {
           keyword: "Recovery",
@@ -17,26 +17,17 @@ export const compiled: CompiledCard = {
           raw: "＜Recovery +1 (Deck)＞",
         },
       ],
+    },
+    {
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
       actions: [
         {
           kind: "SubTrigger",
           event: "whenAddSecurity",
-          fireCondition: {
-            kind: "triggerSecurityIsYours",
-          },
+          fireCondition: { kind: "triggerSecurityIsYours" },
           actions: [
-            {
-              kind: "ModifyDP",
-              target: {
-                filter: {
-                  controller: "opponent",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-              },
-              amount: -7000,
-              duration: "forTheTurn",
-            },
+            { kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -7000, duration: "forTheTurn" },
             {
               kind: "GainKeyword",
               target: {
@@ -44,11 +35,7 @@ export const compiled: CompiledCard = {
                   isSelfRef: true,
                 },
               },
-              keyword: {
-                keyword: "SecurityAttack",
-                amount: 1,
-                raw: "＜Security Attack +1＞",
-              },
+              keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
               count: 1,
               duration: "forTheTurn",
             },
