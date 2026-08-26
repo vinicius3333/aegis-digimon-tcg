@@ -150,6 +150,7 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
     for (const placement of placements) {
       expect(placement).toMatchObject({
         target: { count: 7, upTo: true, distinctNames: true },
+        from: ["trash"],
         trackCount: "ex6-073-placed",
         trackDistinctNames: "ex6-073-placed",
       });
@@ -157,7 +158,10 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
     expect(paidDelete).toMatchObject({
       optional: true,
       abortOnDecline: true,
-      target: { count: 7 },
+      target: {
+        count: 7,
+        filter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
+      },
       cost: {
         kind: "return",
         position: "bottom",
@@ -168,6 +172,15 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
           filter: { zone: "digivolutionCards", sameHost: true },
         },
       },
+      trackCount: "ex6-073-deleted",
+    });
+
+    const securityTrash = compiled.effects
+      ?.flatMap((effect) => effect.actions ?? [])
+      .find((action) => action.kind === "SecurityManipulation" && action.op === "trashTop");
+    expect(securityTrash).toMatchObject({
+      controller: "opponent",
+      amountFromNamedCount: { base: 7, countSource: "ex6-073-deleted", per: -1, floor: 0 },
     });
   });
 
