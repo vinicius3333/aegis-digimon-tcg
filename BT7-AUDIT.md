@@ -94,3 +94,20 @@ Remaining work is behavioral proof of Q1675 scaling and all applicable boundarie
 10. **Reproducible behavioral proof (0/1):** The colocated test covers only one ordinary delete-and-return case and was not executed in this static-only pass; up-to-zero, non-Purple exclusion, On Deletion pending behavior, and Security recovery remain unproven.
 
 Remaining work is behavioral proof of the Q1673/Q1674 boundaries and the current restriction's deck-validation integration; this card is not formally complete at 10/10.
+
+## BT7-106 — Brave Metal — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** `cards.json` identifies a Black Option costing 5 with the ordinary play-cost deletion, conditional alternative, and Security Main activation.
+2. **Ordinary target (1/1):** Modal option one deletes exactly one opponent Digimon with play cost 6 or less.
+3. **Loaded condition (1/1):** The alternative requires an owner battle-area Digimon with at least five digivolution cards and the `X-Antibody` trait.
+4. **Alternative target (1/1):** Option two deletes exactly one opponent Digimon whose `X-Antibody` trait is negated, with no play-cost ceiling, matching the printed “instead.”
+5. **Optionality and replacement (1/1):** The alternative is represented as a modal choice with `choose: 1`, conditionally offered only when loaded, and the second branch replaces the ordinary branch.
+6. **Security behavior (1/1):** Security reuses the same Main modal effect through `isSecurity: true` and does not duplicate divergent logic.
+7. **Knowledge base (1/1):** The KB returns Q1671/Q1672, confirming the ordinary low-cost target remains legal regardless of loaded status and the alternative permits higher-cost non-X targets.
+8. **Direct IR and registration (1/1):** The module has full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-106", compiled)` registration.
+9. **Static primitive trace (1/1):** Digivolution-card count, trait condition, play-cost upper bound, negated trait filter, controller, count, modal choice, and replacement semantics are explicit.
+10. **Reproducible behavioral proof (0/1):** Existing tests cover the ordinary and loaded alternative paths but were not executed in this static-only pass; exact boundaries, refusal, Security, and mixed X/non-X target pools remain unproven here.
+
+Remaining work is behavioral proof of Q1671/Q1672 boundaries and modal/Security behavior; this card is not formally complete at 10/10.
