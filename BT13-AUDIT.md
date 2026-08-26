@@ -41,7 +41,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-017 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, with duplicated On Play/When Digivolving DP-budget deletion and All Turns other-Sistermon-or-Royal-Knight scaling traced through multi-target selection, DP summing, controller filter, self exclusion, and continuous DP projection.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-017.test.ts` passed (4 tests): On Play and evolution budget boundaries, multi-target/choose-none behavior, and mixed Sistermon/Royal Knight continuous-buff stack.
-- BT13-018 — Pending
+- BT13-018 — 10/10
+  - Evidence: catalog and KB Q2276/Q5986–Q5991 reviewed; compiled IR exclusively uses `registerIrCard`, tracing RizeGreymon alternate evolution, Start Main/When Digivolving Marcus kind/base-DP/restriction/Blocker grants through opponent-turn end, and all-turn red/yellow Tamer suspension target/frequency behavior.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-018.test.ts` passed (4 tests): Start Main state, alternate evolution state, once-per-turn -6000 DP boundary, and blue-Tamer negative.
 - BT13-019 — Pending
 - BT13-020 — Pending
 - BT13-021 — Pending
