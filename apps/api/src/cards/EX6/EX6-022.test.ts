@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-022.js";
 
-describe("EX6-022 Mirei Mikagura", () => {
+describe("EX6-022 Angewomon", () => {
   it("has Barrier and reduces one opposing Digimon's Security Attack when Mirei is present", () => {
     expect(compiled.effects?.find((entry) => !entry.isInherited)?.keywords?.[0]?.keyword).toBe("Barrier");
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
