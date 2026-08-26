@@ -3,7 +3,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST23-15.js";
 
-describe("ST23-15 Glowing Dawn", () => {
+describe("ST23-15 e-Pulse", () => {
   it("uses the Main effect to play the exact eligible BEATBREAK card and place itself in the battle area", async () => {
     const s = setupEngine(
       {
