@@ -185,7 +185,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-065 — 10/10
   - Evidence: catalog and KB Q2307/Q2308/Q2615 reviewed; compiled IR exclusively uses `registerIrCard`, tracing On Deletion De-Digivolve 1 with level-3 floor and inherited optional deletion replacement paid by another same-controller Sukamon-name Digimon (including opponent-owned Sukamon via controller-independent target semantics where applicable).
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-065.test.ts` passed (2 tests): IR clause proof and live registration; replacement source identity and optional/cost guards match Q2307–Q2308.
-- BT13-066 — Pending
+- BT13-066 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard` and traces inherited all-turn self +1000 DP only when the host has the X Antibody trait.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-066.test.ts` passed (2 tests): IR trait-gate proof and live registration.
 - BT13-067 — Pending
 - BT13-068 — Pending
 - BT13-069 — Pending
