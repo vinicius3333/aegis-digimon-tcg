@@ -35,3 +35,10 @@
 - Implementation trace: `BT10-005.ts` exclusively calls `registerIrCard`; its inherited All Turns Aura targets only the host, applies `modifyDP(+1000)`, and continuously gates on the host having the exact Twilight trait.
 - Behavioral proof: `BT10-005.test.ts` proves the positive Twilight host and removes the bonus after an observable De-Digivolve exposes a non-Twilight top card while retaining Monimon in the stack. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-005.test.ts`.
 - Peer/stack evidence: the De-Digivolve scenario uses a layered, real evolution stack and a nonmatching BT10-020 comparator, proving live host-trait recomputation rather than a one-time source-card trait check.
+
+## BT10-006 — Tokomon — 10/10
+
+- Catalog and rules contract: `[Opponent's Turn]` inherited effect draws one when this exact digivolution card is trashed by an effect. Q1931 confirms it also triggers when the controller's own effect performs that trashing during the opponent's turn.
+- Implementation trace: `BT10-006.ts` is a compiled-IR hand-written override that exclusively uses `registerIrCard`. It gates on `OpponentsTurn`, watches the batch digivolution-card discard event, binds the event to its own inherited source with `isSelfRef`, and draws one for the source controller.
+- Behavioral proof: `BT10-006.test.ts` covers positive opponent-turn trashing, own-turn rejection, the Q1931 controller-effect case, and a batch trash containing Tokomon plus a non-Tokomon source. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-006.test.ts`.
+- Stack/ownership evidence: each case places Tokomon under a real host, with the batch comparator proving source-instance identity and the Q1931 case separating current-turn ownership from the controller of the trashing effect.
