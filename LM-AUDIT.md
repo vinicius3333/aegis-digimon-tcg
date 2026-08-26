@@ -315,3 +315,97 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Removed unrelated LM-033 Q&A citations because LM-049 has no local KB entry. Focused behavior
   remains unrun while PID 43774 occupies the serial test slot.
 - LM-049 remains below 10/10 pending that execution.
+
+## LM-050 — Magenta Memory Boost! — pending focused execution
+
+- Catalog and direct IR agree on purple-or-red alternate color legality, reveal-three/add-one
+  purple-or-red Digimon, bottoming, placement, Delay gain-two, and Security placement. Focused
+  source tests cover native/alternate battle and breeding sources, rejection, reveal, and Security.
+- LM-050 has no local KB entry; removed unrelated LM-033 Q&A citations. Tests are unrun under PID
+  43774, so it remains below 10/10.
+
+## LM-051 — Alexandrite Memory Boost! — pending focused execution
+
+- Catalog and direct IR agree on red-or-green alternate legality and the standard reveal-three,
+  placement, Delay, and Security paths. Focused source tests cover native/alternate/breeding and
+  negative legality plus observable Main/Security results; no local ruling exists.
+- Stale generic breeding wording was made citation-free. Tests are unrun under PID 43774, so this
+  card remains below 10/10.
+
+## LM-052 — Malachite Memory Boost! — pending focused execution
+
+- Catalog and direct IR agree on blue-or-yellow alternate legality and standard reveal-three,
+  placement, Delay, and Security behavior. Existing focused tests cover every color-source and
+  primary-zone boundary; no local ruling exists.
+- Tests remain unrun under PID 43774, so LM-052 remains below 10/10.
+
+## LM-053 — Obsidian Memory Boost! — pending focused execution
+
+- Catalog and direct IR agree on black-or-purple alternate legality and standard reveal-three,
+  placement, Delay, and Security behavior. Existing focused tests cover native/alternate/breeding
+  legality, refusal, search result, and Security; no local ruling exists.
+- Tests remain unrun under PID 43774, so LM-053 remains below 10/10.
+
+## LM-054 — Treadmill Training — pending focused execution
+
+- Catalog maps to a self-name-gated full color waiver only while no Treadmill Training is in the
+  battle area, reveal-two/add yellow-or-black card/bottom/place, and optional paid ordinary
+  yellow-or-black evolution at minus two via Delay. Security repeats reveal and placement.
+- Existing focused source cases cover the waiver on/off boundary, legal reduced paid evolution,
+  Main, and Security. No local ruling exists; unrun status under PID 43774 keeps it below 10/10.
+
+## LM-055 — Sprint Dash Training — pending focused execution
+
+- Direct IR is the green/red analogue of LM-054: self-name-gated waiver, reveal-two/add card,
+  place, optional paid ordinary evolution at minus two, and Security reveal/place. Existing focused
+  tests cover each path; no local ruling exists.
+- Tests remain unrun under PID 43774, so LM-055 remains below 10/10.
+
+## LM-056 — Image Training — pending focused execution
+
+- Direct IR is the blue/purple analogue of the Training contract, including self-name waiver
+  scoping, ordinary paid evolution reduced by two, and independent Security reveal/place. Existing
+  focused tests cover the applicable positive and waiver-negative boundaries.
+- No local ruling exists; tests are unrun under PID 43774 and LM-056 remains below 10/10.
+
+## LM-057 — Wall Training — pending focused execution
+
+- Direct IR matches catalog's red/blue self-name waiver, reveal-two/add card/bottom/place, Delay
+  optional ordinary paid evolution reduced by two, and Security reveal/place. Focused tests cover
+  waiver lifecycle, evolution cost, Main, and Security.
+- No local ruling exists; unrun proof under PID 43774 keeps LM-057 below 10/10.
+
+## LM-058 — Parkour Training — pending focused execution
+
+- Direct IR matches catalog's blue/green Training contract and uses the same executable name-gated
+  waiver, legal paid evolution, and Security paths. Existing focused tests cover each behavior.
+- No local ruling exists; tests remain unrun under PID 43774, so LM-058 remains below 10/10.
+
+## LM-059 — Heat Training — pending focused execution
+
+- Direct IR matches catalog's yellow/red Training contract: self-name-gated waiver, reveal/add,
+  placement, Delay paid evolution at minus two, and Security reveal/place. Existing focused tests
+  cover all stated boundaries.
+- No local ruling exists; tests remain unrun under PID 43774, so LM-059 remains below 10/10.
+
+## LM-060 — Shadow Training — pending focused execution
+
+- Direct IR matches catalog's green/purple Training contract through shared self-name waiver,
+  normal paid evolution reduced by two, and Security reveal/place mechanisms. Existing focused
+  tests cover the waiver boundary and every printed trigger path.
+- No local ruling exists; tests remain unrun under PID 43774, so LM-060 remains below 10/10.
+
+## LM-061 — Punching Training — pending focused execution
+
+- Direct IR matches catalog's black/red Training contract, including the self-name waiver scope,
+  ordinary paid evolution, reduction, and Security resolution. Existing focused tests cover all
+  printed branches.
+- No local ruling exists; tests remain unrun under PID 43774, so LM-061 remains below 10/10.
+
+## LM-062 — Breathing Training — pending focused execution
+
+- Direct IR matches the intended purple/yellow Training contract. The catalog's “yellowuce” is a
+  source-text typo; the surrounding sentence and the five analogues establish the intended
+  reduce-cost-by-two behavior, which the direct IR executes as paid ordinary evolution at minus two.
+- Existing focused tests cover waiver lifecycle, reveal/placement, reduction, and Security. No
+  local ruling exists; tests remain unrun under PID 43774, so LM-062 remains below 10/10.
