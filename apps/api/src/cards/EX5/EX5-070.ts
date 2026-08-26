@@ -11,9 +11,20 @@ if (digivolve?.kind === "Digivolve") {
   // The printed target is a Digimon *without* [X Antibody] in its digivolution cards.
   // `nameOrTrait` tests the top card and the generated record therefore selected the inverse.
   digivolve.target.filter.nameOrTrait = undefined;
-  digivolve.target.filter.digivolutionStackNameOrTrait = [
-    { tokens: ["X Antibody"], match: "name", negate: true },
-  ];
+  digivolve.target.filter.digivolutionStackNameOrTrait = [{ tokens: ["X Antibody"], match: "trait", negate: true }];
+}
+if (!compiled.effects.some((effect) => effect.trigger === "Rule")) {
+  compiled.effects.push({
+    trigger: "Rule",
+    actions: [
+      {
+        kind: "GrantStatic",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        grant: "name",
+        tokens: ["X Antibody"],
+      },
+    ],
+  });
 }
 const inherited = compiled.effects.find((effect) => effect.trigger === "AllTurns");
 const replacement = inherited?.actions.find((action) => action.kind === "Replacement");
@@ -38,7 +49,7 @@ if (replacement?.kind === "Replacement") {
           controller: "mine",
           hostFilter: { isSelfRef: true },
           // [X Antibody] is a named card reference here, not the broad [X Antibody] trait.
-          nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }],
+          nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }],
         },
       },
       amount: 1,

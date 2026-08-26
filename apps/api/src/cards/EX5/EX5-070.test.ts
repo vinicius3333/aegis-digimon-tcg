@@ -16,9 +16,14 @@ describe("EX5-070 X Antibody Proto Form", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({
       target: {
         filter: {
-          digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "name", negate: true }],
+          digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "trait", negate: true }],
         },
       },
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "Rule")?.actions[0]).toMatchObject({
+      kind: "GrantStatic",
+      grant: "name",
+      tokens: ["X Antibody"],
     });
   });
   it("registers the inherited leave-field return and security placement effect", () => {
@@ -29,12 +34,12 @@ describe("EX5-070 X Antibody Proto Form", () => {
           kind: "Replacement",
           leaveCause: "otherThanYourEffect",
           actions: [
-            { kind: "Return", optional: undefined },
+            { kind: "Return" },
             {
               kind: "SecurityManipulation",
               source: {
                 filter: {
-                  nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }],
                 },
               },
             },
@@ -86,7 +91,9 @@ describe("EX5-070 X Antibody Proto Form", () => {
         player: (seat: 0 | 1) => s.state.players[seat]!,
         opponentOf: (seat: 0 | 1) => (seat === 0 ? 1 : 0),
         permanentById: (id: string) =>
-          [...s.state.players[0]!.battleArea, ...s.state.players[1]!.battleArea].find((permanent) => permanent.permanentId === id),
+          [...s.state.players[0]!.battleArea, ...s.state.players[1]!.battleArea].find(
+            (permanent) => permanent.permanentId === id,
+          ),
         definitionOf: (card: { cardId: string }) => requireCardDefinition(card.cardId),
         linkMax: () => 1,
       },

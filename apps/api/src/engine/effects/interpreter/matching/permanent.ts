@@ -472,10 +472,18 @@ export function permanentMatchesFilter(
   // Digivolution-stack name/trait gate: unlike the ordinary `nameOrTrait` predicate (which
   // inspects the permanent's TOP card), this requires a matching card UNDER that top card.
   if (filter.digivolutionStackNameOrTrait && filter.digivolutionStackNameOrTrait.length > 0) {
-    const hit = permanent.stack.some((card) =>
-      definitionMatches({ nameOrTrait: filter.digivolutionStackNameOrTrait }, ctx.game.definitionOf(card)),
-    );
-    if (!hit) return false;
+    const refs = filter.digivolutionStackNameOrTrait;
+    const hit = permanent.stack.some((card) => {
+      const def = ctx.game.definitionOf(card);
+      return refs.some((ref) => definitionMatches({ nameOrTrait: [{ ...ref, negate: false }] }, def));
+    });
+    // A negated stack predicate means that NONE of the stacked cards may match the
+    // referenced name/trait (EX5-070: without [X Antibody] in its digivolution cards).
+    if (refs.every((ref) => ref.negate === true)) {
+      if (hit) return false;
+    } else if (!hit) {
+      return false;
+    }
   }
 
   // Digivolution-stack NAME exclusion ("[Diaboromon] without [Doomsday Clock] in its
