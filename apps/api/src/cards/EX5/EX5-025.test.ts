@@ -59,6 +59,15 @@ describe("EX5-025 Dianamon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("bare").permanentId, "suspend"), 2000);
     expect(observe(s.engine).isRestricted(s.perm("bare").permanentId, "suspend")).toBe(true);
 
+    // A later source-less opponent enters the same live set (Q3586).
+    const later = structuredClone(s.perm("bare"));
+    later.permanentId = "PERM#later-bare";
+    later.topCard = makeInstance("BT2-064", 1, true);
+    later.stack = [];
+    s.state.players[1]!.battleArea.push(later);
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).isRestricted(later.permanentId, "suspend")).toBe(true);
+
     s.perm("bare").stack.push(makeInstance("BT1-010", 1, true));
     await advance(s.engine).recompute();
 
