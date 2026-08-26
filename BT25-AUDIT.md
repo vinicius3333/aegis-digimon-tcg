@@ -385,3 +385,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-019.
+
+## BT25-020 — Marsmon — 10/10
+
+- Catalog evidence: Red/green level-6 Digimon, play cost 12, 12000 DP, `Mega`/`Vaccine`, `Shaman`/`Olympos XII`/`Iliad`/`TS`; standard red or green level-5 evolution for 4 plus alternate level-5 `TS` evolution for 3; self play cost -5 if any Digimon has 13000+ DP; On Play/When Digivolving/When Attacking give one friendly Digimon +3000 DP, then one friendly Digimon may directly battle an opposing Digimon; all-turn once-per-turn after any friendly TS Digimon wins a battle, trash the opponent's top security.
+- Knowledge base: Q6278–Q6281 define direct-battle selection, immunity compatibility, and its interaction with attacks/Piercing. Q6282–Q6286 define battle-win timing, Security Digimon wins, simultaneous deletion triggers, would-delete ordering, and wins where loser deletion is prevented.
+- Implementation: the direct IR contains the conditional self reducer, all three parallel boost/optional-Battle sequences, an any-friendly-TS `whenBattleWon` watcher, once-per-turn scope, the exact top-security destination, and the alternate evolution. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-020", compiled)`.
+- Defects corrected: the reducer incorrectly counted only the controller's board even though the printed clause is controller-neutral, and it was absent from the verified pay-time registry. It now uses `totalDigimonCount` and is registered at the exact 13000 boundary. All three Battle actions now encode the printed “may” with `optional: true`. Direct and shared IR are synchronized.
+- Behavioral proof: the focused suite proves self and opponent 13000 reducer paths plus 12999 rejection, exact payment, +3000 followed by direct battle, optional refusal retaining the boost, all three entry timings, direct battle without its own security check, any friendly TS winner, top-security trash once per turn, legal TS evolution, and invalid near-match. Shared combat-controller regressions separately prove protected-loser battle wins (Q6286). The reducer/controller and refusal assertions fail against the prior IR.
+- Verification: focused suite — 10 passed; mechanism/catalog regressions — 32 passed; targeted formatting and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-020 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-020
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-020.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-020.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-020.ts apps/api/src/cards/BT25/BT25-020.test.ts apps/api/src/engine/effects/interpreter/registration/reducers.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-020.

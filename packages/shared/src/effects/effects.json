@@ -90915,8 +90915,7 @@
                 "mode": "reduceCost",
                 "amount": 5,
                 "condition": {
-                  "kind": "permanentCount",
-                  "seat": "mine",
+                  "kind": "totalDigimonCount",
                   "op": "gte",
                   "value": 1,
                   "filter": { "kind": ["Digimon"], "dp": { "op": "gte", "value": 13000 } }
@@ -90938,7 +90937,8 @@
           {
             "kind": "Battle",
             "attacker": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "optional": true
           }
         ]
       },
@@ -90954,7 +90954,8 @@
           {
             "kind": "Battle",
             "attacker": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "optional": true
           }
         ]
       },
@@ -90970,7 +90971,8 @@
           {
             "kind": "Battle",
             "attacker": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "optional": true
           }
         ]
       },
