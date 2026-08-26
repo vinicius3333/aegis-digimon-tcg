@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
+import { dnaDigivolutionRequirementsFor } from "@aegis/shared";
 import { compiled } from "./EX5-073.js";
 
 describe("EX5-073 GraceNovamon", () => {
+  it("requires the printed zero-cost Apollomon plus Dianamon DNA route", () => {
+    expect(dnaDigivolutionRequirementsFor("EX5-073")).toEqual([
+      {
+        cost: 0,
+        materials: [{ names: ["Apollomon"] }, { names: ["Dianamon"] }],
+      },
+    ]);
+  });
+
   it("trashes up to eight evolution cards on DNA digivolving and deletes an opposing Digimon with no more cards than this Digimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([
       {

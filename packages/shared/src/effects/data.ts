@@ -172,6 +172,14 @@ export function getCompiledCard(cardId: string): CompiledCard | undefined {
  * one source of truth.
  */
 export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolveRequirement[]> = {
+  // EX5-073 prints a name-specific zero-cost DNA route. The generated effect record has
+  // no structured requirement, which would otherwise allow the ordinary-evolution fallback.
+  "EX5-073": [
+    {
+      cost: 0,
+      materials: [{ names: ["Apollomon"] }, { names: ["Dianamon"] }],
+    },
+  ],
   "BT24-037": [
     {
       cost: 0,
