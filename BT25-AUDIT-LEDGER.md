@@ -55,6 +55,10 @@ focused observable tests pass. No collection result is inferred from this ledger
 
 ## Static diagnosis: BT25-010 through BT25-012
 
+Re-verification: BT25-012's second effect action now carries `sameTarget: true`,
+binding the +3000 DP recipient to the Digimon selected for Raid. Behavioral proof
+remains outstanding.
+
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
 | --- | --- | --- | --- |
 | BT25-010 Hawkmon | Red/green level 3 Digimon; alternate cost-0 evolution from `[Poromon]` or a level 2 `[TS]`; during the controller's turn, its battle-area Digimon reduces by 1 the cost to evolve into an `[Avian]`, `[Bird]`, `[Beast]`, `[Animal]`, or `[Sovereign]` Digimon other than `[Sea Animal]`; inherited `[Your Turn]` +2000 DP. Q6254 confirms the cost reduction does not apply while Hawkmon is in the breeding area. | **No causal mismatch found statically.** The self-scoped `wouldDigivolve` replacement filters the destination trait family and exclusion, and the ordinary `staticModifier` builder requires the source to be in the battle area, satisfying Q6254. The turn window, amount, alternate requirements, and inherited DP modifier are represented. | The colocated test only matches broad IR structure. It does not execute battle-area versus breeding-area evolution, eligible and excluded traits, cost payment, alternate evolution, turn lapse, or inherited DP. **Static diagnosis only; behavioral proof required before 10/10.** |
@@ -73,6 +77,11 @@ focused observable tests pass. No collection result is inferred from this ledger
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun.
 
 ## Static diagnosis: BT25-013 through BT25-016
+
+Re-verification: BT25-013 remains unresolved. The IR action model combines the
+hand-trash payment and optional return into one optional `Return` action, so it
+cannot represent Q6255's pay-then-decline path without a reusable sequencing or
+cost-only seam. No card-local approximation was introduced.
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
 | --- | --- | --- | --- |
@@ -128,6 +137,10 @@ focused observable tests pass. No collection result is inferred from this ledger
   pending authorization.
 
 ## Static diagnosis: BT25-031 through BT25-033
+
+Re-verification: BT25-033's mandatory security payment and DP reduction are now
+represented without `optional`/`abortOnDecline`; behavioral proof remains
+outstanding.
 
 | Card | Contract and direct implementation diagnosis | Status |
 | --- | --- | --- |

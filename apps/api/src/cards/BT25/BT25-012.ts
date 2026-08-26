@@ -68,6 +68,7 @@ export const compiled: CompiledCard = {
           },
           amount: 3000,
           duration: "forTheTurn",
+          sameTarget: true,
         },
       ],
     },
