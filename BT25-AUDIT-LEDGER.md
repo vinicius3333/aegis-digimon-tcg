@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-045 (Onmon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-045 Onmon | Green level 3 Appmon; alternate level-2 Appmon evolution cost 0; during your turn once per turn, when a Social/Tool/Game trait card would link to this Digimon, you may reduce the link cost by 1. Link Appmon cost 1 and linked When Linking suspends an opposing Digimon. Local card query has no entries. | **Causal optional-timing gap.** The `GrantLinkCostReduction` action is marked optional but lacks the `optionalAtDeclaration` marker used by the corrected BT25-004 seam. Generic optional action handling can therefore prompt while the continuous grant is installed and again at link declaration, rather than offering exactly one optional decision at the qualifying declaration. The recipient, trait union, amount, turn window, once-per-turn frequency, evolution, and Link metadata are represented. | Structural test only; no execution of declaration-time optionality, once-per-turn consumption, floor-at-zero cost, or linked suspension. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-045
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-045` (no entries).
+- Direct module and shared `GrantLinkCostReduction`/link declaration optional handling were
+  inspected and compared with the BT25-004 `optionalAtDeclaration` correction.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-044 (Junomon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
