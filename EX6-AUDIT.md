@@ -582,3 +582,9 @@ root-worktree Vitest workload has cleared.
 - Catalog evidence: Main unsuspends one controller Angel/Archangel/Three Great Angels Digimon, or all such Digimon instead while the controller has Dominimon. Security gains Recovery +1 (Deck), then adds this card to hand.
 - Direct IR/primitive trace: mutually exclusive `youHaveNone`/`youHave` named-card gates select count one/all over the exact trait union; Security sequences the recovery keyword action before `AddToHandSelf`. Full coverage, no residual text, and exclusive `registerIrCard("EX6-067", compiled)` registration are present.
 - Proof/status: existing named-card condition, all-target unsuspend, recovery, and security add-to-hand mechanism tests cover the semantics; the focused test title now correctly identifies Final Excalibur. Execution remains deferred while PID group 43774 persists; not rated 10/10.
+
+## EX6-068 — Descent of the Three Great Angels — evidence in progress
+
+- Catalog/KB evidence: Main may place an Angel/Archangel/Three Great Angels hand Digimon at bottom security, then places this Option in battle; its deletion watcher arms Delay to search security, optionally play a Three Great Angels Digimon found there without cost, then shuffle. Q3818 confirms Main may still place the Option when no qualifying hand card is placed.
+- Direct IR/primitive trace: optional executable `SecurityManipulation(placeAsSecurity, toTop:false)` precedes mandatory `PlaceInBattleAreaSelf`; the deletion watcher is intrinsically Delay-armed and uses `SearchSecurity` with nested optional zero-cost play followed by explicit security shuffle. Security directly places the Option in battle. Full coverage, no residual text, exclusive `registerIrCard("EX6-068", compiled)`.
+- Proof/status: shared security placement/search/shuffle/Delay mechanisms plus the focused IR contract cover the execution path; current-checkout runs are deferred while PID group 43774 persists, so not rated 10/10.
