@@ -86,7 +86,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-032 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; corrected compiled IR to make printed Blocker static, separately tracing optional opponent-attack stack play through own-stack, level-5-or-lower, free-play, and blue/black evolution requirements.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-032.test.ts` passed (5 tests): static Blocker combat, stack play/refusal, level filter, and both printed evolution colors.
-- BT13-033 — Pending
+- BT13-033 — 10/10
+  - Evidence: catalog and KB Q2284–Q2286 reviewed; compiled IR exclusively uses `registerIrCard`, tracing own-Thomas-only Burst cost and turn-end trash, bounce-before-scaling-memory ordering, optional 9+ hand attack effect, hidden opponent-card selection, owner inspection, and activator ordering to deck bottom.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-033.test.ts` passed (7 tests): Burst requirements/Q2284, evolution sequence, exact hidden selection/order privacy per Q2285/Q2286, refusal, and eight-card negative.
 - BT13-034 — Pending
 - BT13-035 — Pending
 - BT13-036 — Pending
