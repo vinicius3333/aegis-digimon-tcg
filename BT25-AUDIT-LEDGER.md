@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-052 (Logimon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-052 Logimon | Green/red level 4 Appmon; App Fusion `[Onmon] & [Gatchmon]` cost 0; Main once per turn may link 1 Social/Tool/Game trait Digimon card from hand or this Digimon's digivolution cards to this Digimon at -1; during your turn once per turn when this Digimon gets linked, if 1 or fewer Tamers, may play Kazuki & Itsuki free. Q6328 requires Link-capable cards only. | **No card-specific causal mismatch found statically.** The Main Link action restricts source cards to Social/Tool/Game Digimon with an actual Link requirement, accepts hand/digivolution-card zones, targets this Digimon by default, and applies -1 cost. The linked watcher is Your Turn, Tamer-count gated, optional, and plays the named Tamer free. App Fusion and Link metadata are represented. | Structural test only; no execution of Link-capability rejection, source-zone selection, cost floor, once-per-turn linked trigger, Tamer boundary, or App Fusion. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-052
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-052` (Q6328).
+- Direct module and shared Link target capability gate, source-zone handling, cost reduction,
+  linked-event watcher, and Tamer-count condition were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-051 (Grizzlymon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
