@@ -374,7 +374,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --fileParallelism=false`. LM-031 remains below 10/10 pending relevant mechanism and refreshed
   collection gates.
 
-## LM-032 — Purple Scramble — static audit complete; pending focused authorization
+## LM-032 — Purple Scramble — focused proof green; pending mechanism and collection gates
 
 - Catalog and Q4058-Q4062 align with the direct IR: purple Digimon-only ordinary legal hand
   evolution reduced by three and self placement, excluding altered routes and Tamers; the
@@ -385,10 +385,13 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Static review found no new causal gap: the Main action uses ordinary Digivolve (so it neither
   ignores requirements nor permits Burst/DNA/Tamer routes), the Delay return is mandatory whenever
   possible before the optional revival, and the opponent-Digimon gate is independent of purple-trash
-  availability. The focused suite remains unrun; LM-032 stays below 10/10 pending explicit
-  authorization and the relevant mechanism/collection gates.
+  availability. The authorized serialized focused command passed 1/1 file and 6/6 tests in 2.92s
+  on 2026-08-26:
+  `vitest run src/cards/LM/LM-032.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-032 remains below 10/10 pending relevant mechanism and refreshed
+  collection gates.
 
-## LM-033 — Garnet Memory Boost! — pending focused execution
+## LM-033 — Garnet Memory Boost! — static audit complete; pending focused authorization
 
 - Catalog and Q4063/Q4064 map to a self-bound Static `WaiveColorRequirement` with
   `alsoColor: black`, not a blanket waiver. The interpreter's option-legality path includes both
@@ -397,7 +400,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   Option; Delay separately gains two memory; Security places it. The focused module proves red,
   black battle, black breeding, and no-colour-source paths, and the shared Delay suite exercises
   cost/payment removal and the two-memory payload.
-- All focused proof remains unrun under PID 82901, so LM-033 remains below 10/10.
+- Static review found no new causal gap: the self-bound `WaiveColorRequirement` preserves the
+  printed red requirement while admitting black Digimon/Tamers in battle or breeding, and the
+  Main, Delay, and Security effects remain independent. The focused suite remains unrun; LM-033
+  stays below 10/10 pending explicit authorization and the relevant mechanism/collection gates.
 
 ## LM-034 — Wisteria Memory Boost! — pending focused execution
 
