@@ -43,6 +43,15 @@ describe("battle timings", () => {
     expect(bare).toEqual([]);
   });
 
+  // The break phase is the one window in the check with nothing else on screen: the
+  // shield has already shattered and no card has been revealed yet, so every millisecond
+  // it runs past its own last moving frame reads as the attack arrow hanging.
+  it("ends the shield break on its last moving frame", () => {
+    expect(TIMINGS.shieldBreak + TIMINGS.securityBreakHold).toBe(
+      Math.max(TIMINGS.shieldBreak, TIMINGS.securityHit, TIMINGS.shieldFlash),
+    );
+  });
+
   it("derives the security clash timeline from the table", () => {
     expect(SECURITY_CLASH_TIMINGS.attackerEnterMs).toBe(TIMINGS.clashAttackerEnter);
     expect(SECURITY_CLASH_TOTAL_MS).toBe(CLASH_TOTAL_MS);

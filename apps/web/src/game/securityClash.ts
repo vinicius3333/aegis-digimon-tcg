@@ -76,7 +76,8 @@ export const SECURITY_CLASH_TOTAL_MS = CLASH_TOTAL_MS;
 /**
  * The beat before the reveal: the defender's shield arms, its glass shatters, and the
  * board holds while the shards clear (battle-animation-spec.md §4b steps 1–5, whose
- * 60 + 170 + 100 ms of held frames are one `securityBreakHold` here).
+ * 60 + 170 + 100 ms of held frames are one shorter `securityBreakHold` here — see the
+ * note on it in ./timings).
  */
 export const SECURITY_BREAK_TIMINGS = {
   armMs: TIMINGS.securityArm,

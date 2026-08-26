@@ -48,8 +48,15 @@ export const TIMINGS = {
   shieldBreak: 250,
   /** The light that washes in from the defender's edge of the screen as the shield breaks. */
   shieldFlash: 320,
-  /** The reference client's 60 + 170 + 100 ms of held frames between break and reveal. */
-  securityBreakHold: 330,
+  /**
+   * The beat held between the shatter and the reveal. The reference client holds
+   * 60 + 170 + 100 ms there (`Effects.cs:1671-1689`, `CardController.cs:4002`), but it
+   * spends them spawning a colour burst *after* the glass; the web port fires its burst
+   * with the shatter, so those frames would be a stall with the centre of the screen
+   * still empty. What is left is the remainder the 350 ms shield shake needs past the
+   * 250 ms shatter, so the break phase ends on its own last moving frame.
+   */
+  securityBreakHold: 100,
   /** The revealed security card sliding out to its own side of the screen. */
   securityBranchIn: 220,
   /** How long the revealed card holds there while its effect notice reads. The notice outlives it. */
