@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT7-023.js";
@@ -8,7 +9,7 @@ describe("BT7-023 Korikakumon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT7-021", as: "base" }], hand: [{ card: "BT7-023", as: "evolving" }] },
-        1: { battleArea: [{ card: "BT2-047", as: "target" }] },
+        1: { battleArea: [{ card: "BT2-047", as: "target" }], hand: [{ card: "BT1-001", as: "laterSource" }] },
       },
       { autoSelectCards: true },
     );
@@ -25,6 +26,12 @@ describe("BT7-023 Korikakumon", () => {
         observe(s.engine).isRestricted(s.perm("target"), "attack") &&
         observe(s.engine).isRestricted(s.perm("target"), "block"),
     );
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
+
+    await advance(s.engine).verb.placeUnder(s.perm("target").permanentId, [s.inst("laterSource").instanceId]);
+
+    expect(s.perm("target").stack).toHaveLength(1);
     expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
   });
