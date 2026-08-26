@@ -1,8 +1,23 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT9-066.js";
+import { compiled } from "./BT9-066.js";
 
 describe("BT9-066 Alphamon", () => {
+  it("matches catalog and trash-placement plus once-per-turn De-Digivolve IR", () => {
+    expect(getCardDefinition("BT9-066")).toMatchObject({
+      cardId: "BT9-066", nameEn: "Alphamon", colors: ["Black"], kinds: ["Digimon"], level: 6,
+      playCost: 12, dp: 11000, evoCosts: [{ color: "Black", level: 5, memoryCost: 3 }], forms: ["Mega"],
+      attributes: ["Vaccine"], types: ["Holy Warrior", "Royal Knight", "X Antibody"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "WhenDigivolving", actions: [{ kind: "PlaceUnder", target: { filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } } }] },
+        { trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards", actions: [{ kind: "DeDigivolve", amount: 1 }] }] },
+      ],
+    });
+  });
+
   it("places an X Antibody card from trash under itself when digivolving", async () => {
     const s = setupEngine(
       {

@@ -3,7 +3,7 @@
 // YourTurn: removed spurious Trash targeting opponent level-3 Digimon (not in text).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
