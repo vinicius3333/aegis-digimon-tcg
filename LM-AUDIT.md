@@ -132,14 +132,17 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
 - Direct IR maps opponent suspension, no-unsuspended-opponent restriction, and once-per-turn
   security manipulation watcher. The watcher requires the host attacker to delete in battle and
   retains host/controller identity. LM-012 has no local KB entries; catalog text, direct IR, and
-  focused fixtures show no new causal implementation gap. Focused cases are unrun, so LM-012
-  remains below 10/10 pending focused, mechanism, and collection gates.
+  focused fixtures show no new causal implementation gap. The authorized single serialized run
+  passed 1/1 file and 5/5 tests in 3.38s on 2026-08-26 using
+  `vitest run src/cards/LM/LM-012.test.ts --pool=forks --poolOptions.forks.singleFork=true
+  --fileParallelism=false`. LM-012 remains below 10/10 pending mechanism and collection gates.
 
 ## LM-013 — Diarbbitmon — pending focused execution
 
 - Q4001 maps to delayed end-of-opponent-turn return-top/trash-under behavior after free play of an
   Angoramon-text Digimon. Direct delayed IR binds the played permanent rather than its source;
-  focused Q4001 stack-return proof is unrun, so below 10/10.
+  catalog, KB, direct IR, and focused fixtures show no new causal implementation gap. Focused Q4001
+  stack-return proof is unrun, so LM-013 remains below 10/10.
 
 ## LM-014 — Espimon — pending focused execution
 
