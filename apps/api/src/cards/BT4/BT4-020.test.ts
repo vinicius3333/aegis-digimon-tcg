@@ -23,4 +23,16 @@ describe("BT4-020 ShineGreymon", () => {
 
     expect(observe(s.engine).keywordAmount(s.perm("shine"), "SecurityAttack")).toBe(2);
   });
+
+  it("does not gain Security Attack when a non-red, non-yellow Tamer is suspended", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-020", as: "shine" }, { card: "BT1-086", as: "blue" }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+    const fx = (s.engine as any).primitives as Primitives;
+
+    await fx.suspend([s.perm("blue").permanentId], { byEffectSeat: 0 });
+
+    expect(observe(s.engine).keywordAmount(s.perm("shine"), "SecurityAttack")).toBe(0);
+  });
 });
