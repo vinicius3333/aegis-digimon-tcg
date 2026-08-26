@@ -708,6 +708,7 @@ export async function payCost(
       const trashStackZone = cost.target.filter.zone;
       const trashesStackCards =
         trashStackZone === "digivolutionCards" ||
+        (Array.isArray(trashStackZone) && trashStackZone.includes("digivolutionCards")) ||
         (cost.target.filter.isSelfRef === true &&
           (cost.target.filter.faceDown !== undefined || cost.target.filter.position !== undefined)) ||
         cost.target.from?.includes("digivolutionCards") === true ||
