@@ -14,7 +14,7 @@ describe("BT11-107 Hades Force", () => {
           {
             kind: "Replacement",
             event: "wouldBePlayed",
-            actions: [{ condition: { filter: { digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"] }] } }],
+            actions: [{ condition: { filter: { digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"] }] } } }],
           },
         ],
       },
