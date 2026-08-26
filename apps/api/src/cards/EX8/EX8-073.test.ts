@@ -3,6 +3,8 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "../BT14/BT14-035.js";
+import "./EX8-059.js";
 import { compiled } from "./EX8-073.js";
 
 describe("EX8-073", () => {
@@ -104,5 +106,107 @@ describe("EX8-073", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.perm("source").isSuspended).toBe(true);
+  });
+
+  it("takes the Q3977 fallback when Barrier prevents the selected deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-073", as: "source", suspended: true }],
+        },
+        1: {
+          battleArea: [{ card: "BT14-035", as: "protected" }],
+          security: [
+            { card: "BT1-001", as: "fallback-security" },
+            { card: "BT1-002", as: "barrier-security" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const fallbackSecurityId = s.inst("fallback-security").instanceId;
+    const protectedId = s.perm("protected").permanentId;
+    await s.ready();
+    const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() =>
+      s.events.some(
+        (event) => event.kind === "barrierPrompt" && "permanentId" in event && event.permanentId === protectedId,
+      ),
+    );
+    expect(s.engine.applyIntent(1, { type: "respondBarrier", permanentId: protectedId, accept: true })).toEqual({
+      ok: true,
+    });
+    await resolution;
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT14-035"]);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === fallbackSecurityId)).toBe(true);
+    expect(s.perm("source").isSuspended).toBe(false);
+  });
+
+  it("shares once-per-turn use between When Digivolving and End of Attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-073", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("source"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("ignores an actual opponent-granted On Deletion effect at memory 0 (Q3984)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-073", as: "immune" }],
+          hand: [{ card: "BT1-011", as: "would-trash" }],
+        },
+        1: {
+          battleArea: [{ card: "EX8-059", as: "granter" }],
+          hand: [{ card: "BT1-010", as: "grant-cost" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("granter"));
+    await settle(() => s.state.players[1]!.hand.length === 0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("grant-cost").instanceId);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("immune").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("would-trash").instanceId);
+  });
+
+  it("offers the controller Q3975 ordering for its simultaneous When Digivolving effects", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-073", as: "source", under: ["BT2-020"] }] },
+        1: { battleArea: [{ card: "AD1-001", as: "target", dp: 14000 }] },
+      },
+      { autoOrderTriggers: false, autoSelectCards: true },
+    );
+    const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const first = s.state.pendingDecision!;
+    const firstRequest = s.decisions.find(({ req }) => req.decisionId === first.decisionId)!.req;
+    expect(firstRequest.options?.triggerKeys).toHaveLength(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: first.decisionId,
+        response: { kind: "orderTriggers", order: [firstRequest.options!.triggerKeys![0]!] },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
