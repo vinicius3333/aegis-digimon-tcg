@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-046.js";
 
-describe("EX6-046 Diaboromon", () => {
+describe("EX6-046 DemiDevimon", () => {
   it("draws and trashes from your hand when the opponent has five or fewer cards, or trashes their hand at seven or more", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions).toMatchObject([
       { kind: "Draw", amount: 1, condition: { kind: "zoneCount", op: "lte", value: 5 } },

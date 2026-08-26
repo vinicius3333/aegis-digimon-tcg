@@ -357,3 +357,12 @@ root-worktree Vitest workload has cleared.
 - Shared primitive trace: a subtrigger cost must pay by a real other-own deletion before its body runs, matching Q3772. EndAttack changes the current attack timing rather than targeting the attacker, skips Counter/block progression, and emits the normal EndOfAttack window, implementing Q3773–Q3776.
 - Existing observable proof: shared paid subtrigger, prevented/failed deletion, end-attack timing, immunity-agnostic termination, no-counter path, EndOfAttack triggers, and frequency suites cover the behavior; the colocated suite checks the IR. No EX6-045-specific runtime fixture currently proves a deletion-prevented Q3772 branch or all Q3773–Q3776 timing consequences together.
 - Status: not rated 10/10; focused execution is deferred while the unrelated Vitest process remains active.
+
+## EX6-046 — DemiDevimon — evidence in progress
+
+- Catalog evidence: Purple level 3, play cost 3, 1000 DP, evolves from purple level 2 for 0; form `Rookie`, attribute `Virus`, trait `Evil`. On Deletion, when opponent hand is at most five, its controller Draws 1 then trashes one own hand card; independently, when opponent hand is at least seven, that opponent trashes one hand card. Inherited All Turns grants the host +1000 DP while opponent hand is at most six.
+- Knowledge base: Q3777 confirms the Draw belongs to the player activating the effect.
+- Direct IR: the ≤5 branch has `Draw(controller: "mine")` followed by own-hand Trash, and the ≥7 branch independently has opponent-selected opponent-hand Trash. The inherited self Aura carries a live opponent-hand `zoneCount <= 6` condition. This exactly preserves Q3777, full coverage, empty residuals, and exclusive `registerIrCard("EX6-046", compiled)` registration; the stale suite title now names DemiDevimon.
+- Shared primitive trace: zone-count predicates use current opponent hand size at each action; Draw credits the source owner. Each Trash uses its proper controller/chooser, and the Aura recomputes DP when the hand boundary changes.
+- Existing observable proof: shared zone-count, controller-owned Draw, self/opponent hand trash with chooser, sequential branch, and continuous Aura tests cover all primitives; the colocated suite checks exact IR. No EX6-046-specific runtime fixture currently proves 5/6/7 hand-boundary transitions or the owner-versus-opponent Q3777 distinction end to end.
+- Status: not rated 10/10; focused execution is deferred while the unrelated Vitest process remains active.
