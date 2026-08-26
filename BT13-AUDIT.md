@@ -302,7 +302,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-103 — 10/10
   - Registration: exclusive `registerIrCard("BT13-103", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-103.test.ts` passed (3 tests): Gizmon-paid Belphemon reduction and opponent-end draw/trash/Belphemon placement deletion sequence are covered.
-- BT13-104 — Pending
+- BT13-104 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-104", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-104.test.ts` passed (4 tests): Main/security shared DP reduction and Marcus recursion are live.
 - BT13-105 — Pending
 - BT13-106 — Pending
 - BT13-107 — Pending
