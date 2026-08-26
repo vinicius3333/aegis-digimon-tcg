@@ -1736,3 +1736,48 @@ git diff --check
 ```
 
 No unresolved BT26-038 ambiguity or unsupported printed clause remains. Only the colocated focused test and this appended audit section were changed; the card implementation and shared engine required no correction. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-038; the collection is not marked complete.
+
+## BT26-039 — Sunflowmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-039` (`Sunflowmon`), a green level-4 Champion/Data Digimon with play cost 5, 6000 DP, and `Vegetation`/`DATA SQUAD` traits. Its normal evolution requirement is green Lv.3 for cost 2. The alternate requirement is `[Digivolve] Lv.3 w/[DATA SQUAD] trait: Cost 2`. The main text is `[On Play] [When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Yoshino Fujieda] from your hand without paying the cost.` The inherited text is `[When Attacking] [Once Per Turn] 1 of your opponent's Digimon can't unsuspend until their turn ends.` It has no Security text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-039 --json`; it returns no errata, banlist restriction, QA, or card-specific ruling entry.
+- Comprehensive Rules evidence: §§2-3-1-2 and 2-3-1-3 distinguish a bracket-only individual name from an `in its name` substring reference; §§2-3-5-1–3 and 8-1 define printed and alternate digivolution requirements, payment, and stack transition; §§7-1-2–3 define effect-driven playing from hand; §§11-2-1–3 define attack declaration; §§15-8-3-1–9 define triggered effects; §§15-14-1-1–5 define per-copy Once Per Turn activation/reset; and §§15-16-2-1, 15-16-3-1, and 15-16-5-1 define On Play, When Digivolving, and When Attacking timings. The glossary's Once Per Turn entry confirms separate copies/effects have independent budgets. No unresolved card-specific ambiguity remains.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-039.ts` is compiled IR with `coverage: "full"` and `residual: []`. It registers exactly once through `registerIrCard("BT26-039", compiled)`; no `registerCard` registration exists.
+- The normal green Lv.3/cost-2 route is supplied by the catalog `evoCosts`; the compiled alternate requirement is exact (`level: 3`, `traits: ["DATA SQUAD"]`, `cost: 2`, `isAlternate: true`). Shared digivolution legality validates the requirement, pays the selected cost, and preserves the source stack.
+- A shared `PlayWithoutCost` action is installed independently for `OnPlay` and `WhenDigivolving`. It is hand-only, own-controller scoped, count 1, free, optional, and gated by an own battle-area `permanentCount` of Tamers `lte 1`. The name reference uses `nameExact`, matching CR §2-3-1-2; this excludes the composite `ST24-14 Yoshino Fujieda & Keenan Crier` while accepting the three standalone Yoshino printings.
+- The inherited action is `WhenAttacking`, `isInherited: true`, `frequency: "OncePerTurn"`, and a mandatory `Restrict` on exactly one opponent-controlled Digimon with restriction `unsuspend` and duration `untilOpponentTurnEnd`. The production `durationForTarget` seam swaps the relative duration for an opponent-owned target, so it expires at that target's turn end; the restriction consumer blocks unsuspend attempts while active.
+- Shared seams inspected: definition/name matching and loose hand targeting; `permanentCount` condition evaluation; `PlayWithoutCost` optional/preflight and effect-driven play; alternate and normal digivolution requirement validation/stack transition; inherited-effect collection and Once Per Turn ledger; `Restrict`/unsuspend legality; `durationForTarget` and continuous duration sweeps; and attack dispatch. Relevant peers inspected: BT26-034, BT26-035, BT26-036, BT26-038, BT26-041, BT26-042, BT13-054, BT19-060, and BT19-050 for adjacent DATA SQUAD evolution, Yoshino name targeting, Tamer thresholds, inherited attack triggers, and unsuspend restrictions.
+
+### Behavioral proof and correction
+
+- The audit found one real fidelity gap and corrected only this card: `match: "name"` treated the bracket-only `[Yoshino Fujieda]` reference as a substring and could therefore play the composite `ST24-14 Yoshino Fujieda & Keenan Crier`. The target now uses `match: "nameExact"`, and a focused negative case proves the composite remains in hand.
+- `apps/api/src/cards/BT26/BT26-039.test.ts` now has 11 passing tests. It proves the compiled IR shape and exclusive registration path; exact alternate evolution and rejection of a near-match base; free Yoshino play with zero and one Tamer; exact selection among multiple standalone Yoshino printings; rejection at two Tamers and with no valid Yoshino; optional refusal; inherited targeting of an already suspended opponent Digimon; actual unsuspend blocking and expiry at the opponent's turn end; Once Per Turn behavior across two attacks; and source isolation when another ally attacks.
+- The inherited duration test uses the production attack/effect path, attempts an effect-driven unsuspend while the lock is active, performs the owner-relative end-turn sweep for the opponent target, and confirms unsuspend succeeds only after expiry. The multiple-Yoshino test and composite-name negative case exercise both exact name boundaries and final hand/battle-area zones.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-039 --json
+  PASS (qa: []; banlist: null; errata: null)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-039.test.ts
+  PASS (1 file, 11 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-023.test.ts src/cards/BT26/BT26-034.test.ts src/cards/BT26/BT26-035.test.ts src/cards/BT26/BT26-036.test.ts src/cards/BT26/BT26-038.test.ts src/cards/BT26/BT26-041.test.ts src/cards/BT26/BT26-042.test.ts src/cards/BT26/BT26-049.test.ts src/cards/BT26/BT26-051.test.ts src/cards/BT26/BT26-091.test.ts src/cards/BT26/BT26-094.test.ts src/cards/BT26/BT26-098.test.ts
+  11 files passed (91 tests); 1 pre-existing unrelated failure in `BT26-098.test.ts` (fails identically when run alone: expected memory 0, received -2)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-034.test.ts src/cards/BT26/BT26-035.test.ts src/cards/BT26/BT26-036.test.ts src/cards/BT26/BT26-038.test.ts src/cards/BT26/BT26-041.test.ts src/cards/BT26/BT26-042.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts
+  PASS (9 files, 384 tests)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxlint apps/api/src/cards/BT26/BT26-039.ts apps/api/src/cards/BT26/BT26-039.test.ts
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-039.ts apps/api/src/cards/BT26/BT26-039.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-039 ambiguity or unsupported printed clause remains. Only `apps/api/src/cards/BT26/BT26-039.ts`, its colocated focused test, and this appended audit section were changed; no shared engine files were modified. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-039; the collection is not marked complete.
