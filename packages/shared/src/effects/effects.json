@@ -277,7 +277,7 @@
             "kind": "Replacement",
             "event": "wouldLeavePlay",
             "sourceFilter": {
-              "controllerDefault": "mine",
+              "controller": "any",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Gallantmon"], "match": "name" }]
             },
