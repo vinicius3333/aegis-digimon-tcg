@@ -180,6 +180,23 @@ Remaining work is to bind the suspended target into the Restrict action (or esta
 
 Remaining work is focused behavioral proof of the Main/Delay/Security lifecycle; this card is not formally complete at 10/10.
 
+## BT7-091 — Koichi Kimura — 9/10 (static audit)
+
+### Clause-by-clause score
+
+1. **Catalog identity (1/1):** Purple level-3 Tamer costing 3 with On Play draw-1 then trash-1, inherited On Deletion gain-1-memory, and Security self-play.
+2. **On Play ordering (1/1):** IR draws one card, then trashes exactly one owner hand card.
+3. **Inherited effect (1/1):** The On Deletion gain-1-memory trigger is marked `isInherited: true`.
+4. **Security behavior (1/1):** Security plays this card without cost using a self-reference target.
+5. **Rules evidence (1/1):** Q1665 confirms the inherited effect becomes usable when a Digimon legally digivolves onto this Tamer; the module marks it inherited rather than active as a standalone Tamer.
+6. **Knowledge base (1/1):** `node tools/kb/query.mjs card BT7-091` returns Q1665 with no unresolved ambiguity.
+7. **Direct IR and registration (1/1):** Full compiled coverage, empty residuals, and exactly one `registerIrCard("BT7-091", compiled)` registration are present.
+8. **Static primitive trace (1/1):** Draw amount, owner hand zone, trash count, gain amount, inherited timing, self-target, and free Security play are explicit.
+9. **Clause completeness (1/1):** On Play, inherited, and Security clauses map directly to compiled effects.
+10. **Reproducible behavioral proof (0/1):** No tests were run in this static-only pass; hand-size edge cases, inherited stack activation, and Security play remain unproven.
+
+Remaining work is behavioral proof of Q1665's evolution-stack boundary and On Play/Security ordering; this card is not formally complete at 10/10.
+
 ## BT7-101 — Thunder Laser — 9/10 (static audit)
 
 ### Clause-by-clause score
