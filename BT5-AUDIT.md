@@ -1296,3 +1296,43 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   `primitives.test.ts`.
 - Remaining ambiguity: none identified.
+
+## BT5-030 — Neptunemon — 10/10
+
+- Catalog evidence: Blue Lv.6 Mega Digimon, Vaccine/Shaman/Olympos XII, play
+  cost 10, 10000 DP, and blue Lv.5 evolution cost 2. Its sole effect is
+  `[Opponent's Turn] This Digimon can't be attacked.` It has no inherited or
+  Security text.
+- Knowledge-base and rules evidence: Q1307 establishes that a granted Blocker
+  may still switch an attack onto Neptunemon. Q1308 forbids BT4-090 Chaosmon's
+  When Digivolving effect from initially choosing it as an attack target.
+  Q1309 permits BT4-075 Blastmon's post-declaration effect to switch the target
+  onto it. These rulings distinguish choosing a target at declaration from a
+  later target switch.
+- Implementation: `apps/api/src/cards/BT5/BT5-030.ts` applies a permanent
+  `cantBeAttacked` self restriction under `isOpponentsTurn`. It declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-030", compiled)`.
+- Primitive, peer, and stack evidence: declaration legality consults the
+  defender's `cantBeAttacked` restriction for normal and effect-driven attack
+  declarations. Blocker and Blastmon target switches occur after declaration
+  and intentionally do not re-run that initial-target restriction. A legal
+  BT5-029 blue Lv.5-to-BT5-030 stack proves the live top card receives the
+  opponent-turn restriction. Real BT4-090, BT4-075, and inherited Blocker
+  modules exercise the three ruling paths.
+- Behavioral proof: 6 focused tests prove direct opponent attack rejection,
+  controller-turn inactivity, the legal evolution stack, Q1307 Blocker
+  acceptance and security avoidance, Q1308 rejection of Chaosmon's
+  effect-driven target, and Q1309 Blastmon redirection. The Q1309 proof uses
+  nonempty security and a 20000-DP Neptunemon, requiring Blastmon to disappear
+  in battle while security remains untouched; it cannot pass merely because
+  the player had no security.
+- Defect corrected: none in the IR or engine. The audit added the missing
+  card-specific ruling and evolution-stack proofs to `BT5-030.test.ts`.
+- Verification: focused BT5-030, BT4-075 and BT4-090 peers, combat legality,
+  and restriction cluster — 5 files, 46 tests passed. Targeted Oxfmt and
+  `git diff --check` passed. Workspace `pnpm typecheck` retains only the known
+  unrelated API errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and `primitives.test.ts`.
+- Remaining ambiguity: none identified.
