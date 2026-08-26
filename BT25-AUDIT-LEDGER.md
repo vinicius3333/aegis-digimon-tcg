@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-028 (Dianamon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-028 Dianamon | Blue/purple level 6 Digimon; alternate level-5 `[TS]` evolution cost 3; play cost reduction 5 while opponent has a level-6-or-higher Digimon; on play/when digivolving, permanently restricts the snapshot of opposing Digimon with 1 or fewer digivolution cards from suspending through opponent's turn, then deletes 1 opposing unsuspended Digimon; all turns once per turn, when any Digimon is played or digivolves, may trash any 4 opposing digivolution cards, then 2 own Digimon may DNA digivolve into `[GraceNovamon]` in hand; inherited when attacking once per turn restricts 1 opposing Digimon or Tamer from suspending. Q6292-Q6295 define event scope and restriction snapshot/lapse; Q6489 covers counter timing after a newly played Digimon enables the watcher. | **Causal sequencing gap.** The `AllTurns` effect installs `whenPlayed`/`whenAnyDigivolves` watchers whose bodies only trash 4 cards. The `DnaDigivolve` action is outside both `SubTrigger` bodies, so it is resolved as part of the parent AllTurns effect rather than after a qualifying play/digivolution event. This can offer DNA digivolution at the wrong time and fails to sequence it after the event-driven trash. The cost reduction, main restriction/delete sequence, event scope, optional trash, inherited restriction, and alternate requirement are otherwise represented. | The colocated test only checks the presence of two watchers and a sibling DNA action, thereby encoding the faulty structure. It does not execute event timing, trash-then-DNA ordering, “any 4” selection across opposing stacks, once-per-turn consumption, snapshot semantics, or Q6489 counter timing. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-028
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-028` (Q6292-Q6295 and Q6489).
+- Direct module/test and shared SubTrigger nesting, all-turn effect resolution, stack-trash
+  scope, DNA action sequencing, and restriction snapshot mechanisms were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-027 (MachGaogamon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
