@@ -42,14 +42,19 @@ describe("BT26-098 compiled fidelity", () => {
     const beforePayCost = card?.effects?.find((effect) => effect.trigger === "BeforePayCost")?.actions ?? [];
     expect(beforePayCost).toMatchObject([
       {
-        kind: "CostModifier",
-        costType: "use",
-        mode: "reduce",
-        amount: 2,
-        handResident: true,
-        cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
+        kind: "CostGatedBlock",
+        cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
         optional: true,
         abortOnDecline: true,
+        actions: [
+          {
+            kind: "CostModifier",
+            costType: "use",
+            mode: "reduce",
+            amount: 2,
+            handResident: true,
+          },
+        ],
       },
     ]);
 
