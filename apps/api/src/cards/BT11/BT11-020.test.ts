@@ -90,7 +90,7 @@ describe("BT11-020 Gaomon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
 
@@ -114,7 +114,7 @@ describe("BT11-020 Gaomon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
