@@ -655,10 +655,11 @@ export function permanentMatchesFilter(
       return (
         liveKeyword === true ||
         granted.has(token) ||
-        printedKeywordsOf(def.effectText).includes(token) ||
-        permanent.stack.some((card) =>
-          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
-        )
+        (liveKeyword === undefined &&
+          (printedKeywordsOf(def.effectText).includes(token) ||
+            permanent.stack.some((card) =>
+              printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
+            )))
       );
     };
     if (!filter.keywords.every(hasKeyword)) return false;
@@ -673,10 +674,11 @@ export function permanentMatchesFilter(
       return (
         liveKeyword === true ||
         granted.has(token) ||
-        printedKeywordsOf(def.effectText).includes(token) ||
-        permanent.stack.some((card) =>
-          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
-        )
+        (liveKeyword === undefined &&
+          (printedKeywordsOf(def.effectText).includes(token) ||
+            permanent.stack.some((card) =>
+              printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
+            )))
       );
     };
     if (filter.excludeKeywords.some(hasKeyword)) return false;
