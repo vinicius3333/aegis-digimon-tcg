@@ -7,7 +7,7 @@
 // Encoding: RevealAdd.add handles the digivolve (optional), rest:trash handles the remaining.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

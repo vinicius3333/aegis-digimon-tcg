@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q1862: both hand-add and trash targets must have [Undead] or [Dark Animal].
 // The two add entries execute in order (hand → trash) from the revealed 3.
 // [Inherited][When Attacking]: may digivolve from trash (with cost, following requirements).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",

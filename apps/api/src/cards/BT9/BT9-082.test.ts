@@ -1,9 +1,30 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-082.js";
 import "./BT9-082.js";
 
 describe("BT9-082 Ordinemon", () => {
+  it("matches catalog values and the DNA-only delete, recovery, and replay IR", () => {
+    expect(getCardDefinition("BT9-082")).toMatchObject({
+      colors: ["Purple", "Yellow"], level: 7, playCost: 15, dp: 15000,
+      evoCosts: [{ color: "Purple", level: 6, memoryCost: 6 }, { color: "Yellow", level: 6, memoryCost: 6 }], types: ["Fallen Angel"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [],
+      dnaDigivolveRequirement: [{ cost: 0, materials: [{ color: "Purple", level: 6 }, { color: "Yellow", level: 6 }], }],
+      effects: [
+        { trigger: "WhenDigivolving", condition: { kind: "isDnaDigivolving" }, actions: [
+          { kind: "Delete", target: { filter: { levelComparison: { op: "gte", value: 6 } }, count: 1 } },
+          { kind: "Delete", target: { filter: { levelComparison: { op: "lte", value: 5 } }, count: "all" } },
+          { kind: "SecurityManipulation", op: "addTop", source: "deck", scaling: { unit: "deletedThisEffect", per: 1 } },
+        ] },
+        { trigger: "OnDeletion", actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true, target: { filter: { isSelfRef: true } }, cost: { kind: "trash" } }] },
+      ],
+    });
+  });
+
   it("on DNA digivolution deletes one level 6+ and all level 5- Digimon, then recovers per deletion", async () => {
     const s = setupEngine(
       {

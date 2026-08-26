@@ -1,10 +1,25 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-088.js";
 import "./BT9-088.js";
 
 describe("BT9-088 Mimi Tachikawa & Joe Kido", () => {
+  it("matches catalog values and the independent memory, battle-draw, and security IR", () => {
+    expect(getCardDefinition("BT9-088")).toMatchObject({
+      colors: ["Green", "Blue"], kinds: ["Tamer"], playCost: 4,
+      securityEffectText: "[Security] Play this card without paying its memory cost.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "StartOfYourTurn", actions: [{ kind: "GainMemory", condition: { kind: "youHave", filter: { suspended: true } } }, { kind: "GainMemory", condition: { kind: "opponentHas", filter: { suspended: true } } }] },
+        { trigger: "AllTurns", actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle", sourceFilter: { colors: ["Green", "Blue"] }, actions: [{ kind: "Draw", amount: 1, optional: true, cost: { kind: "suspend" } }] }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
+      ],
+    });
+  });
+
   it("independently gains memory for each player controlling a suspended Digimon", async () => {
     const s = setupEngine({
       0: {

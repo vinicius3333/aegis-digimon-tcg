@@ -5,7 +5,7 @@
 // GainMemory scaling: count placed cards (no controllerDefault restriction).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",

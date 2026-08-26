@@ -10,7 +10,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q1889: also activates during unsuspend phase.
 // sourceFilter: controller:mine, colors:[Red,Blue] — confirms "your blue or red Digimon."
 // The Return action has a suspend cost (pay by suspending this Tamer); optional:true on Return.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourMainPhase",

@@ -10,7 +10,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [When Attacking][Once Per Turn] If [GranKuwagamon] or [X Antibody] (card name, not
 //   trait — KB Q1850) is in this Digimon's digivolution cards, suspend 1 opponent Digimon
 //   and unsuspend this Digimon.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

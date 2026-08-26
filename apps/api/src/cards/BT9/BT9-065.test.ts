@@ -1,8 +1,24 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT9-065.js";
+import { compiled } from "./BT9-065.js";
 
 describe("BT9-065 Megadramon", () => {
+  it("matches catalog and direct/inherited play-cost-3 deletion IR", () => {
+    expect(getCardDefinition("BT9-065")).toMatchObject({
+      cardId: "BT9-065", nameEn: "Megadramon", colors: ["Black", "Red"], kinds: ["Digimon"], level: 5,
+      playCost: 8, dp: 8000,
+      evoCosts: [{ color: "Black", level: 4, memoryCost: 4 }, { color: "Red", level: 4, memoryCost: 4 }],
+      forms: ["Ultimate"], attributes: ["Virus"], types: ["Cyborg"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "WhenDigivolving", actions: [{ kind: "Delete", target: { filter: { kind: ["Digimon", "Tamer"], playCostLte: 3 } } }] },
+        { trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "Delete", condition: { kind: "selfHasTrait" } }] },
+      ],
+    });
+  });
+
   it("deletes an opposing Digimon or Tamer costing 3 or less", async () => {
     const s = setupEngine(
       {

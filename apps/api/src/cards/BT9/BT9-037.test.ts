@@ -1,10 +1,25 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT9-037.js";
+import { compiled } from "./BT9-037.js";
 
 describe("BT9-037 Nefertimon", () => {
+  it("matches catalog, Gatomon alternate evolution, Armor Purge, and attack DP IR", () => {
+    expect(getCardDefinition("BT9-037")).toMatchObject({
+      cardId: "BT9-037", nameEn: "Nefertimon", colors: ["Yellow"], kinds: ["Digimon"], level: 4,
+      playCost: 5, dp: 5000, evoCosts: [{ color: "Yellow", level: 3, memoryCost: 3 }], forms: ["ArmorForm"],
+      attributes: ["Free"], types: ["Holy Beast"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Gatomon"], cost: 0, isAlternate: true }],
+      effects: [
+        { trigger: "Static", keywords: [{ keyword: "Armor Purge" }] },
+        { trigger: "WhenAttacking", actions: [{ kind: "ModifyDP", amount: -2000, duration: "forTheTurn" }] },
+      ],
+    });
+  });
+
   it("gives an opposing Digimon -2000 DP when attacking", async () => {
     const s = setupEngine(
       {

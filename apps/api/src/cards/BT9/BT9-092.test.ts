@@ -1,9 +1,24 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-092.js";
 import "./BT9-092.js";
 
 describe("BT9-092 Cool Boy", () => {
+  it("matches catalog values and the reveal, same-level, and security IR", () => {
+    expect(getCardDefinition("BT9-092")).toMatchObject({
+      colors: ["White"], kinds: ["Tamer"], playCost: 2,
+      securityEffectText: "[Security] Play this card without paying its memory cost.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 3, add: [{ filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } }, { filter: { kind: ["Option"], nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } }] }] },
+        { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenOneOfYoursDigivolves", fireCondition: { kind: "triggerDigivolvedSameLevel" }, actions: [{ kind: "GainMemory", amount: 1, abortOnDecline: true, cost: { kind: "suspend" } }, { kind: "Draw", amount: 1 }] }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
+      ],
+    });
+  });
+
   it("adds an X Antibody Digimon and X Antibody Option from three revealed cards", async () => {
     const s = setupEngine(
       {

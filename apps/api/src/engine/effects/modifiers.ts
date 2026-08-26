@@ -47,6 +47,8 @@ export interface DpModifier {
   duration: EffectDuration;
   /** Card instance whose continued presence sustains this modifier. */
   sourceInstanceId?: string;
+  /** Ignore only the canonical opponent-turn end already in progress. */
+  skipsCurrentOpponentTurnEnd?: boolean;
   /**
    * True when this delta was produced by a PERSISTENT (static / `EffectTiming.None`)
    * effect rather than a one-shot triggered effect. The continuous-recompute pass
@@ -267,7 +269,7 @@ export class ModifierLedger {
     permanentId: string,
     delta: number,
     duration: EffectDuration,
-    opts?: { continuous?: boolean; sourceInstanceId?: string },
+    opts?: { continuous?: boolean; sourceInstanceId?: string; skipsCurrentOpponentTurnEnd?: boolean },
   ): DpModifier {
     const modifier: DpModifier = {
       permanentId,
@@ -275,6 +277,7 @@ export class ModifierLedger {
       duration,
       continuous: opts?.continuous,
       sourceInstanceId: opts?.sourceInstanceId,
+      skipsCurrentOpponentTurnEnd: opts?.skipsCurrentOpponentTurnEnd,
     };
     this.dpModifiers.push(modifier);
     this.recomputeDP(state, permanentId);
@@ -680,6 +683,10 @@ export class ModifierLedger {
 
     this.dpModifiers = this.dpModifiers.filter((m) => {
       const ownerSeat = ownerSeatOfPermanent(state, m.permanentId);
+      if (m.skipsCurrentOpponentTurnEnd === true) {
+        if (boundary === "opponentTurnEnd" && ownerSeat !== sweepSeat) m.skipsCurrentOpponentTurnEnd = false;
+        return true;
+      }
       const expires = clearsAt(m.duration, boundary, ownerSeat, sweepSeat);
       if (expires) touched.add(m.permanentId);
       return !expires;

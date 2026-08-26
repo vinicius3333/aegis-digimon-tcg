@@ -1,11 +1,26 @@
-import { Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT9-089.js";
 import "./BT9-089.js";
 
 describe("BT9-089 Daigo Nishijima", () => {
+  it("matches catalog values and the main-phase, subject-grant, and security IR", () => {
+    expect(getCardDefinition("BT9-089")).toMatchObject({
+      colors: ["Black"], kinds: ["Tamer"], playCost: 3,
+      securityEffectText: "[Security] Play this card without paying its memory cost.",
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], effects: [
+        { trigger: "AllTurns", actions: [{ kind: "SubTrigger", event: "whenUnsuspended", fireCondition: { kind: "phaseIs", phase: "Main" }, sourceFilter: { controller: "opponent" }, actions: [{ kind: "GainMemory", amount: 1, optional: true, cost: { kind: "suspend" } }] }] },
+        { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenOneOfYoursDigivolves", sourceFilter: { colors: ["Black"], levels: [6] }, actions: [{ kind: "GainKeyword", target: { sourceRef: "triggerSubject" }, keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd" }] }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
+      ],
+    });
+  });
+
   it("does not gain memory when an opposing Digimon unsuspends outside a main phase", async () => {
     const s = setupEngine(
       {

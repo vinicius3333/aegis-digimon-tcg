@@ -18,6 +18,8 @@ export function toDuration(ref: EffectDurationRef): EffectDuration {
       return EffectDuration.UntilOwnerTurnEnd;
     case "untilOpponentTurnEnd":
       return EffectDuration.UntilOpponentTurnEnd;
+    case "untilOpponentNextTurnEnd":
+      throw new Error('"untilOpponentNextTurnEnd" is valid only for a single-target ModifyDP action');
     case "endOfOpponentTurn":
       return EffectDuration.UntilOpponentTurnEnd;
     case "untilEndOfAttack":

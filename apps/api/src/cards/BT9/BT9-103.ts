@@ -10,7 +10,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   adding cards via effects, regardless of card type/level. Encoded as GlobalRestrict
 //   (new capability — LANE_E.md CAP-E-04).
 // [Security] Activate [Main].
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",

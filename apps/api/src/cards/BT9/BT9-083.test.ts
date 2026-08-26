@@ -1,9 +1,31 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT9-083.js";
 import "./BT9-083.js";
 describe("BT9-083 Omnimon: Merciful Mode", () => {
+  it("matches catalog values, alternate evolution, and sequential effect IR", () => {
+    expect(getCardDefinition("BT9-083")).toMatchObject({
+      colors: ["White"], level: 7, playCost: 15, dp: 15000,
+      evoCosts: [{ color: "Red", level: 6, memoryCost: 6 }, { color: "Blue", level: 6, memoryCost: 6 }, { color: "Yellow", level: 6, memoryCost: 6 }, { color: "Green", level: 6, memoryCost: 6 }],
+      types: ["Holy Warrior"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Omnimon"], cost: 3, isAlternate: true }],
+      effects: [
+        { trigger: "WhenDigivolving", actions: [{ kind: "Delete", scaling: { unit: "digivolutionCards", filter: { forms: ["Mega"] } } }, { kind: "Return", to: "deckBottom", order: "any", target: { count: 10, upTo: true } }] },
+        {
+          trigger: "StartOfYourTurn",
+          actions: [
+            { kind: "Trash", target: { filter: { zone: "digivolutionCards", position: "top" } } },
+            { kind: "Trash", condition: { kind: "ifThisEffectActed" }, target: { filter: { zone: "security", controller: "opponent", position: "top" } } },
+          ],
+        },
+      ],
+    });
+  });
+
   it("deletes per Mega source and returns up to 10 opposing trash cards to deck bottom", async () => {
     const trash = Array.from({ length: 10 }, (_, i) => ({ card: i % 2 ? "BT1-001" : "BT1-002", as: `trash${i}` }));
     const s = setupEngine(

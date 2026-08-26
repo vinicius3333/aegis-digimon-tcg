@@ -17,7 +17,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 2. [When Digivolving] trash is a cost for the DP reduction: Trash is optional with
 //    abortOnDecline:true so declining prevents the ModifyDP from executing.
 // 3. Added missing [When Attacking] inherited effect.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Hand",

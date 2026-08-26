@@ -16,7 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - PlayWithoutCost from digivolutionCards targets name "Leomon" exactly; KB Q1848 says
 //   the (Rule) does NOT allow this card to be chosen for "the name [Leomon]" text, so
 //   filtering to name "Leomon" is correct (excludes this card itself as a target).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

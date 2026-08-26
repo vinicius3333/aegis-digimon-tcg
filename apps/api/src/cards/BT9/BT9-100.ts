@@ -15,7 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // while forceAttack reuses canonical target legality and therefore excludes a
 // "can't be attacked" defender (Q1905).
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",

@@ -145,6 +145,26 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       return false;
     }
     case "ModifyDP": {
+      const nextOpponentTurnDuration = action.duration === "untilOpponentNextTurnEnd";
+      const targetUsesBudget =
+        action.target.totalDpCap !== undefined ||
+        action.target.totalDpCapFromSourceDp === true ||
+        action.target.totalPlayCostBudget !== undefined ||
+        action.target.totalPlayCostBudgetFromSelectionRef !== undefined ||
+        action.target.totalLevels !== undefined;
+      if (
+        nextOpponentTurnDuration &&
+        (action.playerWide === true ||
+          (action.alsoGainKeywords?.length ?? 0) > 0 ||
+          action.continuous === true ||
+          ctx.continuousPass === true ||
+          action.target.count !== 1 ||
+          action.target.countModifier !== undefined ||
+          targetUsesBudget)
+      ) {
+        unsupported(ctx, action, '"untilOpponentNextTurnEnd" is supported only for one-shot single-target DP');
+        return false;
+      }
       if (action.playerWide === true) {
         const controller = action.target.filter.controller;
         if (controller !== "mine" && controller !== "opponent") return false;
@@ -154,7 +174,12 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         return false;
       }
       const ids = await resolvePermanentTargets(ctx, action.target);
-      const duration = toDuration(action.duration);
+      if (nextOpponentTurnDuration && ids.length > 1) {
+        unsupported(ctx, action, '"untilOpponentNextTurnEnd" resolved more than one DP target');
+        return false;
+      }
+      const skipsCurrentOpponentTurnEnd = nextOpponentTurnDuration && !ctx.source.isOwnersTurn();
+      const duration = nextOpponentTurnDuration ? toDuration("untilOpponentTurnEnd") : toDuration(action.duration);
       const effectSourceBound = (action as Action & { effectSourceBound?: boolean }).effectSourceBound === true;
       for (const id of ids) {
         const targetScale =
@@ -174,10 +199,11 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             ? ctx.continuousPass === true
               ? { continuous: true, ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}) }
               : effectSourceBound
-                ? { sourceInstanceId: ctx.source.instanceId }
-                : undefined
+                ? { sourceInstanceId: ctx.source.instanceId, skipsCurrentOpponentTurnEnd }
+                : { skipsCurrentOpponentTurnEnd }
             : {
                 continuous: action.continuous,
+                skipsCurrentOpponentTurnEnd,
                 ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}),
               },
         );

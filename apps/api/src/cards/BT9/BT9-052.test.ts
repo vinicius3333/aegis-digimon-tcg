@@ -1,8 +1,24 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT9-052.js";
+import { compiled } from "./BT9-052.js";
 import "./BT9-109.js";
 describe("BT9-052 Okuwamon (X Antibody)", () => {
+  it("matches catalog and exact-name, attack-redirect, and Insectoid-cost IR", () => {
+    expect(getCardDefinition("BT9-052")).toMatchObject({
+      cardId: "BT9-052", nameEn: "Okuwamon (X Antibody)", colors: ["Green"], kinds: ["Digimon"], level: 5,
+      playCost: 8, dp: 8000, evoCosts: [{ color: "Green", level: 4, memoryCost: 3 }], forms: ["Ultimate"],
+      attributes: ["Virus"], types: ["Insectoid", "X Antibody"],
+    });
+    expect(compiled).toMatchObject({
+      coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Okuwamon"], cost: 0, isAlternate: true }],
+      effects: [
+        { trigger: "WhenDigivolving", actions: [{ kind: "Suspend" }, { kind: "RedirectAttack", optional: true, condition: { kind: "triggerAttackerIsSelf" } }] },
+        { trigger: "YourTurn", actions: [{ kind: "Replacement", event: "wouldDigivolve", actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1 }] }] },
+      ],
+    });
+  });
+
   it("suspends an opposing Digimon when evolving over Okuwamon", async () => {
     const s = setupEngine(
       {

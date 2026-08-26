@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //           in its name from your trash for its memory cost.
 //           (KB Q1913: digivolution requirements still apply; Q1914: cost reductions apply.)
 // [Security] Add this card to its owner's hand.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

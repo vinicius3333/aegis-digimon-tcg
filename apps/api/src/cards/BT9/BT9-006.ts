@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   this Digimon specifically.
 // Fix 2: The ModifyDP +1000 is present but uses a generic own-Digimon filter;
 //   it should target this Digimon (self-ref), not an arbitrary own Digimon.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",
