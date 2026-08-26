@@ -174,3 +174,14 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   neither colour, search resolution, and Security. The shared Delay suite supplies lifecycle
   proof; the focused comment's stale ruling reference is corrected to Q4071/Q4072.
 - Tests remain deliberately unrun under PID 43774, so LM-037 remains below 10/10.
+
+## LM-038 — Grape Memory Boost! — pending focused execution
+
+- Catalog and Q4073/Q4074 map to direct Static `alsoColor: green`; interpreter option-legality
+  accepts purple or green sources in battle/breeding while rejecting a player with neither.
+  Main reveals three, adds one purple-or-green Digimon, bottoms the rest, then places the Option;
+  Delay gains two memory and Security places it.
+- Focused behavior covers the native/alternative colour-source paths, breeding ruling, rejection,
+  search resolution, and Security. Shared Delay proof covers lifecycle behavior, and the stale
+  card-comment citations are corrected to Q4073/Q4074.
+- Tests remain deliberately unrun under PID 43774, so LM-038 remains below 10/10.
