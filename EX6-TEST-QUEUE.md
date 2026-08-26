@@ -1,6 +1,6 @@
 # EX6 Serial Test Queue
 
-Run only after PID group 43774 has cleared and the coordinator authorizes the gate. Use one explicit file per process with `--pool=forks --poolOptions.forks.singleFork=true --fileParallelism=false`; do not run these in parallel.
+Run only after the active unrelated Vitest PID/PGID 82901 has cleared and the coordinator authorizes the gate. PID group 43774 references in the audit ledger are historical evidence for the original embargo. Use one explicit file per process with `--pool=forks --poolOptions.forks.singleFork=true --fileParallelism=false`; do not run these in parallel.
 
 1. Payment and owner-security routing: `EX6-018.test.ts`, `EX6-029.test.ts`.
 2. Opponent-hand and count boundaries: `EX6-050.test.ts`, `EX6-051.test.ts`, `EX6-055.test.ts`, `EX6-071.test.ts`.

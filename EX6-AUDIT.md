@@ -6,7 +6,9 @@ contract, any local knowledge-base evidence, direct compiled IR, shared runtime
 seams, and observable behavioral evidence; structural assertions alone do not
 establish behavioral proof. The EX6-002 through EX6-006 focused additions made
 before this ledger remain committed and will be executed only after the unrelated
-root-worktree Vitest workload has cleared.
+root-worktree Vitest workload has cleared. References to PID group 43774 below
+record the original embargo that created each entry; the active execution embargo
+is the unrelated Vitest PID 82901.
 
 ## EX6-001 — Sakuttomon — evidence in progress
 
