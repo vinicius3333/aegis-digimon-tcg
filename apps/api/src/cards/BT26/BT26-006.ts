@@ -32,7 +32,7 @@ export const compiled: CompiledCard = {
                   filter: {
                     controllerDefault: "mine",
                     zone: "hand",
-                    kind: ["Digimon"],
+                    kind: ["Digimon", "Tamer"],
                     nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
                   },
                   count: 1,

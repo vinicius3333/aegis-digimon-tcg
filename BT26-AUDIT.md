@@ -227,3 +227,53 @@ Commands and results:
 - `pnpm exec oxfmt apps/api/src/cards/BT26/BT26-005.test.ts` — PASS.
 
 No unresolved card-text ambiguity remains. No module or shared-engine change was necessary, no duplicate legacy registration exists, and no commit or push was made, per the audit task instructions.
+
+## BT26-006 — Monimon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-006` (`Monimon`), a purple level 2 Digi-Egg/In-Training with `CRT` and `Bagra Army` traits. It has no main or Security effect.
+- Printed inherited text: `[When Attacking] [Once Per Turn] By trashing any 2 digivolution cards from your [Bagra Army] trait Digimon, you may play or use 1 [Bagra Army] trait card from your hand with the cost reduced by 2.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-006`; it reports Q6959–Q6961 and no card-specific erratum or restriction. Q6959 requires both specified cards to be trashed; Q6960 makes an attack fail when the attacking Digimon becomes DigiXros material for the played card; Q6961 removes a pending effect when its trashed source leaves the trash before activation.
+- Comprehensive Rules §4-2-2/§4-2-3-1 cover exact payment and reduced alternate costs; §4-3-2/§4-3-3 define digivolution cards and inherited effects; §15-4-4-3/§15-4-4-4 cover pending-effect loss when a card becomes new or loses its effect; §15-8-4-3-1/§15-8-4-4-1 require activation and optional processing conditions to be payable and completed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-006.ts` contains exactly one inherited `WhenAttacking` effect with `frequency: "OncePerTurn"`. The effect is a one-choice modal: the play branch selects exactly one own-hand `Digimon` or `Tamer` with the `Bagra Army` trait, pays its printed cost reduced by 2, and permits DigiXros; the use branch selects exactly one own-hand `Option` with the `Bagra Army` trait and pays its use cost reduced by 2.
+- Both branches share an exact `kind: "trash"` activation cost requiring two cards in the `digivolutionCards` zone whose host is an own `Digimon` with the `Bagra Army` trait. The shared candidate resolver spans multiple hosts, while `trashDigivolutionCardsAtomic` validates every selected source before moving any card, satisfying Q6959 and preventing partial payment.
+- The shared play/use primitives preserve effect-driven lifecycle semantics. `allowDigiXros: true` enables normal and expanded DigiXros material selection; if the attacking permanent is consumed as material, the attack no longer has a present attacker (Q6960). Pending source watchers are dropped when a trashed card is moved from the trash into the DigiXros stack (Q6961).
+- Registration is exclusively `registerIrCard("BT26-006", compiled)`; no `registerCard` registration exists for this card.
+- Relevant peers inspected: BT26-012 and BT26-033 for play/use modal branches including Tamers; BT26-049 for trait-scoped play/use filters; BT26-021 and BT26-026 for reduced paid effect-play semantics; EX10-034, EX10-044, EX10-058, and EX10-064 for Bagra Army DigiXros and pending-source interactions. Their controller, trait, reduction, and DigiXros conventions are consistent.
+
+### Behavioral proof
+
+The focused `apps/api/src/cards/BT26/BT26-006.test.ts` suite has 10 passing tests proving:
+
+- inherited `WhenAttacking` timing, once-per-turn identity, exact two-card source cost, cross-host source selection, and atomic rejection when one selected source is protected;
+- selection of a Bagra Army Digimon with the cost reduced by 2 and selection of a Bagra Army Tamer (`BT10-093`) through the play branch, while a non-Bagra Tamer remains in hand;
+- rejection of a non-Bagra host, the one-source Q6959 boundary, and optional refusal without moving sources or paying the card cost;
+- Q6960 attack invalidation when the attacking Digimon is placed under an effect-played DigiXros card; and
+- Q6961 retirement of a pending trashed-source effect when `EX10-064` moves that source into the DigiXros stack.
+
+The tests exercise the effect from realistic evolution stacks and mixed Bagra/non-Bagra board state. They are mutation-sensitive to the inherited trigger, once-per-turn ledger, exact count, host trait/controller filter, atomic payment, reduced payment, Tamer inclusion, DigiXros material handling, attack termination, and pending-effect lifecycle.
+
+### Verification
+
+Commands and results:
+
+```text
+node tools/kb/query.mjs card BT26-006
+  PASS (Q6959–Q6961; no card-specific erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-006.test.ts
+  PASS (10 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-006.test.ts src/engine/effects/primitives.test.ts src/engine/effects/interpreter.test.ts
+  PASS (3 files, 328 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+git diff --check
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-006.ts apps/api/src/cards/BT26/BT26-006.test.ts
+  PASS
+```
+
+The audit found and corrected one fidelity defect: the play branch previously admitted only `Digimon`, excluding valid Bagra Army Tamers despite the printed “card” wording. It now admits `Digimon` and `Tamer`, with focused behavioral proof. No unresolved card-text ambiguity remains. No commit or push was made, per the audit task instructions.
