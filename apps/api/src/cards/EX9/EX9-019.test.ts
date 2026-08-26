@@ -37,6 +37,6 @@ describe("EX9-019", () => {
     const continuous = s.engine as unknown as {
       continuous: { hasRestriction(id: string, restriction: string): boolean };
     };
-    expect(continuous.continuous.hasRestriction(s.perm("target").permanentId, "suspend")).toBe(true);
+    expect(continuous.continuous.hasRestriction(s.perm("target").permanentId, "beSuspended")).toBe(true);
   });
 });
