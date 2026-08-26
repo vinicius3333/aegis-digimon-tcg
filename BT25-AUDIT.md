@@ -124,3 +124,23 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-006.
+
+## BT25-007 — Gatchmon — 10/10
+
+- Catalog evidence: Red level-3 Digimon, play cost 3, 2000 DP, `Stnd.`/`Appmon` forms, `Social` attribute, `Search` type; alternate evolution from a level-2 `Appmon` for 0; On Play top-3 search for one `Appmon` plus one `Social`/`Tool`/`Reboot`/`Creation`, bottoming the rest; `[Link] [Appmon] trait: Cost 1`, +2000 linked DP, and `[When Linking] Delete 1 opposing Digimon with 3000 DP or less`.
+- Knowledge base: `node tools/kb/query.mjs card BT25-007` returned no card-specific entries. General Link, reveal, and selection rules apply without unresolved ambiguity.
+- Implementation: the direct IR encodes the two independent `RevealAdd` selections, bottom-deck remainder, linked DP/timing deletion with the exact controller/kind/DP boundary, alternate evolution, and the completed Appmon Link recipe. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-007", compiled)`.
+- Defect corrected: the executable module omitted the printed Link requirement, so the card's linked behavior lacked its legal declaration recipe. The audit adds `linkRequirement: [{ traits: ["Appmon"], cost: 1 }]`; the linked effect itself was present and was retained.
+- Behavioral proof: the focused suite now checks catalog/IR completeness, selects two distinct qualifying cards and bottoms the miss, links for exactly 1 memory and deletes the 3000-DP boundary while preserving an above-boundary Digimon, and legally evolves from a level-2 Appmon for 0. The new requirement assertion/declaration test fails against the previous module.
+- Verification: focused suite — 5 passed; delegated focused/comparative selection — 19 passed across 5 files; targeted Oxfmt and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-007 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-007
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-007.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-007.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-007.
