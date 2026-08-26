@@ -1039,3 +1039,53 @@ git diff --check
 ```
 
 The card module, focused proof, Barrier seam correction, and its adjusted shared regression assertions remain uncommitted for coordinator review; no commit or push was made.
+
+## BT26-023 — Mojyamon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-023` (`Mojyamon`), a blue level 4 Champion Digimon with 4000 DP, Vaccine attribute, and `Rare Animal`/`DM`/`Ver.4` traits. Its normal evolution requirement is blue Lv.3 for cost 2, and its alternate requirement is Lv.3 with the `DM` trait for cost 2. The printed text is `＜Training＞`, `＜Jamming＞`, `[On Play] [When Attacking] By placing 1 card in your hand face down as this Digimon's bottom digivolution card, return 1 of your opponent's level 4 or lower Digimon to the bottom of the deck.` The inherited text is `[When Attacking] If your hand has 7 or fewer cards, ＜Draw 1＞`.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-023` (and `--json`) returns `qa: []`, `banlist: null`, and `errata: null`; there are no card-specific rulings, errata, restrictions, or unresolved local KB entries.
+- Comprehensive Rules evidence: §15-7-1–5 defines `By ...` as an optional processing condition and requires the following effect only after the condition succeeds; §15-16-2-1 and §15-16-5-1 define On Play and When Attacking timing; §4-7-3–10 defines fixed stack ordering, bottom-card placement, and face-down visibility; §16-9-1–2 defines Jamming as a persistent battle-deletion safeguard; §16-41-1–3 defines Training as an optional main-phase suspension cost followed by mandatory deck-top placement; §16-8-1–3 makes Draw 1 mandatory once the inherited condition is met.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-023.ts` is IR-only and registers exclusively through `registerIrCard("BT26-023", compiled)`; it contains no `registerCard` registration. The alternate evolution requirement is exact (`level: 3`, `traits: ["DM"]`, `cost: 2`, `isAlternate: true`).
+- The static effect publishes both `Training` and `Jamming`. Registration synthesizes Training's activation-type Main effect; the shared keyword/combat machinery makes it available only from the correct source, suspends that Digimon, and places the deck top face down at the bottom of its stack. Jamming is visible on the top card and prevents deletion from a losing Security Digimon battle, but it does not transfer when Mojyamon is under a host because the effect is not inherited.
+- Separate On Play and When Attacking effects each carry the same `Return` action. Its target is exactly one opponent-controlled Digimon (`controllerDefault: "opponent"`, `kind: ["Digimon"]`) with `levelComparison: { op: "lte", value: 4 }`, and its destination is `deckBottom`. The `place` cost selects exactly one card from the source owner's hand, places it face down at the bottom of this Digimon's digivolution stack, and gates the return; `optional: true` models the printed `By` condition. The action has no once-per-turn marker, so each eligible On Play/When Attacking trigger may resolve independently.
+- The inherited When Attacking action is a separate non-optional `Draw` of exactly one card for the inherited source's controller, gated by the live hand count `zoneCount(hand) <= 7`. It has no frequency marker, matching the absence of Once Per Turn in the catalog text. The shared effect builder scopes inherited effects to the evolution host rather than unrelated permanents.
+- Shared seams inspected: `candidatePermanents`/`permanentMatchesFilter` apply controller, Digimon kind, and inclusive live level comparison while excluding breeding targets unless explicitly requested; `canPayCost`/`payCost` and `placeUnder` select hand cards transactionally and preserve bottom ordering plus face-down state; `resolvePermanentTargets` and `returnToDeck` move the selected opponent permanent to the deck bottom; `trainingActivatedEffect` implements the keyword's suspension/deck-top rule; and security combat's Jamming path applies only to battles against Security Digimon. Relevant peers inspected: EX9-017, EX9-034, EX9-059, and EX9-060 for the same DM evolution/Training/hand-placement vocabulary; BT26-018 and BT26-040 for Jamming/Training inherited and top-card behavior; and BT26-015/BT26-022 for neighboring deck-bottom return and evolution conventions.
+
+### Behavioral proof
+
+The existing `apps/api/src/cards/BT26/BT26-023.test.ts` suite has 11 passing tests proving:
+
+- exact normal/alternate evolution metadata, a legal level-3 DM stack transition with cost 2, and rejection of a same-level non-DM base;
+- the On Play cost/payment path, including hand-card removal, bottom stack placement, face-down state, and bottom-deck return of an opponent level-4 Digimon;
+- the inclusive level-4 boundary and rejection of level 5, Tamer, and breeding-area candidates;
+- optional refusal of the `By` processing condition with no hand or board movement;
+- independent On Play and When Attacking timing, with the main return effect bound to Mojyamon rather than another ally attacking;
+- Training suspension, deck-top placement as a face-down bottom stack card, and the suspended/empty-deck negative boundaries;
+- top-card Jamming publication and survival of a losing Security Digimon battle;
+- inherited When Attacking Draw 1 at exactly seven cards and suppression at eight cards, exercised from a real evolution stack.
+
+The tests resolve the full effect stack and assert observable hand, deck, trash, battle-area, suspension, face-up/face-down, controller, level, timing, and inherited-source state. No card-specific code or test change was necessary; the existing proof is mutation-sensitive to the evolution requirement, target filter, cost ordering, optionality, Training/Jamming synthesis, and inherited hand boundary.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-023
+  PASS (no QA/ruling, errata, or restriction entries)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-023.test.ts
+  PASS (1 file, 11 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/EX9/EX9-034.test.ts src/cards/EX9/EX9-059.test.ts src/cards/EX9/EX9-060.test.ts src/cards/BT26/BT26-018.test.ts src/cards/BT26/BT26-040.test.ts src/engine/conformance/ch16a-security-blocker-draw.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts
+  PASS (7 files, 66 tests)
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-023.ts apps/api/src/cards/BT26/BT26-023.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved card-text ambiguity remains. No implementation, shared-engine, or test changes were needed, and no commit or push was made, per the audit task instructions. Only this BT26-023 ledger section is left uncommitted for coordinator review.
