@@ -22,7 +22,7 @@ const gainTarget = {
   },
   count: "all",
 };
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
