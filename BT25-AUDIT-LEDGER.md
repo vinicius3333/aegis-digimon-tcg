@@ -112,6 +112,22 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-039 (Sirenmon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-039 Sirenmon | Yellow/green level 5 Digimon; Security end-of-your-turn may play Ceresmon from hand at -7, then may place this card under that played Digimon; all turns, when any other own Shaman/Iliad Digimon or Tamer would leave by a cause other than your effects, deleting this prevents all matching leaves; on deletion may place this face-up at bottom security; inherited opponent's turn once per turn, when an opponent's Digimon attacks, may redirect to one suspended own Digimon. Q6306-Q6308 define cost stacking, affects-all replacement and delayed On Deletion timing. | **Causal attacker-filter gap.** The inherited `whenOpponentAttacks` watcher has no `sourceFilter`, so the combat SubTrigger bus accepts any attacker subject. The printed watcher requires an opponent's Digimon; a forced own Digimon attack during the opponent's turn could incorrectly open the redirect. Security timing, Ceresmon reduced payment/placement, affects-all leave replacement, delayed deletion behavior, face-up bottom-security placement, and inherited once-per-turn scope are otherwise represented. | Structural proof only; no execution of opponent-vs-own attacker filtering, Security end-of-battle timing, replacement batches, cost stacking, or delayed On Deletion resolution. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-039
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-039` (Q6306-Q6308).
+- Direct module and combat `whenOpponentAttacks` payload routing were inspected. The combat
+  bus emits the attacker as subject and relies on watcher `sourceFilter` for ownership; this
+  watcher omits that filter.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-038 (Shakkoumon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
