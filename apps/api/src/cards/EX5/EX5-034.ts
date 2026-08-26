@@ -86,10 +86,8 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
-          sourceFilter: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-          },
+          // Printed "a Digimon" observes either player's newly-suspended Digimon.
+          sourceFilter: { kind: ["Digimon"] },
           actions: [
             {
               kind: "SelectBind",

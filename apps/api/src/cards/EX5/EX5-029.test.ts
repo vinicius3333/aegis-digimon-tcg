@@ -9,6 +9,7 @@ describe("EX5-029 Reppamon", () => {
       mode: "reduce",
       costType: "digivolve",
       amount: 2,
+      duration: "nextDigivolveThisTurn",
       optional: false,
       cost: { kind: "trash", target: { filter: { controller: "mine", zone: "security", position: "top" } } },
     });

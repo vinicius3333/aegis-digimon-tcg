@@ -26,18 +26,18 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-020 | Crescemon | 1 | Q3569 has separate self-scoped would-play and would-digivolve-into reductions with live trait-plus-three-source gate; both entry routes restrict one opponent’s suspend until their turn end, and inherited DP is opponent-turn scoped. | Pending focused proof |
 | EX5-021 | Majiramon | 11 | On Play draw then optional breeding-area Deva play uses distinct-name exclusion; Your Turn watcher gates memory on Option cost≥1, while inherited attack memory uses the source’s live Four Sovereigns/God Beast trait and Once Per Turn. | Pending focused proof |
 | EX5-022 | Mihiramon | 6 | On Play draw/optional distinct-name Deva breeding play is followed by shared once-per-turn friendly-Digimon entry watcher that trashes one opposing top source; inherited Four Sovereigns/God Beast attack-memory clause is live-trait scoped. | Pending focused proof |
-| EX5-023 | WereGarurumon (X Antibody) | 1 | Direct IR orders the mandatory two-card hand trash before optional source-gated return and self-unsuspend; the shared `selfDigivolutionStackHasTrait` condition reads the live stack and inherited attack route has its own Once Per Turn. | Pending focused proof |
+| EX5-023 | WereGarurumon (X Antibody) | 1 | Direct IR orders mandatory two-card hand trash into self-unsuspend with `abortOnDecline`, so an unpaid head cannot reach the optional source-gated Return Then; the live stack condition and inherited attack Once Per Turn remain separate. | Pending focused proof |
 | EX5-024 | Azulongmon | 0 | Blast is hand-only; both entry timings return one opponent level≤5 then unsuspend one own listed-trait Digimon, and deletion uses the shared highest-level target selector. | Pending focused proof |
-| EX5-025 | Dianamon | 4 | Catalog Q3584-Q3587, direct IR, and live player restriction primitive reviewed. Corrected the all/no-source suspend lock to re-evaluate entrants and source changes; shared Once Per Turn trigger verified structurally. | Pending focused proof |
+| EX5-025 | Dianamon | 4 | Catalog Q3584-Q3587, direct IR, and live player restriction primitive reviewed. Its source-trash now pools one card per own digivolution source across opposing Digimon; the all/no-source suspend lock continues to re-evaluate entrants and source changes. | Pending focused proof |
 | EX5-026 | MetalGarurumon (X Antibody) | 3 | Blocker is static; source-gated evolution creates an opponent attack-memory-loss aura through opponent-turn end. Q3590 entrant coverage now uses the broad `OnEnterFieldAnyone` seam (play, digivolution, and breeding-to-battle movement), filters opponent Digimon, deduplicates by recipient instance, and expires/cleans up at opponent-turn end; attack cost returns one own trash Digimon and binds its level for the exact opposing deletion filter. | Pending focused run |
 | EX5-027 | Liollmon | 1 | On Play security search optionally returns one exact Leomon, adds deck security only if that selection succeeded, then shuffles; inherited deletion DP−2000 expires at opponent-turn end. | Pending focused proof |
 | EX5-028 | Kudamon | 1 | Both clauses use the shared live total-security≤6 condition: On Play optionally free-plays a Yellow Tamer; inherited attack applies once-per-turn −2000 DP for the turn. | Pending focused proof |
-| EX5-029 | Reppamon | 1 | Attack timing mandatorily trashes own top security to grant a one-turn −2 digivolve cost modifier; inherited once-per-turn attack DP−2000 uses the live total-security≤6 gate. | Pending focused proof |
+| EX5-029 | Reppamon | 1 | Attack timing mandatorily trashes own top security to arm the executable one-shot `nextDigivolveThisTurn` −2 reducer; inherited once-per-turn attack DP−2000 uses the live total-security≤6 gate. | Pending focused proof |
 | EX5-030 | Liamon | 1 | Optional self attack-digivolve finds an exact Leomon name in hand at −1; Rule statically grants Leomon identity, and inherited deletion DP−2000 lasts through opponent-turn end. | Pending focused proof |
 | EX5-031 | Chirinmon | 2 | Digivolving mandatorily trashes own top security to unsuspend self; inherited attack once-per-turn optionally places one Yellow hand card atop security only while total security remains≤6. | Pending focused proof |
 | EX5-032 | LoaderLeomon | 0 | Fortitude is static; either entry timing applies opponent-turn −3000 DP, and inherited opponent-turn Blocker aura uses the host’s live Leomon-name predicate. | Pending focused proof |
 | EX5-033 | Mitamamon | 3 | Q3599 opponent-turn SEC−2 now re-evaluates live total-security threshold (`whileMatchesTargetFilter`); corrected focused fixture distinguishes level 4 at total 4 from level 3 after total falls to 3. | Pending focused run |
-| EX5-034 | BanchoLeomon | 1 | Q3600 total-security threshold is represented by the static hand-play replacement; the All Turns watcher binds one optional opponent target once, then applies both −4000 DP and SEC−1 through that binding until opponent-turn end. | Pending focused proof |
+| EX5-034 | BanchoLeomon | 1 | Q3600 total-security threshold is represented by the static hand-play replacement; the All Turns watcher now observes either player's Digimon becoming suspended, then binds one optional opponent target for its shared −4000 DP and SEC−1 package through opponent-turn end. | Pending focused proof |
 | EX5-035 | Hawkmon | 0 | On Play reveal-three adds every Fortitude Digimon match then bottoms remainder; inherited +1000 DP aura continuously follows the suspended host state. | Pending focused proof |
 | EX5-036 | Aquilamon | 0 | Fortitude is static and inherited +1000 DP aura is suspended-state live. | Pending focused proof |
 | EX5-037 | Vajramon | 11 | On Play draw then optional distinct-name Deva breeding play; owner-turn Option-cost≥1 watcher gains memory, while inherited Piercing is corrected to a continuous Four Sovereigns/God Beast host-trait aura (not a once-per-turn grant). The focused fixture covers Four Sovereigns and God Beast positives, nonmatching negative, per-host inherited binding, and lapse after a nonmatching top replaces a qualifying host. | Pending focused run |
@@ -123,18 +123,18 @@ This index records the executable trigger/action route inspected for each card; 
 | EX5-020 | cost replacement; restrict; Opponent Turn DP. |
 | EX5-021 | Deva play; Option-use memory; attack memory. |
 | EX5-022 | Deva play; source-trash; attack memory. |
-| EX5-023 | trash-two → return/unsuspend route. |
+| EX5-023 | paid trash-two/unsuspend → abort-safe optional return route. |
 | EX5-024 | Blast; return/unsuspend; deletion delete. |
-| EX5-025 | Blocker; source-trash/live suspend lock; unsuspend subtrigger. |
+| EX5-025 | Blocker; pooled per-source trash/live suspend lock; unsuspend subtrigger. |
 | EX5-026 | Blocker; opponent attack-memory aura; delete/return. |
 | EX5-027 | search/security; deletion DP. |
 | EX5-028 | security-scaled Tamer play and DP. |
-| EX5-029 | attack trash cost and security-scaled DP. |
+| EX5-029 | attack trash cost → one-shot next-digivolve reducer; security-scaled DP. |
 | EX5-030 | attack Digivolve; rule grant; deletion DP. |
 | EX5-031 | trash-cost unsuspend; security manipulation. |
 | EX5-032 | Fortitude; DP; named Blocker aura. |
 | EX5-033 | play/Rush; Barrier; Opponent Turn SEC−. |
-| EX5-034 | replacement; suspend; bound target DP/SEC+. |
+| EX5-034 | replacement; either-player suspension watcher; bound target DP/SEC+. |
 | EX5-035 | reveal-add; suspended DP aura. |
 | EX5-036 | Fortitude; suspended DP aura. |
 | EX5-037 | Deva play; Option memory; Piercing. |

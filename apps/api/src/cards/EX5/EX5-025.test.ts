@@ -24,12 +24,18 @@ describe("EX5-025 Dianamon", () => {
     expect(digivolving?.actions?.[0]).toMatchObject({
       kind: "TrashDigivolution",
       amount: 1,
+      scope: "acrossDigimon",
       scaling: { per: 1, unit: "digivolutionCards" },
     });
     expect(digivolving?.actions?.[1]).toMatchObject({
       target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], digivolutionCards: "none" }, count: "all" },
       whileMatchesTargetFilter: true,
     });
+  });
+  it("queues one pooled selection per own source across opposing Digimon", () => {
+    const action = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0];
+    expect(action).toMatchObject({ kind: "TrashDigivolution", scope: "acrossDigimon", amount: 1 });
+    expect(action?.scaling).toMatchObject({ unit: "digivolutionCards", filter: { controllerDefault: "mine" } });
   });
   it("unsuspends once per turn when an opponent's Digimon loses a digivolution card", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({

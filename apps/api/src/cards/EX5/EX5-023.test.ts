@@ -6,6 +6,7 @@ describe("EX5-023 WereGarurumon (X Antibody)", () => {
     const digivolvingAction = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0];
     expect(digivolvingAction).toMatchObject({
       kind: "Unsuspend",
+      abortOnDecline: true,
       cost: { kind: "trash", target: { filter: { zone: "hand" }, count: 2 } },
     });
     expect(digivolvingAction).not.toHaveProperty("optional");
