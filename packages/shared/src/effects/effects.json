@@ -10472,14 +10472,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "grant": { "dp": 3000, "color": "white", "originalName": "Sukamon" },
             "duration": "untilOpponentTurnEnd",
-            "condition": {
-              "kind": "zoneCount",
-              "seat": "opponent",
-              "zone": "trash",
-              "op": "gte",
-              "value": 16,
-              "raw": "your opponent has 16 or more cards in their trash"
-            }
+            "condition": { "kind": "anyOf", "conditions": [{ "kind": "zoneCount", "seat": "opponent", "zone": "trash", "op": "gte", "value": 16 }, { "kind": "selfHasMinTrash", "count": 3, "filter": { "nameOrTrait": [{ "tokens": ["Sukamon"], "match": "name" }] } }] }
           }
         ]
       },
@@ -10491,14 +10484,7 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "grant": { "dp": 3000, "color": "white", "originalName": "Sukamon" },
             "duration": "untilOpponentTurnEnd",
-            "condition": {
-              "kind": "zoneCount",
-              "seat": "opponent",
-              "zone": "trash",
-              "op": "gte",
-              "value": 16,
-              "raw": "your opponent has 16 or more cards in their trash"
-            }
+            "condition": { "kind": "anyOf", "conditions": [{ "kind": "zoneCount", "seat": "opponent", "zone": "trash", "op": "gte", "value": 16 }, { "kind": "selfHasMinTrash", "count": 3, "filter": { "nameOrTrait": [{ "tokens": ["Sukamon"], "match": "name" }] } }] }
           }
         ]
       },
@@ -10538,7 +10524,7 @@
                   "kind": "deleteOwn",
                   "target": {
                     "filter": {
-                      "controller": "mine",
+                      "controller": "any",
                       "excludeSelf": true,
                       "kind": ["Digimon"],
                       "nameOrTrait": [{ "tokens": ["Sukamon"], "match": "name" }]

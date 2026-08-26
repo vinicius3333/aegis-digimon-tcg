@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT11-043.js";
+import { compiled } from "./BT11-043.js";
 
 describe("BT11-043 KingSukamon", () => {
+  it("maps its alternate evolution, conditional rewrite, scaling, and unrestricted prevention cost", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, names: ["Sukamon"], cost: 3, isAlternate: true }]);
+    expect(compiled.effects[3]).toMatchObject({ isInherited: true, actions: [{ kind: "Replacement", actions: [{ kind: "Prevent", cost: { target: { filter: { controller: "any", excludeSelf: true } } } }] }] });
+  });
+
   it("replaces an opponent Digimon's original name, color and DP", async () => {
     const s = setupEngine(
       {
@@ -40,5 +46,23 @@ describe("BT11-043 KingSukamon", () => {
     expect(observe(s.engine).effectiveNames(target)).toEqual(["metalgreymon"]);
     expect(observe(s.engine).effectiveColors(target)).toEqual(["Black"]);
     expect(target.currentDP).toBe(8000);
+  });
+
+  it("counts every other Sukamon for Security Attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT11-043", as: "king" }, { card: "BT11-040", as: "ally" }] },
+      1: { battleArea: [{ card: "BT11-040", as: "opponentCost" }], security: ["BT1-001", "BT1-001", "BT1-001"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("king").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("king"), "SecurityAttack") === 2);
+  });
+
+  it("uses an opponent's Sukamon to prevent deletion from its inherited effect", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-042", as: "host", under: ["BT11-043"] }] }, 1: { battleArea: [{ card: "BT11-040", as: "cost" }] } }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.inst("cost").instanceId);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
