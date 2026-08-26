@@ -1605,3 +1605,46 @@ git diff --check
 ```
 
 No unresolved BT26-035 ambiguity or unsupported printed clause remains. No implementation or shared-engine change was needed; only the focused test was strengthened to provide the required optional, mixed-trait, host-source, cost, and Once Per Turn evidence. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-035; the collection is not marked complete.
+
+## BT26-036 — Lalamon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-036` (`Lalamon`), a green level-3 Rookie Digimon with play cost 3, 1000 DP, Data attribute, and `Vegetation`/`DATA SQUAD` traits. Its normal evolution requirement is green Lv.2 for cost 0, and its alternate requirement is `[Digivolve] Lv.2 w/[DATA SQUAD] trait: Cost 0`. The main text is `[When Moving] [On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Vegetation], [Fairy] or [DATA SQUAD] trait or 1 green Tamer card among them to the hand. Return the rest to the bottom of the deck.` Its inherited text is `[When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon.` It has no Security text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-036 --json`; it returns `qa: []`, `banlist: null`, and `errata: null`. No card-specific ruling, erratum, or restriction remains to resolve.
+- Comprehensive Rules evidence: §§2-3-5-1–3 define alternate evolution requirements; §§8-1-1–3 define requirement checking, payment, and stack transition; §§11-2-1–5 define attack declaration; §§15-7-1–5 define optional processing; §§15-14-1-1–5 define Once Per Turn identity, activation counting, and reset; §§15-16-2-1, 15-16-5-1, and 15-16-16-1 define On Play, When Attacking, and When Moving timing. §15-15-3 covers revealing cards and returning unrecruited cards to the deck. No unresolved ambiguity is present.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-036.ts` is compiled IR with `coverage: "full"` and `residual: []`. It registers exactly once through `registerIrCard("BT26-036", compiled)`; no second `registerCard` registration exists.
+- The alternate requirement is exact (`level: 2`, `traits: ["DATA SQUAD"]`, `cost: 0`, `isAlternate: true`); the shared requirement reader supplies the normal green Lv.2/cost-0 route. The focused evolution test uses a real DATA SQUAD Lv.2 stack and rejects a near-match base.
+- The printed `[When Moving] [On Play]` clause is represented by separate `OnPlay` and `WhenMoving` `RevealAdd` actions, each revealing exactly three, adding exactly one card to hand, and bottoming every remaining revealed card. The add filter is the union of `Vegetation`, `Fairy`, `DATA SQUAD`, or a green Tamer via the `RevealAdd` entry's `orFilters` field. This preserves the Tamer branch without accidentally requiring a trait as well.
+- The inherited action is `WhenAttacking`, `isInherited: true`, `frequency: "OncePerTurn"`, and an optional `Suspend` targeting exactly one opponent-controlled Digimon. The shared attack dispatcher, inherited collector, target matcher, optional decision path, and per-copy Once Per Turn ledger provide the timing, controller, count, refusal, and repeated-attack semantics.
+- Shared seams inspected: `effects/interpreter/actions/reveal.ts` for reveal count, OR-filter union, hand destination, and deck-bottom restoration; loose definition matching for trait/kind/color boundaries; `effects/interpreter/actions/suspend.ts` and attack dispatch for opponent-only target resolution and optionality; the inherited-effect collector and Once Per Turn ledger; and digivolution requirement/stack transition handling. Relevant peers inspected: BT26-034, BT26-035, BT26-038, BT26-052, BT26-061, BT24-066, and BT25-047 for the same evolution, RevealAdd, inherited When Attacking, and deck-bottom patterns.
+
+### Behavioral proof and correction
+
+- The audit found two real fidelity gaps and corrected only this card: the green-Tamer alternative had been nested inside the primary definition filter instead of `RevealAdd.orFilters`, and the inherited “You may suspend” action lacked `optional: true`. The former rejected green Tamers without one of the listed traits; the latter made the suspension mandatory when the trigger resolved.
+- `apps/api/src/cards/BT26/BT26-036.test.ts` now has 9 passing tests. It proves the exact IR shape and alternate requirement; On Play reveal/add/bottom behavior for each of `Vegetation`, `Fairy`, and `DATA SQUAD`; the green-Tamer alternative with a non-DATA-SQUAD green Tamer and rejection of a red Tamer; the independent When Moving window; inherited suspension of one opponent Digimon while excluding an own Digimon; inherited Once Per Turn behavior across two attacks; optional refusal; and rejection of a non-DATA-SQUAD alternate-evolution base.
+- The inherited proof uses a real BT26-039 host with BT26-036 in its evolution stack and a mixed board, so source identity, inherited visibility, opponent-only targeting, exact count, and Once Per Turn behavior are observed after full attack resolution. Reveal tests assert final hand identity and the exact order of the two bottomed cards.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-036 --json
+  PASS (qa: []; banlist: null; errata: null)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-036.test.ts
+  PASS (1 file, 9 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-036.test.ts src/cards/BT26/BT26-034.test.ts src/cards/BT26/BT26-035.test.ts src/cards/BT26/BT26-038.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts
+  PASS (7 files, 368 tests)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxlint apps/api/src/cards/BT26/BT26-036.ts apps/api/src/cards/BT26/BT26-036.test.ts
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-036.ts apps/api/src/cards/BT26/BT26-036.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-036 ambiguity or unsupported printed clause remains. The implementation and focused tests were corrected only for the two identified fidelity gaps; no shared-engine files were changed. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-036; the collection is not marked complete.
