@@ -69,6 +69,18 @@ export async function runReplacement(
   if (action.condition !== undefined && !evaluateCondition(ctx, action.condition)) return;
   if (action.sourceFilter?.zone === "battleArea" && !ctx.source.isOnBattleArea()) return;
   const self = ctx.source.permanent();
+  if (event === "wouldDigivolve" && action.mode === "gainMemoryOnDna" && self !== undefined) {
+    ctx.fx.subscribeReplacement({
+      ...replacementBudget,
+      event,
+      sourcePermanentId: self.permanentId,
+      mode: "gainMemoryOnDna",
+      amount: action.amount ?? 0,
+      description: action.raw ?? ctx.activeEffectText ?? "Gain memory on DNA digivolution",
+      intoMatches: (definition) => action.into === undefined || definitionMatches(action.into, definition),
+    });
+    return;
+  }
   if (event === "wouldTrashDigivolutionCard" && self !== undefined) {
     ctx.fx.subscribeReplacement({
       ...replacementBudget,

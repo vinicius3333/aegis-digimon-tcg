@@ -12,6 +12,4 @@ const deletionEffect = compiled.effects.find(
 );
 const deletionTrigger = deletionEffect?.actions[0];
 if (deletionTrigger?.kind === "SubTrigger") deletionTrigger.sourceFilter = { isSelfRef: true };
-const module = registerIrCard("BT12-072", compiled);
-
-export default module;
+export default registerIrCard("BT12-072", compiled);

@@ -418,6 +418,12 @@ function materialMatchesSlot(def: CardDefinition, slot: DigiXrosMaterial, digiXr
   if (slot.nameOrTrait && slot.nameOrTrait.length > 0) {
     if (!slot.nameOrTrait.some((ref) => matchNameOrTrait(def, ref))) return false;
   }
+  // Printed text slots (BT12-011/074/075: "1 Digimon card with ＜Save＞ in its text")
+  // are structural recipe predicates, not unconstrained description text. Match them
+  // through the same full-card-text union used by other "in its text" filters.
+  if (slot.texts && slot.texts.length > 0) {
+    if (!matchNameOrTrait(def, { tokens: slot.texts, match: "text" })) return false;
+  }
   if (slot.level !== undefined && def.level !== slot.level) return false;
   if (slot.levelMin !== undefined && (def.level === undefined || def.level < slot.levelMin)) return false;
   if (slot.levelMax !== undefined && (def.level === undefined || def.level > slot.levelMax)) return false;
@@ -437,6 +443,7 @@ function materialMatchesSlot(def: CardDefinition, slot: DigiXrosMaterial, digiXr
     (slot.traitContains?.length ?? 0) > 0 ||
     (slot.colors?.length ?? 0) > 0 ||
     (slot.nameOrTrait?.length ?? 0) > 0 ||
+    (slot.texts?.length ?? 0) > 0 ||
     slot.level !== undefined ||
     slot.levelMin !== undefined ||
     slot.levelMax !== undefined ||

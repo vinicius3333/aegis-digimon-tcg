@@ -3033,6 +3033,16 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         removalMechanic: opts?.mechanic,
       });
     }
+    // A deleted host retains effects it had already gained while its [On Deletion] triggers
+    // are collected (BT12-072 Q2214). Capture grants before movement drops that permanent's
+    // continuous ledgers; the post-removal timing window consumes this immutable event snapshot.
+    const deletionGrantSnapshot = {
+      stackEffectConferralsSnapshot: [...continuous.listStackEffectConferrals()],
+      customEffectGrantsSnapshot: [...continuous.listCustomEffectGrants()],
+      onDeletionAtEndOfAttackProjectionsSnapshot: continuous
+        .listOnDeletionAtEndOfAttackProjections()
+        .map((projection) => projection.permanentId),
+    };
     const movedByPermanent = access.deletePermanentsBatched(toDelete);
     const deletedEffectiveColorsByInstanceId: Record<string, CardColor[]> = {};
     for (let i = 0; i < toDelete.length; i++) {
@@ -3079,7 +3089,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // the same way, and never route through this primitive (each owns exactly one window).
     if (allMoved.length > 0 && engine.fireTiming) {
       const deletionTrigger = {
+        ...deletionGrantSnapshot,
         deletedPermanentId: allMoved[0],
+        deletedPermanentIds: toDelete,
         deletedTopCardId: topCardIdsByPermanent.find((cardId) => cardId !== undefined),
         deletedEffectiveColorsByInstanceId,
         deletedByDpZero,
@@ -4649,6 +4661,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         : []),
       ...(opts?.attackPlayerOnly === true ? [] : legalEnemyIds),
     ];
+    if (candidates.length === 0) return;
     const chosen = await engine.ask.selectInstances(
       controllerSeat,
       candidates,
@@ -4656,7 +4669,6 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       1,
       "Choose the attack target for the forced attack.",
     );
-    if (candidates.length === 0) return;
     const pick = chosen[0] ?? candidates[0]!;
     const target: AttackTarget = pick === PLAYER ? { kind: "player" } : { kind: "permanent", permanentId: pick };
 

@@ -86,11 +86,14 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
   // triggering event occurred and therefore cannot trigger retroactively (BT10-011 Q1940).
   // Nested events build their own ResolutionEnv and see grants that existed before *their* event.
   const grantSnapshot = {
-    stackEffectConferrals: [...env.continuous.listStackEffectConferrals()],
-    customEffectGrants: [...env.continuous.listCustomEffectGrants()],
-    onDeletionAtEndOfAttackProjections: env.continuous
-      .listOnDeletionAtEndOfAttackProjections()
-      .map((projection) => projection.permanentId),
+    stackEffectConferrals: [
+      ...(env.triggerInfo?.stackEffectConferralsSnapshot ?? env.continuous.listStackEffectConferrals()),
+    ],
+    customEffectGrants: [...(env.triggerInfo?.customEffectGrantsSnapshot ?? env.continuous.listCustomEffectGrants())],
+    onDeletionAtEndOfAttackProjections: [
+      ...(env.triggerInfo?.onDeletionAtEndOfAttackProjectionsSnapshot ??
+        env.continuous.listOnDeletionAtEndOfAttackProjections().map((projection) => projection.permanentId)),
+    ],
   };
   return {
     turnSeat: deps.turnSeat,

@@ -1,26 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-041.js";
 
-describe("BT12-041 handwritten module", () => {
-  it("registers its printed timing without declarative effect record", () => {
-    const module = getEffectModule("BT12-041");
-    expect(module?.cardId).toBe("BT12-041");
-    const source = {
-      instanceId: "source-041",
-      cardId: "BT12-041",
-      ownerSeat: 0,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      permanent: () => undefined,
-    } as unknown as CardSource;
-    expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source).length).toBeGreaterThan(0);
-    expect(module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source).length).toBeGreaterThan(0);
-    expect(module!.effectsForTiming(EffectTiming.OnUseAttack, source).length).toBeGreaterThan(0);
+describe("BT12-041 Cho-Hakkaimon", () => {
+  it("registers full compiled IR for all three printed clauses", () => {
+    const compiled = runtimeCompiledCard("BT12-041")!;
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.effects.map(({ trigger }) => trigger)).toEqual(
+      expect.arrayContaining(["WhenDigivolving", "YourTurn", "WhenAttacking"]),
+    );
+    expect(JSON.stringify(compiled)).not.toContain('"kind":"raw"');
   });
 });
 
@@ -132,7 +124,7 @@ it("does not apply the scaled effect when there are fewer than two digivolution 
   const s = setupEngine(
     {
       0: {
-        battleArea: [{ card: "BT12-037", as: "base", under: ["BT12-011"] }],
+        battleArea: [{ card: "BT12-037", as: "base" }],
         hand: [{ card: "BT12-041", as: "cho" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 10000 }] },

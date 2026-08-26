@@ -50,7 +50,7 @@ export function candidatePermanents(
   // before the interpreter consumes it. A target that arrives without one must resolve to
   // no candidates, never throw: a TypeError here aborts the whole intent, so one malformed
   // action silently disables every later action in the same effect.
-  if (target.isSelf || target.filter?.isSelfRef) {
+  if ((target.isSelf || target.filter?.isSelfRef) && (target.orFilters?.length ?? 0) === 0) {
     const self = source.permanent();
     if (self === undefined) return [];
     // Real self targets still have to satisfy their printed qualifiers (for example,
@@ -427,7 +427,10 @@ export async function resolvePermanentTargets(
     ctx.lastResolvedPermanentIds = all;
     return all;
   }
-  if (target.isSelf || target.filter?.isSelfRef || target.fromSelectionRef !== undefined) {
+  if (
+    ((target.isSelf || target.filter?.isSelfRef) && (target.orFilters?.length ?? 0) === 0) ||
+    target.fromSelectionRef !== undefined
+  ) {
     const result = finalize(candidates.map((p) => p.permanentId));
     ctx.lastResolvedPermanentIds = result;
     return result;

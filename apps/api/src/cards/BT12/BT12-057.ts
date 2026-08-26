@@ -1,97 +1,49 @@
-import { EffectDuration, EffectTiming, isDigimon, isTamer } from "@aegis/shared";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { staticModifier, whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
+import { getCompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT12-057";
-function digimonOrTamerIds(ctx: EffectContext): string[] {
-  const ids: string[] = [];
-  for (const player of ctx.game.state.players)
-    for (const permanent of player.battleArea) {
-      if (
-        permanent.topCard !== undefined &&
-        (isDigimon(ctx.game.definitionOf(permanent.topCard)) || isTamer(ctx.game.definitionOf(permanent.topCard)))
-      )
-        ids.push(permanent.permanentId);
-    }
-  return ids;
+const compiled = structuredClone(getCompiledCard("BT12-057")!);
+const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving");
+const suspendAll = whenDigivolving?.actions.find((action) => action.kind === "Suspend");
+if (suspendAll?.kind === "Suspend") {
+  suspendAll.target = {
+    filter: { controller: "any", kind: ["Digimon", "Tamer"], excludeSelf: true },
+    count: "all",
+  };
 }
-function suspendedCount(ctx: EffectContext): number {
-  let count = 0;
-  for (const player of ctx.game.state.players)
-    for (const permanent of player.battleArea) {
-      if (
-        permanent.isSuspended &&
-        permanent.topCard !== undefined &&
-        (isDigimon(ctx.game.definitionOf(permanent.topCard)) || isTamer(ctx.game.definitionOf(permanent.topCard)))
-      )
-        count += 1;
-    }
-  return count;
+const memory = whenDigivolving?.actions.find((action) => action.kind === "GainMemory");
+if (memory?.kind === "GainMemory" && memory.scaling !== undefined) {
+  memory.scaling.filter = { controller: "any", suspended: true, kind: ["Digimon", "Tamer"] };
 }
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing, source) {
-    if (timing === EffectTiming.WhenDigivolving)
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/suspend-all`,
-          description:
-            "Suspend all other Digimon and all Tamers, then gain 1 memory per 2 suspended Digimon and Tamers.",
-          resolve: async (ctx) => {
-            const selfId = source.permanent()?.permanentId;
-            await ctx.fx.suspend(
-              digimonOrTamerIds(ctx).filter((id) => id !== selfId),
-              { byEffectSeat: source.ownerSeat },
-            );
-            ctx.fx.gainMemory(Math.floor(suspendedCount(ctx) / 2));
-          },
-        }),
-      ];
-    if (timing === EffectTiming.OnAllyAttack)
-      return [
-        whenAttacking({
-          source,
-          effectKey: `${cardId}/attack-suspend-security`,
-          description: "Suspend an opposing Digimon or Tamer, then trash security per 5 suspended Digimon and Tamers.",
-          resolve: async (ctx) => {
-            const opponent = ctx.game.opponentOf(source.ownerSeat);
-            const candidates = ctx.game
-              .player(opponent)
-              .battleArea.filter(
-                (permanent) =>
-                  permanent.topCard !== undefined &&
-                  (isDigimon(ctx.game.definitionOf(permanent.topCard)) ||
-                    isTamer(ctx.game.definitionOf(permanent.topCard))),
-              )
-              .map(({ permanentId }) => permanentId);
-            if (candidates.length) {
-              const [picked] = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
-              if (picked) await ctx.fx.suspend([picked], { byEffectSeat: source.ownerSeat });
-            }
-            const count = Math.floor(suspendedCount(ctx) / 5);
-            if (count > 0) await ctx.fx.trashFromSecurity(opponent, count, { fromTop: true });
-          },
-        }),
-      ];
-    if (timing === EffectTiming.None)
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/no-unsuspend`,
-          description: "[All Turns] Other Digimon and Tamers don't unsuspend.",
-          resolve: async (ctx) => {
-            const selfId = source.permanent()?.permanentId;
-            for (const id of digimonOrTamerIds(ctx))
-              if (id !== selfId) ctx.fx.restrict(id, "unsuspend", EffectDuration.Permanent, { continuous: true });
-          },
-        }),
-      ];
-    return [];
-  },
-};
-const registered = registerIrCard(cardId, { effects: [], coverage: "full", residual: [] });
-registered.effectsForTiming = module.effectsForTiming;
-export default registered;
+const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns");
+if (allTurns !== undefined) {
+  allTurns.actions = [
+    {
+      kind: "Restrict",
+      target: {
+        filter: { controller: "any", kind: ["Digimon", "Tamer"], excludeSelf: true },
+        count: "all",
+      },
+      restriction: "unsuspend",
+      duration: "permanent",
+      whileMatchesTargetFilter: true,
+    },
+  ];
+}
+const whenAttacking = compiled.effects.find((effect) => effect.trigger === "WhenAttacking");
+const trash = whenAttacking?.actions.find((action) => action.kind === "Trash");
+if (whenAttacking !== undefined && trash?.kind === "Trash") {
+  const index = whenAttacking.actions.indexOf(trash);
+  whenAttacking.actions[index] = {
+    kind: "SecurityManipulation",
+    op: "trashTop",
+    controller: "opponent",
+    amount: 1,
+    scaling: {
+      per: 5,
+      filter: { controller: "any", suspended: true, kind: ["Digimon", "Tamer"] },
+      unit: "cards",
+    },
+  };
+}
+
+export default registerIrCard("BT12-057", compiled);
