@@ -84,3 +84,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-004.
+
+## BT25-005 — Pagumon — 10/10
+
+- Catalog evidence: Black level-2 Digi-Egg, `In-Training` form, `Lesser`, `Iliad`, and `TS` traits, no evolution recipe, no main or Security text, and inherited `[Your Turn] [Once Per Turn] When [Three Musketeers] trait cards are placed in this Digimon's digivolution cards, it may digivolve into a Digimon card with [Three Musketeers] in its text or the [TS] trait in the hand with the cost reduced by 2`.
+- Knowledge base: Q6252 defines “X in its text” to include name, traits, effects, inherited effects, and the listed requirement/icon fields. The direct IR therefore correctly uses the broad `match: "text"` branch for `Three Musketeers`, alongside the exact `TS` trait branch.
+- Implementation: `BT25-005.ts` installs an inherited controller-turn, once-per-turn `onAddDigivolutionCards` watcher bound to this Digimon, requires the added source card to have the `Three Musketeers` trait, and offers a self-digivolution from hand into a Digimon matching either printed destination branch at cost -2. Optional refusal preserves the once-per-turn opportunity. It has full coverage, no residual clauses, and registers exclusively through `registerIrCard("BT25-005", compiled)`.
+- Behavioral proof: the delegated audit exercised a temporary full-engine fixture that proved the actual placement trigger, reduced-cost payment, and a text-only destination, then removed that fixture because the implementation was already correct and the requested policy does not require adding tests for a good card. The committed focused test verifies the complete IR routing and cost/options shape and remained green.
+- Verification: focused suite — 1 passed; temporary full-engine positive path — passed during audit; `git diff --check` — passed. Workspace typecheck reports only the already-recorded unrelated pre-existing errors and no BT25-005 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-005
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-005.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-005.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-005.
