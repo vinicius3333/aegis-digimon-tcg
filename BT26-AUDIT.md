@@ -855,3 +855,47 @@ git diff --check
 ```
 
 The card implementation and focused tests were adjusted to correct the Aqua/Sea Animal substring matching and to encode the printed Rule line as a Rule effect. Only this BT26-018 section and its focused proof additions are left uncommitted for coordinator review; no commit or push was made.
+
+## BT26-019 — Mailmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-019` (`Mailmon`), a blue level 3 Digimon with 4000 DP, Social attribute, and `Mail (App Name)`/`Seven Code` traits. Its normal evolution requirement is blue Lv.2 for 0; its alternate requirement is `[Digivolve] Lv.2 w/[Appmon] trait: Cost 0`; and its Link requirement is `[Link] [Appmon] trait: Cost 3`. The printed effects are `＜Detach ([Seven Code] trait)＞`; `[When Attacking] If your hand has 7 or fewer cards, ＜Draw 1＞`; and `[When Linking] 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.`
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-019`; it reports no card-specific entries, errata, restrictions, or unresolved rulings.
+- Comprehensive Rules evidence: §4-24-1 defines `Digimon/Tamers` as choosing one opposing Digimon or Tamer; §11-2-1 and §11-2-5 establish that an attack declaration suspends the attacker and cannot be made by a Digimon that can't suspend; §16-46-1–3 defines Detach as an optional link-card trash that prevents a non-owner-effect leave; and §15-14/§15-16 cover the hand-boundary condition, When Attacking, and When Linking timing.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-019.ts` is IR-only and registers exactly once with `registerIrCard("BT26-019", compiled)`; no `registerCard` registration exists. The module publishes Detach, the non-inherited When Attacking Draw 1 with an inclusive hand-count condition (`lte: 7`), and the linked When Linking restriction targeting exactly one opposing Digimon or Tamer until the opponent's turn ends. Catalog-backed evolution and Link requirements are exposed through the shared card-definition readers.
+- The known regression was caused by the shared restriction interpreter normalizing every IR `restriction: "suspend"` to `beSuspended`, which only blocks effect-driven suspension. The new explicit `blocksCombatSuspend` IR option is enabled only by BT26-019: the action records both canonical `beSuspended` and combat-facing `suspend`, so it blocks effect suspension and normal attack declarations while still allowing an effect-driven attack that explicitly does not suspend. Existing cards using the legacy token retain their prior behavior.
+- Relevant peers and seams inspected: BT26-010/BT26-051/BT26-084 for Appmon and Seven Code Link/Detach timing; BT26-037/BT26-063/BT26-086 for linked-card sub-trigger identity; BT20-024 and EX9-019 for the legacy suspend restriction token; and the shared Link, sub-trigger, restriction, combat-legality, Detach, target, duration, and evolution-stack primitives.
+
+### Behavioral proof
+
+The focused `apps/api/src/cards/BT26/BT26-019.test.ts` suite has 11 passing tests proving:
+
+- the exact Lv.2 Appmon alternate evolution path at cost 0 and rejection of a same-level non-Appmon near-match;
+- Draw 1 at the inclusive seven-card boundary, no draw above seven, and safe empty-deck behavior;
+- the exact Appmon Link target and cost-3 payment, rejection of a non-Appmon host, and rejection when memory is insufficient;
+- When Linking selection of exactly one opposing Digimon or Tamer, exclusion of own permanents and Options, the simultaneous `suspend` and `beSuspended` restrictions, and expiration only at the opponent's turn end;
+- the host's simultaneous When Linking window, no retrigger from a previously linked Mailmon when another card links later, and Detach eligibility restricted to linked Seven Code cards; and
+- actual Detach battle survival by trashing the specified link card while the host remains in play.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-019
+  PASS (no knowledge-base entries; no erratum/restriction)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-019.test.ts
+  PASS (1 file, 11 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-019.test.ts src/cards/BT20/BT20-024.test.ts src/cards/EX9/EX9-019.test.ts src/cards/BT26/BT26-051.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/combat/legality.test.ts
+  PASS (7 files, 369 tests)
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-019.ts apps/api/src/cards/BT26/BT26-019.test.ts apps/api/src/engine/effects/interpreter/actions/restrictions.ts packages/shared/src/effects/ir/actions/restrictions.ts
+  PASS
+pnpm typecheck
+  PASS (shared build, shared/api/web typecheck)
+git diff --check
+  PASS
+```
+
+A broader exploratory command over 10 files and 400 tests also reproduced three unrelated pre-existing failures in `BT26-031.test.ts`, `BT26-084.test.ts`, and `BT26-086.test.ts`; none of those cards/tests is touched by this audit, and the directly affected BT26-019, suspend-normalization peers, Link, interpreter, primitive, and combat-legality suites pass. This card's implementation and focused proof were adjusted for the real suspend-regression cause. Only this BT26-019 section and its minimal shared-seam/card/test changes are left uncommitted for coordinator review; no commit or push was made.

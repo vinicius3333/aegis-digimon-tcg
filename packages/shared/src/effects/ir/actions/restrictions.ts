@@ -42,6 +42,14 @@ export interface RestrictAction extends ActionBase {
   kind: "Restrict";
   target: Target;
   restriction: RestrictionKind | string;
+  /**
+   * Also record the combat-facing `suspend` prohibition when the canonical
+   * effect-facing restriction is `beSuspended`. Printed "can't suspend"
+   * clauses cover both effect suspension and attack declaration suspension;
+   * older generated IR uses `restriction: "suspend"` for both wordings, so
+   * this opt-in keeps that compatibility while exposing the complete rule.
+   */
+  blocksCombatSuspend?: boolean;
   /** The permanent the restriction is ON. Defaults to the source. */
   on?: Target;
   duration: EffectDurationRef;

@@ -66,6 +66,7 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
             ? "beSuspended"
             : action.restriction
       ) as Restriction;
+      const blocksCombatSuspend = action.restriction === "suspend" && action.blocksCombatSuspend === true;
       // Card IR spells this immunity using the printed-action vocabulary, while the engine's
       // legality layer consumes the normalized `beReturned` restriction for both hand and deck.
       // A deprecated kind has no consumer, so recording it would be a silent no-op. Drop it
@@ -112,8 +113,12 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       }
       const fromSourceKind = action.fromSourceKind as string[] | undefined;
       const byOpponentEffectsOnly = action.byOpponentEffectsOnly === true ? true : undefined;
-      for (const id of ids)
+      for (const id of ids) {
         ctx.fx.restrict(id, restriction, duration, { fromSourceKind, byOpponentEffectsOnly, continuous });
+        if (blocksCombatSuspend) {
+          ctx.fx.restrict(id, "suspend", duration, { fromSourceKind, byOpponentEffectsOnly, continuous });
+        }
+      }
       return false;
     }
     case "RestrictUnsuspendedDigivolve": {
