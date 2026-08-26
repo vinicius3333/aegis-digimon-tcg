@@ -278,7 +278,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-095 — 10/10
   - Registration: exclusive `registerIrCard("BT13-095", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-095.test.ts` passed (4 tests): memory floor, optional On Play suspension, self-suspension DP reduction, and Agumon/Greymon memory gate are live.
-- BT13-096 — Pending
+- BT13-096 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-096", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-096.test.ts` passed (3 tests): digivolution-card play, suspension-paid blue hand placement watcher, and security play are covered.
 - BT13-097 — Pending
 - BT13-098 — Pending
 - BT13-099 — Pending
