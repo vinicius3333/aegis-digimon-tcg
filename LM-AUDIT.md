@@ -51,11 +51,13 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --no-file-parallelism`; placement ownership, dynamic color ceiling, optionality, and deletion
   identity are proven. LM-001 remains below 10/10 pending relevant mechanism and collection gates.
 
-## LM-002 — Jellymon — pending focused execution
+## LM-002 — Jellymon — focused proof green; pending mechanism and collection gates
 
 - Q3989/Q3990 require live hand-count re-evaluation across simultaneous copies; direct Main and
   inherited attack Draw actions each gate on hand at seven-or-fewer. Focused cases include the
-  two-copy threshold and inherited-host timing, but are unrun, so LM-002 remains below 10/10.
+  two-copy threshold and inherited-host timing. The coordinator independently ran the serialized
+  focused command on 2026-08-26; `LM-002.test.ts` passed 1/1 file and 7/7 tests in 3.14s. LM-002
+  remains below 10/10 pending relevant mechanism and collection gates.
 
 ## LM-003 — TeslaJellymon — pending focused execution
 
