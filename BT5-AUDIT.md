@@ -1707,3 +1707,32 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-040 — SuperStarmon — 10/10
+
+- Catalog evidence: Yellow Lv.5 Ultimate Digimon, Data/Mutant, play cost 6,
+  7000 DP, and yellow Lv.4 evolution cost 2. It has no main, inherited,
+  Security, or alternate-evolution text, and the card query exposes no QA,
+  errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-040.ts` intentionally contains
+  `effects: []`, `coverage: "full"`, and `residual: []`, and registers
+  exclusively through `registerIrCard("BT5-040", compiled)`. This is the exact
+  executable contract for a vanilla Digimon; no legacy registration or
+  unsupported behavior remains.
+- Primitive, peer, and behavioral evidence: the focused tests prove the card
+  is registered with complete residual-free runtime coverage and that
+  continuous recomputation introduces no DP or behavioral modification.
+  Adjacent BT5-039 and BT5-041 tests prove the registry cleanly distinguishes
+  this empty module from neighboring effectful cards. Interpreter
+  registration and card-data suites verify empty compiled modules remain
+  discoverable without synthesizing effects and that the committed catalog is
+  structurally valid.
+- Defect corrected: none. The vanilla module and existing tests were already
+  complete, so no changes were made.
+- Verification: focused BT5-040, adjacent BT5-039/041 peers, interpreter,
+  registration, and card-data suites — 6 files, 192 tests passed.
+  `git diff --check` passes. Workspace typecheck retains only the known
+  unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
