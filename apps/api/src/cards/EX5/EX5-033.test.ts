@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-033.js";
 
 describe("EX5-033 Mitamamon", () => {
@@ -37,5 +39,25 @@ describe("EX5-033 Mitamamon", () => {
       keyword: { keyword: "SecurityAttack", amount: -2 },
       duration: "untilOpponentTurnEnd",
     });
+  });
+
+  it("gives every qualifying opposing Digimon Security Attack minus two during the opponent turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX5-033", as: "mitamamon" }], security: ["BT1-001", "BT1-002"] },
+      1: {
+        battleArea: [
+          { card: "BT1-058", as: "qualifying" },
+          { card: "BT1-020", as: "belowTotalSecurity" },
+        ],
+        security: ["BT1-003", "BT1-004"],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await settle(() => observe(s.engine).keywordAmount(s.perm("qualifying"), "SecurityAttack") === -2, 2000);
+
+    expect(observe(s.engine).keywordAmount(s.perm("qualifying"), "SecurityAttack")).toBe(-2);
+    expect(observe(s.engine).keywordAmount(s.perm("belowTotalSecurity"), "SecurityAttack")).toBe(0);
   });
 });
