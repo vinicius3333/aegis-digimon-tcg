@@ -5,6 +5,16 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const generated = getCompiledCard("EX5-070")!;
 export const compiled: CompiledCard = structuredClone(generated);
+const main = compiled.effects.find((effect) => effect.trigger === "Main");
+const digivolve = main?.actions.find((action) => action.kind === "Digivolve");
+if (digivolve?.kind === "Digivolve") {
+  // The printed target is a Digimon *without* [X Antibody] in its digivolution cards.
+  // `nameOrTrait` tests the top card and the generated record therefore selected the inverse.
+  digivolve.target.filter.nameOrTrait = undefined;
+  digivolve.target.filter.digivolutionStackNameOrTrait = [
+    { tokens: ["X Antibody"], match: "name", negate: true },
+  ];
+}
 const inherited = compiled.effects.find((effect) => effect.trigger === "AllTurns");
 const replacement = inherited?.actions.find((action) => action.kind === "Replacement");
 if (replacement?.kind === "Replacement") {
