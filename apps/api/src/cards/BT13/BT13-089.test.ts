@@ -10,9 +10,8 @@ describe("BT13-089 BT13-089", () => {
       trigger: "EndOfYourTurn",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          from: ["trash"],
-          payCost: false,
+          kind: "DelayedEffect",
+          trigger: "nextEndOfOpponentTurn",
           optional: true,
           cost: { kind: "deleteOwn", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
         },
@@ -38,9 +37,9 @@ describe("BT13-089 BT13-089", () => {
   it("only plays Ravemon after deleting a Ravemon with a Bird or Avian stack card", () => {
     const effect = compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn");
     expect(effect?.actions?.[0]).toMatchObject({
-      kind: "PlayWithoutCost",
-      from: ["trash"],
-      target: { filter: { controller: "mine", name: "Ravemon" } },
+      kind: "DelayedEffect",
+      trigger: "nextEndOfOpponentTurn",
+      effect: { kind: "PlayWithoutCost", from: ["trash"], target: { filter: { controller: "mine", name: "Ravemon" } } },
       condition: {
         kind: "selfDigivolutionStackHasTrait",
         filter: {
