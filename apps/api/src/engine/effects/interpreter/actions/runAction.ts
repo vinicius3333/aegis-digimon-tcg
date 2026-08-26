@@ -371,8 +371,22 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       // activation cost that changes target legality (BT16-048 suspends the Digimon
       // whose DP becomes the bounce ceiling), so its candidates must be resolved
       // after payment by the normal action path.
-      if (looseZones !== undefined && candidateLooseInstances(ctx, action.target, looseZones).length === 0)
-        return false;
+      if (looseZones !== undefined && candidateLooseInstances(ctx, action.target, looseZones).length === 0) {
+        // Paying a trash cost can itself create the recovery target: BT21-056 trashes a
+        // [Vemmon]-text card from hand and may then return a matching card from the trash —
+        // legal even when the trash starts empty, because the trashed cost card qualifies.
+        // Offer the confirmation only when some payable cost card would match the Return filter.
+        const trashCost = action.cost?.kind === "trash" ? action.cost : undefined;
+        const costCreatesRecoveryCandidate = (): boolean => {
+          if (trashCost?.target === undefined || !looseZones.includes("trash")) return false;
+          const costZones = zoneList(trashCost.target.filter.zone ?? "hand");
+          const payable = new Set(candidateLooseInstances(ctx, trashCost.target, costZones).map((c) => c.instanceId));
+          if (payable.size === 0) return false;
+          const zonelessReturnTarget = { ...action.target, filter: { ...action.target.filter, zone: undefined } };
+          return candidateLooseInstances(ctx, zonelessReturnTarget, costZones).some((c) => payable.has(c.instanceId));
+        };
+        if (!costCreatesRecoveryCandidate()) return false;
+      }
     }
     // A "may digivolve" prompt is meaningful only when at least one matching source and
     // destination form a legal digivolution. In particular, "without paying the cost" does
