@@ -564,3 +564,15 @@ root-worktree Vitest workload has cleared.
 - Catalog/KB evidence: On Play reveals three and adds one Beast/Beastkin/Holy Beast/Cherub card, bottom-decking the rest. Its Your Turn watcher may suspend this Tamer when a Digimon is suspended by an effect to reduce by two the cost to digivolve one controller Digimon into a hand Beastkin/Holy Beast/Cherub; Security plays it without cost. Q3809 retains normal digivolution requirements; Q3810 permits a non-self controller Digimon base.
 - Direct IR/primitive trace: `RevealAdd` holds the exact trait union and bottom-decks remainder; the effect-suspend watcher has no self-source restriction, while the optional Digivolve retains normal source/requirement validation and applies only `reduceCost: 2` after the self-suspend cost. Security uses standard zero-cost play. Exclusive `registerIrCard("EX6-064", compiled)` registration, full coverage, and no residual clauses are present.
 - Proof/status: existing reveal, effect-suspend, normal-requirement digivolve, cost-reduction, and security-play suites cover the reusable mechanics; the focused contract test now correctly identifies Shu-Chong Wong. Execution remains deferred while PID group 43774 persists; not rated 10/10.
+
+## EX6-065 — Mythical Arms of Salvation! — evidence in progress
+
+- Catalog/KB evidence: the optional trash placement is followed by mandatory battle-area placement; its non-self-effect leave condition arms Delay, whose play must use the triggering Digimon's stack. Q3815 defines leave scope and Q3816 confirms the resulting play timing can activate RaijiLudomon's inherited prevention.
+- Direct IR/primitive trace: Main now has optional `PlaceUnder` then mandatory `PlaceInBattleAreaSelf`; `whenDigimonWouldLeave` grants Delay, and the delayed Main play requires that armed Delay while sourcing only `sourceRef: triggerSubject` digivolution cards. Registration is exclusive `registerIrCard("EX6-065", compiled)`.
+- Status: focused contract changes are unexecuted while PID group 43774 persists; not rated 10/10.
+
+## EX6-066 — Sea of Destruction — evidence in progress
+
+- Catalog/KB evidence: Main places an Aqua/Sea Animal Digimon card from hand under a blue host, then returns all opponent Digimon at the placed card's level; Security returns all lowest-level opponent Digimon. Q3817 confirms the comparison is the placed card's level, not the blue host's.
+- Direct IR/primitive trace: the atomic place cost restricts the hand source by Aqua/Sea Animal and host by blue, stores `placedCardLevel`, and the subsequent all-target return consumes that binding. Security uses lowest-level all-target return. Full coverage, no residuals, and exclusive `registerIrCard("EX6-066", compiled)` registration are present.
+- Status: focused contract plus shared atomic cost/binding and superlative return proofs are mapped; execution is deferred while PID group 43774 persists, so not rated 10/10.
