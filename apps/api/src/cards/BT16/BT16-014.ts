@@ -24,20 +24,18 @@ const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
-              or: [
-                {
-                  name: "God Flame",
-                },
-                {
-                  trait: "Four Great Dragons",
-                  cardType: "Option",
-                },
+              controller: "mine",
+              // "use 1 [God Flame] or 1 Option card with the [Four Great Dragons] trait":
+              // naming Option is what routes this through the USE path rather than a play.
+              kind: ["Option"],
+              nameOrTrait: [
+                { tokens: ["God Flame"], match: "name" },
+                { tokens: ["Four Great Dragons"], match: "trait" },
               ],
             },
             count: 1,
-            controller: "mine",
-            location: "hand",
           },
+          from: ["hand"],
           payCost: false,
           optional: true,
         },
@@ -50,20 +48,18 @@ const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
-              or: [
-                {
-                  name: "God Flame",
-                },
-                {
-                  trait: "Four Great Dragons",
-                  cardType: "Option",
-                },
+              controller: "mine",
+              // "use 1 [God Flame] or 1 Option card with the [Four Great Dragons] trait":
+              // naming Option is what routes this through the USE path rather than a play.
+              kind: ["Option"],
+              nameOrTrait: [
+                { tokens: ["God Flame"], match: "name" },
+                { tokens: ["Four Great Dragons"], match: "trait" },
               ],
             },
             count: 1,
-            controller: "mine",
-            location: "hand",
           },
+          from: ["hand"],
           payCost: false,
           optional: true,
         },
