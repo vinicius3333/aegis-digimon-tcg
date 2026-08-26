@@ -65,7 +65,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-025 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing optional free Thomas play only when no controlled Thomas exists, plus the inherited opponent-hand threshold aura through evolution, controller, zone, optionality, and live count primitives.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-025.test.ts` passed (5 tests): positive free play, existing-Thomas negative, refusal, and inherited 7-to-8 hand threshold.
-- BT13-026 — Pending
+- BT13-026 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing the non-OPT attack draw and inherited opponent-only bottom digivolution-card trash through attack timing, controller filtering, evolution-stack ordering, and trash routing.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-026.test.ts` passed (4 tests): direct draw, repeated attacks without a frequency limit, inherited bottom-card trash, and source/owner boundaries.
 - BT13-027 — Pending
 - BT13-028 — Pending
 - BT13-029 — Pending
