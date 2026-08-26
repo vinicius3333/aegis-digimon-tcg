@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-049 (Armalizamon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-049 Armalizamon | Green level 4 Digimon; alternate level-3 `[Glowing Dawn]` evolution cost 2; on play/when digivolving may suspend 1 opposing Digimon; during your turn once per turn, when using a Glowing Dawn Option, by trashing the bottom face-down card under any own Tamer, reduce its cost by 3; inherited Piercing. Local card query has no entries. | **No card-specific causal mismatch found statically.** The play triggers are optional and opponent-scoped. The Your Turn replacement is once-per-turn, filters the played card to an Option with Glowing Dawn, reduces cost by 3, and uses the dedicated bottom-face-down-under-Tamer cost. Alternate evolution and Piercing are represented. | Structural test only; no execution of optional suspension, Option trait filtering, cost payment/once-per-turn consumption, or Piercing. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-049
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-049` (no entries).
+- Direct module and shared Option replacement, Glowing Dawn source filtering, Tamer bottom-card
+  cost, and once-per-turn replacement behavior were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-048 (Bearmon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
