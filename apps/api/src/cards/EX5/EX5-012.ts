@@ -22,15 +22,15 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldBePlayed",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "CostModifier",
-              mode: "reduce",
-              costType: "play",
-              amount: 2,
+            sourceFilter: {
+              isSelfRef: true,
+            },
+            actions: [
+              {
+                kind: "Replacement",
+                event: "wouldBePlayed",
+                mode: "reduceCost",
+                amount: 2,
               condition: {
                 kind: "youHave",
                 filter: {
@@ -58,26 +58,32 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
-          mode: "reduceCost",
-          amount: 2,
-          condition: {
-            kind: "youHave",
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Light Fang", "Night Claw", "Galaxy"],
-                  match: "trait",
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 2,
+              condition: {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Light Fang", "Night Claw", "Galaxy"],
+                      match: "trait",
+                    },
+                  ],
+                  digivolutionCardCount: {
+                    op: "gte",
+                    value: 3,
+                  },
                 },
-              ],
-              digivolutionCardCount: {
-                op: "gte",
-                value: 3,
+                raw: "you have a Digimon with 3 or more digivolution cards and the [Light Fang]/[Night Claw]/[Galaxy] trait",
               },
             },
-            raw: "you have a Digimon with 3 or more digivolution cards and the [Light Fang]/[Night Claw]/[Galaxy] trait",
-          },
+          ],
         },
       ],
     },
