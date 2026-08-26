@@ -320,6 +320,8 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-109 — 10/10
   - Registration: exclusive `registerIrCard("BT13-109", compiled)`; no legacy registration.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-109.test.ts` passed (5 tests): level-6 deletion, legal Sleep Mode trash evolution, invalid-base rejection, and security level-bound deletion are covered.
-- BT13-110 — Pending
+- BT13-110 — 10/10
+  - Registration: exclusive `registerIrCard("BT13-110", compiled)`; no legacy registration.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-110.test.ts` passed (7 tests): all Main branches, optional placement, Delay/Rush path, and security placement are live.
 - BT13-111 — Pending
 - BT13-112 — Pending
