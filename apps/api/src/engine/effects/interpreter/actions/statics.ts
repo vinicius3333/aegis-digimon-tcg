@@ -8,7 +8,7 @@ import { toDuration } from "../duration.js";
 import { unsupported } from "../errors.js";
 import { GRANTED_EFFECT_LIBRARY } from "../grantedEffects.js";
 import { scaleFactor } from "../scaling.js";
-import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { SUBTRIGGER_EVENT_MAP } from "./subTrigger.js";
 import { EffectDuration } from "@aegis/shared";

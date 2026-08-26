@@ -371,3 +371,452 @@ This ledger records evidence gathered independently in ascending card ID order. 
 - Peer and stack evidence: BT11-042 provides a neutral level-5 inherited host; friendly and opposing BT11-040 permanents independently prove both Q2073 controller branches. Two BT11-043 KingSukamon hosts, each retaining BT11-040 beneath it, reproduce Q2074: A tries to delete B, B may delete A to protect itself, A cannot reactivate, so A leaves and B remains. BT11-036 and BT11-041 plus a nonmatch prove all reveal-name categories and disposal behavior; BT11-037 and BT11-060 prove the yellow and black evolution routes.
 - Behavioral proof: the focused suite checks exact whole-record catalog equality, the complete exact IR, and direct/shared equality; reveals exactly three, adds the deliberately preferred Etemon match, trashes the matching-but-unchosen Chuumon and nonmatch, and preserves the fourth deck card; prevents deletion by paying either a friendly or opposing Sukamon; proves decline deletes the host and preserves the cost candidate; reproduces Q2074's nested two-source result without a stale decision; evolves from both colors for 2; plays for 3 with 1000 DP; and retains the existing simultaneous native/granted On Deletion decision regressions.
 - Verification: original card/mechanism gates remain recorded in commit `9d64b8056`. Follow-up: `pnpm --filter @aegis/api exec vitest run src/engine/effects/leavePrevent.test.ts src/cards/BT11/BT11-040.test.ts --no-file-parallelism` — 21 passed; `pnpm --filter @aegis/api exec vitest run src/engine/effects/leavePrevent.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/capabilities.test.ts src/cards/BT11/BT11-040.test.ts src/cards/EX6/EX6-044.test.ts src/cards/_a3/st19-02-decoy.test.ts src/engine/conformance/ch15-04-continuous-and-static.test.ts --no-file-parallelism` — 359 passed; workspace typecheck — passed; `git diff --check` — passed.
+
+## BT11-041 — Etemon — 10/10
+
+- Catalog evidence: Yellow/black level 5 Digimon, 7 play cost and 7000 DP; normal yellow or black level-4 evolution costs 4, while a level-4 Sukamon-named base has a printed alternate cost of 3. On Play and When Digivolving may trash one Sukamon-named card from hand or a Digimon's evolution cards to give one opposing Digimon -3000 DP and Security Attack -1 through the end of its controller's next turn; inherited All Turns may delete one other Sukamon-named Digimon to prevent its host's deletion.
+- Knowledge base: Q2075 explicitly permits deleting an opposing Sukamon as the prevention cost. Q2076 permits distinct physical sources in a nested prevention but forbids reactivation of the source currently resolving.
+- Implementation and primitive trace: direct IR is complete and exclusively registered with `registerIrCard`; it expresses both entry timings, the optional union-zone trash cost, opponent target modifier/keyword duration, the named alternate evolution, and any-controller other-Sukamon prevention. Audit exposed a shared resolver gap: `hand + digivolutionCards` trash costs were not classified as stack-card costs, allowing the action to resolve without a valid stack payment. The resolver now recognizes union zones containing `digivolutionCards`, routes the selected source through `trashDigivolutionCards`, and preserves stack trash semantics.
+- Behavioral proof: BT11-041's focused suite verifies catalog/IR registration, hand payment, alternate Sukamon evolution for exactly 3 followed by payment with the new evolution source, -3000 and Security Attack -1, friendly and opposing Q2075 costs, and the Q2076 nested re-entry boundary. BT11-040 provides the comparative shared prevention and Sukamon-cost peer.
+- Verification: `pnpm --filter @aegis/api exec vitest run src/cards/BT11/BT11-041.test.ts src/cards/BT11/BT11-040.test.ts` — 15 passed; workspace typecheck — passed; `git diff --check` — passed. The broader `capabilities.test.ts` rerun has five unrelated pre-existing failures in CAP-E14 Delay fixture registration and CAP-G3 breeding movement (300/305 pass); neither failure executes the changed trash-cost path.
+
+## BT11-051 — Ogremon — 10/10 static audit
+
+- Catalog evidence: Green level 4 Digimon, play cost 5, 7000 DP; evolves from green level 3 for 2; Champion, Virus, Demon; no effect, inherited, Security, or alternate-evolution text.
+- Knowledge base: `node tools/kb/query.mjs card BT11-051` returned no entries; no local rulings, errata, restrictions, or unresolved ambiguity.
+- Implementation evidence: `BT11-051.ts` is a vanilla compiled IR module with `effects: []`, `coverage: "full"`, and `residual: []`, registered exclusively with `registerIrCard("BT11-051", compiled)`. The colocated test checks the catalog identity/stats, exact empty IR, and registry presence.
+- Causal gap: none found in static tracing; no behavioral suite was run per static-audit scope.
+
+## BT11-050 — Ninjamon — 10/10 static audit
+
+- Catalog evidence: Green level 4 Digimon, play cost 5, 5000 DP; green level 3 for 2; Champion, Data, Mutant; inherited `[Your Turn][Once Per Turn] When you play a Tamer, suspend 1 of your opponent's Digimon.`
+- Knowledge base: query returned no entries.
+- Implementation evidence: inherited `YourTurn` `SubTrigger` watches controller-owned Tamer plays, is once-per-turn, and suspends one opposing Digimon; full coverage, empty residual, exclusive IR registration. Colocated test verifies catalog and compiled effect shape.
+- Causal gap: no static gap found; no behavioral suite run.
+
+## BT11-049 — Vegiemon — 10/10 static audit
+
+- Catalog evidence: Green level 4 Digimon, play cost 4, 3000 DP; green level 3 for 2; Champion, Virus, Carnivorous Plant; `[Start of Your Turn] Gain 1 memory.`
+- Knowledge base: query returned no entries.
+- Implementation evidence: direct IR has one `StartOfYourTurn` `GainMemory` action for 1, full coverage and empty residual, exclusively registered via `registerIrCard`; colocated test is present.
+- Causal gap: none found statically; no behavioral suite run.
+
+## BT11-048 — ModokiBetamon — 10/10 static audit
+
+- Catalog evidence: Green level 3 Digimon, play cost 3, 4000 DP; green level 2 for 0; Rookie, Data, Amphibian; no effect text.
+- Knowledge base: query returned no entries.
+- Implementation evidence: vanilla empty compiled IR with full coverage, empty residual, and exclusive `registerIrCard` registration; colocated test is present.
+- Causal gap: none found statically; no behavioral suite run.
+
+## BT11-047 — Palmon — 10/10 static audit
+
+- Catalog evidence: Green level 3 Digimon, play cost 3, 2000 DP; green level 2 for 0; Rookie, Data, Vegetation; `[Start of Your Turn] Draw 1.`
+- Knowledge base: query returned no entries.
+- Implementation evidence: one `StartOfYourTurn` draw action targeting the controller, full coverage, empty residual, exclusive IR registration; colocated test is present.
+- Causal gap: none found statically; no behavioral suite run.
+
+## BT11-046 — Agumon — 10/10 static audit
+
+- Catalog evidence: Green level 3 Digimon, play cost 3, 1000 DP; green level 2 for 0; Rookie, Vaccine, Reptile. On Play reveals 4, adds one Tamer, and bottoms the rest. Inherited `[Your Turn] While you have a Tamer in play, this Digimon gets +2000 DP.`
+- Knowledge base: query returned no entries.
+- Implementation evidence: `RevealAdd` reveals four, selects one controller-owned Tamer, and bottoms remainder; inherited YourTurn Aura grants self +2000 while a controller-owned battle-area Tamer exists. Full coverage, empty residual, exclusive IR registration; colocated test is present.
+- Causal gap: none found in static clause mapping; no behavioral suite run.
+
+## BT11-045 — ClavisAngemon — 10/10 static audit
+
+- Catalog evidence: Yellow level 6 Digimon, play cost 12, 12000 DP; yellow level 5 for 4; Mega, Vaccine, Virtue. When Digivolving, if security is 5 or fewer, Recovery +1. Opponent's Turn: whenever a security card is removed, one opposing Digimon gets -4000 DP for the turn.
+- Knowledge base: Q2086 confirms the opponent-turn effect may activate separately for each security card checked, including Security Attack +1; no other local ambiguity.
+- Implementation evidence: direct IR has a `WhenDigivolving` conditional `SecurityManipulation addTop` from deck and an opponent-turn `whenSecurityRemoved` subtrigger applying -4000 for-the-turn to one opposing Digimon. Full coverage, empty residual, exclusive registration; colocated test is present.
+- Causal gap: none found statically; no behavioral suite run.
+
+## BT11-044 — MetalEtemon — 10/10 static audit
+
+- Catalog evidence: Yellow/Black level 6 Digimon, play cost 11, 11000 DP; yellow or black level 5 for 3; Mega, Virus, Cyborg. On Play/When Digivolving reveals 4 and may play any number of Chuumon-, Sukamon-, or Etemon-named Digimon totaling 7 or less without paying; trashes the rest.
+- Knowledge base: Q2085 confirms selecting any number with total play cost at or below 7 is allowed, including intentionally below the cap.
+- Implementation evidence: shared reveal action is used for both triggers, filters controller-owned Digimon by the three printed names, uses `costBudget: 7`, plays optionally, and trashes remainder. Full coverage, empty residual, exclusive IR registration; colocated test is present.
+- Causal gap: none found statically; no behavioral suite run.
+
+## BT11-043 — KingSukamon — source correction pending focused verification
+
+- Catalog and KB evidence: the printed When Attacking clause grants Security Attack +1 for **each other Digimon with Sukamon in its name in play**, with no controller qualifier. Q2080-Q2084 confirm the separate original-information rewrite; Q2078-Q2079 match the shared any-controller prevention and non-reentry behavior.
+- Source audit correction: the compiled Security Attack scaling filter incorrectly restricted its count to `controllerDefault: "mine"`, excluding opposing Sukamon-named Digimon. The handwritten predecessor independently counted both friendly and opposing matching Digimon; direct IR and shared catalog IR now use `controller: "any"` while retaining `excludeSelf`.
+- Verification status: no test was launched because externally owned Vitest processes 82901 and 97051 remain active. This entry is deliberately not scored 10/10; focused card and shared scaling proof are still required.
+
+## BT11-042 — Angewomon — fixture audit pending focused verification
+
+- Catalog and KB evidence: the optional When Digivolving Security search adds one Angel/Archangel/Fallen Angel trait card, then performs Recovery +1 only if a card was added, then shuffles. Q2077 confirms the full Security stack may be privately inspected and only the selected card is revealed. The second printed route is purple level 4 for 3; BT11-075 is purple level 3 and is not a legal fixture base.
+- Failure diagnosis: the earlier empty/declined-search observation that the Recovery deck card vanished was fixture state, not an interpreter or card defect. Ordinary evolution draws one deck card before the When Digivolving effect resolves; the fixture supplied only its Recovery sentinel, so that rules draw consumed it. The corrected fixture supplies a separate rules-draw card above the sentinel and substitutes valid purple level-4 BT11-080 for BT11-075.
+- Verification status: no focused test was run after these corrections because externally owned Vitest processes 82901 and 97051 remain active. No production behavior was changed and this entry is deliberately not scored 10/10.
+
+
+## BT11-052 — Tyrannomon — source audit pending focused verification
+
+- Catalog and KB evidence: Tyrannomon is a green/red level-4 Dinosaur/Data Digimon with play cost 5, 5000 DP, and green or red level-3 evolution routes for 3. On Play and When Digivolving it may play one play-cost-3-or-less Tamer from hand without cost. Its inherited Your Turn effect gives its host +2000 DP only while its controller has a Tamer in play. The local knowledge base has no card-specific rulings, errata, restrictions, or unresolved ambiguities.
+- Direct IR, shared IR, and engine evidence: direct and shared compiled IR are equal and fully cover two distinct optional `PlayWithoutCost` triggers with controller-hand, Tamer-kind, and inclusive play-cost-3 filtering. The inherited `Aura` is self-bound, controller-scoped, active only during its controller's turn, and guarded by a live battle-area Tamer predicate; the static action applies its continuous DP modification to the inherited host. Registration is exclusively `registerIrCard("BT11-052", compiled)`, with full coverage and no residual clauses.
+- Existing test evidence and remaining proof: the colocated tests statically map the catalog and all three effects, behaviorally exercise cost-3 Tamer play from hand for each trigger, exclude a more expensive card in the On Play case, and observe the inherited +2000 DP with a Tamer present. No test was launched under the requested static-only policy. This is not scored 10/10; green/red evolution routes, cost-2/3/4 boundaries on both triggers, optional decline, no-target behavior, free-play lifecycle, controller-only hand selection, inherited no-Tamer and opponent-Tamer negatives, opponent-turn expiry, Tamer arrival/departure recomputation, and direct/shared equality still require observable proof.
+
+## BT11-053 — Digitamamon — 10/10 static audit
+
+- Catalog evidence: exact committed record is green level-5 Ultimate/Data/Perfect Digimon, play cost 7, 10000 DP, green level-4 evolution for 3, rarity C, and four-copy limit; it has no executable text. KB query returned no entries.
+- Implementation evidence: direct/shared IR are empty and full with no residuals; `BT11-053.ts` registers exclusively via `registerIrCard`. The colocated test checks catalog identity/stats, exact empty IR, and registry presence.
+- Causal gap: none found in static tracing; no behavioral suite was run under static-audit scope.
+
+## BT11-054 — Panjyamon — source correction pending focused verification
+
+- Catalog and KB evidence: Panjyamon is always also treated as having [Leomon] in its name; Q2087 permits [Leomon]-in-name selection but not exact [Leomon] selection. Its When Digivolving clause may play one green or blue Tamer with play cost 4 or less from hand without paying the cost, and its inherited once-per-turn Your Turn clause triggers only when another friendly Digimon is played **by an effect**, granting Rush to one friendly Digimon for the turn.
+- Source audit correction: the compiled direct and shared IR correctly modeled the Leomon name token, optional Tamer selector, controller, exclusion of the host, and once-per-turn identity, but omitted `byEffect: true` from the `whenPlayed` source filter. The committed handwritten predecessor explicitly checked `trigger.playedByEffect === true`, while the shared trigger matcher treats that filter as the exact provenance gate that rejects ordinary hand plays; both IR representations now carry it.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; observable effect-play and normal-play negative proof remain required.
+
+## BT11-055 — MetalTyrannomon — source correction pending focused verification
+
+- Catalog and KB evidence: MetalTyrannomon has green/black level-4 evolution routes for 4; On Play/When Digivolving it suspends one opposing Digimon for each friendly green or black Tamer, then prevents one opposing suspended Digimon from unsuspending during the next opposing unsuspend phase. Q2088 confirms the per-Tamer scaling affects only suspension, while the lock is one independently chosen already-suspended opponent; its inherited All Turns once-per-turn clause trashes the top opposing Security card when its host deletes an opposing Digimon in battle.
+- Source audit correction: the direct IR and handwritten predecessor correctly limit the scaling suspend candidates to unsuspended opposing Digimon, while committed shared IR omitted that boundary. Shared IR now adds `suspended: false`; the separate Restrict action continues to select exactly one opposing suspended Digimon, so it preserves the Q2088 ordering and allows a previously suspended target.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; direct/shared equality, per-Tamer boundary, Q2088 lock ordering, and inherited battle trigger still need observable proof.
+
+## BT11-056 — Jijimon — source correction pending focused verification
+
+- Catalog and KB evidence: Jijimon is a green level-6 Ancient/Vaccine Digimon with play cost 11, 11000 DP, and green or black level-5 evolution routes for 3. When Digivolving it reveals three, may play one Tamer without cost, then places every remainder together at either deck top or deck bottom in any order. Its When Attacking once-per-turn effect reveals one card per friendly green or black Tamer, may play any number of revealed green or black Digimon whose combined play costs are 10 or less, then bottom-decks the remainder in any order. Q2089 permits deliberately spending less than the budget, and Q2090 confirms one dual-color green/black Tamer counts once.
+- Direct IR, shared IR, and causal engine evidence: both IR sources had encoded the printed 10-cost cap as `totalPlayCostLimit`, but `runRevealAdd` reads only `costBudget` or `totalPlayCostBudget`; the cap was therefore silently ignored. The direct module also placed `frequency: "OncePerTurn"` on the `RevealAdd` action, while registration derives `maxPerTurn` only from the enclosing effect. Both sources now use the executable `totalPlayCostBudget: 10`, and direct IR moves the frequency to the effect, matching shared IR. The OR scaling filter counts matching battle-area permanents once, including a dual-color Tamer once, and `deckTopOrBottom` plus `orderCards` implements the first effect's common destination and arbitrary ordering. Registration remains exclusively `registerIrCard("BT11-056", compiled)` with full coverage and no residual clauses.
+- Existing test evidence and remaining proof: the colocated test statically checks the card data, trigger, corrected effect-level frequency, and executable budget field; its behavioral cases cover free Tamer play with remainder disposition and Q2090's one-card reveal from a dual-color Tamer. No test was launched under the requested static-only policy. This is deliberately not scored 10/10; green/black evolution routes, top-versus-bottom choice and exact ordering, optional Tamer decline, Q2089 under-budget selection, exact-10 acceptance/over-10 rejection, mixed green/black eligibility, zero/multiple Tamer scaling, free-play On Play lifecycle, remainder ordering, once-per-turn enforcement, and direct/shared equality still require observable proof.
+
+## BT11-057 — Titamon — source correction pending focused verification
+
+- Catalog and KB evidence: Titamon has Piercing and green/purple level-5 evolution routes for 4. On digivolution it may trash up to three hand cards; if it does, it suspends one opposing Digimon for each card actually trashed, then gains one memory for every opposing suspended Digimon. Q2091 confirms the optional hand trash can occur even with fewer than three opposing Digimon.
+- Source audit correction: direct IR and the committed handwritten implementation both restrict the scaled Suspend selection to unsuspended opposing Digimon, but shared IR omitted `suspended: false`. Shared IR now matches the actual transition boundary; its existing `you do` result gate correctly depends on the optional trash action and its named count supplies the exact number of suspension targets.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; card proof still needs Q2091, actual-trash scaling, ordinary already-suspended exclusion, and live post-suspend memory counting.
+
+## BT11-058 — HerculesKabuterimon (X Antibody) — source correction pending focused verification
+
+- Catalog evidence: this green level-6 has green level-5 evolution for 4 and an alternate evolution from [HerculesKabuterimon] for 1, permanent Security Attack +1, and a When Digivolving return-to-bottom action for one opposing suspended Digimon only when [HerculesKabuterimon] or [X Antibody] is in its digivolution cards. The local knowledge base has no card-specific ruling or erratum.
+- Source audit correction: direct IR uses the executable `selfHasInDigivolutionCards` condition with the two printed name references, but shared IR stored an unrecognized raw condition. Raw conditions are restrictive when not normalized; it made the shared return unreachable. Shared IR now carries the identical executable stack matcher and preserves the printed raw evidence.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; alternate-cost stack, each positive stack reference, negative stack, suspended-only target, bottom-deck destination, and direct/shared equality need observable proof.
+
+## BT11-059 — RustTyrannomon — source correction pending focused verification
+
+- Catalog and KB evidence: RustTyrannomon has green/black level-5 evolution routes for 5. It reduces the cost only when one of its controller's Digimon would evolve **into this card**, by one per friendly green or black Tamer; Q2092 confirms a dual-color Tamer counts once. Its All Turns once-per-turn clause unsuspends itself only when it deletes an opposing Digimon in battle.
+- Source audit correction: shared IR omitted the `into` RustTyrannomon gate, put cost scaling on the outer replacement rather than its `reduceCost` action, and left the battle watcher unscoped. It now matches direct IR: the target card name gates the cost replacement, the inner reducer counts Tamer permanents once each, and `sourceFilter.isSelfRef` ties the battle event to this physical RustTyrannomon.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2092, non-Rust evolution, self versus other battle deletion, once-per-turn, and direct/shared equality require observable proof.
+
+## BT11-060 — Monmon — source audit pending focused verification
+
+- Catalog and KB evidence: Monmon is a black level-3 Beast Digimon with play cost 3, 2000 DP, black level-2 evolution cost 0, Rookie form, Virus attribute, and four-copy limit. Its sole text is an All Turns prohibition against this Digimon being returned to hands or decks by an opponent's effects. The local knowledge base has no card-specific rulings, errata, restrictions, or unresolved ambiguities.
+- Source audit: direct and shared compiled IR are equal and fully cover one self-targeted All Turns `beReturned` restriction with `byOpponentEffectsOnly: true`; coverage is full, residuals are empty, and direct registration is exclusively `registerIrCard("BT11-060", compiled)`. The restriction ledger derives opponent ownership from the resolving-effect seat, while both whole-permanent hand and deck returns pass through the same restriction gate, so controller-owned effects remain permitted and opponent-controlled effects are prohibited for both printed destinations.
+- Verification status: no test was launched under the requested static-only policy. This is deliberately not scored 10/10; zero-cost evolution and source transition, opponent-effect return to hand and deck, controller-effect return allowance, unrelated deletion/security movement, effect-controller direction outside the active turn, and direct/shared equality still require observable proof.
+
+## BT11-061 — Vemmon — source correction pending focused verification
+
+- Catalog and KB evidence: Vemmon's special rule permits up to 50 copies of this exact card number; Q2094 confirms that deckbuilding rule. Its Main effect suspends itself to reveal three, add up to one Snatchmon/Destromon/Galacticmon/Fusionize card and independently place one Vemmon under itself, which Q2093 permits even when no add candidate was revealed; the inherited Your Turn once-per-turn cost reduction targets Destromon or Galacticmon.
+- Source audit correction: the catalog's `maxCountInDeck: 50` already drives `validateCompetitiveDeck`, while direct IR has full executable coverage. Shared IR nevertheless retained a stale `RawUnparsed` static residual that falsely marked the card partial; it now removes that non-runtime residue and declares the same full coverage as direct IR. The reveal/placement selectors and inherited replacement were already executable and aligned.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; observable Q2093 branch independence, Q2094 deck-limit boundary, suspend cost, ordered remainder, and inherited once-per-turn proof remain required.
+
+## BT11-062 — Agumon (X Antibody) — source correction pending focused verification
+
+- Catalog and KB evidence: Agumon (X Antibody) has alternate Agumon evolution for 0, and its On Play/When Digivolving reveal must add one matching Greymon/X Antibody-name card and one black Tamer whenever available; Q2095 permits either category alone, while Q2096 requires all available categories. Its inherited protection applies to an effect that would delete or return a Greymon/Omnimon-named host, paying only an X Antibody Option from that host's digivolution cards to prevent leaving play.
+- Source audit correction: shared IR modeled only deletion and installed a later temporary leave restriction, with an over-broad deck/digivolution cost pool. It now matches direct IR's immediate `wouldLeavePlay` prevention: effect-caused leave only, physical host and name gate, optional bottom-deck return of one X Antibody Option from that exact host stack, covering both deletion and return effects.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; both mandatory-reveal Q&A paths, alternate evolution, effect deletion/return protection, rule deletion exclusion, wrong-host stack exclusion, decline, and direct/shared equality need observable proof.
+
+## BT11-063 — Geremon — source correction pending focused verification
+
+- Catalog and KB evidence: Geremon is a black level-4 Mollusk with play cost 3, 2000 DP, and black level-3 evolution cost 2. Its rule always also treats its name as Numemon, and its On Play optionally trashes one hand card whose name contains Numemon, Sukamon, Nanimon, or Etemon to draw two. Q2097 confirms the Numemon alias applies in every zone; Q861 independently relies on that alias while a Geremon is in trash.
+- Source audit correction: direct IR correctly encodes the alias with the `Rule` trigger, which `universalNameAliasesFor` exposes outside the battle area, but shared IR used `Static` and therefore lost the alias in hand/trash consumers. Shared IR now matches direct IR's all-zone `Rule` grant; the optional paid Draw 2 branch already has the exact controller-hand name union, one-card cost, decline abort, full coverage, and no residual clauses. Direct registration remains exclusively `registerIrCard("BT11-063", compiled)`.
+- Verification status: no test was launched under the requested static-only policy. This is deliberately not scored 10/10; Q2097 alias behavior across battle area, hand, trash, deck, and security, Q861 trash selection, each cost-name branch, nonmatching exclusion, successful payment, unavailable-cost and decline paths, evolution movement, and direct/shared equality still require observable proof.
+
+## BT11-064 — Greymon (X Antibody) — source correction pending focused verification
+
+- Catalog and KB evidence: this restricted-one black/red level-4 evolves from exact [Greymon] for 0. During its controller's turn it reduces evolution into a Greymon-named card by one for each color on that destination, and its inherited effect is the same effect-caused deletion/return prevention with a host-stack X Antibody cost for a Greymon/Omnimon-named host.
+- Source audit correction: shared IR had outer rather than reducer color scaling and the incomplete deletion-only, broad-pool temporary-protection shape. It now matches direct IR: destination-color scaling on the actual reduce-cost action and immediate effect-leave prevention scoped to the physical protected host and its own X Antibody Option stack card.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; restricted-one enforcement, zero-cost exact evolution, destination-color boundaries, deletion/return/rule causes, host-stack boundary, and direct/shared equality need observable proof.
+
+## BT11-065 — Snatchmon — source correction pending focused verification
+
+- Catalog evidence: Snatchmon may place up to two Vemmon from its controller's trash beneath itself when digivolving, then may return Fusionize only if it has at least four Vemmon in its own stack. Its inherited All Turns once-per-turn text triggers only when Vemmon is moved from **this Digimon's** digivolution cards to the bottom of its owner's deck; it unsuspends that host and gives it Blocker through the end of the opponent's turn.
+- Source audit correction: shared IR incorrectly granted Blocker directly to a Vemmon-named target and had no return-to-bottom event, host gate, or unsuspend. It now matches direct IR's `onDigivolutionCardReturnToDeckBottom` watcher, exact Vemmon event filter, physical-host targeting, unsuspend, and temporary Blocker.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; own-stack versus other-stack, Vemmon versus non-Vemmon, bottom destination, once-per-turn, and entry stack-count proof remain required.
+
+## BT11-066 — Tekkamon — source correction pending focused verification
+
+- Catalog evidence: Tekkamon is a black level-5 Machine with one executable clause, Reboot: it unsuspends during its controller's opponent's unsuspend phase. The local knowledge base has no specific ruling or erratum.
+- Source audit correction: direct IR correctly represents Reboot as its static keyword alone, whose timing is owned by the phase rules. Shared IR additionally ran an immediate `Unsuspend` action in the static effect, which is neither printed nor the Reboot timing; that redundant action is removed.
+- Verification status: no focused test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; observable owner/opponent unsuspend-phase timing and direct/shared equality remain required.
+
+## BT11-067 — Gigadramon — source correction pending focused verification
+
+- Catalog evidence: Gigadramon has printed Jamming and an inherited Reboot keyword. The local knowledge base has no specific ruling or erratum.
+- Source audit correction: direct IR correctly uses static Jamming plus an inherited static Reboot keyword. Shared IR added an immediate Unsuspend action to the inherited static effect, bypassing the printed opponent-unsuspend-phase timing; that action is removed.
+- Verification status: no focused test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Jamming security-battle protection, inherited Reboot phase timing, stack persistence, and direct/shared equality remain required.
+
+## BT11-068 — Mamemon — source correction pending focused verification
+
+- Catalog evidence: Mamemon has black/green level-4 routes for 3; On Play/When Digivolving it may reveal five and free-play a Tamer with play cost 4 or less, returning the remainder top or bottom in any order. Its inherited Your Turn once-per-turn clause fires only when another friendly Digimon is played **by an effect**, then grants Blocker through the end of the opponent's turn.
+- Source audit correction: shared IR matched the reveal/play clauses but omitted `byEffect: true` from the inherited `whenPlayed` filter. Direct IR already carries that exact trigger provenance, so shared IR now rejects ordinary plays as printed.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; both entry timing paths, reveal order choice, effect-play versus normal-play, host exclusion, once-per-turn, and direct/shared equality require observable proof.
+
+## BT11-069 — MetalGreymon (X Antibody) — source correction pending focused verification
+
+- Catalog and KB evidence: this black/red level-5 has alternate MetalGreymon evolution for 1. On digivolution it gains opponent-turn DP-reduction and De-Digivolve protection, then may delete an opposing Digimon with 6000 DP or less if MetalGreymon or X Antibody is in its stack. Q2098 confirms its inherited opponent-turn unsuspend trigger sees **any** Digimon, including an opponent's, while the host must have Greymon or Omnimon in its name.
+- Source audit correction: shared IR restricted the unsuspend event subject to the inherited source's controller, contradicting Q2098, and kept host-name logic raw. It now uses `controller: "any"` and the same executable host-name condition as direct IR; the security target remains the opponent of the inherited source controller.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; alternate evolution, both stack condition branches, friendly and opponent unsuspend Q2098 coverage, name gate, once-per-turn, and direct/shared equality require observable proof.
+
+## BT11-070 — Destromon — source correction pending focused verification
+
+- Catalog evidence: Destromon has alternate Vemmon evolution for 6. On digivolution it places one revealed Vemmon beneath itself, trashes the remainder, and deletes one opposing Tamer at five Vemmon in its own stack; inherited, it may redirect an opposing attack to its host by moving exactly two Vemmon from one friendly Galacticmon stack to the bottom of their owners' decks.
+- Source audit correction: shared IR modeled the redirect payment as `place`, with an indirect stack selector, instead of the required deck-bottom return. It now matches direct IR's return cost: two Vemmon Digimon stack cards, same friendly Galacticmon host, returned to deck bottom before the redirect.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; reveal/trash and five-Vemmon boundary, legal alternate evolution, one-host/two-card payment, decline, redirect, and direct/shared equality require observable proof.
+
+## BT11-071 — MusouKnightmon — source correction pending focused verification
+
+- Catalog and KB evidence: Q2099 confirms MusouKnightmon permanently also has DarkKnightmon and Tuwarmon names. Its DigiXros recipe requires one DarkKnightmon and one Tuwarmon, its entry placement goes under itself, its subsequent Tuwarmon-stack De-Digivolve 1 to three opponents is mandatory when applicable, and On Deletion returns up to two black/purple Digimon from trash.
+- Source audit correction: shared IR omitted the name rule, reduced the DigiXros recipe to DarkKnightmon only, allowed placement under any friendly Digimon, and made the printed conditional De-Digivolve optional. It now mirrors direct IR for all four points while retaining the already-correct deletion recovery.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; both effective names, full two-material DigiXros, self-only placement, conditional De-Digivolve, and two-color trash recovery require observable proof.
+
+## BT11-072 — Machinedramon — source correction pending focused verification
+
+- Catalog and KB evidence: Machinedramon independently handles Analogman and Cyborg/Machine reveal outcomes; Q2100 confirms the latter remains available without Analogman. Its On Deletion optional Analogman return is independent of the subsequent free Machinedramon play; Q2101 explicitly permits bottom-decking Analogman even when no Machinedramon is in hand.
+- Source audit correction: shared IR bundled the Analogman return as the cost of PlayWithoutCost, blocking the Q2101 legal branch. It now mirrors direct IR's ordered actions: optional Analogman Return to deck bottom, then an independent no-cost Machinedramon hand play attempt.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2100 independent reveals, both disposition paths, Q2101 no-hand branch, deletion ordering, and direct/shared equality require observable proof.
+
+## BT11-073 — Justimon: Accel Arm — source correction pending focused verification
+
+- Catalog evidence: Justimon: Accel Arm has alternate Justimon-name evolution for 1. When digivolving, it may return one non-Accel-Arm level-6 Digimon card from **this Digimon's digivolution cards** to hand for Security Attack +1 and Piercing for the turn; when attacking with a Tamer it can evolve to another Justimon-name card from hand for 2 while ignoring requirements.
+- Source audit correction: shared IR's first return cost omitted both the digivolution-card zone and resolving-host anchor, allowing it to source a level-6 Digimon elsewhere. It now matches direct IR's exact stack-only payment target; the attack evolution route was already aligned.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; stack-only payment, exclusion, both granted keywords, Tamer/no-Tamer attack branch, cost override, and direct/shared equality require observable proof.
+
+## BT11-074 — BlackWarGreymon (X Antibody) — source correction pending focused verification
+
+- Catalog and KB evidence: BlackWarGreymon (X Antibody) has alternate BlackWarGreymon evolution for 2 and Reboot. Q2102 requires the opponent's attacker to be highest DP at declaration before redirect can activate; Q2103 confirms its distinct unsuspend watcher sees any Digimon, not just a friendly one, and deletes an opposing lowest-play-cost Digimon only with BlackWarGreymon or X Antibody in its stack.
+- Source audit correction: shared IR made redirect a bare opponent-turn action with no declaration gate, and its unsuspend watcher was friendly-only with a raw stack condition. It now matches direct IR's highest-DP `whenOpponentAttacks` watcher, any-controller unsuspend subject, and executable stack predicate.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2102 declaration snapshot, redirect decline, Q2103 both-controller unsuspends, stack gate, lowest-cost ties, once-per-turn identities, and direct/shared equality require observable proof.
+
+## BT11-075 — DoKunemon — 10/10 static audit
+
+- Catalog evidence: exact committed record is purple level-3 Rookie/Virus/Larva Digimon, play cost 3, 4000 DP, purple level-2 evolution for 0, rarity C, and four-copy limit; it has no executable text. KB query returned no entries.
+- Implementation evidence: direct/shared IR are empty and full with no residuals; `BT11-075.ts` registers exclusively via `registerIrCard`. The colocated test checks catalog facts, exact empty IR, registry/runtime registration, and legal zero-cost evolution.
+- Causal gap: none found in static tracing; no additional behavioral suite was run under static-audit scope.
+
+## BT11-076 — Ignitemon — source correction pending focused verification
+
+- Catalog and KB evidence: Ignitemon has alternate Xros Heart level-2 evolution for 0. When attacking, it may delete another friendly Digimon to delete one opposing unsuspended Digimon with level at most that deleted Digimon; inherited, it gains memory only when its controller plays a Digimon **by an effect**. Q2104 includes DigiXros-effect plays in that inherited trigger.
+- Source audit correction: shared IR omitted the deleted-Digimon level ceiling and the `byEffect` gate. It now matches direct IR's `relativeTo: "lastDeleted"` target comparison and effect-play provenance, retaining ordinary friendly controller scope and once-per-turn identity.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; alternate evolution, paid deletion level boundary, unsuspended boundary, ordinary/effect/DigiXros play provenance, and direct/shared equality require observable proof.
+
+## BT11-077 — Chikurimon — source correction pending focused verification
+
+- Catalog and KB evidence: Chikurimon may delete itself on play to reveal five, add one Bagra Army trait card, and bottom-deck the remainder; Q2105 confirms an outside DP/rule deletion neither fulfills nor leaves time for that self-delete cost. Its On Deletion Save can place itself under a friendly Tamer. The inherited opponent-turn clause gains memory only when an **effect** trashes this card from digivolution cards.
+- Source audit correction: shared IR omitted the direct card's optional self-delete/abort boundary and watched the singular stack-discard event rather than the effect-trash batch event. It now matches direct IR's optional declaration behavior and `onDigivolutionCardsDiscardedBatch` watcher, preserving the physical source filter.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2105 external-deletion path, self-delete decline, Save, effect versus non-effect stack trash, opponent-turn boundary, and direct/shared equality require observable proof.
+
+## BT11-078 — Soulmon — source audit pending focused verification
+
+- Catalog and KB evidence: purple level-4 4000-DP Digimon, play cost 5 and purple-level-3 evolution cost 2; Retaliation; All Turns gives all friendly Digimon with Retaliation +2000 DP. The local KB has no rulings, errata, or restrictions.
+- Source audit: direct IR grants Soulmon static Retaliation and applies an all-turns +2000 modifier to all controller-owned Digimon currently carrying Retaliation, correctly including Soulmon itself and excluding opposing or non-Retaliation Digimon. Coverage is full, residuals are empty, and registration is exclusively `registerIrCard("BT11-078", compiled)`.
+- Verification status: no test was launched under the requested static-only policy. This remains below 10/10 pending observable proof of evolution cost/stack movement, self and allied recipients, opponent/non-keyword exclusions, dynamic entry and keyword loss, executable Retaliation battle cleanup, and registry/IR equality.
+
+## BT11-079 — DarkLizardmon — source audit pending focused verification
+
+- Catalog and KB evidence: purple level-4 4000-DP Digimon, play cost 5 and purple-level-3 evolution cost 2; Retaliation; On Deletion draws 1 and then trashes exactly 1 card from hand. The local KB has no rulings, errata, or restrictions.
+- Source audit: direct IR grants static Retaliation and sequences controller Draw 1 before a mandatory one-card controller-hand Trash on deletion. Coverage is full, residuals are empty, and registration is exclusively `registerIrCard("BT11-079", compiled)`.
+- Verification status: no test was launched under the requested static-only policy. This remains below 10/10 pending observable proof of evolution, Retaliation battle semantics, deletion snapshot/source ownership, draw-before-trash ordering, empty-deck and empty-hand boundaries, opponent-controlled copies, and registry/IR equality.
+
+## BT11-080 — Devimon — source audit pending focused verification
+
+- Catalog and KB evidence: purple level-4 5000-DP Digimon, play cost 5, evolving from either purple or yellow level 3 for 2. During the controller's turn, while they have a yellow Digimon or yellow Tamer, Devimon gains Rush and Retaliation. The local KB has no rulings, errata, or restrictions.
+- Source audit: direct IR has two controller-turn self auras sharing a live controller-owned battle-area predicate whose exact union is yellow Digimon or yellow Tamer; the auras independently grant Rush and Retaliation only while that condition holds. Both printed evolution routes are catalog-backed. Coverage is full, residuals are empty, and registration is exclusively `registerIrCard("BT11-080", compiled)`.
+- Verification status: no test was launched under the requested static-only policy. This remains below 10/10 pending observable proof of both evolution routes, yellow Digimon/Tamer positive branches, opposing and non-yellow exclusions, turn and condition expiry, Rush summoning-sickness bypass, Retaliation battle cleanup, and registry/IR equality.
+
+## BT11-081 — MadLeomon: Armed Mode — source correction pending focused verification
+
+- Catalog evidence: MadLeomon: Armed Mode's DigiXros recipe needs MadLeomon plus one Bagra Army trait Digimon. Opponent turn, once per turn, it may trash a source to draw two when an effect adds cards to the opponent's hand; On Deletion it has Save, and inherited it gains memory only when an effect trashes this card from digivolution cards during the opponent's turn.
+- Source audit correction: shared IR omitted the Bagra Army DigiXros material and used the singular stack-discard watcher. It now matches direct IR's two-slot recipe and effect-trash batch watcher; its draw-cost, Save, and once-per-turn card behavior were already aligned.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; full DigiXros material proof, opponent-hand event direction, draw cost, Save, batch effect-trash provenance, and direct/shared equality require observable proof.
+
+## BT11-082 — Tuwarmon — source correction pending focused verification
+
+- Catalog and KB evidence: Tuwarmon has Decoy for Bagra Army, protects its controller's Yuu Amano from deletion, may play a Damemon from trash suspended on deletion, and gains memory inherited only when an effect trashes this source during the opponent's turn. Q2106 confirms its protection applies when an effect would delete it and a friendly Yuu Amano simultaneously.
+- Source audit correction: shared IR omitted `suspended: true` from the optional Damemon trash play and used a singular discard watcher. It now matches direct IR's suspended entry and effect-trash batch watcher; its Decoy, Yuu Amano restriction, and alternate Damemon evolution were already aligned.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2106 simultaneous targets, Decoy trait boundary, suspended trash play, alternate evolution, effect-trash provenance, opponent-turn timing, and direct/shared equality require observable proof.
+
+## BT11-083 — LadyDevimon — source correction pending focused verification
+
+- Catalog and KB evidence: LadyDevimon may trash one card in hand when digivolving and, only if it does, recover one Mirei Mikagura or Angel/Archangel/Fallen Angel trait card from trash; Q2107 permits recovering the very card it just trashed. Its once-per-turn Your Turn trigger gains memory when its controller plays Angewomon or Mirei Mikagura, while its inherited opponent-turn aura grants Retaliation to the listed trait family only while a friendly yellow Digimon is in play.
+- Source audit correction: shared IR preserved the sequence but left the return guard as non-executable raw text and omitted the direct IR's sub-trigger identity. It now uses `ifThisEffectActed` to bind the return to this effect's hand-trash action and the explicit `when-angel-or-mirei-played` once-per-turn key; the catalog filters and inherited aura were already aligned.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2107 same-card recovery, decline/no-trash boundary, target trait family, once-per-turn identity, opponent-turn/yellow gate, and direct/shared equality require observable proof.
+
+## BT11-084 — BlueMeramon — source correction pending focused verification
+
+- Catalog evidence: BlueMeramon has Retaliation, draws two then trashes two cards on digivolution, and inherited has an All Turns once-per-turn memory gain only when its controller plays a Digimon **by an effect**. The local knowledge base has no card-specific ruling.
+- Source audit correction: shared IR omitted the inherited `byEffect: true` provenance filter, allowing ordinary Digimon plays to gain memory. It now matches direct IR; its Retaliation keyword, ordered mandatory draw/trash actions, friendly controller scope, and once-per-turn frequency were already aligned.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; effect versus ordinary play, once-per-turn, mandatory draw/trash ordering, Retaliation battle behavior, and direct/shared equality require observable proof.
+
+## BT11-085 — WaruSeadramon — source correction pending focused verification
+
+- Catalog and KB evidence: On Play and When Digivolving, WaruSeadramon may play one blue or purple level-3 Digimon from the digivolution cards of any friendly blue or purple Digimon; Q2108 confirms the played card and host colors may be crossed. Its inherited All Turns once-per-turn memory gain applies only when its controller plays a Digimon by an effect; Q2109 excludes a source that was not a digivolution card when the resulting play occurred.
+- Source audit correction: both direct and shared IR omitted the inherited `byEffect: true` filter, allowing ordinary plays to gain memory. They now match the printed provenance clause while retaining the cross-color host/source selectors, friendly controller scope, and once-per-turn frequency.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2108 crossed colors, Q2109 source-at-event timing, effect versus ordinary play, once-per-turn, and direct/shared equality require observable proof.
+
+## BT11-086 — Mervamon — source correction pending focused verification
+
+- Catalog and KB evidence: Mervamon has DigiXros -3 with an Xros Heart material and may also use cards from trash; Q2110 confirms hand, battle area, and trash remain usable material sources. On Play/When Digivolving it may play one eligible purple or Xros Heart level-4-or-lower trash Digimon, plus one only if DigiXrosing, and Q2111 requires exactly two when two or more are eligible; it permanently grants Rush and Blocker to friendly Xros Heart or Retaliation Digimon.
+- Source audit correction: shared IR omitted direct IR's static `AllowDigiXrosMaterialsFromTrash` replacement, denying Q2110's material zone. It now declares the same zero-cost play replacement and trash-material permission; both entry effects retain the all-or-none exact-count Q2111 shape, and the permanent trait/keyword grants were already aligned.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2110 three-zone materials, Q2111 exact-two/none, DigiXros count boundary, both entry triggers, target union, and direct/shared equality require observable proof.
+
+## BT11-087 — Lilithmon — source correction pending focused verification
+
+- Catalog and KB evidence: Lilithmon trashes four, then returns up to two Bagra Army cards from trash, and can place up to two Bagra Army Digimon from trash beneath one friendly Tamer. Q2112 requires at least one successful return before the placement may occur; its opponent-turn optional cost trashes one of its own sources when an opponent moves a Digimon from breeding and gives that moved Digimon an attacking memory-loss trigger for the turn.
+- Source audit correction: direct IR sequenced the return and placement but did not make the latter contingent on a successful return, contradicting Q2112. The placement now has `ifThisEffectActed`; the shared legacy entry remains explicitly partial with its missing opponent-breeding primitive rather than being falsely promoted to full coverage.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2112 zero/one/two-return branches, one-Tamer anchor, own-stack cost, moved-Digimon identity, granted trigger duration, and legacy shared-port completion require observable proof.
+
+## BT11-088 — Bagramon — source correction pending focused verification
+
+- Catalog and KB evidence: Bagramon trashes one opponent hand card at zero or one opposing Digimon, otherwise places one opposing Digimon beneath another; Q2113 confirms the placed permanent leaves battle with its sources trashed, Q2114 permits inherited effects on a Digimon-treated Tamer host, and Q5207 prevents targeting an effect-immune destination. All Turns once per turn, it may trash one of its own sources to trash the opponent's top security only when the opponent digivolves or adds digivolution cards.
+- Source audit correction: shared IR collapsed the latter clause into an unconditional security trash. It now matches direct IR’s two opponent-Digimon subtriggers, self-stack trash cost, optional-decline behavior, and shared once-per-turn frequency; entry placement timing remains subject to the existing engine placement semantics.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2113 leave/stack trash, Q2114 inherited host, Q5207 immunity, both event paths, paid/declined cost, and direct/shared equality require observable proof.
+
+## BT11-089 — Akiho Rindou — source correction pending focused verification
+
+- Catalog and KB evidence: Akiho Rindou reveals four and recovers one red Vaccine Digimon, then has a Your Turn effect-play trigger for a red Digimon with Avian, Bird, Beast, Animal, or Sovereign traits; suspending this Tamer may give that played Digimon Rush for the turn. Q2115 confirms all matching trait forms qualify except Sea Animal; Security plays Akiho without cost.
+- Source audit correction: shared IR recognized Avian only, had no effect-play gate, selected a separate friendly trait target, and omitted Akiho's suspend cost and optional decline. It now matches direct IR's complete trait union, `byEffect` provenance, trigger-subject target, and paid optional Rush grant; reveal and Security behavior were already aligned.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2115 exclusion/compound traits, effect versus ordinary play, trigger-subject identity, paid/declined suspension, duration, reveal order, and direct/shared equality require observable proof.
+
+## BT11-090 — Nicolai Petrov — source audit pending focused verification
+
+- Catalog and KB evidence: blue 3-cost Tamer. At the start of the controller's main phase, one friendly Digimon with Gaomon or Gaogamon in its name gains Jamming for the turn. During the controller's turn, when an effect adds cards to the opponent's hand, the controller may suspend Nicolai to gain 1 memory. Security plays Nicolai without cost. Q2116 confirms that the start-main effect does not activate if memory crosses to the opponent before that main phase begins.
+- Source audit: the direct IR uses the discrete `StartOfYourMainPhase` trigger, selects exactly one controller-owned Digimon through the Gaomon/Gaogamon name union, and grants Jamming only `forTheTurn`. Its controller-turn `whenEffectAddsToOpponentHand` watcher pays an optional self-suspension cost before gaining exactly 1 memory. The Security clause, full coverage, empty residual list, and exclusive `registerIrCard("BT11-090", compiled)` registration align with the printed card. The shared event seam carries the affected hand seat and rejects the controller's own hand, while the phase dispatcher only opens the start-main window for the active controller, matching Q2116 statically.
+- Verification status: no test was launched under the requested static-only policy. This is deliberately not scored 10/10; both name branches, exact one-target selection, Jamming expiry, Q2116's turn-loss boundary, opponent-hand direction across draw/return effects, optional refusal and failed suspension, Security play, and registry/IR equality still require observable proof.
+
+## BT11-091 — Taiga — source audit pending focused verification
+
+- Catalog and KB evidence: green 3-cost Tamer with no local rulings, errata, or restrictions. During the controller's turn all friendly Digimon get +1000 DP. Also during that turn, when one friendly green Digimon would digivolve into a level 5 or higher card, the controller may suspend Taiga to reduce that digivolution cost by 1. Security plays Taiga without cost.
+- Source audit: the direct IR expresses the all-friendly-Digimon +1000 modifier under `YourTurn`, and a `wouldDigivolve` replacement restricted to a controller-owned green Digimon and an into-card at the inclusive level-5 floor. Its nested optional replacement pays by suspending this Tamer and reduces cost by exactly 1, aborting on decline. The Security clause, full coverage, empty residual list, and exclusive `registerIrCard("BT11-091", compiled)` registration align with the printed card. Static tracing confirms the replacement is queried before memory payment and receives both the current permanent and destination definition.
+- Verification status: no test was launched under the requested static-only policy. This is deliberately not scored 10/10; DP application/removal at turn boundaries, multiple friendly Digimon, level 4/5 boundaries, green-source and multicolor cases, optional refusal, already-suspended Taiga, multiple Taigas, minimum-cost behavior, Security play, and registry/IR equality still require observable proof.
+
+## BT11-092 — Analogman — source correction pending focused verification
+
+- Catalog and KB evidence: Analogman may trash a level-5 Cyborg hand card at Start of Main to gain one memory and then Draw 1; Q2117 prevents activation if the turn has already passed before main. Opponent Turn, it may suspend to redirect an opponent attack declared at a player to a friendly level-6 Machine; Q2118 allows this even if Raid later changes the attack target.
+- Source audit correction: shared IR made the mandatory Draw 1 separately optional and omitted `attackTargetsPlayer` from redirection. It now matches direct IR’s paid optional compound branch and declaration-time player-target gate; target filter, suspension cost, and Security play were already aligned.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; Q2117 lost-turn timing, paid/declined compound effect, Q2118 Raid sequence, player-versus-Digimon declaration, and direct/shared equality require observable proof.
+
+## BT11-093 — Yuuya Kuga — source correction pending focused verification
+
+- Catalog and KB evidence: Yuuya Kuga sets memory to 3 at start of turn only at two or less. When a friendly Greymon-name Digimon digivolves, suspending Yuuya may give that same Digimon +2000 DP through the opponent turn and, if it retained the same level, immunity to opponent Option effects; Q2119 includes Security Options, while Q2120 and Q2121 confirm protection expires and removes preexisting ongoing Option effects normally.
+- Source audit correction: shared IR selected an arbitrary friendly Digimon and left the Option protection as detached raw residual. It now matches direct IR’s trigger-subject target and executable same-level `Restrict beAffected` scoped to opponent Option effects through opponent turn, with full coverage declared.
+- Verification status: no focused or mechanism test was launched because externally owned Vitest processes 82901 and 97051 remain active. This is deliberately not scored 10/10; memory boundary, trigger-subject identity, same/different-level boundary, Q2119 Security, Q2120 expiry, Q2121 removal, and direct/shared equality require observable proof.
+
+## BT11-094 — Mirei Mikagura — source correction pending focused verification
+
+- Catalog and KB evidence: Mirei gains one memory at the start of its controller's turn. When a friendly Digimon evolves into Angewomon, she may suspend to play LadyDevimon from hand without cost; when it evolves into LadyDevimon, she may instead play Angewomon, and only while the controller has one or fewer Digimon in play. Q2122 defines those reciprocal branches and Q2123 excludes playing the same name; Security plays Mirei without cost.
+- Source audit correction: shared IR had one combined source/target name filter, so it permitted same-name plays, omitted the reciprocal binding, and lacked both the one-or-fewer boundary and required counterpart-in-hand condition. It now mirrors the direct IR with two exact-name subtriggers, each targeting only the other name and gating the optional suspend-cost play through both live predicates; direct registration remains exclusively `registerIrCard("BT11-094", compiled)` with full coverage and no residual clauses.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; both Q2122 branches, Q2123 same-name exclusion, one-versus-two-Digimon boundary, no-counterpart branch, suspension/decline, Security play, and direct/shared equality require observable proof.
+
+## BT11-095 — Taiki, Kiriha, & Nene — source audit pending focused verification
+
+- Catalog and KB evidence: at Start of Main Phase, placing one hand Digimon with Xros Heart or Blue Flare traits beneath this Tamer gains one memory then draws one; Q2124 prevents it after the turn has passed. Its Your Turn optional suspend replacement allows cards beneath any friendly Tamer, but not a Digimon, as DigiXros materials when exactly one DigiXros-requirement Digimon would be played; Q2125–Q2129 define the cross-Tamer access and all single-card boundaries. Security plays the card without cost.
+- Source audit: direct and shared compiled IR are equal and fully cover the ordered paid optional gain/draw block, broad friendly-Tamer under-card selector, self-suspend/decline boundary, one-DigiXros-card source filter, DigiXros-material marking, and Security play. `digiXros.ts` enforces the resulting under-Tamer-only material provenance and caps the expansion from this replacement; registration is exclusively `registerIrCard("BT11-095", compiled)` with no residual clauses.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is not scored 10/10; Q2124 turn-pass timing, paid/declined gain/draw, Q2126 other-Tamer positive, Q2127 Digimon-stack negative, Q2128 simultaneous two-DigiXros negative, Q2129 mixed-batch negative, material limit, and direct/shared equality require observable proof.
+
+## BT11-096 — Magma Bomb — source audit pending focused verification
+
+- Catalog and KB evidence: Magma Bomb is a red Option with play cost 6; use cost is reduced by one only while its controller has a red Tamer, then Main deletes exactly one opposing Digimon tied for lowest DP. The local knowledge base has no card-specific entries, and Security activates its Main effect.
+- Source audit: direct and shared compiled IR are equal and fully cover the owner-scoped red-Tamer self-reducer, inclusive lowest-DP superlative selector with one chosen target, and Security `ActivateMain`; the verified self-reducer registry explicitly includes BT11-096 so the pay-time Option path consumes the static reduction. Registration is exclusively `registerIrCard("BT11-096", compiled)` with full coverage and no residual clauses.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is not scored 10/10; reduced and unreduced payment, tied-lowest selection, high-DP exclusion, Security activation, and direct/shared equality require observable proof.
+
+## BT11-097 — Crimson Flare — source correction pending focused verification
+
+- Catalog and KB evidence: Crimson Flare deletes one opposing Digimon at the inclusive 8000-DP ceiling, then only with a friendly red Tamer may activate one On Deletion effect of one friendly red Vaccine Digimon; Security activates Main. The local knowledge base has no card-specific entry.
+- Source audit correction: the direct module already fully compiled the supported `ActivateEffect` rider, but shared IR retained it as `RawUnparsed`, falsely declared partial coverage, and left the executable behavior unavailable to shared consumers. Shared IR now matches the direct target ownership, red/Vaccine filters, one-effect count, optional choice, lender-as-source identity, red-Tamer condition, and full-coverage registration through exclusive `registerIrCard("BT11-097", compiled)`.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; 8000/9000 DP boundary, red-Tamer gate, red Vaccine filter, non-deletion activation identity, optional decline, Security activation, and direct/shared equality require observable proof.
+
+## BT11-098 — Maelstrom — source audit pending focused verification
+
+- Catalog and KB evidence: Maelstrom may play one blue Digimon from the digivolution cards of one friendly blue Digimon without cost, then if a Seadramon-name Digimon is in play returns one opposing level-4-or-lower Digimon to deck bottom; Security activates Main. Q2130 confirms that a Seadramon played by the first action can satisfy the later live condition.
+- Source audit: direct and shared compiled IR are equal and fully cover the optional blue host/source play, then separately mandatory return at the inclusive level-4 boundary using a live friendly Seadramon-name predicate. The ordered action list therefore evaluates Q2130 after the possible play, while declining that optional play leaves an already-present Seadramon branch available; registration is exclusively `registerIrCard("BT11-098", compiled)` with full coverage and no residual clauses.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is not scored 10/10; Q2130 newly-played Seadramon branch, preexisting/absent Seadramon boundary, optional decline, blue host/source filters, level-4/5 boundary, Security activation, and direct/shared equality require observable proof.
+
+## BT11-099 — Ice Statue — source audit pending focused verification
+
+- Catalog and KB evidence: Ice Statue is a blue Option whose use cost falls by one only with a friendly blue Tamer. Main first trashes the top three digivolution cards of one opposing Digimon, then returns one opposing Digimon with no digivolution cards to hand; Security activates Main. The local knowledge base has no card-specific entry.
+- Source audit: direct and shared compiled IR are equal and fully cover the blue-Tamer self-reducer, ordered top-first three-card stack trash, post-trash live source-less selector, one-target return, and Security activation. The verified self-reducer registry explicitly includes BT11-099, and registration is exclusively `registerIrCard("BT11-099", compiled)` with full coverage and no residual clauses.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is not scored 10/10; reduced/unreduced payment, one/two/three stack-card boundaries, post-trash target recalculation including a different source-less permanent, source-trash ownership, Security activation, and direct/shared equality require observable proof.
+
+## BT11-100 — Megalo Spark — source audit pending focused verification
+
+- Catalog and KB evidence: Megalo Spark is a yellow Option whose use cost is reduced by one only with a friendly yellow Tamer; Main gives exactly one opposing Digimon -8000 DP through that opponent's turn, and Security activates Main. The local knowledge base has no card-specific entry.
+- Source audit: direct and shared compiled IR are equal and fully cover the yellow-Tamer self-reducer, one opposing target, signed 8000-DP modification, opponent-turn duration, and Security `ActivateMain`. The verified self-reducer registry explicitly includes BT11-100, and registration is exclusively `registerIrCard("BT11-100", compiled)` with full coverage and no residual clauses.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is not scored 10/10; reduced/unreduced payment, exact-one target, DP-deletion interaction, duration expiry, Security activation, and direct/shared equality require observable proof.
+
+## BT11-101 — Holy Sunshine — source correction pending focused verification
+
+- Catalog and KB evidence: Holy Sunshine is a yellow Option whose use cost falls by one with a friendly yellow Tamer. Main gives the **same three** opposing Digimon -5000 DP and Security Attack -1 through the opponent turn; Security activates Main. The local knowledge base has no card-specific entry.
+- Source audit correction: shared IR independently selected three targets for the keyword grant after selecting the three DP-modification targets, allowing the two printed effects to affect different groups. It now carries direct IR's `sameTarget: true` binding on the Security Attack action; the yellow-Tamer reducer, three-target count, amounts, duration, Security behavior, reducer registry, full coverage, and exclusive `registerIrCard("BT11-101", compiled)` registration are otherwise aligned.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; reduced/unreduced payment, exactly-three boundary, one shared target set, DP-deletion interaction, opponent-turn expiry, Security activation, and direct/shared equality require observable proof.
+
+## BT11-102 — High Mega Blaster — source correction pending focused verification
+
+- Catalog and KB evidence: High Mega Blaster chooses one friendly Digimon with `[Insect]` in a trait, suspends exactly two opposing Digimon at or below that chosen DP, then prevents one opposing suspended Digimon from unsuspending in its next unsuspend phase; Security suspends two opposing Digimon. Q2131 requires suspending two whenever two legal targets exist.
+- Source audit correction: shared IR interpreted `[Insect] in its traits` as an exact trait match, incorrectly rejecting the catalog's `Insectoid` cards. It now matches direct IR's substring `traitContains: ["Insect"]` predicate; the selection binding, inclusive DP comparison, mandatory count-two suspension, post-suspension restriction, duration, Security branch, full coverage, and exclusive `registerIrCard("BT11-102", compiled)` registration are aligned.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; Insectoid positive/non-Insect negative, Q2131 count-two boundary, DP equality/exclusion, post-suspension restriction target, next-unsuspend expiry, Security count, and direct/shared equality require observable proof.
+
+## BT11-103 — Poison Powder — source correction pending focused verification
+
+- Catalog and KB evidence: Poison Powder is a green Option with a one-cost reduction while its controller has a green Tamer. Main grants every opposing Digimon an All Turns trigger that loses one memory whenever that Digimon becomes suspended through the opponent turn; Security activates Main. The local knowledge base has no card-specific entry.
+- Source audit correction: shared IR had the aura text and duration but omitted both its `whenSuspended` event and the nested `GainMemory -1` action, leaving the granted effect non-executable. It now mirrors direct IR's event/action payload; current opposing-Digimon scope, green-Tamer reducer, duration, Security behavior, verified reducer registration, full coverage, and exclusive `registerIrCard("BT11-103", compiled)` registration are aligned.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; reduced/unreduced payment, each eligible suspension including already-suspended and later-entry boundaries, memory owner, duration expiry, Security activation, and direct/shared equality require observable proof.
+
+## BT11-104 — Buster Dive — source correction pending focused verification
+
+- Catalog and KB evidence: Buster Dive is a green Option with a one-cost reduction while a friendly green Tamer exists. Main gives one friendly Digimon +5000 DP and Rush for the turn, then a separately named friendly Digimon may attack an opposing Digimon; Q2132 excludes unsuspended opposing attack targets. Security adds the Option to hand.
+- Source audit correction: direct IR incorrectly bound the later `Then, 1 of your Digimon may attack` to the boost recipient, while shared IR separately selected the Rush recipient and could split it from the DP modification. Both now faithfully model one bound DP/Rush recipient followed by an independent optional friendly attacker; the test's direct-IR assertion records that independent attacker scope. Green-Tamer reduction, turn duration, Q2132's attack legality primitive, Security-to-hand, full coverage, verified reducer registration, and exclusive `registerIrCard("BT11-104", compiled)` registration remain aligned.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; reduced/unreduced payment, bound DP/Rush recipient, distinct attacker branch, Q2132 suspended-target exclusion, decline, duration expiry, Security-to-hand, and direct/shared equality require observable proof.
+
+## BT11-105 — Fusionize — source correction pending focused verification
+
+- Catalog and KB evidence: Fusionize costs one less with friendly Snatchmon. Main first places a trash Vemmon or Destromon beneath any friendly Digimon, then may evolve any friendly Digimon into trash Destromon or Galacticmon for its evolution cost; Q2133 expressly permits the placement even when no evolution destination exists. Security reveals three, may play one Vemmon, and trashes the remainder.
+- Source audit correction: shared IR incorrectly folded the required placement into the optional evolution's cost and aborted it on decline, contradicting Q2133 and preventing independent host choice. It now mirrors direct IR's ordered mandatory bottom placement followed by separately optional paid trash evolution; Snatchmon reduction, Security reveal/play/trash handling, full coverage, verified reducer registration, and exclusive `registerIrCard("BT11-105", compiled)` registration are aligned.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; Q2133 no-destination placement, distinct placement/evolution hosts, paid evolution cost, destination filter, decline after placement, Snatchmon reducer, Security play/decline/rest-trash, and direct/shared equality require observable proof.
+
+## BT11-106 — Cooties Kick — source correction pending focused verification
+
+- Catalog and KB evidence: Cooties Kick is a black Option whose use cost falls by one with a friendly black Tamer. Main grants one friendly Numemon/Sukamon/Nanimon/Etemon-name Digimon both an On Deletion gain-three-memory effect and unblockability through the opponent turn; Security reveals three, may play one black cost-3-or-lower Digimon, then trashes the rest. The local knowledge base has no card-specific entry.
+- Source audit correction: shared IR encoded only the granted On Deletion effect and omitted the co-occurring `cantBeBlocked` restriction on that same recipient. It now mirrors direct IR's same-target restriction; the black-Tamer reducer, exact name union, grant duration, Security reveal/play/trash behavior, verified reducer registration, full coverage, and exclusive `registerIrCard("BT11-106", compiled)` registration are aligned.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; reduced/unreduced payment, exact recipient ownership, deletion-memory amount and source, same-target unblockability, duration expiry, Security cost/color boundary and decline/rest-trash, and direct/shared equality require observable proof.
+
+## BT11-107 — Hades Force — source correction pending focused verification
+
+- Catalog and KB evidence: Hades Force is a black/red Option whose use cost falls by two only when a friendly Digimon has an X Antibody card in its digivolution cards. Main chooses any number of opposing Digimon/Tamers within a chosen friendly Greymon-name Digimon's combined play-cost budget, deletes them, then may attack a player with a friendly Greymon-name Digimon; Q2134 permits spending less than the budget, Q2135 preserves ordinary attack eligibility, Q2136 fires When Attacking effects, and Q2137 forbids redirecting this effect attack to a Digimon. Security deletes one highest-play-cost opposing Digimon.
+- Source audit correction: direct and shared reducers incorrectly matched a top-card X Antibody name instead of a card in a friendly stack, while shared IR left the supported budgeted multi-delete as raw/partial. Both now use `digivolutionStackNameOrTrait`, and shared IR mirrors direct `SelectBind` plus `totalPlayCostBudgetFromSelectionRef` deletion with full coverage; the direct map test asserts the stack gate. Greymon attack-player path, Security superlative, verified reducer registration, and exclusive `registerIrCard("BT11-107", compiled)` registration remain aligned.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; stack-positive/top-name-only negative reducer, Q2134 under-budget selection, mixed Digimon/Tamer budget, Q2135 suspension/summoning sickness, Q2136 triggers, Q2137 player-only target, Security ties, and direct/shared equality require observable proof.
+
+## BT11-108 — DG Dimension — source correction pending focused verification
+
+- Catalog and KB evidence: DG Dimension is a black Option with a one-cost reduction while a friendly black Tamer exists. Main De-Digivolves three opposing Digimon by one, stopping at level 3 or last card, then deletes three opposing Digimon at play cost 6 or less; Security activates Main. Q1501 confirms its conditional one-cost reduction does not alter its printed cost for another card's On Play option-use ceiling.
+- Source audit correction: shared IR omitted the final inclusive play-cost-6 ceiling and could delete an expensive opposing Digimon after the De-Digivolve step. It now mirrors direct IR's `playCostLte: 6` filter; action ordering, three-target counts, stack-trash stop semantics, black-Tamer reducer, Security activation, verified reducer registration, full coverage, and exclusive `registerIrCard("BT11-108", compiled)` registration are aligned.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; Q1501 printed-versus-reduced cost, De-Digivolve stop boundaries, post-De-Digivolve target recalculation, cost-6/7 boundary, three-target count, Security activation, and direct/shared equality require observable proof.
+
+## BT11-109 — Astral Snatcher — source correction pending focused verification
+
+- Catalog and KB evidence: Astral Snatcher may place up to three Bagra Army Digimon cards from trash under one friendly Digimon or Tamer, then with a friendly Bagra Army Digimon/Tamer may place one opposing Digimon under another opposing Digimon. Q5208 rejects an unaffected destination, and Q5977 confirms the moved Digimon leaves battle while its digivolution cards are trashed. Security activates Main.
+- Source audit correction: shared IR represented the second clause as a loose-card placement and had no bound moved permanent, so it could not preserve Q5977's whole-permanent relocation semantics. It now mirrors direct IR's optional `SelectBind` of the moved opposing Digimon and `targetIsPermanent` relocation under another opposing Digimon; first placement, Bagra Army gate, Security activation, full coverage, and exclusive `registerIrCard("BT11-109", compiled)` registration are aligned.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; up-to-three and one-host boundaries, Digimon-versus-Tamer friendly host, Bagra Army gate, Q5208 immunity, Q5977 source-stack trash and destination stack placement, moved/destination distinction, decline, Security activation, and direct/shared equality require observable proof.
+
+## BT11-110 — Evil Squall — source audit pending focused verification
+
+- Catalog and KB evidence: Evil Squall is a purple Option whose use cost falls by one only with a friendly purple Tamer. Main deletes three opposing unsuspended level-5-or-lower Digimon; the local knowledge base has no card-specific entry.
+- Source audit: direct and shared compiled IR are equal and fully cover the purple-Tamer self-reducer and exact three-target filter requiring opponent ownership, unsuspended state, Digimon kind, and inclusive level-5 ceiling. The verified self-reducer registry includes BT11-110, registration is exclusively `registerIrCard("BT11-110", compiled)`, coverage is full with no residuals, and this card has no Security effect.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is not scored 10/10; reduced/unreduced payment, one/two/three target boundary, suspended exclusion, level-5/6 boundary, no-target behavior, and direct/shared equality require observable proof.
+
+## BT11-111 — Galacticmon — source correction pending focused verification
+
+- Catalog and KB evidence: Galacticmon has alternate Snatchmon evolution for 9. On Digivolving it may place up to four trash Vemmon under a friendly Digimon and, at eight or more Vemmon in its own stack, may delete one opponent; All Turns it may prevent **this** Digimon leaving battle by bottom-decking four Vemmon from **this** Digimon's stack. Q2138 excludes De-Digivolve; Q2139 enumerates leave-battle destinations, Q2140 includes deck/security moves, and Q2141 blocks Start of Main after the turn passes, where the card trashes opponent security top.
+- Source audit correction: both direct and shared replacement costs allowed deck cards and Vemmon from arbitrary stacks despite the exact printed source being this Galacticmon's digivolution cards. They now require `zone: "digivolutionCards"`, `hostFilter: { isSelfRef: true }`, and that sole source zone; the direct IR assertion records the scope. Evolution, eight-Vemmon gate, replacement timing, Start-of-Main security trash, full coverage, and exclusive `registerIrCard("BT11-111", compiled)` registration remain aligned.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; alternate evolution, four-placement cap, eight-Vemmon threshold, Q2138 De-Digivolve exclusion, Q2139/Q2140 leave paths, exact self-stack/deck/other-stack payment boundaries, Q2141 turn-pass timing, Security trash, and direct/shared equality require observable proof.
+
+## BT11-112 — Rina Shinomiya — source correction pending focused verification
+
+- Catalog and KB evidence: on play, Rina gives one friendly Veemon/Veedramon-name Digimon both Blocker and Evade through the opponent turn. All Turns, when a friendly Veedramon-name Digimon suspends, suspending Rina activates one of **that** permanent's When Digivolving effects; Q2142 requires paying the suspension even if none exists, and Q2143 preserves the triggering permanent identity after it digivolves. Your Turn once per turn, a friendly blue unsuspend gains one memory; Security plays Rina without cost.
+- Source audit correction: direct and shared IR separately targeted Blocker/Evade and shared instead reactivated Rina's own effect; direct also allowed selecting a different Veedramon for activation. Both now bind Evade to Blocker's target and use a paid `whenSuspended` subtrigger with `sourceRef: "triggerSubject"`; the strengthened IR assertion captures those ownership invariants. The blue-memory timing, Security play, full coverage, and exclusive `registerIrCard("BT11-112", compiled)` registration are aligned.
+- Verification status: no focused or mechanism test was launched under the RAM-conserving source-only policy. This is deliberately not scored 10/10; shared On Play recipient, Q2142 empty-effect paid cost, Q2143 post-evolution identity, friendly/opponent and blue/nonblue unsuspend boundary, once-per-turn identity, duration expiry, Security play, and direct/shared equality require observable proof.
+
+## Static continuation checklist (below BT11-039)
+
+- Coverage check: every card below BT11-039 has a ledger entry; no untracked card ID was found.
+- Remaining causal gaps are verification-only for the entries marked pending: observable boundary tests, trigger/source identity, payment and optional-decline paths, zone/stack movement, duration/turn expiry, Security behavior, and direct/shared IR equality as itemized per card.
+- No new implementation divergence was found in the already-closed BT11-040 through BT11-001 range. No tests were run under the static-only instruction.

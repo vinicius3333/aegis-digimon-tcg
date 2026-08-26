@@ -8,7 +8,16 @@ describe("BT11-107 Hades Force", () => {
   it("maps catalog facts and each printed effect to IR", () => {
     expect(getCardDefinition("BT11-107")).toMatchObject({ cardId: "BT11-107", colors: ["Black", "Red"], kinds: ["Option"], playCost: 7 });
     expect(compiled.effects).toMatchObject([
-      { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
+      {
+        trigger: "Static",
+        actions: [
+          {
+            kind: "Replacement",
+            event: "wouldBePlayed",
+            actions: [{ condition: { filter: { digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"] }] } } }],
+          },
+        ],
+      },
       { trigger: "Main", actions: [{ kind: "SelectBind" }, { kind: "Delete" }, { kind: "Attack" }] },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "Delete" }] },
     ]);

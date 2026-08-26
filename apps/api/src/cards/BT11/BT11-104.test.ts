@@ -9,7 +9,13 @@ describe("BT11-104 Buster Dive", () => {
     expect(getCardDefinition("BT11-104")).toMatchObject({ cardId: "BT11-104", colors: ["Green"], kinds: ["Option"], playCost: 4 });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
-      { trigger: "Main", actions: [{ kind: "SelectBind" }, { kind: "ModifyDP", amount: 5000 }, { kind: "Attack" }] },
+      {
+        trigger: "Main",
+        actions: [
+          { kind: "ModifyDP", amount: 5000, alsoGainKeywords: [{ keyword: "Rush" }] },
+          { kind: "Attack", target: { filter: { controller: "mine", kind: ["Digimon"] } } },
+        ],
+      },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "AddToHandSelf" }] },
     ]);
   });

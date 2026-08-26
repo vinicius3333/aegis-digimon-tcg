@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ names: ["HerculesKabuterimon"], cost: 1, isAlternate: true }],
 };
 
 registerIrCard("BT11-058", compiled);

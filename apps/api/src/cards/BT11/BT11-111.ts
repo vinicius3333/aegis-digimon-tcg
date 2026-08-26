@@ -43,12 +43,14 @@ export const compiled: CompiledCard = {
                 kind: "place",
                 target: {
                   filter: {
+                    zone: "digivolutionCards",
                     controllerDefault: "mine",
                     kind: ["Digimon"],
                     nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
+                    hostFilter: { isSelfRef: true },
                   },
                   count: 4,
-                  from: ["deck", "digivolutionCards"],
+                  from: ["digivolutionCards"],
                 },
                 raw: "by placing 4 [Vemmon] from this Digimon's digivolution cards at the bottom of their owners' decks",
               },

@@ -29,7 +29,10 @@ describe("BT17 collection audit gate", () => {
   it("imports, tests, and registers every catalog card", () => {
     for (const cardId of bt17Ids) {
       const testSource = readFileSync(`${collectionDirectory}/${cardId}.test.ts`, "utf8");
-      expect(indexSource.match(new RegExp(`^import \\"\\./${cardId}\\.js\\";$`, "gm")), `${cardId} index import`).toHaveLength(1);
+      expect(
+        indexSource.match(new RegExp(`^import \\"\\./${cardId}\\.js\\";$`, "gm")),
+        `${cardId} index import`,
+      ).toHaveLength(1);
       expect(testSource, `${cardId} test suite`).toMatch(/\bdescribe\s*\(/);
       expect(testSource, `${cardId} runnable test`).toMatch(/\bit\s*\(/);
       expect(testSource, `${cardId} observable assertion`).toMatch(/\bexpect\s*\(/);
@@ -43,7 +46,9 @@ describe("BT17 collection audit gate", () => {
       const moduleSource = readFileSync(`${collectionDirectory}/${cardId}.ts`, "utf8");
       const compiled = runtimeCompiledCard(cardId);
 
-      expect(moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*[\"']${cardId}[\"']\\s*,\\s*compiled\\s*\\)`, "g"))).toHaveLength(1);
+      expect(
+        moduleSource.match(new RegExp(`\\bregisterIrCard\\s*\\(\\s*["']${cardId}["']\\s*,\\s*compiled\\s*\\)`, "g")),
+      ).toHaveLength(1);
       expect(moduleSource.match(/\bregisterIrCard\s*\(/g), `${cardId} total registerIrCard calls`).toHaveLength(1);
       expect(moduleSource, `${cardId} legacy registerCard call`).not.toMatch(/\bregisterCard\s*\(/);
       expect(hasRegisteredCompiledCard(cardId), `${cardId} direct compiled registration`).toBe(true);

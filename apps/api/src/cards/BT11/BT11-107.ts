@@ -23,7 +23,7 @@ export const compiled: CompiledCard = {
                   zone: "battleArea",
                   controllerDefault: "mine",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }],
+                  digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "name" }],
                 },
                 raw: "you have a Digimon with [X Antibody] in its digivolution cards in play",
               },
