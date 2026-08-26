@@ -63,11 +63,11 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-057 | Labramon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-058 | Octomon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-059 | Dobermon (X Antibody) | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-060 | Dragomon | 13 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-060 | Dragomon | 13 | Opponent-trash play is a suspended, On-Play-suppressed level≤4 placement; effect-driven opponent entry then feeds the shared `whenPlayed` snapshot gate, allowing one optional Purple trash play at level≤the captured entrant. | Pending focused proof |
 | EX5-061 | Cerberusmon (X Antibody) | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-062 | Anubismon | 5 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-062 | Anubismon | 5 | Generated watcher normalization retains shared Once Per Turn; its draw is explicitly gated by `ifThisEffectDidNotDelete`, with existing positive/negative observable watcher evidence. | Pending rerun |
 | EX5-063 | Leviamon | 8 | Catalog/KB/direct IR/test reviewed; existing observable deletion-memory evidence. | Pending rerun |
-| EX5-064 | Koh & Sayo | 4 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-064 | Koh & Sayo | 4 | Q3668 is preserved by separate subject target and Light Fang/Night Claw top-to-bottom-stack cost; suspend and stack rotation are compound/all-or-nothing, and Security self-play is direct. | Pending focused proof |
 | EX5-065 | Sayo & Koh | 2 | Add-source watcher now requires placing the owner’s top card at a stack bottom (Q3669), not ordinary digivolution; positive and negative event fixtures remain queued. | Pending focused run |
 | EX5-066 | Phoebus Blow | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-067 | Good Night Moon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
@@ -75,7 +75,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-069 | Biting Crush | 6 | Q3674-Q3678 watcher conditions are direct: effect-driven opponent Digimon entry only, not breeding/Tamer/manual play; shared Delay wrapper requires an armed grant, consumes it before the free Leviamon play, and leaves decline unconsumed. | Pending focused proof |
 | EX5-070 | X Antibody Proto Form | 5 | Direct override uses stack-name exclusion and named-card security source (not trait); Q3679 live proof excludes Proto Form itself, and Q4260 return/security selection is now bound to the inherited host stack. | Pending focused run |
 | EX5-071 | Loyalty Deeper than the Sea | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-072 | Holy Beasts Great Cardinal Positions | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-072 | Holy Beasts Great Cardinal Positions | 1 | Color waiver is a live Deva/Four Sovereigns presence check; hand-play reduction counts distinct qualifying trash names, while Main play and Security return use exact Fanglongmon name filters. | Pending focused proof |
 | EX5-073 | GraceNovamon | 4 | Direct IR corrected deletion, DNA route, and static keywords; Q3687/Q3688 attack proof remains queued, and the leave-play payment is now restricted to this Digimon’s own same-level sources. | Pending focused run |
 | EX5-074 | Fanglongmon | 2 | Existing harness proofs cover Four Sovereigns security scaling and paid-trash DP scaling; direct permanent GrantStatic routes to the shared Digimon-only `beAffected` restriction (capabilities/targeting proof), so Option/Tamer effects are intentionally outside its scope. | Pending rerun |
 
