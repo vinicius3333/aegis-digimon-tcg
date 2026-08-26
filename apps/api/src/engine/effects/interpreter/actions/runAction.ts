@@ -84,11 +84,39 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.playCostCeiling !== undefined ||
       action.scaling !== undefined ||
       action.target.filter?.playCostLteScaling !== undefined);
+  // A "by deleting 1 of your Digimon, delete 1 with a level no higher than it" target
+  // cannot be matched until the deleteOwn cost captures `lastDeletedLevel`.  Preflighting
+  // it before payment makes the target set look empty and silently skips the whole action.
+  const deleteTargetBoundByItsCost =
+    action.kind === "Delete" &&
+    action.cost !== undefined &&
+    typeof action.cost !== "number" &&
+    action.cost.kind === "deleteOwn" &&
+    action.target.filter.levelComparison?.relativeTo === "lastDeleted";
+  const deleteOwnLevelTargetAvailable = (() => {
+    if (!deleteTargetBoundByItsCost || typeof action.cost === "number" || action.cost.target === undefined) return false;
+    const highestCostLevel = Math.max(
+      ...candidatePermanents(ctx, action.cost.target)
+        .map((permanent) => {
+          const card = ctx.game.permanentById(permanent.permanentId)?.topCard;
+          return card === undefined ? 0 : ctx.game.definitionOf(card).level;
+        })
+        .filter((level) => level > 0),
+      0,
+    );
+    if (highestCostLevel === 0) return false;
+    const { levelComparison: _levelComparison, ...filterWithoutBound } = action.target.filter;
+    return candidatePermanents(ctx, { ...action.target, filter: filterWithoutBound }).some((permanent) => {
+      const card = ctx.game.permanentById(permanent.permanentId)?.topCard;
+      return card !== undefined && ctx.game.definitionOf(card).level <= highestCostLevel;
+    });
+  })();
   if (
     action.kind === "Delete" &&
     action.cost !== undefined &&
     action.allowCostWithoutTarget !== true &&
     !dynamicallyScaledDeleteTarget &&
+    (!deleteTargetBoundByItsCost || !deleteOwnLevelTargetAvailable) &&
     candidatePermanents(ctx, action.target).length === 0
   ) {
     return action.abortOnDecline === true;

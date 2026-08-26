@@ -1,10 +1,20 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT11-076.js";
+import { compiled } from "./BT11-076.js";
 
 describe("BT11-076 Ignitemon", () => {
+  it("maps catalog facts and both printed effects to IR", () => {
+    expect(getCardDefinition("BT11-076")).toMatchObject({
+      cardId: "BT11-076", colors: ["Purple"], level: 3, playCost: 4, dp: 2000, types: ["Reptile Man", "Xros Heart"],
+    });
+    expect(compiled.effects).toMatchObject([
+      { trigger: "WhenAttacking", actions: [{ kind: "Delete" }] },
+      { trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenPlayed" }] },
+    ]);
+  });
+
   it("digivolves for 0 from a level 2 with the Xros Heart trait", async () => {
     const s = setupEngine({
       0: {
@@ -33,22 +43,31 @@ describe("BT11-076 Ignitemon", () => {
         0: {
           battleArea: [
             { card: "BT11-076", as: "ignitemon" },
-            { card: "BT1-015", as: "sacrifice" },
+            { card: "BT8-041", as: "sacrifice" },
           ],
         },
         1: {
+          security: ["BT1-009"],
           battleArea: [
-            { card: "BT1-015", as: "eligible" },
-            { card: "BT1-081", as: "level-six" },
+            { card: "BT8-023", as: "eligible" },
+            { card: "BT8-032", as: "level-six" },
           ],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     const sacrificeId = s.perm("sacrifice").permanentId;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("ignitemon"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ignitemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === sacrificeId) === false);
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === sacrificeId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-081"]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT8-032"]);
   });
 
   it("does not delete an opponent above the deleted Digimon's level", async () => {
@@ -57,17 +76,25 @@ describe("BT11-076 Ignitemon", () => {
         0: {
           battleArea: [
             { card: "BT11-076", as: "ignitemon" },
-            { card: "BT1-010", as: "levelThree" },
+            { card: "BT8-023", as: "levelThree" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-015", as: "levelFour" }] },
+        1: { battleArea: [{ card: "BT8-032", as: "levelSix" }] },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("ignitemon"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ignitemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
