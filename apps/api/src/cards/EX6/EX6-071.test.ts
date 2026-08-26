@@ -9,7 +9,6 @@ describe("EX6-071 Pandemonium Lost", () => {
       { kind: "Trash", chooser: "opponent", condition: { kind: "zoneCount", value: 5 } },
       {
         kind: "Delete",
-        condition: undefined,
         target: {
           filter: {
             levelComparison: {
