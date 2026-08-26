@@ -53,7 +53,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-021 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing the own-attacking once-per-turn draw for each controller and All Turns inherited opponent-hand threshold aura through attack timing, controller routing, frequency, and live zone count.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-021.test.ts` passed (5 tests): both draw recipients, same-turn frequency, inherited threshold at 8, and live 7-to-8 boundary.
-- BT13-022 — Pending
+- BT13-022 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard` for the printed Blocker static keyword, traced into public keyword observation and the combat block declaration/resolution consumer.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-022.test.ts` passed (3 tests): IR keyword registration, observable keyword state, and a live suspended block that redirects a player attack and resolves combat.
 - BT13-023 — Pending
 - BT13-024 — Pending
 - BT13-025 — Pending
