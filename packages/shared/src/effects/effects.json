@@ -11180,35 +11180,31 @@
         "actions": [
           {
             "kind": "Replacement",
-            "event": "wouldBeDeleted",
-            "sourceFilter": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Greymon", "Omnimon"], "match": "name" }]
+            "event": "wouldLeavePlay",
+            "mode": "prevent",
+            "sourceFilter": { "isSelfRef": true },
+            "leaveCause": "byEffect",
+            "condition": {
+              "kind": "selfHasNameContaining",
+              "names": ["Greymon", "Omnimon"],
+              "raw": "this Digimon has [Greymon] or [Omnimon] in its name"
             },
-            "actions": [
-              {
-                "kind": "GrantStatic",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "grant": { "cannotLeavePlay": true },
-                "duration": "forTheTurn",
-                "cost": {
-                  "kind": "place",
-                  "target": {
-                    "filter": {
-                      "controllerDefault": "mine",
-                      "kind": ["Digimon"],
-                      "nameOrTrait": [{ "tokens": ["X Antibody"], "match": "name" }]
-                    },
-                    "count": 1,
-                    "from": ["deck", "digivolutionCards"]
-                  },
-                  "raw": "by placing 1 [X Antibody] from this Digimon's digivolution cards at the bottom of its owner's deck"
+            "cost": {
+              "kind": "return",
+              "target": {
+                "filter": {
+                  "zone": "digivolutionCards",
+                  "controller": "mine",
+                  "kind": ["Option"],
+                  "nameOrTrait": [{ "tokens": ["X Antibody"], "match": "name" }],
+                  "hostFilter": { "isSelfRef": true }
                 },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
+                "count": 1
+              },
+              "to": "deckBottom",
+              "raw": "place 1 [X Antibody] from this Digimon's digivolution cards at the bottom of its owner's deck"
+            },
+            "optional": true
           }
         ],
         "isInherited": true
