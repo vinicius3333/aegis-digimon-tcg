@@ -112,6 +112,22 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-036 (Craftmon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-036 Craftmon | Yellow level 4 Appmon; App Fusion `[Kabemon] & [Gomimon] & [Ecomon] & [Puzzlemon]` cost 0; `[Security]` at the end of battle, play this card without paying; on play/when digivolving, add top security to hand, then Recovery +1; Link Appmon cost 2, +3000 linked DP, and when linking by trashing 1 Appmon from hand draw 2. Q6302 permits activation at zero security and performs Recovery only; Q6303 enumerates pairwise App Fusion combinations. | **Causal timing gap.** The Security effect directly executes `PlayWithoutCost` at the generic Security timing. The printed effect is explicitly “at the end of the battle”; it must arm a one-shot `whenSecurityBattleEnded` consequence and play then. As written, Craftmon is played during the security check, before battle resolution. The On Play/When Digivolving security-to-hand then Recovery sequence and App Fusion requirement are present in this module, while Link metadata/effect is supplied by catalog registration. | The direct module has no colocated test shown here for end-of-battle timing. Structural proof would not catch the premature Security play. **Static diagnosis only; implementation correction and behavioral proof required.** |
+
+### Static validation record for BT25-036
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-036` (Q6302 and Q6303).
+- Direct module and the shared Security timing seam were inspected. Peer BT6-111 shows the
+  required pattern: a Security action installs a one-shot `whenSecurityBattleEnded` watcher;
+  Craftmon currently lacks that wrapper and plays immediately.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-035 (Cougarmon)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
