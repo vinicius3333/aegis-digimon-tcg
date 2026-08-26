@@ -465,3 +465,24 @@ git diff --check
 ```
 
 No unsupported executable behavior remains for BT25-023; the catalog-label discrepancy is resolved by the set's named-card data and peer wording.
+
+## BT25-024 — Lekismon — 10/10
+
+- Catalog evidence: Blue level-4 Digimon, play cost 4, 5000 DP, `Champion`/`Data`, `Beastkin`/`Iliad`/`TS`; standard blue or red level-3 evolution for 2 plus alternate level-3 `TS` evolution for 2; On Play/When Digivolving Draw 1; controller-turn red play/evolution reaction, optionally evolve this Digimon into hand Crescemon at cost -1; inherited Jamming.
+- Knowledge base: Q6287 says every friendly play/evolution event triggers but activation requires the resulting Digimon to be red; Q6288 checks the post-evolution Digimon's color.
+- Implementation: both entry Draw clauses, both red-event subtriggers, post-event subject color filtering, Crescemon hand/self targeting, remaining-cost payment after -1, the alternate evolution, and inherited Jamming are complete. Direct/shared IR are synchronized, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-024", compiled)`.
+- Defects corrected: the direct watchers used an unsupported scalar `value` shape for `triggerSubjectHasColor`, and the Crescemon actions omitted `payCost: true`. They now use `filter.colors: ["Red"]` and pay the reduced cost. Persisted IR replaces its raw action condition with the same structured fire condition and payment flag.
+- Behavioral proof: the focused suite covers Draw 1 at both timings, live Jamming on a realistic stack, both play/evolution red events, Q6287 non-red rejection, Q6288 real post-evolution color, exact Crescemon cost 3→2 payment, optional refusal, and the alternate evolution metadata. The red-event and payment assertions fail against the prior IR.
+- Verification: focused suite — 11 passed; card-specific Oxlint/Oxfmt and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-024 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-024
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-024.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-024.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-024.ts apps/api/src/cards/BT25/BT25-024.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-024.

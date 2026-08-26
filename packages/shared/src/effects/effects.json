@@ -36904,6 +36904,7 @@
             "kind": "SubTrigger",
             "event": "whenPlayed",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "fireCondition": { "kind": "triggerSubjectHasColor", "filter": { "colors": ["Red"] } },
             "actions": [
               {
                 "kind": "GainKeyword",
@@ -91170,8 +91171,8 @@
                 "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Crescemon"], "match": "name" }] },
                 "from": ["hand"],
                 "reduceCost": 1,
-                "optional": true,
-                "condition": { "kind": "raw", "raw": "any of them are red" }
+                "payCost": true,
+                "optional": true
               }
             ]
           },
@@ -91179,6 +91180,7 @@
             "kind": "SubTrigger",
             "event": "whenOneOfYoursDigivolves",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "fireCondition": { "kind": "triggerSubjectHasColor", "filter": { "colors": ["Red"] } },
             "actions": [
               {
                 "kind": "Digivolve",
@@ -91186,8 +91188,8 @@
                 "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Crescemon"], "match": "name" }] },
                 "from": ["hand"],
                 "reduceCost": 1,
-                "optional": true,
-                "condition": { "kind": "raw", "raw": "any of them are red" }
+                "payCost": true,
+                "optional": true
               }
             ]
           }
