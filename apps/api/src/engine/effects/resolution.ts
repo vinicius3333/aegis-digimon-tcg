@@ -56,6 +56,9 @@ export interface ResolutionDeps {
   /** Observability seam: a triggered effect finished resolving (see ResolutionEnv.onResolved). */
   onResolved?: ResolutionEnv["onResolved"];
 
+  /** Observability seam: a triggered effect is about to resolve (see ResolutionEnv.onResolving). */
+  onResolving?: ResolutionEnv["onResolving"];
+
   /** Drain the engine's deferred queues between effects (see ResolutionEnv.betweenEffects). */
   betweenEffects?: ResolutionEnv["betweenEffects"];
 
@@ -148,6 +151,7 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
     chooseOrder: deps.chooseOrder,
     askOptional: deps.askOptional,
     onResolved: deps.onResolved,
+    onResolving: deps.onResolving,
     betweenEffects: deps.betweenEffects,
   };
 }

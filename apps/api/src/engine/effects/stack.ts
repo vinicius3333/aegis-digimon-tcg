@@ -126,6 +126,13 @@ export interface ResolutionEnv {
    * transient "what just resolved" overlay; the pure resolver never depends on it.
    */
   onResolved?(timing: EffectTiming, collected: CollectedEffect): void;
+
+  /**
+   * Notify that a triggered effect is about to resolve — before its optional
+   * prompt and before any decision its body opens. Optional observability seam
+   * used by the engine to announce the effect ahead of the wait it may cause.
+   */
+  onResolving?(timing: EffectTiming, collected: CollectedEffect): void;
 }
 
 /**
@@ -394,6 +401,7 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
       if (chosen === undefined) return; // defensive: out-of-range index
 
       const chosenKey = declineKey(chosen);
+      env.onResolving?.(timing, chosen);
       inProgress.add(chosenKey);
       let wasResolved: boolean;
       try {

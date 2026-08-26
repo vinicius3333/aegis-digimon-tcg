@@ -34,7 +34,7 @@ function notice(overrides: Partial<MatchNotice> = {}): MatchNotice {
 }
 
 const resolved = (seat: Seat): ServerEvent => ({
-  kind: "effectResolved",
+  kind: "effectTriggered",
   seat,
   sourceCardId: "BT1-010",
   effectKey: "k",

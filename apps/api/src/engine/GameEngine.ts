@@ -3698,6 +3698,16 @@ export class GameEngine {
       isGameOver: () => this.state.gameOver,
       chooseOrder: (seat, active, timing) => this.resolverDecisions.chooseOrder(seat, active, timing),
       askOptional: (seat, collected) => this.resolverDecisions.askOptional(seat, collected),
+      onResolving: (timing, collected) => {
+        this.hooks.emit({
+          kind: "effectTriggered",
+          seat: collected.source.ownerSeat,
+          sourceCardId: collected.source.cardId,
+          effectKey: collected.effect.effectKey,
+          description: collected.effect.description,
+          timing: EffectTiming[timing],
+        });
+      },
       onResolved: (timing, collected) => {
         this.hooks.emit({
           kind: "effectResolved",

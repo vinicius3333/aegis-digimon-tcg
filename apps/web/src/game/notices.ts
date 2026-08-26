@@ -59,7 +59,11 @@ function sideOf(seat: Seat, viewerSeat: Seat): NoticeSide {
   return seat === viewerSeat ? "you" : "opp";
 }
 
-/** The notice a resolved effect deserves, for either seat. */
+/**
+ * The notice an effect deserves as it starts resolving, for either seat.
+ * Driven by `effectTriggered` rather than `effectResolved`, so the clause is
+ * readable before any selection the effect asks its controller for.
+ */
 export function effectNoticeFromEvent(
   event: ServerEvent,
   viewerSeat: Seat,
@@ -67,7 +71,7 @@ export function effectNoticeFromEvent(
   nowMs: number,
   fromSecurity = false,
 ): MatchNotice | null {
-  if (event.kind !== "effectResolved") return null;
+  if (event.kind !== "effectTriggered") return null;
   return {
     id,
     side: sideOf(event.seat, viewerSeat),

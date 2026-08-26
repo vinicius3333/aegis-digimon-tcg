@@ -76,6 +76,9 @@ const DELIBERATELY_SILENT: Partial<Record<ServerEventKind, string>> = {
   // Rendered as the deck's shuffle animation (deckChrome.ts). It names no card and says
   // nothing a line of text would say better.
   deckShuffled: "rendered by the deck chrome animation",
+  // Raised as the framed effect notice (notices.ts) the moment the effect starts
+  // resolving; the log narrates the same effect once it resolves (effectResolved).
+  effectTriggered: "shown as the effect notice; the log line belongs to effectResolved",
 };
 
 describe("server event coverage", () => {

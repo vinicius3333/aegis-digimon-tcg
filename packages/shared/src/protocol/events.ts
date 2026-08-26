@@ -119,6 +119,17 @@ export type ServerEvent =
   | { kind: "cardRevealed"; seat: Seat; cardId: string; sourceCardId?: string }
   | { kind: "effectActivated"; seat: Seat; sourceCardId: string; effectKey: string; description: string }
   | {
+      // A triggered effect (On Play / When Digivolving / ...) STARTED resolving. Emitted
+      // before the effect's optional prompt and any in-body decisions, so the client can
+      // announce the effect ahead of the "opponent is selecting" wait it may open.
+      kind: "effectTriggered";
+      seat: Seat;
+      sourceCardId: string;
+      effectKey: string;
+      description: string;
+      timing?: string;
+    }
+  | {
       // A triggered effect (On Play / When Digivolving / On Deletion / ...) finished
       // resolving. `timing` is the enum member name (e.g. "OnPlay") so the client can
       // slice the matching printed clause out of the card's effect text for a transient
@@ -182,6 +193,7 @@ export const SERVER_EVENT_KINDS = [
   "deckShuffled",
   "cardRevealed",
   "effectActivated",
+  "effectTriggered",
   "effectResolved",
   "cardsMoved",
   "turnEnded",

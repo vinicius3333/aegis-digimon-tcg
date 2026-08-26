@@ -1776,7 +1776,10 @@ export function GameScreen({
         />
       ) : null}
 
-      {state.pendingDecision && state.pendingDecision.seat !== viewerSeat && !state.gameOver ? (
+      {/* Held back while a played card is still showcased centre-screen, so the
+          effect notice (queued behind that showcase) is readable before the wait
+          it explains is announced. */}
+      {state.pendingDecision && state.pendingDecision.seat !== viewerSeat && !state.gameOver && !cues.zoneShowcase ? (
         <OpponentSelectingPill />
       ) : null}
 

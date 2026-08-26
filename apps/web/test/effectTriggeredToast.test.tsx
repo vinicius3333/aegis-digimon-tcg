@@ -64,7 +64,7 @@ it("shows a non-blocking notice when the viewer's mandatory effect resolves", as
       roomCode: "",
     },
     {
-      kind: "effectResolved",
+      kind: "effectTriggered",
       seat: 0,
       sourceCardId: "ST12-15",
       effectKey: "st12-15-main",
@@ -103,7 +103,7 @@ it("shows the exact inherited clause instead of SaviorHuckmon's main effect", as
       roomCode: "",
     },
     {
-      kind: "effectResolved",
+      kind: "effectTriggered",
       seat: 0,
       sourceCardId: "ST12-08",
       effectKey: "ST12-08/when-attacking-inherited-play-sistermon",

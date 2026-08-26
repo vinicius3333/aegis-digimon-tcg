@@ -440,7 +440,7 @@ describe("zone-change showcases", () => {
 
 describe("notices", () => {
   const EFFECT: ServerEvent = {
-    kind: "effectResolved",
+    kind: "effectTriggered",
     seat: 0,
     sourceCardId: "BT1-010",
     effectKey: "k",
