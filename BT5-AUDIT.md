@@ -1736,3 +1736,37 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-041 — Taomon — 10/10
+
+- Catalog evidence: Yellow Lv.5 Ultimate Digimon, Data/Wizard, play cost 6,
+  7000 DP, and yellow Lv.4 evolution cost 3. Its only text is an inherited
+  `[Your Turn]` effect giving all opposing Security Digimon -1000 DP.
+- Knowledge-base and rules evidence: Q1325 confirms a Security Digimon
+  reduced to 0 still battles; Q1326 confirms its Security effect still
+  resolves; Q1327 confirms the reduction no longer applies if that effect
+  plays the card into the battle area. These are the exact counterparts of
+  BT5-038 Q1322-Q1324.
+- Implementation: `apps/api/src/cards/BT5/BT5-041.ts` contains an inherited
+  `YourTurn` `ModifySecurityDP` action for the opponent, amount -1000, with a
+  continuously re-derived permanent duration. It is byte-for-behavior
+  equivalent to the audited BT5-038 module, declares `coverage: "full"` and
+  `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-041", compiled)`.
+- Primitive, peer, and behavioral evidence: the two focused tests prove the
+  opponent-only modifier on the controller's turn and its absence on the
+  opponent's turn. BT5-038's direct ruling tests prove a 0-DP Security battle,
+  normal Security effect resolution, and full printed DP after that card is
+  played. Shared Security-DP and chapter-13 conformance suites verify the
+  modifier is consumed only in security battle and does not suppress the
+  Security timing.
+- Defect corrected: none. The module and focused tests were already faithful;
+  the exact peer supplies the card-specific ruling proof without redundant
+  tests.
+- Verification: focused BT5-041, exact peer BT5-038, Security-DP, and Security
+  conformance suites — 4 files, 20 tests passed. `git diff --check` passes.
+  API typecheck retains only the known unrelated baseline errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
