@@ -250,7 +250,7 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   --fileParallelism=false`. LM-026 remains below 10/10 pending relevant mechanism and refreshed
   collection gates.
 
-## LM-027 — Red Scramble — pending focused execution
+## LM-027 — Red Scramble — focused proof green; pending mechanism and collection gates
 
 - Direct IR keeps ordinary red-Digimon evolution legality (`ignoreRequirements: false`), excludes
   burst/DNA forms by using the ordinary hand Digivolve action, and places the resolved Option in
@@ -259,8 +259,10 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   before the optional small red-trash play, matching Q4036/Q4037. Security independently performs
   optional small-red play then returns Red Scramble to hand.
 - Existing behavioral cases cover cost reduction, Delay ordering, size cap, no-opponent gate,
-  empty-trash Q4036 activation, and Security follow-up. They remain unrun under PID 82901, so
-  this card is below 10/10.
+  empty-trash Q4036 activation, and Security follow-up. The authorized serialized focused command
+  passed 1/1 file and 8/8 tests in 2.58s on 2026-08-26: `vitest run src/cards/LM/LM-027.test.ts
+  --pool=forks --poolOptions.forks.singleFork=true --fileParallelism=false`. LM-027 remains below
+  10/10 pending relevant mechanism and refreshed collection gates.
 
 ## LM-028 — Blue Scramble — pending focused execution
 
