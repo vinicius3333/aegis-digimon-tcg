@@ -216,13 +216,11 @@ describe("BT18-055 AncientTroymon", () => {
           { card: "EX7-015", as: "attacker" },
           { card: "EX7-015", as: "ally" },
         ],
-        security: [
-          { card: "EX8-069", as: "allianceSource", faceUp: true },
-          { card: "BT1-010", as: "security" },
-        ],
+        security: [{ card: "EX8-069", as: "allianceSource", faceUp: true }],
       },
       1: {
         battleArea: [{ card: "ST18-07", as: "blocker" }],
+        security: ["BT1-010", "BT1-011", "BT1-012"],
       },
     });
     await s.ready();
@@ -261,7 +259,20 @@ describe("BT18-055 AncientTroymon", () => {
     expect(attacker.keywords).not.toContain("Alliance");
     expect(attacker.currentDP).toBe(6000);
     expect(attacker.securityAttack).toBe(2);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(3);
     expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        s.events.some(({ kind }) => kind === "combatResolved" || kind === "gameOver"),
+      5000,
+    );
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash).toHaveLength(2);
+    expect(attacker.currentDP).toBe(3000);
+    expect(attacker.securityAttack).toBe(1);
     assertNoLoudGap(s);
   });
 
