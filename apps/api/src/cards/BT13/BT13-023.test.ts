@@ -45,5 +45,23 @@ describe("BT13-023 Jellymon", () => {
     await settle(() => s.perm("target").stack.length === 1);
     expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT1-010"]);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT13-023"]);
+  });
+
+  it("uses Evade to suspend Jellymon and prevent an effect deletion", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-023", as: "jellymon" }] } });
+    const jellymonId = s.perm("jellymon").permanentId;
+    await s.ready();
+
+    const deletion = advance(s.engine).verb.deletePermanent([jellymonId], "byEffect");
+    await settle(() => s.events.some((event) => event.kind === "evadePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: jellymonId, accept: true })).toEqual({
+      ok: true,
+    });
+    expect(await deletion).toBe(0);
+
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("jellymon"));
+    expect(s.perm("jellymon").isSuspended).toBe(true);
+    expect(s.events).toContainEqual({ kind: "evadeResolved", permanentId: jellymonId, accepted: true });
   });
 });

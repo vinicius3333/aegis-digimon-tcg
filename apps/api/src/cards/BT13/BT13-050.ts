@@ -30,6 +30,8 @@ export const compiled: CompiledCard = {
             ],
           },
           from: ["hand"],
+          payCost: true,
+          reduceCost: 2,
           optional: true,
           cost: {
             kind: "suspend",
@@ -43,22 +45,6 @@ export const compiled: CompiledCard = {
             raw: "By suspending this Digimon",
           },
           abortOnDecline: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          sourceFilter: {
-            isSelfRef: true,
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldDigivolve",
-              mode: "reduceCost",
-              amount: 2,
-              raw: "reduce the digivolution cost by 2",
-            },
-          ],
         },
       ],
     },

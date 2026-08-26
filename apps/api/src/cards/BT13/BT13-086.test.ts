@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-086.js";
 
 describe("BT13-086 BT13-086", () => {
@@ -31,6 +31,11 @@ describe("BT13-086 BT13-086", () => {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
         },
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "OnPlay",
+      actions: [
         {
           kind: "PlayWithoutCost",
           from: ["trash"],
@@ -47,7 +52,7 @@ describe("BT13-086 BT13-086", () => {
         },
       ],
     });
-    expect(compiled.effects[1]).toMatchObject({
+    expect(compiled.effects[2]).toMatchObject({
       trigger: "AllTurns",
       actions: [
         {
@@ -58,7 +63,7 @@ describe("BT13-086 BT13-086", () => {
         },
       ],
     });
-    expect(compiled.effects[2]).toMatchObject({
+    expect(compiled.effects[3]).toMatchObject({
       trigger: "OnDeletion",
       actions: [
         {
@@ -79,5 +84,17 @@ describe("BT13-086 BT13-086", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT13-086", as: "card" }] } });
     await s.ready();
     expect(s.perm("card").topCard?.cardId).toBe("BT13-086");
+  });
+
+  it("plays Akihiro Kurata from trash only when Gizmon: XT is played", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT13-086", as: "xt" }], trash: [{ card: "BT13-103", as: "akihiro" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("xt").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-103"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-103")).toBe(true);
   });
 });

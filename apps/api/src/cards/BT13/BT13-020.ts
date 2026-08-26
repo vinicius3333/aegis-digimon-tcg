@@ -41,7 +41,7 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "AllTurns",
+      trigger: "YourTurn",
       frequency: "OncePerTurn",
       actions: [
         {

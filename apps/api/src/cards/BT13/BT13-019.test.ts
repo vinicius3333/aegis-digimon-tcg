@@ -18,7 +18,11 @@ describe("BT13-019 Gankoomon", () => {
       expect(effect.actions[0]).toMatchObject({
         kind: "PlayWithoutCost",
         from: ["trash", "digivolutionCards"],
-        target: { filter: { excludeNames: ["Omnimon", "Gankoomon"] } },
+        target: {
+          filter: {
+            excludeNameOrTrait: [{ tokens: ["Omnimon", "Gankoomon"], match: "nameExact" }],
+          },
+        },
       });
     }
   });
@@ -34,23 +38,86 @@ describe("BT13-019 Gankoomon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-085")).toBe(true);
   });
 
+  it("offers the same free Sistermon play when it digivolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-016", as: "base" }],
+          hand: [{ card: "BT13-019", as: "gankoomon" }],
+          trash: [{ card: "BT10-085", as: "ciel" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("gankoomon").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-085"));
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("may decline an eligible Sistermon play", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-019", as: "gankoomon" }], trash: [{ card: "BT10-085", as: "ciel" }] },
+    });
+    const resolving = fireOnPlay(s);
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("ciel").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("plays a Royal Knight from breeding digivolution cards, including an allowed Omnimon X name (Q2277)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-019", as: "gankoomon" }],
+          breeding: { card: "BT13-007", as: "drasil", under: [{ card: "BT5-111", as: "omnimonX" }] },
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const omnimonXId = s.inst("omnimonX").instanceId;
+    await fireOnPlay(s);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === omnimonXId));
+
+    expect(s.perm("drasil").stack.some((card) => card.instanceId === omnimonXId)).toBe(false);
+  });
+
   it("does not play excluded Omnimon or Gankoomon cards", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT13-019", as: "gankoomon" }],
-          trash: [
-            { card: "BT5-111", as: "omnimon" },
-            { card: "BT13-019", as: "otherGankoomon" },
-          ],
+          breeding: {
+            card: "BT13-007",
+            as: "drasil",
+            under: [
+              { card: "BT5-086", as: "omnimon" },
+              { card: "BT13-019", as: "otherGankoomon" },
+            ],
+          },
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await fireOnPlay(s);
     await settle();
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT5-111", "BT13-019"]),
+    expect(s.perm("drasil").stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("omnimon").instanceId, s.inst("otherGankoomon").instanceId]),
     );
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });

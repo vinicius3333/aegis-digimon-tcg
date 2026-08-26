@@ -9,59 +9,61 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
+      condition: {
+        kind: "youHave",
+        filter: {
+          controllerDefault: "mine",
+          nameOrTrait: [{ tokens: ["Kiyoshiro Higashimitarai"], match: "name" }],
+        },
+        raw: "If you have [Kiyoshiro Higashimitarai]",
+      },
       actions: [
         {
-          kind: "Digivolve",
+          kind: "PlaceUnder",
           target: {
             filter: {
+              zone: "hand",
               controller: "mine",
               kind: ["Digimon"],
               nameOrTrait: [
                 {
-                  tokens: ["Jellymon"],
-                  match: "name",
+                  tokens: ["TeslaJellymon"],
+                  match: "nameExact",
                 },
               ],
             },
             count: 1,
+          },
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Jellymon"], match: "nameExact" }],
+          },
+          position: "bottom",
+          bindHostAs: "thetismonJellymonHost",
+          abortOnDecline: true,
+        },
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "thetismonJellymonHost",
           },
           into: {
             controllerDefault: "mine",
             nameOrTrait: [
               {
                 tokens: ["Thetismon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
           from: ["hand"],
+          source: "triggerSource",
           payCost: true,
           costOverride: 3,
           ignoreRequirements: true,
-          optional: true,
-          additionalCosts: [
-            {
-              kind: "place",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [
-                    {
-                      tokens: ["TeslaJellymon"],
-                      match: "name",
-                    },
-                  ],
-                },
-                count: 1,
-                from: ["hand"],
-              },
-              destination: "digivolutionStack",
-              position: "bottom",
-              host: "target",
-              raw: "by placing 1 [TeslaJellymon] from your hand under 1 of your [Jellymon]s",
-            },
-          ],
         },
       ],
       isFromHand: true,

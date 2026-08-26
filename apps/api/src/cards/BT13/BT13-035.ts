@@ -11,10 +11,7 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "level",
-          amount: 2,
+          kind: "ConditionalBranch",
           condition: {
             kind: "youHave",
             filter: {
@@ -26,33 +23,42 @@ export const compiled: CompiledCard = {
             count: 8,
             raw: "you have 8 or more Digimon cards with [Chessmon] in their names in your trash",
           },
-        },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              levelComparison: {
-                op: "lte",
-                value: 3,
-              },
-              nameOrTrait: [
-                {
-                  tokens: ["Chessmon"],
-                  match: "name",
+          ifTrue: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 5 },
+                  nameOrTrait: [{ tokens: ["Chessmon"], match: "name" }],
                 },
-              ],
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              condition: { kind: "isYourTurn", raw: "it's your turn" },
+              optional: true,
             },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          condition: {
-            kind: "isYourTurn",
-            raw: "it's your turn",
-          },
-          optional: true,
+          ],
+          ifFalse: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 3 },
+                  nameOrTrait: [{ tokens: ["Chessmon"], match: "name" }],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              condition: { kind: "isYourTurn", raw: "it's your turn" },
+              optional: true,
+            },
+          ],
         },
       ],
     },

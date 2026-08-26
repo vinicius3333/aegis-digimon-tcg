@@ -8,6 +8,16 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        {
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
+    },
+    {
       trigger: "OpponentsTurn",
       actions: [
         {
@@ -32,12 +42,6 @@ export const compiled: CompiledCard = {
               optional: true,
             },
           ],
-        },
-      ],
-      keywords: [
-        {
-          keyword: "Blocker",
-          raw: "＜Blocker＞",
         },
       ],
     },

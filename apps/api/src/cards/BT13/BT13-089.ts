@@ -8,16 +8,21 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              name: "Ravemon",
-              controller: "mine",
+          kind: "DelayedEffect",
+          trigger: "nextEndOfOpponentTurn",
+          effect: {
+            kind: "PlayWithoutCost",
+            target: {
+              filter: {
+                name: "Ravemon",
+                controller: "mine",
+              },
+              count: 1,
             },
-            count: 1,
+            payCost: false,
+            from: ["trash"],
+            optional: true,
           },
-          payCost: false,
-          from: ["trash"],
           cost: {
             kind: "deleteOwn",
             target: {
