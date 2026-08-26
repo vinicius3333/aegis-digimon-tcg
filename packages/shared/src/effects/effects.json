@@ -13418,7 +13418,7 @@
           },
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 3 },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 3, "sameTarget": true },
             "keyword": { "keyword": "SecurityAttack", "amount": -1, "raw": "＜Security Attack -1＞" },
             "duration": "untilOpponentTurnEnd"
           }
