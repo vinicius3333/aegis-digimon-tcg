@@ -71,7 +71,9 @@ This ledger records only independently reproduced, card-scoped verification. His
 - BT13-027 — 10/10
   - Evidence: catalog reviewed and KB has no card-specific entry; corrected compiled IR to register printed Blocker as a static keyword (rather than an opponent-turn-only keyword), while separately tracing the optional opponent-attack level-4-or-lower play from this stack through controller, level, source-zone, and cost primitives.
   - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-027.test.ts` passed (4 tests): static Blocker on both turns, stack play, refusal, and level/source-zone selection.
-- BT13-028 — Pending
+- BT13-028 — 10/10
+  - Evidence: catalog reviewed and KB has no card-specific entry; compiled IR exclusively uses `registerIrCard`, tracing Kiyoshiro-gated hand evolution, exact Jellymon/TeslaJellymon identities, bottom-source placement, overridden cost, and the inherited three-card Jellymon-text return/unsuspend frequency.
+  - Behavioral proof: `pnpm --filter @aegis/api exec vitest run src/cards/BT13/BT13-028.test.ts` passed (7 tests): full hand-evolution path, missing prerequisites, exact-name negative, three-card return, and once-per-turn boundary.
 - BT13-029 — Pending
 - BT13-030 — Pending
 - BT13-031 — Pending
