@@ -9,7 +9,7 @@ const play = {
   payCost: false,
   optional: true,
 };
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [play] },
     { trigger: "WhenDigivolving", actions: [play] },
