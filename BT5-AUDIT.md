@@ -804,3 +804,38 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   outside BT5-016; repository-wide card formatting has unrelated baseline
   findings, while the changed test formats cleanly.
 - Remaining ambiguity: none identified.
+
+## BT5-017 — ZeigGreymon — 10/10
+
+- Catalog evidence: Red Lv.6 Mega Digimon, Virus/Cyborg, play cost 12,
+  11000 DP, and red Lv.5 evolution cost 3. Its main clause grants `<Blitz>`
+  when digivolving. Its inherited owner-turn clause allows a host attacking
+  with Blitz to also target an opposing unsuspended Digimon.
+- Knowledge-base and rules evidence: Q1299 was reviewed and introduces no
+  multi-effect ordering change for this card. Comprehensive Rules §4-1-3 and
+  §16-16 define the opponent-memory threshold and Blitz window; §15-1-3 keeps
+  prohibitions stronger than attack permissions. No errata, restriction, or
+  unresolved ambiguity applies.
+- Implementation: `apps/api/src/cards/BT5/BT5-017.ts` encodes the
+  When Digivolving Blitz grant and the inherited owner-turn unsuspended-target
+  permission conditioned on a Blitz attack. It declares `coverage: "full"`,
+  `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-017", compiled)`.
+- Primitive, peer, and stack evidence: effect-driven keyword grant follows the
+  legal red Lv.5-to-Lv.6 stack transition and opens the shared optional Blitz
+  attack window only after memory crosses to the opponent. Attack legality
+  extends the target set to unsuspended opposing Digimon only while the
+  inherited source, owner-turn gate, and Blitz context are all present.
+- Behavioral proof: 6 focused tests pin the complete catalog/IR contract,
+  legal evolution and Blitz grant, positive Blitz attack paths, the exact
+  memory-0 negative boundary, inherited targeting of an unsuspended Digimon,
+  and rejection during the opponent's turn.
+- Defect corrected: none in the IR or engine. The audit added only missing
+  catalog, memory-boundary, and inherited turn-boundary assertions to
+  `BT5-017.test.ts`.
+- Verification: focused BT5-017 — 1 file, 6 tests passed. Blitz/conformance
+  regressions — 31 tests passed. Targeted Oxfmt and `git diff --check` passed.
+  Workspace `pnpm typecheck` retains only the known unrelated API errors in
+  EX6-010, interpreter action/removal/runAction/targeting files, and the
+  primitive capability fixture.
+- Remaining ambiguity: none identified.
