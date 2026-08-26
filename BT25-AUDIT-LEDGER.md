@@ -112,6 +112,21 @@ cost-only seam. No card-local approximation was introduced.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
 
+## Static diagnosis: BT25-026 (Crescemon)
+
+| Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
+| --- | --- | --- | --- |
+| BT25-026 Crescemon | Blue level 5 Digimon; alternate level-4 `[TS]` evolution cost 3; on play/when digivolving trashes the bottom 3 digivolution cards of 1 opposing Digimon, then 1 opposing Digimon with no digivolution cards cannot suspend until their turn ends; during your turn, on own Digimon play/digivolution, if the post-event Digimon is red, may digivolve this into `[Dianamon]` from trash at -2; inherited your-turn attack target cannot change. Q6290 confirms non-red events trigger but cannot activate; Q6291 uses the post-digivolution subject. | **No card-specific causal mismatch found statically.** Both main windows use bottom-of-stack (`fromTop: false`) trashing followed by an independent opposing no-source target restriction, matching the printed “1 ... then 1 ...” wording. The two Your Turn watchers gate at fire time on the post-event subject's red color and owner turn, target Dianamon by name in trash, pay the reduced cost, and remain optional. The inherited attack-target restriction, alternate requirement, and duration are represented. | Structural and mechanism tests inspect the watcher gate, but do not prove full stack trashing, independent target choice, no-card boundary, reduced memory payment, turn expiry, or inherited attack-target immutability. **Static diagnosis only; behavioral proof required before 10/10.** |
+
+### Static validation record for BT25-026
+
+- Catalog record read from `packages/shared/src/cards/data/cards.json`.
+- Local query executed: `node tools/kb/query.mjs card BT25-026` (Q6290 and Q6291).
+- Direct module/test and shared `TrashDigivolution` bottom-order, fire-time subject-color,
+  and effect-driven digivolution payment paths were inspected.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
+  all focused runs remain pending authorization.
+
 ## Static diagnosis: BT25-025 (Aegiochusmon: Blue)
 
 | Card | Catalog and KB contract | Direct IR and mechanism diagnosis | Existing proof and status |
