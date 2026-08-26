@@ -12,7 +12,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDigivolutionTrashed",
-          sourceFilter: { controller: "mine", kind: ["Tamer"] },
+          sourceFilter: { controller: "mine", kind: ["Tamer"], byEffect: true },
           actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
         },
       ],
