@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-049.js";
 
-describe("EX6-049 Diaboromon", () => {
+describe("EX6-049 Devimon", () => {
   it("deletes a level 3 opponent Digimon when their hand has five or fewer cards and trashes their hand at seven or more", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
       { kind: "Delete", condition: { kind: "zoneCount", op: "lte", value: 5 } },

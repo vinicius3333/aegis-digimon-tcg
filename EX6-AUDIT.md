@@ -384,3 +384,12 @@ root-worktree Vitest workload has cleared.
 - Shared primitive trace: a temporary aura attaches to the target permanent, surviving card-stack identity changes until its duration ends, as Q3781 requires. Paid subtrigger sequencing prevents end attack on a failed delete; EndAttack transitions directly to EndOfAttack without affecting the attacker or offering Counter timing.
 - Existing observable proof: shared durable temporary aura, stack change persistence, paid end-attack, failed deletion, immunity-agnostic timing, no-counter, EndOfAttack dispatch, and frequency suites cover the primitives; the colocated suite asserts IR. No EX6-048 card-level runtime fixture currently proves Q3781 de-digivolve persistence or a Q3782 failure branch with every timing consequence.
 - Status: not rated 10/10; focused execution is deferred while the unrelated Vitest process remains active.
+
+## EX6-049 — Devimon — evidence in progress
+
+- Catalog evidence: Purple level 4, play cost 5, 5000 DP, evolves from purple level 3 for 2; form `Champion`, attribute `Virus`, trait `Fallen Angel`. On Play/When Digivolving, opponent hand at most five deletes one opposing level-3 Digimon; opponent hand at least seven makes that opponent trash one hand card. Its inherited All Turns clause gives the host +1000 DP while opponent hand is at most six.
+- Knowledge base: no local card-specific entries.
+- Direct IR: both printed timings duplicate the independent ≤5 opponent level-3 Delete and ≥7 opponent-chosen hand Trash, with exact `zoneCount` predicates. The inherited self Aura carries the live ≤6 opponent hand condition. It retains full coverage, no residuals, and exclusive `registerIrCard("EX6-049", compiled)` registration; the stale suite title now names Devimon.
+- Shared primitive trace: hand-count conditions are evaluated against the opponent at each entry action; target resolution enforces level 3 and opponent ownership. The ≥7 trash gives the correct player selection control, while the inherited Aura updates continuously at the six-card boundary.
+- Existing observable proof: shared zone-count branch, opposing level target, opponent hand-trash chooser, multi-entry timing, and continuous Aura suites cover every primitive; the colocated test checks IR. No EX6-049-specific runtime fixture currently proves 5/6/7 transitions or opponent card choice.
+- Status: not rated 10/10; focused execution is deferred while the unrelated Vitest process remains active.
