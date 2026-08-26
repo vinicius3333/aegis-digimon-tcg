@@ -486,3 +486,25 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-024.
+
+## BT25-025 — Aegiochusmon: Blue — 10/10
+
+- Catalog evidence: Blue/black level-5 Digimon, play cost 8, 8000 DP, `Ultimate`/`Vaccine`, `Shaman`/`Iliad`/`TS`/`Cyborg`; standard blue or black level-4 evolution for 3 plus alternate Aegiomon evolution for 3; Blocker; Decode Aegiomon; On Play/When Digivolving De-Digivolve 1, then unsuspend one friendly Digimon with three or fewer security; inherited all-turn once-per-turn optional unsuspend of one friendly Shaman when the controller's security is removed from.
+- Knowledge base: Q6289 establishes that Security effects resolve immediately before pending effects triggered by a security check; this card's inherited security-removal trigger remains pending and follows turn-player ordering. The general Decode rules define an optional immediate effect before a non-battle departure and require the original departure to continue after the selected digivolution card is played.
+- Implementation: the direct IR contains Blocker, executable Decode replacement timing with exact Aegiomon stack selection and Decode provenance, both parallel De-Digivolve/conditional Unsuspend sequences, controller-scoped inherited security removal, once-per-turn scope, and the alternate evolution. Direct/shared IR are synchronized, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-025", compiled)`.
+- Defect corrected: Decode was only a static keyword marker and therefore did not execute when the Digimon left play. The hand-authored compiled IR now handles non-battle leave events, offers the optional free Aegiomon play while the source stack is still available, records Decode provenance, and then permits the original removal to finish.
+- Behavioral proof: the focused suite proves successful Decode on effect deletion with the played Aegiomon retaining its original instance, exclusion for battle deletion, optional refusal followed by trashing the whole stack, and the inherited Shaman unsuspend capped once per turn. Structural assertions cover all remaining printed clauses. The live non-battle case fails against the prior marker-only IR.
+- Verification: focused suite — 6 passed; Decode/security/subtrigger peer regressions — 49 passed; targeted Oxfmt, shared-IR JSON parse, and `git diff --check` — passed. One broader BT24-023 comparative test remains independently failing while its focused Decode cases pass. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-025 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-025
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-025.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-025.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-025.ts apps/api/src/cards/BT25/BT25-025.test.ts
+node -e 'JSON.parse(require("fs").readFileSync("packages/shared/src/effects/effects.json", "utf8"))'
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-025.
