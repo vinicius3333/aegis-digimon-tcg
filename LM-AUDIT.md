@@ -222,3 +222,17 @@ its applicable mechanism coverage is green, and collection evidence is refreshed
   existing cases cover memory-one dual execution, above-one boundary, and On Play DS targeting.
 - No local ruling adds ambiguity. The focused test is deliberately unrun under PID 43774, so
   LM-041 remains below 10/10.
+
+## LM-042 — Rasielmon — pending focused execution
+
+- Catalog's Angel/Archangel alternate evolution, permanent Security Attack +1, shared On
+  Play/When Digivolving suspension, and On Deletion self-to-bottom-security all map to direct
+  `registerIrCard` IR. The deletion security action deliberately uses the resolving self rather
+  than a battle-area target, so it remains executable after the permanent has left play.
+- The Then lock is a fresh opponent Digimon-or-Tamer binding, not an accidental alias of the
+  suspension target; both `cannotActivateWhenDigivolving` and `unsuspend` restrictions bind to
+  that single fresh selection until the opponent turn ends. The trigger filter enforces the
+  Q5746-Q5750 semantics in the shared interpreter, including no false once-per-turn consumption.
+- Existing focused fixtures exercise the lock halves and self-security placement but do not yet
+  force distinct first/second choices or invoke a locked target's effect. Along with PID 43774's
+  unrun gate, that incomplete behavioral proof keeps LM-042 below 10/10.
