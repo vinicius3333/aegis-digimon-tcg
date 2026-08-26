@@ -40,18 +40,16 @@ export const compiled: CompiledCard = {
         "[Your Turn] [Once Per Turn] While this Digimon has the [Four Sovereigns]/[God Beast] trait, it gains ＜Piercing＞.",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          keyword: { keyword: "Piercing" },
-          duration: "forTheTurn",
-          condition: {
+          effect: { kind: "keyword", keyword: { keyword: "Piercing" } },
+          while: {
             kind: "selfHasTrait",
             filter: { nameOrTrait: [{ tokens: ["Four Sovereigns", "God Beast"], match: "trait" }] },
           },
         },
       ],
       isInherited: true,
-      frequency: "OncePerTurn",
     },
   ],
   coverage: "full",

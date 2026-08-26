@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { compiled } from "./EX5-037.js";
 import "../index.js";
 
 // A3 for EX5-037 (Vajramon) — Red Lv.5 Digimon.
@@ -101,5 +102,12 @@ describe("EX5-037 [On Play] draws 1 then plays Deva to breeding slot", () => {
     expect(effects).toHaveLength(2);
     expect(effects[0]?.description).toContain("use an Option card");
     expect(effects[1]).toMatchObject({ isInherited: true, description: expect.stringContaining("Piercing") });
+    const inherited = compiled.effects?.find((effect) => effect.isInherited);
+    expect(inherited?.actions[0]).toMatchObject({
+      kind: "Aura",
+      effect: { kind: "keyword", keyword: { keyword: "Piercing" } },
+      while: { kind: "selfHasTrait" },
+    });
+    expect(inherited).not.toHaveProperty("frequency");
   });
 });
