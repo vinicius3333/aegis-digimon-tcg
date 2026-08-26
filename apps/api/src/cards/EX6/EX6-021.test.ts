@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-021.js";
 
-describe("EX6-021 Mastemon", () => {
+describe("EX6-021 ArkhaiAngemon", () => {
   it("gates the -4000 DP and Angel-family security placement behind adding security to hand", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "CostGatedBlock",
