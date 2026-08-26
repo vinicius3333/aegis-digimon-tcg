@@ -50,12 +50,12 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-044 | Elecmon | 0 | On Play reveal-five adds one exact Leomon then bottoms remainder; inherited deletion De-Digivolve 1 targets a single opponent Digimon. | Pending focused proof |
 | EX5-045 | Chuumon | 0 | Opponent-turn entry reveal-three may play one Sukamon and trashes remainder; inherited deletion optionally plays Chuumon from trash suspended only for Sukamon/Etemon-named host. | Pending focused proof |
 | EX5-046 | Targetmon | 2 | Static Blocker and Rule names; deletion mandatorily returns self after matching hand trash, while inherited deletion replacement requires deleting another Sukamon-named ally before prevention. | Pending focused proof |
-| EX5-047 | Leomon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-048 | Etemon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-049 | GrapLeomon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-050 | Sinduramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-051 | Caturamon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-052 | Makuramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-047 | Leomon | 0 | Optional attack self-digivolve finds an exact Leomon hand card at −1; inherited deletion De-Digivolve 1 targets one opponent Digimon. | Pending focused proof |
+| EX5-048 | Etemon | 1 | Both entry routes bind one opponent for −3000 DP and the same temporary Start Main forced-attack grant (Q3625 simultaneous trigger behavior is shared); inherited opponent-attack reveal/play is optional and Once Per Turn. | Pending focused proof |
+| EX5-049 | GrapLeomon | 0 | Fortitude static; both entry routes bottom-deck one opponent DP≤4000, while inherited owner-turn Piercing aura continuously follows Leomon in the host name. | Pending focused proof |
+| EX5-050 | Sinduramon | 6 | Static Decoy is scoped by printed Deva/Four Sovereigns text; On Play draw then optional distinct-name Deva breeding play, and inherited opponent-turn Blocker aura continuously checks the host trait. | Pending focused proof |
+| EX5-051 | Caturamon | 6 | Static Blocker; On Play draw then optional distinct-name Deva breeding play, and inherited opponent-turn Blocker aura continuously checks the host trait. | Pending focused proof |
+| EX5-052 | Makuramon | 6 | On Play draw then optional distinct-name Deva breeding play; opponent-turn permanent restriction covers every opposing Tamer at play cost≤2, while inherited Blocker aura continuously checks host trait. | Pending focused proof |
 | EX5-053 | Baihumon | 2 | Generated security correction moves the branch to OnSecurityCheck and limits free play to the revealed security Deva card; source identity is carried by the shared security-reveal seam. | Pending focused proof |
 | EX5-054 | MetalEtemon | 2 | Entry deletion targets opponent Digimon/Tamer at cost≤3 plus live own-trash Etemon/Sukamon scaling; opponent attack watcher optionally redirects to self only after placing a matching hand card atop own security, Once Per Turn. | Pending focused proof |
 | EX5-055 | HeavyLeomon | 1 | Direct IR repeats the De-Digivolve → top-source trash → ≤6000 bottom-deck sequence for evolution/deletion; shared `lastTargetCanTrashDigivolution` stops the chain at level 3/no source, and bound end-attack return controls the fallback unsuspend. | Pending focused proof |
