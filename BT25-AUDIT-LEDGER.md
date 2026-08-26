@@ -102,3 +102,27 @@ focused observable tests pass. No collection result is inferred from this ledger
   while the `rest: "deckBottom"` path handles all unselected revealed cards.
 - No tests, typecheck, broad gate, or collection gate were run. BT25-004 was not rerun;
   all focused runs remain pending authorization.
+
+## Static diagnosis: BT25-021 and BT25-023 through BT25-030
+
+| Card | Contract and direct implementation diagnosis | Status |
+| --- | --- | --- |
+| BT25-021 Gaomon | On Play reveals 3, adds distinct Thomas H. Norstein/DATA SQUAD and Gaogamon-name cards, bottoms the rest; alternate Wanyamon or Lv.2 DATA SQUAD evolution; inherited once-per-turn attack draws for both players. IR matches filters, distinct RevealAdd slots, bottom remainder, requirements, and inherited trigger. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-023 Gaogamon | On Play/When Digivolving may play a Thomas H. Norstein trait Tamer from hand without cost if controller has at most 1 Tamer; inherited shared draw trigger. IR matches both windows, hand-only free play, condition, optionality, requirement, and inherited effect. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-024 Lekismon | On Play/When Digivolving draws; during own turn, red played/digivolved Digimon may free/discounted evolve this into Crescemon from hand; inherited Jamming. IR includes post-event red gate and both watcher windows. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-025 Aegiochusmon: Blue | Blocker/Decode; On Play/When Digivolving De-Digivolve 1 then, at 3 or fewer security, unsuspend own Digimon; inherited once-per-turn Shaman unsuspend when security removed. IR matches all clauses and Aegiomon alternate requirement. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-026 Crescemon | Trashes bottom 3 opponent evolution cards then restricts an opponent Digimon with none; red-event hand-to-trash Dianamon evolution; inherited your-turn attack-target lock. IR matches both windows, bottom ordering, no-source filter, post-event red gate, trash evolution, and inherited restriction. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-027 MachGaogamon | Once-per-turn shared When Digivolving/When Attacking may return opponent Lv.4 or lower, then trash Tamer source to unsuspend; self leave-play replacement and inherited Gaogamon/DATA SQUAD replacement. IR correctly shares activation key and replacement scopes. The unsuspend action is marked optional, although printed “Then, by trashing...” makes it a required follow-up after choosing the return (cost availability/fizzle semantics unresolved). | **Causal ambiguity/gap recorded; behavioral proof required.** |
+| BT25-028 Dianamon | Play-cost reduction versus opponent Lv.6+; On Play/When Digivolving restricts opponent Digimon with at most 1 source then deletes unsuspended one; all-turn once-per-turn may trash any 4 opponent sources across Digimon and offer DNA evolution; inherited attack restriction. IR represents all clauses and scope. | No card-specific causal mismatch found statically; structural proof only. |
+| BT25-029 MirageGaogamon | Reboot/Blocker/Evade; shared once-per-turn return-and-paid lowest-level return; all-turn once-per-turn unsuspends after opponent hand-add or Tamer-source trash. IR matches keyword, filters, lowest-level selection, and shared trigger. As with BT25-027, the paid second return is marked optional despite printed “Then, by trashing...”, leaving follow-up payment semantics unresolved. | **Causal ambiguity/gap recorded; behavioral proof required.** |
+| BT25-030 Elecmon | Start of own main phase may add top security for +1 memory; inherited once-per-turn attack may add top security, then Recovery +1 at zero security. IR matches costs, optionality, condition, requirement, and inherited trigger. | No card-specific causal mismatch found statically; structural proof only. |
+
+### Static validation record for BT25-021 and BT25-023 through BT25-030
+
+- Catalog records and local KB queries were inspected for every card in this range; no
+  card-specific KB rulings were returned.
+- Direct IR modules and relevant shared primitives were read. The only unresolved
+  implementation concern is whether the post-return “Then, by trashing...” actions on
+  BT25-027 and BT25-029 must be mandatory once the first optional return is accepted.
+- No tests, typecheck, broad gate, or collection gate were run. BT25-004 rerun remains
+  pending authorization.
