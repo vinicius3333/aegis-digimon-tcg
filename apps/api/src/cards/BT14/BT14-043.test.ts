@@ -25,3 +25,14 @@ it("suspends an opposing Digimon after paying with its own Digimon", async () =>
   await settle(() => s.perm("target").isSuspended);
   expect(s.perm("target").isSuspended).toBe(true);
 });
+
+it("Q2415 pays its own suspend cost even with no opposing Digimon", async () => {
+  const s = setupEngine(
+    { 0: { hand: [{ card: "BT14-043", as: "source" }] }, 1: {} },
+    { autoSelectCards: true, autoAcceptOptional: true },
+  );
+  s.state.memory = 10;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+  await settle(() => s.perm("source").isSuspended);
+  expect(s.perm("source").isSuspended).toBe(true);
+});
