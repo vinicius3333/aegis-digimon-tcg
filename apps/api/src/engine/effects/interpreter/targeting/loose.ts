@@ -322,7 +322,9 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
         }
         const hostFilter = matchedFilter?.hostFilter;
         if ((zone === "digivolutionCards" || zone === "linked") && hostFilter && cand.hostPermanentId) {
-          if (hostFilter.isSelfRef === true) {
+          if (hostFilter.sourceRef === "triggerSubject") {
+            if (cand.hostPermanentId !== ctx.trigger.subjectPermanentId) continue;
+          } else if (hostFilter.isSelfRef === true) {
             const self = ctx.source.permanent();
             if (self === undefined || self.permanentId !== cand.hostPermanentId) continue;
           } else {
