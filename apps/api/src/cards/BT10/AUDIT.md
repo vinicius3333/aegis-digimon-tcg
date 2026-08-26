@@ -14,3 +14,10 @@
 - Implementation trace: `BT10-002.ts` exclusively calls `registerIrCard`; the inherited `WhenAttacking` effect has `OncePerTurn` frequency and draws exactly one for the controller only when `opponentHas` at least two Digimon in the opponent battle area.
 - Behavioral proof: `BT10-002.test.ts` observes one draw across two attack-trigger firings, no draw for an opponent attack, and no draw below the two-Digimon threshold. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-002.test.ts`.
 - Peer/stack evidence: every applicable case gives the attacking Digimon a real Bebydomon source; the opposing battle area varies between one and two Digimon, proving ownership and the exact cardinality boundary from the inherited stack.
+
+## BT10-003 — Pickmons — 10/10
+
+- Catalog contract: `[When Attacking]` inherited effect; if this Digimon has the `[Xros Heart]` trait, draw one. The catalog identifies a yellow, level 2 Minor/Xros Heart DigiEgg; the knowledge base has no card-specific entry.
+- Implementation trace: `BT10-003.ts` exclusively registers compiled IR. Its inherited `WhenAttacking` action uses `selfHasTrait` with an exact `Xros Heart` trait token and draws one only for the source controller.
+- Behavioral proof: `BT10-003.test.ts` proves a draw for an Xros Heart host, no draw for a host without that trait, and no controller leak when the opponent attacks. Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/BT10/BT10-003.test.ts`.
+- Peer/stack evidence: the positive host is BT10-009 (Xros Heart), while BT10-020 is a same-set nonmatching comparator; both carry Pickmons as an actual inherited source, proving trait matching on the evolving host rather than the source card.
