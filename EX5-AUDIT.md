@@ -4,7 +4,7 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 
 | Card | Name | KB entries | Static evidence | Runtime |
 | --- | --- | ---: | --- | --- |
-| EX5-001 | Sunmon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-001 | Sunmon | 2 | Q3526 maps the inherited clause to the shared `onAddDigivolutionCards` bus, scoped to this receiving host; optional hand Digivolve applies the printed −1 reduction and shares the inherited Once Per Turn gate. | Pending focused proof |
 | EX5-002 | Moonmon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-003 | Nyaromon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-004 | Frimon | 0 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
@@ -15,9 +15,9 @@ This is the English source-audit ledger for EX5-001 through EX5-074. The ascendi
 | EX5-009 | Indramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-010 | Sandiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-011 | Pajiramon | 6 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
-| EX5-012 | Flaremon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-012 | Flaremon | 1 | Q3549 is represented by separate self-scoped play and digivolve-into cost replacements, each gated by a live qualifying stack with ≥3 sources; both entry timings delete DP≤5000 and inherited DP is owner-turn scoped. | Pending focused proof |
 | EX5-013 | Zhuqiaomon | 1 | Q3550 confirms the payment can delete either player's eligible Digimon; direct IR uses an unrestricted Deva-or-DP≤6000 `deleteOwn` cost, and shared cost selection preserves that scope before the shared Once Per Turn SEC+ grant. | Pending focused proof |
-| EX5-014 | Apollomon | 1 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
+| EX5-014 | Apollomon | 1 | Direct IR gives digivolving-only Blitz, owner-turn SEC+ scaling per three own Digimon sources, and a shared Once Per Turn `whenSecurityRemoved` watcher whose deletion ceiling is the source’s live DP. | Pending focused proof |
 | EX5-015 | Gabumon (X Antibody) | 3 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-016 | Lunamon | 5 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
 | EX5-017 | Lekismon | 2 | Catalog/KB/direct IR/test reviewed; exclusive IR registration; full/no residual. | Pending |
