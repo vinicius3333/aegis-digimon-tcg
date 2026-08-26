@@ -31,7 +31,7 @@ describe("BT4-081 Devimon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
   });
 
-  it("pays Digi-Burst 2 but does not delete an opposing level 4 Digimon", async () => {
+  it("does not pay Digi-Burst or delete an opposing level 4 Digimon", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT4-081", as: "devimon", under: ["BT4-077", "BT1-009"] }] },
@@ -51,9 +51,9 @@ describe("BT4-081 Devimon", () => {
         effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("devimon").stack.length === 0);
+    await settle(() => s.state.pendingDecision === undefined, 5000);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.perm("devimon").stack).toHaveLength(0);
+    expect(s.perm("devimon").stack).toHaveLength(2);
   });
 });
