@@ -118,7 +118,9 @@ describe("LM-003 TeslaJellymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== attackerId), 2000);
 
-    expect(observe(s.engine).isRestricted(attackerId, "beDeletedInBattle")).toBe(true);
+    // Retaliation deletes by effect (Q3992), so the battle-only grant cannot save it;
+    // once the permanent leaves play its temporary grant is no longer observable either.
+    expect(observe(s.engine).isRestricted(attackerId, "beDeletedInBattle")).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
   });
 
