@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT3/BT3-040.js";
+import "../BT13/BT13-059.js";
 import "./EX1-071.js";
 
 describe("EX1-071 Win Rate: 60%!", () => {
@@ -155,6 +157,94 @@ describe("EX1-071 Win Rate: 60%!", () => {
 
     expect(paidWithWinRate).toBe(10 - control.state.memory);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("redCard").instanceId);
+  });
+
+  it("accepts a Digimon matching a continuously added base color (Q3260)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-071", as: "option" },
+            { card: "BT1-043", as: "evo" },
+            { card: "BT1-029", as: "blueCost" },
+          ],
+          battleArea: [
+            { card: "BT3-040", as: "yellowBase" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("blueCost").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+    const before = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("yellowBase").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yellowBase").topCard.instanceId === s.inst("evo").instanceId);
+
+    expect(s.state.memory).toBe(before);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("blueCost").instanceId)).toBe(true);
+  });
+
+  it("may pay with a Digimon matching either DNA material's color (Q3263)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-071", as: "option" },
+            { card: "BT13-059", as: "examon" },
+            { card: "ST9-09", as: "greenCost" },
+          ],
+          battleArea: [
+            { card: "EX3-024", as: "blueSlayerdramon" },
+            { card: "EX3-044", as: "greenBreakdramon" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("greenCost").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+    const before = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [
+          s.perm("blueSlayerdramon").permanentId,
+          s.perm("greenBreakdramon").permanentId,
+        ],
+        instanceId: s.inst("examon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-059"));
+
+    expect(s.state.memory).toBe(before);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("greenCost").instanceId)).toBe(true);
   });
 
   it("adds itself to hand from security", async () => {

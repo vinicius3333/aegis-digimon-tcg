@@ -97,6 +97,21 @@ export interface DnaDigivolveDeps {
   effectiveMaterialDefinitions?(state: GameState, materials: Permanent[], definition: CardDefinition): CardDefinition[];
   /** Apply continuous/replacement modifiers to the matched printed DNA cost. */
   adjustedCost?(state: GameState, materials: Permanent[], definition: CardDefinition, printedCost: number): number;
+  /** Potential optional reduction, used only by the affordability gate before its cost is paid. */
+  potentialInteractiveDnaDigivolveReduction?(
+    state: GameState,
+    seat: Seat,
+    materials: Permanent[],
+    definition: CardDefinition,
+  ): number;
+  /** Prompt for and pay optional reductions immediately before paying the DNA digivolution cost. */
+  activateInteractiveDnaDigivolveReduction?(
+    state: GameState,
+    seat: Seat,
+    materials: Permanent[],
+    definition: CardDefinition,
+    evolvingInstanceId: string,
+  ): Promise<number>;
   /**
    * Whether `instance`'s printed keyword waives this DNA digivolve's memory cost entirely
    * (＜Blast DNA Digivolve＞, §16-31-1). Optional: when absent no waiver applies. The engine
@@ -139,6 +154,7 @@ export function validateDnaDigivolve(
     | "matchingCost"
     | "effectiveMaterialDefinitions"
     | "adjustedCost"
+    | "potentialInteractiveDnaDigivolveReduction"
     | "costWaived"
     | "materialsRestricted"
   >,
@@ -203,7 +219,11 @@ export function validateDnaDigivolve(
   const printedCost = deps.matchingCost(definition, materialDefs);
   if (printedCost === undefined) return { ok: false, reason: "invalid-evolution" };
   const cost = deps.adjustedCost?.(state, materials, definition, printedCost) ?? printedCost;
-  if (deps.maxAffordable(state, seat) < cost) return { ok: false, reason: "insufficient-memory" };
+  const potentialInteractive =
+    deps.potentialInteractiveDnaDigivolveReduction?.(state, seat, materials, definition) ?? 0;
+  if (deps.maxAffordable(state, seat) < Math.max(0, cost - potentialInteractive)) {
+    return { ok: false, reason: "insufficient-memory" };
+  }
 
   return { ok: true, instance: found.instance, definition, materials, costWaived: false, cost };
 }
@@ -221,10 +241,21 @@ export async function applyDnaDigivolve(
   const check = validateDnaDigivolve(state, seat, intent, deps);
   if (!check.ok) return check;
 
+  const interactiveReduction = check.costWaived
+    ? 0
+    : ((await deps.activateInteractiveDnaDigivolveReduction?.(
+        state,
+        seat,
+        check.materials,
+        check.definition,
+        intent.instanceId,
+      )) ?? 0);
+  const finalCost = Math.max(0, check.cost - interactiveReduction);
+
   const result = await deps.dnaDigivolveInto(
     check.materials.map((m) => m.permanentId),
     intent.instanceId,
-    { payCost: !check.costWaived, costOverride: check.cost },
+    { payCost: !check.costWaived, costOverride: finalCost },
   );
   if (result === undefined) {
     // The primitive re-validates atomically at apply time (materials/cost may have shifted
@@ -234,6 +265,6 @@ export async function applyDnaDigivolve(
 
   return {
     ok: true,
-    outcome: { permanentId: result.permanentId, newCardId: intent.instanceId, cost: check.cost },
+    outcome: { permanentId: result.permanentId, newCardId: intent.instanceId, cost: finalCost },
   };
 }

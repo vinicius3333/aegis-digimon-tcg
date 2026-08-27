@@ -282,9 +282,14 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
             consumeOnActivate: true,
             expiresOnTurnEndOf: ownerSeat,
             description: action.raw ?? `Reduce the next digivolution cost by ${Math.abs(action.amount)}`,
-            activate: async (runtimeCtx, target, _into, evolvingInstanceId) => {
+            activate: async (runtimeCtx, target, _into, evolvingInstanceId, materials) => {
               if (target.controllerSeat !== ownerSeat || target.inBreeding) return false;
-              const colors = new Set(runtimeCtx.game.definitionOf(target.topCard).colors);
+              const colors = new Set(
+                (materials ?? [target]).flatMap(
+                  (material) =>
+                    runtimeCtx.game.effectiveColors?.(material) ?? runtimeCtx.game.definitionOf(material.topCard).colors,
+                ),
+              );
               const candidates = runtimeCtx.game.player(ownerSeat).hand.filter((card) => {
                 if (card.instanceId === evolvingInstanceId) return false;
                 const definition = runtimeCtx.game.definitionOf(card);

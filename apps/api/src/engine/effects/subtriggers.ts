@@ -664,6 +664,7 @@ export class SubTriggerRegistry {
     evolvingInstanceId: string | undefined,
     buildContext: (sourcePermanentId: string, sourceInstanceId?: string) => EffectContext | undefined,
     turnBudget?: SubTriggerTurnLedger,
+    materials?: readonly Permanent[],
   ): Promise<number> {
     let reduction = 0;
     const consumed = new Set<number>();
@@ -684,7 +685,7 @@ export class SubTriggerRegistry {
       if (ctx === undefined) continue;
       if (replacement.activationTiming !== undefined) ctx.activeTiming = replacement.activationTiming;
       if (replacement.activationEffectText !== undefined) ctx.activeEffectText = replacement.activationEffectText;
-      const activated = await replacement.activate(ctx, target, into, evolvingInstanceId);
+      const activated = await replacement.activate(ctx, target, into, evolvingInstanceId, materials);
       if (!activated) continue;
       reduction += typeof activated === "number" ? activated : (replacement.amount ?? 0);
       if (replacement.oncePerTurnKey !== undefined) turnBudget?.markFired(replacement.oncePerTurnKey);
