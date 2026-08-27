@@ -2024,3 +2024,35 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-049 — Kiwimon — 10/10
+
+- Catalog evidence: Green Lv.4 Champion Digimon, Data/Ancient Bird, play cost
+  4, 4000 DP, and green Lv.3 evolution cost 2. On play it reveals exactly 3
+  deck-top cards, adds every revealed Digimon with Digisorption to hand, and
+  places every remainder at deck bottom in any order. Its knowledge-base
+  query has no QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-049.ts` contains one `OnPlay`
+  `RevealAdd` with `revealCount: 3`; its single add group requires Digimon kind
+  plus Digisorption keyword, uses `count: "all"`, and moves matches to hand.
+  `rest: "deckBottom"` handles every nonmatch. It declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-049", compiled)`.
+- Primitive, peer, and behavioral evidence: definition matching requires both
+  Digimon kind and the committed Digisorption keyword, so an Option merely
+  mentioning the text cannot qualify. `count: "all"` moves the complete match
+  set without a selection cap, while reveal processing bottoms all remaining
+  instances. The two focused tests prove two matching Digimon are both added
+  while a nonmatch remains in deck, and the zero-match case adds nothing and
+  retains all three cards at deck bottom. BT5-100 and the reveal-add cluster
+  exercise the same keyword/reveal family across wider pools.
+- Defect corrected: none. The compiled IR and existing focused tests were
+  already faithful, so no changes were made.
+- Verification: focused BT5-049 plus reveal-add cluster — 2 files, 18 tests
+  passed. Filtered RevealAdd mechanic — 1/1 passed; filtered interpreter
+  RevealAdd/Digisorption matrix — 9/9 passed. `git diff --check` passes.
+  Workspace typecheck retains only the known unrelated baseline errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
