@@ -2553,3 +2553,26 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   relevant tests passed. Shared package build/type compilation, targeted
   Oxfmt, Oxlint, and `git diff --check` pass.
 - Remaining ambiguity: none identified.
+
+## BT5-068 — BlackMachGaogamon — 10/10
+
+- Catalog and ruling evidence: Black Lv.5 Ultimate Digimon, Data/Cyborg, play
+  cost 8, 7000 DP, and black Lv.4 evolution cost 3. Its main text is Reboot,
+  and its inherited Your Turn effect gives the host +2000 DP while that Digimon
+  has Reboot. The knowledge base contains no card-specific ruling, errata,
+  restriction, or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-068.ts` encodes an unconditional
+  static Reboot keyword and an inherited owner-turn self aura that adds 2000 DP
+  while `selfHasKeyword` Reboot. It declares full residual-free coverage and
+  registers exclusively through `registerIrCard("BT5-068", compiled)`.
+- Behavioral proof: five focused tests prove runtime registration, that Reboot
+  does not immediately unsuspend the card, the inherited bonus on a legal
+  evolution stack, removal of the bonus outside the controller's turn, and the
+  positive boundary where another inherited source supplies Reboot later in
+  the stack. The related BT2-055 tests exercise the shared Reboot mechanism.
+- Defect corrected: none. The existing implementation and focused tests were
+  already faithful, so no source or test file changed.
+- Verification: focused BT5-068 — 5/5 passed; related BT2-055 Reboot coverage —
+  3/3 passed. Targeted Oxfmt, Oxlint, and `git diff --check` pass. No
+  typing-sensitive source changed.
+- Remaining ambiguity: none identified.
