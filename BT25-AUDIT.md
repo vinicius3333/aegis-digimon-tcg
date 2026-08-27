@@ -1387,3 +1387,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-071.
+
+## BT25-072 — Shutmon — 10/10
+
+- Catalog evidence: black level-6 Appmon; App Fusion requirement and Appmon Link requirement for 3; On Play/When Digivolving/When Attacking may link a Social, Tool, or Game Digimon with Link from trash or this Digimon's evolution cards at cost -2; remaining printed linked/self effects are preserved.
+- Knowledge base: Q6368 confirms all three Link effects require a card with Link.
+- Defects corrected: common hosted filters excluded trash candidates. Each timing now separates the trash-capable branch from the host-qualified branch while `source: "thisDigimon"` limits evolution-card candidates to this Digimon's stack; the printed Link requirement is explicit.
+- Verification: focused — 8 passed; Link state — 10 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-072", compiled)` with full coverage and no residuals; module IR is exported for persisted comparison.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-072
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-072.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-072.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-072.
