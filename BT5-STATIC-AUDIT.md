@@ -18,10 +18,10 @@ The re-audit intentionally does not execute tests, typecheck, lint, formatting, 
 | BT5-011–020 | Static audit delivered | `internal-docs/audits/BT5/BT5-011-020.md` | Yes |
 | BT5-021–030 | Static audit delivered | `internal-docs/audits/BT5/BT5-021-030.md` | Yes |
 | BT5-031–040 | Static audit delivered | `internal-docs/audits/BT5/BT5-031-040.md` | Yes |
-| BT5-041–050 | Luna in progress | `internal-docs/audits/BT5/BT5-041-050.md` | No |
+| BT5-041–050 | Static audit delivered | `internal-docs/audits/BT5/BT5-041-050.md` | Yes |
 | BT5-051–060 | Luna in progress | `internal-docs/audits/BT5/BT5-051-060.md` | No |
 | BT5-061–070 | Luna in progress | `internal-docs/audits/BT5/BT5-061-070.md` | No |
-| BT5-071–080 | Queued for Luna | `internal-docs/audits/BT5/BT5-071-080.md` | No |
+| BT5-071–080 | Luna in progress | `internal-docs/audits/BT5/BT5-071-080.md` | No |
 | BT5-081–090 | Queued for Luna | `internal-docs/audits/BT5/BT5-081-090.md` | No |
 | BT5-091–100 | Queued for Luna | `internal-docs/audits/BT5/BT5-091-100.md` | No |
 | BT5-101–110 | Queued for Luna | `internal-docs/audits/BT5/BT5-101-110.md` | No |
@@ -83,6 +83,16 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 | BT5-038 Kyubimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited opponent Security-Digimon DP reduction with battle/play rulings |
 | BT5-039 ShootingStarmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | On Deletion exact-one opponent DP reduction for the turn |
 | BT5-040 SuperStarmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary legal evolution evidence |
+| BT5-041 Taomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited opponent Security-Digimon DP reduction on a legal yellow stack |
+| BT5-042 Knightmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | On Play exact-one opponent DP reduction with turn expiry |
+| BT5-043 Jijimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | On Deletion exact deck-top Recovery on a legal level-5-to-6 stack |
+| BT5-044 Sakuyamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Breeding-movement Security Attack penalty and Security-only DP aura |
+| BT5-045 LordKnightmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional level-3-or-Warrior free play and other-own-Digimon DP scaling |
+| BT5-046 Terriermon Assistant | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst source cost, one-card reveal, color filter, and bottom remainder |
+| BT5-047 Palmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Trash-origin Palmon placement with self-recovery and name-rewrite rulings |
+| BT5-048 Floramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary legal evolution evidence |
+| BT5-049 Kiwimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Add-all Digi-Sorption reveal filter with complete deck-bottom remainder |
+| BT5-050 Weedmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Self-source Digi-Burst discard event with legal stack and turn gate |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT5/`.
 
@@ -90,9 +100,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 40
+- Integrated card audits: 50
 - Corrected: 1
-- Provisional: 40
+- Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
