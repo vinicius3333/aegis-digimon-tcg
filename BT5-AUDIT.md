@@ -3608,3 +3608,29 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   mechanism — 1/1 passed. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No production or shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-109 — Mega Digimon Fusion! — 10/10
+
+- Catalog and ruling evidence: White Option with use cost 0, currently banned.
+  Main reduces the next evolution cost from an own Lv.6 Digimon into a Lv.7
+  Digimon by 6 for the turn; at the end of that turn, the evolved Digimon returns
+  to the bottom of its owner's deck and all of its evolution cards go to trash.
+  Security adds this card to its owner's hand. Q1383/Q4139/Q4142 confirm the
+  reduction, delayed binding, and cleanup semantics.
+- Implementation: `apps/api/src/cards/BT5/BT5-109.ts` installs a once-only,
+  for-the-turn CostModifier over all own exact-Lv.6 Digimon into exact Lv.7,
+  binds the consumed evolution, and arms the end-turn bottom-deck cleanup with
+  source trashing. Security uses AddToHandSelf. Full residual-free coverage and
+  exclusive `registerIrCard("BT5-109", compiled)` registration are preserved.
+- Behavioral proof: four focused tests use legal Lv.5→Lv.6→Lv.7 stacks to prove
+  exact −6 reduction, one-time consumption, own-controller filtering, unrelated
+  and opposing stack survival, binding to the first evolved permanent, exact
+  bottom-deck instance/order, all bound sources trashed, and Security identity.
+- Defect corrected: no executable behavior defect. The prior illegal Lv.3-based
+  fixture was replaced with legal evolution stacks and expanded to cover
+  once-only consumption and delayed target identity.
+- Verification: focused BT5-109 — 4/4 passed; targeted CostModifier/onConsume
+  interpreter subset — 2/2; targeted return-to-deck primitive subset — 7/7.
+  Targeted Oxfmt, Oxlint, registration search, and `git diff --check` pass. No
+  production or shared engine source changed.
+- Remaining ambiguity: none identified.
