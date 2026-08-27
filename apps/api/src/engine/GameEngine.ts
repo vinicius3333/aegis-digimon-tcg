@@ -551,7 +551,7 @@ export class GameEngine {
    * separate maps because this one relocates a whole PERMANENT via `relocatePermanent`, not loose
    * card instances via `placeUnder`).
    */
-  private readonly pendingSelfReducerRelocations = new Map<string, string[]>();
+  private readonly pendingSelfReducerRelocations = new Map<string, { permanentId: string; shedOwnCards?: boolean }[]>();
 
   /** The effect verbs (effect-primitives) bound to this match. */
   private readonly primitives: Primitives;
@@ -4741,13 +4741,15 @@ export class GameEngine {
         const relocations = this.pendingSelfReducerRelocations.get(playedInstanceId);
         if (relocations !== undefined && relocations.length > 0) {
           this.pendingSelfReducerRelocations.delete(playedInstanceId);
-          for (const sourcePermanentId of relocations) {
+          for (const relocation of relocations) {
+            const opts = {
+              belowTop: true,
+              ...(relocation.shedOwnCards === true ? { shedOwnCards: true } : {}),
+            };
             if (this.primitives.relocatePermanentByEffect !== undefined) {
-              await this.primitives.relocatePermanentByEffect(permanentId, sourcePermanentId, {
-                belowTop: true,
-              });
+              await this.primitives.relocatePermanentByEffect(permanentId, relocation.permanentId, opts);
             } else {
-              this.primitives.relocatePermanent(permanentId, sourcePermanentId, { belowTop: true });
+              this.primitives.relocatePermanent(permanentId, relocation.permanentId, opts);
             }
           }
         }
