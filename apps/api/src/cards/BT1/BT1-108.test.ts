@@ -51,13 +51,13 @@ describe("BT1-108 Horn Buster", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("chosen").currentDP === 7000);
+    await settle(() => s.perm("chosen").currentDP === 5000);
 
-    expect(s.perm("chosen").currentDP).toBe(7000);
+    expect(s.perm("chosen").currentDP).toBe(5000);
     expect(s.perm("other").currentDP).toBe(otherDP);
 
     await advance(s.engine).runTurn(0);
-    expect(s.perm("chosen").currentDP).toBe(4000);
+    expect(s.perm("chosen").currentDP).toBe(2000);
   });
 
   it("suspends one opponent Digimon and returns itself to hand from security", async () => {
