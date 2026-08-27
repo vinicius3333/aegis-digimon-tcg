@@ -5,7 +5,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",
@@ -19,7 +19,7 @@ const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 { tokens: ["Dragon"], match: "trait" },
-                { tokens: ["saur"], match: "any" },
+                { tokens: ["saur"], match: "trait" },
                 { tokens: ["Ceratopsian"], match: "trait" },
                 { tokens: ["Dragonkin"], match: "trait" },
               ],
