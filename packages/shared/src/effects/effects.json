@@ -91930,7 +91930,14 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -5000,
             "duration": "forTheTurn",
-            "cost": { "kind": "raw", "raw": "By adding your top security card to the hand" }
+            "cost": {
+              "kind": "securityToHand",
+              "controller": "mine",
+              "amount": 1,
+              "raw": "By adding your top security card to the hand"
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },
@@ -91942,7 +91949,14 @@
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -5000,
             "duration": "forTheTurn",
-            "cost": { "kind": "raw", "raw": "By adding your top security card to the hand" }
+            "cost": {
+              "kind": "securityToHand",
+              "controller": "mine",
+              "amount": 1,
+              "raw": "By adding your top security card to the hand"
+            },
+            "optional": true,
+            "abortOnDecline": true
           }
         ]
       },

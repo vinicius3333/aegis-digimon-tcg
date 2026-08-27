@@ -646,3 +646,25 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-032.
+
+## BT25-033 — Aegiomon — 10/10
+
+- Catalog evidence: Yellow level-4 Digimon, play cost 5, 5000 DP, `Champion`/`Vaccine`, `Shaman`/`Iliad`/`TS`; standard yellow level-3 evolution for 2 plus alternate level-3 `TS` evolution for 2; Barrier; On Play/When Digivolving optionally adds the top friendly security card to hand to give one opposing Digimon -5000 DP for the turn; inherited Barrier.
+- Knowledge base: `node tools/kb/query.mjs card BT25-033` returned no entries, so there are no local card-specific rulings, errata, restrictions, or unresolved ambiguities to apply. General by-cost processing requires refusal or inability to pay to abort the dependent DP reduction.
+- Implementation: both entry timings now use the executable controller-owned `securityToHand` cost, mark the costed action optional, and abort the action on refusal. Exact single-opponent targeting, -5000 amount, turn duration, both Barrier markers, and alternate evolution are complete. Direct/shared IR are synchronized, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-033", compiled)`.
+- Defects corrected: neither direct costed ModifyDP action encoded the printed optionality/decline gate, and persisted IR retained the security cost only as raw text. Both timings now preserve security and DP on refusal and perform the complete payment/effect sequence on acceptance.
+- Behavioral proof: the focused suite proves both entry timings, exact top-security movement, one-target boundary, -5000 amount, refusal with no side effect, turn expiry, inherited Barrier on a realistic stack, and legal/invalid TS evolution. The refusal assertion fails against the prior action encoding.
+- Verification: focused suite — 8 passed; related cost-gating peers — 12 passed; targeted Oxfmt, shared-IR JSON parse, and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-033 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-033
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-033.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-033.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-033.ts apps/api/src/cards/BT25/BT25-033.test.ts
+node -e 'JSON.parse(require("fs").readFileSync("packages/shared/src/effects/effects.json", "utf8"))'
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-033.
