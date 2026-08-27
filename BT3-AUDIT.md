@@ -23,7 +23,7 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT3-061–070 | Static audit integrated | `internal-docs/audits/BT3/BT3-061-070.md` | Yes |
 | BT3-071–080 | Static audit integrated | `internal-docs/audits/BT3/BT3-071-080.md` | Yes |
 | BT3-081–090 | Static audit integrated | `internal-docs/audits/BT3/BT3-081-090.md` | Yes |
-| BT3-091–100 | Luna in progress | `internal-docs/audits/BT3/BT3-091-100.md` | No |
+| BT3-091–100 | Static audit integrated | `internal-docs/audits/BT3/BT3-091-100.md` | Yes |
 | BT3-101–110 | Luna in progress | `internal-docs/audits/BT3/BT3-101-110.md` | No |
 | BT3-111–112 | Luna in progress | `internal-docs/audits/BT3/BT3-111-112.md` | No |
 
@@ -133,6 +133,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT3-088 LadyDevimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Ordered draw/trash and inherited Option-use deletion proof |
 | BT3-089 Boltmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal purple stack proof |
 | BT3-090 Mastemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Both-security trash and optional yellow/purple revival proof |
+| BT3-091 Lilithmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional up-to-two purple Option return and typed Option-use watcher |
+| BT3-092 MaloMyotismon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected cross-controller deletion watcher with action-level batch scaling |
+| BT3-093 Davis Motomiya | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Memory setter, dual-slot reveal, and Security Tamer proof |
+| BT3-094 Ken Ichijoji | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Green/blue battle-deletion watcher with optional suspend cost |
+| BT3-095 Joe Kido | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blocker-presence start-turn boolean memory gate |
+| BT3-096 Mimi Tachikawa | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Option-use watcher with optional source-Tamer suspend cost |
+| BT3-097 A Delicate Plan | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Authoritative noSecurityOptionEffects errata implementation |
+| BT3-098 Plasma Stake | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inclusive 13000-DP deletion threshold with 12999 boundary |
+| BT3-099 We Have to Stop Fighting! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Both-players battle-deletion restriction and Security return |
+| BT3-100 Death Parade Blaster | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected up-to-two bottom-source semantics with conditional suspend |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT3/`.
 
@@ -140,9 +150,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 90
-- Corrected: 10
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 12
+- Provisional: 100
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,7 +7,7 @@ import "./BT3-092.js";
 
 describe("BT3-092 MaloMyotismon", () => {
   it("records errata scaling over the complete deletion batch", () => {
-    const compiled = getCompiledCard("BT3-092");
+    const compiled = runtimeCompiledCard("BT3-092");
     const allTurns = compiled?.effects.find((effect) => effect.trigger === "AllTurns");
     const watcher = allTurns?.actions.find((action) => action.kind === "SubTrigger");
     const gain = watcher?.actions?.find((action) => action.kind === "GainMemory");

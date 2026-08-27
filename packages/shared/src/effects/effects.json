@@ -103599,14 +103599,9 @@
           {
             "kind": "SubTrigger",
             "event": "onDeletionOf",
-            "sourceFilter": { "excludeSelf": true, "kind": ["Digimon"] },
-            "actions": [
-              {
-                "kind": "GainMemory",
-                "amount": 1,
-                "scaling": { "per": 1, "filter": { "deletedByTrigger": true }, "unit": "cards" }
-              }
-            ],
+            "sourceFilter": { "controllerDefault": "mine", "excludeSelf": true, "kind": ["Digimon"] },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }],
+            "scaling": { "per": 1, "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "unit": "cards" },
             "raw": "When another Digimon is deleted, gain 1 memory for each Digimon deleted"
           }
         ]
@@ -103783,9 +103778,9 @@
         "trigger": "Main",
         "actions": [
           {
-            "kind": "GrantStatic",
+            "kind": "GrantAuraToOpponents",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "grant": "noSecurityOptionEffects",
+            "effectText": "This Digimon doesn't activate the [Security] effects of any Option cards it checks",
             "duration": "forTheTurn"
           }
         ]
@@ -103841,8 +103836,7 @@
             "kind": "TrashDigivolution",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": 2,
-            "fromTop": false,
-            "upTo": true
+            "fromTop": false
           },
           {
             "kind": "Suspend",
