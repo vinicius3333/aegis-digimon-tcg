@@ -2116,3 +2116,27 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-052 — Garbagemon — 10/10
+
+- Catalog evidence: Green Lv.5 Ultimate Digimon, Virus/Mutant, play cost 5,
+  8000 DP, and green Lv.4 evolution cost 3. It has no main, inherited,
+  Security, or alternate-evolution text. The committed catalog agrees with
+  Bandai's card list, and the local knowledge-base query exposes no QA,
+  errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-052.ts` intentionally contains
+  `effects: []`, `coverage: "full"`, and `residual: []`, and registers
+  exclusively through `registerIrCard("BT5-052", compiled)`. This exactly
+  represents the vanilla card without a handwritten compatibility seam.
+- Behavioral and structural proof: focused coverage verifies Garbagemon's
+  committed 8000 base/current DP remains unchanged after continuous-effect
+  recomputation and verifies the empty, residual-free runtime module remains
+  registered.
+- Defect corrected: none. The implementation and focused tests were already
+  faithful, so no source or test changes were made.
+- Verification: focused BT5-052 — 2/2 passed. Exact-file Oxfmt, Oxlint, and
+  `git diff --check` pass. Workspace typecheck retains only the known unrelated
+  baseline errors in `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
