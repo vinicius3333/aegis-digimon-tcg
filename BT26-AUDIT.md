@@ -2340,3 +2340,35 @@ git diff --check
 ```
 
 No unresolved BT26-055 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-056 — Cerberusmon: Werewolf Mode — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-056` (`Cerberusmon: Werewolf Mode`), a black/purple level-5 dual Digimon/Option with play/use cost 3, 8000 DP, alternate evolution from `Cerberusmon` for cost 1 or a level-4 `TS` Digimon for cost 3, and Jamming, Reboot, and Blocker.
+- Printed behavior verified: On Deletion may play one level-4-or-lower `Titan` Digimon from trash without cost; Rule grants the `Dark Animal` trait; an own `TS` card waives the black Option color requirement; and Option Main trashes one hand card, then De-Digivolves one opposing Digimon by 3.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-056`; no card-specific Q&A, banlist restriction, or erratum is recorded. Dual-card, Use Requirement, De-Digivolve, optional replay, and stacked-card rules were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-056.ts` has full IR coverage and registers exclusively through `registerIrCard("BT26-056", compiled)`.
+- Static projection exposes Jamming, Reboot, Blocker, and the effective `Dark Animal` trait. On Deletion optionally plays an own level-4-or-lower `Titan` Digimon from trash. The `TS`-gated color waiver and Option Main hand-trash followed by De-Digivolve 3 are encoded, as are both alternate evolution routes.
+- Keyword/trait grants, deletion timing, trash filtering, dual-card Option use, color waivers, De-Digivolve depth, and relevant peers were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-056.test.ts` now covers deletion replay and its negative path; mixed valid, over-level, and wrong-trait trash candidates; runtime keywords/Rule trait; both evolution routes; the exact De-Digivolve 3 boundary; the empty-hand processing path; and off-color `TS` Use Requirement waiver/rejection.
+- The strengthened De-Digivolve case leaves exactly one of four stack cards, proving a depth of 3 rather than merely emptying a three-card stack. The implementation required no correction.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-056
+  PASS (no card-specific Q&A, errata, or restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-056 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
