@@ -1333,3 +1333,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-068.
+
+## BT25-069 — Raremon — 10/10
+
+- Catalog evidence: black level-4 Digimon; alternate level-3 TS evolution for 2; Jamming; On Play/When Digivolving may link one TS Digimon card with Link from trash to one friendly Digimon free; inherited all-turn +1000 DP.
+- Knowledge base: Q6366 confirms the selected card must have Link.
+- Implementation: both entry timings, trash source, TS and Link eligibility, friendly recipient, free Link, alternate evolution, keyword, and inherited boost are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-069", compiled)`.
+- Verification: focused — 6 passed; Link eligibility/state/conformance — 35 passed; `git diff --check` — passed. No defect was found, so no implementation or test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-069
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-069.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-069.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-069.
