@@ -1873,3 +1873,57 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-098.
+
+## BT25-099 — Gear Forest Village — 10/10
+
+- Catalog evidence: green/black Option with a no-face-up-security color waiver; face-up Security grants Alliance to friendly green/black TS Digimon and conditionally grants Piercing while Bacchusmon or Ceresmon is present; Main moves the bottom security card to hand, places this card face up at security bottom, and may play a qualifying TS Digimon with cost reduced by 3; Security may play an eligible level 4-or-lower TS Digimon from hand or trash free.
+- Knowledge base: Q6465–Q6470 confirm that zero security satisfies the waiver and Main condition, Main still places this card when no security card can be added to hand, and face-up security remains revealed, checks and activates Security normally, then becomes face down when shuffled.
+- Audit result: the exclusive direct IR already matches the catalog and rulings. The focused suite covers empty-security resolution, face-up security behavior, grants, Main sequencing, and optional play; no implementation or test correction was needed.
+- Verification: focused — 6 passed; combined batch/interpreter/provenance gate — 256 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-099", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-099
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-099.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-099.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-099.
+
+## BT25-100 — Iron Slash — 10/10
+
+- Catalog evidence: black Option with a TS color waiver; Security activates Main; Main de-digivolves one opposing Digimon by 2 and may link this card free to a friendly Digimon on the field; linked effects grant Collision and Piercing.
+- Knowledge base: Q6471 classifies linked clauses as Digimon effects, Q6472 distinguishes linking from using an Option, and Q6473–Q6474 explicitly allow Main to link to a breeding-area Digimon even when it has no DP.
+- Defects corrected: the Link action had its source and recipient selectors reversed and could not faithfully select the Option as the linked card, while the field recipient gate did not support the battle-area/breeding union. The action now links this card to a friendly Digimon in either field area, the shared permanent matcher supports zone unions, and linked Option resolution preserves Digimon-effect provenance through direct and deferred clauses.
+- Verification: focused — 3 passed; interpreter — 183 passed; stack/subtrigger provenance — 56 passed; combined batch gate — 256 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-100", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-100
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-100.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/stack.test.ts src/engine/effects/subtriggers.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-100.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-100.
+
+## BT25-101 — Divine Arms Version Ω — 10/10
+
+- Catalog evidence: black Option with a TS color waiver; Main may trash one TS card from hand to draw 2, then may link this card or a Link-capable TS card from trash free to a friendly Digimon on the field; Security activates Main; linked effects grant Security Attack +1 and Reboot and can protect Vulcanusmon by trashing one of its link cards.
+- Knowledge base: Q6475 makes the hand trash mandatory for reaching the post-“then” portion; Q6476 classifies linked clauses as Digimon effects; Q6477 distinguishes linking from Option use; Q6478–Q6480 define Link-capable targets and breeding-area recipients; Q6481 confirms that a trashed linked card's keywords are gone before battle deletion resolves.
+- Defects corrected: linked Security Attack +1 and Reboot expired at each turn end instead of remaining active while linked, and the Main Link recipient omitted breeding. Both grants are now persistent, the recipient includes either field area, the draw action is fully typed without a file-wide suppression, and the shared Q6476 provenance mechanism is covered by direct/deferred engine regressions.
+- Verification: focused — 8 passed; stack/subtrigger provenance — 56 passed; combined batch/interpreter gate — 256 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-101", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-101
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-101.test.ts src/engine/effects/stack.test.ts src/engine/effects/subtriggers.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-101.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-101.
