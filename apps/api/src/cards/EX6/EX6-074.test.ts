@@ -17,7 +17,13 @@ describe("EX6-074 Mirei Mikagura", () => {
       },
       actions: [
         { kind: "GainMemory", amount: 1, optional: true, abortOnDecline: true, cost: { kind: "suspend" } },
-        { kind: "Digivolve", from: ["trash"], reduceCost: 1, optional: true },
+        {
+          kind: "Digivolve",
+          from: ["trash"],
+          reduceCost: 1,
+          optional: true,
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+        },
       ],
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn")).toMatchObject({
