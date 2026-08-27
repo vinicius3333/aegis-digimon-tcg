@@ -23,6 +23,7 @@ describe("BT3-049 Flymon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId), 5000);
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("is played without cost after winning its security battle", async () => {
@@ -43,6 +44,15 @@ describe("BT3-049 Flymon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId), 5000);
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+
+    const checkIndex = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT3-049",
+    );
+    const playIndex = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "battleArea" && event.instanceIds.includes(instanceId),
+    );
+    expect(playIndex).toBeGreaterThan(checkIndex);
   });
 
   it("becomes a normal Digimon before the next security check (Q1082/Q1084)", async () => {
@@ -64,5 +74,17 @@ describe("BT3-049 Flymon", () => {
 
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId)).toBe(true);
+
+    const firstCheckIndex = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT3-049",
+    );
+    const playIndex = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "battleArea" && event.instanceIds.includes(instanceId),
+    );
+    const secondCheckIndex = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT1-011",
+    );
+    expect(playIndex).toBeGreaterThan(firstCheckIndex);
+    expect(secondCheckIndex).toBeGreaterThan(playIndex);
   });
 });
