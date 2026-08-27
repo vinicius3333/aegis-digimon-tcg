@@ -19,10 +19,10 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT4-021–030 | Static audit delivered | `internal-docs/audits/BT4/BT4-021-030.md` | Yes |
 | BT4-031–040 | Static audit delivered | `internal-docs/audits/BT4/BT4-031-040.md` | Yes |
 | BT4-041–050 | Static audit delivered | `internal-docs/audits/BT4/BT4-041-050.md` | Yes |
-| BT4-051–060 | Luna in progress | `internal-docs/audits/BT4/BT4-051-060.md` | No |
+| BT4-051–060 | Static audit delivered | `internal-docs/audits/BT4/BT4-051-060.md` | Yes |
 | BT4-061–070 | Luna in progress | `internal-docs/audits/BT4/BT4-061-070.md` | No |
 | BT4-071–080 | Luna in progress | `internal-docs/audits/BT4/BT4-071-080.md` | No |
-| BT4-081–090 | Unassigned | `internal-docs/audits/BT4/BT4-081-090.md` | No |
+| BT4-081–090 | Luna in progress | `internal-docs/audits/BT4/BT4-081-090.md` | No |
 | BT4-091–100 | Unassigned | `internal-docs/audits/BT4/BT4-091-100.md` | No |
 | BT4-101–110 | Unassigned | `internal-docs/audits/BT4/BT4-101-110.md` | No |
 | BT4-111–115 | Unassigned | `internal-docs/audits/BT4/BT4-111-115.md` | No |
@@ -93,18 +93,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-048 WarGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected empty-security abort for optional compound attack effect |
 | BT4-049 Varodurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Digi-Burst source cost on all-opponent DP reduction |
 | BT4-050 Liollmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and ordinary green evolution evidence |
+| BT4-051 DoKunemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst reveal match, exact remainder, and no-On-Play evolution proof |
+| BT4-052 Lalamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited Digi-Burst self-source return and host-source retention proof |
+| BT4-053 Roachmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and legal green evolution proof |
+| BT4-054 Sunflowmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst unsuspend restriction with suspended/unsuspended boundaries |
+| BT4-055 Leomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Legal evolution plus exact 3000/4000-DP suspension boundary |
+| BT4-056 SkullScorpiomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and legal green evolution proof |
+| BT4-057 GrapLeomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | When Attacking memory gain on a legal green stack |
+| BT4-058 Orochimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Turn-bound Piercing grant with legal self-target evolution proof |
+| BT4-059 Lilamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst suspension, source return, and color-agnostic Tamer condition |
+| BT4-060 Lotosmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Both-player low-level play watcher with evolution/breeding negatives |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT4/`.
 
 ## Aggregate
 
 - Catalog cards: 115
-- Assigned: 80
-- Integrated card audits: 50
+- Assigned: 90
+- Integrated card audits: 60
 - Corrected: 8
-- Provisional: 50
+- Provisional: 60
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 35
+- Remaining unassigned: 25
 
 BT4 remains open.
