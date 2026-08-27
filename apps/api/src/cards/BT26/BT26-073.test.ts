@@ -190,6 +190,20 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
+  it("may decline the optional On Deletion play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-073", as: "dark" }], hand: [{ card: "BT26-069", as: "candidate" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("dark").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("candidate").instanceId);
+  });
+
   it("finishes the parent deletion after its self-cost On Deletion plays a TS card", async () => {
     const s = setupEngine(
       {

@@ -2868,3 +2868,10 @@ git diff --check: PASS before commit
 ```
 
 No unresolved BT26-072 limitation remains. Only its focused test and ledger changed; the implementation and engine remain unchanged.
+
+## BT26-073 — Aegiochusmon: Dark — 10/10
+
+- Catalog/KB: purple/red Lv.5 `Shaman`/`Iliad`/`TS`, alternate `Aegiomon` evolution, Assembly -2, Rule Wizard, inherited Security A. +1, and printed effects confirmed. Q7098–Q7099 cover the Assembly level ceiling and `Chronomon`-in-text matching; no erratum/restriction.
+- Implementation: full IR, no residual, exclusive `registerIrCard`. Alternate evolution, exact one-material Assembly, shared optional self-delete/deck-bottom modal, opposing Lv.5 deletion, optional On Deletion TS play from hand/trash, inherited keyword, and trait grant map exactly.
+- Proof: existing cases cover evolution, Assembly and Q7098 boundary, both modal costs/refusal, TS Digimon/Tamer plays, deletion completion, real Security A. attack, and Wizard projection. Added optional On Deletion refusal, preserving the eligible hand card.
+- Verification: automation not run by user instruction; `git diff --check` passed before commit. No unresolved limitation remains.
