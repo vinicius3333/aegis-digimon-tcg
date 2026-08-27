@@ -2244,3 +2244,35 @@ git diff --check
 ```
 
 No unresolved BT26-052 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-053 — Wolvermon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-053` (`Wolvermon`), a black level-4 Digimon with play cost 5, 5000 DP, an alternate evolution from a level-3 `Glowing Dawn` Digimon for cost 2, and Blocker on both its main and inherited faces.
+- Printed behavior verified: All Turns Once Per Turn, when an attack target is switched, may trash the bottom face-down card under any own Tamer to use one use-cost-4-or-lower `Glowing Dawn` Option from hand without paying.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-053`; no card-specific Q&A, banlist restriction, or erratum is recorded. Attack-target switching, use cost, face-down Tamer stacks, optional cost processing, and Blocker rules were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-053.ts` has full IR coverage and registers exclusively through `registerIrCard("BT26-053", compiled)`.
+- Its All Turns Once Per Turn watcher reacts to `whenAttackTargetSwitched`; the optional cost trashes exactly one bottom face-down card under any own Tamer; and `UseOptionWithoutCost` restricts the hand selection to an Option with use/play cost at most 4 and the `Glowing Dawn` trait.
+- Blocker is projected on the top card and inherited through the evolution stack. Alternate evolution, cost-gated execution, face-state/bottom selection, Option-use filtering, and relevant peers were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-053.test.ts` now covers full structural filters; target-switch positive behavior and exact face-down Tamer-bottom cost; unavailable-cost and no-eligible-Option paths; Once Per Turn; Blocker inheritance; real alternate-evolution success and rejection; and mixed valid, over-cost, and wrong-trait Options.
+- The new cases prove the exact alternate route and the inclusive cost-4/trait boundary through real execution. The production module required no correction.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-053
+  PASS (no card-specific Q&A, errata, or restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-053 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
