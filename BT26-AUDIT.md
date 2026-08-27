@@ -2913,6 +2913,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR, exclusive `registerIrCard`; exact alternate evolution, optional either-player suspend cost followed by attack without suspending, live same-orientation deletion Once Per Turn, TS color waiver, and Option lowest-DP sequence.
 - Proof: both orientations/ownership cases, Succession, evolution, Once Per Turn, Security Attack, and deletion plus new purple requirement assertion and no-TS Option rejection. Automation not run by instruction; diff check passed. No unresolved limitation.
 
+## BT26-081 — Mervamon — 10/10
+
+- Catalog/KB: purple/yellow/black Lv.6 `Shaman`/`Olympos XII`/`Iliad`/`TS`, alternate paths, Assembly -5, optional total-cost-8 Iliad play, scaled DP reduction, and continuous Alliance/Reboot/Blocker/+2000 confirmed. Q7115–Q7116 cover no-play reduction and zero-DP timing.
+- Correction: the DP-scaling count now explicitly uses `zone: "battleArea"`; breeding-area cards must not count under rule §3-4-5.
+- Proof: metadata, both evolution paths, Assembly, exact-cost-8 trash play, refusal, no-card reduction, breeding exclusion, scaling, and all grants. Full IR, exclusive `registerIrCard`; automation not run by instruction; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
