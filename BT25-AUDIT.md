@@ -589,3 +589,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-029.
+
+## BT25-030 — Elecmon — 10/10
+
+- Catalog evidence: Yellow level-3 Digimon, play cost 3, 2000 DP, `Rookie`/`Data`, `Mammal`/`Iliad`/`TS`; standard yellow or red level-2 evolution for 0 plus alternate level-2 `TS` evolution for 0; Start of Your Main Phase optionally adds the top friendly security card to hand to gain 1 memory; inherited When Attacking once-per-turn optionally adds the top friendly security card to hand, then performs Recovery +1 if the controller has zero security.
+- Knowledge base: Q6297 explicitly permits activating the inherited effect at zero security and performing Recovery +1 without first moving a security card. The optional security movement and independent post-action zero-count condition encode that ruling.
+- Implementation: the main effect uses an optional controller-owned `securityToHand` cost with decline abort before GainMemory. The inherited sequence uses optional top-security movement followed by the exact zero-security condition and the interpreter's executable Recovery action-keyword seam. Timing, inherited status, once-per-turn scope, and alternate evolution are complete. Direct/shared IR match, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-030", compiled)`.
+- Behavioral proof: the existing focused suite verifies the compiled contract. The delegated audit ran the analogous BT24-031 behavior/evolution suite and the interpreter mechanisms, covering optional movement, empty-security Q6297 resolution, recovery execution, memory payment semantics, stack inheritance, and once-per-turn identity. No defect was found, so no implementation or test change was made.
+- Verification: focused suite — 2 passed; peer behavior/evolution — 7 passed; interpreter mechanisms — 183 passed; `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-030 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-030
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-030.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-030.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-030.
