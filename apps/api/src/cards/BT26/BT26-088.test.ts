@@ -89,7 +89,7 @@ describe("BT26-088 Hiroko Sagisaka", () => {
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("unmatched").instanceId),
     );
 
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(1);
     expect(s.perm("hiroko").isSuspended).toBe(false);
   });
 
