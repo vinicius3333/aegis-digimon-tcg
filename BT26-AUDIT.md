@@ -3009,6 +3009,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR/exclusive `registerIrCard`; exact memory threshold, optional deck-bottom return cost, hand/trash union, kind/trait/text filters, paid reduction 2, and Security play.
 - Proof: memory boundaries, hand/trash routes, ordering, payment, affordability/refusal, unrelated cards, Security, plus mixed valid/near/nonmatching pools for both branches. Automation not run; diff check passed. No limitation.
 
+## BT26-097 — The Thunder Emperor Awakens — 10/10
+
+- Catalog/KB: yellow cost-2 TS Option with security-scaled surcharge, named-Tamer stack cost, free Jupitermon evolution, Aegiochusmon follow-up, and Security play/add confirmed; no KB entry.
+- Implementation: full IR/exclusive `registerIrCard`; current-security cost scaling, bound Aegiomon host, hand/trash Jupitermon evolution ignoring requirements, gated optional top-source placement, and Security fallback.
+- Proof: scaling, both named Tamers, both evolution zones, follow-up/refusal/unavailable cost, Security play/fallback. No change; automation not run; diff check passed. No limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
