@@ -29,6 +29,9 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.appFusionRequirement).toEqual([{ names: ["Warudamon", "Cometmon"], cost: 0 }]);
+    expect(compiled.effects.find((effect) => effect.trigger === "Static" && effect.keywords?.length)?.keywords).toEqual(
+      [{ keyword: "Link", amount: 1, raw: "＜Link +1＞" }],
+    );
     for (const trigger of ["WhenDigivolving", "EndOfOpponentsTurn"]) {
       const actions = compiled.effects.find((effect) => effect.trigger === trigger)!.actions;
       expect(actions).toMatchObject([{ from: ["hand"] }, { from: ["digivolutionCards"] }]);
@@ -37,10 +40,12 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
           kind: "Link",
           payCost: false,
           optional: true,
-          target: { filter: { hasLinkRequirement: true, hostFilter: { isSelfRef: true } } },
+          target: { filter: { hasLinkRequirement: true } },
           recipient: { filter: { isSelfRef: true }, isSelf: true },
         });
       }
+      expect(JSON.stringify(actions[0])).not.toContain("hostFilter");
+      expect(JSON.stringify(actions[1])).toContain('"hostFilter":{"isSelfRef":true}');
     }
   });
 

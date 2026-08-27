@@ -61,7 +61,7 @@ describe("EX10-008 MetalGreymon", () => {
           battleArea: [{ card: "EX10-008", as: "metalGreymon" }],
           security: ["BT1-009"],
         },
-        1: { battleArea: [{ card: "BT5-082", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 7000 }] },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
