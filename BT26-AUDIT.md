@@ -2148,3 +2148,35 @@ git diff --check
 ```
 
 No unresolved BT26-049 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-050 — Rosemon: Burst Mode — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-050` (`Rosemon: Burst Mode`), a green/red dual card represented as a level-7 Digimon/Option with play/use cost 6 and 15000 DP. It has normal green Lv.6 evolution, alternate Lv.6 `DATA SQUAD` evolution for cost 5, and Burst Digivolve from `Rosemon` for cost 0 by returning `Yoshino Fujieda`.
+- Printed Digimon behavior verified: When Digivolving may suspend two Digimon/Tamers, then independently prevents two opposing Digimon/Tamers from unsuspending through the opponent's turn; and When Digivolving/When Attacking may return one suspended opposing Digimon to deck bottom, then trash the opponent's top security. Its Option Main effect suspends all opposing Digimon/Tamers and prevents them from unsuspending through the opponent's turn.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-050`; Q7052–Q7053 confirm either player's cards may be suspended and the opposing cards locked need not be those suspended, Q7054 confirms standard Burst Digivolve end-of-turn trash, and Q7055 confirms simultaneous When Digivolving ordering. No erratum or restriction applies.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-050.ts` has full IR coverage and registers exclusively through `registerIrCard("BT26-050", compiled)`.
+- Independent When Digivolving actions preserve the Q7052/Q7053 selections. The shared When Digivolving/When Attacking sequence conditionally returns one suspended opposing Digimon to deck bottom and trashes top security only when that return succeeds.
+- The `DATA SQUAD` use-requirement waiver, Option Main mass suspension/restriction, alternate evolution, and Burst Digivolve requirement/return cost are encoded. Duration, optional/conditional processing, dual Digimon/Option use, Burst cleanup, and peer implementations were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-050.test.ts` covers structural encoding; When Digivolving return/trash; the newly added real When Attacking return-then-trash route and decline guard; Q7052/Q7053 independent suspension/locking; Q7055 trigger ordering; `DATA SQUAD` Option use; and Q7054 Burst Digivolve end-of-turn processing.
+- The positive case observes the opposing permanent leave play, reach deck bottom, and security become empty. The decline case proves security is not trashed when the optional prerequisite return is refused. The implementation required no correction.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-050
+  PASS (Q7052-Q7055; no errata/restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-050 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
