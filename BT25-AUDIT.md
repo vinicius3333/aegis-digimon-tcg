@@ -1711,3 +1711,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-089.
+
+## BT25-090 — Tomoro Tenma — 10/10
+
+- Catalog evidence: red Tamer; start-turn memory setter; all-turn Digimon-suspension watcher may suspend this Tamer and place the top two deck cards face down underneath it; your-turn once-per-turn Glowing Dawn Option-use reduction paid by trashing a bottom face-down card under a friendly Tamer; Security plays this card free.
+- Knowledge base: Q6424–Q6428 define true-bottom placement, fixed order, private visibility, face-up trashing, and top-first deck placement; Q6429 allows two physical copies to stack their Option-use reductions.
+- Defect corrected: the Option cost reduction was registered as unrestricted `Static` despite the printed `[Your Turn]` timing. It now uses `YourTurn`, with a focused regression asserting both the timing and once-per-turn frequency.
+- Verification: focused — 10 passed; placement/Glowing Dawn regressions — 14 passed; combined batch/mechanism gate — 236 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-090", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-090
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-090.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-090.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-090.

@@ -2,9 +2,18 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT25-090.js";
 import "../index.js";
 
 describe("BT25-090 Tomoro Tenma", () => {
+  it("keeps the Glowing Dawn reduction in the Your Turn window", () => {
+    const reduction = compiled.effects.find((effect) =>
+      effect.actions?.some((action) => action.kind === "Replacement" && action.event === "wouldBePlayed"),
+    );
+    expect(reduction?.trigger).toBe("YourTurn");
+    expect(reduction?.frequency).toBe("OncePerTurn");
+  });
+
   it("sets memory to 3 only when its controller starts the turn at 2 or less", async () => {
     const low = setupEngine({ 0: { battleArea: [{ card: "BT25-090", as: "tomoro" }] } });
     low.state.memory = 2;

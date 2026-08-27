@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "Static",
+      trigger: "YourTurn",
       actions: [
         {
           kind: "Replacement",
