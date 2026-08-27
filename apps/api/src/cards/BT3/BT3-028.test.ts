@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT3-028.js";
-
 describe("BT3-028 Bastemon", () => {
   it("plays as an 8000 DP vanilla Digimon without effect activation", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT3-028", as: "bastemon" }] } });

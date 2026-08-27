@@ -14,12 +14,12 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT3-001–010 | Luna in progress | `internal-docs/audits/BT3/BT3-001-010.md` | No |
+| BT3-001–010 | Static audit integrated | `internal-docs/audits/BT3/BT3-001-010.md` | Yes |
 | BT3-011–020 | Static audit integrated | `internal-docs/audits/BT3/BT3-011-020.md` | Yes |
-| BT3-021–030 | Luna in progress | `internal-docs/audits/BT3/BT3-021-030.md` | No |
+| BT3-021–030 | Static audit integrated | `internal-docs/audits/BT3/BT3-021-030.md` | Yes |
 | BT3-031–040 | Luna in progress | `internal-docs/audits/BT3/BT3-031-040.md` | No |
-| BT3-041–050 | Queued | `internal-docs/audits/BT3/BT3-041-050.md` | No |
-| BT3-051–060 | Queued | `internal-docs/audits/BT3/BT3-051-060.md` | No |
+| BT3-041–050 | Luna in progress | `internal-docs/audits/BT3/BT3-041-050.md` | No |
+| BT3-051–060 | Luna in progress | `internal-docs/audits/BT3/BT3-051-060.md` | No |
 | BT3-061–070 | Queued | `internal-docs/audits/BT3/BT3-061-070.md` | No |
 | BT3-071–080 | Queued | `internal-docs/audits/BT3/BT3-071-080.md` | No |
 | BT3-081–090 | Queued | `internal-docs/audits/BT3/BT3-081-090.md` | No |
@@ -43,6 +43,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT3-001 Poromon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Full inherited delete IR and legal red source-stack proof |
+| BT3-002 DemiVeemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Jamming-gated draw IR with legal blue and once-per-turn proof |
+| BT3-003 Upamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Security-threshold draw IR with legal yellow boundary proof |
+| BT3-004 Minomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opposing-target DP aura IR and Q1047 blocker boundary proof |
+| BT3-005 Kakkinmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Level-7 memory IR with complete legal black stack proof |
+| BT3-006 DemiMeramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Ordered inherited draw-then-trash IR and legal purple stack proof |
+| BT3-007 Agumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal evolution proof |
+| BT3-008 Zubamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Dual-slot RevealAdd IR and Q1048–Q1050 boundary proof |
+| BT3-009 Hawkmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal evolution proof |
+| BT3-010 ZubaEagermon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Level-7 inherited aura IR and complete legal-stack proof |
 | BT3-011 Greymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Security play to end-of-battle watcher; focused and aggregate static proof |
 | BT3-012 Aquilamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Full inherited delete IR and legal-stack focused proof |
 | BT3-013 Duramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Full inherited level-7 aura IR and corrected legal-stack proof |
@@ -53,18 +63,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT3-018 BlitzGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Full Piercing/De-Digivolve IR and stack proof |
 | BT3-019 RagnaLoardmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Authoritative direct keyword/PlaceUnder IR and optionality proof |
 | BT3-020 Patamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Catalog-defined vanilla card with empty full-coverage snapshot |
+| BT3-021 Veemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Jamming IR with Security-battle and stack-boundary proof |
+| BT3-022 Penguinmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal blue evolution proof |
+| BT3-023 Angemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bottom-source trash IR and exact stack-order proof |
+| BT3-024 Airdramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Security play to end-of-battle watcher with ordering proof |
+| BT3-025 ExVeemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Own level-4-or-lower unsuspend IR and controller/level boundary proof |
+| BT3-026 MagnaAngemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited bottom-source trash IR and legal host-stack proof |
+| BT3-027 Paildramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Jamming/name-gated inherited unsuspend IR and once-per-turn proof |
+| BT3-028 Bastemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal blue evolution proof |
+| BT3-029 Goldramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Another-Digimon play watcher and once-per-turn proof |
+| BT3-030 Leopardmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional source play and live level-filtered Jamming proof |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT3/`.
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 40
-- Integrated card audits: 10
-- Corrected: 1
-- Provisional: 10
+- Assigned: 60
+- Integrated card audits: 30
+- Corrected: 2
+- Provisional: 30
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 72
+- Remaining unassigned: 52
 
 BT3 remains open.
