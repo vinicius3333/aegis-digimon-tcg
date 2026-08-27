@@ -2564,3 +2564,35 @@ git diff --check
 ```
 
 No unresolved BT26-062 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-063 — Tellermon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-063` (`Tellermon`), a purple level-3 Digimon with play cost 4, 4000 DP, `Fortune Telling (App Name)`/`Seven Code` traits, alternate evolution from a level-2 `Appmon` for cost 0, and Link to an `Appmon` for cost 3.
+- Printed behavior verified: Detach restricted to `Seven Code`; Your Turn Once Per Turn, when this Digimon gets linked, reveals the top three, adds one `Entertainment`/`Open`/`Seven Code` card, and returns the rest to deck top or bottom; its linked When Linking effect deletes one opposing lowest-level Digimon.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-063 --json`; no card-specific Q&A, banlist restriction, or erratum is recorded. Link, Detach, reveal ordering, Once Per Turn, and lowest-level selection rules were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-063.ts` has `coverage: "full"`, `residual: []`, and registers exclusively through `registerIrCard("BT26-063", compiled)`.
+- Evolution and Link requirements are exact. The source-scoped Your Turn watcher reacts when this permanent receives a link, uses one Once Per Turn budget, reveals exactly three, accepts one card matching any printed trait, and exposes top/bottom disposition for the remainder.
+- Its linked face reacts at When Linking and deletes exactly one opposing member of the lowest-level superlative. Detach retains the exact trait restriction. Link state, reveal filters, superlatives, and peers were inspected.
+
+### Behavioral proof
+
+- Existing `apps/api/src/cards/BT26/BT26-063.test.ts` covers IR/catalog structure; real zero-cost Appmon evolution; public Link payment and reveal resolution; valid and near-match trait filters; top/bottom choices; no-eligible fallback; lowest-level deletion; Detach battle-deletion prevention; source scoping when another Appmon links; independent copies; same-copy Once Per Turn; and Your Turn gating.
+- The existing proof is sufficient for each printed clause; no implementation or test change was required.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-063 --json
+  PASS (qa: []; banlist: null; errata: null)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the ledger-only commit
+```
+
+No unresolved BT26-063 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
