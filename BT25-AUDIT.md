@@ -1405,3 +1405,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-072.
+
+## BT25-073 — Dragomon — 10/10
+
+- Catalog evidence: black level-5 Digimon with alternate evolution, Jamming, link-card payment, modal free play of one qualifying TS card or use of a qualifying TS Option, and inherited leave replacement.
+- Knowledge base: no card-specific entries; standard payment, modal choice, card-kind wording, free play/use, and inherited replacement rules apply.
+- Defect corrected: both play branches narrowed “1 TS trait card” to Digimon only, excluding valid TS Tamers. They now accept Digimon or Tamer while the separate Option branch remains unchanged.
+- Verification: focused — 8 passed; BT25 audit — 2 passed; link/use-option seams plus BT25-066 — 23 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-073", compiled)` with full coverage and no residuals; module IR is exported for persisted comparison.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-073
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-073.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-073.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-073.
