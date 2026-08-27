@@ -1997,3 +1997,30 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-048 — Floramon — 10/10
+
+- Catalog evidence: Green Lv.3 Rookie Digimon, Data/Vegetation, play cost 3,
+  4000 DP, and green Lv.2 evolution cost 0. It has no main, inherited,
+  Security, or alternate-evolution text, and its knowledge-base query exposes
+  no QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-048.ts` intentionally contains
+  `effects: []`, `coverage: "full"`, and `residual: []`, and registers
+  exclusively through `registerIrCard("BT5-048", compiled)`. This exactly
+  represents the vanilla card with no executable behavior or legacy seam.
+- Primitive, trait, peer, and behavioral evidence: focused tests prove the
+  empty module remains registered, residual-free, and introduces no DP or
+  continuous behavior. BT5-047 supplies the adjacent real Vegetation card and
+  uses Floramon as an existing source beneath a green host, proving the
+  committed identity remains a normal green Digimon card without acquiring
+  effects. Registration tests prove empty modules remain discoverable, and
+  the raw-IR gate proves no unsupported action is hidden in the module.
+- Defect corrected: none. The vanilla implementation and focused proof were
+  already complete, so no changes were made.
+- Verification: focused BT5-048, adjacent BT5-047, registration, and raw-IR
+  gate suites — 4 files, 11 tests passed. `git diff --check` passes. Workspace
+  typecheck retains only the known unrelated baseline errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
