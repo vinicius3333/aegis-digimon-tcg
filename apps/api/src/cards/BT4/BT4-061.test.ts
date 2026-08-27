@@ -11,6 +11,7 @@ describe("BT4-061 BanchoLeomon", () => {
           battleArea: [
             { card: "BT1-009", as: "a" },
             { card: "BT1-010", as: "b" },
+            { card: "BT1-011", as: "c" },
           ],
         },
       },
@@ -21,5 +22,6 @@ describe("BT4-061 BanchoLeomon", () => {
 
     expect(s.perm("a").isSuspended).toBe(true);
     expect(s.perm("b").isSuspended).toBe(true);
+    expect(s.perm("c").isSuspended).toBe(false);
   });
 });

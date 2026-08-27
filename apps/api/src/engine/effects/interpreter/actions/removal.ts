@@ -751,7 +751,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         }
         return false;
       }
-      const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, returnTarget));
+      let ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, returnTarget));
       if (ids.length === 0) {
         if (action.trackCount !== undefined) {
           if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
@@ -762,6 +762,13 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           ctx.boundPlayed.set(action.bindResultAs, new Set());
         }
         return false;
+      }
+      if (action.order === "any" && ids.length > 1) {
+        ids =
+          (await ctx.ask.orderCards?.(ctx, {
+            candidates: ids,
+            destination: action.to === "deckTop" ? "deckTop" : "deckBottom",
+          })) ?? ids;
       }
       if (action.storeAs !== undefined) {
         let selected: Permanent | undefined;
@@ -778,7 +785,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       const movedResult =
         action.to === "hand"
           ? await ctx.fx.returnToHand(ids)
-          : await ctx.fx.returnToDeck(ids, { toTop: action.to === "deckTop" });
+          : await ctx.fx.returnToDeck(action.to === "deckTop" ? [...ids].reverse() : ids, {
+              toTop: action.to === "deckTop",
+            });
       const moved = movedResult ?? [];
       ctx.lastEffectActed = movedResult === undefined ? ids.length > 0 : moved.length > 0;
       if (action.bindResultAs) {
