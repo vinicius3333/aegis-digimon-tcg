@@ -3003,6 +3003,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR/exclusive `registerIrCard`; hand BEATBREAK placement/Draw/+1, any-Digimon deletion watcher, suspend cost, Draw then hand trash, and own non-Digi-Egg BEATBREAK trash placement under self.
 - Proof: positive/refusal/suspended/empty cases, both controllers' deletions, order/face state, Security, plus mixed trait pools and Digi-Egg exclusion. Automation not run; diff check passed. No limitation.
 
+## BT26-096 — Kosuke Misono — 10/10
+
+- Catalog/KB: purple cost-3 TS Tamer, start-turn memory set, Main self-return and reduced Chronomon-text Digimon/TS Tamer play, and Security confirmed. Generic Q4366 defines full “in its text” scope.
+- Implementation: full IR/exclusive `registerIrCard`; exact memory threshold, optional deck-bottom return cost, hand/trash union, kind/trait/text filters, paid reduction 2, and Security play.
+- Proof: memory boundaries, hand/trash routes, ordering, payment, affordability/refusal, unrelated cards, Security, plus mixed valid/near/nonmatching pools for both branches. Automation not run; diff check passed. No limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
