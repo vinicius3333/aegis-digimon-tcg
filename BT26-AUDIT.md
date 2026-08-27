@@ -1983,3 +1983,36 @@ git diff --check
 ```
 
 No unresolved BT26-044 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-045 — GranKuwagamon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-045` (`GranKuwagamon`), a green level-6 Mega/Free Digimon with play cost 11, 11000 DP, and `Insectoid`/`Titan`/`TS` traits. Its normal evolution requirement is green Lv.5 for cost 3, and its alternate requirement is `[Digivolve] Lv.5 w/[Insectoid]/[TS] trait: Cost 3`.
+- Printed behavior verified: a hand-size-dependent self play-cost reduction of 4; a shared On Play/When Digivolving/When Attacking Once Per Turn optional free play of one level-4-or-lower `Insectoid` or `Titan` Digimon from hand; and Your Turn grants of Alliance, Piercing, and Vortex to all own `Insectoid`/`Titan` Digimon.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-045`; Q7036–Q7037 confirm the strict hand comparison and announcement timing, Q7038 confirms that the newly played Digimon may be suspended for Alliance, and Q7077 confirms stacking the relevant play-cost reductions. No banlist restriction or erratum applies.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-045.ts` has `coverage: "full"`, `residual: []`, and registers executable behavior exclusively through `registerIrCard("BT26-045", compiled)`.
+- The self-bound `wouldBePlayed` replacement applies `reduceCost: 4` only when `handCompare` is strictly `lt`; the shared reducer path evaluates while the declared card is still in hand and does not apply to play from another zone, matching Q7036–Q7037.
+- On Play, When Digivolving, and When Attacking use one shared Once Per Turn key and the same optional hand-only free-play action, limited to Digimon level 4 or lower and OR-matching `Insectoid`/`Titan`.
+- The Your Turn continuous body targets all own matching Digimon and grants Alliance, Piercing, and Vortex through the turn-scoped keyword ledger. The newly played permanent enters before Alliance candidate resolution, preserving Q7038. Cost-reducer registration, hand comparison, free play, keyword projection, Alliance timing, and adjacent trait peers were inspected.
+
+### Behavioral proof
+
+- Existing `apps/api/src/cards/BT26/BT26-045.test.ts` covers the exact alternate requirement and complete IR shape; public projection of all three keywords; reduced and tied-hand play-cost cases for Q7036–Q7037; and a real attack that free-plays an eligible Digimon, exposes it to the Alliance prompt, and proves the shared Once Per Turn budget prevents a second On Play activation.
+- The focused proof asserts final memory, battle-area/hand state, the newly played permanent's keyword state, Alliance eligibility, suspension, and the retained second candidate. Shared reducer and combat primitives cover the Q7077 stacking mechanism. No implementation or proof gap requiring a new test was found.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-045
+  PASS (Q7036–Q7038, Q7077; no errata/restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the ledger-only commit
+```
+
+No unresolved BT26-045 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
