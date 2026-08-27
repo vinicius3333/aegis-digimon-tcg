@@ -2212,3 +2212,35 @@ git diff --check
 ```
 
 No unresolved BT26-051 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-052 — Pristimon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-052` (`Pristimon`), a black level-3 Rookie/Vaccine Digimon with play cost 3, 2000 DP, and `Puppet`/`Glowing Dawn`/`BEATBREAK` traits. Its normal evolution is black Lv.2 for cost 0, and its alternate requirement is Lv.2 with `Glowing Dawn` for cost 0.
+- Printed behavior verified: On Play reveals the top three cards, adds one `Glowing Dawn` card and one black `BEATBREAK` card among them to hand, and returns the rest to deck bottom. Its inherited keyword is Reboot.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-052 --json`; result has no Q&A, banlist entry, or erratum. Reveal disposition/order, alternate evolution, inherited effects, and Reboot rules were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-052.ts` has `coverage: "full"`, `residual: []`, and registers exclusively through `registerIrCard("BT26-052", compiled)`.
+- The alternate requirement is exact. On Play uses `RevealAdd` with count 3, independent `Glowing Dawn` and black-plus-`BEATBREAK` hand slots, and deck-bottom disposition for the remainder.
+- The shared reveal primitive prevents one revealed instance from satisfying both slots, exposes the reveal, moves selected cards to hand, and lets the controller order the remainder. The inherited Static marker projects Reboot through the evolution host. Relevant reveal, filter, evolution, stack, keyword, and peer implementations were inspected.
+
+### Behavioral proof
+
+- Existing `apps/api/src/cards/BT26/BT26-052.test.ts` contains 5 focused cases covering exact alternate metadata/IR shape; the two independent additions and bottomed remainder; non-reuse of one overlapping revealed card; real zero-cost alternate evolution from a differently colored `Glowing Dawn` Lv.2; and inherited Reboot projection on the host.
+- Final zones, stack transition, exact memory payment, instance exclusivity, and inherited keyword state are asserted. No implementation or proof gap requiring a change was found.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-052 --json
+  PASS (qa: []; banlist: null; errata: null)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the ledger-only commit
+```
+
+No unresolved BT26-052 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
