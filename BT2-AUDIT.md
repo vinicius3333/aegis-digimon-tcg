@@ -23,9 +23,9 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT2-061–070 | Static audit complete | `internal-docs/audits/BT2/BT2-061-070.md` | Yes |
 | BT2-071–080 | Static audit complete | `internal-docs/audits/BT2/BT2-071-080.md` | Yes |
 | BT2-081–090 | Luna in progress | `internal-docs/audits/BT2/BT2-081-090.md` | No |
-| BT2-091–100 | Luna in progress | `internal-docs/audits/BT2/BT2-091-100.md` | No |
+| BT2-091–100 | Static audit complete | `internal-docs/audits/BT2/BT2-091-100.md` | Yes |
 | BT2-101–110 | Luna in progress | `internal-docs/audits/BT2/BT2-101-110.md` | No |
-| BT2-111–112 | Queued | Not assigned | No |
+| BT2-111–112 | Luna in progress | `internal-docs/audits/BT2/BT2-111-112.md` | No |
 
 ## Score model
 
@@ -123,18 +123,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT2-078 WereGarurumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-078.ts), [test](apps/api/src/cards/BT2/BT2-078.test.ts) |
 | BT2-079 VenomMyotismon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-079.ts), [test](apps/api/src/cards/BT2/BT2-079.test.ts) |
 | BT2-080 Piedmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-080.ts), [test](apps/api/src/cards/BT2/BT2-080.test.ts) |
+| BT2-091 Volcanic Flare | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-091.ts), [test](apps/api/src/cards/BT2/BT2-091.test.ts) |
+| BT2-092 Radiation Blade | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-092.ts), [test](apps/api/src/cards/BT2/BT2-092.test.ts) |
+| BT2-093 Shield of the Just | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-093.ts), [test](apps/api/src/cards/BT2/BT2-093.test.ts) |
+| BT2-094 Arctic Blizzard | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-094.ts), [test](apps/api/src/cards/BT2/BT2-094.test.ts) |
+| BT2-095 River of Power | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-095.ts), [test](apps/api/src/cards/BT2/BT2-095.test.ts) |
+| BT2-096 The Ray of Victory | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-096.ts), [test](apps/api/src/cards/BT2/BT2-096.test.ts) |
+| BT2-097 Lightning Paw | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-097.ts), [test](apps/api/src/cards/BT2/BT2-097.test.ts) |
+| BT2-098 EDEN's Javelin | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-098.ts), [test](apps/api/src/cards/BT2/BT2-098.test.ts) |
+| BT2-099 Glorious Burst | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-099.ts), [test](apps/api/src/cards/BT2/BT2-099.test.ts) |
+| BT2-100 Puppet Pummel | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-100.ts), [test](apps/api/src/cards/BT2/BT2-100.test.ts) |
 
 Detailed clause traces and deferred commands are recorded in the integrated range reports under `internal-docs/audits/BT2/`.
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 110
-- Integrated card audits: 80
+- Assigned: 112
+- Integrated card audits: 90
 - Corrected: 1
-- Provisional: 80
+- Provisional: 90
 - Verified 10/10: 0
 - Blocked or ambiguous: 1
-- Remaining unassigned: 2
+- Remaining unassigned: 0
 
 BT2 remains open.
