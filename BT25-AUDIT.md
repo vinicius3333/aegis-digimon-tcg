@@ -608,3 +608,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-030.
+
+## BT25-031 — Patamon — 10/10
+
+- Catalog evidence: Yellow level-3 Digimon, play cost 3, 2000 DP, `Rookie`/`Data`, `Mammal`/`Iliad`/`ADAMAS`/`TS`; standard yellow level-2 evolution for 0 plus alternate level-2 `TS` evolution for 0; On Play reveals the top 3 cards, adds one Angel/Archangel/Three Great Angels/Four Great Dragons trait card and one TS trait card, then bottoms the remainder; inherited Barrier.
+- Knowledge base: `node tools/kb/query.mjs card BT25-031` returned no entries, so there are no local card-specific rulings, errata, restrictions, or unresolved ambiguities to apply. General reveal rules and the shared RevealAdd implementation require the two slots to consume distinct revealed cards and bottom all unselected cards.
+- Implementation: one mandatory RevealAdd action encodes the exact reveal count, two independent trait-filtered add slots, shared revealed-card consumption, and deck-bottom remainder. The alternate evolution and inherited static Barrier marker are complete. Direct/shared IR match, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-031", compiled)`.
+- Behavioral proof: the existing focused suite verifies the compiled contract. The delegated audit ran RevealAdd interpreter, special-reveal primary, and BT25 collection audit suites, covering exact trait matching, distinct choice consumption, fewer-than-two valid hits, remainder bottoming, inherited keyword visibility, and alternate evolution metadata. No defect was found, so no implementation or test change was made.
+- Verification: focused suite — 2 passed; RevealAdd mechanisms — 7 passed; special reveal mechanisms — 6 passed; BT25 audit — 2 passed; `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-031 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-031
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-031.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-031.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-031.
