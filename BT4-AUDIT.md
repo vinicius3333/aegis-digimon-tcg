@@ -23,7 +23,7 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT4-061–070 | Static audit delivered | `internal-docs/audits/BT4/BT4-061-070.md` | Yes |
 | BT4-071–080 | Static audit delivered | `internal-docs/audits/BT4/BT4-071-080.md` | Yes |
 | BT4-081–090 | Static audit delivered | `internal-docs/audits/BT4/BT4-081-090.md` | Yes |
-| BT4-091–100 | Luna in progress | `internal-docs/audits/BT4/BT4-091-100.md` | No |
+| BT4-091–100 | Static audit delivered | `internal-docs/audits/BT4/BT4-091-100.md` | Yes |
 | BT4-101–110 | Luna in progress | `internal-docs/audits/BT4/BT4-101-110.md` | No |
 | BT4-111–115 | Luna in progress | `internal-docs/audits/BT4/BT4-111-115.md` | No |
 
@@ -133,6 +133,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-088 DanDevimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Once-per-turn security watcher and opponent-chosen hand trash |
 | BT4-089 Plutomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Draw-two then optional purple low-cost Option use boundary |
 | BT4-090 Chaosmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected optional self Attack with unsuspended-target and sickness proof |
+| BT4-091 Chaosmon: Valdur Arm | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Two independent -7000-DP actions plus On Deletion memory proof |
+| BT4-092 Marcus Damon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Memory setter, Greymon attack gate, exclusions, and Security play |
+| BT4-093 Thomas H. Norstein | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | On Play draw and eight-card Gao unsuspend threshold with suspend cost |
+| BT4-094 Tai Kamiya | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Security-count aura and corrected DP-zero deletion proof fixture |
+| BT4-095 Yoshino Fujieda | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Egg recovery and optional Digi-Burst evolution-cost reduction |
+| BT4-096 Izzy Izumi | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected ordered reveal return to deck top with sentinel proof |
+| BT4-097 Kari Kamiya | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Own-security removal watcher with optional self-suspend gain |
+| BT4-098 Atomic Inferno | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bound Hybrid bonuses, actual-block memory, and Security aura entrants |
+| BT4-099 Heir of Dragons | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Draw-two plus qualified Greymon/Dramon deletion and exclusions |
+| BT4-100 Trident Revolver | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Low-DP deletion then optional Tamer play including no-target ruling |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT4/`.
 
@@ -140,9 +150,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 115
 - Assigned: 115
-- Integrated card audits: 90
-- Corrected: 12
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 13
+- Provisional: 100
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
