@@ -30,6 +30,22 @@ describe("BT5-099 Spiral Masquerade", () => {
     await settle(() => s.perm("first").currentDP === 4000);
     expect(s.perm("first").currentDP).toBe(4000);
     expect(s.perm("second").currentDP).toBe(10000);
+    advance(s.engine).ledgers.modifiers.sweep(s.state, "eachTurnEnd", s.state.turnSeat);
+    advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", s.state.turnSeat);
+    await advance(s.engine).recompute();
+    expect(s.perm("first").currentDP).toBe(10000);
+  });
+
+  it("does nothing when you have no Digimon in play", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT5-099", as: "option", faceUp: true }] },
+        1: { battleArea: [{ card: "BT5-046", as: "target", dp: 10000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    expect(s.perm("target").currentDP).toBe(10000);
   });
 
   it("activates the scaled Main effect from security", async () => {

@@ -69,7 +69,6 @@ describe("BT5-028 CrysPaledramon", () => {
 
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
-
     s.perm("opponent").stack.pop();
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);

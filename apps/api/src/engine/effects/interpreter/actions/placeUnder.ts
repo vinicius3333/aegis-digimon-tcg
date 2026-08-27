@@ -400,7 +400,9 @@ export async function runPlaceUnder(
     const names = new Set(
       chosen.map((instanceId) => {
         const candidate = candidates.find((entry) => entry.instanceId === instanceId);
-        return candidate === undefined ? instanceId : ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn;
+        return candidate === undefined
+          ? instanceId
+          : ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn;
       }),
     );
     ctx.namedCounts ??= new Map();
@@ -474,9 +476,7 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
   const eligibleLooseCandidates =
     requiredNamesExactUpTo.length > 0
       ? looseCandidates.filter((candidate) =>
-          requiredNamesExactUpTo.includes(
-            ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn ?? "",
-          ),
+          requiredNamesExactUpTo.includes(ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn ?? ""),
         )
       : looseCandidates;
   // A named "up to one of each" selection may legitimately contain only the names
@@ -659,7 +659,18 @@ export async function runTrashDigivolution(
     const stack = permanent.stack;
     const targetAmount =
       action.scaling?.unit === "targetColors" ? new Set(ctx.game.definitionOf(permanent.topCard).colors).size : amount;
-    const take = targetAmount === "all" ? stack.length : Math.min(targetAmount, stack.length);
+    let take = targetAmount === "all" ? stack.length : Math.min(targetAmount, stack.length);
+    if (action.upTo === true && typeof targetAmount === "number" && take > 1) {
+      // "up to" source trash still requires one card under CR 1-3-6, then lets the
+      // controller decline each additional card. Asking one card at a time preserves
+      // the printed bottom/top prefix; a free multi-card selection could skip a card.
+      for (let i = 1; i < take; i++) {
+        if (!(await ctx.ask.optional(ctx, `Trash another digivolution card (${i + 1} of ${take})?`))) {
+          take = i;
+          break;
+        }
+      }
+    }
     let ids: string[];
     if (action.choose === true) {
       // "trash any 1 card under [permanent]" (RB1-016, KB Q4094): the controller picks freely

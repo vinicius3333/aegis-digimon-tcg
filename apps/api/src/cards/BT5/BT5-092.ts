@@ -1,13 +1,14 @@
 // @ts-nocheck
 // Hand-authored override for BT5-092 (Nokia Shiramine).
-// runtime-effect fix: second effect is a triggered cost reduction for digivolving into
+// runtime-effect fix: second effect is a Main-activated cost reduction for digivolving into
 // named cards (Garurumon/Omnimon/Greymon family, excluding DoruGreymon/BurningGreymon/
-// DexDoruGreymon). KB Q2624: triggers on digivolves by effect (not just normal digivolve).
+// DexDoruGreymon). The CostModifier is consumed at the live digivolution-cost check, including
+// digivolution performed by an effect.
 // Encoded as CostModifier with restriction:suspendThisTamer, optional:true, with
 // an into filter restricting the digivolve target to the named cards.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -20,7 +21,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Agumon", "Gabumon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -33,7 +34,7 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "YourTurn",
+      trigger: "Main",
       actions: [
         {
           kind: "CostModifier",
@@ -57,7 +58,11 @@ const compiled: CompiledCard = {
                 match: "name",
               },
             ],
-            excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+            excludeNameOrTrait: [
+              { tokens: ["DoruGreymon"], match: "nameExact" },
+              { tokens: ["BurningGreymon"], match: "nameExact" },
+              { tokens: ["DexDoruGreymon"], match: "nameExact" },
+            ],
           },
           restriction: "suspendThisTamer",
           optional: true,

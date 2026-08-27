@@ -1489,6 +1489,7 @@ export class GameEngine {
       // printed evolve cost: a `fixed` adjustment sets an absolute cost, otherwise the
       // delta sums; floored at 0 (Official Rule Manual: a cost can't go below 0).
       adjustedDigivolveCost: (_state, target, base, into, opts) => {
+        const reductionsBlocked = this.continuous.blocksCostReduction(target.controllerSeat, "digivolve");
         let cost = base;
         const adj = this.modifiers.evoCostFor(target, into, opts);
         if (adj !== undefined) {
@@ -1500,10 +1501,11 @@ export class GameEngine {
           markFired: (key) => this.tracker.register(key, "replacement"),
         });
         const intrinsicReduction = intrinsicDigivolutionCostReduction(into, target);
-        return Math.max(0, cost - replReduction - intrinsicReduction);
+        return Math.max(0, cost - (reductionsBlocked ? 0 : replReduction + intrinsicReduction));
       },
       prepareDigivolveCost: (_state, _seat, target, evolving) => this.fireBeforeDigivolveCost(evolving, target),
       potentialInteractiveDigivolveReduction: (state, seat, target, into) => {
+        if (this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
         const liveReduction = this.subTriggers.potentialInteractiveReductionFor("wouldDigivolve", seat, target, into, {
           hasFired: (key) => this.tracker.count(key, "replacement") > 0,
           markFired: (key) => this.tracker.register(key, "replacement"),
@@ -1518,6 +1520,7 @@ export class GameEngine {
         return liveReduction + intrinsicReduction;
       },
       activateInteractiveDigivolveReduction: async (_state, seat, target, into, evolvingInstanceId) => {
+        if (this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
         const liveReduction = await this.subTriggers.activateInteractiveReductionsFor(
           "wouldDigivolve",
           seat,
@@ -1625,6 +1628,7 @@ export class GameEngine {
       // suspendable to pay it (the controller's own, or — while an eligible BT3-056 redirector is
       // on the controller's battle area this turn — an opponent's). Pure read; no prompt/suspend.
       digisorptionReduction: (_state, seat, intoCardId) => {
+        if (this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
         const amount = digisorptionAmountFor(intoCardId);
         if (amount === undefined) return 0;
         return this.digisorptionSuspendCandidates(seat).length >= 1 ? amount : 0;
