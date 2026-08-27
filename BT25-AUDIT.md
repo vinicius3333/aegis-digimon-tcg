@@ -1315,3 +1315,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-067.
+
+## BT25-068 — Deltamon — 10/10
+
+- Catalog evidence: black level-4 Digimon; alternate level-3 TS evolution for 2; Collision; all-turn once-per-turn when this Digimon suspends De-Digivolve 1 on one opposing Digimon; inherited all-turn +1000 DP.
+- Knowledge base: no card-specific entries; standard self-suspension, Collision, De-Digivolve, once-per-turn, evolution, and inherited continuous-effect rules apply.
+- Implementation: keyword, self-bound suspension watcher, exact opposing target, De-Digivolve amount, per-copy frequency, alternate evolution, and inherited boost are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-068", compiled)`.
+- Verification: focused — 4 passed; suspension/subtrigger/De-Digivolve/once-per-turn mechanisms — passed; `git diff --check` — passed. No direct defect was found, so no implementation or test change was made; persisted synchronization follows separately.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-068
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-068.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-068.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-068.
