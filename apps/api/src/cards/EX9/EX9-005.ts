@@ -28,37 +28,18 @@ export const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: true,
-          optional: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          mode: "reduceCost",
-          amount: 2,
-          raw: "play 1 Digimon card with [Negamon] in its text from your hand with the play cost reduced by 2",
-          optional: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          mode: "reduceCost",
-          amount: 1,
-          raw: "further reduce it by 1",
-          scaling: {
+          reduceCostBy: 2,
+          reduceCostByScaling: {
             per: 1,
             filter: {
               zone: ["trash", "digivolutionCards"],
               controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [
-                {
-                  tokens: ["Negamon"],
-                  match: "text",
-                },
-              ],
+              kind: ["Digimon", "DigiEgg"],
+              nameOrTrait: [{ tokens: ["Negamon"], match: "nameExact" }],
             },
             unit: "cards",
           },
+          optional: true,
         },
         {
           kind: "PlaceUnder",

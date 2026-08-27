@@ -350,7 +350,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       // so defer that more complex shape to the play resolver.
       if (action.payCost === true && action.allowDigiXros !== true && ctx.fx.canAffordEffectPlay !== undefined) {
         const costDelta =
-          action.reduceCostByScaling === undefined ? action.reduceCostBy : scaleFactor(ctx, action.reduceCostByScaling);
+          (action.reduceCostBy ?? 0) +
+          (action.reduceCostByScaling === undefined ? 0 : scaleFactor(ctx, action.reduceCostByScaling));
         const affordability = await Promise.all(
           candidates.map(async (candidate) => ({
             candidate,
