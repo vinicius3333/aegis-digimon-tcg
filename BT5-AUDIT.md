@@ -3457,3 +3457,35 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
 - Verification: focused BT5-102 — 3/3 passed; exclusive registration search and
   `git diff --check` pass. No production, test, or shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-103 — A Blazing Storm of Metal! — 10/10
+
+- Catalog and ruling evidence: Black Option with use cost 7. Main gives all own
+  Digimon with Reboot +1000 DP and Blocker until the end of the opponent's next
+  turn. Security prevents all opposing Digimon from attacking players for the
+  turn, then adds this card to its owner's hand. Q1376 was reviewed and matches
+  these controller and duration boundaries.
+- Implementation: `apps/api/src/cards/BT5/BT5-103.ts` already encoded the exact
+  Reboot targets, grants, durations, opposing attack-player restriction, and
+  self-to-hand Security action. `GameEngine.ts` now supplies the continuous
+  ledger with each permanent's printed keywords through `resolveKeywords` with
+  an empty grant reader, allowing keyword target filters to observe intrinsic
+  Reboot without conflating continuous grants. Full residual-free coverage and
+  exclusive `registerIrCard("BT5-103", compiled)` registration are preserved.
+- Behavioral proof: two focused tests prove multiple own intrinsic-Reboot
+  targets gain exactly +1000 DP and Blocker while an own non-Reboot and opposing
+  Reboot do not; grants survive the owner turn end and expire at opponent turn
+  end. Security affects opposing attack-to-player only, leaves own Digimon and
+  general attack legality untouched, moves the exact Option instance to hand,
+  and expires at turn end.
+- Defect corrected: the continuous ledger was constructed without its printed
+  keyword resolver, so card filters using `keywords` could not match intrinsic
+  Reboot. The engine now wires that resolver to the authoritative top-card
+  definition for battle-area and breeding permanents.
+- Verification: focused BT5-103 — 2/2 passed; continuous ledger — 31/31;
+  keyword resolver — 103/103; affected BT5-092/096 regressions — 13/13. Oxfmt,
+  Oxlint, registration search, and `git diff --check` pass. Workspace typecheck
+  reaches only pre-existing unrelated failures in EX6-010, interpreter removal,
+  runAction/loose targeting, and the primitive interface exhaustiveness test;
+  no changed file reports an error.
+- Remaining ambiguity: none identified.
