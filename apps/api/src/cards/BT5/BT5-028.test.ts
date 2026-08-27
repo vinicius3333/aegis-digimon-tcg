@@ -72,9 +72,11 @@ describe("BT5-028 CrysPaledramon", () => {
     s.perm("opponent").stack.pop();
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+
     s.perm("opponent").stack.push(makeInstance("BT1-010", 1, true));
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
+
     s.state.turnSeat = 1;
     s.perm("opponent").stack.pop();
     await s.engine.recomputeContinuousEffects();
@@ -84,8 +86,9 @@ describe("BT5-028 CrysPaledramon", () => {
   it("makes the inherited Security Attack +1 observable as a second security check", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT5-031", as: "host", under: ["BT5-028"] }] },
-      1: { battleArea: [{ card: "BT5-020", as: "sourceLess" }], security: ["BT5-023", "BT5-023"] },
+      1: { battleArea: [{ card: "BT5-020", as: "sourceLess" }], security: ["BT1-001", "BT1-001"] },
     });
+
     await s.engine.recomputeContinuousEffects();
     expect(
       s.engine.applyIntent(0, {

@@ -17,7 +17,7 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { cardHasTrait, definitionOf, dpOf, isDigimon } from "../cards/cardData.js";
-import { extractCardAt, placePermanent as appendPermanent } from "../state/access.js";
+import { extractCardAt, placePermanent as appendPermanent, setTopCard } from "../state/access.js";
 import { digiXrosZoneExpanderFor } from "../digiXros/zoneExpanders.js";
 import {
   allowsDigiXrosMaterialsFromTrash,
@@ -521,7 +521,7 @@ export function placePermanent(
   const permanent = new Permanent();
   permanent.permanentId = deps.nextPermanentId();
   permanent.controllerSeat = player.seat;
-  permanent.topCard = instance;
+  setTopCard(permanent, instance);
   permanent.stack = new ArraySchema<CardInstance>();
   permanent.linked = new ArraySchema<CardInstance>();
   const dp = dpOf(definition);

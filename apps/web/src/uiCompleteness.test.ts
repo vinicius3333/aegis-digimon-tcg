@@ -79,6 +79,9 @@ const DELIBERATELY_SILENT: Partial<Record<ServerEventKind, string>> = {
   // Raised as the framed effect notice (notices.ts) the moment the effect starts
   // resolving; the log narrates the same effect once it resolves (effectResolved).
   effectTriggered: "shown as the effect notice; the log line belongs to effectResolved",
+  // Opens the centre-stage check: the shield breaks and the card is turned face up. The
+  // log line belongs to `securityChecked`, which names the same card AND what it did.
+  securityRevealed: "played as the shield break and the reveal; the log line is securityChecked",
 };
 
 describe("server event coverage", () => {

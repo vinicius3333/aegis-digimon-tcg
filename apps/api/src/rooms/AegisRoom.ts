@@ -9,6 +9,7 @@ import {
   DECISION_CHANNEL,
 } from "@aegis/shared";
 import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
+import type { VisibilityPort } from "../engine/state/index.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
 import { randomBotDeck } from "../engine/testDecks.js";
 import { accountStore } from "../accounts/runtime.js";
@@ -327,6 +328,9 @@ export class AegisRoom extends Room<GameState> {
         for (const bot of this.bots) bot?.onEvent(event);
       },
     });
+    // Route zone arrivals to the per-client StateViews (see exposeCardToClients). Installed
+    // before any seat is filled so `seatPlayer` picks it up for both PlayerStates.
+    this.engine.installVisibility(this.exposeCardToClients);
 
     // One catch-all handler: every client intent type is reassembled into a
     // discriminated-union Intent and handed to the engine, which validates,
@@ -754,6 +758,24 @@ export class AegisRoom extends Room<GameState> {
       }
     }
   }
+
+  /**
+   * The mutation seam's VisibilityPort: fan one card arrival out to every connected client's
+   * view. Installed on the engine in `onCreate`.
+   *
+   * This is what replaced walking every private zone before every patch. `StateView.add`
+   * force-queues an ADD for every field of the object it is given, so the old per-patch walk
+   * made each patch re-encode the entire state for both seats — the client then spent all of
+   * its main thread in the schema decoder. Exposing a card once, when it actually arrives,
+   * carries the same information at a fraction of the bytes.
+   */
+  private readonly exposeCardToClients: VisibilityPort = (ownerSeat, zone, card) => {
+    for (const client of this.clients) {
+      const viewerSeat = this.seatByClient.get(client.sessionId);
+      if (viewerSeat === undefined || client.view === undefined) continue;
+      this.engine.exposeCardToView(client.view, viewerSeat, ownerSeat, zone, card);
+    }
+  };
 
   /**
    * Refresh the public per-zone count mirrors before every state broadcast. The

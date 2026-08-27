@@ -18,7 +18,8 @@ import {
   revealSecurityCardToOpponent,
   privateZoneSnapshot,
 } from "./visibility.js";
-import { extractCardAt, insertCard } from "./access.js";
+import { extractCardAt, insertCard, installVisibilityPort, placePermanent } from "./access.js";
+import { exposeCardInZone } from "./visibility.js";
 import { Zone } from "@aegis/shared";
 
 function makeCard(id: string, ownerSeat: Seat, faceUp = true): CardInstance {
@@ -69,6 +70,38 @@ function encodeAllForView(state: GameState, view: StateView, decoder: Decoder<Ga
   const iterator = { offset: 0 };
   encoder.encodeAll(iterator);
   decoder.decode(encoder.encodeAllView(view, iterator.offset, iterator));
+  encoder.discardChanges();
+}
+
+/**
+ * Multi-view variants of the two helpers above. The single-view ones call
+ * `discardChanges()` immediately, which is correct for one client but starves any further
+ * view of the same patch — the room encodes every connected client from one `encode()` pass,
+ * so a two-seat test has to do the same.
+ */
+type ViewTarget = { view: StateView; decoder: Decoder<GameState> };
+
+function encodeAllForViews(state: GameState, targets: readonly ViewTarget[]): void {
+  const encoder = encoderByState.get(state)!;
+  const iterator = { offset: 0 };
+  encoder.encodeAll(iterator);
+  const sharedOffset = iterator.offset;
+  for (const { view, decoder } of targets) {
+    iterator.offset = sharedOffset;
+    decoder.decode(encoder.encodeAllView(view, sharedOffset, iterator));
+  }
+  encoder.discardChanges();
+}
+
+function encodePatchForViews(state: GameState, targets: readonly ViewTarget[]): void {
+  const encoder = encoderByState.get(state)!;
+  const iterator = { offset: 0 };
+  encoder.encode(iterator);
+  const sharedOffset = iterator.offset;
+  for (const { view, decoder } of targets) {
+    iterator.offset = sharedOffset;
+    decoder.decode(encoder.encodeView(view, sharedOffset, iterator));
+  }
   encoder.discardChanges();
 }
 
@@ -131,13 +164,19 @@ describe("buildStateView", () => {
     expect(view.hasTag(own, PRIVATE_VIEW_TAG)).toBe(true);
   });
 
-  it("makes the viewer's own private zones visible", () => {
+  it("makes the viewer's own hand and security visible", () => {
     const view = buildStateView(state, 0);
     const own = state.players[0]!;
-    expect(view.has(own.deck)).toBe(true);
-    expect(view.has(own.eggDeck)).toBe(true);
     expect(view.has(own.hand)).toBe(true);
     expect(view.has(own.security)).toBe(true);
+  });
+
+  it("hides the viewer's own deck and egg deck from them too", () => {
+    const view = buildStateView(state, 0);
+    const own = state.players[0]!;
+    // HIDDEN_ZONE_VIEW_TAG is granted to no view: a shuffled pile is secret from its owner.
+    expect(view.has(own.deck)).toBe(false);
+    expect(view.has(own.eggDeck)).toBe(false);
   });
 
   it("does NOT unlock the opponent's PlayerState private zones", () => {
@@ -295,33 +334,370 @@ describe("buildStateView", () => {
     expect(() => refreshStateView(view, state, 0)).not.toThrow();
   });
 
-  it("repairs a detached nested card schema before refreshing the view", () => {
-    const view = buildStateView(state, 0);
-    const decoder = new Decoder(new GameState());
-    encodeAllForView(state, view, decoder);
-    const player = state.players[0]!;
-    const card = extractCardAt(player, Zone.Hand, 0)!;
-    insertCard(player, Zone.Trash, card);
+  /** Detach `card.digivolveTargetPermanentIds` the way a remove/reinsert sequence does. */
+  function detachTargetsList(card: CardInstance): ArraySchema<string> {
     const nested = card.digivolveTargetPermanentIds;
-    nested.push("perm-a");
     while (nested[$changes].root !== undefined) {
       nested[$changes].root.remove(nested[$changes]);
     }
     nested[$changes].removeParent(card);
     expect(nested[$changes].root).toBeUndefined();
     expect(nested[$changes].parent).toBeUndefined();
+    return nested;
+  }
 
-    expect(() => refreshStateView(view, state, 0)).not.toThrow();
-    expect(card.digivolveTargetPermanentIds).not.toBe(nested);
+  it("reattaches a detached nested card schema in place, preserving its refId", () => {
+    const player = state.players[0]!;
+    const card = extractCardAt(player, Zone.Hand, 0)!;
+    insertCard(player, Zone.Trash, card);
+    const nested = card.digivolveTargetPermanentIds;
+    nested.push("perm-a");
+    detachTargetsList(card);
+    const refIdBeforeRepair = nested[$changes].refId;
+
+    // The snapshot sweep is one of the two repair entry points (the other is per-arrival,
+    // below). Either way the SAME tree is reattached: a fresh ArraySchema would strand every
+    // client that already knows the old ref, which decodes as `"refId" not found`.
+    const view = buildStateView(state, 0);
+
+    expect(card.digivolveTargetPermanentIds).toBe(nested);
+    expect(nested[$changes].refId).toBe(refIdBeforeRepair);
     expect(Array.from(card.digivolveTargetPermanentIds)).toEqual(["perm-a"]);
-    expect(card.digivolveTargetPermanentIds[$changes].root).toBeDefined();
+    expect(nested[$changes].root).toBeDefined();
+    expect(nested[$changes].parent).toBe(card);
 
-    encodePatchForView(state, view, decoder);
+    const decoder = new Decoder(new GameState());
+    encodeAllForView(state, view, decoder);
     const clientPlayer = decoder.state.players[0]!;
     expect(clientPlayer.hand.some(({ instanceId }) => instanceId === card.instanceId)).toBe(false);
     const clientCard = clientPlayer.trash.find(({ instanceId }) => instanceId === card.instanceId);
     expect(clientCard).toBeDefined();
     expect(Array.from(clientCard!.digivolveTargetPermanentIds)).toEqual(["perm-a"]);
+  });
+
+  it("repairs an arriving card through the visibility port, without any sweep", () => {
+    const view = buildStateView(state, 0);
+    const decoder = new Decoder(new GameState());
+    encodeAllForView(state, view, decoder);
+    installVisibilityPort(state.players[0]!, (ownerSeat, zone, card) => {
+      exposeCardInZone(view, 0, ownerSeat, zone, card);
+    });
+
+    const player = state.players[0]!;
+    const card = extractCardAt(player, Zone.Hand, 0)!;
+    card.digivolveTargetPermanentIds.push("perm-b");
+    const nested = detachTargetsList(card);
+    const refIdBeforeRepair = nested[$changes].refId;
+
+    // No refresh, no sweep: the arrival itself has to repair the card.
+    insertCard(player, Zone.Trash, card);
+
+    expect(card.digivolveTargetPermanentIds).toBe(nested);
+    expect(nested[$changes].refId).toBe(refIdBeforeRepair);
+    expect(nested[$changes].parent).toBe(card);
+
+    syncPublicCounts(state);
+    expect(() => refreshStateView(view, state, 0)).not.toThrow();
+    encodePatchForView(state, view, decoder);
+    const clientCard = decoder.state.players[0]!.trash.find(({ instanceId }) => instanceId === card.instanceId);
+    expect(clientCard).toBeDefined();
+    expect(Array.from(clientCard!.digivolveTargetPermanentIds)).toEqual(["perm-b"]);
+  });
+});
+
+describe("visibility port (per-move exposure)", () => {
+  let state: GameState;
+
+  beforeEach(() => {
+    state = makeState();
+  });
+
+  /**
+   * Wire both seats' StateViews to the mutation seam the way AegisRoom does, so a test can
+   * move cards through `insertCard` and have the views updated by arrival alone.
+   */
+  function wirePort(views: readonly StateView[]): void {
+    for (const player of state.players) {
+      installVisibilityPort(player, (owner, zone, card) => {
+        views.forEach((view, viewerSeat) => {
+          exposeCardInZone(view, viewerSeat as Seat, owner, zone, card);
+        });
+      });
+    }
+  }
+
+  it("keeps a card private to its owner when it arrives in a private zone", () => {
+    const ownerView = buildStateView(state, 0);
+    const opponentView = buildStateView(state, 1);
+    wirePort([ownerView, opponentView]);
+
+    const ownerDecoder = new Decoder(new GameState());
+    const opponentDecoder = new Decoder(new GameState());
+    const targets = [
+      { view: ownerView, decoder: ownerDecoder },
+      { view: opponentView, decoder: opponentDecoder },
+    ];
+    encodeAllForViews(state, targets);
+
+    const drawn = makeCard("late-draw", 0);
+    insertCard(state.players[0]!, Zone.Hand, drawn);
+    syncPublicCounts(state);
+    encodePatchForViews(state, targets);
+
+    const ownerHand = ownerDecoder.state.players[0]!.hand;
+    expect(ownerHand.some(({ instanceId }) => instanceId === "late-draw")).toBe(true);
+    // The opponent gets the count mirror and nothing else.
+    expect(opponentDecoder.state.players[0]!.hand.length).toBe(0);
+    expect(opponentDecoder.state.players[0]!.handCount).toBe(ownerHand.length);
+  });
+
+  /**
+   * The property `refreshStateView`'s old per-patch walk existed to guarantee, now carried by
+   * arrival-time exposure alone: a view that learned a card when it entered the hand still
+   * recognises it when it leaves, so the encoder emits the DELETE instead of dropping it and
+   * stranding a phantom copy in the client's hand forever.
+   */
+  it("encodes the removal of a card exposed only at arrival time", () => {
+    const ownerView = buildStateView(state, 0);
+    const opponentView = buildStateView(state, 1);
+    wirePort([ownerView, opponentView]);
+
+    const ownerDecoder = new Decoder(new GameState());
+    encodeAllForView(state, ownerView, ownerDecoder);
+
+    const player = state.players[0]!;
+    const drawn = makeCard("played-card", 0);
+    insertCard(player, Zone.Hand, drawn);
+    syncPublicCounts(state);
+    encodePatchForView(state, ownerView, ownerDecoder);
+    expect(ownerDecoder.state.players[0]!.hand.some(({ instanceId }) => instanceId === "played-card")).toBe(true);
+
+    // Move it out WITHOUT any view refresh — arrival-time exposure must carry the delete.
+    const moved = extractCardAt(player, Zone.Hand, player.hand.length - 1)!;
+    insertCard(player, Zone.Trash, moved);
+    syncPublicCounts(state);
+    encodePatchForView(state, ownerView, ownerDecoder);
+
+    const clientPlayer = ownerDecoder.state.players[0]!;
+    expect(clientPlayer.hand.some(({ instanceId }) => instanceId === "played-card")).toBe(false);
+    expect(clientPlayer.trash.some(({ instanceId }) => instanceId === "played-card")).toBe(true);
+  });
+
+  it("shows a card arriving in a public zone to both seats", () => {
+    const ownerView = buildStateView(state, 0);
+    const opponentView = buildStateView(state, 1);
+    wirePort([ownerView, opponentView]);
+
+    const ownerDecoder = new Decoder(new GameState());
+    const opponentDecoder = new Decoder(new GameState());
+    const targets = [
+      { view: ownerView, decoder: ownerDecoder },
+      { view: opponentView, decoder: opponentDecoder },
+    ];
+    encodeAllForViews(state, targets);
+
+    const trashed = makeCard("to-trash", 0);
+    insertCard(state.players[0]!, Zone.Trash, trashed);
+    syncPublicCounts(state);
+    encodePatchForViews(state, targets);
+
+    for (const decoder of [ownerDecoder, opponentDecoder]) {
+      const card = decoder.state.players[0]!.trash.find(({ instanceId }) => instanceId === "to-trash");
+      expect(card).toBeDefined();
+      expect(card!.cardId).toBe("TEST-001"); // face-up: identity revealed to both
+    }
+  });
+
+  it("does not re-send private zone contents on every patch", () => {
+    const ownerView = buildStateView(state, 0);
+    wirePort([ownerView]);
+    const decoder = new Decoder(new GameState());
+    encodeAllForView(state, ownerView, decoder);
+    // `encodeAllView` does not drain `view.changes` (only `encodeView` does), so the forced
+    // ADDs `buildStateView` queued for the initial snapshot are still pending. Spend them on
+    // one throwaway patch; what matters is the STEADY-STATE patch that follows.
+    encodePatchForView(state, ownerView, decoder);
+
+    // A patch that changes one unrelated public field must not drag the whole hand/deck along.
+    state.players[0]!.deckCount = 36;
+    // Exactly what AegisRoom.onBeforePatch does. Before the private-zone walk was removed from
+    // this path it re-queued a forced ADD for every field of all 46 private cards, every patch.
+    refreshStateView(ownerView, state, 0);
+    const encoder = encoderByState.get(state)!;
+    const iterator = { offset: 0 };
+    encoder.encode(iterator);
+    const bytes = encoder.encodeView(ownerView, iterator.offset, iterator);
+    encoder.discardChanges();
+
+    // 46 private cards live in this fixture; re-adding them would run to hundreds of bytes.
+    expect(bytes.byteLength).toBeLessThan(64);
+  });
+
+  /**
+   * Layer C's payoff: a permanent's cards are announced as they arrive, so a refresh no longer
+   * walks the board. Patch cost must not track board size either.
+   */
+  it("keeps patch size flat as the board fills", () => {
+    const ownerView = buildStateView(state, 0);
+    wirePort([ownerView]);
+    const decoder = new Decoder(new GameState());
+    encodeAllForView(state, ownerView, decoder);
+    encodePatchForView(state, ownerView, decoder); // drain the join-time forced ADDs
+
+    const encoder = encoderByState.get(state)!;
+    const patchSize = (): number => {
+      refreshStateView(ownerView, state, 0);
+      const iterator = { offset: 0 };
+      encoder.encode(iterator);
+      const bytes = encoder.encodeView(ownerView, iterator.offset, iterator);
+      encoder.discardChanges();
+      return bytes.byteLength;
+    };
+
+    state.players[0]!.deckCount = 36;
+    const emptyBoard = patchSize();
+
+    const player = state.players[0]!;
+    for (let i = 0; i < 5; i += 1) {
+      const permanent = new Permanent();
+      permanent.permanentId = `perm-${i}`;
+      permanent.controllerSeat = 0;
+      permanent.topCard = makeCard(`top-${i}`, 0);
+      for (let j = 0; j < 3; j += 1) permanent.stack.push(makeCard(`stack-${i}-${j}`, 0));
+      placePermanent(player, permanent);
+    }
+    encodePatchForView(state, ownerView, decoder); // the arrivals themselves, sent once
+
+    state.players[0]!.deckCount = 35;
+    const fullBoard = patchSize();
+
+    expect(decoder.state.players[0]!.battleArea.length).toBe(5);
+    expect(fullBoard).toBeLessThanOrEqual(emptyBoard + 8);
+  });
+
+  /**
+   * Trash grows all match, so a per-patch walk of it made every patch cost more than the
+   * last — the "it gets laggy after a while" shape. Patch cost must not track trash size.
+   */
+  it("keeps patch size flat as the trash grows", () => {
+    const ownerView = buildStateView(state, 0);
+    wirePort([ownerView]);
+    const decoder = new Decoder(new GameState());
+    encodeAllForView(state, ownerView, decoder);
+    encodePatchForView(state, ownerView, decoder); // drain the join-time forced ADDs
+
+    const encoder = encoderByState.get(state)!;
+    const patchSize = (): number => {
+      refreshStateView(ownerView, state, 0);
+      const iterator = { offset: 0 };
+      encoder.encode(iterator);
+      const bytes = encoder.encodeView(ownerView, iterator.offset, iterator);
+      encoder.discardChanges();
+      return bytes.byteLength;
+    };
+
+    state.players[0]!.deckCount = 36;
+    const withEmptyTrash = patchSize();
+
+    for (let i = 0; i < 30; i += 1) insertCard(state.players[0]!, Zone.Trash, makeCard(`trash-${i}`, 0));
+    encodePatchForView(state, ownerView, decoder); // the arrivals themselves, sent once
+
+    state.players[0]!.deckCount = 35;
+    const withFullTrash = patchSize();
+
+    expect(decoder.state.players[0]!.trash.length).toBe(30);
+    expect(withFullTrash).toBeLessThanOrEqual(withEmptyTrash + 8);
+  });
+});
+
+describe("hidden zone redaction (what the owner's own client receives)", () => {
+  let state: GameState;
+
+  beforeEach(() => {
+    state = makeState();
+  });
+
+  /** Decode a full snapshot the way a joining client would, and return its copy of the state. */
+  function decodeForSeat(seat: Seat): GameState {
+    const view = buildStateView(state, seat);
+    const decoder = new Decoder(new GameState());
+    encodeAllForView(state, view, decoder);
+    return decoder.state;
+  }
+
+  it("never sends the deck or egg deck to their owner, only the counts", () => {
+    syncPublicCounts(state);
+    const mine = decodeForSeat(0).players[0]!;
+
+    // Deck ORDER is the decisive secret: knowing the draw sequence decides games. It must not
+    // reach the browser at all, not even redacted — an instanceId list still tracks a known
+    // card through a shuffle.
+    expect(mine.deck.length).toBe(0);
+    expect(mine.eggDeck.length).toBe(0);
+    expect(mine.deckCount).toBe(37);
+    expect(mine.eggDeckCount).toBe(4);
+  });
+
+  it("still sends the owner their own hand, with identities", () => {
+    const mine = decodeForSeat(0).players[0]!;
+    expect(mine.hand.length).toBe(5);
+    for (const card of mine.hand) expect(card.cardId).toBe("TEST-001");
+  });
+
+  it("sends the owner their face-down security as anonymous cards", () => {
+    syncPublicCounts(state);
+    const mine = decodeForSeat(0).players[0]!;
+
+    // The stack is there (the client counts it and reads faceUp), but §3-4-3 says a player may
+    // not look at their own security, so no identity travels.
+    expect(mine.security.length).toBe(5);
+    expect(mine.securityCount).toBe(5);
+    for (const card of mine.security) {
+      expect(card.instanceId).toBeTruthy(); // the card object arrives...
+      expect(card.faceUp).toBe(false);
+      expect(card.cardId).toBeFalsy(); // ...but never carries an identity
+    }
+  });
+
+  it("sends the identity of a security card that is already face-up", () => {
+    const owner = state.players[0]!;
+    owner.security[2]!.faceUp = true;
+    const mine = decodeForSeat(0).players[0]!;
+
+    const revealed = mine.security.find((card) => card.faceUp);
+    expect(revealed?.cardId).toBe("TEST-001");
+    expect(mine.security.filter((card) => !card.faceUp).every((card) => !card.cardId)).toBe(true);
+  });
+
+  it("keeps the opponent blind to every hidden zone", () => {
+    syncPublicCounts(state);
+    const theirs = decodeForSeat(1).players[0]!;
+    expect(theirs.deck.length).toBe(0);
+    expect(theirs.eggDeck.length).toBe(0);
+    expect(theirs.hand.length).toBe(0);
+    expect(theirs.security.length).toBe(0);
+    // Counts are public so the opponent can render the piles.
+    expect(theirs.deckCount).toBe(37);
+    expect(theirs.handCount).toBe(5);
+  });
+
+  it("reveals a card's identity to the owner as it is drawn into hand", () => {
+    const view = buildStateView(state, 0);
+    const decoder = new Decoder(new GameState());
+    encodeAllForView(state, view, decoder);
+    installVisibilityPort(state.players[0]!, (owner, zone, card) => {
+      exposeCardInZone(view, 0, owner, zone, card);
+    });
+
+    const player = state.players[0]!;
+    const drawn = extractCardAt(player, Zone.Deck, 0)!;
+    insertCard(player, Zone.Hand, drawn);
+    syncPublicCounts(state);
+    encodePatchForView(state, view, decoder);
+
+    const clientCard = decoder.state.players[0]!.hand.find(({ instanceId }) => instanceId === drawn.instanceId);
+    expect(clientCard).toBeDefined();
+    expect(clientCard!.cardId).toBe("TEST-001");
   });
 });
 

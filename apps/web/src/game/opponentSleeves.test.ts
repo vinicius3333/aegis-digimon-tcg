@@ -10,6 +10,9 @@ describe("opponent hidden-card backs", () => {
     // by accident — nor break it for being in the wrong place.
     expect(gameScreenSource).toMatch(/count=\{opp\.deckCount\}(?:(?!\/>)[\s\S])*?useSelectedSleeve=\{false\}/);
     expect(gameScreenSource).toMatch(/count=\{opp\.trash\.length\}(?:(?!\/>)[\s\S])*?useSelectedSleeve=\{false\}/);
-    expect(gameScreenSource).toMatch(/count=\{opp\.securityCount\}[\s\S]*?useSelectedSleeve=\{false\}/);
+    // The security shield's count goes through `shieldSecurityCount`, which holds the
+    // figure while a scene is still showing a card leaving, so it is matched by its own
+    // `shield="opp"` marker instead.
+    expect(gameScreenSource).toMatch(/shield="opp"[\s\S]*?useSelectedSleeve=\{false\}/);
   });
 });
