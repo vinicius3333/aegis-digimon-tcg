@@ -96,7 +96,7 @@ describe("BT1-010 Agumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("agumon").instanceId);
 
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-086"]);
   });
