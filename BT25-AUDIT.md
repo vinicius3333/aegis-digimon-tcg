@@ -1477,3 +1477,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-076.
+
+## BT25-077 — Bacchusmon — 10/10
+
+- Catalog evidence: black/green level-6 Digimon; alternate level-5 TS evolution for 3; level-total play-cost reduction; On Play/When Digivolving may play one 6000-DP-or-less TS Digimon from hand free; all-turn once-per-turn on any play/digivolution may suspend one Digimon, then effect-driven entry obligatorily deletes one lowest-DP opposing Digimon.
+- Knowledge base: Q6375–Q6378, Q6946, and Q7002 cover self-entry, suspended boards, once-per-turn consumption, mandatory effect-entry deletion, declining non-effect entry, and stacked reductions.
+- Defect corrected: the direct IR injected Rush, Reboot, and Blocker despite none appearing on the card. They were removed, and the stale focused assertions now prove those keywords remain absent while the real effect-driven evolution flow resolves.
+- Verification: focused — 8 passed; mechanism/interpreter/collection — 208 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-077", compiled)` with full coverage and no residuals; module IR is exported for persisted comparison.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-077
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-077.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-077.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-077.
