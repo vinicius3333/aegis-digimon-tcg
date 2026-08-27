@@ -2468,3 +2468,35 @@ git diff --check
 ```
 
 No unresolved BT26-059 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-060 — Chronomon: Destroy Mode — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-060` (`Chronomon: Destroy Mode`), a black/red level-7 Digimon with play cost 16, 16000 DP, Security Attack +1, Reboot, Blocker, and Succession from a level-6 card with `Chronomon` in its name. It has alternate cost-5 evolution from a level-6 card with `Chronomon` in its text or from `Giant Slayer`.
+- Printed behavior verified: On Play/When Digivolving returns the top five cards of exactly three opposing Digimon stacks to deck top; and All Turns Once Per Turn, when an own effect adds cards to decks, may delete one opposing Digimon.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-060 --json`; Q7079–Q7087 confirm target count, five-card limit, ordering, short stacks, rule checks, deck-add triggers, and `Giant Slayer` meaning. No banlist restriction or erratum applies.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-060.ts` has `coverage: "full"`, `residual: []`, and registers exclusively through `registerIrCard("BT26-060", compiled)`.
+- Separate On Play and When Digivolving actions use `ReturnTopDigivolutionCards` with three opposing targets, five cards per target, and activating-player ordering. The All Turns watcher uses `whenEffectAddsToDeck`, Once Per Turn, and optional opposing-Digimon deletion.
+- Root keywords and the self-targeted Succession grant are encoded, as are both alternate requirements. Stack-return ordering, rule checks, event attribution, Succession source selection, and peers were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-060.test.ts` now covers both alternate evolution paths and invalid rejection; exact three-target/five-card return behavior; short-stack promotion; deck ordering; Q7082/Q7083 rule-check cleanup; Q7084–Q7086 deck-add reactions and Once Per Turn; highest matching Chronomon Succession with an intervening non-Chronomon peer; and optional deletion refusal.
+- The new refusal case proves that the qualifying deck-add event still occurs while the opposing permanent survives. The production module required no correction.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-060 --json
+  PASS (Q7079-Q7087; banlist: null; errata: null)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-060 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
