@@ -2180,3 +2180,35 @@ git diff --check
 ```
 
 No unresolved BT26-050 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-051 — Gomimon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-051` (`Gomimon`), a black level-3 Digimon with play cost 4, 4000 DP, and `Tool`/`Trashbin (App Name)`/`Seven Code` traits. It may evolve from a level-2 `Appmon` for cost 0 and link to an `Appmon` trait card for cost 3.
+- Printed behavior verified: Detach with a `Seven Code` trait restriction; Your Turn Once Per Turn, when an effect links a card to an own Digimon, one own `Social`/`Tool`/`Open`/`Seven Code` Digimon gains Collision and +3000 DP for the turn; and its linked effect De-Digivolves one opposing Digimon by 2 at the same timing.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-051`; no card-specific Q&A, banlist restriction, or erratum is recorded. Link/linked-card state, When Linking timing, Once Per Turn, Collision, and De-Digivolve rules were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-051.ts` has complete compiled IR and registers exclusively through `registerIrCard("BT26-051", compiled)`.
+- Detach is restricted to the printed `Seven Code` trait. The Your Turn `whenLinked` watcher has one Once Per Turn budget and binds exactly one own Digimon matching the printed OR-trait list before granting Collision and +3000 DP for the turn.
+- The linked-card face carries the effect-attributed When Linking reaction and applies De-Digivolve 2 to one opposing Digimon. Alternate evolution and Link requirements match the catalog. Link-event attribution, linked-face projection, target binding, keyword/DP duration, and neighboring Appmon implementations were inspected.
+
+### Behavioral proof
+
+- Existing `apps/api/src/cards/BT26/BT26-051.test.ts` covers evolution and Link requirements, Detach publication, granting Collision/+3000 DP to exactly one matching recipient while excluding a non-matching Digimon, linked-face De-Digivolve 2, and Once Per Turn enforcement across repeated link events.
+- The existing proof is sufficient for each printed clause; no implementation or test change was required.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-051
+  PASS (no card-specific Q&A, errata, or restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the ledger-only commit
+```
+
+No unresolved BT26-051 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
