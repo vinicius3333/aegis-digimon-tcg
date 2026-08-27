@@ -17,6 +17,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              allowTokens: true,
             },
             count: 1,
           },

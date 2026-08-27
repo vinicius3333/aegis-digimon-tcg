@@ -4041,6 +4041,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const faceUp = opts?.faceUp ?? false;
     const added: CardInstance[] = [];
     const trashedAttachments: CardInstance[] = [];
+    const divertedToEggDeck: CardInstance[] = [];
     const overflowLeavers: CardInstance[] = [];
     for (const instanceId of instanceIds) {
       if (opts?.detachPermanentTop === true) {
@@ -4078,6 +4079,22 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           // security redirect can promote a Digimon with Armor Purge, such as BT8-038).
           await engine.recomputeContinuousEffects?.();
         }
+        const detachedDefinition = requireCardDefinition(detached.cardId);
+        if (detachedDefinition.isToken === true) {
+          // Tokens leaving the field cease to exist instead of entering a non-field zone
+          // (CR §4-20-5; BT4-105 Q1271).
+          ledger.dropSourceInstances(state, [detached.instanceId]);
+          continue;
+        }
+        if (detachedDefinition.kinds.includes(CardKind.DigiEgg)) {
+          // A Digi-Egg treated as a Digimon cannot enter security; it goes face-down to
+          // the bottom of its owner's Digi-Egg deck (BT4-105 Q1270/Q1272).
+          detached.faceUp = false;
+          insertCard(player(detached.ownerSeat), Zone.EggDeck, detached);
+          ledger.dropSourceInstances(state, [detached.instanceId]);
+          divertedToEggDeck.push(detached);
+          continue;
+        }
         detached.faceUp = faceUp;
         if (toTop) insertCard(p, Zone.Security, detached, "top");
         else insertCard(p, Zone.Security, detached);
@@ -4099,6 +4116,22 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (leavesBattleArea) overflowLeavers.push(...collected);
       for (const card of collected) {
         if (card.instanceId === instanceId || collected.length === 1) {
+          const definition = requireCardDefinition(card.cardId);
+          if (definition.isToken === true) {
+            // Tokens cease to exist when removed from the field; they never become security
+            // cards and must not fire the security-added trigger (BT4-105 Q1271).
+            ledger.dropSourceInstances(state, [card.instanceId]);
+            continue;
+          }
+          if (definition.kinds.includes(CardKind.DigiEgg)) {
+            // Digi-Egg cards treated as Digimon are redirected to the bottom of the owner's
+            // Digi-Egg deck instead of security (BT4-105 Q1270/Q1272).
+            card.faceUp = false;
+            insertCard(player(card.ownerSeat), Zone.EggDeck, card);
+            ledger.dropSourceInstances(state, [card.instanceId]);
+            divertedToEggDeck.push(card);
+            continue;
+          }
           card.faceUp = faceUp;
           if (toTop) insertCard(p, Zone.Security, card, "top");
           else insertCard(p, Zone.Security, card);
@@ -4119,6 +4152,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         instanceIds: trashedAttachments.map((card) => card.instanceId),
         from: "battleArea",
         to: Zone.Trash,
+      });
+    }
+    if (divertedToEggDeck.length > 0) {
+      engine.emit({
+        kind: "cardsMoved",
+        instanceIds: divertedToEggDeck.map((card) => card.instanceId),
+        from: "various",
+        to: Zone.EggDeck,
       });
     }
     if (added.length > 0) {
