@@ -2056,3 +2056,37 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-050 — Weedmon — 10/10
+
+- Catalog evidence: Green Lv.4 Champion Digimon, Virus/Vegetation, play cost
+  4, 3000 DP, and green Lv.3 evolution cost 1. Its inherited Your Turn effect
+  gains exactly 1 memory when this Weedmon source is trashed to activate its
+  host Digimon's Digi-Burst. Its knowledge-base query exposes no QA, errata,
+  restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-050.ts` models the inherited
+  `YourTurn` watcher as an `onDigiBurstCardDiscarded` subtrigger filtered by
+  `isSelfRef`, followed by `GainMemory` for 1. It declares
+  `coverage: "full"`, `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-050", compiled)`.
+- Primitive, timing, and behavioral evidence: Digi-Burst cost payment emits
+  the discarded source instance, allowing `isSelfRef` to distinguish Weedmon
+  from sources trashed by another Digimon. Three focused tests prove the
+  positive effect through a legal Palmon Lv.3 -> Weedmon Lv.4 -> Lilamon Lv.5
+  stack and real Digi-Burst 2 activation, no gain when another Digimon pays
+  its own Digi-Burst cost, and suppression when the Weedmon source is
+  Digi-Burst-trashed during the opponent's turn. The positive case also proves
+  both sources pay the cost, Lilamon suspends the selected opposing Digimon,
+  and Weedmon grants exactly 1 memory.
+- Defect corrected: the module was faithful. The prior positive test used an
+  illegal Lv.3-over-Lv.4 stack; the audit replaced it with the legal evolution
+  line and added an explicit Your Turn boundary proof.
+- Verification: focused BT5-050 plus BT4-059, BT5-046, and BT5-004 peers — 4
+  files, 13 tests passed. Primitive, subtrigger, subtrigger-seam, and
+  fire-site-guard suites — 248 tests passed. Targeted Oxfmt and
+  `git diff --check` pass; Oxlint reports only the existing test-helper
+  `no-explicit-any` pattern. Workspace typecheck retains only the known
+  unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
