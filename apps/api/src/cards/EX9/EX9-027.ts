@@ -75,7 +75,7 @@ export const compiled: CompiledCard = {
           event: "whenOpponentAttacks",
           actions: [
             {
-              kind: "Prevent",
+              kind: "EndAttack",
               cost: {
                 kind: "deleteOwn",
                 target: {
