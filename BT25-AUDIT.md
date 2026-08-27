@@ -570,3 +570,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-028.
+
+## BT25-029 — MirageGaogamon — 10/10
+
+- Catalog evidence: Blue/black level-6 Digimon, play cost 12, 12000 DP, `Mega`/`Data`, `Beast Knight`/`DATA SQUAD`; standard blue or black level-5 evolution for 4 plus alternate level-5 MachGaogamon-name or DATA SQUAD evolution for 3; Reboot, Blocker, and Evade; shared once-per-turn When Digivolving/When Attacking sequence optionally returns one opposing level-5-or-lower Digimon, then optionally trashes the bottom face-down card under a friendly Tamer to return one opposing lowest-level Digimon; all-turn once-per-turn optional self unsuspend when effects add cards to the opponent's hand or trash cards from under a friendly Tamer.
+- Knowledge base: Q6296 confirms that declining the shared When Digivolving/When Attacking effect at evolution does not consume its once-per-turn activation, so it remains available on a later attack that turn. The shared source key and optional action activation follow that timing.
+- Implementation: all three permanent keywords, both complete main timing sequences, shared `ir-shared-0` usage, exact level/superlative targets, controller-owned bottom-face-down-under-Tamer cost, both all-turn subtriggers, source filters, optionality, and alternate evolution routes are present. Direct/shared IR match, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-029", compiled)`.
+- Behavioral proof: the existing focused suite verifies the complete compiled contract. The delegated audit exercised subtrigger matching, optional unsuspension, and source-scoped once-per-turn behavior, including the shared timing semantics required by Q6296. No defect was found, so no implementation or test change was made.
+- Verification: focused suite — 2 passed; subtrigger mechanisms — 27 passed; once-per-turn mechanisms — 23 passed; `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-029 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-029
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-029.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-029.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-029.
