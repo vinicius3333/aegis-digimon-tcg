@@ -39,7 +39,7 @@ describe("BT1-001 through BT1-008 IR coverage", () => {
     expect(frimon.effects[0]?.actions[0]?.condition).toMatchObject({
       kind: "opponentHas",
       countMin: 2,
-      filter: { suspended: true },
+      filter: { zone: "battleArea", suspended: true },
     });
   });
 });
