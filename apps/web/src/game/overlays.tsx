@@ -23,7 +23,7 @@ import { formatKeyword } from "./keywordDisplay";
 import { gameOverSplash, type GameOverOutcome } from "./gameOverSplash";
 import { pendingFateBadge, type PendingFateBadge } from "./pendingFate";
 import { inspectorPlacement, type PermanentDetail } from "./permanentDetail";
-import { useTranslation, type Translate } from "../i18n";
+import { useTranslation, type Translate, type TranslationKey } from "../i18n";
 import { CardLink, CardLinkedText } from "./cardLinks";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
 import { useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
@@ -1137,6 +1137,25 @@ export interface TriggerDetail {
   summary?: string;
 }
 
+/*
+   The choices a `chooseOption` decision names are the engine's own words for where a card
+   goes — the destination keys `RevealAdd` builds its prompt from, and the two deck ends an
+   ordering asks about. Printed straight, a Zenith-style "add it or play it" prompt offered
+   buttons reading "hand" and "play"; each one gets the sentence a player would recognise.
+*/
+const CHOICE_LABEL_KEYS: Readonly<Record<string, TranslationKey>> = {
+  top: "overlay.deckTop",
+  bottom: "overlay.deckBottom",
+  hand: "overlay.dispositionHand",
+  play: "overlay.dispositionPlay",
+  useOption: "overlay.dispositionUseOption",
+  trash: "overlay.dispositionTrash",
+  digivolve: "overlay.dispositionDigivolve",
+  security: "overlay.dispositionSecurity",
+  placeUnder: "overlay.dispositionPlaceUnder",
+  underTamer: "overlay.dispositionUnderTamer",
+};
+
 export function DecisionOverlay({
   request,
   sourceCardId,
@@ -1209,9 +1228,11 @@ export function DecisionOverlay({
     return undefined;
   };
   const choiceLabel = (choice: string): string => {
-    if (choice === "top") return t("overlay.deckTop");
-    if (choice === "bottom") return t("overlay.deckBottom");
-    return choice;
+    const key = CHOICE_LABEL_KEYS[choice];
+    // Anything the server has not been taught a label for still reads: the raw
+    // choice is the fallback, so a new disposition ships as a plain word rather
+    // than as a blank button.
+    return key === undefined ? choice : t(key);
   };
 
   const [isViewingBoard, setIsViewingBoard] = useState(false);
