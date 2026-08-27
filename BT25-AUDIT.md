@@ -859,3 +859,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-042.
+
+## BT25-043 — Habakirimon — 10/10
+
+- Catalog evidence: Yellow level-6 Digimon, play cost 6, 12000 DP, `Mega`/`Virus`, `Shaman`/`Glowing Dawn`/`BEATBREAK`; alternate level-5 Glowing Dawn evolution for 3; shared once-per-turn When Digivolving/When Attacking Recovery +1, then trash the top security of a player tied for most to unsuspend; all-turn once-per-turn trashes friendly top security to prevent every simultaneous Glowing Dawn Digimon departure.
+- Knowledge base: Q6312 lets the activating player choose among tied most-security players. Q6313 delays zero-DP rule checks until the full option/evolution processing completes. Q6314 confirms one replacement/payment prevents all simultaneous matching departures without selection.
+- Implementation: both shared timing sequences gate Unsuspend on successful most-security trash via `ifThisEffectActed`. The replacement targets all friendly Glowing Dawn Digimon and now places `zone: security` inside the executable cost filter. Alternate evolution, full coverage/no residual clauses, and exclusive `registerIrCard("BT25-043", compiled)` are complete.
+- Defects corrected: Unsuspend could occur when the prerequisite trash did not act, and the prevention cost stored the security zone outside its filter. Focused tests prove success/failure and all-match boundaries.
+- Verification: focused suite — 4 passed; neighboring recovery/leave suites — 33 passed; conformance chapters — 78 passed; `git diff --check` — passed. Workspace typecheck retains unrelated pre-existing errors and no BT25-043 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-043
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-043.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-043.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-043.
