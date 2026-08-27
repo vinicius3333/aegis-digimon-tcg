@@ -49,7 +49,7 @@ const trimHands = [
     chooser: "opponent",
   },
 ];
-const shared = { frequency: "OncePerTurn", sharedUseKey: "bt26-079-trash-cost-delete", actions: [deleteLevel6] };
+const shared = { actions: [deleteLevel6] };
 
 export const compiled: CompiledCard = {
   keywords: [

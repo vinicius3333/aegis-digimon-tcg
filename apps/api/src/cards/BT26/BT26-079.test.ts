@@ -56,9 +56,10 @@ describe("BT26-079 compiled behavior", () => {
       ],
     });
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
-      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
-        frequency: "OncePerTurn",
-        sharedUseKey: "bt26-079-trash-cost-delete",
+      const effect = compiled.effects.find((candidate) => candidate.trigger === trigger);
+      expect(effect).not.toHaveProperty("frequency");
+      expect(effect).not.toHaveProperty("sharedUseKey");
+      expect(effect).toMatchObject({
         actions: [
           {
             kind: "CostGatedBlock",
@@ -213,7 +214,7 @@ describe("BT26-079 compiled behavior", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("shares the hand-trash deletion once across On Play, When Digivolving, and When Attacking", async () => {
+  it("resolves the hand-trash deletion independently at each printed timing", async () => {
     const s = setupEngine(
       {
         0: {
@@ -238,8 +239,8 @@ describe("BT26-079 compiled behavior", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("zombie"));
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("zombie"));
 
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("Q7111 lets each player choose their own cards while trimming both hands to 4", async () => {
@@ -336,6 +337,22 @@ describe("BT26-079 compiled behavior", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-059");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-079");
+  });
+
+  it("may decline Decode and trash the stack normally", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-079", as: "zombie", under: [{ card: "BT26-059", as: "plutomon" }] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("zombie").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT26-079", "BT26-059"]),
+    );
   });
 
   it("does not Decode a battle deletion and deletes the attacker with Retaliation", async () => {
