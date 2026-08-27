@@ -59,7 +59,10 @@ describe("BT26-093 compiled fidelity", () => {
               under: [{ card: "BT1-003", as: "existing", faceUp: false }],
             },
           ],
-          hand: [{ card: "P-236", as: "beatbreakOption" }],
+          hand: [
+            { card: "P-236", as: "beatbreakOption" },
+            { card: "BT1-009", as: "nonBeatbreak" },
+          ],
           deck: ["BT1-001", "BT1-002"],
         },
       },
@@ -75,6 +78,9 @@ describe("BT26-093 compiled fidelity", () => {
       { instanceId: s.inst("beatbreakOption").instanceId, faceUp: false },
       { instanceId: s.inst("existing").instanceId, faceUp: false },
     ]);
+    expect(s.state.players[0]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("nonBeatbreak").instanceId }),
+    );
   });
 
   it("may decline the start-main placement without drawing or gaining memory", async () => {
@@ -105,6 +111,7 @@ describe("BT26-093 compiled fidelity", () => {
           battleArea: [
             { card: "BT26-093", as: "reina" },
             { card: "BT26-052", as: "beatbreak" },
+            { card: "BT1-009", as: "nonBeatbreak" },
           ],
           deck: [{ card: "BT1-001", as: "placed" }],
         },
@@ -121,6 +128,8 @@ describe("BT26-093 compiled fidelity", () => {
     expect(s.perm("reina").stack[0]).toMatchObject({ instanceId: s.inst("placed").instanceId, faceUp: false });
     expect(observe(s.engine).hasKeyword(s.perm("beatbreak"), "Collision")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("beatbreak"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("nonBeatbreak"), "Collision")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("nonBeatbreak"), "Blocker")).toBe(false);
   });
 
   it("grants Blocker in time for a BEATBREAK Digimon to block an opponent's attack", async () => {

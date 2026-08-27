@@ -2985,6 +2985,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Correction: added `allowCostWithoutTarget: true` while retaining refusal abort semantics, so the own TS Tamer may return to deck bottom even when no TS Digimon can receive the attack.
 - Proof: successful redirect, cost-only resolution, decline, turn gate, start-main cost/benefit, and Security. Exclusive `registerIrCard`; automation not run; diff check passed. No unresolved limitation.
 
+## BT26-093 — Reina Sakuya — 10/10
+
+- Catalog/KB: black cost-3 `Glowing Dawn`/`BEATBREAK` Tamer, start-main placement, attack reaction, Collision/Blocker grants, and Security play confirmed. Q7151–Q7155 cover bottom/face-down handling and “After” gating.
+- Implementation: full IR and exclusive `registerIrCard`; transactional optional BEATBREAK hand placement/Draw/+1, global attack watcher with suspend cost, face-down top-deck placement under self, grants only to own BEATBREAK Digimon, and free Security play.
+- Proof: ordering, refusal, empty deck, unavailable suspend, opponent attack/block, Q7154, Security, plus mixed matching/nonmatching hand and Digimon pools. Automation not run; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
