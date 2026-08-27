@@ -1099,3 +1099,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-055.
+
+## BT25-056 — Bootmon — 10/10
+
+- Catalog evidence: green/black level-6 Appmon; App Fusion from Logimon and Craftmon for 0; Barrier; owner-turn On Play/When Digivolving/When Attacking may link a Social, Tool, or Game Digimon with Link from hand or this Digimon's evolution cards at cost -2; when this Digimon gets linked suspends an opposing Digimon or Tamer; this card links to an Appmon for 3 and, while linked, returns one suspended opposing Digimon to deck bottom when linked.
+- Knowledge base: Q6340 confirms all three Link effects require a card with Link.
+- Defects corrected: a common `hostFilter` excluded the hand branch from all three Link actions; each now uses the combined hand/evolution source with `source: "thisDigimon"`, executable Link eligibility, and the printed Appmon Link requirement.
+- Verification: focused — 5 passed, including On Play hand Link, evolution-stack Link, cost reduction, opponent suspension, linked return, and Q6340; link-state mechanisms — 10 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-056", compiled)` with full coverage and no residuals; shared synchronization follows separately.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-056
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-056.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-056.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-056.

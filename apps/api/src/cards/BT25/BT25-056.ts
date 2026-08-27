@@ -26,7 +26,6 @@ export const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
               hasLinkRequirement: true,
-              hostFilter: { isSelfRef: true },
               nameOrTrait: [
                 {
                   tokens: ["Social", "Tool", "Game"],
@@ -35,7 +34,9 @@ export const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            source: "thisDigimon",
           },
+          from: ["hand", "digivolutionCards"],
           costDelta: -2,
           condition: {
             kind: "isYourTurn",
@@ -55,7 +56,6 @@ export const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
               hasLinkRequirement: true,
-              hostFilter: { isSelfRef: true },
               nameOrTrait: [
                 {
                   tokens: ["Social", "Tool", "Game"],
@@ -64,7 +64,9 @@ export const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            source: "thisDigimon",
           },
+          from: ["hand", "digivolutionCards"],
           costDelta: -2,
           condition: {
             kind: "isYourTurn",
@@ -84,7 +86,6 @@ export const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
               hasLinkRequirement: true,
-              hostFilter: { isSelfRef: true },
               nameOrTrait: [
                 {
                   tokens: ["Social", "Tool", "Game"],
@@ -93,7 +94,9 @@ export const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            source: "thisDigimon",
           },
+          from: ["hand", "digivolutionCards"],
           costDelta: -2,
           condition: {
             kind: "isYourTurn",
@@ -146,6 +149,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
   appFusionRequirement: [
     {
       names: ["Logimon", "Craftmon"],
