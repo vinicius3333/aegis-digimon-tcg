@@ -1693,3 +1693,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-088.
+
+## BT25-089 — Kazuki & Itsuki — 10/10
+
+- Catalog evidence: black Tamer; start-main memory gain while the opponent has a Digimon; Main self-suspension links a Link-capable Appmon from hand or evolution cards at cost -2; end-turn once-per-turn may App Fuse a friendly Digimon into a Digimon card in the controller's hand; Security plays this card free.
+- Knowledge base: Q6422 excludes Appmon cards without Link, and Q6423 prevents combining multiple link-effect activations for a single link action.
+- Defects corrected: the end-turn App Fusion was mandatory despite “may,” and its result filter did not explicitly restrict the loose card to the controller's hand. The action is now optional and controller-scoped, with regressions for declining and for excluding an opponent's hand.
+- Verification: focused — 8 passed; dedicated Link — 3 passed; BT24-087 and chapter-10 Link regressions — 29 passed; combined batch/mechanism gate — 263 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-089", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-089
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-089.test.ts src/cards/BT25/BT25-089-link.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-089.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-089.

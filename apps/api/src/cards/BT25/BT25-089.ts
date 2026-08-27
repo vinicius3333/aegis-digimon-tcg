@@ -53,8 +53,9 @@ export const compiled: CompiledCard = {
         {
           kind: "AppFuse",
           source: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          into: { kind: ["Digimon"] },
+          into: { controllerDefault: "mine", kind: ["Digimon"] },
           from: ["hand"],
+          optional: true,
           raw: "1 of your Digimon may app fuse into a Digimon card in the hand.",
         },
       ],

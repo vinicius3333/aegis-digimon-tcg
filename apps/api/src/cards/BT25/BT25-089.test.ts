@@ -99,6 +99,46 @@ describe("BT25-089 Kazuki & Itsuki", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("result").instanceId);
   });
 
+  it("can decline the optional App Fusion even when a legal result is available", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-089", as: "tamer" },
+            { card: "BT25-070", as: "host", linked: [{ card: "BT21-059", as: "timemon" }] },
+          ],
+          hand: [{ card: "BT25-072", as: "result" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("tamer"));
+
+    expect(s.perm("host").topCard.cardId).toBe("BT25-070");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("result").instanceId);
+  });
+
+  it("only app fuses a result from its controller's hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-089", as: "tamer" },
+            { card: "BT25-070", as: "host", linked: [{ card: "BT21-059", as: "timemon" }] },
+          ],
+        },
+        1: { hand: [{ card: "BT25-072", as: "opponentResult" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("tamer"));
+
+    expect(s.perm("host").topCard.cardId).toBe("BT25-070");
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("opponentResult").instanceId);
+  });
+
   it("plays itself for free from Security", async () => {
     const s = setupEngine({
       0: { security: [{ card: "BT25-089", as: "tamer" }] },
