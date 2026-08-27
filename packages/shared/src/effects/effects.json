@@ -99514,7 +99514,16 @@
     "effects": [
       {
         "trigger": "StartOfYourTurn",
-        "actions": [{ "kind": "SetMemory", "value": 3, "condition": { "kind": "memoryAtMost", "value": 2 } }]
+        "actions": [
+          {
+            "kind": "SetMemory",
+            "value": 3,
+            "condition": {
+              "kind": "memoryAtMost",
+              "value": 2
+            }
+          }
+        ]
       },
       {
         "trigger": "AllTurns",
@@ -99522,21 +99531,43 @@
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
-            "sourceFilter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "sourceFilter": {
+              "kind": [
+                "Digimon"
+              ]
+            },
+            "optional": true,
             "actions": [
               {
                 "kind": "PlaceUnder",
-                "target": { "filter": { "controller": "mine" }, "count": 1 },
-                "underFilter": { "controllerDefault": "mine", "kind": ["Tamer"] },
-                "cost": {
-                  "kind": "suspend",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by suspending this Tamer"
+                "target": {
+                  "filter": {},
+                  "count": 1
                 },
-                "optional": true,
-                "abortOnDecline": true
+                "fromDeckTop": true,
+                "position": "top"
+              },
+              {
+                "kind": "PlaceUnder",
+                "target": {
+                  "filter": {},
+                  "count": 1
+                },
+                "fromDeckTop": true,
+                "position": "top"
               }
-            ]
+            ],
+            "cost": {
+              "kind": "suspend",
+              "target": {
+                "filter": {
+                  "isSelfRef": true
+                },
+                "count": 1,
+                "isSelf": true
+              },
+              "raw": "by suspending this Tamer"
+            }
           }
         ]
       },
@@ -99546,37 +99577,49 @@
           {
             "kind": "Replacement",
             "event": "wouldBePlayed",
-            "sourceFilter": { "controllerDefault": "mine" },
-            "actions": [
-              {
-                "kind": "Replacement",
-                "event": "wouldBePlayed",
-                "mode": "reduceCost",
-                "amount": 1,
-                "raw": "reduce the cost by 1",
-                "cost": {
-                  "kind": "trash",
-                  "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1 },
-                  "raw": "by trashing the bottom face-down card from under any of your Tamers"
-                },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
+            "mode": "reduceCost",
+            "amount": 1,
+            "sourceFilter": {
+              "controller": "mine",
+              "kind": [
+                "Option"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Glowing Dawn"
+                  ],
+                  "match": "trait"
+                }
+              ]
+            },
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 1,
+              "raw": "by trashing the bottom face-down card from under any of your Tamers"
+            },
+            "raw": "When you would use a [Glowing Dawn] trait Option card, reduce its use cost by 1."
           }
         ],
         "frequency": "OncePerTurn"
       },
       {
         "trigger": "Security",
+        "isSecurity": true,
         "actions": [
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "payCost": false
           }
-        ],
-        "isSecurity": true
+        ]
       }
     ],
     "coverage": "full",
@@ -99586,7 +99629,16 @@
     "effects": [
       {
         "trigger": "StartOfYourTurn",
-        "actions": [{ "kind": "SetMemory", "value": 3, "condition": { "kind": "memoryAtMost", "value": 2 } }]
+        "actions": [
+          {
+            "kind": "SetMemory",
+            "value": 3,
+            "condition": {
+              "kind": "memoryAtMost",
+              "value": 2
+            }
+          }
+        ]
       },
       {
         "trigger": "OnPlay",
@@ -99597,8 +99649,17 @@
               "filter": {
                 "zone": "trash",
                 "controller": "mine",
-                "kind": ["Option"],
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Option"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": 1
             },
@@ -99609,7 +99670,10 @@
             "kind": "Draw",
             "controller": "mine",
             "amount": 1,
-            "condition": { "kind": "raw", "raw": "this effect didn't return" }
+            "condition": {
+              "kind": "ifThisEffectDidNotAct",
+              "raw": "this effect didn't return"
+            }
           }
         ]
       },
@@ -99617,17 +99681,52 @@
         "trigger": "YourTurn",
         "actions": [
           {
-            "kind": "Restrict",
-            "target": {
+            "kind": "SubTrigger",
+            "event": "whenOptionUsed",
+            "fireCondition": {
+              "kind": "triggerOptionMatchesFilter",
               "filter": {
-                "controller": "opponent",
-                "kind": ["Digimon", "Tamer", "Option"],
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Option"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
-              "count": 1
+              "raw": "when you use a [TS] trait Option card"
             },
-            "restriction": "attack",
-            "duration": "untilOpponentTurnEnd"
+            "cost": {
+              "kind": "suspend",
+              "target": {
+                "filter": {
+                  "isSelfRef": true
+                },
+                "count": 1,
+                "isSelf": true
+              },
+              "raw": "by suspending this Tamer"
+            },
+            "actions": [
+              {
+                "kind": "Restrict",
+                "target": {
+                  "filter": {
+                    "controller": "opponent",
+                    "kind": [
+                      "Digimon"
+                    ]
+                  },
+                  "count": 1
+                },
+                "restriction": "attack",
+                "duration": "untilOpponentTurnEnd"
+              }
+            ]
           }
         ]
       },
@@ -99636,7 +99735,13 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "payCost": false
           }
         ],
@@ -99656,18 +99761,37 @@
             "target": {
               "filter": {
                 "controller": "mine",
+                "zone": "hand",
                 "nameOrTrait": [
-                  { "tokens": ["Three Musketeers"], "match": "text" },
-                  { "tokens": ["TS"], "match": "trait" }
-                ],
-                "zone": "hand"
+                  {
+                    "tokens": [
+                      "Three Musketeers"
+                    ],
+                    "match": "text"
+                  },
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": 1
             },
+            "optional": true,
+            "abortOnDecline": true,
             "raw": "By trashing 1 card with [Three Musketeers] in its text or the [TS] trait from your hand"
           },
-          { "kind": "Draw", "controller": "mine", "amount": 1 },
-          { "kind": "GainMemory", "amount": 1 }
+          {
+            "kind": "Draw",
+            "controller": "mine",
+            "amount": 1
+          },
+          {
+            "kind": "GainMemory",
+            "amount": 1
+          }
         ]
       },
       {
@@ -99675,51 +99799,109 @@
         "actions": [
           {
             "kind": "Suspend",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "optional": true,
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "kind": [
+                    "Option"
+                  ],
+                  "hostFilter": {
+                    "controller": "mine",
+                    "kind": [
+                      "Digimon"
+                    ]
+                  }
+                },
+                "orFilters": [
+                  {
+                    "controller": "mine",
+                    "kind": [
+                      "Option"
+                    ],
+                    "zone": "hand"
+                  }
+                ],
+                "from": [
+                  "hand",
+                  "digivolutionCards"
+                ],
+                "count": 1
+              }
+            },
             "abortOnDecline": true
           },
           {
-            "kind": "Trash",
-            "target": {
-              "filter": { "controller": "mine", "kind": ["Option"], "zone": "hand" },
-              "orFilters": [{ "controller": "mine", "kind": ["Option"], "zone": "digivolutionCards" }],
-              "count": 1
-            }
-          },
-          {
             "kind": "Digivolve",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
             "into": {
               "controllerDefault": "mine",
-              "kind": ["Digimon"],
+              "kind": [
+                "Digimon"
+              ],
               "nameOrTrait": [
-                { "tokens": ["Three Musketeers"], "match": "text" },
-                { "tokens": ["TS"], "match": "trait" }
+                {
+                  "tokens": [
+                    "Three Musketeers"
+                  ],
+                  "match": "text"
+                },
+                {
+                  "tokens": [
+                    "TS"
+                  ],
+                  "match": "trait"
+                }
               ]
             },
-            "from": ["hand", "trash"],
+            "from": [
+              "hand",
+              "trash"
+            ],
             "reduceCost": 1,
             "payCost": true,
             "optional": true,
-            "raw": "1 of your Digimon may digivolve into a Digimon card with [Three Musketeers] in its text or the [TS] trait in the hand or trash with the cost reduced by 1"
+            "abortOnDecline": true
           }
         ]
       },
       {
         "trigger": "Security",
+        "isSecurity": true,
         "actions": [
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "payCost": false
           }
-        ],
-        "isSecurity": true
+        ]
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": []
   },
   "BT25-093": {
     "effects": [
