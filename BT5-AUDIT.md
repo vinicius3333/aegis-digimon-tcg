@@ -3363,3 +3363,25 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   search, and `git diff --check` pass. No production or shared engine source
   changed.
 - Remaining ambiguity: none identified.
+
+## BT5-099 — Spiral Masquerade — 10/10
+
+- Catalog and ruling evidence: Yellow Option with use cost 4. Main gives one
+  opposing Digimon −3000 DP for the turn for each own Digimon in play. Security
+  activates Main. Q1374 confirms two own Digimon produce two applications,
+  including cumulative application to one target.
+- Implementation: `apps/api/src/cards/BT5/BT5-099.ts` uses RepeatPerCount over
+  own battle-area Digimon and applies a one-target opposing ModifyDP −3000 with
+  for-the-turn duration on each iteration. Security activates Main. Full
+  residual-free coverage and exclusive `registerIrCard("BT5-099", compiled)`
+  registration are preserved.
+- Behavioral proof: four focused tests prove two iterations accumulating
+  exactly −6000 on one opposing Digimon, opponent-only targeting while another
+  opposing choice remains, restoration at the each-turn-end modifier boundary,
+  a zero-own-Digimon no-op, and Security activation of the scaled effect.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for cumulative Q1374 behavior, duration expiry, and the zero-count boundary.
+- Verification: focused BT5-099 — 4/4 passed. Targeted Oxfmt, Oxlint,
+  registration search, and `git diff --check` pass. No production or shared
+  engine source changed.
+- Remaining ambiguity: none identified.
