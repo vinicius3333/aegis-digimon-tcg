@@ -2748,3 +2748,29 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   conformance — 2/2 relevant tests passed. Targeted Oxfmt, Oxlint, registration
   search, and `git diff --check` pass. No typing-sensitive source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-076 — BlackGrowlmon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.4 Champion Digimon, Virus/Dark Dragon,
+  play cost 5, 4000 DP, and purple Lv.3 evolution cost 2. Its inherited Your
+  Turn, Once Per Turn effect grants its host Security Attack +1 for the turn
+  when another one of the controller's Digimon is deleted. The knowledge base
+  contains no card-specific ruling, errata, restriction, or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-076.ts` installs an inherited
+  owner-turn `onDeletionOf` watcher filtered to another own Digimon, then grants
+  Security Attack +1 to the host for the turn. The effect carries Once Per Turn
+  identity, full residual-free coverage, and exclusive
+  `registerIrCard("BT5-076", compiled)` registration.
+- Behavioral proof: focused coverage uses neutral vanilla deletion fixtures to
+  prove the first own deletion grants exactly +1, an opponent deletion does not
+  trigger, a second own deletion cannot stack the once-per-turn effect, the
+  temporary keyword expires at owner turn end, and deletion during the
+  opponent's turn does not trigger. Tests use the named deletion and continuous
+  ledger seams.
+- Defect corrected: no executable behavior defect. Focused proof was clarified
+  with neutral fixtures and strengthened for turn ownership and duration while
+  removing private primitive access.
+- Verification: focused BT5-076 — 2/2 passed. Targeted Oxfmt, Oxlint,
+  registration search, and `git diff --check` pass. No source or shared engine
+  behavior changed.
+- Remaining ambiguity: none identified.
