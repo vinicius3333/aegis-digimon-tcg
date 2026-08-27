@@ -7,10 +7,10 @@ const actions = [
   { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
   {
     kind: "PlaceUnder",
-    target: { filter: { controller: "mine" }, from: ["hand"], count: 1, upTo: true },
+    target: { filter: { controller: "mine" }, from: ["hand"], count: 1 },
     position: "bottom",
     faceDown: true,
-    optional: false,
+    optional: true,
   },
   {
     kind: "ModifyDP",

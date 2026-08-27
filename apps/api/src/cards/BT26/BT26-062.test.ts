@@ -69,6 +69,33 @@ describe("BT26-062 Ghostmon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.memory).toBe(1);
   });
+  it("distinguishes eligible Ghost/NSo costs from an unrelated card in a mixed hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-062", as: "ghostmon" }],
+          hand: [
+            { card: "BT20-063", as: "ghostCost" },
+            { card: "EX8-008", as: "nsoCost" },
+            { card: "BT1-009", as: "ineligible" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("ghostmon"));
+
+    const trashedIds = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
+    expect(trashedIds).not.toContain(s.inst("ineligible").instanceId);
+    expect(
+      trashedIds.filter((id) => [s.inst("ghostCost").instanceId, s.inst("nsoCost").instanceId].includes(id)),
+    ).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("ineligible").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+  });
   it("trashes a Ghost card before drawing and gaining memory", async () => {
     const s = setupEngine(
       {
@@ -149,6 +176,24 @@ describe("BT26-062 Ghostmon", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT26-062");
 
     expect(s.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-001", as: "nonNsoBase" }],
+        hand: [{ card: "BT26-062", as: "ghostmon" }],
+      },
+    });
+    invalid.state.memory = 1;
+    await invalid.ready();
+
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("nonNsoBase").permanentId,
+        instanceId: invalid.inst("ghostmon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
   });
   it("gives its evolution host the inherited 2000 DP during its controller's turn", async () => {
     const s = setupEngine({

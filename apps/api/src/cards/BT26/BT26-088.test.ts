@@ -70,6 +70,29 @@ describe("BT26-088 Hiroko Sagisaka", () => {
     expect(s.perm("hiroko").isSuspended).toBe(true);
   });
 
+  it("does not reduce a Digimon without the Boss or TS trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-088", as: "hiroko" }],
+          hand: [{ card: "BT1-009", as: "unmatched" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unmatched").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("unmatched").instanceId),
+    );
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("hiroko").isSuspended).toBe(false);
+  });
+
   it("reduces the cost by only 1 when its controller already has a Digimon", async () => {
     const s = setupEngine(
       {

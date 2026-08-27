@@ -23,8 +23,8 @@ export const compiled: CompiledCard = {
           event: "whenEffectAddsToOpponentHand",
           optional: true,
           actions: [
-            { kind: "PlaceUnder", target: { filter: {}, count: 1 }, fromDeckTop: true, position: "top" },
-            { kind: "PlaceUnder", target: { filter: {}, count: 1 }, fromDeckTop: true, position: "top" },
+            { kind: "PlaceUnder", target: { filter: {}, count: 1 }, fromDeckTop: true, position: "bottom" },
+            { kind: "PlaceUnder", target: { filter: {}, count: 1 }, fromDeckTop: true, position: "bottom" },
           ],
           cost: {
             kind: "suspend",

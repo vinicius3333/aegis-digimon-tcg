@@ -111,6 +111,35 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     expect(s.decisions.some(({ seat, req }) => seat === 0 && req.kind === "orderCards")).toBe(true);
   });
 
+  it.each([
+    [EffectTiming.WhenDigivolving, "When Digivolving"],
+    [EffectTiming.OnUseAttack, "When Attacking"],
+  ] as const)("resolves the delete/recovery body from the %s timing (%s)", async (timing, _label) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "holy" }],
+          trash: ["BT1-009", "BT1-010", "BT1-011"],
+          deck: [{ card: "BT1-012", as: "recovery" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 1000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    if (timing === EffectTiming.OnUseAttack) {
+      await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("holy"), {
+        attackerPermanentId: s.perm("holy").permanentId,
+      });
+    } else {
+      await advance(s.engine).fire(timing, s.perm("holy"));
+    }
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
   it("removes a deleted card from trash before its pending On Deletion can activate (Q6977)", async () => {
     const s = setupEngine(
       {

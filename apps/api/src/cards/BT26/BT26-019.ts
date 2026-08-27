@@ -29,6 +29,7 @@ export const compiled: CompiledCard = {
               kind: "Restrict",
               target: { filter: { controllerDefault: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
               restriction: "suspend",
+              blocksCombatSuspend: true,
               duration: "untilOpponentTurnEnd",
             },
           ],

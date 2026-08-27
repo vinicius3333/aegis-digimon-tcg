@@ -31,7 +31,7 @@ describe("BT26-065 Falcomon", () => {
           count: 1,
           filter: {
             nameOrTrait: [
-              { tokens: ["Keenan Crier"], match: "name" },
+              { tokens: ["Keenan Crier"], match: "nameExact" },
               { tokens: ["DATA SQUAD"], match: "trait" },
             ],
           },
@@ -127,6 +127,32 @@ describe("BT26-065 Falcomon", () => {
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("bothSlots").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("adds an exact Keenan Crier name match even without the DATA SQUAD trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-065", as: "falcomon" }],
+          deck: [
+            { card: "EX4-064", as: "exactName" },
+            { card: "BT1-009", as: "restOne" },
+            { card: "BT1-010", as: "restTwo" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("falcomon"));
+    await settle(() => s.state.players[0]!.deck.length === 2);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("exactName").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("restOne").instanceId,
+      s.inst("restTwo").instanceId,
+    ]);
   });
 
   it("digivolves for 0 from a differently colored level 2 DATA SQUAD card", async () => {

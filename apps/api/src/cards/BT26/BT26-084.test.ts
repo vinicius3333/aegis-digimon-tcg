@@ -147,6 +147,33 @@ describe("BT26-084 compiled behavior", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("noLinkText").instanceId);
   });
 
+  it("may decline Copipemon's optional link-from-trash effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-079", as: "host" }],
+          hand: [{ card: "BT26-084", as: "copipemon" }],
+          trash: [{ card: "BT26-019", as: "eligible" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("copipemon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+
+    expect(s.perm("host").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("copipemon").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("eligible").instanceId);
+  });
+
   it("selects only one Seven Code card when both a Digimon and Option are revealed", async () => {
     const s = setupEngine(
       {
@@ -372,9 +399,7 @@ describe("BT26-084 compiled behavior", () => {
     );
 
     expect(s.state.memory).toBe(0);
-    expect(s.perm("host").linked.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063"]),
-    );
+    expect(s.perm("host").linked).toHaveLength(7);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-003");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-102");
   });

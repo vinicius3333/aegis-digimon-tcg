@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-001.js";
 import "../index.js";
 
@@ -167,5 +167,31 @@ describe("BT26-001 Yokomon", () => {
     expect(s.perm("host").topCard.cardId).toBe("BT26-013");
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("candidate").instanceId);
     expect(s.state.players[0]!.deck.at(-1)).toMatchObject({ instanceId: s.inst("revealed").instanceId, faceUp: false });
+  });
+
+  it("does not react when RevealAdd restores the unchosen revealed cards (Q6949)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID] }],
+          hand: [
+            { card: "BT26-036", as: "revealer" },
+            { card: "BT26-015", as: "candidate" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("revealer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.perm("host").topCard.cardId).toBe("BT26-013");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("candidate").instanceId);
   });
 });

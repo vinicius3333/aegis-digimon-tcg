@@ -83,6 +83,78 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
     expect(compiled.effects?.[3]).toMatchObject({ isInherited: true, keywords: [{ keyword: "Retaliation" }] });
   });
 
+  it("trashes two bottom face-down Tamer cards and uses a Glowing Dawn Option from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "nightchiropmon" },
+            { card: "BT25-088", as: "tamerA", under: [{ card: "BT1-001", as: "a", faceUp: false }] },
+            { card: "BT25-088", as: "tamerB", under: [{ card: "BT1-002", as: "b", faceUp: false }] },
+          ],
+          trash: [
+            { card: "P-236", as: "glowingDawn" },
+            { card: "BT1-090", as: "nonGlowingOption" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 2;
+    const optionId = s.inst("glowingDawn").instanceId;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("nightchiropmon"));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === optionId));
+
+    expect(s.perm("tamerA").stack).toHaveLength(0);
+    expect(s.perm("tamerB").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("nonGlowingOption").instanceId,
+    );
+    expect(
+      s.state.players[0]!.trash.some(
+        ({ instanceId, faceUp }) => instanceId === s.inst("a").instanceId && faceUp === true,
+      ),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.trash.some(
+        ({ instanceId, faceUp }) => instanceId === s.inst("b").instanceId && faceUp === true,
+      ),
+    ).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("may decline the legal Main effect without trashing Tamers or using the Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "nightchiropmon" },
+            { card: "BT25-088", as: "tamerA", under: [{ card: "BT1-001", as: "a", faceUp: false }] },
+            { card: "BT25-088", as: "tamerB", under: [{ card: "BT1-002", as: "b", faceUp: false }] },
+          ],
+          trash: [{ card: "P-236", as: "glowingDawn" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    const optionId = s.inst("glowingDawn").instanceId;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("nightchiropmon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("nightchiropmon").permanentId,
+    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(optionId);
+    expect(s.perm("tamerA").stack).toHaveLength(1);
+    expect(s.perm("tamerB").stack).toHaveLength(1);
+    expect(s.state.memory).toBe(20);
+  });
+
   it("digivolves from a non-purple level 3 [Glowing Dawn] Digimon for the alternate cost 2", async () => {
     const s = setupEngine(
       {

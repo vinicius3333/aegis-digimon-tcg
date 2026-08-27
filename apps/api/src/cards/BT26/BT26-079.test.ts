@@ -345,6 +345,22 @@ describe("BT26-079 compiled behavior", () => {
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-079");
   });
 
+  it("may decline Decode and trash the stack normally", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-079", as: "zombie", under: [{ card: "BT26-059", as: "plutomon" }] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("zombie").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT26-079", "BT26-059"]),
+    );
+  });
+
   it("does not Decode a battle deletion and deletes the attacker with Retaliation", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-082", as: "attacker", dp: 13000 }] },

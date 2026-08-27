@@ -124,6 +124,7 @@ describe("BT26-032 compiled fidelity", () => {
     // Succession conferral above is what carries its effects. This card's own printed markers
     // must still be published.
     expect(s.perm("ceresmon").keywords).toContain("Alliance");
+    expect(s.perm("ceresmon").keywords).not.toContain("Digisorption");
   });
 
   it("publicly reduces every suspended opposing Digimon by 5000 on digivolution", async () => {

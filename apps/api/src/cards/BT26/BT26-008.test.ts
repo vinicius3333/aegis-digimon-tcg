@@ -69,6 +69,24 @@ describe("BT26-008 Kotemon", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+
+    const shambala = setupEngine({
+      0: {
+        breeding: { card: "EX12-004", as: "shambalaEgg" },
+        hand: [{ card: "BT26-008", as: "kotemon" }],
+      },
+    });
+    shambala.state.memory = 0;
+    expect(
+      shambala.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: shambala.perm("shambalaEgg").permanentId,
+        instanceId: shambala.inst("kotemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => shambala.perm("shambalaEgg").topCard.cardId === "BT26-008");
+    expect(shambala.state.memory).toBe(0);
   });
 
   it("grants Piercing and +3000 DP to one controller-owned Shambala/TS Digimon", async () => {
@@ -88,6 +106,37 @@ describe("BT26-008 Kotemon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("self").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 9000);
     expect(observe(s.engine).hasPierce(s.perm("target"))).toBe(true);
+  });
+
+  it("accepts a TS-only own Digimon and excludes opponent trait matches", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-009", as: "tsOnly" },
+            { card: "BT1-009", as: "plain" },
+          ],
+          hand: [{ card: "BT26-008", as: "self" }],
+        },
+        1: { battleArea: [{ card: "BT26-013", as: "opponentShambala" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("tsOnly").topCard.instanceId);
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("self").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasPierce(s.perm("tsOnly")));
+
+    expect(s.perm("tsOnly").currentDP).toBe(4000);
+    expect(observe(s.engine).hasPierce(s.perm("tsOnly"))).toBe(true);
+    expect(s.perm("opponentShambala").currentDP).toBe(5000);
+    expect(observe(s.engine).hasPierce(s.perm("opponentShambala"))).toBe(false);
+    expect(s.perm("plain").currentDP).toBe(3000);
+    expect(observe(s.engine).hasPierce(s.perm("plain"))).toBe(false);
   });
 
   it("keeps Piercing and +3000 DP on the same chosen Digimon when multiple targets qualify", async () => {
@@ -113,6 +162,10 @@ describe("BT26-008 Kotemon", () => {
     expect(observe(s.engine).hasPierce(s.perm("chosen"))).toBe(true);
     expect(s.perm("other").currentDP).toBe(5000);
     expect(observe(s.engine).hasPierce(s.perm("other"))).toBe(false);
+
+    advance(s.engine).ledgers.modifiers.sweep(s.state, "eachTurnEnd", 0);
+    expect(s.perm("chosen").currentDP).toBe(6000);
+    expect(observe(s.engine).hasPierce(s.perm("chosen"))).toBe(false);
   });
 
   it("applies the same bound Piercing and DP bonus when Kotemon moves from breeding", async () => {

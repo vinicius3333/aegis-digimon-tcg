@@ -12,7 +12,20 @@ describe("BT26-002 Budmon", () => {
   it("is compiled as a once-per-turn inherited Your Turn watcher", () => {
     expect(compiled).toMatchObject({
       coverage: "full",
-      effects: [{ trigger: "YourTurn", frequency: "OncePerTurn", isInherited: true }],
+      effects: [
+        {
+          trigger: "YourTurn",
+          frequency: "OncePerTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenDigivolutionTrashed",
+              sourceFilter: { controller: "mine", kind: ["Tamer"], byEffect: true },
+            },
+          ],
+        },
+      ],
     });
   });
 
@@ -48,6 +61,24 @@ describe("BT26-002 Budmon", () => {
     });
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("notDrawn").instanceId]);
+  });
+
+  it("does not draw when the Tamer-stack trash has no effect provenance", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "host", under: [{ card: "BT26-002", as: "budmon" }] },
+          { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "under" }] },
+        ],
+        deck: ["BT1-012"],
+      },
+    });
+    await s.ready();
+
+    await primitives(s).trashDigivolutionCards(s.perm("tamer").permanentId, [s.inst("under").instanceId]);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
   it("ignores cards under Digimon, cards under an opponent Tamer, and all events during the opponent turn", async () => {

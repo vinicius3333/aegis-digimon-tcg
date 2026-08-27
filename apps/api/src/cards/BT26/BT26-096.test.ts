@@ -67,7 +67,11 @@ describe("BT26-096 Kosuke Misono", () => {
       {
         0: {
           battleArea: [{ card: "BT26-096", as: "kosuke" }],
-          hand: [{ card: "BT26-009", as: "target" }],
+          hand: [
+            { card: "BT26-009", as: "target" },
+            { card: "BT26-017", as: "nearMatch" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -82,6 +86,7 @@ describe("BT26-096 Kosuke Misono", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(kosukeId);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT26-017", "BT1-009"]);
   });
 
   it("returns itself to play a TS Tamer from trash with its cost reduced by 2", async () => {
@@ -89,7 +94,11 @@ describe("BT26-096 Kosuke Misono", () => {
       {
         0: {
           battleArea: [{ card: "BT26-096", as: "kosuke" }],
-          trash: [{ card: "BT26-087", as: "target" }],
+          trash: [
+            { card: "BT26-087", as: "target" },
+            { card: "BT26-017", as: "nearMatch" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -105,6 +114,7 @@ describe("BT26-096 Kosuke Misono", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(kosukeId);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT26-017", "BT1-009"]);
   });
 
   it("does not return itself for an unrelated card", async () => {

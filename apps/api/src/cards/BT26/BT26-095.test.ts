@@ -58,7 +58,10 @@ describe("BT26-095 compiled fidelity", () => {
               under: [{ card: "BT1-003", as: "existing", faceUp: false }],
             },
           ],
-          hand: [{ card: "P-236", as: "beatbreakOption" }],
+          hand: [
+            { card: "P-236", as: "beatbreakOption" },
+            { card: "BT1-009", as: "nonBeatbreak" },
+          ],
           deck: ["BT1-001", "BT1-002"],
         },
       },
@@ -74,6 +77,9 @@ describe("BT26-095 compiled fidelity", () => {
       { instanceId: s.inst("beatbreakOption").instanceId, faceUp: false },
       { instanceId: s.inst("existing").instanceId, faceUp: false },
     ]);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("nonBeatbreak").instanceId)).toBe(
+      true,
+    );
   });
 
   it("may decline the start-main placement without drawing or gaining memory", async () => {
@@ -131,7 +137,11 @@ describe("BT26-095 compiled fidelity", () => {
             { card: "BT1-009", as: "victim" },
           ],
           deck: [{ card: "BT1-001", as: "drawn" }],
-          trash: [{ card: "P-236", as: "beatbreak" }],
+          trash: [
+            { card: "P-236", as: "beatbreak" },
+            { card: "BT1-009", as: "nonBeatbreak" },
+            { card: "BT26-003", as: "beatbreakDigiEgg" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -142,6 +152,12 @@ describe("BT26-095 compiled fidelity", () => {
 
     expect(s.perm("makoto").isSuspended).toBe(true);
     expect(s.perm("makoto").stack[0]).toMatchObject({ instanceId: s.inst("beatbreak").instanceId, faceUp: false });
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("nonBeatbreak").instanceId)).toBe(
+      true,
+    );
+    expect(
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("beatbreakDigiEgg").instanceId),
+    ).toBe(true);
   });
 
   it("still places an existing BEATBREAK card when there is nothing to draw or trash", async () => {

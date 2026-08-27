@@ -15,6 +15,8 @@ export interface DeleteAction extends ActionBase {
   controller?: Controller;
   /** Schedule the deletion for the owner's end-of-turn window. */
   at?: "endOfTurn";
+  /** Store how many selected permanents were actually deleted. */
+  trackCount?: string;
   /** Add to the target DP ceiling per unit counted. */
   dpCeilingScaling?: Scaling & { amount: number };
   /** Add to a total-DP deletion budget per live scaling unit. */

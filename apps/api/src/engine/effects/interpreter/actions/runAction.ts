@@ -111,10 +111,13 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.playCostCeiling !== undefined ||
       action.scaling !== undefined ||
       action.target.filter?.playCostLteScaling !== undefined);
+  const actionCost = action.kind === "DigivolveViaPlacement" ? undefined : action.cost;
+  const additionalCost = action.kind === "RawUnparsed" ? undefined : action.additionalCost;
+  const additionalCosts = action.kind === "RawUnparsed" ? [] : (action.additionalCosts ?? []);
   const placementCosts = [
-    ...(action.cost?.kind === "place" ? [action.cost] : []),
-    ...(action.additionalCost?.kind === "place" ? [action.additionalCost] : []),
-    ...(action.additionalCosts ?? []).filter((cost): cost is Cost => cost.kind === "place"),
+    ...(actionCost?.kind === "place" ? [actionCost] : []),
+    ...(additionalCost?.kind === "place" ? [additionalCost] : []),
+    ...additionalCosts.filter((cost): cost is Cost => cost.kind === "place"),
   ];
   const placeCostProducesDeleteTarget =
     action.kind === "Delete" &&
@@ -285,7 +288,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // card makes the permission inert in continuous contexts (EX1-071, BT6 Options).
     action.kind !== "WaiveColorRequirement" &&
     action.optional &&
-    action.cost?.optional !== true
+    actionCost?.optional !== true
   ) {
     if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
       return action.abortOnDecline === true;
@@ -510,7 +513,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   }
   // When both the processing condition and payload are optional, pay the former
   // first, then offer the payload choice (e.g. Q6255: trash, then decline return).
-  if (action.optional && action.cost?.optional === true) {
+  if (action.kind !== "RawUnparsed" && action.optional && actionCost?.optional === true) {
     const yes = await ctx.ask.optional(ctx, describeAction(action));
     if (!yes) {
       ctx.lastEffectActed = false;

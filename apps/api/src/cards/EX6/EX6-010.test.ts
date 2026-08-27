@@ -75,7 +75,7 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
       .find((effect) => effect.effectKey === "EX6-010/main-place-and-delete")
       ?.actions.at(0);
 
-    expect(action?.abortOnDecline).toBe(true);
+    expect(action).toMatchObject({ abortOnDecline: true });
   });
 
   it("places itself under the eligible level-6 host and deletes a lower-DP opponent Digimon, paying 3 memory", async () => {

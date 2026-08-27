@@ -3,6 +3,7 @@ import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-069.js";
+import "../index.js";
 
 describe("BT26-069 Dobermon", () => {
   it("models hand-trash draw, hand-trash deletion cost, and inherited Titan evolution", () => {
@@ -41,7 +42,9 @@ describe("BT26-069 Dobermon", () => {
           cost: { kind: "trash" },
           optional: true,
           abortOnDecline: true,
-          target: { filter: { controller: "any", kind: ["Digimon"] } },
+          target: {
+            filter: { controller: "any", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+          },
         },
       ],
     });
@@ -110,6 +113,38 @@ describe("BT26-069 Dobermon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("trashes a hand card to delete a level-4-or-lower Digimon when digivolving", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-008", as: "base" }],
+          hand: [{ card: "BT26-069", as: "dobermon" }, { card: "BT1-001", as: "cost" }],
+          deck: ["BT1-002"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").permanentId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dobermon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.perm("base").topCard.cardId).toBe("BT26-069");
+    expect(s.state.memory).toBe(2);
+  });
+
   it("draws when this card is trashed from hand and five cards remain, but not when six remain", async () => {
     const qualifying = setupEngine({
       0: {
@@ -132,6 +167,29 @@ describe("BT26-069 Dobermon", () => {
     expect(tooMany.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-007"]);
   });
 
+  it("Q7091 draws only once when two copies are trashed together and leave five cards", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT26-069", as: "first" },
+          { card: "BT26-069", as: "second" },
+          "BT1-001",
+          "BT1-002",
+          "BT1-003",
+          "BT1-004",
+          "BT1-005",
+        ],
+        deck: ["BT1-006", "BT1-007"],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.trash([s.inst("first").instanceId, s.inst("second").instanceId], 0);
+
+    expect(s.state.players[0]!.hand).toHaveLength(6);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
   it("may delete an own level-4 Digimon after paying the hand-trash activation", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -139,7 +197,7 @@ describe("BT26-069 Dobermon", () => {
         0: {
           battleArea: [
             { card: "BT26-069", as: "dobermon" },
-            { card: "BT1-009", as: "ownTarget" },
+            { card: "BT1-014", as: "ownTarget" },
           ],
           hand: [{ card: "BT1-001", as: "cost" }],
         },
@@ -210,5 +268,47 @@ describe("BT26-069 Dobermon", () => {
     expect(s.perm("host").topCard.cardId).toBe("BT26-074");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("P-209");
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+  });
+
+  it("Q7090 does not retroactively trigger Alliance after evolving during an attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT24-075",
+              as: "attacker",
+              under: ["BT26-069", "BT26-064"],
+            },
+            { card: "BT1-009", as: "alliancePartner" },
+          ],
+          trash: [{ card: "P-209", as: "titamon" }],
+          deck: [{ card: "BT1-010", as: "drawnAndTrashed" }],
+        },
+        1: { security: 3 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("attacker").topCard.cardId === "P-209" &&
+        s.state.players[1]!.security.length < 3 &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("alliancePartner").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("drawnAndTrashed").instanceId,
+    );
   });
 });

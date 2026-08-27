@@ -14,7 +14,7 @@ const appmonStack = {
 const linkThenAttack = [
   {
     kind: "Link",
-    target: { filter: appmonStack, count: 7, upTo: true },
+    target: { filter: appmonStack, count: 7, upTo: true, distinctNames: true },
     differentNames: true,
     recipient: self,
     from: ["digivolutionCards"],
@@ -53,10 +53,9 @@ export const compiled: CompiledCard = {
               optional: true,
             },
             {
-              kind: "SecurityManipulation",
-              op: "moveTopToBottom",
-              controller: "opponent",
-              amount: 1,
+              kind: "Return",
+              target: { filter: { controller: "opponent", zone: "security", position: "top" }, count: 1 },
+              to: "deckBottom",
               condition: { kind: "selfLinkCountAtLeast", value: 7, raw: "if this Digimon has 7 link cards" },
             },
           ],

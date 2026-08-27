@@ -26,13 +26,11 @@ const attackBody = [
     optional: true,
     abortOnDecline: true,
     actions: [
-      // `position: "top"` is the fromDeckTop encoding for the TRUE bottom of the cards under
-      // this Tamer (Q7151): the engine reads `position !== "top"` as belowTop there.
       {
         kind: "PlaceUnder",
         fromDeckTop: true,
         target: { filter: {}, count: 1 },
-        position: "top",
+        position: "bottom",
         faceDown: true,
       },
       // One chosen Digimon gains BOTH keywords; two separate GainKeyword actions would open

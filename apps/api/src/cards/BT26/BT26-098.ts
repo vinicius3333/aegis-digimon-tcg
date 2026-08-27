@@ -26,7 +26,6 @@ const rosemon = {
   kind: ["Digimon"],
   nameOrTrait: [{ tokens: ["Rosemon"], match: "name" }],
 };
-const _aegiochusmon = { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["Aegiochusmon"], match: "name" }] };
 const securityPlayable = {
   controller: "mine",
   zone: ["hand", "trash"],
@@ -42,30 +41,13 @@ export const compiled: CompiledCard = {
     {
       trigger: "BeforePayCost",
       actions: [
-        // The payment is owned by the wrapper, not by the CostModifier itself: a CostModifier
-        // that carries its own cost is scaled by the count that cost reports, and a fixed-count
-        // cost reports 0, which zeroes the reduction before it reaches the pay-time window.
         {
-          kind: "CostGatedBlock",
-          cost: {
-            kind: "trashBottomFaceDownUnderTamer",
-            controller: "mine",
-            count: 1,
-            raw: "By trashing the bottom face-down card from under any of your Tamers",
+          kind: "ReducePlayCost",
+          payment: {
+            kind: "payCost",
+            cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
           },
-          optional: true,
-          abortOnDecline: true,
-          actions: [
-            {
-              kind: "CostModifier",
-              costType: "use",
-              mode: "reduce",
-              amount: 2,
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              handResident: true,
-              duration: "permanent",
-            },
-          ],
+          amount: { kind: "fixed", value: 2 },
         },
       ],
     },

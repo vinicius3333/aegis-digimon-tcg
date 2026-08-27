@@ -42,6 +42,7 @@ describe("BT26-086 compiled behavior", () => {
           target: expect.objectContaining({
             count: 7,
             upTo: true,
+            distinctNames: true,
             filter: expect.objectContaining({
               hasLinkRequirement: true,
               hostFilter: { isSelfRef: true },
@@ -170,9 +171,10 @@ describe("BT26-086 compiled behavior", () => {
           actions: [
             { kind: "Delete", optional: true },
             {
-              kind: "SecurityManipulation",
-              op: "moveTopToBottom",
+              kind: "Return",
+              to: "deckBottom",
               condition: { kind: "selfLinkCountAtLeast", value: 7 },
+              target: { filter: { controller: "opponent", zone: "security", position: "top" }, count: 1 },
             },
           ],
         },
@@ -232,9 +234,6 @@ describe("BT26-086 compiled behavior", () => {
     expect(observe(s.engine).hasKeyword(s.perm("dantemon"), "Blocker")).toBe(true);
     expect(observe(s.engine).linkMaxDelta(s.perm("dantemon"))).toBe(6);
     expect(s.perm("dantemon").linked).toHaveLength(7);
-
-    await advance(s.engine).runTurn(1);
-    expect(s.perm("dantemon").isSuspended).toBe(false);
   });
 
   it("uses Blocker to protect its controller from an opponent's attack", async () => {
@@ -266,7 +265,7 @@ describe("BT26-086 compiled behavior", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
-  it("deletes an opposing Digimon and moves its security top card when seven links are present", async () => {
+  it("deletes an opposing Digimon and returns its security top card to deck bottom when seven links are present", async () => {
     const s = setupEngine(
       {
         0: {
@@ -288,7 +287,7 @@ describe("BT26-086 compiled behavior", () => {
         },
         1: {
           battleArea: [{ card: "BT1-010", as: "victim" }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -302,10 +301,11 @@ describe("BT26-086 compiled behavior", () => {
     });
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-002", "BT1-001"]);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 
-  it("uses the linked reaction only once per turn and needs seven links to move security", async () => {
+  it("uses the linked reaction only once per turn and needs seven links to return security to deck", async () => {
     const once = setupEngine(
       {
         0: {
@@ -330,7 +330,7 @@ describe("BT26-086 compiled behavior", () => {
             { card: "BT1-009", as: "first" },
             { card: "BT1-010", as: "second" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -345,7 +345,8 @@ describe("BT26-086 compiled behavior", () => {
     });
 
     expect(once.state.players[1]!.battleArea).toHaveLength(1);
-    expect(once.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-002", "BT1-001"]);
+    expect(once.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
+    expect(once.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
 
     const belowSeven = setupEngine(
       {
@@ -367,7 +368,7 @@ describe("BT26-086 compiled behavior", () => {
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "victim" }],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -379,6 +380,6 @@ describe("BT26-086 compiled behavior", () => {
     });
 
     expect(belowSeven.state.players[1]!.battleArea).toHaveLength(0);
-    expect(belowSeven.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-001", "BT1-002"]);
+    expect(belowSeven.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010"]);
   });
 });

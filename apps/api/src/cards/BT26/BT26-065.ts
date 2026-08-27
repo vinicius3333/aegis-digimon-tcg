@@ -13,7 +13,7 @@ export const compiled: CompiledCard = {
             {
               filter: {
                 nameOrTrait: [
-                  { tokens: ["Keenan Crier"], match: "name" },
+                  { tokens: ["Keenan Crier"], match: "nameExact" },
                   { tokens: ["DATA SQUAD"], match: "trait" },
                 ],
               },

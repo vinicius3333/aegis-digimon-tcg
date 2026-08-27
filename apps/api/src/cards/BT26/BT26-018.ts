@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
     { trigger: "WhenMoving", actions: revealAndTrash },
     { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }] },
     {
-      trigger: "Static",
+      trigger: "Rule",
       actions: [
         {
           kind: "GrantStatic",

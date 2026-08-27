@@ -133,6 +133,45 @@ describe("BT26-055 Giromon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("places an accepted hand card face down at the bottom independently of deletion", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-055", as: "giromon" }],
+        hand: [{ card: "BT1-001", as: "material" }],
+      },
+    });
+    await s.ready();
+
+    const resolving = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giromon"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const placementDecision = s.state.pendingDecision!.decisionId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placementDecision,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== placementDecision,
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.perm("giromon").stack).toHaveLength(1);
+    expect(s.perm("giromon").stack[0]).toMatchObject({
+      instanceId: s.inst("material").instanceId,
+      faceUp: false,
+    });
+  });
+
   it("shares Once Per Turn between On Play and When Digivolving", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

@@ -41,11 +41,11 @@ export const compiled: CompiledCard = {
             conditions: [
               {
                 kind: "youHave",
-                filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Red"] },
+                filter: { controllerDefault: "mine", zone: "battleArea", kind: ["Digimon"], colors: ["Red"] },
               },
               {
                 kind: "youHave",
-                filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Purple"] },
+                filter: { controllerDefault: "mine", zone: "battleArea", kind: ["Digimon"], colors: ["Purple"] },
               },
             ],
           },

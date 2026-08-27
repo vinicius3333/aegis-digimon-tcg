@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-053.js";
 import "../index.js";
@@ -26,7 +26,21 @@ describe("BT26-053 Wolvermon", () => {
             {
               kind: "CostGatedBlock",
               cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
-              actions: [{ kind: "UseOptionWithoutCost", from: ["hand"], payCost: false, selectionRequired: true }],
+              actions: [
+                {
+                  kind: "UseOptionWithoutCost",
+                  from: ["hand"],
+                  payCost: false,
+                  selectionRequired: true,
+                  filter: {
+                    controller: "mine",
+                    zone: "hand",
+                    kind: ["Option"],
+                    playCostLte: 4,
+                    nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
+                  },
+                },
+              ],
             },
           ],
         },
@@ -38,6 +52,47 @@ describe("BT26-053 Wolvermon", () => {
       actions: [],
       keywords: [{ keyword: "Blocker" }],
     });
+  });
+
+  it("uses the exact level-3 Glowing Dawn evolution and rejects a non-matching level-3 base", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-052", as: "base" }],
+        hand: [{ card: "BT26-053", as: "wolvermon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    legal.state.memory = 2;
+    await legal.ready();
+
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("wolvermon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("base").topCard.cardId === "BT26-053");
+    expect(legal.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "base" }],
+        hand: [{ card: "BT26-053", as: "wolvermon" }],
+      },
+    });
+    invalid.state.memory = 2;
+    await invalid.ready();
+
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("wolvermon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 
   it("publicly pays the target-switch trigger with a face-down Tamer card and uses the Glowing Dawn Option", async () => {
@@ -62,6 +117,38 @@ describe("BT26-053 Wolvermon", () => {
 
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("P-236");
+  });
+
+  it("uses only a matching Glowing Dawn Option at the use-cost boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-053", as: "source" },
+            { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+            { card: "BT26-026", as: "yellowSource" },
+          ],
+          hand: [
+            { card: "P-236", as: "valid" },
+            { card: "BT25-043", as: "tooExpensive" },
+            { card: "BT1-091", as: "wrongTrait" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("source").permanentId,
+    });
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT25-043", "BT1-091"]),
+    );
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("P-236");
+    expect(s.perm("tamer").stack).toHaveLength(0);
   });
 
   it("doesn't use the Option when the exact face-down bottom cost can't be paid", async () => {

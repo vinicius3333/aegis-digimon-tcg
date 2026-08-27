@@ -60,6 +60,7 @@ export const compiled: CompiledCard = {
   assemblyRequirement: [
     { reduceCost: 2, materials: [{ traits: ["Navi", "System", "Seven Code"], level: 3, count: 1 }] },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
 
 registerIrCard("BT26-037", compiled);

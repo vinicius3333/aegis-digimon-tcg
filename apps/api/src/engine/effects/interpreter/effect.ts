@@ -17,6 +17,7 @@ import {
   securityStatic,
   staticModifier,
   turnTiming,
+  whenMoving,
   whenAttacking,
   whenDigivolving,
   whenTrashedFromBattleArea,
@@ -327,6 +328,8 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
       return whenDigivolving;
     case "WhenAttacking":
       return whenAttacking;
+    case "WhenMoving":
+      return whenMoving;
     case "OnDeletion":
       return onDeletion;
     case "OnDiscardSecurity":

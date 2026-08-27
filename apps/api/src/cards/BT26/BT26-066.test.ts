@@ -108,6 +108,30 @@ describe("BT26-066 Salamon", () => {
     expect(s.state.memory).toBe(5);
   });
 
+  it("does not target a non-Titan Digimon for the start-main evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-080", as: "nonTitanHost" },
+            { card: "BT26-066", as: "salamon" },
+          ],
+          trash: [{ card: "BT26-059", as: "trashTitan" }],
+          hand: [{ card: "BT1-001", as: "handCard" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("salamon"));
+
+    expect(s.perm("nonTitanHost").topCard.cardId).toBe("BT10-080");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-059");
+    expect(s.state.memory).toBe(5);
+  });
+
   it("allows the inherited trash evolution only when its host has the Titan trait", async () => {
     const titan = setupEngine(
       {
@@ -127,7 +151,7 @@ describe("BT26-066 Salamon", () => {
     const nonTitan = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-031", as: "host", under: ["BT26-066"] }],
+          battleArea: [{ card: "BT10-080", as: "host", under: ["BT26-066"] }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },
@@ -136,7 +160,7 @@ describe("BT26-066 Salamon", () => {
     nonTitan.state.memory = 10;
     await nonTitan.ready();
     await advance(nonTitan.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0, byEffectSeat: 0 });
-    expect(nonTitan.perm("host").topCard.cardId).toBe("BT26-031");
+    expect(nonTitan.perm("host").topCard.cardId).toBe("BT10-080");
     expect(nonTitan.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("P-209");
   });
 

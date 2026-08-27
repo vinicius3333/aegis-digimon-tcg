@@ -1,15 +1,51 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import type { Action } from "@aegis/shared";
 import { compiled } from "./BT26-005.js";
 import "../index.js";
 
 describe("BT26-005 Pinamon", () => {
   it("compiles the inherited deletion play with the exact face-down Tamer cost", () => {
-    const action = compiled.effects[0]!.actions[0]!;
+    const action = compiled.effects[0]!.actions[0]! as Extract<Action, { kind: "PlayWithoutCost" }>;
     expect(compiled.effects[0]).toMatchObject({ trigger: "OnDeletion", isInherited: true });
     expect(action).toMatchObject({ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true });
     expect(action.cost).toMatchObject({ kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 });
+    expect(action.target).toMatchObject({
+      count: 1,
+      filter: {
+        controller: "mine",
+        kind: ["Digimon", "Tamer"],
+        playCostLte: 5,
+        nameOrTrait: [
+          { tokens: ["Avian"], match: "trait" },
+          { tokens: ["DATA SQUAD"], match: "trait" },
+        ],
+      },
+    });
+  });
+
+  it("plays an Avian card as well as a DATA SQUAD card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-065", as: "host", under: [{ card: "BT26-005" }] },
+            { card: "BT26-091", as: "tamer", under: [{ card: "BT1-010", as: "cost", faceUp: false }] },
+          ],
+          trash: [{ card: "BT1-013", as: "avian" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-013"));
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("avian").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
   });
 
   it("trashes the bottom face-down Tamer card and plays the eligible Avian card from trash", async () => {

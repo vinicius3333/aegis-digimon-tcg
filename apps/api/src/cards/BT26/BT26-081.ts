@@ -16,6 +16,7 @@ const iliadHandOrTrash = {
 };
 const iliadOrTs = {
   controller: "mine",
+  zone: "battleArea",
   kind: ["Digimon", "Tamer"],
   nameOrTrait: [{ tokens: ["Iliad", "TS"], match: "trait" }],
 };

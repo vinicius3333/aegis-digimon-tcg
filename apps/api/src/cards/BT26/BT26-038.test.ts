@@ -146,4 +146,69 @@ describe("BT26-038 Kuwagamon", () => {
     expect(s.perm("evolutionTarget").topCard.instanceId).toBe(candidateId);
     expect(s.state.memory).toBe(0);
   });
+
+  it("keeps the Then buff when suspension is declined, and scopes it to own matching traits", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-038", as: "kuwagamon" },
+            { card: "BT1-066", as: "insectoid", dp: 2000 },
+            { card: "BT1-009", as: "nonMatching", dp: 3000 },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-066", as: "opponentInsectoid", dp: 2000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("insectoid").permanentId);
+    const baseDP = s.perm("insectoid").currentDP;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("kuwagamon"));
+
+    expect(s.perm("opponentInsectoid").isSuspended).toBe(false);
+    expect(s.perm("insectoid").currentDP).toBe(baseDP + 3000);
+    expect(s.perm("nonMatching").currentDP).toBe(3000);
+    expect(s.perm("opponentInsectoid").currentDP).toBe(2000);
+
+    advance(s.engine).ledgers.modifiers.sweep(s.state, "opponentTurnEnd", 1);
+    expect(s.perm("insectoid").currentDP).toBe(baseDP);
+  });
+
+  it("uses the exact level-3 TS alternate evolution and rejects a non-TS base", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-034", as: "tsBase" }],
+        hand: [{ card: "BT26-038", as: "kuwagamon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    legal.state.memory = 2;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("tsBase").permanentId,
+        instanceId: legal.inst("kuwagamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("tsBase").topCard.cardId === "BT26-038");
+    expect(legal.state.memory).toBe(0);
+
+    const illegal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "nonTsBase" }],
+        hand: [{ card: "BT26-038", as: "kuwagamon" }],
+      },
+    });
+    illegal.state.memory = 2;
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("nonTsBase").permanentId,
+        instanceId: illegal.inst("kuwagamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
 });
