@@ -20,7 +20,7 @@ describe("BT2-046 MetalTyrannomon", () => {
 
   it("unsuspends its host after deleting an opposing level 6 Digimon in battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-019", as: "attacker", dp: 20000, under: ["BT2-046"] }] },
+      0: { battleArea: [{ card: "BT2-050", as: "attacker", dp: 20000, under: ["BT2-046"] }] },
       1: { battleArea: [{ card: "BT2-031", as: "defender", suspended: true, dp: 1000 }] },
     });
     expect(
@@ -39,7 +39,7 @@ describe("BT2-046 MetalTyrannomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT3-019", as: "host", suspended: true, under: ["BT2-046"] },
+          { card: "BT2-050", as: "host", suspended: true, under: ["BT2-046"] },
           { card: "BT3-019", as: "otherWinner", dp: 20_000 },
         ],
       },
@@ -60,7 +60,7 @@ describe("BT2-046 MetalTyrannomon", () => {
 
   it("does not unsuspend after its host deletes a level 5 Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-019", as: "host", dp: 20_000, under: ["BT2-046"] }] },
+      0: { battleArea: [{ card: "BT2-050", as: "host", dp: 20_000, under: ["BT2-046"] }] },
       1: { battleArea: [{ card: "BT2-047", as: "level5", suspended: true, dp: 1_000 }] },
     });
 
@@ -78,7 +78,7 @@ describe("BT2-046 MetalTyrannomon", () => {
 
   it("does not unsuspend after defeating a level 6 Security Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-019", as: "host", dp: 20000, under: ["BT2-046"] }] },
+      0: { battleArea: [{ card: "BT2-050", as: "host", dp: 20000, under: ["BT2-046"] }] },
       1: { security: ["BT2-031"] },
     });
 
