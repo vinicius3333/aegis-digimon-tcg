@@ -73,4 +73,21 @@ describe("BT1-049 Labramon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
     expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("notDrawn").instanceId);
   });
+
+  it("does not draw when the DP-zero deletion happens during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-052", as: "host", under: ["BT1-049"] }],
+        deck: [{ card: "BT1-010", as: "notDrawn" }],
+      },
+      1: { battleArea: [{ card: "BT1-016", as: "target", dp: 0 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("target").permanentId], "byRule");
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("notDrawn").instanceId);
+  });
 });
