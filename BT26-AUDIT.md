@@ -2979,6 +2979,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR and exclusive `registerIrCard`; exact DATA SQUAD hand placement/Draw/+1, opponent suspension and effect-attributed self-stack-trash watchers, suspend cost, and Vegetation/Fairy/DATA SQUAD hand evolution reduced by 1.
 - Proof: all timings, refusal/negative controller, Q7148, Security, plus new real Vegetation and Fairy evolution branches. Automation not run; diff check passed. No unresolved limitation.
 
+## BT26-092 — Shota Kuroi — 10/10
+
+- Catalog/KB: black cost-3 TS Tamer with start-main, opponent-turn attack redirect, and Security play confirmed. No direct KB entry; CR §15-7-5 and BT26-003/Q6953 establish that an optional “by returning” cost may be paid without a legal later target.
+- Correction: added `allowCostWithoutTarget: true` while retaining refusal abort semantics, so the own TS Tamer may return to deck bottom even when no TS Digimon can receive the attack.
+- Proof: successful redirect, cost-only resolution, decline, turn gate, start-main cost/benefit, and Security. Exclusive `registerIrCard`; automation not run; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
