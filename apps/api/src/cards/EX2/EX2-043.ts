@@ -112,10 +112,11 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenHandTrashed",
           sourceFilter: { controller: "mine" },
+          fireCondition: { kind: "triggerByYourEffect" },
           actions: [
             {
               kind: "Unsuspend",
-              target: { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 },
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
               optional: true,
             },
           ],
