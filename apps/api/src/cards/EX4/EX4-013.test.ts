@@ -6,6 +6,9 @@ import { compiled } from "./EX4-013.js";
 import "../index.js";
 
 describe("EX4-013 MedievalGallantmon", () => {
+  it("routes the Security clause through the security timing", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({ isSecurity: true });
+  });
   it("plays from security without cost and schedules a return to hand at end of turn", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Security")?.actions).toEqual([
       expect.objectContaining({ kind: "PlayWithoutCost", from: ["security"], payCost: false }),

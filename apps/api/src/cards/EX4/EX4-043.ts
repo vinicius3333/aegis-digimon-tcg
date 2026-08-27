@@ -35,41 +35,15 @@ export const compiled: CompiledCard = {
             ],
           },
           from: ["hand"],
+          costDelta: -2,
           optional: true,
-        },
-        {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          sourceFilter: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldDigivolve",
-              mode: "reduceCost",
-              amount: 2,
-              raw: "reduce the digivolution cost by 2",
-            },
-          ],
         },
       ],
     },
     {
       trigger: "Static",
-      actions: [
-        {
-          kind: "Unsuspend",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-        },
-      ],
+      actions: [],
+      keywords: [{ keyword: "Reboot", raw: "＜Reboot＞" }],
       isInherited: true,
     },
   ],

@@ -19,7 +19,7 @@ const compiled: CompiledCard = {
             filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
             count: "all",
           },
-          restriction: "attackPlayers",
+          restriction: "attack",
           duration: "untilOpponentTurnEnd",
         },
       ],

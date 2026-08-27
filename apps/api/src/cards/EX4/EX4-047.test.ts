@@ -24,4 +24,18 @@ describe("EX4-047 DarkKnightmon", () => {
       add: [{ filter: { nameOrTrait: [{ match: "trait", tokens: ["Blue Flare", "Twilight"] }] } }],
     });
   });
+
+  it("requires the inherited condition to be exactly GreyKnightsmon", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions?.[0]).toMatchObject({
+      actions: [
+        {
+          actions: [
+            {
+              condition: { filter: { nameOrTrait: [{ match: "nameExact", tokens: ["GreyKnightsmon"] }] } },
+            },
+          ],
+        },
+      ],
+    });
+  });
 });

@@ -12,7 +12,7 @@ describe("EX4-065 Trident Gaia", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions?.[1]).toMatchObject({
       kind: "SubTrigger",
       event: "onDeletionOf",
-      sourceFilter: { dp: { op: "gte", value: 13000 } },
+      sourceFilter: { controller: "opponent", dp: { op: "gte", value: 13000 } },
       actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "Security")?.isSecurity).toBe(true);

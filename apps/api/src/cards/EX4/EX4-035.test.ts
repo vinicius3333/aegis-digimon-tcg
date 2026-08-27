@@ -25,6 +25,7 @@ describe("EX4-035 BlackGargomon", () => {
         {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], excludeSelf: true },
           actions: [{ kind: "ModifyDP", amount: 2000, duration: "untilOpponentTurnEnd" }],
         },
       ],

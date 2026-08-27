@@ -32,11 +32,28 @@ const def = (id: string, level: number): CardDefinition => ({
 describe("EX4-060 Omnimon Alter-S", () => {
   it("registers full residual-free IR with the non-owner-effect leave gate", () => {
     expect(runtimeCompiledCard("EX4-060")).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtimeCompiledCard("EX4-060")?.dnaDigivolveRequirement).toEqual([
+      {
+        cost: 0,
+        materials: [
+          { color: "Blue", level: 6 },
+          { color: "Red", level: 6 },
+        ],
+      },
+    ]);
     expect(runtimeCompiledCard("EX4-060")?.effects?.[1]?.actions?.[0]).toMatchObject({
       kind: "Replacement",
       event: "wouldLeavePlay",
       leaveCause: "otherThanYourEffect",
     });
+    const replacement = runtimeCompiledCard("EX4-060")?.effects?.[1]?.actions?.[0];
+    expect(replacement?.kind).toBe("Replacement");
+    if (replacement?.kind !== "Replacement") throw new Error("expected leave-play replacement");
+    expect(replacement.actions).toEqual([
+      expect.objectContaining({ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true }),
+      expect.objectContaining({ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true }),
+      expect.objectContaining({ kind: "SecurityManipulation" }),
+    ]);
   });
 
   it("deletes an opposing Digimon at 8000 DP or less and returns a level six opponent to deck bottom", async () => {

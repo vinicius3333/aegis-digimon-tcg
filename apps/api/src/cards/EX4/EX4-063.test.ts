@@ -6,13 +6,14 @@ describe("EX4-063 Henry Wong & Shu-Chong Wong", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase")?.actions;
     expect(actions?.[0]).toMatchObject({
       kind: "PlayWithoutCost",
-      condition: { kind: "youHave", filter: { kind: ["Digimon"] } },
+      condition: { kind: "permanentCount", op: "lte", value: 1, filter: { kind: ["Digimon"] } },
     });
     expect(actions?.[1]).toMatchObject({
       kind: "Restrict",
-      target: { filter: { targetPlayedByThisEffect: true } },
+      target: { filter: { boundRef: "playedByStartEffect" } },
       restriction: "digivolve",
     });
+    expect(actions?.[2]).toMatchObject({ kind: "DelayedDelete", timing: "endOfOpponentTurn" });
   });
   it("uses digivolution-card name matching for the erratared cost reduction", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0]).toMatchObject({

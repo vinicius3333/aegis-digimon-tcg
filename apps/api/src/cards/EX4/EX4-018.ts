@@ -55,6 +55,12 @@ export const compiled: CompiledCard = {
       trigger: "Static",
       actions: [],
       isInherited: true,
+      keywords: [
+        {
+          keyword: "Jamming",
+          raw: "＜Jamming＞",
+        },
+      ],
     },
   ],
   coverage: "full",

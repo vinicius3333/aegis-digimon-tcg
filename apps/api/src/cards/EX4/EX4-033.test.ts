@@ -17,11 +17,15 @@ describe("EX4-033 Terriermon Assistant", () => {
   });
   it("inherited Alliance suspension can digivolve this card into a green multicolor Digimon", () => {
     const inherited = compiled.effects?.filter((entry) => entry.trigger === "YourTurn")[1]?.actions?.[0];
-    expect(inherited).toMatchObject({ bySourceKeyword: "Alliance" });
+    expect(inherited).toMatchObject({ bySourceKeyword: "Alliance", event: "whenEffectSuspends" });
     expect((inherited as { actions?: unknown[] } | undefined)?.actions?.[0]).toMatchObject({
       kind: "Digivolve",
       from: ["hand"],
+      costDelta: -2,
       optional: true,
     });
+    expect((inherited as { actions?: unknown[] } | undefined)?.actions).not.toContainEqual(
+      expect.objectContaining({ kind: "Replacement" }),
+    );
   });
 });

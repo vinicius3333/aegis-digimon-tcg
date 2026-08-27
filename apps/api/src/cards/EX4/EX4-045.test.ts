@@ -12,4 +12,23 @@ describe("EX4-045 MetalGreymon", () => {
       costDelta: -2,
     });
   });
+
+  it("can suspend itself to redirect an opponent attack", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")).toMatchObject({
+      isInherited: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "RedirectAttack",
+              abortOnDecline: true,
+              cost: { kind: "suspend", optional: true, target: { filter: { isSelfRef: true } } },
+            },
+          ],
+        },
+      ],
+    });
+  });
 });

@@ -42,8 +42,8 @@ const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["digivolutionCards"],
+              fromOwnDigivolutionStack: true,
               payCost: false,
-              optional: true,
             },
             {
               kind: "PlayWithoutCost",
@@ -56,8 +56,8 @@ const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["digivolutionCards"],
+              fromOwnDigivolutionStack: true,
               payCost: false,
-              optional: true,
             },
             {
               kind: "SecurityManipulation",
@@ -74,6 +74,15 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 6 },
+        { color: "Red", level: 6 },
+      ],
+    },
+  ],
 };
 
 registerIrCard("EX4-060", compiled);

@@ -1,22 +1,41 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-// A3 for EX4-021 (DexDorugoramon) — [DigiXros -2]: "Blue MetalGreymon" + "DarkKnightmon".
-// "When you would play this card, you may place specified cards from your hand/battle area under
-// it. Each placed card reduces the play cost." (documented behavior; reduceCostPerCard = 2.)
-//
-const EX4_021 = "EX4-021"; // played card, cost 12
-const BLUE_METALGREYMON = "BT10-024"; // "MetalGreymon", Blue L5
-const DARKKNIGHTMON = "BT10-066"; // "DarkKnightmon", Black L5
+const EX4_021 = "EX4-021";
+const BLUE_METALGREYMON = "BT10-024";
+const DARKKNIGHTMON = "BT10-066";
 
-describe("EX4-021 [DigiXros -2] play by placing Blue MetalGreymon + DarkKnightmon", () => {
-  it("registers full residual-free IR for the printed effects", () => {
+describe("EX4-021 GreyKnightsmon", () => {
+  it("registers the complete residual-free IR", () => {
     expect(runtimeCompiledCard("EX4-021")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
+  it("de-digivolves one opposing Digimon and prevents all attacks by level 4 or lower Digimon", () => {
+    expect(runtimeCompiledCard("EX4-021")?.effects?.[0]?.actions).toMatchObject([
+      { kind: "DeDigivolve", amount: 1, target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } } },
+      {
+        kind: "Restrict",
+        restriction: "attack",
+        duration: "untilOpponentTurnEnd",
+        target: {
+          count: "all",
+          filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+        },
+      },
+    ]);
+  });
+
+  it("replays MetalGreymon and DarkKnightmon from its digivolution cards when leaving play", () => {
     expect(runtimeCompiledCard("EX4-021")?.effects?.[1]?.actions?.[0]).toMatchObject({
       kind: "Replacement",
       event: "wouldLeavePlay",
+      sourceFilter: { isSelfRef: true },
+      actions: [
+        { kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false },
+        { kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false },
+      ],
     });
   });
 
@@ -34,11 +53,10 @@ describe("EX4-021 [DigiXros -2] play by placing Blue MetalGreymon + DarkKnightmo
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const p0 = s.state.players[0]!;
-
     const dx = s.inst("dx");
     const mg = s.inst("mg");
     const dk = s.inst("dk");
-    s.state.memory = 8; // exactly the reduced cost (12 - 4)
+    s.state.memory = 8;
 
     const res = s.engine.applyIntent(0, {
       type: "playCard",
@@ -47,18 +65,13 @@ describe("EX4-021 [DigiXros -2] play by placing Blue MetalGreymon + DarkKnightmo
     });
     expect(res).toEqual({ ok: true });
 
-    // Settle on the FULL resolution (both materials placed → all 3 cards have left the hand).
     await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === EX4_021) && p0.hand.length === 0);
 
-    const perm = p0.battleArea.find((p) => p.topCard?.cardId === EX4_021);
+    const perm = p0.battleArea.find((candidate) => candidate.topCard?.cardId === EX4_021);
     expect(perm).toBeDefined();
-    // Both materials are now digivolution cards under DexDorugoramon, and left the hand.
-    const stackIds = perm!.stack.map((c) => c.cardId);
-    expect(stackIds).toContain(BLUE_METALGREYMON);
-    expect(stackIds).toContain(DARKKNIGHTMON);
-    expect(p0.hand.some((c) => c.instanceId === mg.instanceId)).toBe(false);
-    expect(p0.hand.some((c) => c.instanceId === dk.instanceId)).toBe(false);
-    // Cost: 8 paid from memory 8 → 0.
+    expect(perm!.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining([BLUE_METALGREYMON, DARKKNIGHTMON]));
+    expect(p0.hand.some((card) => card.instanceId === mg.instanceId)).toBe(false);
+    expect(p0.hand.some((card) => card.instanceId === dk.instanceId)).toBe(false);
     expect(s.state.memory).toBe(0);
   });
 
@@ -67,17 +80,18 @@ describe("EX4-021 [DigiXros -2] play by placing Blue MetalGreymon + DarkKnightmo
       0: {
         hand: [
           { card: EX4_021, as: "dx" },
-          { card: "AD1-001", as: "greymon" }, // "Greymon" — matches neither MetalGreymon nor DarkKnightmon
+          { card: "AD1-001", as: "wrong" },
         ],
       },
     });
     const dx = s.inst("dx");
-    const greymon = s.inst("greymon");
+    const wrong = s.inst("wrong");
     s.state.memory = 10;
+
     const res = s.engine.applyIntent(0, {
       type: "playCard",
       instanceId: dx.instanceId,
-      digiXros: { materialInstanceIds: [greymon.instanceId] },
+      digiXros: { materialInstanceIds: [wrong.instanceId] },
     });
     expect(res.ok).toBe(false);
   });
