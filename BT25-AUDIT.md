@@ -777,3 +777,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-038.
+
+## BT25-039 — Sirenmon — 10/10
+
+- Catalog evidence: Yellow/green level-5 Digimon, play cost 6, 6000 DP, `Ultimate`/`Data`, `Shaman`/`Iliad`/`TS`; standard yellow or green level-4 evolution for 4 plus alternate level-4 `TS` evolution for 3; face-up Security End of Your Turn optionally plays Ceresmon from hand at cost -7 and may place this card under the played Digimon; all-turn deletes self to prevent all simultaneous non-own-effect departures of other friendly Shaman/Iliad Digimon or Tamers; On Deletion optionally places self face up at bottom security; inherited opponent-turn once-per-turn attack redirect to a suspended friendly Digimon.
+- Knowledge base: Q6306 stacks Sirenmon's -7 with Ceresmon's -5. Q6307 applies one self-deletion replacement to all simultaneous matching departures without selection. Q6308 delays Sirenmon's On Deletion activation until the opponent's resolving effect completes.
+- Implementation: the security play pays the remaining cost after -7, binds the exact `lastPlayed` Digimon, and gates optional PlaceUnder on successful play. The leave replacement excludes self, matches Digimon/Tamers by Shaman/Iliad, excludes the controller's effects, affects all matches, and pays by deleting self. On Deletion preserves face-up bottom placement; inherited redirect and alternate evolution are complete. Direct/shared IR are synchronized, full/residual-free, and exclusively register through `registerIrCard("BT25-039", compiled)`.
+- Defects corrected: the TS evolution route was incorrectly marked non-alternate. Persisted IR also lacked executable paid reduction, successful-play gating/binding, all-match replacement metadata, and face-up security placement; these are synchronized and covered by persisted equality.
+- Behavioral proof: the focused suite proves alternate evolution cost, exact 5-memory Ceresmon play after -7, face-up Sirenmon placement under that instance, simultaneous Q6307 prevention with one self deletion, own-effect exclusion, face-up On Deletion security return, and inherited redirect. These assertions expose the stale evolution/shared IR.
+- Verification: focused suite — 12 passed; focused/catalog/mechanism regressions — 228 passed; targeted Oxfmt, shared-IR JSON parse, and `git diff --check` — passed. The broader BT25 catalog baseline retains 8 unrelated failures. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-039 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-039
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-039.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-039.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-039.ts apps/api/src/cards/BT25/BT25-039.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-039.
