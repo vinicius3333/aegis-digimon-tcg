@@ -2,9 +2,26 @@ import type { Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT2-049.js";
 
 describe("BT2-049 Puppetmon", () => {
+  it("uses the exact next-opponent-unsuspend-phase duration", () => {
+    expect(runtimeCompiledCard("BT2-049")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "Suspend" },
+            { kind: "Restrict", restriction: "unsuspend", duration: "untilOpponentNextUnsuspendPhase" },
+          ],
+        },
+      ],
+    });
+  });
+
   it("Q1019-Q1021 suspends one Digimon, then only opposing Digimon stay suspended next unsuspend phase", async () => {
     const s = setupEngine(
       {
