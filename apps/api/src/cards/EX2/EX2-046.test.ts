@@ -8,6 +8,10 @@ describe("EX2-046 ADR-02 Searcher", () => {
     const compiled = registeredCompiledCards.get("EX2-046");
     expect(compiled?.coverage).toBe("full");
     expect(compiled?.residual).toEqual([]);
+    expect(compiled?.effects[0]).toMatchObject({
+      trigger: "Static",
+      actions: [{ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { isSelfRef: true } }],
+    });
   });
   it("costs 2 less without another Searcher and draws 1 on play", async () => {
     const s = setupEngine(
