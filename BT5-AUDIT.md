@@ -2727,3 +2727,24 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   Targeted Oxfmt, Oxlint, registration search, and `git diff --check` pass. No
   shared engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-075 — Musyamon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.4 Champion Digimon, Virus/Wizard, play
+  cost 4, 4000 DP, and purple Lv.3 evolution cost 2. Its complete effect text
+  is Jamming. The knowledge base contains no card-specific ruling, errata,
+  restriction, or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-075.ts` publishes unconditional
+  static Jamming, declares full residual-free coverage, and registers
+  exclusively through `registerIrCard("BT5-075", compiled)`.
+- Behavioral and mechanism proof: focused coverage verifies the runtime module
+  and that continuous recomputation exposes Jamming on Musyamon. Targeted
+  comprehensive §16-9 coverage proves that a weaker printed-Jamming attacker
+  survives a losing battle against a Security Digimon, while the identical
+  non-Jamming control is deleted.
+- Defect corrected: none. The implementation and existing focused proof were
+  already faithful, so no source or test file changed.
+- Verification: focused BT5-075 — 2/2 passed; targeted Jamming security-battle
+  conformance — 2/2 relevant tests passed. Targeted Oxfmt, Oxlint, registration
+  search, and `git diff --check` pass. No typing-sensitive source changed.
+- Remaining ambiguity: none identified.
