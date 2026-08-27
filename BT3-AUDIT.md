@@ -22,10 +22,10 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT3-051–060 | Static audit integrated | `internal-docs/audits/BT3/BT3-051-060.md` | Yes |
 | BT3-061–070 | Static audit integrated | `internal-docs/audits/BT3/BT3-061-070.md` | Yes |
 | BT3-071–080 | Static audit integrated | `internal-docs/audits/BT3/BT3-071-080.md` | Yes |
-| BT3-081–090 | Luna in progress | `internal-docs/audits/BT3/BT3-081-090.md` | No |
+| BT3-081–090 | Static audit integrated | `internal-docs/audits/BT3/BT3-081-090.md` | Yes |
 | BT3-091–100 | Luna in progress | `internal-docs/audits/BT3/BT3-091-100.md` | No |
 | BT3-101–110 | Luna in progress | `internal-docs/audits/BT3/BT3-101-110.md` | No |
-| BT3-111–112 | Queued | `internal-docs/audits/BT3/BT3-111-112.md` | No |
+| BT3-111–112 | Luna in progress | `internal-docs/audits/BT3/BT3-111-112.md` | No |
 
 ## Score model
 
@@ -123,18 +123,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT3-078 Shamanmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal purple evolution proof |
 | BT3-079 Tsukaimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited On Deletion memory gain and top-card exclusion proof |
 | BT3-080 Saberdramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited Retaliation with corrected legal higher-level host |
+| BT3-081 Devidramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited On Deletion memory gain and legal purple host proof |
+| BT3-082 BlackGatomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Security play to end-of-battle watcher with battle proof |
+| BT3-083 Meramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal purple stack proof |
+| BT3-084 Raremon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Authoritative Option RevealAdd with trash-remainder proof |
+| BT3-085 SkullMeramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal purple stack proof |
+| BT3-086 Arukenimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional hand MaloMyotismon play, cost, and self-delete proof |
+| BT3-087 Mummymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional trash MaloMyotismon play and decline/abort proof |
+| BT3-088 LadyDevimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Ordered draw/trash and inherited Option-use deletion proof |
+| BT3-089 Boltmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal purple stack proof |
+| BT3-090 Mastemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Both-security trash and optional yellow/purple revival proof |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT3/`.
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 110
-- Integrated card audits: 80
-- Corrected: 9
-- Provisional: 80
+- Assigned: 112
+- Integrated card audits: 90
+- Corrected: 10
+- Provisional: 90
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 2
+- Remaining unassigned: 0
 
 BT3 remains open.
