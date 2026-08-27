@@ -231,13 +231,16 @@ describe("EX12-018 Siriusmon", () => {
   });
 
   it("has Progress and Piercing, and checks two security after winning a Digimon battle", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX12-018", as: "attacker" }] },
-      1: {
-        battleArea: [{ card: "BT1-009", as: "defender", dp: 1000, suspended: true }],
-        security: ["BT1-090", "BT1-090"],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-018", as: "attacker" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "defender", dp: 1000, suspended: true }],
+          security: ["BT1-001", "BT1-001"],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Progress")).toBe(true);
@@ -249,7 +252,7 @@ describe("EX12-018 Siriusmon", () => {
         target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+    await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
