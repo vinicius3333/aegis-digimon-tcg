@@ -2423,3 +2423,33 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `git diff --check` pass. Typecheck was not rerun because no typing-sensitive
   source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-063 — Kurisarimon — 10/10
+
+- Catalog and ruling evidence: Black Lv.4 Champion Digimon,
+  Unknown/Unidentified, play cost 5, 4000 DP, and black Lv.3 evolution cost 2.
+  When digivolving, if its controller has no Arata Sanada in play, that player
+  may play one Arata Sanada from hand without cost. Its inherited Your Turn
+  effect grants Rush to every other own Digimon with the host's current name.
+  Q1338 confirms a recipient loses Rush immediately when digivolution changes
+  its name.
+- Implementation: `apps/api/src/cards/BT5/BT5-063.ts` now restricts the
+  optional hand `PlayWithoutCost` target to the exact Arata Sanada name and
+  gates it on no own Arata Sanada in play. Its inherited `YourTurn`
+  `GainKeyword` targets all other own Digimon with `isSameName` and grants
+  Rush through the live continuous layer. It declares full residual-free
+  coverage and registers exclusively through `registerIrCard`.
+- Behavioral proof: mixed-hand coverage deliberately prefers a non-Arata card
+  yet proves only Arata enters play for free and the nonmatch remains in hand.
+  Separate cases prove an existing Arata suppresses the effect and optional
+  refusal leaves Arata in hand. A legal Kurisarimon-to-Infermon-to-Diaboromon
+  inherited stack proves Rush is absent on the opponent's turn, present only
+  on another same-name own Digimon during the owner's turn, absent from the
+  host/different name, and lapses per Q1338 after the recipient evolves into
+  differently named Armageddemon.
+- Defect corrected: the free-play filter previously accepted any own hand card;
+  it now requires exact Arata Sanada name matching.
+- Verification: focused BT5-063 — 4/4 passed. Targeted Oxfmt, Oxlint, and
+  `git diff --check` pass. Typecheck was not rerun because the narrow IR filter
+  addition is not typing-sensitive and the unrelated baseline remains known.
+- Remaining ambiguity: none identified.
