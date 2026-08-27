@@ -230,6 +230,26 @@ describe("BT26-078 compiled behavior", () => {
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-021");
   });
 
+  it("Q7106 respects the optional return condition and grants nothing when declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          trash: [{ card: "BT26-078", as: "cherubimon" }],
+          battleArea: [{ card: "BT26-021", as: "playedTitan", enteredThisTurn: true }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -5;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("playedTitan").permanentId });
+
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-078");
+    expect(observe(s.engine).hasKeyword(s.perm("playedTitan"), "Rush")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("playedTitan"), "Execute")).toBe(false);
+  });
+
   it("lets the newly played Digimon attack through the granted Rush", async () => {
     const s = setupEngine(
       {

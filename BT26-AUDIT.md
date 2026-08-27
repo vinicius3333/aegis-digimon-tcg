@@ -2895,6 +2895,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR and exclusive `registerIrCard`; the three windows share one Once Per Turn key, dynamically cap optional free `Ver.3` trash play by face-down stack count, then delete highest-play-cost opposing Digimon/Tamers. Intrinsic keywords are exact.
 - Proof: existing dynamic ceiling, trash play, timing, Execute, Fragment, Security Attack, and deletion cases plus new non-DM evolution rejection and mixed Ver.3/non-Ver.3 trash filtering. Automation not run by instruction; `git diff --check` passed. No unresolved limitation.
 
+## BT26-078 — Cherubimon — 10/10
+
+- Catalog/KB: purple/green Lv.6 `Cherub`/`Titan`/`TS`, alternate Lv.5 TS evolution, self-delete entry effect, Trash reaction, Rush/Execute grants confirmed. Q7105–Q7108 cover text matching, Trash timing, opponent-memory threshold, and shared kind/cost limits.
+- Implementation: full IR with exclusive `registerIrCard`; optional self-delete gates a cost-12-or-lower `Chronomon`-text/Titan Digimon-or-Tamer trash play. The Your Turn Trash watcher requires opponent memory at least 5 and optional self return to deck bottom before granting Rush/Execute to the played qualifying Digimon.
+- Proof: existing evolution, entry, dual-kind/boundary, Trash-only, threshold, Rush, and Execute cases plus new Q7106 refusal proof preserving Cherubimon in trash and withholding grants. Automation not run by instruction; `git diff --check` passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
