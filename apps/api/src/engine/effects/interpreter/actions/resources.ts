@@ -287,7 +287,8 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
               const colors = new Set(
                 (materials ?? [target]).flatMap(
                   (material) =>
-                    runtimeCtx.game.effectiveColors?.(material) ?? runtimeCtx.game.definitionOf(material.topCard).colors,
+                    runtimeCtx.game.effectiveColors?.(material) ??
+                    runtimeCtx.game.definitionOf(material.topCard).colors,
                 ),
               );
               const candidates = runtimeCtx.game.player(ownerSeat).hand.filter((card) => {

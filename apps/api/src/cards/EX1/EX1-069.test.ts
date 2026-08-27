@@ -54,7 +54,10 @@ describe("EX1-069 Ultimate Connection!", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "EX1-069", as: "option" }, { card: "EX1-008", as: "cost" }],
+          hand: [
+            { card: "EX1-069", as: "option" },
+            { card: "EX1-008", as: "cost" },
+          ],
           battleArea: [{ card: "EX1-047", as: "blackSource" }],
           deck: [{ card: "BT1-009", as: "drawn" }],
         },

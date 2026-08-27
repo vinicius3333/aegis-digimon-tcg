@@ -39,7 +39,10 @@ describe("EX1-009 WarGreymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX1-009", as: "attacker" }, { card: "ST1-12", as: "tamer" }],
+          battleArea: [
+            { card: "EX1-009", as: "attacker" },
+            { card: "ST1-12", as: "tamer" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-072", as: "blocker", suspended: true }] },
       },

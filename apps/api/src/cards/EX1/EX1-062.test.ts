@@ -56,9 +56,9 @@ describe("EX1-062 SkullGreymon", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === stackAgumonId),
     );
 
-    expect(s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === stackAgumonId)?.isSuspended).toBe(
-      true,
-    );
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === stackAgumonId)?.isSuspended,
+    ).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === stackAgumonId)).toBe(false);
   });
 });

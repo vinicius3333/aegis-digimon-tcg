@@ -234,10 +234,7 @@ describe("EX1-071 Win Rate: 60%!", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "dnaDigivolve",
-        materialPermanentIds: [
-          s.perm("blueSlayerdramon").permanentId,
-          s.perm("greenBreakdramon").permanentId,
-        ],
+        materialPermanentIds: [s.perm("blueSlayerdramon").permanentId, s.perm("greenBreakdramon").permanentId],
         instanceId: s.inst("examon").instanceId,
       }),
     ).toEqual({ ok: true });
