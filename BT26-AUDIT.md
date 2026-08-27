@@ -3063,3 +3063,10 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR with exclusive `registerIrCard`. Conditional color waiver, permanent keywords, bottom-face-down Tamer cost, optional play of a cost-5-or-lower `Glowing Dawn` Digimon/Tamer from trash, and Option deletion of opposing lowest-level Digimon match the contract.
 - Proof: existing tests cover catalog/IR, evolution, Option face, cost payment, Security, On Deletion, Ascension ordering, Security lock, lowest-level deletion, Execute, and Ascension. No gap required a change.
 - Verification: automation not run by user instruction; `git diff --check` passed before the ledger-only commit. No files besides this ledger changed; no unresolved limitation remains.
+
+## Collection closeout — BT26 — 104/104 at 10/10
+
+- Every card from BT26-001 through BT26-104 has reproducible catalog, rules/KB, implementation, registration, and behavioral evidence recorded above.
+- Full collection regression: PASS, 104 files and 949 tests.
+- Cost-reduction mechanism regression: PASS, 7 files and 68 tests, including BT26-098 and existing peer consumers.
+- Gates: `pnpm typecheck` PASS; Oxlint and Oxfmt PASS for all changed files; `git diff --check` PASS. Repository-wide lint/format checks remain blocked only by pre-existing findings outside this BT26 audit diff.
