@@ -3051,6 +3051,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Correction: both unqualified security-removal watchers now use `sourceFilter: { controller: "any" }`; the default mine-only scope wrongly ignored opponent-security removals.
 - Proof: recovery/zero security, Counter/shared lock, Succession topmost behavior, security-removal Once Per Turn, plus opponent-security regression. Full IR/exclusive `registerIrCard`; automation not run; diff check passed. No limitation.
 
+## BT26-104 — Kunlun — 10/10
+
+- Catalog/KB: white cost-5 Shambala/SW/TB/TS Tamer with start-main memory, On Play trash/draw, end-turn Option use, and Security play confirmed. Q7190 preserves the end-turn activation after simultaneous Execute/evolution processing.
+- Implementation: full IR/exclusive `registerIrCard`; +1 memory, optional Shambala hand-trash then Draw 2, Tentei Hachibushu condition, self-suspend cost, multicolor-capable Shambala Option use without cost, and Security self-play.
+- Proof: all clauses, mixed Shambala/nonmatching Options, missing Tentei, missing Option, refusal, and Q7190 timing. Automation not run; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
