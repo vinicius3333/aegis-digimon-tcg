@@ -95,7 +95,7 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("attacker"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -115,7 +115,7 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("attacker"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
