@@ -11,7 +11,7 @@ describe("BT5-096 Supreme Cannon", () => {
     expect(main.actions).toHaveLength(2);
     expect(main.actions[0]).toMatchObject({ kind: "Return", condition: { kind: "youHaveNone" } });
     expect(main.actions[1]).toMatchObject({ kind: "Return", condition: { kind: "youHave" } });
-    expect(main.actions.every((action) => action.target.count === "all")).toBe(true);
+    expect(main.actions.every((action) => action.kind === "Return" && action.target.count === "all")).toBe(true);
   });
 
   it("returns all 3000-DP-or-less opponents and trashes their sources", async () => {

@@ -5,6 +5,12 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT5-092.js";
 
+type ActivatableEffect = { effectKey: string };
+
+function activatableEffects(s: ReturnType<typeof setupEngine>, alias: string): ActivatableEffect[] {
+  return observe(s.engine).activatableEffects(s.perm(alias)) as ActivatableEffect[];
+}
+
 describe("BT5-092 Nokia Shiramine", () => {
   it("may play exactly one literally named Agumon or Gabumon from hand for free", async () => {
     const s = setupEngine(
@@ -134,7 +140,7 @@ describe("BT5-092 Nokia Shiramine", () => {
     s.state.memory = 2;
     await s.ready();
 
-    const [effect] = observe(s.engine).activatableEffects(s.perm("nokia"));
+    const [effect] = activatableEffects(s, "nokia");
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -170,7 +176,7 @@ describe("BT5-092 Nokia Shiramine", () => {
     );
     s.state.memory = 4;
     await s.ready();
-    const [effect] = observe(s.engine).activatableEffects(s.perm("nokia"));
+    const [effect] = activatableEffects(s, "nokia");
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -205,7 +211,7 @@ describe("BT5-092 Nokia Shiramine", () => {
     );
     s.state.memory = 2;
     await s.ready();
-    const [effect] = observe(s.engine).activatableEffects(s.perm("nokia"));
+    const [effect] = activatableEffects(s, "nokia");
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -240,7 +246,7 @@ describe("BT5-092 Nokia Shiramine", () => {
     );
     s.state.memory = 3;
     await s.ready();
-    const [effect] = observe(s.engine).activatableEffects(s.perm("nokia"));
+    const [effect] = activatableEffects(s, "nokia");
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
