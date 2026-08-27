@@ -17,11 +17,16 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
-          target: csTamer,
           from: ["hand"],
           payCost: false,
           optional: true,
-          notSameNameAs: ["battleArea"],
+          target: {
+            filter: {
+              ...csTamer.filter,
+              excludeSameNameAsOwnTamers: true,
+            },
+            count: 1,
+          },
         },
       ],
     },
@@ -30,11 +35,16 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
-          target: csTamer,
           from: ["hand"],
           payCost: false,
           optional: true,
-          notSameNameAs: ["battleArea"],
+          target: {
+            filter: {
+              ...csTamer.filter,
+              excludeSameNameAsOwnTamers: true,
+            },
+            count: 1,
+          },
         },
       ],
     },

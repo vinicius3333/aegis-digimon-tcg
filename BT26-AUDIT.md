@@ -2276,3 +2276,35 @@ git diff --check
 ```
 
 No unresolved BT26-053 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-054 — Andromon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-054` (`Andromon`), a black/yellow level-5 Digimon with play cost 7, 7000 DP, and `Cyborg`/`CS` traits. Its alternate evolution is from a level-4 `CS` Digimon for cost 3.
+- Printed behavior verified: On Play/When Digivolving may play one `CS` Tamer from hand without cost if no own Tamer has the same name; All Turns Once Per Turn, when an effect places a `CS` Digimon into this Digimon's digivolution cards, may evolve it into a `CS` Digimon from hand without cost; and its inherited Opponent's Turn Once Per Turn effect may redirect an attack to this Digimon.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-054`; no card-specific Q&A, banlist restriction, or erratum is recorded. Tamer-name uniqueness, effect-attributed stack placement, free evolution, Link/evolution timing, and inherited redirection rules were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-054.ts` has full compiled IR coverage and registers exclusively through `registerIrCard("BT26-054", compiled)`.
+- Both play windows now use `excludeSameNameAsOwnTamers: true`, correctly comparing candidate names only against own Tamers. The prior `notSameNameAs: ["battleArea"]` compared against every own permanent and could incorrectly reject a Tamer whose name matched an own Digimon.
+- The All Turns watcher is self-host scoped, requires effect attribution and a placed `CS` Digimon, and offers a free hand evolution into `CS` under one Once Per Turn budget. The inherited watcher offers optional redirection during the opponent's turn. Name filtering, stack-add provenance, free evolution, redirection, and relevant peers were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-054.test.ts` covers structural encoding with the exact Tamer-only name exclusion; eligible `CS` Tamer play and duplicate-Tamer rejection; effect-attributed and unattributed stack-add behavior; free `CS` evolution; Once Per Turn handling; and inherited attack redirection.
+- The tightened structural assertions guard both On Play and When Digivolving against reintroducing the overly broad battle-area comparison. The implementation correction uses an existing engine primitive already behaviorally exercised by neighboring cards.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-054
+  PASS (no card-specific Q&A, errata, or restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-054 ambiguity or unsupported printed clause remains. Only the direct IR module, its colocated focused test, and this ledger section changed; the shared engine remains unchanged. The audit remains unpushed and the collection is not marked complete.
