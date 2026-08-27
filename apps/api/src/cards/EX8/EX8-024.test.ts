@@ -58,6 +58,7 @@ describe("EX8-024", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("source"), {
       subjectPermanentId: s.perm("source").permanentId,
     });
+    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "suspend"));
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
   });
 

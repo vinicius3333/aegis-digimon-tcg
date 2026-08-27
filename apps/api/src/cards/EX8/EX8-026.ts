@@ -97,7 +97,7 @@ export const compiled: CompiledCard = {
           while: {
             kind: "memoryAtLeast",
             value: 1,
-            seat: "mine",
+            controller: "mine",
           },
         },
       ],

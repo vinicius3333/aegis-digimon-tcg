@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../BT14/BT14-035.js";
+import "../BT18/BT18-062.js";
 import "./EX8-059.js";
 import { compiled } from "./EX8-073.js";
 
@@ -108,37 +109,36 @@ describe("EX8-073", () => {
     expect(s.perm("source").isSuspended).toBe(true);
   });
 
-  it("takes the Q3977 fallback when Barrier prevents the selected deletion", async () => {
+  it("takes the Q3977 fallback when a deletion-prevention effect prevents the selected deletion", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX8-073", as: "source", suspended: true }],
         },
         1: {
-          battleArea: [{ card: "BT14-035", as: "protected" }],
+          battleArea: [
+            { card: "BT14-035", as: "protected" },
+            { card: "BT18-062", as: "granter", dp: 15000 },
+          ],
+          hand: [{ card: "BT18-099", as: "protection-cost" }],
           security: [
             { card: "BT1-001", as: "fallback-security" },
-            { card: "BT1-002", as: "barrier-security" },
+            { card: "BT1-002", as: "other-security" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const fallbackSecurityId = s.inst("fallback-security").instanceId;
-    const protectedId = s.perm("protected").permanentId;
     await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("granter"));
     const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() =>
-      s.events.some(
-        (event) => event.kind === "barrierPrompt" && "permanentId" in event && event.permanentId === protectedId,
-      ),
-    );
-    expect(s.engine.applyIntent(1, { type: "respondBarrier", permanentId: protectedId, accept: true })).toEqual({
-      ok: true,
-    });
     await resolution;
-    await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT14-035"]);
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
+      "BT14-035",
+      "BT18-062",
+    ]);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === fallbackSecurityId)).toBe(true);
     expect(s.perm("source").isSuspended).toBe(false);
   });

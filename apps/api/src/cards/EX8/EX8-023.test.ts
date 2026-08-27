@@ -58,6 +58,7 @@ describe("EX8-023", () => {
       { autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("polar"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "suspend"));
     expect(s.perm("opponent").stack).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "cannotActivateWhenDigivolving")).toBe(true);
@@ -98,6 +99,7 @@ describe("EX8-023", () => {
       { autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("polar"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("penguinmon"), "suspend"));
     expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("penguinmon"), "cannotActivateWhenDigivolving")).toBe(true);
 

@@ -574,8 +574,18 @@ export class ContinuousEffectLedger {
     sourceKind?: string,
     opts?: { byOpponentEffect?: boolean },
   ): boolean {
+    // Printed "can't suspend" effects are recorded as `beSuspended` by the
+    // interpreter so effect-driven suspension can honor them. The combat
+    // legality reader uses the public `suspend` vocabulary for the implicit
+    // suspend that starts a normal attack. Treat the two spellings as the
+    // same prohibition at this read boundary; otherwise cards such as
+    // EX8-026 would block effect suspension but still allow attacks.
+    const equivalentRestrictions =
+      restriction === "suspend" || restriction === "beSuspended"
+        ? new Set<Restriction>(["suspend", "beSuspended"])
+        : new Set<Restriction>([restriction]);
     const individuallyRestricted = this.restrictions.some((r) => {
-      if (r.permanentId !== permanentId || r.restriction !== restriction) return false;
+      if (r.permanentId !== permanentId || !equivalentRestrictions.has(r.restriction)) return false;
       if (r.byOpponentEffectsOnly === true && opts?.byOpponentEffect === false) return false;
       if (r.fromSourceKind === undefined) return true;
       // Qualified entry: block only when sourceKind is known and matches.
