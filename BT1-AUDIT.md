@@ -18,10 +18,11 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT1-011–020 | Static audit complete; coordinator corrections queued | `internal-docs/audits/BT1/BT1-011-020.md` | No |
 | BT1-021–030 | Static audit complete | `internal-docs/audits/BT1/BT1-021-030.md` | Yes |
 | BT1-031–040 | Static audit complete | `internal-docs/audits/BT1/BT1-031-040.md` | Yes |
-| BT1-041–050 | Luna in progress | `internal-docs/audits/BT1/BT1-041-050.md` | No |
+| BT1-041–050 | Static audit complete | `internal-docs/audits/BT1/BT1-041-050.md` | Yes |
 | BT1-051–060 | Luna in progress | `internal-docs/audits/BT1/BT1-051-060.md` | No |
 | BT1-061–070 | Luna in progress | `internal-docs/audits/BT1/BT1-061-070.md` | No |
-| BT1-071–115 | Queued | Not assigned | No |
+| BT1-071–080 | Luna in progress | `internal-docs/audits/BT1/BT1-071-080.md` | No |
+| BT1-081–115 | Queued | Not assigned | No |
 
 ## Score model
 
@@ -69,18 +70,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT1-038 Monzaemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-038.ts), [test](apps/api/src/cards/BT1/BT1-038.test.ts) |
 | BT1-039 Cerberusmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-039.ts), [test](apps/api/src/cards/BT1/BT1-039.test.ts) |
 | BT1-040 WereGarurumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-040.ts), [test](apps/api/src/cards/BT1/BT1-040.test.ts) |
+| BT1-041 Zudomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-041.ts), [test](apps/api/src/cards/BT1/BT1-041.test.ts) |
+| BT1-042 LoaderLeomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-042.ts), [test](apps/api/src/cards/BT1/BT1-042.test.ts) |
+| BT1-043 SaberLeomon | 1/2 | 2/2 | 2/2 | 2/2 | 0/2 | Ambiguous; provisional 7/10 | [module](apps/api/src/cards/BT1/BT1-043.ts), [test](apps/api/src/cards/BT1/BT1-043.test.ts) |
+| BT1-044 MetalGarurumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Corrected; provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-044.ts), [test](apps/api/src/cards/BT1/BT1-044.test.ts) |
+| BT1-045 Tsukaimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-045.ts), [test](apps/api/src/cards/BT1/BT1-045.test.ts) |
+| BT1-046 Kudamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-046.ts), [test](apps/api/src/cards/BT1/BT1-046.test.ts) |
+| BT1-047 Tinkermon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-047.ts), [test](apps/api/src/cards/BT1/BT1-047.test.ts) |
+| BT1-048 Patamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-048.ts), [test](apps/api/src/cards/BT1/BT1-048.test.ts) |
+| BT1-049 Labramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-049.ts), [test](apps/api/src/cards/BT1/BT1-049.test.ts) |
+| BT1-050 Liollmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-050.ts), [test](apps/api/src/cards/BT1/BT1-050.test.ts) |
 
 Detailed clause traces and deferred commands for these rows are in the integrated range reports under `internal-docs/audits/BT1/`.
 
 ## Aggregate
 
 - Catalog cards: 115
-- Assigned: 70
-- Integrated card audits: 30
-- Corrected: 1
-- Provisional: 30
+- Assigned: 80
+- Integrated card audits: 40
+- Corrected: 2
+- Provisional: 40
 - Verified 10/10: 0
-- Blocked or ambiguous: 0
-- Remaining unassigned: 45
+- Blocked or ambiguous: 1
+- Remaining unassigned: 35
 
 BT1 remains open.
