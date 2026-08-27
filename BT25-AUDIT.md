@@ -1027,3 +1027,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-051.
+
+## BT25-052 — Logimon — 10/10
+
+- Catalog evidence: green/red level-4 Appmon; App Fusion from Onmon and Gatchmon for 0; Main once per turn links a Social, Tool, or Game Digimon with Link from hand or this Digimon's evolution cards at cost -1; self-bound when-linked watcher may play Kazuki & Itsuki with at most one friendly Tamer; this card links to an Appmon for 2 and its linked When Linking effect suspends one opposing Digimon or Tamer.
+- Knowledge base: Q6328 confirms the Main effect cannot choose a card without Link.
+- Defects corrected: the linked When Linking effect and the card's Appmon Link requirement were absent; the Main action lacked executable Link eligibility; the when-linked watcher was not bound to this Logimon; and the Tamer threshold used an unexecutable raw condition. The corrected source selector admits qualifying hand cards while limiting the evolution-card branch to this Digimon.
+- Verification: focused — 5 passed, including the public Main activation, exact cost reduction, hand source, Kazuki & Itsuki boundary, linked suspension, and self binding; catalog synchronization follows separately; `git diff --check` — passed. Registration remains exclusively `registerIrCard("BT25-052", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-052
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-052.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-052.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-052.
