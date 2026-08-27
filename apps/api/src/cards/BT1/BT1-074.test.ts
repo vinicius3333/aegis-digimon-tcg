@@ -57,6 +57,31 @@ describe("BT1-074 Togemon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(false);
   });
 
+  it("accepts a non-green level 5 Digimon (Q924)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-067", as: "base" }],
+          hand: [{ card: "BT1-074", as: "evolving" }],
+          deck: [{ card: "BT1-040", as: "blueLevelFive" }, "BT1-070", "BT1-085"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("blueLevelFive").instanceId));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("blueLevelFive").instanceId)).toBe(true);
+  });
+
   it("lets the player order the remaining revealed cards at the deck bottom", async () => {
     const s = setupEngine(
       {
