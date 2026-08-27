@@ -1675,3 +1675,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-087.
+
+## BT25-088 — Kyo Sawashiro — 10/10
+
+- Catalog evidence: purple Tamer; start-turn memory setter; all-turn own-security-removal watcher suspends this Tamer and may place the top two deck cards face down underneath it; your-turn once-per-turn Glowing Dawn play reduction paid by trashing a bottom face-down card under a friendly Tamer; Security plays this card free.
+- Knowledge base: Q6415 establishes Security-effect priority, Q6416–Q6420 define true-bottom placement, visibility, face-up trashing, and top-first deck order, and Q6421 allows two physical copies to stack play reductions.
+- Defect corrected: the play-cost reduction was registered as unrestricted `Static` even though the printed effect is `[Your Turn]`. Its trigger is now `YourTurn`, and the focused suite asserts that timing explicitly.
+- Verification: focused — 10 passed; interpreter/security-watcher mechanisms — 186 passed; combined batch/mechanism gate — 263 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-088", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-088
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-088.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/subtriggers.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-088.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-088.
