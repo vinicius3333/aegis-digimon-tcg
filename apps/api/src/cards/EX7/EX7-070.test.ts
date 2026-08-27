@@ -5,6 +5,8 @@ describe("EX7-070 Deputymon", () => {
     expect(compiled.effects?.[0]?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "onDigivolutionCardDiscarded",
+      sourceFilter: { isSelfRef: true },
+      requireByEffect: true,
       actions: [{ kind: "DeDigivolve", amount: 1, stopAtLevel: 3 }],
     }));
   it("deletes the lowest-cost opponent and places itself under a Three Musketeers Digimon", () =>

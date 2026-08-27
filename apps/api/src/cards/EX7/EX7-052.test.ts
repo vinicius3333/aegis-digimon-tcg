@@ -19,8 +19,12 @@ describe("EX7-052", () => {
         {
           kind: "SubTrigger",
           event: "whenOpponentAttacks",
-          actions: [{ kind: "EndAttack" }],
-          cost: { kind: "deleteOwn" },
+          actions: [
+            {
+              kind: "EndAttack",
+              cost: { kind: "deleteOwn", target: { filter: { excludeSelf: true }, count: 1 } },
+            },
+          ],
         },
       ],
     }));

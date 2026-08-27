@@ -12,6 +12,7 @@ describe("EX7-063", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "onDeletionOf",
+      sourceFilter: { allowTokens: true },
       actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: false, target: { count: 1 } }],
     }));
   it("plays itself from security", () =>

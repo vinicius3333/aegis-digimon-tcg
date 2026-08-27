@@ -103,6 +103,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 zone: "digivolutionCards",
+                isSelfRef: true,
                 kind: ["Option"],
               },
               count: 1,

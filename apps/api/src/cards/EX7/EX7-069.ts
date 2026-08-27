@@ -35,7 +35,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           condition: {
-            kind: "ifThisEffectActed",
+            kind: "lastSuspendedIsMine",
             raw: "this effect suspended your Digimon",
           },
         },
