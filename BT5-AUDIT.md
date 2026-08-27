@@ -2680,3 +2680,23 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   registration search, and `git diff --check` pass. No source or shared engine
   behavior changed.
 - Remaining ambiguity: none identified.
+
+## BT5-073 — Pillomon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.3 Rookie Digimon, Vaccine/Mammal, play
+  cost 3, 4000 DP, and purple Lv.2 evolution cost 0. It has no main, inherited,
+  Security, or alternate-evolution text. The knowledge base contains no
+  card-specific ruling, errata, restriction, or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-073.ts` intentionally carries an
+  empty effect list with full residual-free coverage and registers exclusively
+  through `registerIrCard("BT5-073", compiled)`.
+- Behavioral and structural proof: focused tests show that continuous
+  recomputation leaves Pillomon at its printed base DP and that the empty module
+  is present in the runtime registry with no residual behavior. Neighboring
+  vanilla-card patterns and generated effect data agree.
+- Defect corrected: none. The implementation and focused proof were already
+  faithful, so no source or test file changed.
+- Verification: focused BT5-073 — 2/2 passed. Targeted Oxfmt, Oxlint,
+  registration search, and `git diff --check` pass. No typing-sensitive source
+  changed.
+- Remaining ambiguity: none identified.
