@@ -934,3 +934,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-046.
+
+## BT25-047 — Floramon — 10/10
+
+- Catalog evidence: green level-3 Digimon; On Play reveal/search adds distinct Vegetation/Shaman and TS cards and bottoms the remainder; alternate zero-cost evolution from a level-2 TS Digi-Egg; inherited controller-turn +1000 DP to all friendly Digimon.
+- Knowledge base: no card-specific entries; general reveal distinct-selection, evolution, and inherited continuous-effect rules apply.
+- Implementation: reveal filters, distinct consumption, deck-bottom remainder, exact alternate evolution, owner-turn scope, friendly-only all-Digimon DP grant, full coverage/no residuals, and exclusive `registerIrCard("BT25-047", compiled)` are complete. Direct/shared IR match.
+- Verification: focused — 1 passed; related BT25-099 — 6 passed; catalog sync — 19 passed; `git diff --check` — passed. No defect was found, so the subagent's unnecessary test expansion was discarded and no implementation/test change remains.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-047
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-047.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-047.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-047.
