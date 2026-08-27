@@ -2872,3 +2872,34 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   survivor controls — 2/2 passed. Targeted Oxfmt, Oxlint, registration search,
   and `git diff --check` pass. No source or shared engine behavior changed.
 - Remaining ambiguity: none identified.
+
+## BT5-081 — ChaosGallantmon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.6 Mega Digimon, Virus/Dark Knight,
+  play cost 12, 12000 DP, and purple Lv.5 evolution cost 4. When Digivolving it
+  may delete another own Digimon to delete one opposing Lv.5-or-lower Digimon.
+  Its Your Turn, Once Per Turn watcher may play one purple Lv.3 Digimon from own
+  trash for free and suppress its On Play effects when another own Digimon is
+  deleted. Q1380 confirms no retroactive trigger for a deletion before entry;
+  Q2146 confirms normal evolution-requirement and level boundaries.
+- Implementation: `apps/api/src/cards/BT5/BT5-081.ts` encodes the optional own
+  other-Digimon deletion cost and mandatory Lv.5-or-lower opposing target, plus
+  an owner-turn `onDeletionOf` watcher filtered to another own Digimon. Its
+  nested optional PlayWithoutCost is purple Lv.3, own-trash, count 1, free, and
+  suppresses On Play. Once Per Turn, full residual-free coverage, and exclusive
+  `registerIrCard("BT5-081", compiled)` registration are preserved.
+- Behavioral proof: seven focused tests prove legal evolution, exact Lv.5
+  deletion and Lv.6 rejection with cost preservation, first-effect refusal,
+  opponent-deletion exclusion on an unused watcher, mixed-pool color/level/
+  controller/count filters, Once Per Turn, nested play refusal, opponent-turn
+  gating, and On Play suppression. A legal digivolution also proves the card is
+  already present when its own cost deletion occurs and can observe that event,
+  consistently contrasting Q1380's pre-entry timing boundary.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  to remove a false controller proof that occurred only after the Once Per Turn
+  effect was consumed, and to cover both optional decisions, mixed targeting,
+  exact timing, and supported deletion access.
+- Verification: focused BT5-081 — 7/7 passed. Targeted Oxfmt, Oxlint,
+  registration search, and `git diff --check` pass. No source or shared engine
+  behavior changed.
+- Remaining ambiguity: none identified.
