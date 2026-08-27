@@ -46,4 +46,31 @@ describe("BT3-027 Paildramon", () => {
 
     expect(s.perm("host").isSuspended).toBe(true);
   });
+
+  it("does not trigger its inherited effect a second time in the same turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT3-027", as: "paildramon" },
+          { card: "BT3-031", as: "imperial", under: ["BT3-027"] },
+        ],
+      },
+      1: { security: ["BT1-010", "BT1-011"] },
+    });
+    const attackerId = s.perm("imperial").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("imperial").isSuspended).toBe(false);
+
+    s.perm("imperial").isSuspended = true;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("imperial").isSuspended).toBe(true);
+  });
 });
