@@ -3157,3 +3157,32 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   warning only), registration search, and `git diff --check` pass. No shared
   engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-091 — Takumi Aiba — 10/10
+
+- Catalog and ruling evidence: White Tamer with play cost 2. During the
+  controller's turn, when an own Digimon evolves, this Tamer may suspend to
+  draw 1. On all turns every Lv.3 Digimon gains "When Attacking: lose 1
+  memory." Security plays it for free. Q1369 confirms own Lv.3 Digimon are
+  included, and Q1370 confirms multiple Takumi copies grant separately and
+  therefore stack.
+- Implementation: `apps/api/src/cards/BT5/BT5-091.ts` installs the optional
+  digivolution draw watcher only during the owner's turn, with self suspension
+  represented once as its activation cost. Own Lv.3 attacks use the direct
+  ally attack timing, while opposing Lv.3 Digimon receive the named effect via
+  GrantStatic so their attacks resolve from their controller's perspective.
+  Security plays self without cost. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-091", compiled)` registration are preserved.
+- Behavioral proof: seven focused tests prove own-turn evolution draw and
+  suspension, opponent-turn exclusion, optional refusal, one-copy −1 memory,
+  two-copy −2 stacking, the same penalty on an opponent's Lv.3 attack, Lv.4
+  exclusion, and free Security play.
+- Defects corrected: the draw watcher incorrectly used AllTurns and duplicated
+  self suspension as both a cost and an action. The direct opponent attack
+  scope also failed to collect attacks from the other controller; it is now a
+  named static grant to opposing Lv.3 Digimon, with the working direct path
+  retained for own attackers and multi-copy behavior.
+- Verification: focused BT5-091 — 7/7 passed; BT9-102 GrantStatic peer — 2/2
+  passed. Targeted Oxfmt, Oxlint, registration search, and `git diff --check`
+  pass. No shared engine seam changed.
+- Remaining ambiguity: none identified.
