@@ -6,7 +6,7 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",
-      actions: [{ kind: "GainMemory", amount: 1, attackPlayer: true }],
+      actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "attackTargetsPlayer", raw: "when this Digimon attacks a player" } }],
       isInherited: true,
       frequency: "OncePerTurn",
     },

@@ -31,6 +31,23 @@ describe("EX1-008 MetalGreymon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
+  it("does not delete an opposing Digimon when the attack targets a Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-008", as: "attacker" }] },
+      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 4000, suspended: true }] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 40);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
   it("grants inherited Piercing to a Machine host", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-042", as: "machine", under: ["EX1-008"] }] } });
     await s.ready();
