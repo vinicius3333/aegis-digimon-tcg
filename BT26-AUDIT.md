@@ -2724,3 +2724,35 @@ git diff --check
 ```
 
 No unresolved BT26-067 limitation remains. Only its focused test and this ledger section changed; the implementation and engine remain unchanged. The collection is not marked complete.
+
+## BT26-068 — Devimon — 10/10
+
+### Contract evidence
+
+- Catalog confirms a purple level-4 Digimon with play cost 6, 6000 DP, alternate evolution from level-3 `TS` for cost 2, and inherited When Attacking Once Per Turn Draw 1 then trash one hand card.
+- On Play/When Digivolving, if the controller has five or fewer hand cards, both players draw two. All Turns Once Per Turn, when effects add cards to the opponent's hand, may trash one own hand card to make the opponent trash one of their choice.
+- The KB has no card-specific Q&A, erratum, or restriction. Conditional boundaries, opponent choice, hand-add event direction, optional payment, and inherited timing were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-068.ts` has `coverage: "full"`, `residual: []`, and exclusive `registerIrCard("BT26-068", compiled)` registration.
+- Both entry windows use the exact five-or-fewer condition and draw two for each player. The All Turns watcher is directionally scoped to effect additions to the opponent's hand, reserves one Once Per Turn use, and gates opponent-selected discard behind optional own-hand trash.
+- Alternate evolution and inherited Draw/Trash are exact. Condition timing, event direction, opponent selection, source identity, and peers were inspected.
+
+### Behavioral proof
+
+- Existing `BT26-068.test.ts` contains 10 focused cases covering IR/catalog shape; valid/invalid evolution; exact five/six-card boundary; both entry windows; two-copy independence; opponent-hand event direction through real On Play processing; declined/failed costs; Once Per Turn reservation; and realistic inherited-stack execution.
+- Existing proof is sufficient for every printed clause; no code or test change was required.
+
+### Verification
+
+```text
+Knowledge-base card query
+  PASS (no card-specific Q&A, errata, or restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the ledger-only commit
+```
+
+No unresolved BT26-068 limitation remains. No card, engine, or test file changed; only this audit section was appended. The collection is not marked complete.
