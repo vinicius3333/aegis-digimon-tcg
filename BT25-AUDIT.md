@@ -1045,3 +1045,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-052.
+
+## BT25-053 — Aegiochusmon: Green — 10/10
+
+- Catalog evidence: green/red level-5 Digimon; alternate Aegiomon evolution for 3; Vortex and Decode (Aegiomon); On Play/When Digivolving suspends one opposing Digimon or Tamer and prevents that same permanent from unsuspending through its controller's turn, then at three or fewer friendly security gives this Digimon Piercing and +5000 DP for the turn; inherited all-turn once-per-turn optional suspension after the controller's security is removed from.
+- Knowledge base: Q6329 confirms the selected permanent still receives the unsuspend restriction when already suspended. Q6330 defines the simultaneous security-effect ordering handled by the shared security timing seam.
+- Defect corrected: `Suspend` ignored the old result binding and `Restrict` placed its selection reference inside the filter, so the two actions could affect different permanents. Both timings now select once, bind that exact target, then suspend and restrict it; the already-suspended path remains legal.
+- Verification: focused — 5 passed, covering exact-target binding, Q6329, alternate Aegiomon evolution, Vortex/Decode, Piercing/+5000, security direction, optionality, and once-per-turn behavior; `git diff --check` — passed. Registration remains exclusively `registerIrCard("BT25-053", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-053
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-053.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-053.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-053.
