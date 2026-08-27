@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-035.js";
 
@@ -23,5 +25,17 @@ describe("EX1-035 Kabuterimon", () => {
     await settle(() => s.perm("kabuterimon").topCard.cardId === "BT1-076");
     expect(s.perm("kabuterimon").topCard.instanceId).toBe(s.inst("evo").instanceId);
     expect(s.state.memory).toBe(3);
+  });
+
+  it("may decline the can-digivolve action while attacking", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-035", as: "kabuterimon" }], hand: [{ card: "BT1-076", as: "evo" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("kabuterimon"));
+    expect(s.perm("kabuterimon").topCard.cardId).toBe("EX1-035");
+    expect(s.inst("evo").zone).toBe("hand");
   });
 });

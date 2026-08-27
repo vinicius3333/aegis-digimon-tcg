@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-040.js";
@@ -32,5 +33,17 @@ describe("EX1-040 MegaKabuterimon", () => {
     await s.ready();
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { attackerPermanentId: s.perm("host").permanentId });
     expect(s.state.memory).toBe(6);
+  });
+
+  it("may decline the can-digivolve action while attacking", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-040", as: "mega" }], hand: [{ card: "BT1-081", as: "evo" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("mega"));
+    expect(s.perm("mega").topCard.cardId).toBe("EX1-040");
+    expect(s.inst("evo").zone).toBe("hand");
   });
 });

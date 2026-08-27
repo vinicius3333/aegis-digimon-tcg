@@ -32,4 +32,17 @@ describe("EX1-027 Leomon", () => {
     expect(s.state.players[0]!.security).toHaveLength(4);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === deckTopId)).toBe(true);
   });
+
+  it("counts the checked card as removed for the 3-or-fewer condition (Q3211)", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "EX1-027", as: "leomon", faceUp: true }, "BT1-001", "BT1-001", "BT1-001"],
+        deck: [{ card: "BT1-009", as: "recovered" }],
+      },
+    });
+    const recoveredId = s.inst("recovered").instanceId;
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("leomon"));
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === recoveredId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(5);
+  });
 });
