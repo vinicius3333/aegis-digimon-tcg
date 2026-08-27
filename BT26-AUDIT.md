@@ -1828,3 +1828,46 @@ git diff --check
 ```
 
 No unresolved BT26-040 ambiguity or unsupported printed clause remains. `apps/api/src/cards/BT26/BT26-040.ts`, its colocated focused test, the reusable `WhenMoving` builder/interpreter seam, and this appended audit section were changed. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-040; the collection is not marked complete.
+
+## BT26-041 — Hudiemon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-041` (`Hudiemon`), a green/yellow level-4 Champion/Free Digimon with play cost 4, 5000 DP, and `Insectoid`/`NSp` traits. Its normal evolution requirements are green Lv.3 for cost 3 and yellow Lv.3 for cost 3. The alternate requirement is `[Digivolve] Lv.3 w/[Larva]/[Insectoid]/[NSp] trait: Cost 2`. The main text is `[On Play] [When Digivolving] Add your top security card to the hand and ＜Recovery +1＞ Then, you may suspend 1 Digimon.` The inherited text is `[Your Turn] [Once Per Turn] When this Digimon wins a battle, gain 1 memory.` It has no Security text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-041 --json`; it returns `qa: []`, `banlist: null`, and `errata: null`, with no card-specific ruling or restriction entry. No unresolved card-specific ambiguity remains.
+- Comprehensive Rules evidence: §§2-3-5-1–3 and 8-1-1–3 define normal/alternate digivolution requirements, legality, payment, and stack transition; §§15-16-2-1 and 15-16-3-1 define On Play and When Digivolving; §§15-7-1–5 define mandatory/optional processing and ordered follow-up effects; §16-6-1–2 defines ＜Recovery＞; §§15-8-3-1–9 define trigger-type effects; §§15-14-1-1–5 define per-copy Once Per Turn limits and reset; and §§14-1–2 define battle winners. Face-down security placement follows the private-area rule in the official manual. These rules cover every printed clause.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-041.ts` is compiled IR with `coverage: "full"` and `residual: []`. It registers executable behavior exactly once via `registerIrCard("BT26-041", compiled)`; no `registerCard` registration exists.
+- The compiled alternate requirement is exact (`level: 3`, `traits: ["Larva", "Insectoid", "NSp"]`, `cost: 2`, `isAlternate: true`). The shared card-data path supplies both normal catalog EvoCost rows and validates the level/color requirements, while the shared digivolution transition preserves the stack and evolution draw.
+- The shared `action` sequence is installed independently for `OnPlay` and `WhenDigivolving`. It first moves exactly one card from the controller's top security to hand, then places one deck card face-down on top as Recovery +1, and finally offers an optional `Suspend` of exactly one Digimon with `controller: "any"`. The target is limited to Digimon and the optional action does not abort the mandatory recovery sequence.
+- The inherited effect is a `YourTurn` persistent watcher with `frequency: "OncePerTurn"` and a `whenBattleWon` `SubTrigger`. `sourceFilter: { isSelfRef: true }` binds the event to the Hudiemon-bearing host, and the action gains exactly one memory.
+- Shared seams inspected: `actions/security.ts` for top-security-to-hand ordering, deck Recovery, face-down placement, empty-security behavior, and optional-target handling; `actions/digivolve.ts` and card-data matching for normal/alternate legality and cost; `actions/subTrigger.ts` and the frequency ledger for host identity, turn scope, and Once Per Turn; permanent matching for any-controller Digimon-only target selection; and battle dispatch for winner timing. Relevant peers inspected: BT26-035, BT26-038, BT26-040, BT26-042, BT26-044, and BT26-045 for the same any-Digimon suspend vocabulary, inherited battle-win timing, adjacent trait evolution, and security/recovery primitives.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-041.test.ts` has 10 passing tests. It proves the exact alternate metadata and full IR shape; public On Play security handoff and Recovery with a Digimon-only target (excluding a Tamer); actual When Digivolving resolution from zero security; mandatory recovery after optional suspension refusal; all three alternate trait routes plus rejection of a red near-match; both normal green and yellow Lv.3 routes; inherited memory gain after the host wins; source isolation when another Digimon wins; and inherited Once Per Turn enforcement across two battles.
+- The evolution scenarios use real digivolution intents and assert final host stacks, memory payment, and deck/security/hand zones. The recovery scenarios assert the old security card reaches hand, the new deck card is face-down security, and the first evolution draw remains in hand. The mixed target scenario proves a Tamer is not eligible, and the refusal scenario proves the optional suspend does not suppress the preceding mandatory effects.
+- The inherited scenarios use a real stack containing Hudiemon, production attack resolution, a distinct ally-winner negative case, and two battle wins in one turn. All assertions are made after effect settlement.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-041 --json
+  PASS (qa: []; banlist: null; errata: null)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-041.test.ts
+  PASS (1 file, 10 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-034.test.ts src/cards/BT26/BT26-035.test.ts src/cards/BT26/BT26-036.test.ts src/cards/BT26/BT26-037.test.ts src/cards/BT26/BT26-038.test.ts src/cards/BT26/BT26-039.test.ts src/cards/BT26/BT26-040.test.ts src/cards/BT26/BT26-041.test.ts src/cards/BT26/BT26-042.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/subtriggers.test.ts src/engine/actions/digivolve.test.ts src/engine/effects/digivolveCandidateLegality.test.ts
+  PASS (13 files, 323 tests)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxlint apps/api/src/cards/BT26/BT26-041.ts apps/api/src/cards/BT26/BT26-041.test.ts
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-041.ts apps/api/src/cards/BT26/BT26-041.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-041 ambiguity or unsupported printed clause remains. Only the colocated focused test and this appended audit section were changed; the card implementation and shared engine required no correction. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-041; the collection is not marked complete.
