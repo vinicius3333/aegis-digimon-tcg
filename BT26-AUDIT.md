@@ -2997,6 +2997,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR/exclusive `registerIrCard`; exact DATA SQUAD placement/Draw/+1, opponent hand-trash and effect-attributed self-stack watchers, suspend cost, own DATA SQUAD Execute grant, and Security.
 - Proof: all clauses, refusal/unavailable cost, controller/turn filters, face-up trash, duration, Security, plus mixed-board non-DATA SQUAD exclusion. Automation not run; diff check passed. No limitation.
 
+## BT26-095 — Makoto Kuonji — 10/10
+
+- Catalog/KB: purple cost-3 Glowing Dawn/BEATBREAK Tamer, start-main placement, deletion reaction, and Security play confirmed. Q7160–Q7164 cover bottom/face-down handling and suspend-gated “after.”
+- Implementation: full IR/exclusive `registerIrCard`; hand BEATBREAK placement/Draw/+1, any-Digimon deletion watcher, suspend cost, Draw then hand trash, and own non-Digi-Egg BEATBREAK trash placement under self.
+- Proof: positive/refusal/suspended/empty cases, both controllers' deletions, order/face state, Security, plus mixed trait pools and Digi-Egg exclusion. Automation not run; diff check passed. No limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
