@@ -52,6 +52,7 @@ describe("BT26-048 BloomLordmon", () => {
         {
           kind: "SubTrigger",
           event: "onDigivolutionCardsDiscardedBatch",
+          requireByEffect: true,
           requireFaceDownDigivolutionCardTrashed: true,
           actions: [{ kind: "ModifyDP", amount: -6000 }],
         },
@@ -67,7 +68,10 @@ describe("BT26-048 BloomLordmon", () => {
             { card: "BT26-048", as: "bloomLordmon" },
             { card: "BT1-009", as: "host", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
           ],
-          hand: [{ card: "BT26-023", as: "ver4" }],
+          hand: [
+            { card: "BT26-023", as: "ver4" },
+            { card: "EX9-064", as: "tooHigh" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 10000 }] },
       },
@@ -78,8 +82,31 @@ describe("BT26-048 BloomLordmon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bloomLordmon"));
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-023");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tooHigh").instanceId);
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
     expect(s.perm("opponent").currentDP).toBe(4000);
+  });
+
+  it("may decline the optional trash-and-play processing without changing the stack or hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-048", as: "bloomLordmon" },
+            { card: "BT1-009", as: "host", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+          ],
+          hand: [{ card: "BT26-023", as: "ver4" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bloomLordmon"));
+
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("faceDown").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("ver4").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-023");
   });
 
   it("cannot pay with a face-up bottom card even when a higher stack card is face-down", async () => {
@@ -145,13 +172,18 @@ describe("BT26-048 BloomLordmon", () => {
     expect(s.perm("opponent").currentDP).toBe(5000);
   });
 
-  it("does not react to a face-up card or to a face-down card trashed from an opponent's Digimon", async () => {
+  it("does not react to face-up, non-effect, or opponent Digimon stack trash", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT26-048", as: "bloomLordmon" },
             { card: "BT1-009", as: "ownHost", under: [{ card: "BT1-010", as: "faceUp", faceUp: true }] },
+            {
+              card: "BT1-009",
+              as: "ownRuleHost",
+              under: [{ card: "BT1-010", as: "ownRuleFaceDown", faceUp: false }],
+            },
           ],
         },
         1: {
@@ -174,6 +206,12 @@ describe("BT26-048 BloomLordmon", () => {
       [s.inst("faceUp").instanceId],
       0,
     );
+    expect(s.perm("opponentTarget").currentDP).toBe(originalDP);
+    await advance(s.engine).verb.trashDigivolutionCards(
+      s.perm("ownRuleHost").permanentId,
+      [s.inst("ownRuleFaceDown").instanceId],
+    );
+    expect(s.perm("ownRuleHost").stack).toHaveLength(0);
     expect(s.perm("opponentTarget").currentDP).toBe(originalDP);
     await advance(s.engine).verb.trashDigivolutionCards(
       s.perm("opponentTarget").permanentId,

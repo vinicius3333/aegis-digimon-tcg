@@ -43,6 +43,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onDigivolutionCardsDiscardedBatch",
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          requireByEffect: true,
           requireFaceDownDigivolutionCardTrashed: true,
           actions: [
             {

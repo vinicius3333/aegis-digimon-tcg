@@ -2082,3 +2082,36 @@ git diff --check
 ```
 
 No unresolved BT26-047 ambiguity or unsupported printed clause remains. Only the colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-048 — BloomLordmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-048` (`BloomLordmon`), a green/yellow level-6 Mega/Vaccine Digimon with play cost 12, 12000 DP, and `Fairy`/`DM`/`Ver.4` traits. Its normal evolution requirements are green or yellow Lv.5 for cost 4, and its alternate requirement is `[Digivolve] Lv.5 w/[DM] trait: Cost 3`.
+- Printed behavior verified: Alliance and Vortex; a shared When Digivolving/When Attacking optional cost that trashes the bottom face-down digivolution card of any own Digimon, then may play one 6000-DP-or-lower `Ver.4` Digimon from hand without cost; and an All Turns reaction that gives one opposing Digimon -6000 DP for the turn when effects trash face-down digivolution cards from an own Digimon.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-048`; Q7050 confirms that simultaneously trashing multiple qualifying cards produces one activation, and Q7051 confirms that a Digimon played during When Attacking may participate in Alliance for that attack. No banlist restriction or erratum applies.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-048.ts` has `coverage: "full"`, `residual: []`, and registers executable behavior exclusively through `registerIrCard("BT26-048", compiled)`.
+- Static keyword projection supplies Alliance and Vortex. When Digivolving and When Attacking share an optional `CostGatedBlock`; its cost selects the bottom face-down card under any own Digimon, and its hand-only `PlayWithoutCost` filter requires a Digimon with at most 6000 DP and the `Ver.4` trait.
+- The All Turns watcher uses the batched digivolution-card discard event, scopes the affected source to an own Digimon, requires at least one face-down card in the batch, and now requires effect attribution. The single batch event preserves Q7050, while normal attack timing preserves Q7051.
+- Alternate evolution, cost gating, bottom-card/face-state handling, batched subtrigger filtering, DP modification duration, Alliance timing, and adjacent implementations were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-048.test.ts` covers alternate evolution metadata and full IR shape; the qualifying trash-and-play path and 6000-DP ceiling; optional decline; rejection of a face-up bottom card; the real When Attacking route and Alliance availability; one activation for a multi-card batch; and rejection of face-up, opponent-owned, and non-effect stack trash.
+- The newly added non-effect case exposes the implementation defect that the watcher previously accepted rule/non-effect trash. Adding `requireByEffect: true` closes that gap without changing the qualifying effect-driven path.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-048
+  PASS (Q7050-Q7051; no errata/restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-048 ambiguity or unsupported printed clause remains. Only the direct IR module, its colocated focused test, and this ledger section changed; the shared engine remains unchanged. The audit remains unpushed and the collection is not marked complete.
