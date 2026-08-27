@@ -1459,3 +1459,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-075.
+
+## BT25-076 — Ghoulmon — 10/10
+
+- Catalog evidence: black level-6 Digimon; Before Pay Cost may delete one friendly play-cost-11-or-less Digimon containing an exact Negamon evolution card and Negamon in its text to reduce this card's play cost by the deleted Digimon's cost; Rush, Reboot, Blocker; On Play/When Attacking/On Deletion deletes one lowest-play-cost opposing Digimon, else trashes opposing top security.
+- Knowledge base: Q6373 makes lowest-cost deletion mandatory when possible. Q6374 allows the fallback after deletion prevention. Q6714 defines “in its text.”
+- Defect corrected: the evolution-stack Negamon gate used substring name matching rather than the exact bracketed card name. Exact-name matching now preserves the printed cost condition.
+- Verification: focused — 9 passed; cost modifier — 7 passed; lowest-play-cost — 5 passed; Reboot — 3 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-076", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-076
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-076.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-076.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-076.
