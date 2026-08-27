@@ -32,6 +32,18 @@ describe("EX8-035", () => {
     expect(observe(s.engine).timingEffectDisabled(s.perm("opponent"), "whenDigivolving")).toBe(false);
   });
 
+  it("uses the source owner's memory side when the opponent is the turn player (Q3915)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-035", as: "marine" }] },
+      1: { battleArea: [{ card: "AD1-001", as: "opponent" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = -1;
+    await advance(s.engine).recompute();
+
+    expect(observe(s.engine).timingEffectDisabled(s.perm("opponent"), "whenDigivolving")).toBe(true);
+  });
+
   it("resolves its end-of-battle Security effect on two opponents and enters hand", async () => {
     const s = setupEngine({
       0: { security: [{ card: "EX8-035", as: "marine" }] },

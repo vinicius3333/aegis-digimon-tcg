@@ -53,6 +53,35 @@ describe("EX8-009", () => {
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("AD1-001");
   });
 
+  it("matches X Antibody by trait rather than requiring the words in the card name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX8-009", as: "guilmon" }],
+          deck: [
+            { card: "AD1-003", as: "growlmon" },
+            { card: "BT10-080", as: "traitOnlyXAntibody" },
+            { card: "AD1-001", as: "decoy" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guilmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.cardId === "AD1-003") &&
+        s.state.players[0]!.hand.some((card) => card.cardId === "BT10-080"),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["AD1-003", "BT10-080"]),
+    );
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("AD1-001");
+  });
+
   it("gains memory for only the first opposing deletion during its controller's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-009", as: "guilmon" }] }] },
@@ -97,13 +126,13 @@ describe("EX8-009", () => {
     expect(simultaneous.state.memory).toBe(0);
   });
 
-  it("uses the Gigimon alternate for 0 and resolves the reveal on digivolution", async () => {
+  it("uses the Gigimon alternate for 0 and finds a trait-only X Antibody when digivolving", async () => {
     const s = setupEngine(
       {
         0: {
           breeding: { card: "BT12-001", as: "gigimon" },
           hand: [{ card: "EX8-009", as: "guilmon" }],
-          deck: ["BT1-009", "AD1-003", "BT10-016", "AD1-001"],
+          deck: ["BT1-009", "AD1-003", "BT10-080", "AD1-001"],
         },
       },
       { autoSelectCards: true },
@@ -121,7 +150,7 @@ describe("EX8-009", () => {
     await settle(
       () =>
         s.state.players[0]!.hand.some((card) => card.cardId === "AD1-003") &&
-        s.state.players[0]!.hand.some((card) => card.cardId === "BT10-016"),
+        s.state.players[0]!.hand.some((card) => card.cardId === "BT10-080"),
     );
     expect(s.state.memory).toBe(0);
     expect(s.perm("gigimon").topCard.cardId).toBe("EX8-009");

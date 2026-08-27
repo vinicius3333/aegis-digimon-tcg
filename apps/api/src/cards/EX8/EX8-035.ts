@@ -32,7 +32,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
-      condition: { kind: "memoryAtLeast", value: 1 },
+      condition: { kind: "memoryAtLeast", value: 1, controller: "mine" },
       actions: [
         {
           kind: "DisableTimingEffect",

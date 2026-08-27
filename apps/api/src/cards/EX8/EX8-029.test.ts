@@ -48,6 +48,36 @@ describe("EX8-029", () => {
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "activateOnPlay")).toBe(false);
   });
 
+  it("evaluates both memory thresholds from Aegisdramon's side off-turn (Q3898–Q3899)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX8-029", as: "aegisdramon" },
+          { card: "EX8-020", as: "ds" },
+          { card: "AD1-001", as: "nonDs" },
+        ],
+      },
+      1: { battleArea: [{ card: "AD1-001", as: "opponent" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = -1;
+    await advance(s.engine).recompute();
+
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "activateOnPlay")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("ds"), "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("nonDs"), "beAffected", "Digimon")).toBe(false);
+
+    s.state.memory = 0;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "activateOnPlay")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("ds"), "beAffected", "Digimon")).toBe(false);
+
+    s.state.memory = -2;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "activateOnPlay")).toBe(false);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("ds"), "beAffected", "Digimon")).toBe(true);
+  });
+
   it("plays DS cards only from the DNA result's own sources", async () => {
     const s = setupEngine(
       {
