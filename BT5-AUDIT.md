@@ -3536,3 +3536,28 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `git diff --check` pass. An exploratory reencoded-IR filter exposed only an
   unrelated pre-existing BT19-036 assertion; no shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-106 — Demonic Disaster — 10/10
+
+- Catalog and ruling evidence: Purple Option with use cost 3. Main may delete
+  one own Digimon to unsuspend one own purple Digimon. Security may play one
+  purple Lv.3 Digimon from own trash for free without activating its On Play
+  effects. The local knowledge base contains no card-specific ruling or
+  ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-106.ts` uses an optional own
+  deletion cost on an own-purple Unsuspend action. Security uses optional
+  PlayWithoutCost from own trash with exact purple/Lv.3 filtering and
+  `suppressOnPlay`. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-106", compiled)` registration are preserved.
+- Behavioral proof: five focused tests prove own deletion payment, exact purple
+  suspended target selection while a non-purple target remains suspended, Main
+  refusal, a mixed trash pool distinguishing level and color, real On Play
+  suppression through deck preservation, and Security refusal with the
+  candidate remaining in trash.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for color/level boundaries, paid deletion, and both optional refusals.
+- Verification: focused BT5-106 — 5/5 passed; targeted PlayWithoutCost and
+  Unsuspend interpreter subset — 5/5 passed. Targeted Oxfmt, Oxlint,
+  registration search, and `git diff --check` pass. No production or shared
+  engine source changed.
+- Remaining ambiguity: none identified.
