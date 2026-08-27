@@ -9,7 +9,10 @@ describe("BT4-026 GaoGamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT4-026", as: "gao", under: ["BT1-001", "BT4-021"] }],
+          battleArea: [
+            { card: "BT4-026", as: "gao", under: ["BT1-001", "BT4-021"] },
+            { card: "BT1-038", as: "ally", under: [{ card: "BT1-001", as: "allySource" }] },
+          ],
           deck: ["BT1-009", "BT1-010"],
         },
       },
@@ -31,5 +34,7 @@ describe("BT4-026 GaoGamon", () => {
 
     expect(s.perm("gao").stack).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 1);
+    expect(s.perm("ally").stack).toHaveLength(1);
+    expect(s.perm("ally").stack[0]!.instanceId).toBe(s.inst("allySource").instanceId);
   });
 });
