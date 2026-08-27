@@ -1819,3 +1819,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-095.
+
+## BT25-096 — Mirage Beast Knight — 10/10
+
+- Catalog evidence: blue Option; use-cost reduction paid by trashing a bottom face-down card under a friendly Tamer; Main places exactly one Gaogamon and one MachGaogamon from trash as one Gaomon's bottom evolution cards, then that Digimon may evolve into MirageGaogamon from hand free while ignoring requirements; Security may play Gaomon/Thomas H. Norstein and then returns this Option to hand.
+- Knowledge base: Q6456 requires both distinct named materials; partial placement cannot meet the activation condition.
+- Defect corrected: the two placement costs and later evolution independently selected a Gaomon, allowing “that Digimon” to diverge on multi-host boards. The Main effect now uses one compound cost that binds the first selected Gaomon, forces the second material onto that bound host, and restricts the optional evolution to the same host.
+- Verification: focused — 5 passed; interpreter — 183 passed; combined batch/mechanism gate — 212 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-096", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-096
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-096.test.ts src/engine/effects/interpreter.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-096.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-096.
