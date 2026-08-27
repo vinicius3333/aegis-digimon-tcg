@@ -31,4 +31,8 @@ describe("EX4-026 Youkomon", () => {
       ],
     });
   });
+
+  it("requires the exact Renamon name for its alternate evolution", () => {
+    expect(compiled.digivolutionRequirement).toMatchObject([{ namesExact: ["Renamon"], cost: 2 }]);
+  });
 });

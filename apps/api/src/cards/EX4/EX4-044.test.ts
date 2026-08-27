@@ -14,10 +14,11 @@ describe("EX4-044 Greymon", () => {
       },
     });
   });
-  it("has inherited self-unsuspend", () => {
+  it("has inherited Reboot", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")).toMatchObject({
       isInherited: true,
-      actions: [{ kind: "Unsuspend" }],
+      actions: [],
+      keywords: [{ keyword: "Reboot" }],
     });
   });
 });

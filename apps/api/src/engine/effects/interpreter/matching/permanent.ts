@@ -505,8 +505,8 @@ export function permanentMatchesFilter(
   if (filter.digivolutionStackNameOrTrait && filter.digivolutionStackNameOrTrait.length > 0) {
     const refs = filter.digivolutionStackNameOrTrait;
     const hit = permanent.stack.some((card) => {
-      const def = ctx.game.definitionOf(card);
-      return refs.some((ref) => definitionMatches({ nameOrTrait: [{ ...ref, negate: false }] }, def));
+      const stackDefinition = ctx.game.definitionOf(card);
+      return refs.some((ref) => definitionMatches({ nameOrTrait: [{ ...ref, negate: false }] }, stackDefinition));
     });
     // A negated stack predicate means that NONE of the stacked cards may match the
     // referenced name/trait (EX5-070: without [X Antibody] in its digivolution cards).
@@ -674,20 +674,34 @@ export function permanentMatchesFilter(
   // and effect targets see the permanent's effective set (printed union active grants).
   if (
     (filter.colors && filter.colors.length > 0) ||
+    (filter.colorsAll && filter.colorsAll.length > 0) ||
     (filter.excludeColors && filter.excludeColors.length > 0) ||
-    filter.multicolor === true
+    filter.multicolor === true ||
+    filter.colorCount !== undefined
   ) {
     const effective = typeof ctx.game.effectiveColors === "function" ? ctx.game.effectiveColors(permanent) : def.colors;
     if (filter.colors && filter.colors.length > 0) {
       const wanted = filter.colors.map((color) => COLOR_MAP[color]);
       if (!wanted.some((color) => effective.includes(color))) return false;
     }
+    if (filter.colorsAll && filter.colorsAll.length > 0) {
+      const wanted = filter.colorsAll.map((color) => COLOR_MAP[color]);
+      if (!wanted.every((color) => effective.includes(color))) return false;
+    }
     if (filter.excludeColors && filter.excludeColors.length > 0) {
       const banned = filter.excludeColors.map((color) => COLOR_MAP[color]);
       if (banned.some((color) => effective.includes(color))) return false;
     }
     if (filter.multicolor === true && new Set(effective).size < 2) return false;
-    const { colors: _colors, excludeColors: _excludeColors, multicolor: _multicolor, ...rest } = filter;
+    if (filter.colorCount !== undefined && new Set(effective).size !== filter.colorCount) return false;
+    const {
+      colors: _colors,
+      colorsAll: _colorsAll,
+      excludeColors: _excludeColors,
+      multicolor: _multicolor,
+      colorCount: _colorCount,
+      ...rest
+    } = filter;
     return definitionMatches(rest, def);
   }
 

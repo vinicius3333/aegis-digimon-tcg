@@ -27,6 +27,8 @@ export interface DigivolutionRequirement {
   excludeTraits?: string[];
   /** At least one printed source color must match (for example, "yellow, green, or purple"). */
   colors?: ("Red" | "Blue" | "Yellow" | "Green" | "White" | "Black" | "Purple")[];
+  /** Exact number of printed colors on the source (used with `colors` for two-color paths). */
+  colorCount?: number;
   /** Text tokens the source must contain ("w/[Pulsemon] in text"). */
   texts?: string[];
   cost: number;

@@ -11,7 +11,7 @@ import {
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
-import "./EX4-051.js";
+import { compiled } from "./EX4-051.js";
 
 function card(cardId: string, ownerSeat: Seat): CardInstance {
   return { cardId, instanceId: `${cardId}-${ownerSeat}`, ownerSeat, faceUp: true } as CardInstance;
@@ -33,6 +33,28 @@ function definition(cardId: string): CardDefinition {
 }
 
 describe("EX4-051 BlitzGreymon", () => {
+  it("uses the compiled IR registration for all three When Digivolving modes", () => {
+    const action = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0];
+    expect(action).toMatchObject({
+      kind: "Modal",
+      options: [
+        [
+          {
+            kind: "DeDigivolve",
+            target: { count: 3, forceSelection: true },
+            amount: 1,
+            condition: { kind: "opponentHas", countMin: 3 },
+          },
+        ],
+        [{ kind: "Digivolve", payCost: false, from: ["hand"] }],
+        [{ kind: "DnaDigivolve", payCost: true, materials: [{ count: 1 }, { count: 1 }] }],
+      ],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, names: ["MetalGreymon"], cost: 3, isAlternate: true },
+    ]);
+  });
+
   it("can De-Digivolve up to three opposing Digimon through modal option one", async () => {
     const selfCard = card("EX4-051", 0);
     const self = {
@@ -107,7 +129,7 @@ describe("EX4-051 BlitzGreymon", () => {
     expect(targetRequests).toEqual([{ min: 3, max: 3 }]);
   });
 
-  it("does not resolve the three-target mode when fewer than three opposing Digimon exist", async () => {
+  it("does nothing when fewer than three opposing Digimon exist", async () => {
     const selfCard = card("EX4-051", 0);
     const self = {
       permanentId: "self",

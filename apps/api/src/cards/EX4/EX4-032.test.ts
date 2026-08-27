@@ -7,20 +7,30 @@ describe("EX4-032 Terriermon", () => {
       kind: "RevealAdd",
       revealCount: 4,
       add: [
-        { filter: { multicolor: true, colors: ["Green"] } },
+        { filter: { multicolor: true, colorCount: 2, colors: ["Green"] } },
         { filter: { kind: ["Tamer"], nameOrTrait: [{ match: "name", tokens: ["Henry Wong"] }] } },
       ],
       rest: "deckBottom",
     });
   });
-  it("may digivolve from hand for two less when an effect suspends a Digimon", () => {
+  it("may digivolve itself from hand for two less when Alliance suspends your Digimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
       isInherited: true,
       actions: [
         {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
-          actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 2, optional: true }],
+          bySourceKeyword: "Alliance",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [
+            {
+              kind: "Digivolve",
+              from: ["hand"],
+              reduceCost: 2,
+              optional: true,
+              target: { filter: { isSelfRef: true }, isSelf: true },
+            },
+          ],
         },
       ],
     });

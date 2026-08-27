@@ -9,7 +9,7 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import "./EX4-073.js";
+import { compiled } from "./EX4-073.js";
 
 describe("EX4-073 Omnimon Alter-B", () => {
   it("registers mandatory When Digivolving and optional When Attacking effects", () => {
@@ -28,8 +28,27 @@ describe("EX4-073 Omnimon Alter-B", () => {
     const attacking = module.effectsForTiming(EffectTiming.OnUseAttack, source);
     expect(digivolving).toHaveLength(1);
     expect(digivolving[0]?.optional).toBe(false);
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.isInherited).not.toBe(true);
     expect(attacking).toHaveLength(1);
     expect(attacking[0]?.optional).toBe(true);
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.condition).toMatchObject({
+      kind: "selfDigivolutionStackMatchesFilter",
+      filter: { kind: ["Digimon"], levelComparison: { op: "gte", value: 6 } },
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions?.[0]?.optional).not.toBe(true);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 7, names: ["Omnimon"], cost: 2, isAlternate: true }]);
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[1]).toMatchObject({
+      kind: "DeleteBudget",
+      minimum: 1,
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions?.[0]).toMatchObject({
+      kind: "TrashDigivolution",
+      amount: 3,
+      upTo: true,
+      minAmount: 1,
+      choose: true,
+      cardFilter: { kind: ["Digimon"], levelComparison: { op: "gte", value: 6 } },
+    });
   });
 
   it("trashes three level-six materials, deletes lowest-cost Digimon/Tamers sequentially, and trashes two security", async () => {

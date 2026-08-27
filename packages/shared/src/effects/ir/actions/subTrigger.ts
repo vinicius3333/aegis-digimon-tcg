@@ -73,7 +73,14 @@ export interface SubTriggerAction extends ActionBase {
   kind: "SubTrigger";
   event: SubTriggerEvent;
   /** Restrict a leave-play watcher by the cause of the departure. */
-  leaveCause?: "opponentEffect" | "byOpponentEffect" | "otherThanYourEffect" | "byEffect" | "byBattle" | "otherThanBattle" | "any";
+  leaveCause?:
+    | "opponentEffect"
+    | "byOpponentEffect"
+    | "otherThanYourEffect"
+    | "byEffect"
+    | "byBattle"
+    | "otherThanBattle"
+    | "any";
   /** For whenHandTrashed, select whose hand must have been trashed. Defaults to mine. */
   handTrashedController?: "mine" | "opponent";
   /**
@@ -114,6 +121,8 @@ export interface SubTriggerAction extends ActionBase {
   linkedCardFilter?: Filter;
   /** Restrict the card whose effect produced the event ("by [Rasenmon]'s effect"). */
   effectSourceFilter?: Filter;
+  /** Restrict an effect-driven event to a producer whose printed text carries this keyword. */
+  bySourceKeyword?: string;
   /** Require the triggering event to carry effect attribution. */
   requireByEffect?: boolean;
   /** Do not fire when this card's own effect caused the deck trash (EX2-039). */

@@ -20,7 +20,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - effect[2] (isInherited:true) SubTrigger: should fire when <Alliance> suspends one of
 //   your Digimon. bySourceKeyword:"Alliance" + sourceFilter: controller:"mine" Digimon.
 //   Then this Digimon digivolves into a 2-color green from hand, cost reduced by 2.
-//   (CAP-C-17 bySourceKeyword gate — faithfully encoded, engine build needed.)
+//   (CAP-C-17 bySourceKeyword gate — source attribution is carried by the suspension seam.)
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -91,27 +91,13 @@ export const compiled: CompiledCard = {
                 controllerDefault: "mine",
                 kind: ["Digimon"],
                 multicolor: true,
+                colorCount: 2,
                 colors: ["Green"],
               },
               from: ["hand"],
               payCost: true,
+              costDelta: -2,
               optional: true,
-            },
-            {
-              kind: "Replacement",
-              event: "wouldDigivolve",
-              sourceFilter: {
-                isSelfRef: true,
-              },
-              actions: [
-                {
-                  kind: "Replacement",
-                  event: "wouldDigivolve",
-                  mode: "reduceCost",
-                  amount: 2,
-                  raw: "reduce the cost by 2",
-                },
-              ],
             },
           ],
         },

@@ -356,6 +356,7 @@ function requirementHasGate(req: DigivolutionRequirement): boolean {
     (req.traits !== undefined && req.traits.length > 0) ||
     (req.traitSubstrings !== undefined && req.traitSubstrings.length > 0) ||
     (req.excludeTraits !== undefined && req.excludeTraits.length > 0) ||
+    req.colorCount !== undefined ||
     (req.names !== undefined && req.names.length > 0) ||
     (req.namesExact !== undefined && req.namesExact.length > 0) ||
     (req.texts !== undefined && req.texts.length > 0) ||
@@ -464,6 +465,7 @@ function matchGatedRequirement(
     if (req.colors && req.colors.length > 0) {
       if (!req.colors.some((c) => baseDef.colors.includes(c as CardColor))) continue;
     }
+    if (req.colorCount !== undefined && baseDef.colors.length !== req.colorCount) continue;
 
     // Exclude-trait gate: base must NOT carry any listed trait ("from a Digimon without
     // the [X Antibody] trait", EX8-037).

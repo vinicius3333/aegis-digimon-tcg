@@ -613,6 +613,19 @@ export class CombatController {
               this.hooks.addDpModifier?.(attacker.permanentId, ally.currentDP);
               this.hooks.addSecurityAttack?.(attacker.permanentId);
               await this.fireSuspended(ally, allySuspended);
+              // Alliance suspends its chosen ally as an effect cost (§16-24), so the
+              // effect-suspension bus must observe the actual transition after the keyword's
+              // DP/security benefit has been installed. Carry the attacking card as the
+              // producer so watchers such as EX4-032/033/034 can distinguish Alliance from
+              // an unrelated suspension effect.
+              if (allySuspended) {
+                await this.hooks.fireSubTrigger?.("whenEffectSuspends", {
+                  subjectPermanentId: ally.permanentId,
+                  suspendedPermanentId: ally.permanentId,
+                  effectSuspendSeat: attackerSeat,
+                  byEffectCardId: attacker.topCard.cardId,
+                });
+              }
             }
           }
         }
@@ -998,9 +1011,9 @@ export class CombatController {
    * exactly here: "suspending from an attack declaration is due to the rules", so it is a
    * real suspension but NOT an effect-driven one — `whenEffectSuspends` stays unfired.
    *
-   * ＜Alliance＞ and ＜Evade＞ suspend as a keyword-effect cost rather than by the rules, so
-   * they arguably also owe `whenEffectSuspends`. No ruling settles the seat attribution, so
-   * they fire only the generic event here rather than guessing.
+   * ＜Alliance＞ and ＜Evade＞ suspend as a keyword-effect cost rather than by the rules. Alliance
+   * explicitly carries its effect attribution through the dedicated call site, while Evade's
+   * battle-only path remains a combat transition without an effect producer.
    */
   private suspendInCombat(permanent: Permanent): boolean {
     if (permanent.isSuspended) return false;

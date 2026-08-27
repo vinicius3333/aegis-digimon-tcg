@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
               filter: {
                 controllerDefault: "mine",
                 colors: ["Blue", "Black"],
+                hasDigiXrosRequirements: true,
               },
               count: 1,
               to: "hand",

@@ -381,7 +381,18 @@ export async function payCost(
       const count = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
       if (count <= 0 || candidates.length < count) return false;
       const chosen = await pickLoose(ctx, { ...cost.target, count }, candidates);
-      return chosen.length === count;
+      if (chosen.length !== count) return false;
+      // A reveal cost is a public hand reveal, and the exact cards paid by that cost
+      // remain available to a following "that revealed card" disposition (EX4-023).
+      // Keep the binding on the effect context instead of resolving the follow-up target
+      // independently, which could choose a different same-level hand card.
+      ctx.lastRevealedCards = chosen.flatMap((instanceId) => {
+        const card = candidates.find((candidate) => candidate.instanceId === instanceId);
+        if (card === undefined) return [];
+        ctx.fx.revealCard(card.ownerSeat, card.cardId, ctx.source.cardId);
+        return [{ instanceId: card.instanceId, cardId: card.cardId, ownerSeat: card.ownerSeat }];
+      });
+      return true;
     }
     case "compound": {
       if (cost.costs === undefined || cost.costs.length === 0) return false;
@@ -521,6 +532,9 @@ export async function payCost(
     }
     case "suspend": {
       // "by suspending this Tamer" etc.
+      // Do not let a prior suspend payment in the same effect resolution leak into
+      // this cost's result when the current selection is empty or unpayable.
+      ctx.lastSuspendedPermanentIds = [];
       const ids = cost.target
         ? await resolvePermanentTargets(ctx, cost.target, {
             eligible: (permanentId) => ctx.game.permanentById(permanentId)?.isSuspended === false,
@@ -530,11 +544,20 @@ export async function payCost(
             return self !== undefined && !self.isSuspended ? [self.permanentId] : [];
           })();
       if (ids.length === 0) return false;
-      await ctx.fx.suspend(ids, {
+      const suspendedIds = await ctx.fx.suspend(ids, {
         byEffectSeat: ctx.source.ownerSeat,
+        byEffectCardId: ctx.source.cardId,
         deferTriggers: opts?.deferSuspendTriggers,
       });
-      ctx.lastSuspendedPermanentIds = ids;
+      // A cost is atomic from the effect's point of view: selecting N candidates is
+      // not enough when a restriction/replacement prevents one of them from actually
+      // changing state. Bind the receipt returned by the primitive and reject an
+      // incomplete payment (EX4-029/035/059 Alliance-style costs).
+      if (suspendedIds.length !== ids.length) {
+        ctx.lastSuspendedPermanentIds = suspendedIds;
+        return false;
+      }
+      ctx.lastSuspendedPermanentIds = suspendedIds;
       // Record the suspended count so a `usePaidCount` scaling on the parent action can read it
       // ("for every Tamer this effect suspended" — BT17-041).
       if (out) out.paidCount = ids.length;
@@ -1494,9 +1517,7 @@ export async function payCost(
           if (sourceIds.length === 0) return false;
           if (cost.storeAs !== undefined) {
             const sourcePermanent = ctx.game.permanentById(sourceIds[0]!);
-            const level = sourcePermanent?.topCard
-              ? ctx.game.definitionOf(sourcePermanent.topCard).level
-              : undefined;
+            const level = sourcePermanent?.topCard ? ctx.game.definitionOf(sourcePermanent.topCard).level : undefined;
             if (level !== undefined && level > 0) {
               if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
               ctx.namedCounts.set(cost.storeAs, level);

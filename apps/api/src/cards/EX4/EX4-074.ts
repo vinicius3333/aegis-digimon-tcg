@@ -64,7 +64,6 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-            upTo: true,
           },
         },
         {

@@ -17,8 +17,8 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "EndOfAttack")?.actions;
     expect(actions).toMatchObject([
       { kind: "Delete", target: { isSelf: true } },
-      { kind: "Delete", target: { filter: { controller: "opponent" }, upTo: true } },
-      { kind: "SecurityManipulation", op: "placeFromDeck" },
+      { kind: "Delete", target: { filter: { controller: "opponent" }, count: 1 } },
+      { kind: "SecurityManipulation", op: "placeFromDeck", controller: "mine", amount: 1, toTop: true },
       { kind: "Hatch", condition: { kind: "youHave" } },
     ]);
   });

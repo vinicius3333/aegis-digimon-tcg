@@ -527,16 +527,34 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             const selectedExpanders = expanders.filter((permanent) =>
               selectedExpanderCards.includes(permanent.topCard!.instanceId),
             );
+            // A triggered DigiXrosMaterialZoneExpansion is recorded by the canonical primitive
+            // ledger. Consume that ledger here as well as the card-id registry: effect-driven
+            // PlayWithoutCost must see the same extra source zones as an explicit playCard
+            // declaration (EX4-062, BT19-079/087). The registry still supplies the precise
+            // per-expander maxima and trait gate when a Tamer is selected interactively.
+            const ledgerZones = new Set(ctx.fx.digiXrosExpandedZones?.(ownerSeat) ?? []);
+            const ledgerUnderTamer =
+              ledgerZones.has("underTamers") ||
+              ledgerZones.has("underMyTamers") ||
+              ledgerZones.has("underTamer") ||
+              ledgerZones.has("digivolutionCards");
+            const ledgerTrash = ledgerZones.has("trash");
             const expansion = selectedExpanders.reduce(
               (current, permanent) => {
                 const expander = digiXrosZoneExpanderFor(permanent.topCard!.cardId)!;
                 return {
-                  underTamerMax: Math.max(current.underTamerMax, expander.underTamerMax),
-                  trashMax: Math.max(current.trashMax, expander.trashMax),
+                  underTamerMax: current.underTamerMax + expander.underTamerMax,
+                  trashMax: current.trashMax + expander.trashMax,
                 };
               },
               { underTamerMax: 0, trashMax: 0 },
             );
+            // The primitive ledger represents an already-paid expansion (for example,
+            // a replacement effect from EX4-062/BT19-087), so it must remain usable
+            // even though that Tamer is now suspended and is absent from the interactive
+            // expander list. Merge it with any independently selected live expanders.
+            if (ledgerUnderTamer) expansion.underTamerMax += 1;
+            if (ledgerTrash) expansion.trashMax += 1;
             const defaultCandidates = [
               ...looseCardsInZone(ctx, ownerSeat, "hand").filter(
                 (candidate) => candidate.instanceId !== playedCard!.instanceId,
@@ -597,7 +615,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               if (selectedUnderTamer > 0 || selectedTrash > 0) {
                 await ctx.fx.suspend(
                   selectedExpanders.map((permanent) => permanent.permanentId),
-                  { byEffectSeat: ownerSeat },
+                  { byEffectSeat: ownerSeat, byEffectCardId: ctx.source.cardId },
                 );
               }
               digiXrosMaterialInstanceIds = selected;

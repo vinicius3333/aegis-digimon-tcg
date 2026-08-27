@@ -15,14 +15,19 @@ describe("EX4-046 WereGarurumon", () => {
     });
   });
   it("can suspend itself to redirect an opponent attack", () => {
-    expect(compiled.effects?.find((entry) => (entry.trigger as string) === "WhenOpponentAttacks")).toMatchObject({
+    expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")).toMatchObject({
       isInherited: true,
       actions: [
         {
-          kind: "RedirectAttack",
-          optional: true,
-          abortOnDecline: true,
-          cost: { kind: "suspend", target: { filter: { isSelfRef: true } } },
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "RedirectAttack",
+              abortOnDecline: true,
+              cost: { kind: "suspend", optional: true, target: { filter: { isSelfRef: true } } },
+            },
+          ],
         },
       ],
     });
