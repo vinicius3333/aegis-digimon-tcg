@@ -29,7 +29,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          sourceFilter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" },
           addedDigivolutionCardFilter: { faceDown: true },
           cost: {
             kind: "suspend",
