@@ -1423,3 +1423,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-073.
+
+## BT25-074 — Tankdramon — 10/10
+
+- Catalog evidence: black level-5 Digimon; alternate level-4 D-Brigade/ACCEL evolution for 3; shared once-per-turn When Digivolving/When Attacking reveal three, play one eligible Digimon with cost reduced by 5, and trash the remainder; all-turn filtered play watcher prevents one opposing Digimon from attacking; inherited conditional Reboot and Blocker for Chaosmon/D-Brigade/ACCEL hosts.
+- Knowledge base: Q6369 confirms this card's own play can trigger its all-turn effect.
+- Implementation: shared timing ledger, reveal/play/trash sequence, cost reduction, self-entry play watcher, restriction duration, and conditional inherited keywords are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-074", compiled)`. The IR is exported only for reproducible persistence checks.
+- Verification: focused — 4 passed; interpreter — 183 passed; continuous ledger — 31 passed; `git diff --check` — passed. No behavioral defect was found, so no test change was made; persisted synchronization follows separately.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-074
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-074.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-074.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-074.
