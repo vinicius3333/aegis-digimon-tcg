@@ -14,13 +14,14 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT1-001–010 | Static audit complete; coordinator corrections queued | `internal-docs/audits/BT1/BT1-001-010.md` | No |
+| BT1-001–010 | Static audit complete | `internal-docs/audits/BT1/BT1-001-010.md` | Yes |
 | BT1-011–020 | Static audit complete; coordinator corrections queued | `internal-docs/audits/BT1/BT1-011-020.md` | No |
 | BT1-021–030 | Static audit complete | `internal-docs/audits/BT1/BT1-021-030.md` | Yes |
-| BT1-031–040 | Luna in progress | `internal-docs/audits/BT1/BT1-031-040.md` | No |
+| BT1-031–040 | Static audit complete | `internal-docs/audits/BT1/BT1-031-040.md` | Yes |
 | BT1-041–050 | Luna in progress | `internal-docs/audits/BT1/BT1-041-050.md` | No |
 | BT1-051–060 | Luna in progress | `internal-docs/audits/BT1/BT1-051-060.md` | No |
-| BT1-061–115 | Queued | Not assigned | No |
+| BT1-061–070 | Luna in progress | `internal-docs/audits/BT1/BT1-061-070.md` | No |
+| BT1-071–115 | Queued | Not assigned | No |
 
 ## Score model
 
@@ -38,6 +39,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT1-001 Yokomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-001.ts), [test](apps/api/src/cards/BT1/BT1-001.test.ts) |
+| BT1-002 Bebydomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-002.ts), [test](apps/api/src/cards/BT1/BT1-002.test.ts) |
+| BT1-003 Upamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-003.ts), [test](apps/api/src/cards/BT1/BT1-003.test.ts) |
+| BT1-004 Wanyamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-004.ts), [test](apps/api/src/cards/BT1/BT1-004.test.ts) |
+| BT1-005 Kyaromon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-005.ts), [test](apps/api/src/cards/BT1/BT1-005.test.ts) |
+| BT1-006 Cupimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-006.ts), [test](apps/api/src/cards/BT1/BT1-006.test.ts) |
+| BT1-007 Tanemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-007.ts), [test](apps/api/src/cards/BT1/BT1-007.test.ts) |
+| BT1-008 Frimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Corrected; provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-008.ts), [test](apps/api/src/cards/BT1/BT1-008.test.ts) |
+| BT1-009 Monodramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-009.ts), [test](apps/api/src/cards/BT1/BT1-009.test.ts) |
+| BT1-010 Agumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-010.ts), [test](apps/api/src/cards/BT1/BT1-010.test.ts) |
 | BT1-021 MetalGreymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-021.ts), [test](apps/api/src/cards/BT1/BT1-021.test.ts) |
 | BT1-022 Garudamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-022.ts), [test](apps/api/src/cards/BT1/BT1-022.test.ts) |
 | BT1-023 SkullGreymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-023.ts), [test](apps/api/src/cards/BT1/BT1-023.test.ts) |
@@ -48,18 +59,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT1-028 Elecmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-028.ts), [test](apps/api/src/cards/BT1/BT1-028.test.ts) |
 | BT1-029 Gabumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-029.ts), [test](apps/api/src/cards/BT1/BT1-029.test.ts) |
 | BT1-030 Gomamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-030.ts), [test](apps/api/src/cards/BT1/BT1-030.test.ts) |
+| BT1-031 Monmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-031.ts), [test](apps/api/src/cards/BT1/BT1-031.test.ts) |
+| BT1-032 Frigimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-032.ts), [test](apps/api/src/cards/BT1/BT1-032.test.ts) |
+| BT1-033 Dolphmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-033.ts), [test](apps/api/src/cards/BT1/BT1-033.test.ts) |
+| BT1-034 Ikkakumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-034.ts), [test](apps/api/src/cards/BT1/BT1-034.test.ts) |
+| BT1-035 Leomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-035.ts), [test](apps/api/src/cards/BT1/BT1-035.test.ts) |
+| BT1-036 Garurumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-036.ts), [test](apps/api/src/cards/BT1/BT1-036.test.ts) |
+| BT1-037 Gorillamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-037.ts), [test](apps/api/src/cards/BT1/BT1-037.test.ts) |
+| BT1-038 Monzaemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-038.ts), [test](apps/api/src/cards/BT1/BT1-038.test.ts) |
+| BT1-039 Cerberusmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-039.ts), [test](apps/api/src/cards/BT1/BT1-039.test.ts) |
+| BT1-040 WereGarurumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-040.ts), [test](apps/api/src/cards/BT1/BT1-040.test.ts) |
 
-Detailed clause traces and deferred commands for these rows are in `internal-docs/audits/BT1/BT1-021-030.md`.
+Detailed clause traces and deferred commands for these rows are in the integrated range reports under `internal-docs/audits/BT1/`.
 
 ## Aggregate
 
 - Catalog cards: 115
-- Assigned: 60
-- Integrated card audits: 10
-- Corrected: 0
-- Provisional: 10
+- Assigned: 70
+- Integrated card audits: 30
+- Corrected: 1
+- Provisional: 30
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 55
+- Remaining unassigned: 45
 
 BT1 remains open.
