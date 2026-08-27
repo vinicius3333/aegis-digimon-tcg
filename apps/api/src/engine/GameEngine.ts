@@ -1098,7 +1098,10 @@ export class GameEngine {
           const selected = keyed.find(({ key }) => key === response.order[0]);
           return selected === undefined
             ? replacements
-            : [selected.replacement, ...replacements.filter((replacement) => replacement.id !== selected.replacement.id)];
+            : [
+                selected.replacement,
+                ...replacements.filter((replacement) => replacement.id !== selected.replacement.id),
+              ];
         },
       },
       permanentIds,
@@ -3792,7 +3795,11 @@ export class GameEngine {
    * controller's hand, but the resulting watcher cannot activate before the repeated
    * 0-DP rule check deletes Titamon.
    */
-  private readonly deferredRuleSubTriggers: { event: SubTriggerEventName; payload: TriggerInfo; armed: ArmedSubTrigger[] }[] = [];
+  private readonly deferredRuleSubTriggers: {
+    event: SubTriggerEventName;
+    payload: TriggerInfo;
+    armed: ArmedSubTrigger[];
+  }[] = [];
 
   /**
    * The deletions a rule-check fixpoint has performed but not yet reacted to, or `undefined`

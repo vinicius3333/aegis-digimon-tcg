@@ -400,7 +400,9 @@ export async function runPlaceUnder(
     const names = new Set(
       chosen.map((instanceId) => {
         const candidate = candidates.find((entry) => entry.instanceId === instanceId);
-        return candidate === undefined ? instanceId : ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn;
+        return candidate === undefined
+          ? instanceId
+          : ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn;
       }),
     );
     ctx.namedCounts ??= new Map();
@@ -474,9 +476,7 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
   const eligibleLooseCandidates =
     requiredNamesExactUpTo.length > 0
       ? looseCandidates.filter((candidate) =>
-          requiredNamesExactUpTo.includes(
-            ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn ?? "",
-          ),
+          requiredNamesExactUpTo.includes(ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn ?? ""),
         )
       : looseCandidates;
   // A named "up to one of each" selection may legitimately contain only the names
