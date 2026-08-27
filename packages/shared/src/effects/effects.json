@@ -93748,6 +93748,25 @@
   "BT25-052": {
     "effects": [
       {
+        "trigger": "WhenLinking",
+        "isLinked": true,
+        "actions": [
+          {
+            "kind": "Suspend",
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon",
+                  "Tamer"
+                ]
+              },
+              "count": 1
+            }
+          }
+        ]
+      },
+      {
         "trigger": "Main",
         "actions": [
           {
@@ -93755,11 +93774,28 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Social", "Tool", "Game"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "hasLinkRequirement": true,
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Social",
+                      "Tool",
+                      "Game"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
-              "count": 1
+              "count": 1,
+              "source": "thisDigimon"
             },
+            "from": [
+              "hand",
+              "digivolutionCards"
+            ],
             "costDelta": -1,
             "optional": true
           }
@@ -93772,21 +93808,45 @@
           {
             "kind": "SubTrigger",
             "event": "whenLinked",
+            "on": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "actions": [
               {
                 "kind": "PlayWithoutCost",
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "nameOrTrait": [{ "tokens": ["Kazuki & Itsuki"], "match": "name" }]
+                    "nameOrTrait": [
+                      {
+                        "tokens": [
+                          "Kazuki & Itsuki"
+                        ],
+                        "match": "name"
+                      }
+                    ]
                   },
                   "count": 1
                 },
-                "from": ["hand"],
+                "from": [
+                  "hand"
+                ],
                 "payCost": false,
                 "condition": {
-                  "kind": "youHave",
-                  "filter": { "controllerDefault": "mine", "kind": ["Tamer"] },
+                  "kind": "permanentCount",
+                  "seat": "mine",
+                  "filter": {
+                    "controller": "mine",
+                    "kind": [
+                      "Tamer"
+                    ]
+                  },
+                  "op": "lte",
+                  "value": 1,
                   "raw": "you have 1 or fewer Tamers"
                 },
                 "optional": true
@@ -93799,29 +93859,94 @@
     ],
     "coverage": "full",
     "residual": [],
-    "appFusionRequirement": [{ "names": ["Onmon", "Gatchmon"], "cost": 0 }]
+    "linkRequirement": [
+      {
+        "traits": [
+          "Appmon"
+        ],
+        "cost": 2
+      }
+    ],
+    "appFusionRequirement": [
+      {
+        "names": [
+          "Onmon",
+          "Gatchmon"
+        ],
+        "cost": 0
+      }
+    ]
   },
   "BT25-053": {
     "effects": [
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Vortex", "raw": "＜Vortex＞" }] },
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Decode", "raw": "＜Decode ([Aegiomon])＞" }] },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          {
+            "keyword": "Vortex",
+            "raw": "＜Vortex＞"
+          }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          {
+            "keyword": "Decode",
+            "raw": "＜Decode ([Aegiomon])＞"
+          }
+        ]
+      },
       {
         "trigger": "OnPlay",
         "actions": [
           {
+            "kind": "SelectBind",
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon",
+                  "Tamer"
+                ]
+              },
+              "count": 1,
+              "bindAs": "onPlayTarget"
+            }
+          },
+          {
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 }
+            "target": {
+              "fromSelectionRef": "onPlayTarget",
+              "filter": {},
+              "count": 1
+            }
           },
           {
             "kind": "Restrict",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "fromSelectionRef": "onPlayTarget",
+              "filter": {},
+              "count": 1
+            },
             "restriction": "unsuspend",
             "duration": "untilOpponentTurnEnd"
           },
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "Piercing", "raw": "＜Piercing＞" },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Piercing",
+              "raw": "＜Piercing＞"
+            },
             "duration": "forTheTurn",
             "condition": {
               "kind": "zoneCount",
@@ -93834,7 +93959,13 @@
           },
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "amount": 5000,
             "duration": "forTheTurn",
             "condition": {
@@ -93852,19 +93983,50 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "kind": "SelectBind",
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon",
+                  "Tamer"
+                ]
+              },
+              "count": 1,
+              "bindAs": "whenDigivolvingTarget"
+            }
+          },
+          {
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 }
+            "target": {
+              "fromSelectionRef": "whenDigivolvingTarget",
+              "filter": {},
+              "count": 1
+            }
           },
           {
             "kind": "Restrict",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "fromSelectionRef": "whenDigivolvingTarget",
+              "filter": {},
+              "count": 1
+            },
             "restriction": "unsuspend",
             "duration": "untilOpponentTurnEnd"
           },
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "Piercing", "raw": "＜Piercing＞" },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Piercing",
+              "raw": "＜Piercing＞"
+            },
             "duration": "forTheTurn",
             "condition": {
               "kind": "zoneCount",
@@ -93877,7 +94039,13 @@
           },
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "amount": 5000,
             "duration": "forTheTurn",
             "condition": {
@@ -93900,7 +94068,16 @@
             "actions": [
               {
                 "kind": "Suspend",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+                "target": {
+                  "filter": {
+                    "controller": "opponent",
+                    "kind": [
+                      "Digimon",
+                      "Tamer"
+                    ]
+                  },
+                  "count": 1
+                },
                 "optional": true
               }
             ]
@@ -93912,7 +94089,15 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "names": ["Aegiomon"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "names": [
+          "Aegiomon"
+        ],
+        "cost": 3,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-054": {
     "effects": [
