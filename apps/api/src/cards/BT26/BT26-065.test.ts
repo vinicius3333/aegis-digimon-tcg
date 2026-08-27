@@ -129,13 +129,13 @@ describe("BT26-065 Falcomon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
-  it("does not treat a composite name containing Keenan Crier as the exact card", async () => {
+  it("adds an exact Keenan Crier name match even without the DATA SQUAD trait", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT26-065", as: "falcomon" }],
           deck: [
-            { card: "EX4-064", as: "compositeName" },
+            { card: "EX4-064", as: "exactName" },
             { card: "BT1-009", as: "restOne" },
             { card: "BT1-010", as: "restTwo" },
           ],
@@ -146,11 +146,10 @@ describe("BT26-065 Falcomon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("falcomon"));
-    await settle(() => s.state.players[0]!.deck.length === 3);
+    await settle(() => s.state.players[0]!.deck.length === 2);
 
-    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("exactName").instanceId]);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("compositeName").instanceId,
       s.inst("restOne").instanceId,
       s.inst("restTwo").instanceId,
     ]);
