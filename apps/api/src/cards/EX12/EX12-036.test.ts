@@ -197,7 +197,7 @@ describe("EX12-036 Ryugumon", () => {
         continuous: { hasRestriction(id: string, restriction: string): boolean };
       }
     ).continuous;
-    expect(continuous.hasRestriction(opp.permanentId, "suspend")).toBe(true);
+    expect(continuous.hasRestriction(opp.permanentId, "beSuspended")).toBe(true);
     expect(continuous.hasRestriction(opp.permanentId, "cannotActivateWhenDigivolving")).toBe(true);
   });
 
@@ -221,7 +221,7 @@ describe("EX12-036 Ryugumon", () => {
     ).fireSubTrigger("whenOneOfYoursDigivolves", { subjectPermanentId: s.perm("src").permanentId });
     await settle(() => false, 60);
 
-    expect(observe(s.engine).isRestricted(opp, "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(opp, "beSuspended")).toBe(true);
     expect(observe(s.engine).isRestricted(opp, "cannotActivateWhenDigivolving")).toBe(true);
   });
 
@@ -321,7 +321,7 @@ describe("EX12-036 Ryugumon", () => {
     });
     await s.ready();
     const sourceId = s.perm("source").permanentId;
-    const deletion = advance(s.engine).verb.deletePermanent([sourceId], "byEffect");
+    const deletion = advance(s.engine).verb.deletePermanent([sourceId], "byBattle");
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: sourceId, accept: true })).toEqual({
       ok: true,

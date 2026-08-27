@@ -156,8 +156,8 @@ describe("EX12-032 WereGarurumon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "suspend"));
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
+    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "beSuspended"));
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "beSuspended")).toBe(true);
   });
 
   it("applies the same suspension restriction to an opposing Tamer when digivolving", async () => {
@@ -180,9 +180,9 @@ describe("EX12-032 WereGarurumon", () => {
         instanceId: s.inst("source").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("tamer"), "suspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("tamer"), "beSuspended"));
 
-    expect(observe(s.engine).isRestricted(s.perm("tamer"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("tamer"), "beSuspended")).toBe(true);
   });
 
   it("digivolves from the trash only when its stack has two same-level cards", async () => {
