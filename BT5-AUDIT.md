@@ -2453,3 +2453,26 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `git diff --check` pass. Typecheck was not rerun because the narrow IR filter
   addition is not typing-sensitive and the unrelated baseline remains known.
 - Remaining ambiguity: none identified.
+
+## BT5-064 — BlackGaogamon — 10/10
+
+- Catalog evidence: Black Lv.4 Champion Digimon, Data/Beast, play cost 5,
+  5000 DP, and black Lv.3 evolution cost 2. Its inherited Your Turn effect
+  grants Jamming to its host only while that Digimon has Reboot. Its
+  knowledge-base query exposes no card-specific QA, errata, restriction, or
+  ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-064.ts` contains an inherited
+  `YourTurn` self aura whose live condition is `selfHasKeyword: Reboot` and
+  whose effect grants Jamming. It declares full residual-free coverage and
+  registers exclusively through `registerIrCard("BT5-064", compiled)`.
+- Behavioral proof: a legal BlackGaogamon Lv.4 to BlackMachGaogamon Lv.5
+  stack proves Reboot and Jamming coexist during the owner's turn, then proves
+  Reboot remains while Jamming lapses on the opponent's turn. A separate legal
+  BlackGaogamon Lv.4 to WaruMonzaemon Lv.5 stack proves the absence of Reboot
+  prevents Jamming.
+- Defect corrected: none in the module. The audit replaced an illegal
+  Lv.4-under-Lv.4 negative fixture and added the explicit owner-turn lifecycle
+  boundary.
+- Verification: focused BT5-064 — 2/2 passed. Targeted Oxfmt, Oxlint, and
+  `git diff --check` pass. No typing-sensitive source changed.
+- Remaining ambiguity: none identified.
