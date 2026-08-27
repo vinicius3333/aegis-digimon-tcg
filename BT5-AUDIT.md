@@ -3513,3 +3513,26 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   Targeted Oxfmt, Oxlint, registration search, and `git diff --check` pass. No
   shared engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-105 — Ultimate Flare — 10/10
+
+- Catalog and ruling evidence: Black Option with use cost 8. Main performs
+  De-Digivolve 3 on one opposing Digimon, then deletes all opposing Digimon with
+  play cost 3 or less. Security activates Main. Q1379 confirms the sequence and
+  De-Digivolve stopping behavior.
+- Implementation: `apps/api/src/cards/BT5/BT5-105.ts` sequences mandatory
+  opponent DeDigivolve 3 and an independent all-target opponent Delete at exact
+  play-cost ≤3. Security activates Main. Full residual-free coverage and
+  exclusive `registerIrCard("BT5-105", compiled)` registration are preserved.
+- Behavioral proof: five focused tests prove exact cost-3 deletion with cost-4
+  survival and own-board exclusion, continuation of the deletion sweep without
+  a De-Digivolve target, the Lv.3 stopping boundary with exact removed-card
+  identities, and Security activation of the full sequence.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for own-controller exclusion and the Q1379 Lv.3 stopping boundary before the
+  deletion sweep.
+- Verification: focused BT5-105 — 5/5 passed; targeted De-Digivolve primitive —
+  1/1 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. An exploratory reencoded-IR filter exposed only an
+  unrelated pre-existing BT19-036 assertion; no shared engine source changed.
+- Remaining ambiguity: none identified.
