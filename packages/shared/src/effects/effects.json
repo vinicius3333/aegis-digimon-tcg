@@ -100434,59 +100434,195 @@
     "effects": [
       {
         "trigger": "Static",
-        "actions": [{ "kind": "CostModifier", "mode": "reduce", "costType": "use", "amount": 2 }]
+        "actions": [
+          {
+            "kind": "Replacement",
+            "event": "wouldBePlayed",
+            "mode": "reduceCost",
+            "amount": 2,
+            "sourceFilter": {
+              "isSelfRef": true
+            },
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 1
+            }
+          }
+        ]
       },
       {
         "trigger": "Main",
         "actions": [
           {
-            "kind": "Digivolve",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["MirageGaogamon"], "match": "name" }] },
-            "payCost": false,
-            "from": ["hand"],
-            "ignoreRequirements": true,
-            "optional": true,
+            "kind": "CostGatedBlock",
             "cost": {
-              "kind": "place",
-              "target": {
-                "filter": {
-                  "zone": "trash",
-                  "controller": "mine",
+              "kind": "compound",
+              "costs": [
+                {
+                  "kind": "place",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "nameOrTrait": [
+                        {
+                          "tokens": [
+                            "Gaogamon"
+                          ],
+                          "match": "name"
+                        }
+                      ]
+                    },
+                    "from": [
+                      "trash"
+                    ],
+                    "count": 1
+                  },
+                  "destination": "digivolutionStack",
+                  "position": "bottom",
+                  "host": {
+                    "filter": {
+                      "controller": "mine",
+                      "zone": "battleArea",
+                      "kind": [
+                        "Digimon"
+                      ],
+                      "nameOrTrait": [
+                        {
+                          "tokens": [
+                            "Gaomon"
+                          ],
+                          "match": "name"
+                        }
+                      ]
+                    },
+                    "count": 1
+                  },
+                  "bindHostAs": "gaomonHost"
+                },
+                {
+                  "kind": "place",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "nameOrTrait": [
+                        {
+                          "tokens": [
+                            "MachGaogamon"
+                          ],
+                          "match": "name"
+                        }
+                      ]
+                    },
+                    "from": [
+                      "trash"
+                    ],
+                    "count": 1
+                  },
+                  "destination": "digivolutionStack",
+                  "position": "bottom",
+                  "host": {
+                    "filter": {
+                      "boundRef": "gaomonHost"
+                    },
+                    "count": 1
+                  }
+                }
+              ]
+            },
+            "optional": true,
+            "abortOnDecline": true,
+            "actions": [
+              {
+                "kind": "Digivolve",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "zone": "battleArea",
+                    "kind": [
+                      "Digimon"
+                    ],
+                    "nameOrTrait": [
+                      {
+                        "tokens": [
+                          "Gaomon"
+                        ],
+                        "match": "name"
+                      }
+                    ]
+                  },
+                  "count": 1,
+                  "fromSelectionRef": "gaomonHost"
+                },
+                "into": {
                   "nameOrTrait": [
-                    { "tokens": ["Gaogamon"], "match": "name" },
-                    { "tokens": ["MachGaogamon"], "match": "name" },
-                    { "tokens": ["Gaomon"], "match": "name" }
+                    {
+                      "tokens": [
+                        "MirageGaogamon"
+                      ],
+                      "match": "name"
+                    }
                   ]
                 },
-                "count": 1,
-                "from": ["trash"]
-              },
-              "raw": "By placing 1 [Gaogamon] and 1 [MachGaogamon] from your trash as 1 of your [Gaomon]'s bottom digivolution cards"
-            },
-            "abortOnDecline": true
+                "from": [
+                  "hand"
+                ],
+                "payCost": false,
+                "ignoreRequirements": true,
+                "optional": true
+              }
+            ]
           }
         ]
       },
       {
         "trigger": "Security",
+        "isSecurity": true,
         "actions": [
           {
             "kind": "PlayWithoutCost",
             "target": {
               "filter": {
-                "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Gaomon", "Thomas H. Norstein"], "match": "name" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Gaomon"
+                    ],
+                    "match": "name"
+                  }
+                ]
               },
-              "count": 1
+              "orFilters": [
+                {
+                  "kind": [
+                    "Tamer"
+                  ],
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Thomas H. Norstein"
+                      ],
+                      "match": "name"
+                    }
+                  ]
+                }
+              ],
+              "count": 1,
+              "upTo": true
             },
-            "from": ["hand", "trash"],
-            "payCost": false,
-            "optional": true
+            "from": [
+              "hand",
+              "trash"
+            ],
+            "payCost": false
           },
-          { "kind": "AddToHandSelf" }
-        ],
-        "isSecurity": true
+          {
+            "kind": "AddToHandSelf"
+          }
+        ]
       }
     ],
     "coverage": "full",
@@ -100499,10 +100635,20 @@
         "actions": [
           {
             "kind": "WaiveColorRequirement",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "condition": {
               "kind": "youHaveNone",
-              "filter": { "controllerDefault": "mine" },
+              "filter": {
+                "zone": "security",
+                "controllerDefault": "mine",
+                "faceUp": true
+              },
               "raw": "you have no face-up security cards"
             }
           }
@@ -100516,33 +100662,73 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "colors": ["Yellow", "Purple"],
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Yellow",
+                  "Purple"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": "all"
             },
-            "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
+            "keyword": {
+              "keyword": "Alliance",
+              "raw": "＜Alliance＞"
+            },
             "duration": "permanent"
           },
           {
-            "kind": "Aura",
+            "kind": "GainKeyword",
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "colors": ["Yellow", "Purple"],
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Yellow",
+                  "Purple"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": "all"
             },
-            "effect": { "kind": "keyword", "keyword": { "keyword": "Scapegoat", "raw": "＜Scapegoat＞" } },
-            "while": {
+            "keyword": {
+              "keyword": "Scapegoat",
+              "raw": "＜Scapegoat＞"
+            },
+            "duration": "permanent",
+            "condition": {
               "kind": "youHave",
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Junomon"], "match": "name" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Junomon"
+                    ],
+                    "match": "name"
+                  }
+                ]
               },
               "count": 1,
               "raw": "while you have a Digimon with [Junomon] in its name"
@@ -100554,12 +100740,17 @@
       {
         "trigger": "Main",
         "actions": [
-          { "kind": "SecurityManipulation", "op": "toHand", "controller": "mine", "amount": 1, "position": "bottom" },
+          {
+            "kind": "SecurityManipulation",
+            "op": "toHand",
+            "controller": "mine",
+            "amount": 1,
+            "toTop": false
+          },
           {
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "controller": "mine",
-            "source": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "toTop": false,
             "faceUp": true
           },
@@ -100568,13 +100759,27 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "colors": ["Yellow", "Purple"],
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Yellow",
+                  "Purple"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": 1
             },
-            "from": ["hand"],
+            "from": [
+              "hand"
+            ],
             "payCost": true,
             "reduceCostBy": 3,
             "optional": true
@@ -100589,14 +100794,32 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "colors": ["Yellow", "Purple"],
-                "levelComparison": { "op": "lte", "value": 4 },
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Yellow",
+                  "Purple"
+                ],
+                "levelComparison": {
+                  "op": "lte",
+                  "value": 4
+                },
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": 1
             },
-            "from": ["hand", "trash"],
+            "from": [
+              "hand",
+              "trash"
+            ],
             "payCost": false,
             "optional": true
           }
@@ -100611,13 +100834,35 @@
     "effects": [
       {
         "trigger": "Static",
+        "keywords": [],
         "actions": [
           {
             "kind": "WaiveColorRequirement",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "zone": "battleArea",
+                "kind": [
+                  "Digimon",
+                  "Tamer"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Appmon"
+                    ],
+                    "match": "trait"
+                  }
+                ]
+              },
               "raw": "you have a card w/[Appmon] trait"
             }
           }
@@ -100631,41 +100876,71 @@
             "revealCount": 3,
             "add": [
               {
-                "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }] },
+                "filter": {
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Appmon"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
+                },
                 "count": 1,
                 "to": "hand"
               }
             ],
             "rest": "trash"
           },
-          { "kind": "PlaceInBattleAreaSelf" }
+          {
+            "kind": "PlaceInBattleAreaSelf"
+          }
         ]
       },
       {
         "trigger": "Main",
+        "keywords": [
+          {
+            "keyword": "Delay"
+          }
+        ],
         "actions": [
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }] },
-              "count": 1
+              "filter": {
+                "controller": "mine",
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Appmon"
+                    ],
+                    "match": "trait"
+                  }
+                ]
+              },
+              "count": 1,
+              "upTo": true
             },
-            "from": ["hand"],
             "payCost": true,
-            "optional": true
-          },
-          {
-            "kind": "Replacement",
-            "event": "wouldBePlayed",
-            "mode": "reduceCost",
-            "amount": 3,
-            "raw": "play 1 [Appmon] trait card from your hand with the cost reduced by 3",
+            "reduceCostBy": 3,
+            "from": [
+              "hand"
+            ],
             "optional": true
           }
-        ],
-        "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
+        ]
       },
-      { "trigger": "Security", "actions": [{ "kind": "PlaceInBattleAreaSelf" }], "isSecurity": true }
+      {
+        "trigger": "Security",
+        "isSecurity": true,
+        "keywords": [],
+        "actions": [
+          {
+            "kind": "PlaceInBattleAreaSelf"
+          }
+        ]
+      }
     ],
     "coverage": "full",
     "residual": []
