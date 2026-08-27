@@ -2883,6 +2883,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Proof: existing cases cover off-color evolution, mixed Option/Titan filtering, near matches, cost payment, reduced use, affordability failure, decline, shared timing budget, lowest-level ties, and real deleted-stack behavior.
 - Verification: automation not run by user instruction; `git diff --check` passed before the ledger-only commit. No files besides this ledger changed; no unresolved limitation remains.
 
+## BT26-076 — Crowmon — 10/10
+
+- Catalog/KB: purple Lv.5 `Mysterious Bird`/`DATA SQUAD`, alternate Lv.4 DATA SQUAD evolution, printed When Digivolving/Your Turn/inherited effects confirmed. Q7104 preserves the cost ceiling across all inherited trait alternatives.
+- Implementation: full IR and exclusive `registerIrCard`; exact Lv.4 deletion, optional face-down Tamer-bottom cost/opponent discard, shared Once Per Turn reaction routes, reduced trash evolution into Ravemon/DATA SQUAD, and inherited cost-5 Avian/Bird/DATA SQUAD trash play.
+- Proof: existing evolution, deletion, cost, reaction, turn, reduction, and trait/ceiling cases plus new shared Once Per Turn and inherited refusal proofs. Automation not run by instruction; `git diff --check` passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.

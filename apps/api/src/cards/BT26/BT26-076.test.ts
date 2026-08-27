@@ -123,6 +123,34 @@ describe("BT26-076 Crowmon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("shares one once-per-turn budget across repeated hand-trash events", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-076", as: "crowmon" }],
+          trash: [
+            { card: "EX4-058", as: "firstEvolution" },
+            { card: "EX4-058", as: "secondEvolution" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("firstEvolution").instanceId);
+    s.state.memory = 4;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 0 });
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 0 });
+
+    expect(s.perm("crowmon").topCard.cardId).toBe("EX4-058");
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("secondEvolution").instanceId,
+    );
+    expect(s.state.memory).toBe(2);
+  });
+
   it("naturally reacts when its own effect trashes a card from under a Tamer", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -199,5 +227,22 @@ describe("BT26-076 Crowmon", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("ST24-13");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("ST18-09");
+  });
+
+  it("may decline the inherited On Deletion play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-076"] }],
+          trash: [{ card: "ST24-13", as: "candidate" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("candidate").instanceId);
   });
 });
