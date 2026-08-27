@@ -14,18 +14,18 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
           sourceFilter: {
+            controller: "mine",
             kind: ["Digimon"],
           },
-          bySourceController: "mine",
           actions: [
             {
               kind: "ModifyDP",
               target: {
                 filter: {
-                  isSelfRef: true,
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
                 count: 1,
-                isSelf: true,
               },
               amount: 2000,
               duration: "forTheTurn",
