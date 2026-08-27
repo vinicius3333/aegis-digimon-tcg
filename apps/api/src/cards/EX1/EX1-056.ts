@@ -23,15 +23,13 @@ const compiled: CompiledCard = {
         {
           kind: "Aura",
           target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: "all",
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
           effect: {
             kind: "restriction",
-            restriction: "cantBeAttacked",
+            restriction: "cantAttackDigimon",
           },
           while: {
             kind: "youHaveNone",

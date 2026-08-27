@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./EX1-068.js";
+import { compiled } from "./EX1-068.js";
 
 /**
  * A3 — Q1f: EX1-068 (Ice Wall!) [Main] "All of your opponent's Digimon gain '[When Attacking]
@@ -19,6 +19,14 @@ import "./EX1-068.js";
  */
 
 describe('A3 EX1-068 — granted "[When Attacking] Lose 2 memory"', () => {
+  it("keeps the timed aura live for opposing Digimon that enter later (Q3256)", () => {
+    expect(compiled.effects?.find((effect) => effect.trigger === "Main")?.actions?.[0]).toMatchObject({
+      kind: "GrantAuraToOpponents",
+      includeLaterEntrants: true,
+      duration: "untilOpponentTurnEnd",
+    });
+  });
+
   it("SECURITY: gains 2 memory for the option's owner", async () => {
     const s = setupEngine({ 0: { security: [{ card: "EX1-068", as: "iceWall", faceUp: true }] } });
     s.state.memory = -3;

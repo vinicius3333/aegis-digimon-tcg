@@ -104,4 +104,18 @@ describe("EX1-061 Myotismon", () => {
       }),
     ).toEqual({ ok: true });
   });
+
+  it("does not grant the inherited attack permission to a non-Myotismon host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX1-060", as: "nonMyotismonHost", under: ["EX1-061"] },
+          { card: "BT2-074", as: "retaliationAttacker" },
+        ],
+      },
+      1: { battleArea: [{ card: "ST1-03", as: "levelThree" }] },
+    });
+    await s.ready();
+    expect(observe(s.engine).canAttackUnsuspended(s.perm("retaliationAttacker"))).toBe(false);
+  });
 });

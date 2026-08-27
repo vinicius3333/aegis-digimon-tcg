@@ -120,6 +120,26 @@ describe("EX1-073 Machinedramon", () => {
     expect(s.perm("machine").stack).toHaveLength(0);
   });
 
+  it("trashes prevention cards only from Machinedramon's own stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX1-073", as: "machine", under: ["EX1-008", "EX1-050"] },
+            { card: "EX1-060", as: "otherHost", under: ["EX1-061", "EX1-062"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("machine").permanentId], "byEffect");
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.perm("machine").stack).toHaveLength(0);
+    expect(s.perm("otherHost").stack).toHaveLength(2);
+  });
+
   it("combines the historical Cyborg package into one Machinedramon attack", async () => {
     const s = setupEngine(
       {
