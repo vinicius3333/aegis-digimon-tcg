@@ -2889,6 +2889,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR and exclusive `registerIrCard`; exact Lv.4 deletion, optional face-down Tamer-bottom cost/opponent discard, shared Once Per Turn reaction routes, reduced trash evolution into Ravemon/DATA SQUAD, and inherited cost-5 Avian/Bird/DATA SQUAD trash play.
 - Proof: existing evolution, deletion, cost, reaction, turn, reduction, and trait/ceiling cases plus new shared Once Per Turn and inherited refusal proofs. Automation not run by instruction; `git diff --check` passed. No unresolved limitation.
 
+## BT26-077 — Reapermon — 10/10
+
+- Catalog/KB: purple/black Lv.6 `Cyborg`/`DM`/`Ver.3`, alternate Lv.5 DM evolution, Security A. +1, Execute, Fragment (2), shared timing effect, and highest-cost deletion confirmed. No card-specific KB entry or erratum.
+- Implementation: full IR and exclusive `registerIrCard`; the three windows share one Once Per Turn key, dynamically cap optional free `Ver.3` trash play by face-down stack count, then delete highest-play-cost opposing Digimon/Tamers. Intrinsic keywords are exact.
+- Proof: existing dynamic ceiling, trash play, timing, Execute, Fragment, Security Attack, and deletion cases plus new non-DM evolution rejection and mixed Ver.3/non-Ver.3 trash filtering. Automation not run by instruction; `git diff --check` passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
