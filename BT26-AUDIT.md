@@ -2016,3 +2016,36 @@ git diff --check
 ```
 
 No unresolved BT26-045 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-046 — Gryphonmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-046` (`Gryphonmon`), a green/blue level-6 Mega/Data Digimon with play cost 11, 11000 DP, and `Mythical Beast`/`Iliad`/`TS` traits. Its normal evolution requirements are green or blue Lv.5 for cost 3, and its alternate requirement is `[Digivolve] Lv.5 w/[TS] trait: Cost 3`. The printed keywords are Piercing and Vortex. The card reduces its play cost by 4 when there are 2 or more suspended Digimon, then its On Play/When Digivolving clause suspends one opponent Digimon or Tamer, independently restricts one such card from unsuspending, and protects one own Digimon from battle deletion. Its Rule clause adds the `Avian` trait.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-046`; Q7039 confirms that the card receiving the unsuspend restriction need not be the card suspended by the preceding action. No banlist restriction or erratum applies.
+- Comprehensive Rules evidence reviewed: normal/alternate evolution and stack transition; suspension orientation and ordered processing; numerical cost reduction; On Play/When Digivolving timing; battle deletion; Piercing; and Vortex.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-046.ts` has `coverage: "full"`, `residual: []`, and registers executable behavior exclusively through `registerIrCard("BT26-046", compiled)`.
+- The alternate requirement exactly matches Lv.5 `TS` for cost 3, while catalog data supplies both normal color routes. The self-bound `wouldBePlayed` replacement applies reduction 4 under `totalDigimonGte` with suspended-only matching; registration extracts this allowlisted reducer for normal payment and counts Digimon across both battle areas while excluding Tamers.
+- On Play and When Digivolving share the ordered body with separate opponent target objects for suspension and restriction, preserving Q7039, followed by battle-deletion protection for exactly one own Digimon.
+- Static keyword projection carries Piercing/Vortex, and `GrantStatic` adds the effective `Avian` trait. The reducer, restriction, protection, keyword, evolution, and adjacent peer seams were inspected.
+
+### Behavioral proof
+
+- Existing `apps/api/src/cards/BT26/BT26-046.test.ts` contains 4 focused tests proving the alternate metadata and IR shape; public On Play resolution with independent opponent targets and real battle-deletion protection; the exact 4-cost reduction with two suspended Digimon; and the negative one-suspended-Digimon boundary.
+- The proof observes suspension, restriction, protection, battle survival, and exact memory movement. Shared card-data coverage verifies the effective Rule trait. No implementation or proof gap requiring a new test was found.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-046
+  PASS (Q7039; no errata/restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the ledger-only commit
+```
+
+No unresolved BT26-046 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
