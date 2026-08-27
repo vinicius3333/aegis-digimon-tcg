@@ -2774,3 +2774,22 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   registration search, and `git diff --check` pass. No source or shared engine
   behavior changed.
 - Remaining ambiguity: none identified.
+
+## BT5-077 — Vajramon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.5 Ultimate Digimon, Vaccine/Holy
+  Beast/Deva, play cost 7, 8000 DP, and purple Lv.4 evolution cost 2. It has no
+  main, inherited, Security, or alternate-evolution text. The knowledge base
+  contains no card-specific ruling, errata, restriction, or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-077.ts` intentionally carries an
+  empty effect list with full residual-free coverage and registers exclusively
+  through `registerIrCard("BT5-077", compiled)`.
+- Behavioral and structural proof: focused tests show continuous recomputation
+  leaves Vajramon at its printed base DP and confirm that the empty module is
+  present in the runtime registry with no residual behavior.
+- Defect corrected: none. The vanilla implementation and existing proof were
+  already faithful, so no source or test file changed.
+- Verification: focused BT5-077 — 2/2 passed. Targeted Oxfmt, Oxlint,
+  registration search, and `git diff --check` pass. No typing-sensitive source
+  changed.
+- Remaining ambiguity: none identified.
