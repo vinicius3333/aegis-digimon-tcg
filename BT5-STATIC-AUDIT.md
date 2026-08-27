@@ -20,9 +20,9 @@ The re-audit intentionally does not execute tests, typecheck, lint, formatting, 
 | BT5-031–040 | Static audit delivered | `internal-docs/audits/BT5/BT5-031-040.md` | Yes |
 | BT5-041–050 | Static audit delivered | `internal-docs/audits/BT5/BT5-041-050.md` | Yes |
 | BT5-051–060 | Luna in progress | `internal-docs/audits/BT5/BT5-051-060.md` | No |
-| BT5-061–070 | Luna in progress | `internal-docs/audits/BT5/BT5-061-070.md` | No |
+| BT5-061–070 | Static audit delivered | `internal-docs/audits/BT5/BT5-061-070.md` | Yes |
 | BT5-071–080 | Luna in progress | `internal-docs/audits/BT5/BT5-071-080.md` | No |
-| BT5-081–090 | Queued for Luna | `internal-docs/audits/BT5/BT5-081-090.md` | No |
+| BT5-081–090 | Luna in progress | `internal-docs/audits/BT5/BT5-081-090.md` | No |
 | BT5-091–100 | Queued for Luna | `internal-docs/audits/BT5/BT5-091-100.md` | No |
 | BT5-101–110 | Queued for Luna | `internal-docs/audits/BT5/BT5-101-110.md` | No |
 | BT5-111–112 | Queued for Luna | `internal-docs/audits/BT5/BT5-111-112.md` | No |
@@ -93,6 +93,16 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 | BT5-048 Floramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary legal evolution evidence |
 | BT5-049 Kiwimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Add-all Digi-Sorption reveal filter with complete deck-bottom remainder |
 | BT5-050 Weedmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Self-source Digi-Burst discard event with legal stack and turn gate |
+| BT5-061 Commandramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Static Blocker registration, redirect behavior, and ordinary Black evolution path |
+| BT5-062 Mekanorimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blocker, owner-turn attack lock, and repeatable self-anchored battle-delete watcher |
+| BT5-063 Kurisarimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional exact Arata play and live same-name inherited Rush aura |
+| BT5-064 BlackGaogamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited owner-turn Jamming gated by the host's live Reboot keyword |
+| BT5-065 Shademon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | End-of-security-battle self play, static Blocker, and owner-turn attack lock |
+| BT5-066 WaruMonzaemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary legal evolution evidence |
+| BT5-067 Infermon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Battle-area Keramon shortcut and optional inherited Diaboromon Token creation |
+| BT5-068 BlackMachGaogamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Reboot plus inherited owner-turn DP aura gated by live Reboot |
+| BT5-069 BlackWarGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Static Security Attack +1 and Reboot keyword registration |
+| BT5-070 MetalGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional Digi-Burst 2, mandatory eligible deletion, and no-deletion security branch |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT5/`.
 
@@ -100,9 +110,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 50
+- Integrated card audits: 60
 - Corrected: 1
-- Provisional: 50
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
