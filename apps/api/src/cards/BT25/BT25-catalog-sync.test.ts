@@ -11,6 +11,7 @@ import { compiled as bt25034 } from "./BT25-034.js";
 import { compiled as bt25035 } from "./BT25-035.js";
 import { compiled as bt25036 } from "./BT25-036.js";
 import { compiled as bt25037 } from "./BT25-037.js";
+import { compiled as bt25038 } from "./BT25-038.js";
 import { compiled as bt25058 } from "./BT25-058.js";
 import { compiled as bt25101 } from "./BT25-101.js";
 import { compiled as bt25099 } from "./BT25-099.js";
@@ -60,6 +61,7 @@ describe("BT25 persisted IR", () => {
     ["BT25-035", bt25035],
     ["BT25-036", bt25036],
     ["BT25-037", bt25037],
+    ["BT25-038", bt25038],
     ["BT25-058", bt25058],
     ["BT25-101", bt25101],
   ] as const)("keeps the stale-gap record %s synchronized", (cardId, compiled) => {

@@ -92196,8 +92196,12 @@
             "controller": "mine",
             "amount": 1,
             "source": {
-              "filter": { "trait": ["Angel", "Archangel", "Three Great Angels", "Iliad"] },
-              "location": ["hand", "digivolution"]
+              "filter": {
+                "controllerDefault": "mine",
+                "kind": ["Digimon"],
+                "trait": ["Angel", "Archangel", "Three Great Angels", "Iliad"],
+                "zone": ["hand", "digivolutionCards"]
+              }
             },
             "optional": true
           },
@@ -92207,7 +92211,7 @@
             "controller": "mine",
             "bothPlayers": true,
             "amount": 1,
-            "condition": { "kind": "raw", "raw": "DNA digivolving" }
+            "condition": { "kind": "isDnaDigivolving", "raw": "DNA digivolving" }
           }
         ]
       },
@@ -92220,8 +92224,12 @@
             "controller": "mine",
             "amount": 1,
             "source": {
-              "filter": { "trait": ["Angel", "Archangel", "Three Great Angels", "Iliad"] },
-              "location": ["hand", "digivolution"]
+              "filter": {
+                "controllerDefault": "mine",
+                "kind": ["Digimon"],
+                "trait": ["Angel", "Archangel", "Three Great Angels", "Iliad"],
+                "zone": ["hand", "digivolutionCards"]
+              }
             },
             "optional": true
           },
@@ -92231,7 +92239,7 @@
             "controller": "mine",
             "bothPlayers": true,
             "amount": 1,
-            "condition": { "kind": "raw", "raw": "DNA digivolving" }
+            "condition": { "kind": "isDnaDigivolving", "raw": "DNA digivolving" }
           }
         ]
       },
@@ -92241,6 +92249,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenAddSecurity",
+            "fireCondition": { "kind": "triggerSecurityIsYours" },
             "actions": [
               {
                 "kind": "DeDigivolve",
@@ -92259,6 +92268,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "sourceFilter": { "controller": "mine" },
             "actions": [
               {
                 "kind": "ModifyDP",
@@ -92275,7 +92285,11 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "names": ["Patamon"], "cost": 2, "isAlternate": true },
+      { "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }
+    ]
   },
   "BT25-039": {
     "effects": [

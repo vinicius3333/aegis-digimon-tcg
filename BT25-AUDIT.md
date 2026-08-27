@@ -755,3 +755,25 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-037.
+
+## BT25-038 — Shakkoumon — 10/10
+
+- Catalog evidence: Yellow/black level-5 Digimon, play cost 8, 8000 DP, `Ultimate`/`Free`, `Mutant`/`Iliad`/`TS`/`Angel`; standard yellow or black level-4 evolution for 4 plus alternate Patamon or level-3 `TS` evolution for 2; On Play/When Digivolving optionally places one Angel/Archangel/Three Great Angels/Iliad Digimon from hand or a friendly Digimon's sources as top/bottom security, then obligatorily trashes both players' top security when DNA evolving; all-turn once-per-turn De-Digivolve 1 when friendly security is added to; inherited all-turn once-per-turn -4000 DP when friendly security is removed from.
+- Knowledge base: Q6305 orders simultaneous security-check events: the Security effect resolves immediately, then pending triggers follow turn-player priority. The inherited security-removal watcher remains correctly pending and controller-scoped.
+- Implementation: both entry timings now constrain candidates to controller-owned Digimon in hand or digivolution-card zones, preserve top/bottom choice, and use structured DNA context for the mandatory bilateral trash. The add-security watcher uses `triggerSecurityIsYours`; the inherited removal watcher uses controller scope. Both alternate evolution routes are present. Direct/shared IR are synchronized, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-038", compiled)`.
+- Defects corrected: source selection used an unsupported location shape without ownership/kind constraints; the add-security watcher incorrectly treated a security event as a permanent source; and both alternate evolution routes were absent. Persisted IR additionally retained a raw DNA condition and all stale shapes. All direct/shared representations and persisted equality coverage are corrected.
+- Behavioral proof: the focused suite proves stack-source placement and removal, opponent/non-Digimon exclusion, top/bottom security placement structure, DNA-only bilateral trash, friendly-only add-security De-Digivolve once per turn, friendly-only inherited removal reaction once per turn, and both evolution routes. The source and watcher-direction cases fail against the prior IR.
+- Verification: focused suite — 8 passed; DNA/security/subtrigger mechanisms — 4 passed; BT25 persisted-IR sync — 13 passed; targeted Oxfmt, shared-IR JSON parse, and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-038 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-038
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-038.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-038.test.ts src/cards/BT25/BT25-catalog-sync.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-038.ts apps/api/src/cards/BT25/BT25-038.test.ts apps/api/src/cards/BT25/BT25-catalog-sync.test.ts
+node -e 'JSON.parse(require("fs").readFileSync("packages/shared/src/effects/effects.json", "utf8"))'
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-038.
