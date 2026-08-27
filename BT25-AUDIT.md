@@ -1063,3 +1063,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-053.
+
+## BT25-054 — GreatGrizzlymon — 10/10
+
+- Catalog evidence: green/black level-5 Digimon; alternate level-4 TS evolution for 3; Blocker; On Play/When Digivolving grants one opposing Digimon a forced attack at the start of its controller's next main phase through that turn; self battle-win may evolve into Callismon or Marsmon from hand for free; inherited once-per-turn trashes opposing top security after this Digimon deletes in battle.
+- Knowledge base: Q6331 covers effect immunity at grant/trigger time. Q6332–Q6336 define battle-win timing and prevention. Q6337 forbids the inherited activation when its host is deleted in the same timing.
+- Defects corrected: placeholder token grants were replaced with target-anchored timed main-phase watchers; the battle-win and battle-deletion watchers are now self-bound; and the inherited watcher rejects simultaneous host deletion.
+- Verification: focused — 6 passed, including delayed forced attack, duration expiry, self-only battle win, self-only battle deletion, once per turn, and Q6337; catalog synchronization follows separately; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-054", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-054
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-054.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-054.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-054.
