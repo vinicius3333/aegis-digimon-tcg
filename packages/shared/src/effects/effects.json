@@ -93396,11 +93396,23 @@
           {
             "kind": "Replacement",
             "event": "wouldDigivolve",
-            "sourceFilter": { "isSelfRef": true },
+            "sourceFilter": {
+              "isSelfRef": true,
+              "zone": "battleArea"
+            },
             "into": {
               "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "TS"
+                  ],
+                  "match": "trait"
+                }
+              ]
             },
             "actions": [
               {
@@ -93420,8 +93432,16 @@
           {
             "kind": "SubTrigger",
             "event": "whenBattleWon",
-            "sourceFilter": { "isSelfRef": true },
-            "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
+            "sourceFilter": {
+              "isSelfRef": true
+            },
+            "actions": [
+              {
+                "kind": "Draw",
+                "controller": "mine",
+                "amount": 1
+              }
+            ]
           }
         ],
         "isInherited": true,
@@ -93430,7 +93450,16 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 2, "traits": ["TS"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 2,
+        "traits": [
+          "TS"
+        ],
+        "cost": 0,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-049": {
     "effects": [
@@ -93439,7 +93468,15 @@
         "actions": [
           {
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
             "optional": true
           }
         ]
@@ -93449,7 +93486,15 @@
         "actions": [
           {
             "kind": "Suspend",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
             "optional": true
           }
         ]
@@ -93460,23 +93505,28 @@
           {
             "kind": "Replacement",
             "event": "wouldBePlayed",
-            "sourceFilter": { "controllerDefault": "mine" },
-            "actions": [
-              {
-                "kind": "Replacement",
-                "event": "wouldBePlayed",
-                "mode": "reduceCost",
-                "amount": 3,
-                "raw": "reduce the cost by 3",
-                "cost": {
-                  "kind": "trash",
-                  "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1 },
-                  "raw": "by trashing the bottom face-down card under any of your Tamers"
-                },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
+            "mode": "reduceCost",
+            "amount": 3,
+            "sourceFilter": {
+              "controllerDefault": "mine",
+              "kind": [
+                "Option"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Glowing Dawn"
+                  ],
+                  "match": "trait"
+                }
+              ]
+            },
+            "actions": [],
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "raw": "by trashing the bottom face-down card under any of your Tamers"
+            }
           }
         ],
         "frequency": "OncePerTurn"
@@ -93485,12 +93535,26 @@
         "trigger": "Static",
         "actions": [],
         "isInherited": true,
-        "keywords": [{ "keyword": "Piercing", "raw": "＜Piercing＞" }]
+        "keywords": [
+          {
+            "keyword": "Piercing",
+            "raw": "＜Piercing＞"
+          }
+        ]
       }
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["Glowing Dawn"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 3,
+        "traits": [
+          "Glowing Dawn"
+        ],
+        "cost": 2,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-050": {
     "effects": [
@@ -93499,16 +93563,42 @@
         "actions": [
           {
             "kind": "Suspend",
-            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "controllerDefault": "any",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
             "optional": true
           },
           {
             "kind": "Restrict",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
             "restriction": "unsuspend",
             "duration": "untilOpponentTurnEnd",
-            "condition": { "kind": "raw", "raw": "there are 2 or more suspended Digimon" },
-            "optional": true
+            "condition": {
+              "kind": "totalDigimonCount",
+              "filter": {
+                "suspended": true,
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "op": "gte",
+              "value": 2,
+              "raw": "there are 2 or more suspended Digimon"
+            }
           }
         ]
       },
@@ -93517,16 +93607,42 @@
         "actions": [
           {
             "kind": "Suspend",
-            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "controllerDefault": "any",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
             "optional": true
           },
           {
             "kind": "Restrict",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
             "restriction": "unsuspend",
             "duration": "untilOpponentTurnEnd",
-            "condition": { "kind": "raw", "raw": "there are 2 or more suspended Digimon" },
-            "optional": true
+            "condition": {
+              "kind": "totalDigimonCount",
+              "filter": {
+                "suspended": true,
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "op": "gte",
+              "value": 2,
+              "raw": "there are 2 or more suspended Digimon"
+            }
           }
         ]
       },
@@ -93535,7 +93651,15 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": "all"
+            },
             "amount": 1000,
             "duration": "permanent"
           }
@@ -93545,7 +93669,16 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 3,
+        "traits": [
+          "TS"
+        ],
+        "cost": 2,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-051": {
     "effects": [

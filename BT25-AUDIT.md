@@ -958,7 +958,8 @@ No ambiguity or unsupported behavior remains for BT25-047.
 - Catalog evidence: green level-3 Digimon, play cost 3; alternate level-2 TS evolution for 0; controller-turn self TS evolution cost -1; inherited all-turn once-per-turn Draw 1 when this Digimon wins a battle.
 - Knowledge base: Q6316 excludes breeding-area Bearmon from its reducer. Q6317–Q6321 define battle-win timing, Security battles, simultaneous deletion triggers, would-delete/leave priority, and wins where deletion is prevented.
 - Implementation: `wouldDigivolve` reduction is self- and battle-area-scoped with exact green/TS constraints; inherited `whenBattleWon` is self-scoped, all-turn, and once per turn. Direct/shared IR match, coverage is full/residual-free, and registration is exclusively `registerIrCard("BT25-048", compiled)`.
-- Verification: focused — 4 passed; catalog/audit — 24 passed; evolution/combat/interpreter regressions — 241 passed; `git diff --check` — passed. No defect was found, so no implementation/test change was made.
+- Audit seam corrected: the behavior was correct, but the module-local IR was not exported, preventing reproducible direct/shared equality checks. `compiled` is now exported without changing runtime behavior.
+- Verification: focused — 4 passed; catalog/audit — 25 passed after synchronization; evolution/combat/interpreter regressions — 241 passed; `git diff --check` — passed. No behavioral test was added.
 
 ### Reproduce
 
@@ -976,7 +977,8 @@ No ambiguity or unsupported behavior remains for BT25-048.
 - Catalog evidence: green level-4 Digimon; alternate level-3 Glowing Dawn evolution for 2; On Play/When Digivolving optionally suspends an opposing Digimon; controller-turn once-per-turn reduces a Glowing Dawn Option use cost by 3 by trashing a bottom face-down card under a friendly Tamer; inherited Piercing.
 - Knowledge base: no card-specific entries; general suspension, replacement/use-cost, under-Tamer cost, and Piercing rules apply.
 - Implementation: both entry timings, opponent target, optionality, exact once-per-turn Option reducer, atomic bottom-face-down cost, alternate evolution, and inherited keyword are complete. Direct/shared IR match, full/residual-free, with exclusive `registerIrCard("BT25-049", compiled)`.
-- Verification: focused — 3 passed; replacement/play mechanisms — 30 passed; manual runtime payment probe — passed; `git diff --check` — passed. No defect was found, so no implementation/test change was made.
+- Audit seam corrected: the behavior was correct, but the module-local IR was not exported, preventing reproducible direct/shared equality checks. `compiled` is now exported without changing runtime behavior.
+- Verification: focused — 3 passed; replacement/play mechanisms — 30 passed; manual runtime payment probe — passed; catalog/audit — 25 passed after synchronization; `git diff --check` — passed. No behavioral test was added.
 
 ### Reproduce
 
