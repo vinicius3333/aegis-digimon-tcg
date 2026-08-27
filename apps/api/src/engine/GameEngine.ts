@@ -2004,10 +2004,19 @@ export class GameEngine {
       // A phase-boundary event has one fixed set of card sources: a Tamer played by an
       // earlier start-of-turn/start-of-main effect did not exist when that boundary
       // occurred and cannot retroactively trigger (BT24-082/Q5664, BT24-083/Q5667).
-      // Keep ordinary timing windows live because derived triggers and mid-window
+      // The end of the turn is the same kind of boundary in the other direction: a card
+      // that ARRIVES while it is being resolved has missed it, so its own end-of-turn
+      // clause is not processed this turn (Q2731/Q2762 — "the end of the turn timing has
+      // already passed"). Without the snapshot, EX11-046's "[End of Opponent's Turn] this
+      // Digimon may digivolve into [Galacticmon]" put a fresh Galacticmon on top of the
+      // stack that fired the very same clause again, chaining through hand and trash in
+      // one window.
+      // Keep every other timing window live because derived triggers and mid-window
       // digivolutions intentionally join those resolution fixpoints.
       const phaseBoundarySourceLocations =
-        timing === EffectTiming.OnStartTurn || timing === EffectTiming.OnStartMainPhase
+        timing === EffectTiming.OnStartTurn ||
+        timing === EffectTiming.OnStartMainPhase ||
+        timing === EffectTiming.OnEndTurn
           ? new Map(
               this.listCandidateInstances().map((instance) => [
                 instance.instanceId,
