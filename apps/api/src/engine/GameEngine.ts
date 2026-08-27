@@ -642,17 +642,7 @@ export class GameEngine {
         }
         return undefined;
       },
-      (permanentId) => {
-        for (const player of this.state.players) {
-          const permanent =
-            player.battleArea.find((candidate) => candidate.permanentId === permanentId) ??
-            (player.breeding?.permanentId === permanentId ? player.breeding : undefined);
-          if (permanent !== undefined) {
-            return resolveKeywords(permanent, { grantedKeywords: () => [] });
-          }
-        }
-        return [];
-      },
+      undefined,
       (permanentId) => {
         for (const player of this.state.players) {
           const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);

@@ -3467,24 +3467,27 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   these controller and duration boundaries.
 - Implementation: `apps/api/src/cards/BT5/BT5-103.ts` already encoded the exact
   Reboot targets, grants, durations, opposing attack-player restriction, and
-  self-to-hand Security action. `GameEngine.ts` now supplies the continuous
-  ledger with each permanent's printed keywords through `resolveKeywords` with
-  an empty grant reader, allowing keyword target filters to observe intrinsic
-  Reboot without conflating continuous grants. Full residual-free coverage and
-  exclusive `registerIrCard("BT5-103", compiled)` registration are preserved.
+  self-to-hand Security action. Permanent filter matching now treats printed
+  top-card and inherited keywords as authoritative even when the live grant
+  lookup returns false, allowing `keywords: ["Reboot"]` to observe intrinsic
+  Reboot without making timing keywords globally active. Full residual-free
+  coverage and exclusive `registerIrCard("BT5-103", compiled)` registration are
+  preserved.
 - Behavioral proof: two focused tests prove multiple own intrinsic-Reboot
   targets gain exactly +1000 DP and Blocker while an own non-Reboot and opposing
   Reboot do not; grants survive the owner turn end and expire at opponent turn
   end. Security affects opposing attack-to-player only, leaves own Digimon and
   general attack legality untouched, moves the exact Option instance to hand,
   and expires at turn end.
-- Defect corrected: the continuous ledger was constructed without its printed
-  keyword resolver, so card filters using `keywords` could not match intrinsic
-  Reboot. The engine now wires that resolver to the authoritative top-card
-  definition for battle-area and breeding permanents.
+- Defect corrected: permanent matching suppressed its printed/inherited keyword
+  fallback whenever the real engine's live grant lookup returned false, so
+  filters could not match intrinsic Reboot. The fallback now unions printed,
+  inherited, and granted keyword evidence locally; the continuous ledger keeps
+  timing-sensitive Rush/Blitz grants separate.
 - Verification: focused BT5-103 — 2/2 passed; continuous ledger — 31/31;
-  keyword resolver — 103/103; affected BT5-092/096 regressions — 13/13. Oxfmt,
-  Oxlint, registration search, and `git diff --check` pass. Workspace typecheck
+  keyword resolver — 103/103; affected BT5-063/Shoutmon regressions — 5/5;
+  affected BT5-092/096 regressions — 13/13. Oxfmt, Oxlint, registration search,
+  and `git diff --check` pass. Workspace typecheck
   reaches only pre-existing unrelated failures in EX6-010, interpreter removal,
   runAction/loose targeting, and the primitive interface exhaustiveness test;
   no changed file reports an error.
