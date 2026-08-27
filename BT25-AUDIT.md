@@ -1261,3 +1261,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-064.
+
+## BT25-065 — Monodramon — 10/10
+
+- Catalog evidence: black level-3 Digimon; alternate level-2 TS evolution for 0; all-turn self-suspension Draw 1; controller-turn self player attack loses 2 memory; inherited all-turn +1000 DP.
+- Knowledge base: no card-specific entries; standard suspension, attack-target, memory-loss, evolution, and inherited continuous-effect rules apply.
+- Implementation: self-bound suspension watcher, controller-scoped draw, self/player-only attack gate, memory loss, alternate evolution, and continuous inherited boost are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-065", compiled)`.
+- Verification: focused — 6 passed; BT25 audit — 2 passed; relevant mechanisms — 23 passed; `git diff --check` — passed. No defect was found, so no implementation or test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-065
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-065.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-065.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-065.
