@@ -2991,6 +2991,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR and exclusive `registerIrCard`; transactional optional BEATBREAK hand placement/Draw/+1, global attack watcher with suspend cost, face-down top-deck placement under self, grants only to own BEATBREAK Digimon, and free Security play.
 - Proof: ordering, refusal, empty deck, unavailable suspend, opponent attack/block, Q7154, Security, plus mixed matching/nonmatching hand and Digimon pools. Automation not run; diff check passed. No unresolved limitation.
 
+## BT26-094 — Keenan Crier — 10/10
+
+- Catalog/KB: purple cost-3 DATA SQUAD Tamer, start-main placement, hand-trash/self-stack reaction, Execute grant, and Security play confirmed. Q7156–Q7159 cover bottom face-down handling.
+- Implementation: full IR/exclusive `registerIrCard`; exact DATA SQUAD placement/Draw/+1, opponent hand-trash and effect-attributed self-stack watchers, suspend cost, own DATA SQUAD Execute grant, and Security.
+- Proof: all clauses, refusal/unavailable cost, controller/turn filters, face-up trash, duration, Security, plus mixed-board non-DATA SQUAD exclusion. Automation not run; diff check passed. No limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
