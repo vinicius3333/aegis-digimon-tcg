@@ -12,9 +12,15 @@ describe("EX9-056", () => {
       raw: "＜Blast Digivolve＞",
     });
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      const action = compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0];
+      const effect = compiled.effects?.find((entry) => entry.trigger === trigger);
+      const action = effect?.actions[0];
+      expect(effect?.actions).toHaveLength(1);
       expect(action).toMatchObject({
-        kind: "Trash",
+        kind: "SecurityManipulation",
+        op: "trashTop",
+        controller: "opponent",
+        amount: 1,
+        abortOnDecline: true,
         cost: { kind: "place", destination: "security", position: "bottom", faceDown: true },
       });
       expect(irNode(action?.cost)?.target?.filter).toMatchObject({ dp: { op: "lte", value: 8000 } });
@@ -28,12 +34,14 @@ describe("EX9-056", () => {
   it("allows either player's qualifying Digimon as the bottom-security payment and affects all own Ver.3 leaves", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"])
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
-        optional: true,
         abortOnDecline: true,
-        target: { filter: { controller: "opponent" }, count: 1 },
+        kind: "SecurityManipulation",
+        op: "trashTop",
+        controller: "opponent",
+        amount: 1,
         cost: {
           targetIsPermanent: true,
-          target: { filter: { kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
+          target: { filter: { controller: "any", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
           destination: "security",
           position: "bottom",
           faceDown: true,
