@@ -2576,3 +2576,26 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   3/3 passed. Targeted Oxfmt, Oxlint, and `git diff --check` pass. No
   typing-sensitive source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-069 — BlackWarGreymon — 10/10
+
+- Catalog and ruling evidence: Black Lv.6 Mega Digimon, Virus/Dragonkin, play
+  cost 11, 12000 DP, and black Lv.5 evolution cost 4. Its complete effect text
+  consists of Security Attack +1 and Reboot. The knowledge base contains no
+  card-specific ruling, errata, restriction, or unresolved ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-069.ts` encodes both printed
+  keywords as unconditional static effects, declares full residual-free
+  coverage, and registers exclusively through
+  `registerIrCard("BT5-069", compiled)`.
+- Behavioral proof: the focused tests verify runtime registration, the exact
+  Security Attack increment, Reboot availability, and that merely gaining
+  Reboot does not immediately unsuspend the Digimon. BT5-068's focused stack
+  tests exercise the same Reboot mechanism, while BT5-065's Security timing
+  regression uses BT5-069 in a real attack and observes two security checks.
+- Defect corrected: none. The implementation and existing cross-card proof were
+  already faithful, so no source or test file changed.
+- Verification: focused BT5-069 — 2/2 passed; related BT5-068 Reboot coverage —
+  5/5 passed. The existing BT5-065 regression provides the real two-check
+  Security Attack proof. Targeted Oxfmt, Oxlint, and `git diff --check` pass.
+  No typing-sensitive source changed.
+- Remaining ambiguity: none identified.
