@@ -92027,8 +92027,9 @@
             "from": ["hand"],
             "optional": true,
             "cost": {
-              "kind": "trash",
-              "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 2 },
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 2,
               "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
             },
             "abortOnDecline": true
@@ -92056,8 +92057,9 @@
             "from": ["hand"],
             "optional": true,
             "cost": {
-              "kind": "trash",
-              "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 2 },
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 2,
               "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
             },
             "abortOnDecline": true

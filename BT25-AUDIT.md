@@ -689,3 +689,25 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-034.
+
+## BT25-035 — Cougarmon — 10/10
+
+- Catalog evidence: Yellow level-4 Digimon, play cost 5, 6000 DP, `Champion`/`Virus`, `Mammal`/`Glowing Dawn`/`BEATBREAK`; standard yellow level-3 evolution for 2 plus alternate level-3 `Glowing Dawn` evolution for 2; On Play/When Digivolving give one opposing Digimon -3000 DP for the turn, then optionally trash exactly two bottom face-down cards from under friendly Tamers to evolve this Digimon into a Glowing Dawn Digimon from hand without paying the cost; inherited Barrier.
+- Knowledge base: Q6299 delays zero-DP rule deletion until the entire activated effect finishes. Q6300 requires paying both cards, not a partial cost. Q6301 permits the two bottom face-down cards to come from multiple friendly Tamers. The dedicated cost primitive implements atomic multi-Tamer bottom-card payment.
+- Implementation: both timings preserve the unconditional -3000 DP first action and the separately optional costed self evolution. The evolution uses hand-only Glowing Dawn targeting, waives evolution cost, aborts on cost refusal, and pays exactly two bottom face-down cards across controller-owned Tamers. Inherited Barrier and alternate evolution are complete. Direct/shared IR are synchronized, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-035", compiled)`.
+- Defect corrected: the direct module was already hand-fixed, but persisted shared IR still modeled the cost as trashing two Tamer permanents. Both persisted actions now use `trashBottomFaceDownUnderTamer` with count 2 and controller scope, and BT25-035 was added to persisted-IR equality coverage.
+- Behavioral proof: the focused suite verifies both timing structures and the specialized cost. Mechanism regressions cover atomic two-card payment, distribution across multiple Tamers, bottom-only selection, refusal, free legal evolution, delayed zero-DP rule check, and inherited Barrier. Persisted equality fails against the prior Tamer-trash representation.
+- Verification: focused suite — 2 passed; related interpreter/mechanism regressions — 197 passed; BT25 persisted-IR sync — 10 passed; BT25 catalog audit — 7 passed; targeted Oxfmt, shared-IR JSON parse, and `git diff --check` — passed. The broader interaction baseline retains one unrelated memory assertion failure. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-035 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-035
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-035.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-035.test.ts src/cards/BT25/BT25-catalog-sync.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-catalog-sync.test.ts
+node -e 'JSON.parse(require("fs").readFileSync("packages/shared/src/effects/effects.json", "utf8"))'
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-035.
