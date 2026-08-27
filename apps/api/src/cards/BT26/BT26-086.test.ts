@@ -170,9 +170,10 @@ describe("BT26-086 compiled behavior", () => {
           actions: [
             { kind: "Delete", optional: true },
             {
-              kind: "SecurityManipulation",
-              op: "moveTopToBottom",
+              kind: "Return",
+              to: "deckBottom",
               condition: { kind: "selfLinkCountAtLeast", value: 7 },
+              target: { filter: { controller: "opponent", zone: "security", position: "top" }, count: 1 },
             },
           ],
         },
@@ -266,7 +267,7 @@ describe("BT26-086 compiled behavior", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
-  it("deletes an opposing Digimon and moves its security top card when seven links are present", async () => {
+  it("deletes an opposing Digimon and returns its security top card to deck bottom when seven links are present", async () => {
     const s = setupEngine(
       {
         0: {
@@ -302,10 +303,11 @@ describe("BT26-086 compiled behavior", () => {
     });
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-002", "BT1-001"]);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-002"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-001"]);
   });
 
-  it("uses the linked reaction only once per turn and needs seven links to move security", async () => {
+  it("uses the linked reaction only once per turn and needs seven links to return security to deck", async () => {
     const once = setupEngine(
       {
         0: {
@@ -345,7 +347,8 @@ describe("BT26-086 compiled behavior", () => {
     });
 
     expect(once.state.players[1]!.battleArea).toHaveLength(1);
-    expect(once.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-002", "BT1-001"]);
+    expect(once.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-002"]);
+    expect(once.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
 
     const belowSeven = setupEngine(
       {

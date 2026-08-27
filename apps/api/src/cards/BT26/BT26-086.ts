@@ -53,10 +53,9 @@ export const compiled: CompiledCard = {
               optional: true,
             },
             {
-              kind: "SecurityManipulation",
-              op: "moveTopToBottom",
-              controller: "opponent",
-              amount: 1,
+              kind: "Return",
+              target: { filter: { controller: "opponent", zone: "security", position: "top" }, count: 1 },
+              to: "deckBottom",
               condition: { kind: "selfLinkCountAtLeast", value: 7, raw: "if this Digimon has 7 link cards" },
             },
           ],

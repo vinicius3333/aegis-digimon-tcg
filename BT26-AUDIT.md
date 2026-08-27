@@ -2943,6 +2943,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR and exclusive `registerIrCard`; exact Assembly, keyword suite, opponent-only DP/stack-trash protection, and optional free Destroy Mode evolution from hand/trash replacing departure.
 - Proof: valid/invalid Assembly, protection ownership, combat keywords, replacement from both zones, refusal, and final zones. No change needed; automation not run; diff check passed. No unresolved implementation limitation.
 
+## BT26-086 — Dantemon — 10/10
+
+- Catalog/KB: white Lv.7 Appmon, Assembly -7 from seven differently named Seven Code Digimon, Rush/Reboot/Blocker/Link +6, stack linking, attack, linked reaction, deletion, and security return confirmed. No card-specific KB entry.
+- Correction: replaced `SecurityManipulation(moveTopToBottom)`, which only reordered security, with `Return` of the opponent's top security card to deck bottom as printed.
+- Proof: Assembly boundaries, stack Appmon filtering, link capacity/distinct names, keywords, reaction/frequency, seven-link condition, and corrected security-to-deck zones. Full IR, exclusive `registerIrCard`; automation not run; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
