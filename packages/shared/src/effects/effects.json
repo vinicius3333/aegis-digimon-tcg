@@ -101063,32 +101063,119 @@
     "effects": [
       {
         "trigger": "Static",
+        "isLinked": true,
+        "actions": [
+          {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Collision",
+              "raw": "＜Collision＞"
+            },
+            "duration": "permanent"
+          },
+          {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Piercing",
+              "raw": "＜Piercing＞"
+            },
+            "duration": "permanent"
+          }
+        ]
+      },
+      {
+        "trigger": "Static",
         "actions": [
           {
             "kind": "WaiveColorRequirement",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
+              },
               "raw": "you have a card w/[TS] trait"
             }
           }
         ]
       },
-      { "trigger": "Security", "actions": [{ "kind": "ActivateMain" }] },
+      {
+        "trigger": "Security",
+        "actions": [
+          {
+            "kind": "ActivateMain"
+          }
+        ]
+      },
       {
         "trigger": "Main",
         "actions": [
           {
             "kind": "DeDigivolve",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
             "amount": 2
           },
           {
             "kind": "Link",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "recipient": {
+              "filter": {
+                "controller": "mine",
+                "zone": [
+                  "battleArea",
+                  "breeding"
+                ],
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
             "payCost": false,
-            "optional": true
+            "optional": true,
+            "allowBreedingRecipient": true
           }
         ]
       }
@@ -101103,13 +101190,26 @@
         "actions": [
           {
             "kind": "WaiveColorRequirement",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "condition": {
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
                 "zone": "battleArea",
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               }
             }
           }
@@ -101121,15 +101221,32 @@
         "actions": [
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "SecurityAttack", "amount": 1 },
-            "duration": "untilEachTurnEnd"
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "SecurityAttack",
+              "amount": 1
+            },
+            "duration": "permanent"
           },
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "Reboot" },
-            "duration": "untilEachTurnEnd"
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Reboot"
+            },
+            "duration": "permanent"
           }
         ]
       },
@@ -101144,14 +101261,28 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Vulcanusmon"], "match": "name" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Vulcanusmon"
+                    ],
+                    "match": "name"
+                  }
+                ]
               },
               "count": 1
             },
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "zone": "linked" }, "count": 1 },
+              "target": {
+                "filter": {
+                  "zone": "linked"
+                },
+                "count": 1
+              },
               "raw": "by trashing 1 of its link cards"
             },
             "raw": "When this [Vulcanusmon] would leave the battle area, by trashing 1 of its link cards, it doesn't leave."
@@ -101164,13 +101295,21 @@
           {
             "kind": "Draw",
             "amount": 2,
+            "controller": "mine",
             "cost": {
               "kind": "trash",
               "target": {
                 "filter": {
                   "controller": "mine",
                   "zone": "hand",
-                  "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "TS"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
                 },
                 "count": 1
               }
@@ -101181,27 +101320,63 @@
           {
             "kind": "Link",
             "target": {
-              "filter": { "isSelfRef": true },
+              "filter": {
+                "isSelfRef": true
+              },
               "orFilters": [
                 {
                   "controller": "mine",
                   "zone": "trash",
-                  "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }],
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "TS"
+                      ],
+                      "match": "trait"
+                    }
+                  ],
                   "hasLinkRequirement": true
                 }
               ],
               "count": 1,
               "isSelf": true
             },
-            "recipient": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "from": ["trash"],
+            "recipient": {
+              "filter": {
+                "controller": "mine",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "orFilters": [
+                {
+                  "controller": "mine",
+                  "zone": "breeding",
+                  "kind": [
+                    "Digimon"
+                  ]
+                }
+              ],
+              "count": 1
+            },
+            "from": [
+              "trash"
+            ],
             "allowBreedingRecipient": true,
             "payCost": false,
             "optional": true
           }
         ]
       },
-      { "trigger": "Security", "isSecurity": true, "actions": [{ "kind": "ActivateMain" }] }
+      {
+        "trigger": "Security",
+        "isSecurity": true,
+        "actions": [
+          {
+            "kind": "ActivateMain"
+          }
+        ]
+      }
     ],
     "coverage": "full",
     "residual": []
