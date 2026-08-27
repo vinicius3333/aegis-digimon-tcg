@@ -1950,3 +1950,36 @@ typecheck, Oxlint/Oxfmt, and git diff --check
 ```
 
 No unresolved BT26-043 ambiguity or unsupported printed clause remains. Only `apps/api/src/cards/BT26/BT26-043.test.ts` and this appended audit section were changed; the implementation and shared engine required no correction. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-043; the collection is not marked complete.
+
+## BT26-044 — Lilamon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-044` (`Lilamon`), a green level-5 Ultimate/Data Digimon with play cost 7, 7000 DP, and `Fairy`/`DATA SQUAD` traits. Its normal evolution requirement is green Lv.4 for cost 3, and its alternate requirement is `[Digivolve] Lv.4 w/[DATA SQUAD] trait: Cost 3`.
+- Printed behavior verified: the On Play/When Digivolving optional suspension and independent unsuspend restriction; the Your Turn/Once Per Turn reaction to an opponent Digimon/Tamer suspending or an effect trashing cards from under an own Tamer; the optional hand evolution into a `Vegetation`, `Fairy`, or `DATA SQUAD` Digimon with cost reduced by 1; and inherited leave prevention for a `Rosemon`-named or `DATA SQUAD` Digimon by trashing the bottom face-down card under an own Tamer.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-044`; Q7035 confirms that the unsuspend-restriction target may differ from the card suspended by the preceding process. No banlist restriction, erratum, or unresolved ambiguity applies.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-044.ts` has `coverage: "full"`, `residual: []`, and registers executable behavior exclusively through `registerIrCard("BT26-044", compiled)`.
+- Separate On Play and When Digivolving action sequences independently resolve the optional suspension and mandatory restriction targets, preserving Q7035.
+- The Your Turn watcher shares one Once Per Turn budget across `whenSuspended` for opposing Digimon/Tamers and `whenDigivolutionTrashed` with `byEffect: true` for own Tamer stacks. Its optional hand evolution targets Lilamon itself, OR-matches all three printed traits, pays the legal evolution cost with `costDelta: -1`, and aborts cleanly on refusal.
+- The inherited `wouldLeavePlay` replacement is optional, source-bound, limited to a `Rosemon` name match or `DATA SQUAD` trait, and pays the exact `trashBottomFaceDownUnderTamer` cost. The relevant suspension, subtrigger, evolution, replacement, and face-down Tamer-stack primitives and adjacent BT26 peers were inspected.
+
+### Behavioral proof
+
+- Existing `apps/api/src/cards/BT26/BT26-044.test.ts` covers the alternate evolution metadata, complete IR shape, public On Play suspension/lock, independent Q7035 targets, reactive reduced-cost evolution from both printed event families, and inherited leave prevention with the final cost card in trash.
+- The focused fixtures exercise real hand evolution, opponent suspension, effect-driven Tamer-stack trash, face-down cost selection, final memory, stack identity, restriction state, and prevention outcome. No implementation or proof gap requiring a new test was found.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-044
+  PASS (Q7035; no errata/restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the ledger-only commit
+```
+
+No unresolved BT26-044 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
