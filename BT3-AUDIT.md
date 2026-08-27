@@ -20,10 +20,10 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT3-031–040 | Static audit integrated | `internal-docs/audits/BT3/BT3-031-040.md` | Yes |
 | BT3-041–050 | Static audit integrated | `internal-docs/audits/BT3/BT3-041-050.md` | Yes |
 | BT3-051–060 | Static audit integrated | `internal-docs/audits/BT3/BT3-051-060.md` | Yes |
-| BT3-061–070 | Luna in progress | `internal-docs/audits/BT3/BT3-061-070.md` | No |
+| BT3-061–070 | Static audit integrated | `internal-docs/audits/BT3/BT3-061-070.md` | Yes |
 | BT3-071–080 | Luna in progress | `internal-docs/audits/BT3/BT3-071-080.md` | No |
 | BT3-081–090 | Luna in progress | `internal-docs/audits/BT3/BT3-081-090.md` | No |
-| BT3-091–100 | Queued | `internal-docs/audits/BT3/BT3-091-100.md` | No |
+| BT3-091–100 | Luna in progress | `internal-docs/audits/BT3/BT3-091-100.md` | No |
 | BT3-101–110 | Queued | `internal-docs/audits/BT3/BT3-101-110.md` | No |
 | BT3-111–112 | Queued | `internal-docs/audits/BT3/BT3-111-112.md` | No |
 
@@ -103,18 +103,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT3-058 BanchoStingmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact 12000-DP attack-target threshold and player-target boundary |
 | BT3-059 Commandramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal black source proof |
 | BT3-060 Psychemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal black source proof |
+| BT3-061 Chuumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent memory-gain restriction and Tamer exception proof |
+| BT3-062 Ludomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Dual-category RevealAdd and overlap selection proof |
+| BT3-063 Sukamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | On Deletion Chuumon reveal/play and deck-bottom proof |
+| BT3-064 TiaLudomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected level-7 De-Digivolve trace without duplicate Trash |
+| BT3-065 Gururumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Security play to end-of-battle watcher with order proof |
+| BT3-066 Clockmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited opponent-turn DP modifier and opposite-turn proof |
+| BT3-067 Tankmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and catalog proof |
+| BT3-068 Giromon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited opponent-turn DP modifier and legal stack proof |
+| BT3-069 RaijiLudomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Authoritative direct De-Digivolve IR and stack-floor proof |
+| BT3-070 Etemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blocker and On Deletion Etemon reveal/play proof |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT3/`.
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 90
-- Integrated card audits: 60
-- Corrected: 7
-- Provisional: 60
+- Assigned: 100
+- Integrated card audits: 70
+- Corrected: 9
+- Provisional: 70
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 22
+- Remaining unassigned: 12
 
 BT3 remains open.

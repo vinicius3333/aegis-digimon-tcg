@@ -103114,12 +103114,19 @@
     "effects": [
       {
         "trigger": "WhenAttacking",
-        "condition": { "kind": "selfLevelIs", "value": 7, "raw": "this Digimon is level 7" },
         "actions": [
           {
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "amount": 1
+            "amount": 1,
+            "condition": { "kind": "selfLevelIs", "value": 7, "raw": "this Digimon is level 7" }
+          },
+          {
+            "kind": "Trash",
+            "target": {
+              "filter": { "digivolutionCards": "none", "controller": "opponent", "kind": ["Digimon"], "levels": [3] },
+              "count": 1
+            }
           }
         ],
         "isInherited": true
@@ -103132,20 +103139,11 @@
     "effects": [
       {
         "trigger": "Security",
-        "timing": "endOfBattle",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenSecurityBattleEnded",
-            "once": true,
-            "actions": [
-              {
-                "kind": "PlayWithoutCost",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "from": ["trash"],
-                "payCost": false
-              }
-            ]
+            "kind": "PlayWithoutCost",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "payCost": false
           }
         ]
       }
@@ -103194,12 +103192,19 @@
     "effects": [
       {
         "trigger": "WhenAttacking",
-        "condition": { "kind": "selfLevelIs", "value": 7, "raw": "this Digimon is level 7" },
         "actions": [
           {
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "amount": 1
+            "amount": 1,
+            "condition": { "kind": "raw", "raw": "this Digimon is level 7" }
+          },
+          {
+            "kind": "Trash",
+            "target": {
+              "filter": { "digivolutionCards": "none", "controller": "opponent", "kind": ["Digimon"], "levels": [3] },
+              "count": 1
+            }
           }
         ],
         "isInherited": true
