@@ -14,7 +14,7 @@ const appmonStack = {
 const linkThenAttack = [
   {
     kind: "Link",
-    target: { filter: appmonStack, count: 7, upTo: true },
+    target: { filter: appmonStack, count: 7, upTo: true, distinctNames: true },
     differentNames: true,
     recipient: self,
     from: ["digivolutionCards"],
