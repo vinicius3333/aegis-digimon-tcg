@@ -1639,3 +1639,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-085.
+
+## BT25-086 — Dan Yuki — 10/10
+
+- Catalog evidence: black Tamer; start-main memory gain at four or less memory; end-turn self-suspension gives one friendly TS Digimon +1000 DP per opponent memory and then lets that same Digimon attack; Security plays this card free.
+- Knowledge base: Q6405 defines the memory boundary, Q6406 confirms opponent-memory scaling, Q6407 makes the suspension payment gate the later attack, Q6408 prevents a nested second attack, and Q6713 confirms the exact-name interaction with BT24-085.
+- Implementation: memory boundary, opponent-relative scaling, same-target attack binding, suspension payment, TS/battle-area scope, duration, and Security play are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-086", compiled)`.
+- Verification: focused — 5 passed; combined focused/mechanism gate — 243 passed; `git diff --check` — passed. No direct defect was found, so no implementation or test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-086
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-086.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-086.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-086.
