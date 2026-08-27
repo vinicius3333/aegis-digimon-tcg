@@ -31,12 +31,16 @@ describe("BT26-102 compiled fidelity", () => {
       ],
     });
     expect(card?.effects?.[0]?.actions).toMatchObject([
-      { kind: "WaiveColorRequirement", condition: { kind: "youHave" } },
+      {
+        kind: "WaiveColorRequirement",
+        condition: { kind: "youHave", filter: { kind: ["Digimon", "Tamer"] } },
+      },
     ]);
     expect(card?.effects?.[1]?.actions).toMatchObject([
       {
         kind: "PlaceUnder",
         mixedSources: { battleAreaPermanents: true, linkedCards: true, trash: true },
+        order: "any",
         trackCount: "sevenCodeMaterials",
         optional: true,
         abortOnDecline: true,
@@ -50,7 +54,7 @@ describe("BT26-102 compiled fidelity", () => {
     ]);
   });
 
-  it("waives the white use requirement only while its controller has a Seven Code card", async () => {
+  it("waives the white use requirement only while its controller has a Seven Code Digimon or Tamer", async () => {
     const withoutSevenCode = setupEngine({ 0: { hand: [{ card: "BT26-102", as: "option" }] } });
     withoutSevenCode.state.memory = 7;
     await withoutSevenCode.ready();
@@ -77,6 +81,22 @@ describe("BT26-102 compiled fidelity", () => {
     ).toEqual({ ok: true });
     await settle(() => withSevenCode.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-102"));
     expect(withSevenCode.state.memory).toBe(0);
+  });
+
+  it("does not treat a Seven Code Option as a Use Req qualifying card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-102", as: "sevenCodeOption" }],
+        hand: [{ card: "BT26-102", as: "option" }],
+      },
+    });
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
   });
 
   it("publicly plays an Appmon from hand and adds itself to hand from security", async () => {
@@ -110,7 +130,11 @@ describe("BT26-102 compiled fidelity", () => {
                 { card: "BT26-028", as: "linked2" },
               ],
             },
-            { card: "BT26-037", as: "battleMaterial" },
+            {
+              card: "BT26-037",
+              as: "battleMaterial",
+              under: [{ card: "BT1-001", as: "shedStack" }],
+            },
           ],
           hand: [
             { card: "BT26-102", as: "option" },
@@ -120,6 +144,7 @@ describe("BT26-102 compiled fidelity", () => {
             { card: "BT26-051", as: "trash1" },
             { card: "BT26-063", as: "trash2" },
             { card: "BT26-084", as: "trash3" },
+            { card: "BT1-009", as: "nonSevenCode" },
           ],
         },
         1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
@@ -132,13 +157,16 @@ describe("BT26-102 compiled fidelity", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("host").topCard.cardId === "BT26-086" && s.perm("host").linked.length === 7);
+    await settle(() => s.perm("host").topCard.cardId === "BT26-086" && s.perm("host").stack.length === 7);
 
-    expect(s.perm("host").stack).toHaveLength(0);
-    expect(s.perm("host").linked.map(({ cardId }) => cardId)).toEqual(
+    expect(s.perm("host").stack).toHaveLength(7);
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063", "BT26-084"]),
     );
+    expect(s.perm("host").linked).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-037")).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
   });
 
   it("Q7186 may place all six materials and then decline Dantemon", async () => {

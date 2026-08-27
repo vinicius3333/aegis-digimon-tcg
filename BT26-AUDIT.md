@@ -3039,6 +3039,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR/exclusive `registerIrCard`; conditional all-own-TS Blocker/+3000 through opponent turn, independent modal, `SelectBind` current-DP deletion limit, and cost-4 TS Digimon/Tamer Security play.
 - Proof: Use Req, hand/trash Security, trait/cost boundaries, named bonus with non-TS exclusion, DP deletion, unsuspend, and Q7182. Automation not run; diff check passed. No limitation.
 
+## BT26-102 — Seven Code PAD — 10/10
+
+- Catalog/KB: white cost-7 Appmon/Seven Code Option, Use Req, exact-six mixed-source placement/free Dantemon evolution, and Security Appmon play/self-recovery confirmed. Q7127–Q7128/Q7183–Q7186 cover sequencing, sources, atomicity, order, and optional evolution.
+- Correction: restricted the Seven Code Use Requirement waiver to Digimon/Tamers under CR §16-42-3; the broad filter wrongly admitted Seven Code Options.
+- Proof: waiver boundaries including Option rejection, Security, mixed battle/link/trash sources, nonmatching preservation, stacked cleanup, five-card atomic failure, ordering, evolution refusal, and corrected stack assertion. Full IR/exclusive `registerIrCard`; automation not run; diff check passed. No limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
