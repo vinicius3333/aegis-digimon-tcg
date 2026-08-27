@@ -3291,3 +3291,29 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   Targeted Oxfmt, Oxlint, registration search, and `git diff --check` pass. No
   shared engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-096 — Supreme Cannon — 10/10
+
+- Catalog and ruling evidence: Blue Option with use cost 5. Main returns all
+  opposing Digimon with 3000 DP or less to their owners' hands, trashing all of
+  those Digimon's evolution cards; if the controller has a Digimon with
+  Garurumon or Omnimon in its name, it returns all at 5000 DP or less instead.
+  Security activates the Main effect. The local knowledge base contains no
+  card-specific ruling or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-096.ts` encodes mutually exclusive
+  `youHaveNone` 3000-DP and `youHave` 5000-DP Return-all branches, both scoped
+  to opposing Digimon and preserving the shared return primitive's source-trash
+  behavior. Security activates Main. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-096", compiled)` registration are preserved.
+- Behavioral proof: four focused tests lock both mutually exclusive branches,
+  all-target behavior, exact 3000/5000 boundaries, survival above each ceiling,
+  and trashing every returned stack's evolution cards. They also prove own
+  Digimon are unaffected, an opposing Garurumon does not qualify, and Security
+  activates the threshold logic.
+- Defect corrected: the base 3000-DP Return action was unconditional, so the
+  upgraded state executed both it and the printed "instead" 5000-DP action.
+  It is now guarded by the inverse `youHaveNone` condition.
+- Verification: focused BT5-096 — 4/4 passed; targeted return-to-hand primitive
+  subset — 7/7 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No shared engine seam changed.
+- Remaining ambiguity: none identified.
