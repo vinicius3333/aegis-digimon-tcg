@@ -76,6 +76,7 @@ describe("BT4-096 Izzy Izumi", () => {
             { card: "BT2-052", as: "first" },
             { card: "BT2-053", as: "second" },
             { card: "BT2-054", as: "third" },
+            { card: "BT1-009", as: "sentinel" },
           ],
         },
       },
@@ -83,6 +84,7 @@ describe("BT4-096 Izzy Izumi", () => {
     );
     s.state.memory = 10;
     const orderedIds = [s.inst("third").instanceId, s.inst("first").instanceId, s.inst("second").instanceId];
+    const sentinelId = s.inst("sentinel").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -113,11 +115,9 @@ describe("BT4-096 Izzy Izumi", () => {
         response: { kind: "orderCards", order: orderedIds },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.state.pendingDecision === undefined && s.state.players[0]!.deck[0]?.instanceId === orderedIds[0],
-    );
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck[0]?.instanceId === orderedIds[0]);
 
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(orderedIds);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([...orderedIds, sentinelId]);
   });
 
   it("plays itself from security", async () => {
