@@ -2,6 +2,14 @@
 
 This ledger records evidence in ascending card-ID order. A card receives 10/10 only after its complete catalog contract and local knowledge-base record are inspected, every clause is traced through its direct compiled-IR module and relevant shared primitives, and existing observable behavioral proof passes. In accordance with the requested audit policy, an already-correct card does not receive newly created tests; tests are added or strengthened when the audit finds a defect.
 
+## Collection completion
+
+- Scope: 104/104 BT25 card modules audited, 104 unique 10/10 ledger entries, no missing IDs, duplicates, residual limitations, or below-10 scores.
+- Registration: all 104 modules have exactly one matching `registerIrCard(cardId, compiled)` call and no BT25 module uses `registerCard`.
+- Collection gate: `pnpm --filter @aegis/api exec vitest run src/cards/BT25` — 107 files passed, 680 tests passed.
+- Relevant shared mechanisms: interpreter, primitives, stack, SubTrigger registry/seams, Link state, pooled source trash, and EX5-025 regression — 416 tests passed. The broader `mechanic.test.ts` run passed 116/118; its two failures are unrelated pre-existing cases (BT15-020 timeout and the BT7-040/ST4-13/ST6-13 Digi-Burst shape guard).
+- Static checks: `git diff --check` passed; API typecheck reports only the existing unrelated EX6-010, removal/runAction/loose-targeting, and primitives completeness errors, with no BT25 or newly changed mechanism error.
+
 ## BT25-001 — Tokomon — 10/10
 
 - Catalog evidence: Red level-2 Digi-Egg, `In-Training` form, `Lesser` type, `TS` trait, no evolution recipe, no main or Security text, and inherited `[When Attacking] [Once Per Turn] If this Digimon has the [TS] trait, <Draw 1>`.
