@@ -1207,3 +1207,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-061.
+
+## BT25-062 — Kokuwamon — 10/10
+
+- Catalog evidence: black level-3 Digimon; alternate level-2 TS evolution for 0; at start of controller's main phase, while memory is 4 or less on their side, this Digimon may evolve free into a Machine, Cyborg, or TS Digimon from hand; inherited all-turn +1000 DP.
+- Knowledge base: Q6364 confirms “4 or less memory” means position 4 or farther right on the controller's side of the gauge.
+- Implementation: timing, controller-relative memory gate, self evolution target, exact hand destination filter, free optional evolution, alternate evolution, and continuous inherited boost are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-062", compiled)`.
+- Verification: focused — 4 passed; digivolution legality/interpreter — 188 passed; adjacent peers — passed; `git diff --check` — passed. No direct behavioral defect was found, so no implementation or test change was made; persisted IR synchronization follows separately.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-062
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-062.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-062.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-062.
