@@ -3561,3 +3561,28 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   registration search, and `git diff --check` pass. No production or shared
   engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-107 — Revive From the Darkness! — 10/10
+
+- Catalog and ruling evidence: Purple Option with use cost 5. Main deletes one
+  own purple Digimon, then may play one purple Lv.5-or-lower Digimon from own
+  trash for free without activating its On Play effects. Security adds this
+  card to its owner's hand. Q1380 was reviewed; its related BT5-081 scenario is
+  outside this card's Lv.5-or-lower target range.
+- Implementation: `apps/api/src/cards/BT5/BT5-107.ts` sequences mandatory own
+  purple Delete and optional PlayWithoutCost from own trash with exact purple
+  and Lv.≤5 filters plus On Play suppression. Security uses AddToHandSelf. Full
+  residual-free coverage and exclusive `registerIrCard("BT5-107", compiled)`
+  registration are preserved.
+- Behavioral proof: five focused tests prove own-purple deletion while own
+  non-purple and opposing purple Digimon survive, exact Lv.5 inclusion and Lv.6
+  exclusion in a mixed trash pool, required deletion before optional play
+  refusal, real On Play suppression through deck preservation, and Security
+  self-to-hand routing.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for controller/color cost boundaries, exact level boundary, and the split
+  mandatory/optional sequence.
+- Verification: focused BT5-107 — 5/5 passed. Targeted Oxfmt, Oxlint,
+  registration search, and `git diff --check` pass. No production or shared
+  engine source changed.
+- Remaining ambiguity: none identified.
