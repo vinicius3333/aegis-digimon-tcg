@@ -2700,3 +2700,30 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   registration search, and `git diff --check` pass. No typing-sensitive source
   changed.
 - Remaining ambiguity: none identified.
+
+## BT5-074 — Troopmon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.4 Champion Digimon, Data/Undead, play
+  cost 4, 3000 DP, and purple Lv.3 evolution cost 2. Its On Deletion effect may
+  play exactly one card literally named Troopmon from the owner's hand without
+  paying its memory cost. The knowledge base contains no card-specific ruling,
+  errata, restriction, or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-074.ts` encodes an optional
+  PlayWithoutCost from the owner's hand, count 1 and `payCost: false`. Its
+  bracketed card reference now uses `nameExact` rather than substring matching.
+  It declares full residual-free coverage and registers exclusively through
+  `registerIrCard("BT5-074", compiled)`.
+- Behavioral and structural proof: focused coverage guards exact-name IR and
+  proves that an alternate-set BT10-076 Troopmon is played for free at zero
+  memory while the opponent's same-name card remains untouched. A different
+  purple Digimon is rejected, and optional refusal leaves Troopmon in hand.
+  Deletion uses the named test seam; the shared nameExact mechanism proves exact
+  equality and rejection of longer containing names.
+- Defect corrected: the target previously used substring `match: "name"`, which
+  was broader than the literal `[Troopmon]` contract. It now uses `nameExact`;
+  focused proof also covers controller, free-play, alternate printing, negative
+  target, and refusal boundaries.
+- Verification: focused BT5-074 — 4/4 passed; nameExact mechanism — 4/4 passed.
+  Targeted Oxfmt, Oxlint, registration search, and `git diff --check` pass. No
+  shared engine seam changed.
+- Remaining ambiguity: none identified.
