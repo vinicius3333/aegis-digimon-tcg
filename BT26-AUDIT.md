@@ -2049,3 +2049,36 @@ git diff --check
 ```
 
 No unresolved BT26-046 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-047 — TyrantKabuterimon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-047` (`TyrantKabuterimon`), a green level-6 Mega/Virus Digimon with `Insectoid`/`Titan`/`TS` traits. Its alternate evolution is Lv.5 with `Insectoid` or `TS` for cost 3, and Assembly -6 requires four `Larva`/`Insectoid`/`Titan` Digimon cards with different levels.
+- Printed effects verified: optional immediate battle on On Play/When Digivolving; and an optional Start of Your Main Phase/On Play/When Digivolving suspend cost that gives all own suspended `Insectoid`/`Titan` Digimon +3000 DP and immunity to opposing Option effects until the opponent's turn ends.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-047`; Q7040–Q7041 cover immediate battle and effect-immune defenders, Q7042 permits either player's Digimon as the suspend cost, Q7043 covers simultaneous trigger ordering, and Q7044–Q7049 define dynamic effect immunity, targetability, granted effects, and trigger behavior. No erratum or restriction applies.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-047.ts` has `coverage: "full"`, `residual: []`, and registers exclusively through `registerIrCard("BT26-047", compiled)`.
+- Separate optional `Battle` actions use TyrantKabuterimon itself as attacker and one opponent Digimon as defender, preserving standard battle rules and Q7040–Q7041.
+- Separate `CostGatedBlock` effects suspend one unsuspended Digimon controlled by either player. Their payload targets all own suspended `Insectoid`/`Titan` Digimon, applies `beAffected` immunity only from opposing Option effects, and grants +3000 DP through the opponent's turn end.
+- The alternate evolution and Assembly metadata exactly encode the printed trait, count, reduction, and distinct-level requirements. The combat, suspend-cost, immunity, modifier, Assembly, and evolution seams and peers were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-047.test.ts` now covers alternate Lv.5 TS evolution for cost 3; positive Assembly using four matching different-level materials with reduction, final zones, face state, and stack order; rejection of repeated-level Assembly; refusal of both optional On Play effects; immediate battle against an effect-immune Digimon; either-controller suspension cost; opposing-Option immunity and DP gain; Q7043 ordering; and Q7046–Q7049 dynamic immunity/granted-effect behavior.
+- The new cases close real proof gaps for the printed Assembly and optional paths; the production module required no correction.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-047
+  PASS (Q7040–Q7049; no errata/restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-047 ambiguity or unsupported printed clause remains. Only the colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.

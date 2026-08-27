@@ -45,6 +45,117 @@ describe("BT26-047 TyrantKabuterimon", () => {
     });
   });
 
+  it("uses the Lv.5 TS alternate evolution path for cost 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-083", as: "purpleTsBase" }],
+        hand: [{ card: "BT26-047", as: "tyrant" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("purpleTsBase").permanentId,
+        instanceId: s.inst("tyrant").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("purpleTsBase").topCard.cardId === "BT26-047");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("purpleTsBase").stack.map((card) => card.cardId)).toEqual(["BT25-083"]);
+  });
+
+  it("plays by Assembly with four matching cards at four different levels", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-047", as: "tyrant" }],
+        trash: [
+          { card: "ST4-05", as: "level3" },
+          { card: "ST4-07", as: "level4" },
+          { card: "ST4-09", as: "level5" },
+          { card: "ST4-13", as: "level6" },
+        ],
+      },
+    });
+    s.state.memory = 7;
+    const materials = ["level3", "level4", "level5", "level6"].map((alias) => s.inst(alias).instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("tyrant").instanceId,
+        assembly: { materialInstanceIds: materials },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT26-047")?.stack.length ===
+        4,
+    );
+
+    const tyrant = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.cardId === "BT26-047",
+    )!;
+    expect(s.state.memory).toBe(0);
+    expect(tyrant.stack.map((card) => card.instanceId)).toEqual([...materials].reverse());
+    expect(tyrant.stack.every((card) => card.faceUp)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("rejects Assembly when matching materials repeat a level", () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-047", as: "tyrant" }],
+        trash: [
+          { card: "ST4-05", as: "level3a" },
+          { card: "BT1-066", as: "level3b" },
+          { card: "ST4-07", as: "level4" },
+          { card: "ST4-09", as: "level5" },
+        ],
+      },
+    });
+    s.state.memory = 7;
+    const materials = ["level3a", "level3b", "level4", "level5"].map((alias) => s.inst(alias).instanceId);
+
+    const result = s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("tyrant").instanceId,
+      assembly: { materialInstanceIds: materials },
+    } as never);
+
+    expect(result.ok).toBe(false);
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(materials);
+  });
+
+  it("may decline both optional On Play effects without changing the board", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-047", as: "tyrant" },
+            { card: "BT26-045", as: "eligible", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tyrant"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.perm("eligible").currentDP).toBe(11000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("eligible"), "beAffected", "Option")).toBe(false);
+  });
+
   it("publicly buffs suspended Insectoid or Titan Digimon and protects them from opposing Options", async () => {
     const s = setupEngine(
       {
