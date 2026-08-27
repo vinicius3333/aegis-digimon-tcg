@@ -318,7 +318,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.op === "toHand" &&
       ctx.game.player(ctx.source.ownerSeat).security.length === 0
     ) {
-      return false;
+      return action.abortOnDecline === true;
     }
     // Do not offer an optional play when no legal loose card exists. Besides avoiding a
     // meaningless UI prompt, this is required for nested entry windows: Nokia played from
