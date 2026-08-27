@@ -1135,3 +1135,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-057.
+
+## BT25-058 — Callismon — 10/10
+
+- Catalog evidence: green/black level-6 Digimon; alternate level-5 TS evolution for 4; Reboot, Blocker, and Fortitude; shared once-per-turn On Play/When Digivolving/When Attacking optional suspension followed by a potentially different opposing Digimon/Tamer unsuspend restriction; all-turn once-per-turn reacts to effect-driven play or digivolution with mandatory De-Digivolve 1 then optional direct battle.
+- Knowledge base: Q6345 permits different suspend/restrict targets. Q6346 includes this card's own effect-driven entry. Q6347 makes De-Digivolve mandatory and battle optional. Q6348–Q6349 define the direct rules battle and unaffected participants.
+- Implementation: all three keywords, shared-use timings, distinct-target sequence, effect provenance gates, mandatory De-Digivolve, and optional self-bound battle are complete. Direct/shared IR match, coverage is full/residual-free, and registration is exclusively `registerIrCard("BT25-058", compiled)`.
+- Verification: focused — 8 passed; shared subtriggers — 50 passed; keyword/conformance — 31 passed; advanced keyword/combat — 63 passed; related BT25 peers — 24 passed; catalog sync — 31 passed; `git diff --check` — passed. No defect was found, so no implementation or test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-058
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-058.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-058.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-058.
