@@ -2353,3 +2353,30 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `git diff --check` pass. Typecheck was not rerun because no typing-sensitive
   source changed; the last known unrelated baseline remains documented.
 - Remaining ambiguity: none identified.
+
+## BT5-060 — Monitamon — 10/10
+
+- Catalog and ruling evidence: Black Lv.3 Rookie Digimon, Data/CRT, play cost
+  3, 2000 DP, and black Lv.2 evolution cost 0. On play its controller looks at
+  the top deck card; Q1337 confirms the exact instance returns face down to the
+  top. On deletion it reveals exactly 3 cards, may play exactly 1 Monitamon
+  without paying its cost, and bottoms every remainder in any order.
+- Implementation: `apps/api/src/cards/BT5/BT5-060.ts` intentionally models the
+  non-mutating private On Play look with no public state change. Its On Deletion
+  `RevealAdd` reveals 3, has one optional exact-name Monitamon group with
+  `count: 1` and destination `play`, and sends the rest to `deckBottom`. It
+  declares full residual-free coverage and registers exclusively through
+  `registerIrCard("BT5-060", compiled)`.
+- Behavioral proof: four focused tests prove Q1337 preserves the exact top
+  instance face down; deletion chooses exactly one of two revealed Monitamon,
+  plays it without memory payment, and leaves the unchosen match and miss
+  beneath an unrevealed card. A manual decision test declines the optional play
+  and proves all three revealed instances go to the bottom. A zero-match case
+  proves no card enters play.
+- Defect corrected: none in the module. The audit replaced private primitive
+  casts with the named production test seam and added duplicate-selection,
+  explicit-refusal, identity, and true deck-bottom proofs.
+- Verification: focused BT5-060 — 4/4 passed. Targeted Oxfmt, Oxlint, and
+  `git diff --check` pass. Typecheck was not rerun because no typing-sensitive
+  source changed; the last known unrelated baseline remains documented.
+- Remaining ambiguity: none identified.
