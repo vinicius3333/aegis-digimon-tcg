@@ -8,7 +8,12 @@ describe("BT4-046 WarGrowlmon", () => {
   it("Digi-Bursts 2 to give an opposing Digimon -4000 DP", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT4-046", as: "war", under: ["BT1-001", "BT4-039"] }] },
+        0: {
+          battleArea: [
+            { card: "BT4-046", as: "war", under: ["BT1-001", "BT4-039"] },
+            { card: "BT4-043", as: "ally", under: [{ card: "BT1-001", as: "allySource" }] },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-019", as: "target" }] },
       },
       { autoSelectCards: true },
@@ -28,6 +33,8 @@ describe("BT4-046 WarGrowlmon", () => {
 
     expect(s.perm("war").stack).toHaveLength(0);
     expect(s.perm("target").currentDP).toBe(s.perm("target").baseDP - 4000);
+    expect(s.perm("ally").stack).toHaveLength(1);
+    expect(s.perm("ally").stack[0]!.instanceId).toBe(s.inst("allySource").instanceId);
   });
 
   it("gives +1000 DP to its host at 3 or fewer security", async () => {
