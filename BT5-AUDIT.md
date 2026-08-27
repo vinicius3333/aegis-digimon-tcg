@@ -3045,3 +3045,34 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   — 18/18 passed. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No production or shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-087 — Omnimon Zwart — 10/10
+
+- Catalog and ruling evidence: White Lv.7 Mega Digimon, Vaccine/Royal Knight,
+  play cost 15 and 15000 DP, evolving for 6 from black or purple Lv.6. When
+  Digivolving it trashes the top three cards of its deck, then may play up to
+  two black and/or purple Digimon with play cost 8 or less from its trash for
+  free. When Attacking it may return one Lv.6 Digimon card from this Digimon's
+  evolution cards to hand to delete one unsuspended opposing Digimon with play
+  cost 12 or less. Q1358 confirms played cards need not be among the three just
+  trashed; Q1359 confirms the combined maximum is two.
+- Implementation: `apps/api/src/cards/BT5/BT5-087.ts` sequences TrashTopDeck 3
+  and an optional, `upTo` two, black/purple PlayWithoutCost from own trash. Its
+  optional attack deletion filters exact suspension/cost boundaries and pays
+  by returning an exact Lv.6 Digimon source whose `hostFilter` is self. Full
+  residual-free coverage and exclusive `registerIrCard("BT5-087", compiled)`
+  registration are preserved.
+- Behavioral proof: six focused tests prove exact milling and legal mixed-color
+  plays while cost-9 and wrong-color cards remain; refusal; and the one-card
+  up-to-two boundary. Attack tests prove the exact unsuspended/cost-12 target,
+  rejection of suspended and cost-15 targets, self-hosted Lv.6 source payment
+  while another Omnimon's source remains, optional refusal, and no cost payment
+  when no target is legal.
+- Defects corrected: the trash-play target omitted `upTo`, and the return cost
+  omitted a self host filter, allowing a Lv.6 evolution source from another
+  permanent to satisfy the cost. Both scopes are now explicit and covered by
+  regression tests.
+- Verification: focused BT5-087 — 6/6 passed; targeted host-filter interpreter
+  mechanism — 3/3 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No shared engine seam changed.
+- Remaining ambiguity: none identified.
