@@ -627,3 +627,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-031.
+
+## BT25-032 — Liollmon — 10/10
+
+- Catalog evidence: Yellow level-3 Digimon, play cost 3, 2000 DP, `Rookie`/`Vaccine`, `Holy Beast`/`Glowing Dawn`/`BEATBREAK`; standard yellow level-2 evolution for 0 plus alternate level-2 `Glowing Dawn` evolution for 0; On Play reveals the top 3 cards, adds one Glowing Dawn trait card and one yellow BEATBREAK trait card, then bottoms the remainder; inherited Barrier.
+- Knowledge base: `node tools/kb/query.mjs card BT25-032` returned no entries, so there are no local card-specific rulings, errata, restrictions, or unresolved ambiguities to apply. General reveal rules and shared RevealAdd processing require distinct-card consumption between the two add slots.
+- Implementation: the mandatory RevealAdd action encodes the exact reveal count, unrestricted Glowing Dawn first slot, conjunctive yellow-and-BEATBREAK second slot, shared taken-card tracking, and deck-bottom remainder. Alternate evolution and inherited Barrier are complete. Direct/shared IR match, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-032", compiled)`.
+- Behavioral proof: the existing focused suite verifies the full compiled contract. Delegated peer/evolution, BT25 catalog/audit, and RevealAdd mechanism checks cover conjunctive color/trait filtering, distinct selection, bottoming, inherited keyword visibility, and legal/invalid alternate evolution. No defect was found, so no implementation or test change was made.
+- Verification: focused suite — 2 passed; evolution/peer — 3 passed; BT25 catalog/audit — 9 passed; RevealAdd interpreter/mechanic subsets — 8 passed; `git diff --check` — passed. The broader mechanism baseline retains unrelated BT15-020 timeout and IDigiBurst expectation failures. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-032 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-032
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-032.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-032.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-032.
