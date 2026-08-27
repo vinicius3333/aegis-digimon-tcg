@@ -1441,3 +1441,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-074.
+
+## BT25-075 — Vulcanusmon — 10/10
+
+- Catalog evidence: black/red level-6 Digimon; alternate level-5 TS evolution for 3; conditional play-cost reduction; On Play/When Digivolving links up to two Link-capable cards from hand/trash free then De-Digivolves all opposing Digimon once per friendly link card; all friendly TS Digimon gain Rush and Link +1; when friendly Digimon get linked, one of those Digimon may attack.
+- Knowledge base: Q6370 covers excess-link cleanup after Link +1 is lost. Q6371 requires Link eligibility. Q6372 includes this Vulcanusmon getting linked.
+- Defect corrected: the linked watcher was not scoped to friendly Digimon and the attack could select an unrelated permanent. It now gates on a friendly linked subject and attacks that triggering Digimon.
+- Verification: focused — 3 passed; analogous linked/trigger-subject — 11 passed; link scaling/excess rules — 5 passed; deck interaction — 1 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-075", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-075
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-075.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-075.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-075.
