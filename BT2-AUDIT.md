@@ -15,10 +15,10 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT2-001–010 | Static audit complete | `internal-docs/audits/BT2/BT2-001-010.md` | Yes |
-| BT2-011–020 | Luna in progress | `internal-docs/audits/BT2/BT2-011-020.md` | No |
+| BT2-011–020 | Static audit complete | `internal-docs/audits/BT2/BT2-011-020.md` | Yes |
 | BT2-021–030 | Static audit complete | `internal-docs/audits/BT2/BT2-021-030.md` | Yes |
 | BT2-031–040 | Luna in progress | `internal-docs/audits/BT2/BT2-031-040.md` | No |
-| BT2-041–050 | Queued | Not assigned | No |
+| BT2-041–050 | Luna in progress | `internal-docs/audits/BT2/BT2-041-050.md` | No |
 | BT2-051–060 | Luna in progress | `internal-docs/audits/BT2/BT2-051-060.md` | No |
 | BT2-061–112 | Queued | Not assigned | No |
 
@@ -48,6 +48,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT2-008 Yaamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-008.ts), [test](apps/api/src/cards/BT2/BT2-008.test.ts) |
 | BT2-009 Guilmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-009.ts), [test](apps/api/src/cards/BT2/BT2-009.test.ts) |
 | BT2-010 Biyomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-010.ts), [test](apps/api/src/cards/BT2/BT2-010.test.ts) |
+| BT2-011 Vorvomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-011.ts), [test](apps/api/src/cards/BT2/BT2-011.test.ts) |
+| BT2-012 Birdramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-012.ts), [test](apps/api/src/cards/BT2/BT2-012.test.ts) |
+| BT2-013 Growlmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-013.ts), [test](apps/api/src/cards/BT2/BT2-013.test.ts) |
+| BT2-014 Lavorvomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-014.ts), [test](apps/api/src/cards/BT2/BT2-014.test.ts) |
+| BT2-015 Garudamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-015.ts), [test](apps/api/src/cards/BT2/BT2-015.test.ts) |
+| BT2-016 Lavogaritamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-016.ts), [test](apps/api/src/cards/BT2/BT2-016.test.ts) |
+| BT2-017 WarGrowlmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-017.ts), [test](apps/api/src/cards/BT2/BT2-017.test.ts) |
+| BT2-018 Volcanicdramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-018.ts), [test](apps/api/src/cards/BT2/BT2-018.test.ts) |
+| BT2-019 Phoenixmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-019.ts), [test](apps/api/src/cards/BT2/BT2-019.test.ts) |
+| BT2-020 Gallantmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-020.ts), [test](apps/api/src/cards/BT2/BT2-020.test.ts) |
 | BT2-021 Veemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-021.ts), [test](apps/api/src/cards/BT2/BT2-021.test.ts) |
 | BT2-022 Betamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-022.ts), [test](apps/api/src/cards/BT2/BT2-022.test.ts) |
 | BT2-023 Gomamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-023.ts), [test](apps/api/src/cards/BT2/BT2-023.test.ts) |
@@ -64,12 +74,12 @@ Detailed clause traces and deferred commands are recorded in the integrated rang
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 50
-- Integrated card audits: 20
+- Assigned: 60
+- Integrated card audits: 30
 - Corrected: 0
-- Provisional: 20
+- Provisional: 30
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 62
+- Remaining unassigned: 52
 
 BT2 remains open.
