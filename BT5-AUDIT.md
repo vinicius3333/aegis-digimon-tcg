@@ -2262,3 +2262,32 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-057 — Rosemon — 10/10
+
+- Catalog evidence: Green Lv.6 Mega Digimon, Data/Fairy, play cost 12, 11000
+  DP, and green Lv.5 evolution cost 3. Its Main Digi-Burst 3 gives Security
+  Attack +1 for the turn to every own Digimon with Digi-Burst. Its
+  knowledge-base query exposes no card-specific QA, errata, restriction, or
+  ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-057.ts` requires exactly three
+  self-stack cards as the Digi-Burst cost, selects all own Digimon whose
+  committed effects carry the Digi-Burst keyword, and grants exactly one
+  Security Attack for the turn. It declares `coverage: "full"`,
+  `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-057", compiled)`.
+- Behavioral proof: the focused test uses a legal green BT5-047 Lv.3 ->
+  BT5-051 Lv.4 -> BT5-052 Lv.5 -> Rosemon Lv.6 stack and proves all three exact
+  source instances reach trash. Rosemon and a separate own Digi-Burst Digimon
+  each receive exactly +1, while an own non-Digi-Burst Digimon and both
+  Digi-Burst/non-Digi-Burst opposing Digimon receive none. The grants disappear
+  at the owner's turn-end boundary.
+- Defect corrected: none in the module. The audit replaced an illegal stack of
+  three red Lv.3 cards beneath green Lv.6 Rosemon and expanded the proof to
+  cover every target and duration boundary.
+- Verification: focused BT5-057 — 1/1 passed. Targeted Oxfmt, Oxlint, and
+  `git diff --check` pass. Workspace typecheck retains only the known unrelated
+  baseline errors in `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
