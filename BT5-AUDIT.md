@@ -2931,3 +2931,31 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   passed. API typecheck, targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No shared engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-083 — Megidramon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.6 Mega Digimon, Virus/Evil Dragon/Four
+  Great Dragons, play cost 12 and 11000 DP, evolving for 3 from either purple or
+  red Lv.5. When Digivolving both players trash the top five cards of their
+  decks. On Deletion, if the controller has a Tamer, it may play one Lv.6
+  Digimon with Gallantmon in its name from own hand or trash for free. The
+  knowledge base contains no card-specific ruling or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-083.ts` maps the evolution trigger
+  to TrashTopDeck 5 for both players. Its optional On Deletion PlayWithoutCost
+  is gated by an own battle-area Tamer and filters own hand/trash for a Lv.6
+  Digimon whose name contains Gallantmon. Full residual-free coverage and
+  exclusive `registerIrCard("BT5-083", compiled)` registration are preserved.
+- Behavioral proof: eight focused tests exercise legal purple and red Lv.5
+  evolution paths, exact top-five instance identity for both players with each
+  sixth card preserved, and fewer-than-five clamping. On Deletion tests prove
+  valid Gallantmon plays from both trash and hand, wrong level and wrong name
+  remain, optional refusal, and that an opponent-only Tamer cannot satisfy the
+  gate. Free play uses exact instance movement through the named deletion seam.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for exact deck boundary/order, both printed evolution requirements, both play
+  zones, name/level filters, refusal, and Tamer ownership.
+- Verification: focused BT5-083 — 8/8 passed; targeted TrashTopDeck and
+  PlayWithoutCost interpreter subset — 4/4 passed; affected capability subset —
+  14/14 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No source or shared engine behavior changed.
+- Remaining ambiguity: none identified.
