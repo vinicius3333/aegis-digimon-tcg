@@ -1837,3 +1837,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-096.
+
+## BT25-097 — Guardian Palace — 10/10
+
+- Catalog evidence: black/green Option with conditional color waiver; face-up Security grants Alliance and Scapegoat interactions; Main manipulates bottom security and may play a qualifying Digimon; Security may play an eligible low-level black/green TS Digimon from hand or trash free.
+- Knowledge base: Q6457–Q6463 cover Alliance/Scapegoat behavior, face-up Security state, bottom-security ordering, play targets, and related resolution boundaries.
+- Defect corrected: the Security play was mandatory despite the printed “you may play.” It is now optional, with a focused decision regression proving refusal keeps the candidate in hand.
+- Verification: focused — 5 passed; relevant mechanisms — 10 passed; combined batch/interpreter/play/Link gate — 212 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-097", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-097
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-097.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-097.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-097.
