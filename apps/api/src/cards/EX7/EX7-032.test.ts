@@ -26,6 +26,7 @@ describe("EX7-032", () => {
     expect(compiled.effects?.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenDeletesInBattle",
+      sourceFilter: { isSelfRef: true },
       actions: [{ kind: "GainMemory", amount: 1 }],
     }));
   it("plays Shoto Kazama from hand when there is one or fewer Tamers", async () => {

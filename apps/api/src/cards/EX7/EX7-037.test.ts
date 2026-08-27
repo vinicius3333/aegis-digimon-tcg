@@ -13,6 +13,8 @@ describe("EX7-037 SaberLeomon", () => {
   });
   it("reduces an opponent by 7000 per own Digimon on digivolve and attack", () => {
     for (const effect of compiled.effects?.slice(1) ?? [])
+      expect(effect).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "ir-shared-0" });
+    for (const effect of compiled.effects?.slice(1) ?? [])
       expect(effect.actions[0]).toMatchObject({ kind: "ModifyDP", amount: -7000, scaling: { unit: "cards" } });
   });
 });

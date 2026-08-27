@@ -164,6 +164,14 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return required > 0 && candidates.length >= required;
   }
+  if (cost.kind === "return" && cost.target !== undefined && Array.isArray(cost.target.filter.zone)) {
+    const zones = cost.target.filter.zone as ZoneRef[];
+    const candidates = candidateLooseInstances(ctx, cost.target, zones);
+    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    return cost.target.upTo === true
+      ? candidates.length >= (cost.stopIfZero === true ? 1 : 0)
+      : required > 0 && candidates.length >= required;
+  }
   if (cost.kind === "return" && cost.target?.filter.isSelfRef === true && ctx.source.permanent() === undefined) {
     return ctx.game.player(ctx.source.ownerSeat).trash.some((card) => card.instanceId === ctx.source.instanceId);
   }
@@ -1096,11 +1104,9 @@ export async function payCost(
         if (out) out.paidCount = chosen.length;
         return true;
       }
-      // Combined trash-OR-digivolution-cards return cost ("by returning 4 [Negamon] from your
-      // trash or your Digimon's digivolution cards to the bottom of the Digi-Egg deck" —
-      // EX9-057). All-or-nothing across the pooled candidates from both zones; always returns
-      // to the DECK (never hand — the digivolutionCards-only branch's `cost.to` toggle does not
-      // apply to this combined form since the printed destination is always stated explicitly).
+      // Combined loose-zone return cost (for example, trash OR digivolution cards). Select
+      // all-or-nothing from the pooled candidates; the explicit destination controls whether
+      // the cards go to the regular deck top or the legacy Digi-Egg deck bottom.
       if (Array.isArray(cost.target.filter.zone) && cost.target.filter.zone.length > 1) {
         const zones = cost.target.filter.zone as ZoneRef[];
         const candidates = candidateLooseInstances(ctx, cost.target, zones);

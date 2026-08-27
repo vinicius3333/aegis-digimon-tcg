@@ -15,13 +15,16 @@ describe("EX7-034", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[1]).toMatchObject({
       kind: "Restrict",
       restriction: "beAffected",
+      fromSourceKind: ["Digimon"],
+      byOpponentEffectsOnly: true,
       duration: "untilOpponentTurnEnd",
-      condition: { kind: "ifThisEffectActed" },
+      target: { isSelf: true, filter: { isSelfRef: true } },
+      condition: { kind: "lastSuspendedIsMine" },
     }));
   it("inherits a once-per-turn self unsuspend on attack", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
-      actions: [{ kind: "Unsuspend" }],
+      actions: [{ kind: "Unsuspend", condition: { kind: "attackTargetMatchesFilter" } }],
     }));
 });

@@ -26,6 +26,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: ["hand", "trash"],
                 nameOrTrait: [
                   {
                     tokens: ["Three Musketeers"],
@@ -35,6 +36,7 @@ export const compiled: CompiledCard = {
               },
               count: 3,
             },
+            to: "deckTop",
             raw: "By returning 3 cards with the [Three Musketeers] trait from your hand or trash to the top of the deck",
           },
           optional: true,
@@ -61,6 +63,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: ["hand", "trash"],
                 nameOrTrait: [
                   {
                     tokens: ["Three Musketeers"],
@@ -70,6 +73,7 @@ export const compiled: CompiledCard = {
               },
               count: 3,
             },
+            to: "deckTop",
             raw: "By returning 3 cards with the [Three Musketeers] trait from your hand or trash to the top of the deck",
           },
           optional: true,

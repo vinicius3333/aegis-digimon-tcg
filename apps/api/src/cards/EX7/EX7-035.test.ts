@@ -21,6 +21,7 @@ describe("EX7-035", () => {
     expect(compiled.effects?.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenDeletesInBattle",
+      sourceFilter: { isSelfRef: true },
       actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
     });
   });

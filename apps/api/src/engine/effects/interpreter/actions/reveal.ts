@@ -449,6 +449,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   }
   // "place N [X] as the bottom digivolution card of one of your [Y] Digimon"
   if (toPlaceUnder.length > 0) {
+    let placedAny = false;
     for (const { instanceId, underFilter, faceDown } of toPlaceUnder) {
       const candidates = ctx.game.player(seat).battleArea.filter((p) => {
         if (!p.topCard || (underFilter === undefined && !isDigimon(ctx.game.definitionOf(p.topCard)))) return false;
@@ -469,8 +470,12 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         if (chosen.length > 0) hostPermanentId = chosen[0]!;
       }
       // Move the revealed card from the revealed pool to the host's digivolution stack (bottom).
-      await ctx.fx.placeUnder(hostPermanentId, [instanceId], { faceUp: faceDown === true ? false : undefined });
+      const placed = await ctx.fx.placeUnder(hostPermanentId, [instanceId], {
+        faceUp: faceDown === true ? false : undefined,
+      });
+      if ((placed?.length ?? 0) > 0) placedAny = true;
     }
+    if (placedAny) ctx.lastEffectActed = true;
   }
   // "place N [X] under one of your Tamer permanents" (BT19-055 `to:"underTamer"`):
   // controller chooses which of their Tamer permanents receives the card.
