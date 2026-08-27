@@ -1,6 +1,6 @@
 # BT2 Card Implementation Audit
 
-Status: in progress
+Status: static pass complete; execution gates deferred
 
 Catalog snapshot: `ef2e5b367c616299806c87d6b078ce6fc2822b78`
 
@@ -25,7 +25,7 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT2-081–090 | Static audit complete | `internal-docs/audits/BT2/BT2-081-090.md` | Yes |
 | BT2-091–100 | Static audit complete | `internal-docs/audits/BT2/BT2-091-100.md` | Yes |
 | BT2-101–110 | Static audit complete | `internal-docs/audits/BT2/BT2-101-110.md` | Yes |
-| BT2-111–112 | Luna in progress | `internal-docs/audits/BT2/BT2-111-112.md` | No |
+| BT2-111–112 | Static audit complete | `internal-docs/audits/BT2/BT2-111-112.md` | Yes |
 
 ## Score model
 
@@ -153,6 +153,8 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT2-108 Night Raid | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-108.ts), [test](apps/api/src/cards/BT2/BT2-108.test.ts) |
 | BT2-109 Heat Viper | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-109.ts), [test](apps/api/src/cards/BT2/BT2-109.test.ts) |
 | BT2-110 Trump Sword | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-110.ts), [test](apps/api/src/cards/BT2/BT2-110.test.ts) |
+| BT2-111 Beelzemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-111.ts), [test](apps/api/src/cards/BT2/BT2-111.test.ts) |
+| BT2-112 BlackWarGreymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-112.ts), [test](apps/api/src/cards/BT2/BT2-112.test.ts) |
 
 Detailed clause traces and deferred commands are recorded in the integrated range reports under `internal-docs/audits/BT2/`.
 
@@ -160,11 +162,11 @@ Detailed clause traces and deferred commands are recorded in the integrated rang
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 110
+- Integrated card audits: 112
 - Corrected: 1
-- Provisional: 110
+- Provisional: 112
 - Verified 10/10: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 0
 
-BT2 remains open.
+BT2's card-by-card static pass is complete. The collection remains open for the deferred execution gates; no card is verified 10/10 and no collection-completion notification is valid yet.
