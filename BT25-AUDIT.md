@@ -1927,3 +1927,57 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-101.
+
+## BT25-102 — Factorial Area — 10/10
+
+- Catalog evidence: black/red Option with a no-face-up-security color waiver; face-up Security grants Blocker to friendly black/red TS Digimon and conditionally Link +1 while Vulcanusmon is present; Main moves bottom security to hand, places this card face up at security bottom, and may play a qualifying TS Digimon with cost reduced by 3; Security may play an eligible level 4-or-lower TS Digimon from hand or trash free.
+- Knowledge base: Q6482–Q6487 confirm the empty-security waiver/Main behavior and the reveal, check, Security activation, and shuffle rules for face-up security cards.
+- Audit result: the exclusive direct IR already matches the catalog and rulings. Focused behavior covers the waiver, both Security grants, Main sequencing, and optional play; no implementation or test correction was needed.
+- Verification: focused — 4 passed; final-tail focused/mechanism gate — 29 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-102", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-102
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-102.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-102.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-102.
+
+## BT25-103 — GraceNovamon — 10/10
+
+- Catalog evidence: level 7 red/blue Digimon with Security Attack +1, Ice Clad, Partition (Apollomon & Dianamon), a shared When Digivolving/When Attacking deck-bottom return bounded by this Digimon's source count, and a shared When Attacking/Counter once-per-turn effect that may trash one opposing source for each of this Digimon's sources and then may end the attack.
+- Knowledge base: Q6488–Q6490 define simultaneous activation/order across attack and Counter windows; Q6491–Q6493 define End Attack as a timing transition unaffected by immunity that still opens End of Attack; Q6717 limits each attack to one Counter activation.
+- Defect corrected: pooled TrashDigivolution scaling was applied once by the generic dispatcher and a second time by the pooled action, squaring the source-count multiplier. The action now consumes the dispatcher-computed amount exactly once; a focused regression proves two GraceNovamon sources trash exactly two freely selected cards across different opposing hosts even when another friendly Digimon has an unrelated three-card stack.
+- Verification: focused — 7 passed; interpreter — 183 passed; pooled TrashDigivolution mechanisms — 2 passed; EX5-025 regression — 4 passed; final-tail gate — 29 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-103", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-103
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-103.test.ts src/cards/EX5/EX5-025.test.ts src/engine/effects/interpreter.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-103.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-103.
+
+## BT25-104 — ShineGreymon: Burst Mode — 10/10
+
+- Catalog evidence: red/yellow Digimon/Option DUAL card; Digimon side has Raid, Piercing, Security Attack +1, Blocker, Barrier, shared once-per-turn When Digivolving/When Attacking Option-side Main activation, and a your-turn Marcus Damon Digimon/12000 DP/Rush grant; Option side has DATA SQUAD Use Requirement, -15000 DP to one opposing Digimon for the turn, then may play a Tamer from hand free.
+- Knowledge base: Q6494–Q6498 define Burst cleanup and Option-side activation/provenance; Q6499–Q6506 define Marcus's simultaneous Tamer/Digimon identity, DP, deletion, overlapping effects, and loss of the continuous grant; Q6507 defines the Option-side DATA SQUAD trait; Q6947 confirms the rule-process result when the granting ShineGreymon disappears before the 0-DP check.
+- Defects corrected: the DATA SQUAD Use Requirement accepted trait cards outside the battle area and non-Digimon/Tamer cards, and the direct module omitted the Marcus-return Burst Digivolve route that runtime data supplied elsewhere. The gate now requires a friendly battle-area DATA SQUAD Digimon/Tamer, regressions reject breeding and Option false positives, both evolution routes live in the direct IR, and the compiled object is exported and fully typed without an unsafe action cast.
+- Verification: focused — 9 passed; related mechanism/interpreter — 13 passed in delegated verification; final-tail focused/mechanism gate — 29 passed; typecheck has no BT25-104 errors and only the known unrelated baseline failures; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-104", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-104
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-104.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-104.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-104.
