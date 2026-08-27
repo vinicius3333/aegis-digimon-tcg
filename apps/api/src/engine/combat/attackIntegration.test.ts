@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Phase } from "@aegis/shared";
+import { registerIrCard } from "../effects/interpreter.js";
+import { advance } from "../testkit/advance.js";
 import { setupEngine, settle } from "../testkit/harness.js";
 
 /**
@@ -189,5 +191,50 @@ describe("GameEngine.applyIntent — block wiring", () => {
     // a Digimon AD1-001 @5000, battles the 6000 attacker and is trashed).
     expect(s.state.players[1]?.security).toHaveLength(0);
     expect(s.state.players[1]?.trash.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("still ends the turn when a combat effect throws after memory crossed", async () => {
+    // The field repro (api.log 2026-08-20): an UnsupportedEffectError escaped combat
+    // resolution AFTER an effect had pushed memory across. The success path's final
+    // turn-end check lives in onCombatComplete, which a rejected combat promise skips —
+    // so the Main phase hung open with memory on the opponent's side, no further verb
+    // was legal to re-trigger the check, and only a manual endPhase closed the turn.
+    // Give the attacker an End of Attack effect that first drains memory across, then
+    // hits the interpreter's legacy-payload guard exactly as the logged match did.
+    registerIrCard(DIGIMON_B, {
+      effects: [
+        {
+          trigger: "EndOfAttack",
+          actions: [{ kind: "GainMemory", amount: -3 }, { kind: "ActivateEffect" }],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    } as never);
+    const s = setupEngine({
+      0: { battleArea: [{ card: DIGIMON_B, dp: 9000, as: "attacker" }], deck: [DIGIMON_A, DIGIMON_A] },
+      1: { deck: [DIGIMON_A, DIGIMON_A], security: [DIGIMON_A] },
+    });
+    await s.ready();
+
+    let turnClosed = false;
+    const turn = s.engine.runOneTurn().then(() => {
+      turnClosed = true;
+    });
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => turnClosed, 1000);
+    expect(s.events.some((e) => e.kind === "actionRejected" && e.intent === "attack")).toBe(true);
+    expect(turnClosed).toBe(true);
+    await turn;
   });
 });

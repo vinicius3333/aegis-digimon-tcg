@@ -4922,6 +4922,14 @@ export class GameEngine {
           intent: "attack",
           reason: err instanceof Error ? err.message : "combat-error",
         });
+        // A combat that died mid-resolution already released the controller's guards
+        // (resolveAttack's finally), but it skipped onCombatComplete — and with it the
+        // turn-end check. If an effect pushed memory across before the throw, no later
+        // verb is legal to re-trigger that check, so the Main phase would hang open
+        // until a manual endPhase (field bug: api.log 2026-08-20, BT21-021).
+        this.syncAttackTargets();
+        this.syncHandAffordances();
+        this.checkTurnEndAfterVerb();
       },
     };
   }
