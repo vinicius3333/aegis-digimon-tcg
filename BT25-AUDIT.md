@@ -1621,3 +1621,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-084.
+
+## BT25-085 — BeelStarmon — 10/10
+
+- Catalog evidence: dual Digimon/Option card with Blocker, two level-5 alternate evolution routes, shared once-per-turn free use of a Three Musketeers/TS Option from hand or this Digimon's evolution cards, shared once-per-turn Option-card trash cost to unsuspend, and an Option-side Main effect that deletes an opposing highest-level Digimon then may place a Three Musketeers card from hand/trash as a friendly Digimon's bottom evolution card.
+- Knowledge base: Q6402–Q6404 define text matching, simultaneous evolution/attack effects, and this card's Option identity/Three Musketeers trait; Q6716 confirms only one Counter activation per attack.
+- Defect corrected: the Option-side placement omitted the printed bottom position and therefore used the generic placement default. The IR now specifies `position: "bottom"`, with a focused regression assertion for the exact destination.
+- Verification: focused — 6 passed; combined focused/mechanism gate — 243 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-085", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-085
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-085.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-085.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-085.
