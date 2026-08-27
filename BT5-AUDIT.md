@@ -2654,3 +2654,29 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   registration search, and `git diff --check` pass. No source or shared engine
   behavior changed.
 - Remaining ambiguity: none identified.
+
+## BT5-072 — Fake Agumon Expert — 10/10
+
+- Catalog and ruling evidence: Purple Lv.3 Rookie Digimon, Virus/Dinosaur, play
+  cost 3, 1000 DP, and purple Lv.2 evolution cost 0. Its On Deletion effect may
+  return one Lv.3 Digimon card with an On Deletion effect, other than Fake
+  Agumon Expert, from the owner's trash to hand. Q1349 establishes that an On
+  Deletion inherited effect does not satisfy this filter.
+- Implementation: `apps/api/src/cards/BT5/BT5-072.ts` encodes an optional Return
+  of exactly one own-trash Lv.3 Digimon whose direct effect text contains On
+  Deletion, excluding the card name. The shared Return path resolves the exact
+  loose trash instance into hand. The module declares full residual-free
+  coverage and registers exclusively through
+  `registerIrCard("BT5-072", compiled)`.
+- Behavioral proof: focused tests prove one exact eligible instance returns
+  from a pool containing two eligible copies, while the second copy, a
+  same-name card, and the opponent's eligible card remain untouched. Q1349 is
+  proven with an inherited-only On Deletion card, and an explicit refusal case
+  leaves an eligible target in trash. Deletion uses the named test seam.
+- Defect corrected: no executable behavior defect. Focused proof was
+  strengthened for exact count, controller, same-name exclusion, inherited-text
+  rejection, optional refusal, and supported deletion access.
+- Verification: focused BT5-072 — 3/3 passed. Targeted Oxfmt, Oxlint,
+  registration search, and `git diff --check` pass. No source or shared engine
+  behavior changed.
+- Remaining ambiguity: none identified.
