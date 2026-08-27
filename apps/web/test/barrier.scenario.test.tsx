@@ -130,6 +130,13 @@ scenario("barrier", () => {
     // protagonist's own UI (attacking spends no memory, so the gauge never crosses
     // here on its own).
     if (opponent.room.state.turnSeat === 0) {
+      // Wait for the check to give the board back before pressing anything. BoardInputLock is
+      // laid over the field (and so over the turn control) for as long as the scene owns the
+      // screen, so a real player's press lands on the lock and never reaches the button.
+      // `fireEvent.click` dispatches straight at the node and would sail through it, pressing a
+      // control the player cannot actually reach — and the press would be refused anyway
+      // (GameScreen's `boardLocked` guard), leaving the turn stuck here.
+      await vi.waitFor(() => expect(document.querySelector(".game-input-lock")).toBeNull(), { timeout: 10_000 });
       fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
     }
 

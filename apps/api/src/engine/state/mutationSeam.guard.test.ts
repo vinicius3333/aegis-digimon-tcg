@@ -27,8 +27,28 @@ const SEAM_FILE = "state/access.ts";
 /** Files still awaiting migration onto the seam. Shrinks to empty as work lands. */
 const MIGRATION_PENDING = new Set<string>([]);
 
-const ZONE_MUTATION =
-  /\.(deck|hand|security|battleArea|trash|breeding|eggDeck|delayZone)\.(push|splice|pop|shift|unshift|clear|setAt)\b/;
+/**
+ * Raw mutation of a zone ARRAY: the loose zones, the battle area, and the two card
+ * collections a Permanent owns (`stack`, `linked`).
+ */
+const ZONE_ARRAY_MUTATION =
+  /\.(deck|hand|security|battleArea|trash|breeding|eggDeck|delayZone|stack|linked)\.(push|splice|pop|shift|unshift|clear|setAt)\b/;
+
+/**
+ * Raw ASSIGNMENT to a state field that holds cards. An array regex cannot catch these —
+ * `permanent.topCard = card` moves a card just as surely as a push does, and for a long time
+ * these were the seam's blind spot: ~50 sites moved cards into permanents without any
+ * bookkeeping, which is why per-viewer visibility had to be recomputed by re-walking the whole
+ * board before every patch.
+ *
+ * `[^=]` after the `=` keeps `===`/`==` comparisons out. The `this.` exclusion on `breeding` is
+ * for `GameEngine.breeding`, which is the BreedingPhaseController, not the raising-area slot.
+ */
+const ZONE_FIELD_ASSIGNMENT = /(?:(?<!this)\.breeding|\.topCard|\.resolvingOption)\s*=[^=]/;
+
+function hasRawMutation(source: string): boolean {
+  return ZONE_ARRAY_MUTATION.test(source) || ZONE_FIELD_ASSIGNMENT.test(source);
+}
 
 function sourceFiles(dir: string): string[] {
   const out: string[] = [];
@@ -48,7 +68,7 @@ function offendingFiles(): string[] {
   for (const file of sourceFiles(ENGINE_DIR)) {
     const rel = relative(ENGINE_DIR, file);
     if (rel === SEAM_FILE) continue;
-    if (ZONE_MUTATION.test(readFileSync(file, "utf8"))) offenders.add(rel);
+    if (hasRawMutation(readFileSync(file, "utf8"))) offenders.add(rel);
   }
   return [...offenders].sort();
 }

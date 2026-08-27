@@ -1233,6 +1233,8 @@ export interface Primitives {
    * parallel/inert path. Duration-scoped: lapses at its boundary or when the host leaves play.
    */
   grantCustomEffect?(instanceId: string, ownerSeat: Seat, token: string, duration: EffectDuration): void;
+  /** Active named effects granted to a permanent, for live text-presence filters. */
+  customEffectGrants?(permanentId: string): readonly { token: string }[];
   /**
    * Record a seat-level "can't ignore digivolution requirements" rule (documented behavior
    * `rule implementation`). Normal and effect-driven digivolve legality

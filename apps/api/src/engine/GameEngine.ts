@@ -26,8 +26,14 @@ import {
   assemblyRequirementFor,
 } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
-import { buildStateView, refreshStateView as refreshStateViewInto, syncPublicCounts } from "./state/visibility.js";
-import { GameStateAccess, insertCard, takeTop } from "./state/access.js";
+import {
+  buildStateView,
+  exposeCardInZone,
+  refreshStateView as refreshStateViewInto,
+  syncPublicCounts,
+} from "./state/visibility.js";
+import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from "./state/access.js";
+import { GameStateAccess, insertCard, setTopCard, takeTop } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
 import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
 import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
@@ -276,6 +282,16 @@ function subTriggerIdentity(sub: SubTriggerSubscription): string {
     sub.description,
     sub.oncePerTurnKey ?? "",
   ].join("|");
+}
+
+/**
+ * A watcher's description as the players should read it. A player-scoped watcher tags its
+ * description with the instance that installed it, so it can be told apart from the copy
+ * conferred on another card; that tag is bookkeeping and never belongs in an announcement.
+ */
+function subTriggerDescriptionFor(sub: SubTriggerSubscription, ctx: EffectContext): string {
+  const tag = ` [${ctx.source.instanceId}]`;
+  return sub.description.endsWith(tag) ? sub.description.slice(0, -tag.length) : sub.description;
 }
 
 /** A watcher that triggered, with the EffectContext bound at the moment its event fired. */
@@ -1098,7 +1114,10 @@ export class GameEngine {
           const selected = keyed.find(({ key }) => key === response.order[0]);
           return selected === undefined
             ? replacements
-            : [selected.replacement, ...replacements.filter((replacement) => replacement.id !== selected.replacement.id)];
+            : [
+                selected.replacement,
+                ...replacements.filter((replacement) => replacement.id !== selected.replacement.id),
+              ];
         },
       },
       permanentIds,
@@ -1470,6 +1489,7 @@ export class GameEngine {
       // printed evolve cost: a `fixed` adjustment sets an absolute cost, otherwise the
       // delta sums; floored at 0 (Official Rule Manual: a cost can't go below 0).
       adjustedDigivolveCost: (_state, target, base, into, opts) => {
+        const reductionsBlocked = this.continuous.blocksCostReduction(target.controllerSeat, "digivolve");
         let cost = base;
         const adj = this.modifiers.evoCostFor(target, into, opts);
         if (adj !== undefined) {
@@ -1481,10 +1501,11 @@ export class GameEngine {
           markFired: (key) => this.tracker.register(key, "replacement"),
         });
         const intrinsicReduction = intrinsicDigivolutionCostReduction(into, target);
-        return Math.max(0, cost - replReduction - intrinsicReduction);
+        return Math.max(0, cost - (reductionsBlocked ? 0 : replReduction + intrinsicReduction));
       },
       prepareDigivolveCost: (_state, _seat, target, evolving) => this.fireBeforeDigivolveCost(evolving, target),
       potentialInteractiveDigivolveReduction: (state, seat, target, into) => {
+        if (this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
         const liveReduction = this.subTriggers.potentialInteractiveReductionFor("wouldDigivolve", seat, target, into, {
           hasFired: (key) => this.tracker.count(key, "replacement") > 0,
           markFired: (key) => this.tracker.register(key, "replacement"),
@@ -1499,6 +1520,7 @@ export class GameEngine {
         return liveReduction + intrinsicReduction;
       },
       activateInteractiveDigivolveReduction: async (_state, seat, target, into, evolvingInstanceId) => {
+        if (this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
         const liveReduction = await this.subTriggers.activateInteractiveReductionsFor(
           "wouldDigivolve",
           seat,
@@ -1606,6 +1628,7 @@ export class GameEngine {
       // suspendable to pay it (the controller's own, or — while an eligible BT3-056 redirector is
       // on the controller's battle area this turn — an opponent's). Pure read; no prompt/suspend.
       digisorptionReduction: (_state, seat, intoCardId) => {
+        if (this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
         const amount = digisorptionAmountFor(intoCardId);
         if (amount === undefined) return 0;
         return this.digisorptionSuspendCandidates(seat).length >= 1 ? amount : 0;
@@ -1985,10 +2008,19 @@ export class GameEngine {
       // A phase-boundary event has one fixed set of card sources: a Tamer played by an
       // earlier start-of-turn/start-of-main effect did not exist when that boundary
       // occurred and cannot retroactively trigger (BT24-082/Q5664, BT24-083/Q5667).
-      // Keep ordinary timing windows live because derived triggers and mid-window
+      // The end of the turn is the same kind of boundary in the other direction: a card
+      // that ARRIVES while it is being resolved has missed it, so its own end-of-turn
+      // clause is not processed this turn (Q2731/Q2762 — "the end of the turn timing has
+      // already passed"). Without the snapshot, EX11-046's "[End of Opponent's Turn] this
+      // Digimon may digivolve into [Galacticmon]" put a fresh Galacticmon on top of the
+      // stack that fired the very same clause again, chaining through hand and trash in
+      // one window.
+      // Keep every other timing window live because derived triggers and mid-window
       // digivolutions intentionally join those resolution fixpoints.
       const phaseBoundarySourceLocations =
-        timing === EffectTiming.OnStartTurn || timing === EffectTiming.OnStartMainPhase
+        timing === EffectTiming.OnStartTurn ||
+        timing === EffectTiming.OnStartMainPhase ||
+        timing === EffectTiming.OnEndTurn
           ? new Map(
               this.listCandidateInstances().map((instance) => [
                 instance.instanceId,
@@ -2272,6 +2304,7 @@ export class GameEngine {
           this.activeWindowToken,
           this.subTriggerTurnLedger(),
           (sub) => this.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
+          (sub, ctx) => this.announceSubTrigger(sub, ctx),
         );
       }
     });
@@ -2397,7 +2430,8 @@ export class GameEngine {
         const collected = this.subTriggerAsCollected(item);
         return {
           ...collected,
-          effect: { ...collected.effect, resolve: async () => this.fireOneSubTrigger(item) },
+          // The resolver announces what it resolves, so this body must not announce itself.
+          effect: { ...collected.effect, resolve: async () => this.fireOneSubTrigger(item, { announce: false }) },
         };
       });
     return [...this.pendingNestedTimingEffects, ...subTriggers];
@@ -2482,18 +2516,47 @@ export class GameEngine {
   }
 
   /**
+   * Announce a watcher body as it starts, the way the effect stack announces the printed
+   * effects it resolves (`resolutionDeps.onResolving`). A watcher IS a triggered effect: it can
+   * stop the game to ask its controller for a choice, and the players are owed the clause that
+   * asked before the wait — a security-removal reaction ("when your opponent's security stack is
+   * removed from") activates mid-check, so without this the board simply froze on the check with
+   * nothing said. Watchers folded into a timing window are announced by the resolver instead, so
+   * that path passes no announcer and neither announces twice.
+   */
+  private announceSubTrigger(sub: SubTriggerSubscription, ctx: EffectContext | undefined): void {
+    if (ctx === undefined) return;
+    this.hooks.emit({
+      kind: "effectTriggered",
+      seat: ctx.source.ownerSeat,
+      sourceCardId: ctx.source.cardId,
+      effectKey: `subtrigger/${sub.id}/${sub.description}`,
+      description: subTriggerDescriptionFor(sub, ctx),
+      timing: sub.event,
+      // `securityChecked` closes the check AFTER these bodies have run, so the client needs
+      // this to hold the announcement until the checked card's reveal has been shown.
+      ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
+    });
+  }
+
+  /**
    * Run one armed watcher. `contextAtFireTime` decides which board it sees: the immediate path
    * rebuilds the context now (so `fireSnapshot`'s own `matches` re-check can still drop a watcher
    * whose condition lapsed), while the deferred paths hand back the context bound when their
    * event happened, because their trigger has already activated (KB Q2611/Q2629).
    */
-  private async fireOneSubTrigger({ sub, contextAtFireTime }: ArmedSubTrigger): Promise<void> {
+  private async fireOneSubTrigger(
+    { sub, contextAtFireTime }: ArmedSubTrigger,
+    opts: { announce?: boolean } = {},
+  ): Promise<void> {
     if (this.subTriggerWindowDepth > 0) this.consumedSubTriggerKeys.add(subTriggerIdentity(sub));
     await this.subTriggers.fireSnapshot(
       [sub],
       () => contextAtFireTime(),
       this.activeWindowToken,
       this.subTriggerTurnLedger(),
+      undefined,
+      opts.announce === false ? undefined : (fired, ctx) => this.announceSubTrigger(fired, ctx),
     );
   }
 
@@ -2589,6 +2652,7 @@ export class GameEngine {
         this.activeWindowToken,
         this.subTriggerTurnLedger(),
         (sub) => this.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
+        (sub, ctx) => this.announceSubTrigger(sub, ctx),
       );
     }
     await this.recomputeContinuousEffects();
@@ -3474,7 +3538,7 @@ export class GameEngine {
     const playTarget = new Permanent();
     playTarget.permanentId = `pending-play-${instance.instanceId}`;
     playTarget.controllerSeat = source.ownerSeat;
-    playTarget.topCard = instance;
+    setTopCard(playTarget, instance);
     playTarget.inBreeding = false;
     playTarget.baseDP = source.definition.dp ?? 0;
     playTarget.currentDP = playTarget.baseDP;
@@ -3799,7 +3863,11 @@ export class GameEngine {
    * controller's hand, but the resulting watcher cannot activate before the repeated
    * 0-DP rule check deletes Titamon.
    */
-  private readonly deferredRuleSubTriggers: { event: SubTriggerEventName; payload: TriggerInfo; armed: ArmedSubTrigger[] }[] = [];
+  private readonly deferredRuleSubTriggers: {
+    event: SubTriggerEventName;
+    payload: TriggerInfo;
+    armed: ArmedSubTrigger[];
+  }[] = [];
 
   /**
    * The deletions a rule-check fixpoint has performed but not yet reacted to, or `undefined`
@@ -4896,6 +4964,10 @@ export class GameEngine {
     player.displayName = options.displayName;
     this.state.players[seat] = player;
     this.stagedDecks[seat] = options.deck;
+    // Seating replaces the PlayerState object, so the port has to be re-installed on the new
+    // one; installing it here (rather than at match start) also covers the cards `runSetup`
+    // deals, which arrive before any turn is played.
+    if (this.visibilityNotify !== undefined) installVisibilityPort(player, this.visibilityNotify);
   }
 
   /** Readiness belongs to the current occupant, not permanently to a seat. */
@@ -5070,6 +5142,38 @@ export class GameEngine {
     if (view === undefined) return;
     syncPublicCounts(this.state);
     refreshStateViewInto(view, this.state, seat);
+  }
+
+  /** Set once by the room; re-applied to each PlayerState as seats are filled. */
+  private visibilityNotify?: VisibilityPort;
+
+  /**
+   * Install the mutation seam's visibility port for both seats. `notify` is called once per
+   * card arrival in a loose zone; the room turns that into an `exposeCardInZone` per connected
+   * client. Idempotent — installing again simply replaces the callback.
+   *
+   * Without this the private zones are never exposed mid-match (the per-patch full walk that
+   * used to do it was removed: it re-queued a forced ADD for every field of every card on
+   * every patch, so each patch carried the whole state).
+   */
+  installVisibility(notify: VisibilityPort): void {
+    this.visibilityNotify = notify;
+    for (const player of this.state.players) installVisibilityPort(player, notify);
+  }
+
+  /**
+   * Apply one card arrival to one client's view. Thin pass-through to the visibility policy
+   * so the room stays free of StateView details, mirroring `refreshStateView` above.
+   */
+  exposeCardToView(
+    view: Client["view"],
+    viewerSeat: Seat,
+    ownerSeat: Seat,
+    zone: VisibilityZone,
+    card: CardInstance,
+  ): void {
+    if (view === undefined) return;
+    exposeCardInZone(view, viewerSeat, ownerSeat, zone, card);
   }
 
   /**

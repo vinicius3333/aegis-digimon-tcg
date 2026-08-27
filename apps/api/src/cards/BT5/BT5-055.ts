@@ -22,16 +22,6 @@ const compiled: CompiledCard = {
           },
           to: "deckBottom",
         },
-        {
-          kind: "Trash",
-          target: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-            },
-            count: "all",
-          },
-        },
       ],
     },
   ],

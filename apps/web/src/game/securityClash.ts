@@ -3,17 +3,24 @@
    drawing lives in ./SecurityClashView; this module only decides the contents and
    owns the timeline the CSS keyframes are cut to. */
 
-import { getCardDefinition, isDigimon, type SecurityBattleResult, type Seat } from "@aegis/shared";
+import { getCardDefinition, isDigimon, type SecurityBattleResult, type Seat, type ServerEvent } from "@aegis/shared";
 import {
   CLASH_OUTCOME_AT_MS,
   CLASH_REVEAL_AT_MS,
   CLASH_TOTAL_MS,
   SECURITY_BRANCH_TOTAL_MS as BRANCH_TOTAL_MS,
   SECURITY_BREAK_TOTAL_MS as BREAK_TOTAL_MS,
+  SECURITY_DESTROY_OUTCOME_AT_MS as DESTROY_OUTCOME_AT_MS,
+  SECURITY_DESTROY_TOTAL_MS as DESTROY_TOTAL_MS,
   TIMINGS,
 } from "./timings";
 
-export type SecurityClashResolution = "battle" | "effect" | "trashed";
+/**
+ * `pending` is the client's own: the card has been revealed (`securityRevealed`) and the
+ * check has not closed yet, so the scene holds the card on stage while whatever it caused
+ * resolves. The other three come from the server's `securityChecked.resolution`.
+ */
+export type SecurityClashResolution = "pending" | "battle" | "effect" | "trashed";
 export type SecurityClashSide = "you" | "opp";
 
 /** The attack the check belongs to, remembered from the last `attackDeclared`. */
@@ -51,7 +58,23 @@ export interface SecurityClashScene {
    * so `revealed` here drives the claw, not the card's destination.
    */
   loser?: { attacker: boolean; revealed: boolean };
+  /**
+   * When the outcome beat starts, measured from the moment the scene mounts, overriding
+   * the check's own timeline. Zero for an outcome that reached a scene already on stage
+   * — the check took a decision or two to close, so its beat starts at the settle rather
+   * than on the clock the reveal began. Drawn as `--t-clash-outcome-at`.
+   */
+  outcomeAtMs?: number;
+  /**
+   * What put the card on stage. A `check` is the security check the printed rules run;
+   * a `destruction` is an effect that trashed the stack outright (Ragnarok Cannon), which
+   * faces no attacker and compares no DP. Only what the scene calls itself differs — the
+   * card is revealed and broken the same way either way. Defaults to `check`.
+   */
+  cause?: SecurityClashCause;
 }
+
+export type SecurityClashCause = "check" | "destruction";
 
 /**
  * Timeline of the scene, in the order the beats play. The reveal and the outcome
@@ -102,6 +125,12 @@ export const SECURITY_BRANCH_TIMINGS = {
 } as const;
 
 export const SECURITY_BRANCH_TOTAL_MS = BRANCH_TOTAL_MS;
+
+/** How long one destroyed security card owns the centre of the screen. */
+export const SECURITY_DESTROY_TOTAL_MS = DESTROY_TOTAL_MS;
+
+/** When that card breaks, which is also when its scene starts fading. */
+export const SECURITY_DESTROY_OUTCOME_AT_MS = DESTROY_OUTCOME_AT_MS;
 
 /** Which shield breaks, and on whose edge of the screen the flash washes in. */
 export interface SecurityBreakScene {
@@ -163,14 +192,60 @@ function comparableDp(cardId: string): number | undefined {
   return definition && isDigimon(definition) ? definition.dp : undefined;
 }
 
-export function buildSecurityClashScene({
+/**
+ * The scene the reveal opens with: both cards on stage, no verdict yet. The outcome is
+ * grafted on by {@link settleSecurityClashScene} when `securityChecked` closes the check,
+ * which may be a decision or two later.
+ */
+export function buildSecurityRevealScene({
   key,
   revealedCardId,
-  resolution,
   defenderSeat,
   viewerSeat,
   attacker,
+}: {
+  key: number;
+  revealedCardId: string;
+  /** Seat whose security was checked, i.e. the `securityRevealed` seat. */
+  defenderSeat: Seat;
+  viewerSeat: Seat;
+  attacker?: SecurityClashAttacker;
+}): SecurityClashScene {
+  const defenderSide: SecurityClashSide = defenderSeat === viewerSeat ? "you" : "opp";
+  const attackerSide: SecurityClashSide = defenderSide === "you" ? "opp" : "you";
+  // An attack context left over from the other seat's attack would face the wrong
+  // way, so it is only used when it actually opposes the checked player.
+  const facing = attacker && attacker.seat !== defenderSeat ? attacker : undefined;
+  return {
+    key,
+    resolution: "pending",
+    revealed: { cardId: revealedCardId, side: defenderSide, dp: comparableDp(revealedCardId) },
+    ...(facing ? { attacker: { cardId: facing.cardId, side: attackerSide, dp: comparableDp(facing.cardId) } } : {}),
+  };
+}
+
+/** Graft the closed check's outcome onto the scene the reveal put on stage. */
+export function settleSecurityClashScene(
+  scene: SecurityClashScene,
+  { resolution, battle, outcomeAtMs }: { resolution: string; battle?: SecurityBattleResult; outcomeAtMs?: number },
+): SecurityClashScene {
+  return {
+    ...scene,
+    resolution: normalizeSecurityClashResolution(resolution),
+    ...(outcomeAtMs === undefined ? {} : { outcomeAtMs }),
+    // Without an attacker on stage there is no side to claw, so the verdict is dropped
+    // rather than shown against a card that is not there.
+    ...(scene.attacker && battle
+      ? { loser: { attacker: battle.attackerDeleted, revealed: battle.securityDigimonDeleted } }
+      : {}),
+  };
+}
+
+/** The whole scene at once, for a check whose reveal and outcome are already both known. */
+export function buildSecurityClashScene({
+  resolution,
   battle,
+  ...reveal
 }: {
   key: number;
   revealedCardId: string;
@@ -182,22 +257,93 @@ export function buildSecurityClashScene({
   /** The DP compare the server published on `securityChecked`. */
   battle?: SecurityBattleResult;
 }): SecurityClashScene {
-  const defenderSide: SecurityClashSide = defenderSeat === viewerSeat ? "you" : "opp";
-  const attackerSide: SecurityClashSide = defenderSide === "you" ? "opp" : "you";
-  // An attack context left over from the other seat's attack would face the wrong
-  // way, so it is only used when it actually opposes the checked player.
-  const facing = attacker && attacker.seat !== defenderSeat ? attacker : undefined;
+  return settleSecurityClashScene(buildSecurityRevealScene(reveal), { resolution, ...(battle ? { battle } : {}) });
+}
+
+/**
+ * One security card an effect trashed outright, revealed and then broken where it stood.
+ * It faced no attacker and no DP was compared, so the scene is the card alone: the same
+ * reveal the check plays, held long enough to read, then the shatter `trashed` already
+ * draws. The break beat is pulled forward to {@link SECURITY_DESTROY_OUTCOME_AT_MS},
+ * because there is no attacker entrance to wait out.
+ *
+ * A destruction that takes several cards is several scenes, one per card, in the order
+ * the stack lost them — the reference client plays the whole sequence once per card
+ * rather than announcing the count.
+ */
+export function buildSecurityDestructionScene({
+  key,
+  cardId,
+  trashedSeat,
+  viewerSeat,
+}: {
+  key: number;
+  cardId: string;
+  /** Seat whose security stack lost the card. */
+  trashedSeat: Seat;
+  viewerSeat: Seat;
+}): SecurityClashScene {
   return {
-    key,
-    resolution: normalizeSecurityClashResolution(resolution),
-    revealed: { cardId: revealedCardId, side: defenderSide, dp: comparableDp(revealedCardId) },
-    ...(facing ? { attacker: { cardId: facing.cardId, side: attackerSide, dp: comparableDp(facing.cardId) } } : {}),
-    // Without an attacker on stage there is no side to claw, so the verdict is dropped
-    // rather than shown against a card that is not there.
-    ...(facing && battle
-      ? { loser: { attacker: battle.attackerDeleted, revealed: battle.securityDigimonDeleted } }
-      : {}),
+    ...buildSecurityRevealScene({ key, revealedCardId: cardId, defenderSeat: trashedSeat, viewerSeat }),
+    resolution: "trashed",
+    cause: "destruction",
+    outcomeAtMs: DESTROY_OUTCOME_AT_MS,
   };
+}
+
+/**
+ * The figure a security shield shows. The board drops a checked or trashed card the
+ * moment the server's patch lands, which is seconds before the scene that shows the
+ * card leaving has played — so the count fell while the shield was still intact. A
+ * scene holding a card it has not shown leaving publishes the figure it started with,
+ * and the shield keeps whichever is higher until the card is seen to go (the reference
+ * client reduces the stack only after `EnterSecurityCardEffect`, `CardController.cs:4008`).
+ *
+ * `max` rather than the held figure outright: a recovery that lands mid-scene is an
+ * increase, and the shield has no reason to hide one.
+ */
+export function shieldSecurityCount(liveCount: number, heldCount: number | undefined): number {
+  return heldCount === undefined ? liveCount : Math.max(liveCount, heldCount);
+}
+
+/* The zone names `cardsMoved` uses for an effect-driven security trash. A security CHECK
+   never emits this pair — it moves the checked card through its own seam — so a movement
+   out of security and into the trash is always an effect (or a cost) spending the stack. */
+const SECURITY_ZONE = "security";
+
+const TRASH_ZONE = "trash";
+
+/** One security card an effect spent, resolved to the identity a scene can draw. */
+export interface SecurityDestruction {
+  cardId: string;
+  /** The seat whose stack lost it. */
+  seat: Seat;
+}
+
+/**
+ * The security cards this batch of events had trashed by an effect, in the order the
+ * stacks lost them. `cardsMoved` names only instance ids and no seat, so both come from
+ * the caller's index of the board the movement has already landed on — the cards are in
+ * the trash, which is public, so every one of them resolves.
+ *
+ * A card whose identity the index cannot name is dropped rather than drawn as an
+ * anonymous back: a scene that cannot say WHICH card was lost is worse than none.
+ */
+export function securityDestructionsFromEvents(
+  events: readonly ServerEvent[],
+  lookup: { cardId: (instanceId: string) => string | undefined; seat: (instanceId: string) => Seat | undefined },
+): readonly SecurityDestruction[] {
+  const destroyed: SecurityDestruction[] = [];
+  for (const event of events) {
+    if (event.kind !== "cardsMoved" || event.from !== SECURITY_ZONE || event.to !== TRASH_ZONE) continue;
+    for (const instanceId of event.instanceIds) {
+      const cardId = lookup.cardId(instanceId);
+      const seat = lookup.seat(instanceId);
+      if (cardId === undefined || seat === undefined) continue;
+      destroyed.push({ cardId, seat });
+    }
+  }
+  return destroyed;
 }
 
 /**

@@ -81,7 +81,17 @@ export type ServerEvent =
       /** Public identity of a permanent target at declaration time. */
       targetCardId?: string;
     }
-  | { kind: "blockWindowOpened"; attackerPermanentId: string; eligibleBlockerIds: string[] }
+  | {
+      kind: "blockWindowOpened";
+      attackerPermanentId: string;
+      eligibleBlockerIds: string[];
+      /**
+       * ＜Collision＞ (§16-30): the defending player is forced to block whenever able, so
+       * declining is illegal while an eligible blocker exists. The server enforces it either
+       * way; the flag is what lets the client stop offering a choice it will reject.
+       */
+      mustBlock?: boolean;
+    }
   | { kind: "blocked"; blockerPermanentId: string }
   | { kind: "blockDeclined"; attackerPermanentId: string }
   // §11-3 Counter Timing: opened after When Attacking effects resolve and before block
@@ -101,6 +111,17 @@ export type ServerEvent =
   | { kind: "barrierPrompt"; permanentId: string }
   | { kind: "barrierResolved"; permanentId: string; accepted: boolean }
   | { kind: "combatResolved"; seat: Seat; attackerPermanentId: string; deletedPermanentIds: string[] }
+  | {
+      // The top security card was turned face up. Emitted the moment the card is flipped —
+      // before its [Security] effect, before the triggers the check fires, and before the
+      // battle — so the client can show WHICH card was revealed at the moment of the attack
+      // and play everything that follows from it as a consequence. `securityChecked` closes
+      // the same check and carries the outcome; there is exactly one of each, in this order.
+      kind: "securityRevealed";
+      seat: Seat;
+      revealedCardId: string;
+      attackerPermanentId: string;
+    }
   | {
       kind: "securityChecked";
       seat: Seat;
@@ -194,6 +215,7 @@ export const SERVER_EVENT_KINDS = [
   "barrierPrompt",
   "barrierResolved",
   "combatResolved",
+  "securityRevealed",
   "securityChecked",
   "securityRecovered",
   "deckShuffled",

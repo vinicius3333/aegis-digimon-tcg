@@ -23,7 +23,7 @@ describe("soundForEvent", () => {
         cue: "attackDeclare",
       },
       {
-        event: { kind: "securityChecked", seat: 0, revealedCardId: "BT1-030", resolution: "battle" },
+        event: { kind: "securityRevealed", seat: 0, revealedCardId: "BT1-030", attackerPermanentId: "perm-1" },
         cue: "securityHit",
       },
       { event: { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 4 }, cue: "turnChange" },

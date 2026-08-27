@@ -734,12 +734,15 @@ export async function runSubTrigger(
           return host !== undefined && permanentMatchesFilter(subCtx, host, hostFilter, subCtx.source);
         }
       : undefined;
-  // A batch watcher whose sourceFilter describes the permanent that LOST stack cards (rather
-  // than `isSelfRef`, which describes a discarded inherited source) must scope against the
-  // event's host. BT26-048 uses this for "from your Digimon"; the generic subject gate is
-  // intentionally skipped for discard events because inherited self-watchers need card identity.
+  // A Digi-Burst/batch watcher whose sourceFilter describes the permanent that LOST stack cards
+  // (rather than `isSelfRef`, which describes a discarded inherited source) must scope against
+  // the event's host. BT5-056/BT26-048 use this for "one of your Digimon"; the generic subject
+  // gate is intentionally skipped for discard events because inherited self-watchers need card
+  // identity.
   const digivolutionBatchHostSourceFilterGate =
-    event === "onDigivolutionCardsDiscardedBatch" && sourceFilter !== undefined && sourceFilter.isSelfRef !== true
+    (event === "onDigiBurstCardDiscarded" || event === "onDigivolutionCardsDiscardedBatch") &&
+    sourceFilter !== undefined &&
+    sourceFilter.isSelfRef !== true
       ? (subCtx: EffectContext): boolean => {
           const hostId = subCtx.trigger?.subjectPermanentId;
           const host = hostId === undefined ? undefined : subCtx.game.permanentById(hostId);

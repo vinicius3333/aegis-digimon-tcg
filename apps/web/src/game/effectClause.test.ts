@@ -313,6 +313,18 @@ describe("effectClauseForTiming", () => {
     expect(clause).not.toContain("RevealAdd");
   });
 
+  it("shows the printed text when a watcher arrives named only by the event it watches", () => {
+    const clause = playerFacingEffectClause({
+      cardId: "AD1-017",
+      timing: "whenSecurityRemoved",
+      description: "whenSecurityRemoved",
+    });
+
+    expect(clause).toBeTruthy();
+    expect(clause).not.toBe("whenSecurityRemoved");
+    expect(clause).not.toContain("whenSecurityRemoved");
+  });
+
   it("preserves explicit human-readable effect descriptions", () => {
     const description = "[When Attacking][Inherited] You may play 1 [Sistermon].";
     expect(playerFacingEffectClause({ cardId: "ST12-08", timing: "OnAllyAttack", description })).toBe(description);

@@ -10,10 +10,15 @@ describe("BT5-064 BlackGaogamon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(false);
   });
 
   it("does not grant Jamming without Reboot", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-063", as: "host", under: ["BT5-064"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-066", as: "host", under: ["BT5-064"] }] } });
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(false);
   });

@@ -2485,6 +2485,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     grantCanAttackUnsuspended: true,
     grantCustom: true,
     grantCustomEffect: true,
+    customEffectGrants: true,
     grantDnaLevel: true,
     grantDynamicNames: true,
     grantedKeywords: true,

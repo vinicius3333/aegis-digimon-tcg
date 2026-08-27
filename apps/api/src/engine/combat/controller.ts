@@ -891,10 +891,14 @@ export class CombatController {
       return Promise.resolve(null);
     }
 
+    // ＜Collision＞ forces the block (§16-30), and `resolveBlock` rejects a decline while a
+    // blocker is left. The window says so, so the defender is never offered that refusal.
+    const mustBlock = hasCollision(attacker, this.hooks.continuous);
     this.hooks.emit({
       kind: "blockWindowOpened",
       attackerPermanentId: attacker.permanentId,
       eligibleBlockerIds,
+      ...(mustBlock ? { mustBlock: true } : {}),
     });
 
     return new Promise<string | null>((resolve) => {

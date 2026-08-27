@@ -2,6 +2,9 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
@@ -234,5 +237,91 @@ describe("BT5-112 Omnimon Zwart Defeat (hand-authored IR override)", () => {
     expect(module.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
     expect(module.effectsForTiming(EffectTiming.OnUseAttack, source)).toHaveLength(0);
     expect(module.effectsForTiming(EffectTiming.None, source)).toHaveLength(0);
+  });
+
+  it("deletes only an opponent's Tamer when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT5-082", as: "base" }],
+          hand: [{ card: "BT5-112", as: "evolving" }],
+        },
+        1: {
+          battleArea: ["BT7-085", { card: "BT1-010", as: "opponentDigimon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === "BT5-112" &&
+        s.state.players[1]!.battleArea.length === 1 &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-010");
+  });
+
+  it("deletes one opponent Digimon when deleted", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT5-112", as: "zwartDefeat" }] },
+        1: { battleArea: ["BT7-085", { card: "BT1-010", as: "opponentDigimon" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const sourceId = s.perm("zwartDefeat").permanentId;
+    s.state.memory = 10;
+
+    await advance(s.engine).verb.deletePermanent([sourceId], "byEffect");
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourceId) &&
+        s.state.players[1]!.battleArea.length === 1 &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT7-085");
+  });
+
+  it("plays from security without battling and leaves the attacker alive", async () => {
+    const s = setupEngine({
+      0: {
+        security: [
+          { card: "BT5-112", as: "securityDefeat" },
+          { card: "BT1-001", as: "remainingSecurity" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT5-059", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === 1 &&
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("securityDefeat").instanceId,
+        ) &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
   });
 });

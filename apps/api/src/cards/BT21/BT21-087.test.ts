@@ -50,6 +50,34 @@ describe("BT21-087 Zenith", () => {
     expect(setup.state.players[0]?.deck).toHaveLength(0);
   });
 
+  // The revealed cards are still in the deck, which no client's state carries: the prompt is
+  // the only channel that can name them, and a card it leaves unnamed is drawn as a card back.
+  it("names every revealed card in the prompt that offers them", async () => {
+    const setup = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-087", as: "zenith" }],
+          deck: [
+            { card: "BT11-065", as: "vemmonText" },
+            { card: "BT1-009", as: "rest1" },
+            { card: "BT1-009", as: "rest2" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
+    );
+
+    await advance(setup.engine).fire(EffectTiming.OnPlay, setup.perm("zenith"));
+
+    const reveal = setup.decisions.find(({ req }) => req.kind === "selectCards")?.req;
+    expect(reveal).toBeDefined();
+    const named = new Map((reveal?.options?.visibleCards ?? []).map((card) => [card.instanceId, card.cardId]));
+    for (const instanceId of reveal?.options?.visibleInstanceIds ?? []) {
+      expect(named.get(instanceId), `revealed ${instanceId} reached the client unnamed`).toBeTruthy();
+    }
+    expect([...named.values()].sort()).toEqual(["BT1-009", "BT1-009", "BT11-065"]);
+  });
+
   it("sets memory to 3 only when it is 2 or less", async () => {
     const setup = setupEngine({ 0: { battleArea: [{ card: "BT21-087", as: "zenith" }] } });
     setup.state.memory = 2;

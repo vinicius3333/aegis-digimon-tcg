@@ -2,12 +2,13 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT5-004.js";
 import "./BT5-046.js";
 
 describe("BT5-046 Terriermon Assistant", () => {
   it("Digi-Bursts 1 to reveal and add a green Digimon", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT5-046", as: "terrier", under: ["BT1-009"] }], deck: ["BT5-047"] } },
+      { 0: { battleArea: [{ card: "BT5-046", as: "terrier", under: ["BT5-004"] }], deck: ["BT5-047"] } },
       { autoSelectCards: true },
     );
     const source = (s.engine as any).cardSourceOf(s.perm("terrier").topCard!);
@@ -28,9 +29,15 @@ describe("BT5-046 Terriermon Assistant", () => {
 
   it("bottoms a revealed non-green card after paying Digi-Burst", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT5-046", as: "terrier", under: ["BT1-009"] }], deck: ["BT1-010"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT5-046", as: "terrier", under: ["BT5-004"] }],
+          deck: ["BT1-010", "BT5-047"],
+        },
+      },
       { autoSelectCards: true },
     );
+    const revealedNonMatch = s.state.players[0]!.deck[0]!;
     const source = (s.engine as any).cardSourceOf(s.perm("terrier").topCard!);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
       effect.effectKey.startsWith("BT5-046/"),
@@ -42,8 +49,21 @@ describe("BT5-046 Terriermon Assistant", () => {
         effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("terrier").stack.length === 0 && s.state.players[0]!.deck.length === 0);
+    await settle(
+      () =>
+        s.perm("terrier").stack.length === 0 &&
+        s.state.players[0]!.deck.some((card) => card.instanceId === revealedNonMatch.instanceId),
+    );
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("terrier").stack).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT5-047", "BT1-010"]);
+  });
+
+  it("does not expose the Main effect when Digi-Burst has no source card to trash", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT5-046", as: "terrier" }], deck: ["BT5-047"] },
+    });
+    (s.engine as any).syncActivatableEffects();
+    expect(s.perm("terrier").activatableEffectsJson).toBe("");
   });
 });

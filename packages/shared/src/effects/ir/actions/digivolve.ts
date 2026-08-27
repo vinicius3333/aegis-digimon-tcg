@@ -197,6 +197,8 @@ export interface TrashDigivolutionAction extends ActionBase {
   minAmount?: number;
   /** The default source form. */
   fromTop?: boolean;
+  /** Allow choosing fewer than `amount`; when sources exist, at least one is required. */
+  upTo?: boolean;
   position?: string;
   /**
    * `"acrossDigimon"` pools digivolution cards from ALL matching permanents and lets the

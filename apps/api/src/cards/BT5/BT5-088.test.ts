@@ -33,10 +33,23 @@ describe("BT5-088 Sora Takenouchi & Joe Kido", () => {
         0: {
           battleArea: [
             { card: "BT5-088", as: "tamer" },
-            { card: "BT5-032", as: "blue" },
+            { card: "BT1-027", as: "blue" },
           ],
         },
-        1: { battleArea: [{ card: "BT4-073", as: "target", under: ["BT1-009", "BT1-010"] }], security: ["BT1-011"] },
+        1: {
+          battleArea: [
+            {
+              card: "BT4-073",
+              as: "target",
+              under: [
+                { card: "BT1-009", as: "bottomSource" },
+                { card: "BT1-010", as: "middleSource" },
+                { card: "BT1-011", as: "topSource" },
+              ],
+            },
+          ],
+          security: ["BT1-012"],
+        },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
@@ -48,10 +61,68 @@ describe("BT5-088 Sora Takenouchi & Joe Kido", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("tamer").isSuspended && s.perm("target").stack.length === 0);
+    await settle(() => s.perm("tamer").isSuspended && s.perm("target").stack.length === 1);
 
     expect(s.perm("tamer").isSuspended).toBe(true);
-    expect(s.perm("target").stack).toHaveLength(0);
+    expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([s.inst("topSource").instanceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("bottomSource").instanceId, s.inst("middleSource").instanceId]),
+    );
+  });
+
+  it("trashes the only available source when fewer than 2 are present", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-088", as: "tamer" },
+            { card: "BT1-027", as: "blue" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT4-073", as: "target", under: [{ card: "BT1-009", as: "onlySource" }] }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("blue").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").isSuspended && s.perm("target").stack.length === 0);
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("onlySource").instanceId);
+  });
+
+  it("may decline the source-trash effect, leaving the Tamer and sources unchanged", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-088", as: "tamer" },
+            { card: "BT1-027", as: "blue" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT4-073", as: "target", under: ["BT1-009", "BT1-010"] }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("blue").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blue").isSuspended);
+
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
   });
 
   it("plays itself from security without paying its cost", async () => {

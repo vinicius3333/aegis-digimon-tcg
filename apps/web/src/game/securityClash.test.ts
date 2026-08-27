@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import type { ServerEvent } from "@aegis/shared";
 import {
   buildSecurityBranchScene,
   buildSecurityBreakScene,
   buildSecurityClashScene,
+  buildSecurityDestructionScene,
   normalizeSecurityClashResolution,
   orderSecurityClashFighters,
   SECURITY_BRANCH_TIMINGS,
@@ -12,6 +14,8 @@ import {
   SECURITY_BREAK_TOTAL_MS,
   SECURITY_CLASH_TIMINGS,
   SECURITY_CLASH_TOTAL_MS,
+  SECURITY_DESTROY_OUTCOME_AT_MS,
+  securityDestructionsFromEvents,
 } from "./securityClash";
 
 // Agumon is a Digimon with DP; Brave Shield is an Option, so it has none to compare.
@@ -187,5 +191,52 @@ describe("security battle outcome", () => {
     const scene = sceneWith({ attackerDeleted: true, securityDigimonDeleted: false }, false);
     expect(scene.attacker).toBeUndefined();
     expect(scene.loser).toBeUndefined();
+  });
+});
+
+describe("security destroyed by an effect", () => {
+  const lookup = {
+    cardId: (instanceId: string) => ({ "i-1": DIGIMON_CARD_ID, "i-2": OPTION_CARD_ID })[instanceId],
+    seat: (instanceId: string) => (instanceId === "i-1" || instanceId === "i-2" ? (1 as const) : undefined),
+  };
+  const trashed = (instanceIds: string[]): ServerEvent => ({
+    kind: "cardsMoved",
+    instanceIds,
+    from: "security",
+    to: "trash",
+  });
+
+  it("names every card a movement out of security into the trash spent, in order", () => {
+    expect(securityDestructionsFromEvents([trashed(["i-1", "i-2"])], lookup)).toEqual([
+      { cardId: DIGIMON_CARD_ID, seat: 1 },
+      { cardId: OPTION_CARD_ID, seat: 1 },
+    ]);
+  });
+
+  it("ignores movements that are not a security stack being spent", () => {
+    const elsewhere: ServerEvent[] = [
+      { kind: "cardsMoved", instanceIds: ["i-1"], from: "security", to: "hand" },
+      { kind: "cardsMoved", instanceIds: ["i-1"], from: "battleArea", to: "trash" },
+      { kind: "cardsMoved", instanceIds: ["i-1"], from: "security", to: "security" },
+    ];
+    expect(securityDestructionsFromEvents(elsewhere, lookup)).toEqual([]);
+  });
+
+  it("drops a card the board cannot name rather than drawing an anonymous back", () => {
+    expect(securityDestructionsFromEvents([trashed(["i-unknown"])], lookup)).toEqual([]);
+  });
+
+  it("stages the card alone, already spent, on the destruction clock", () => {
+    const scene = buildSecurityDestructionScene({
+      key: 3,
+      cardId: DIGIMON_CARD_ID,
+      trashedSeat: 1,
+      viewerSeat: 0,
+    });
+    expect(scene.attacker).toBeUndefined();
+    expect(scene.revealed).toEqual({ cardId: DIGIMON_CARD_ID, side: "opp", dp: 2000 });
+    expect(scene.resolution).toBe("trashed");
+    expect(scene.cause).toBe("destruction");
+    expect(scene.outcomeAtMs).toBe(SECURITY_DESTROY_OUTCOME_AT_MS);
   });
 });
