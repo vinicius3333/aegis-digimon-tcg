@@ -107,4 +107,25 @@ describe("BT1-056 Petermon", () => {
 
     expect(s.state.players[0]!.trash).toHaveLength(1);
   });
+
+  it("does not play an opponent's Tinkermon", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT1-056", as: "petermon" }] },
+        1: { hand: [{ card: "BT1-047", as: "opponentTinkermon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("petermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT1-056");
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(
+      s.inst("opponentTinkermon").instanceId,
+    );
+  });
 });
