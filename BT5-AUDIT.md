@@ -2959,3 +2959,29 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   14/14 passed. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No source or shared engine behavior changed.
 - Remaining ambiguity: none identified.
+
+## BT5-084 — Diaboromon — 10/10
+
+- Catalog and ruling evidence: White Lv.6 Mega Digimon, Unknown/Unidentified,
+  play cost 11, 11000 DP, and black Lv.5 evolution cost 3. When Digivolving it
+  may play one Diaboromon Token without cost. Q1352 defines the token semantics
+  and Q1353 confirms that Diaboromon Tokens satisfy White color requirements.
+- Implementation: `apps/api/src/cards/BT5/BT5-084.ts` encodes an optional,
+  count-1, cost-free PlayToken for Diaboromon on the evolution trigger. The
+  shared token registry supplies the corrected White Lv.6, play cost 14, 3000
+  DP, Mega, Unknown, Unidentified definition. The module declares full
+  residual-free coverage and registers exclusively through `registerIrCard`.
+- Behavioral proof: focused tests use a legal black Lv.5 evolution and prove one
+  exact face-up `TOKEN-Diaboromon` enters for the correct owner/controller,
+  without consuming memory beyond the evolution cost. Every printed token stat,
+  color, form, attribute, type, and token identity is asserted. Refusal leaves
+  only the evolved Digimon. BT5-067 and PlayToken primitive suites provide peer
+  identity, deletion-created token, allocation, and count regression coverage.
+- Defect corrected: no additional source defect beyond the shared token metadata
+  correction delivered with BT5-067. Focused BT5-084 proof was strengthened for
+  exact identity, ownership, controller, face, all traits/stats, and free play.
+- Verification: focused BT5-084 — 2/2 passed; BT5-067 token peer — 5/5 passed;
+  PlayToken primitive subset — 3/3 passed. Targeted Oxfmt, Oxlint, registration
+  search, and `git diff --check` pass. No source or shared engine behavior
+  changed in this audit.
+- Remaining ambiguity: none identified.

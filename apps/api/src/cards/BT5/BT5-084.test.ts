@@ -18,12 +18,20 @@ describe("BT5-084 Diaboromon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
     const token = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId.includes("TOKEN"))!;
+    expect(token.topCard.cardId).toBe("TOKEN-Diaboromon");
+    expect(token.controllerSeat).toBe(0);
+    expect(token.topCard.ownerSeat).toBe(0);
+    expect(token.topCard.faceUp).toBe(true);
+    expect(s.state.memory).toBe(0);
     expect(requireCardDefinition(token.topCard.cardId)).toMatchObject({
       nameEn: "Diaboromon",
       level: 6,
       dp: 3000,
       playCost: 14,
       isToken: true,
+      forms: ["Mega"],
+      attributes: ["Unknown"],
+      types: ["Unidentified"],
     });
     expect(requireCardDefinition(token.topCard.cardId).colors).toContain("White");
   });
