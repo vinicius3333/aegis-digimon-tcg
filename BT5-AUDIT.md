@@ -2985,3 +2985,36 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   search, and `git diff --check` pass. No source or shared engine behavior
   changed in this audit.
 - Remaining ambiguity: none identified.
+
+## BT5-085 — Armageddemon — 10/10
+
+- Catalog and ruling evidence: White Lv.7 Mega Digimon,
+  Unknown/Unidentified, play cost 15 and 15000 DP, evolving for 3 from black or
+  white Lv.6. When played from hand, it may delete one own Digimon named exactly
+  Diaboromon to reduce its play cost by 12. It has Rush, and while present all
+  Lv.7 Digimon cannot activate When Digivolving effects. Q1354 confirms that a
+  Diaboromon Token satisfies the deletion cost; Q1355 and Q5520–Q5523 define
+  the exact activation restriction boundaries.
+- Implementation: `apps/api/src/cards/BT5/BT5-085.ts` uses an optional
+  BeforePayCost deletion with `nameExact` and a −12 play-cost modifier. Rush is
+  an intrinsic static keyword with no targeting action. A continuous
+  any-controller, exact-Lv.7 restriction installs
+  `cannotActivateWhenDigivolving`. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-085", compiled)` registration are preserved.
+- Behavioral proof: five focused tests prove that an own Diaboromon Token is
+  the only sacrificed card in a mixed field, while an own Diaboromon (X
+  Antibody), unrelated own Digimon, and opposing Diaboromon survive. They prove
+  the exact reduced and full play costs, optional refusal, same-turn Rush,
+  intrinsic-keyword structure without a GainKeyword action, both controllers'
+  Lv.7 restriction, an unrestricted Lv.6 base, and suppression of a real Lv.7
+  When Digivolving effect while the normal evolution draw still occurs.
+- Defects corrected: the sacrifice filter previously used a substring name
+  match, which incorrectly admitted Diaboromon (X Antibody). Rush also had a
+  redundant permanent GainKeyword action targeting any own Armageddemon. The
+  filter is now exact and Rush is represented only as the card's intrinsic
+  keyword.
+- Verification: focused BT5-085 — 5/5 passed; targeted
+  `cannotActivateWhenDigivolving` capability subset — 2/2 passed. Targeted
+  Oxfmt, Oxlint, registration search, and `git diff --check` pass. No shared
+  engine seam changed.
+- Remaining ambiguity: none identified.
