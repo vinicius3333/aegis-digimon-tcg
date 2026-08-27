@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-059.js";
+import "./BT2-060.js";
 
 describe("BT2-059 Kurisarimon", () => {
   it("Q1024 gains 1 memory when another Digimon with the evolved host's name is played", async () => {
