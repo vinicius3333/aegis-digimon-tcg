@@ -1855,3 +1855,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-097.
+
+## BT25-098 — Cyber Engage — 10/10
+
+- Catalog evidence: black Option with Appmon use requirement; Main reveals three, adds one Appmon card, trashes the remainder, and places this Option in the battle area; Delay may play one Appmon card from the controller's hand with cost reduced by 3; Security places this card in the battle area.
+- Knowledge base: Q6464 prevents combining two Delay activations into one card-playing action; Comprehensive Rules §16-42 confines the use requirement to the specified cards on the field.
+- Defects corrected: the use-requirement waiver accepted any Appmon card without field/card-kind scope, including a placed Appmon Option, and Delay could select an opponent's hand. The waiver now requires a friendly battle-area Appmon Digimon/Tamer and the play target is controller-scoped, with focused negative regressions.
+- Verification: focused — 7 passed; interpreter/play mechanisms — 185 passed; combined batch/interpreter/play/Link gate — 212 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-098", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-098
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-098.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/interpreter/actions/play.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-098.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-098.

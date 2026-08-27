@@ -55,6 +55,22 @@ describe("BT25-098 Cyber Engage", () => {
     );
   });
 
+  it("requires an Appmon Digimon or Tamer on the field for Use Req.", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-097", as: "appmonOption" }],
+        hand: [{ card: "BT25-098", as: "option" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
   it("consumes Delay and pays printed Appmon cost reduced by exactly 3", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT25-098", as: "delay" }], hand: [{ card: "BT25-061", as: "target" }] } },
@@ -92,6 +108,30 @@ describe("BT25-098 Cyber Engage", () => {
     expect(s.perm("delay").activatableEffectsJson).toBe("");
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-098")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT25-061")).toBe(true);
+  });
+
+  it("does not play an opponent's Appmon for Delay", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-098", as: "delay" }] },
+        1: { hand: [{ card: "BT25-061", as: "opponentAppmon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("delay").enterFieldTurnCount = s.state.turnCount - 1;
+    await s.ready();
+    const [entry] = JSON.parse(s.perm("delay").activatableEffectsJson) as { effectKey: string }[];
+    expect(entry).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("delay").topCard.instanceId,
+        effectKey: entry!.effectKey,
+      }).ok,
+    ).toBe(true);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT25-098"));
+    expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT25-061")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-061")).toBe(false);
   });
 
   it("places itself from security", async () => {
