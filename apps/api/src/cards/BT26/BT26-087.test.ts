@@ -45,6 +45,7 @@ describe("BT26-087 Toya Kuga", () => {
           battleArea: [{ card: "BT26-087", as: "toya" }],
           trash: [
             { card: "BT26-021", as: "tsCost" },
+            { card: "BT1-009", as: "nonTs" },
             { card: "BT26-085", as: "giantSlayer" },
           ],
         },
@@ -56,6 +57,7 @@ describe("BT26-087 Toya Kuga", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("tsCost").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("nonTs").instanceId);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("giantSlayer").instanceId)).toBe(
       true,
     );
@@ -66,7 +68,10 @@ describe("BT26-087 Toya Kuga", () => {
       {
         0: {
           battleArea: [{ card: "BT26-087", as: "toya" }],
-          hand: [{ card: "BT26-088", as: "tsTamer" }],
+          hand: [
+            { card: "BT26-088", as: "tsTamer" },
+            { card: "BT1-009", as: "nonTs" },
+          ],
           deck: [{ card: "BT1-001" }, { card: "BT1-002" }, { card: "BT1-003" }],
         },
       },
@@ -77,7 +82,8 @@ describe("BT26-087 Toya Kuga", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tsTamer").instanceId));
 
     expect(s.state.players[0]!.deck).toHaveLength(1);
-    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("nonTs").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(3);
   });
 
   it("does not return Giant Slayer when the TS return cost is unavailable", async () => {

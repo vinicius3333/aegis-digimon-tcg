@@ -2949,6 +2949,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Correction: replaced `SecurityManipulation(moveTopToBottom)`, which only reordered security, with `Return` of the opponent's top security card to deck bottom as printed.
 - Proof: Assembly boundaries, stack Appmon filtering, link capacity/distinct names, keywords, reaction/frequency, seven-link condition, and corrected security-to-deck zones. Full IR, exclusive `registerIrCard`; automation not run; diff check passed. No unresolved limitation.
 
+## BT26-087 — Toya Kuga — 10/10
+
+- Catalog/KB: red cost-3 TS Tamer with Start Main, On Play, and Security text confirmed; no card-specific Q&A/erratum.
+- Implementation: full IR and exclusive `registerIrCard`; optional transactional return of one TS Digimon from trash to deck bottom then +1 memory, optional exact Giant Slayer recovery, optional On Play TS hand-trash then Draw 2, and free Security play.
+- Proof: positive start-main/recovery, wrong kind/trait, unavailable/refused costs, On Play Draw 2, Security play, and strengthened mixed-pool cases preserving non-TS cards. Automation not run; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
