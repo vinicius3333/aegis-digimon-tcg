@@ -8,7 +8,9 @@ describe("BT1-081 HerculesKabuterimon", () => {
   it("uses Piercing after deleting an opposing Digimon in battle and surviving", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-081", as: "attacker", dp: 10000 }] },
+        0: {
+          battleArea: [{ card: "BT1-081", as: "attacker", under: [{ card: "BT1-076", under: ["BT1-073"] }] }],
+        },
         1: {
           battleArea: [{ card: "BT1-010", as: "defender", dp: 1000, suspended: true }],
           security: ["BT1-009"],
