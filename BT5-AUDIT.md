@@ -2850,3 +2850,25 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   subset — 2/2 relevant tests passed. Targeted Oxfmt, Oxlint, registration
   search, and `git diff --check` pass. No shared engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-080 — Zanbamon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.6 Mega Digimon, Virus/Wizard, play cost
+  10, 10000 DP, and purple Lv.5 evolution cost 2. Its complete effect text is
+  Retaliation. The knowledge base contains no card-specific ruling, errata,
+  restriction, or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-080.ts` publishes unconditional
+  static Retaliation, declares full residual-free coverage, and registers
+  exclusively through `registerIrCard("BT5-080", compiled)`.
+- Behavioral and mechanism proof: the focused combat uses a legal purple Lv.5
+  source under Zanbamon and proves the lower-DP Retaliation holder is deleted in
+  battle and then deletes the opposing winner. Targeted mechanism controls prove
+  Retaliation fires when the holder dies and does not fire merely because the
+  surviving Digimon has the keyword. Runtime registration is also asserted.
+- Defect corrected: no executable behavior defect. The focused fixture was made
+  a legal evolution stack and now explicitly asserts deletion of both combatants
+  rather than observing only the opponent's removal.
+- Verification: focused BT5-080 — 2/2 passed; targeted Retaliation holder and
+  survivor controls — 2/2 passed. Targeted Oxfmt, Oxlint, registration search,
+  and `git diff --check` pass. No source or shared engine behavior changed.
+- Remaining ambiguity: none identified.
