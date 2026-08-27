@@ -46,10 +46,19 @@ export const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
               nameOrTrait: [{ tokens: ["Omnimon (X Antibody)"], match: "name" }],
-              hostFilter: {
-                controller: "mine",
-                nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "name" }],
-              },
+              // The card may be played from hand (unrestricted) or from under one
+              // of your King Drasil_7D6s. A top-level hostFilter would incorrectly
+              // reject the hand branch.
+              or: [
+                { zone: "hand" },
+                {
+                  zone: "digivolutionCards",
+                  hostFilter: {
+                    controller: "mine",
+                    nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "name" }],
+                  },
+                },
+              ],
             },
             count: 1,
           },

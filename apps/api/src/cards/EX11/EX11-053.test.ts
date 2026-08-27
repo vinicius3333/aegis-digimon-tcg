@@ -45,16 +45,16 @@ describe("EX11-053 Omekamon", () => {
       {
         0: {
           security: ["BT1-001"],
-          hand: [{ card: "BT10-086", as: "omnimonX" }],
+          hand: [{ card: "BT20-102", as: "omnimonX" }],
           battleArea: [{ card: "EX11-053", as: "omekamon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).verb.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-086"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT20-102"));
 
-    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-086");
+    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT20-102");
     expect(played?.stack.some((card) => card.instanceId === s.inst("omekamon").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("omekamon").instanceId)).toBe(false);
     assertNoLoudGap(s);
@@ -65,7 +65,7 @@ describe("EX11-053 Omekamon", () => {
       {
         0: {
           security: ["BT1-001", "BT1-002"],
-          hand: [{ card: "BT10-086", as: "omnimonX" }],
+          hand: [{ card: "BT20-102", as: "omnimonX" }],
           battleArea: [{ card: "EX11-053", as: "omekamon" }],
         },
       },
@@ -75,6 +75,28 @@ describe("EX11-053 Omekamon", () => {
     await settle();
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("omnimonX").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("can also play Omnimon (X Antibody) from under King Drasil", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: ["BT1-001"],
+          battleArea: [
+            { card: "EX11-053", as: "omekamon" },
+            { card: "BT23-072", as: "drasil", under: [{ card: "BT20-102", as: "omnimonX" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.deletePermanent([s.perm("omekamon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT20-102"));
+
+    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT20-102");
+    expect(played?.stack.some((card) => card.instanceId === s.inst("omekamon").instanceId)).toBe(true);
+    expect(s.perm("drasil").stack.some((card) => card.instanceId === s.inst("omnimonX").instanceId)).toBe(false);
     assertNoLoudGap(s);
   });
 
@@ -89,9 +111,15 @@ describe("EX11-053 Omekamon", () => {
               kind: "PlayWithoutCost",
               target: expect.objectContaining({
                 filter: expect.objectContaining({
-                  hostFilter: expect.objectContaining({
-                    nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "name" }],
-                  }),
+                  or: expect.arrayContaining([
+                    { zone: "hand" },
+                    expect.objectContaining({
+                      zone: "digivolutionCards",
+                      hostFilter: expect.objectContaining({
+                        nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "name" }],
+                      }),
+                    }),
+                  ]),
                 }),
               }),
             }),
