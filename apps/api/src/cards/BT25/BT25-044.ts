@@ -39,23 +39,32 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SecurityManipulation",
-          op: "placeAsSecurity",
+          op: "trashTop",
           controller: "mine",
-          source: {
-            filter: {
-              controllerDefault: "mine",
-              excludeSelf: true,
-              kind: ["Digimon"],
+          amount: 1,
+          abortOnDecline: true,
+          cost: {
+            kind: "place",
+            targetIsPermanent: true,
+            target: {
+              filter: {
+                controllerDefault: "mine",
+                excludeSelf: true,
+                kind: ["Digimon"],
+                zone: "battleArea",
+              },
+              count: 1,
             },
-            count: 1,
+            destination: "security",
+            position: "top",
+            faceDown: true,
+            raw: "By placing 1 other Digimon as the top security card",
           },
-          toTop: true,
         },
         {
           kind: "SecurityManipulation",
           op: "trashTop",
-          controller: "mine",
-          bothPlayers: true,
+          controller: "opponent",
           amount: 1,
         },
       ],
@@ -65,23 +74,32 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SecurityManipulation",
-          op: "placeAsSecurity",
+          op: "trashTop",
           controller: "mine",
-          source: {
-            filter: {
-              controllerDefault: "mine",
-              excludeSelf: true,
-              kind: ["Digimon"],
+          amount: 1,
+          abortOnDecline: true,
+          cost: {
+            kind: "place",
+            targetIsPermanent: true,
+            target: {
+              filter: {
+                controllerDefault: "mine",
+                excludeSelf: true,
+                kind: ["Digimon"],
+                zone: "battleArea",
+              },
+              count: 1,
             },
-            count: 1,
+            destination: "security",
+            position: "top",
+            faceDown: true,
+            raw: "By placing 1 other Digimon as the top security card",
           },
-          toTop: true,
         },
         {
           kind: "SecurityManipulation",
           op: "trashTop",
-          controller: "mine",
-          bothPlayers: true,
+          controller: "opponent",
           amount: 1,
         },
       ],

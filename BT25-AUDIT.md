@@ -878,3 +878,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-043.
+
+## BT25-044 — Junomon — 10/10
+
+- Catalog evidence: Yellow/purple level-6 Digimon, play cost 12, 12000 DP; standard yellow/purple level-5 evolution for 4 plus alternate Angel/Archangel/TS evolution for 3; conditional self play reducers; On Play/When Digivolving places one other friendly Digimon face down as top security, then trashes both players' top security; all-turn once-per-turn on friendly security removal optionally plays an eligible Angel/Archangel/Iliad card from hand or trash without cost.
+- Knowledge base: Q7004 confirms stacked Junomon self-reductions total -10. Q6315 establishes immediate Security-effect ordering before pending removal triggers.
+- Implementation: each entry clause now represents placement as an all-or-nothing `place` cost on the controller's own trash-top action, then separately trashes the opponent's top. No valid other Digimon aborts the remaining sequence. The reducer boundary, controller-scoped once-per-turn watcher, hand/trash free-play filters, alternate evolution, full coverage/no residual clauses, and exclusive `registerIrCard("BT25-044", compiled)` are complete.
+- Defects corrected: placement was unconditional and the bilateral trash could proceed without a legal other Digimon. Both timings now require and execute the face-down top-security placement before either top-security result.
+- Verification: focused suite — 7 passed; BT26-033 — 4 passed; interpreter — 183 passed; Junomon deck interaction — 1 passed; targeted Oxfmt and `git diff --check` — passed. The broader BT25 deck baseline retains unrelated Marsmon/Rebootmon failures; workspace typecheck retains unrelated pre-existing errors and no BT25-044 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-044
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-044.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-044.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-044.
