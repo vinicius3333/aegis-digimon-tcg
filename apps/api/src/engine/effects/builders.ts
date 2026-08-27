@@ -182,6 +182,12 @@ export const onDeletion = (opts: BuilderOptions): Effect =>
       const deleted = ctx.trigger?.deletedInstanceIds;
       if (deleted === undefined) return true;
       if (!deleted.includes(ctx.source.instanceId)) return false;
+      // A non-inherited effect only exists while its card is the top card of a
+      // Digimon. The deletion window carries the stack-card subset captured
+      // before movement, so do not collect ordinary effects from cards that
+      // were merely underneath the deleted top card.
+      if (opts.isInherited !== true && ctx.trigger.deletedWasStackInstanceIds?.includes(ctx.source.instanceId))
+        return false;
       if (!opts.isLinked) return true;
 
       const hostInstanceId = ctx.trigger.deletedLinkHostInstanceByLinkedInstanceId?.[ctx.source.instanceId];

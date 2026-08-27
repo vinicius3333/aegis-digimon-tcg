@@ -176,12 +176,12 @@ describe("EX12-034 Erlangmon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("plays a level-five SW card from this Digimon's stack when another own Digimon would leave", async () => {
+  it("plays a qualifying SW card from this Digimon's stack when another own Digimon would leave", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "EX12-034", as: "source", under: ["EX12-015"] },
+            { card: "EX12-034", as: "source", under: ["EX12-039"] },
             { card: "BT1-009", as: "victim" },
           ],
         },
@@ -192,11 +192,11 @@ describe("EX12-034 Erlangmon", () => {
     const victimId = s.perm("victim").permanentId;
 
     await advance(s.engine).verb.deletePermanent([victimId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-015"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-039"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
-    expect(s.perm("source").stack.some((card) => card.cardId === "EX12-015")).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-015")).toBe(true);
+    expect(s.perm("source").stack.some((card) => card.cardId === "EX12-039")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-039")).toBe(true);
   });
 
   it("plays a level-five SW card from hand and also triggers when Erlangmon itself would leave", async () => {
@@ -204,7 +204,7 @@ describe("EX12-034 Erlangmon", () => {
       {
         0: {
           battleArea: [{ card: cardId, as: "source" }],
-          hand: [{ card: "EX12-015", as: "sw" }],
+          hand: [{ card: "EX12-039", as: "sw" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -213,10 +213,10 @@ describe("EX12-034 Erlangmon", () => {
     const sourceId = s.perm("source").permanentId;
 
     expect(await advance(s.engine).verb.deletePermanent([sourceId], "byEffect")).toBe(1);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-015"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-039"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === sourceId)).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-015")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-039")).toBe(true);
   });
 
   it("reads digivolution-card candidates only from Erlangmon and enforces the level-5 ceiling", async () => {

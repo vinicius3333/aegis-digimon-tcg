@@ -8,10 +8,11 @@ import "./index.js";
 
 const collectionDirectory = fileURLToPath(new URL(".", import.meta.url));
 const indexSource = readFileSync(new URL("./index.ts", import.meta.url), "utf8");
-const ex12Ids = allCards()
+const auditLedgerSource = readFileSync(new URL("./AUDIT.md", import.meta.url), "utf8");
+const ex12Cards = allCards()
   .filter((card) => card.set === "EX12")
-  .map((card) => card.cardId)
-  .sort();
+  .sort((left, right) => left.cardId.localeCompare(right.cardId));
+const ex12Ids = ex12Cards.map((card) => card.cardId);
 
 function containsRawUnparsed(value: unknown): boolean {
   if (Array.isArray(value)) return value.some(containsRawUnparsed);
@@ -61,6 +62,37 @@ describe("EX12 collection audit proof", () => {
       expect(compiled?.coverage, `${cardId} coverage`).toBe("full");
       expect(compiled?.residual, `${cardId} residual`).toEqual([]);
       expect(containsRawUnparsed(compiled), `${cardId} RawUnparsed node`).toBe(false);
+    }
+  });
+
+  it("documents every audited card as 10/10 in the versioned ledger", () => {
+    const rows = auditLedgerSource
+      .split("\n")
+      .filter((line) => /^\| EX12-\d{3} \|/.test(line))
+      .map((line) =>
+        line
+          .split("|")
+          .slice(1, -1)
+          .map((cell) => cell.trim()),
+      );
+
+    expect(auditLedgerSource).toContain("Overall completion: **77/77 cards (100%) at 10/10**.");
+    expect(rows).toHaveLength(ex12Cards.length);
+
+    for (const [index, card] of ex12Cards.entries()) {
+      const cardId = card.cardId;
+
+      expect(rows[index], `${cardId} audit ledger row`).toEqual([
+        cardId,
+        card.nameEn,
+        "2/2",
+        "2/2",
+        "2/2",
+        "2/2",
+        "2/2",
+        "10/10",
+        `[\`${cardId}.ts\`](./${cardId}.ts) · [\`${cardId}.test.ts\`](./${cardId}.test.ts)`,
+      ]);
     }
   });
 });

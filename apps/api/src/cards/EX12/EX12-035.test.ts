@@ -357,8 +357,8 @@ describe("EX12-035 MetalGarurumon", () => {
       await advance(s.engine).fireSubTrigger(event, {
         subjectPermanentId: opponentSubject ? s.perm("target").permanentId : s.perm("source").permanentId,
       });
-      await settle(() => observe(s.engine).isRestricted(s.perm("target"), "suspend"));
-      expect(observe(s.engine).isRestricted(s.perm("target"), "suspend")).toBe(true);
+      await settle(() => observe(s.engine).isRestricted(s.perm("target"), "beSuspended"));
+      expect(observe(s.engine).isRestricted(s.perm("target"), "beSuspended")).toBe(true);
     }
   });
 });

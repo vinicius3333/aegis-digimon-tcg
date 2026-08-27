@@ -189,12 +189,12 @@ describe("EX12-029 Sagomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).isRestricted(s.perm("opponent").permanentId, "suspend"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("opponent").permanentId, "beSuspended"));
     await s.ready();
 
     const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
       .continuous;
-    expect(observe(s.engine).isRestricted(s.perm("opponent").permanentId, "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponent").permanentId, "beSuspended")).toBe(true);
     expect(continuous.hasKeyword(s.perm("ally").permanentId, "Alliance")).toBe(true);
   });
 
@@ -279,7 +279,7 @@ describe("EX12-029 Sagomon", () => {
     await settle(() => !observe(s.engine).isAttacking());
 
     expect(s.perm("base").topCard?.cardId).toBe(cardId);
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "beSuspended")).toBe(true);
   });
 
   it("trashes bottom sources and restricts a source-less opposing Digimon once per turn", async () => {
@@ -303,7 +303,7 @@ describe("EX12-029 Sagomon", () => {
     );
 
     expect(s.perm("stacked").stack).toHaveLength(1);
-    expect(observe(s.engine).isRestricted(s.perm("empty").permanentId, "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("empty").permanentId, "beSuspended")).toBe(true);
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await settle();
     expect(s.perm("stacked").stack).toHaveLength(1);

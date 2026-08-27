@@ -142,7 +142,7 @@ describe("EX12-042 Gatomon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
 
     const hostId = s.perm("host").permanentId;
-    const deletion = advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+    const deletion = advance(s.engine).verb.deletePermanent([hostId], "byBattle");
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
       ok: true,
