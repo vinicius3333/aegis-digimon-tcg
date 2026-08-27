@@ -22,7 +22,7 @@ describe("EX6-005 Kakkinmon", () => {
               filter: {
                 isSelfRef: true,
                 zone: "digivolutionCards",
-                kind: ["Digimon"],
+                hostFilter: { isSelfRef: true },
                 nameOrTrait: [{ match: "trait", tokens: ["Legend-Arms"] }],
               },
             },
@@ -49,5 +49,23 @@ describe("EX6-005 Kakkinmon", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("legendArms").instanceId);
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["EX6-005"]);
+  });
+
+  it("can return a Legend-Arms card that is not a Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: ["EX6-005", "EX6-065"] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("EX6-065").instanceId);
   });
 });

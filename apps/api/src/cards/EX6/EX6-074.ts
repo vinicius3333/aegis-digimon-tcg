@@ -33,7 +33,9 @@ export const compiled: CompiledCard = {
             },
             {
               kind: "Digivolve",
-              target: { sourceRef: "triggerSubject", filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              // The printed clause says "1 of your Digimon", not "that Digimon";
+              // the played trait Digimon only arms this watcher.
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
               into: {
                 controllerDefault: "mine",
                 nameOrTrait: [{ tokens: ["Angewomon", "LadyDevimon"], match: "name" }],

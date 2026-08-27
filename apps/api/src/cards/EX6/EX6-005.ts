@@ -19,7 +19,7 @@ export const compiled: CompiledCard = {
               filter: {
                 isSelfRef: true,
                 zone: "digivolutionCards",
-                kind: ["Digimon"],
+                hostFilter: { isSelfRef: true },
                 nameOrTrait: [
                   {
                     tokens: ["Legend-Arms"],
