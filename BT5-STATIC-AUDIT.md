@@ -14,10 +14,10 @@ The re-audit intentionally does not execute tests, typecheck, lint, formatting, 
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT5-001–010 | Luna in progress | `internal-docs/audits/BT5/BT5-001-010.md` | No |
+| BT5-001–010 | Static audit delivered | `internal-docs/audits/BT5/BT5-001-010.md` | Yes |
 | BT5-011–020 | Luna in progress | `internal-docs/audits/BT5/BT5-011-020.md` | No |
 | BT5-021–030 | Luna in progress | `internal-docs/audits/BT5/BT5-021-030.md` | No |
-| BT5-031–040 | Queued for Luna | `internal-docs/audits/BT5/BT5-031-040.md` | No |
+| BT5-031–040 | Luna in progress | `internal-docs/audits/BT5/BT5-031-040.md` | No |
 | BT5-041–050 | Queued for Luna | `internal-docs/audits/BT5/BT5-041-050.md` | No |
 | BT5-051–060 | Queued for Luna | `internal-docs/audits/BT5/BT5-051-060.md` | No |
 | BT5-061–070 | Queued for Luna | `internal-docs/audits/BT5/BT5-061-070.md` | No |
@@ -43,6 +43,16 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT5-001 Koromon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited name gate, exclusions, legal stack, and once-per-turn attack proof |
+| BT5-002 Tsunomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Owner-turn Garurumon/Omnimon host aura with legal inherited stack |
+| BT5-003 Pickmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Battle-area three-Digimon gate, breeding exclusion, and exact-one DP target |
+| BT5-004 Yokomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Self-source Digi-Burst trash event identity, legal stack, and turn expiry |
+| BT5-005 Tsumemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Unidentified host trait gate with legal stack and once-per-turn boundary |
+| BT5-006 Gigimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Other-own-Digimon deletion watcher, self exclusion, and simultaneous-DP ruling |
+| BT5-007 Agumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent Greymon/Omnimon reveal slots, exclusions, and one-category ruling |
+| BT5-008 Gaossmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All-other-Gaossmon aura plus opponent-turn digivolution-reduction restriction |
+| BT5-009 Shoutmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent Shoutmon/Blitz reveal slots and inherited live-Blitz aura |
+| BT5-010 Greymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact Agumon source memory gate and inherited name-family aura exclusions |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT5/`.
 
@@ -50,9 +60,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 0
+- Integrated card audits: 10
 - Corrected: 0
-- Provisional: 0
+- Provisional: 10
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
