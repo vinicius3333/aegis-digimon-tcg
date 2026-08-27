@@ -1765,3 +1765,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-092.
+
+## BT25-093 — Ignition Flare — 10/10
+
+- Catalog evidence: red Option with TS use requirement and TS Link requirement at cost 3; Security activates Main; Main deletes all lowest-DP opposing Digimon, falls back to trashing an opposing placed Option when deletion did not occur, then may link this card free; linked When Attacking once per turn deletes within host DP.
+- Knowledge base: Q6436 limits the fallback to Options placed in the battle area by effect; Q6437–Q6438 define mandatory lowest-DP deletion and prevention fallback; Q6439–Q6443 define linked-effect provenance and field/breeding Link legality.
+- Defects corrected: the fallback accepted any opposing Option permanent without encoding the placed-by-effect requirement, and the direct compiled card omitted its printed TS Link requirement/cost. Both are now explicit, with a focused regression assertion.
+- Verification: focused — 7 passed; interpreter — 183 passed; targeting/conformance — 10 passed; Link mechanisms — 31 passed in delegated verification; combined gate — 216 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-093", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-093
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-093.test.ts src/engine/linkState.test.ts src/engine/effects/interpreter.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-093.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-093.
