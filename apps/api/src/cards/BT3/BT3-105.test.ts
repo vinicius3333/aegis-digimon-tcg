@@ -7,10 +7,17 @@ import "./BT3-105.js";
 
 describe("BT3-105 Breath of the Gods", () => {
   it("grants Reboot and protection from DP reduction and returns", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT3-059", as: "target" }], hand: [{ card: "BT3-105", as: "option" }] } },
-      { autoSelectCards: true },
+      {
+        0: {
+          battleArea: [{ card: "BT3-059", as: "target" }, { card: "BT3-070", as: "untouched" }],
+          hand: [{ card: "BT3-105", as: "option" }],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("target").topCard.instanceId);
     s.state.memory = 4;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
@@ -23,6 +30,9 @@ describe("BT3-105 Breath of the Gods", () => {
     );
     expect(observe(s.engine).isRestricted(s.perm("target"), "dpImmune")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "beReturned")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("untouched"), "Reboot")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("untouched"), "dpImmune")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("untouched"), "beReturned")).toBe(false);
   });
 
   it("prevents the opponent's Digimon from attacking players from security", async () => {

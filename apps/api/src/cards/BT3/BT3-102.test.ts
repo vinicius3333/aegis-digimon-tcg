@@ -38,4 +38,25 @@ describe("BT3-102 Code Cracking", () => {
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovered").instanceId));
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
+
+  it("recovers 1 when the opponent has no security to trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT3-032"],
+          hand: [{ card: "BT3-102", as: "option" }],
+          deck: [{ card: "BT3-033", as: "recovered" }],
+        },
+        1: { security: [] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovered").instanceId));
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
 });

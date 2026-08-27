@@ -31,6 +31,12 @@ export async function runReplacement(
   ctx: EffectContext,
   action: Extract<Action, { kind: "Replacement" }>,
 ): Promise<void> {
+  const expiresOnTurnEndOf =
+    action.duration === "forTheTurn" || action.duration === "untilYourTurnEnd"
+      ? ctx.source.ownerSeat
+      : action.duration === "untilOpponentTurnEnd" || action.duration === "untilOpponentNextTurnEnd"
+        ? ctx.game.opponentOf(ctx.source.ownerSeat)
+        : undefined;
   const oncePerTurnKey = action.oncePerTurnKey;
   const replacementBudget =
     oncePerTurnKey === undefined ? {} : { oncePerTurnKey: `${ctx.source.instanceId}/${oncePerTurnKey}` };
@@ -367,6 +373,7 @@ export async function runReplacement(
       activationIdentity,
       ...(ctx.activeTiming !== undefined ? { activationTiming: ctx.activeTiming } : {}),
       ...(ctx.activeEffectText !== undefined ? { activationEffectText: ctx.activeEffectText } : {}),
+      ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       mode: "reduceCost",
       amount: mode === "increaseCost" ? -(amount ?? 0) : amount,
       ...(scalesIntoColors
