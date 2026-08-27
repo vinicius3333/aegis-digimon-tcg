@@ -2788,3 +2788,29 @@ git diff --check
 ```
 
 No unresolved BT26-069 limitation remains. Only its focused test and this ledger section changed; the implementation and engine remain unchanged. The collection is not marked complete.
+
+## BT26-070 — NightChiropmon — 10/10
+
+### Contract evidence
+
+- Catalog confirms a purple level-4 Digimon with alternate level-3 `Glowing Dawn` evolution for cost 2, On Play/When Digivolving Draw 1 then trash one, Main Once Per Turn, and inherited Retaliation.
+- Main trashes exactly two bottom face-down cards under own Tamers, then may use one `Glowing Dawn` Option from trash with use cost reduced by 2. KB Q7092 requires both cards; Q7093 prevents combining reductions across copies.
+
+### Implementation mapping
+
+- `BT26-070.ts` has full IR coverage and exclusive `registerIrCard` registration. It encodes exact two-card bottom-face-down Tamer payment, optional trait-filtered Option use from trash, reduction 2, and inherited Retaliation.
+- Draw/Trash ordering, all-or-nothing payment, Option lifecycle, Once Per Turn identity, and peers were inspected.
+
+### Behavioral proof
+
+- `BT26-070.test.ts` covers evolution, Retaliation, Draw/Trash, bottom selection, Q7092/Q7093, and failure paths. The public positive fixture now uses a real `Glowing Dawn` Option plus two valid Tamer-stack cards; added cases prove legal refusal and exclusion of a nonmatching Option.
+
+### Verification
+
+```text
+Knowledge-base query: PASS (Q7092-Q7093)
+Automation: NOT RUN by user instruction
+git diff --check: PASS before commit
+```
+
+No unresolved BT26-070 limitation remains. Only its focused test and this ledger section changed; the implementation remains unchanged.
