@@ -12,6 +12,8 @@ export interface DefinitionFacts {
   kinds: CardKind[];
   colors: CardColor[];
   level?: number;
+  /** Additional levels a card is treated as having in a temporary zone context. */
+  treatedAsLevels?: number[];
   nameEn: string;
   types?: string[];
   forms?: string[];
@@ -122,7 +124,8 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   if (filter.colorCount !== undefined && def.colors.length !== filter.colorCount) return false;
   if (filter.singleColor === true && def.colors.length !== 1) return false;
   if (filter.levels && filter.levels.length > 0) {
-    if (def.level === undefined || !filter.levels.includes(def.level)) return false;
+    const levels = [...(def.level === undefined ? [] : [def.level]), ...(def.treatedAsLevels ?? [])];
+    if (!filter.levels.some((level) => levels.includes(level))) return false;
   }
   // "HAS a level" gate (BT17-051 level-budget delete, BT18-019 different-levels select): exclude
   // Lv.- cards (Digi-Eggs / level-less Digimon), where `def.level` is undefined or 0 (KB Q2807).

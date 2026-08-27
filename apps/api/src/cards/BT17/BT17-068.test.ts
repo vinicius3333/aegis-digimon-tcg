@@ -60,5 +60,6 @@ describe("BT17-068 Mephistomon — revealed level", () => {
     const def = revealedDefinition({ game: { definitionOf: () => getCardDefinition("BT17-068")! } } as any, card);
 
     expect(def.level).toBe(6);
+    expect(def.treatedAsLevels).toEqual([5, 6]);
   });
 });
