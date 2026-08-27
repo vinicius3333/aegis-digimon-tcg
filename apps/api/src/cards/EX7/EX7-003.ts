@@ -13,6 +13,7 @@ export const compiled: CompiledCard = {
         {
           kind: "ModifySecurityDP",
           amount: -2000,
+          controller: "opponent",
           duration: "permanent",
         },
       ],

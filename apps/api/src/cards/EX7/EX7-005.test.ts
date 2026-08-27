@@ -10,6 +10,7 @@ describe("EX7-005 Kapurimon", () =>
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          triggerFilter: { isSelfRef: true },
           addedDigivolutionCardFilter: {
             kind: ["Option"],
             nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }],
