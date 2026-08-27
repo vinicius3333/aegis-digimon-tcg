@@ -1279,3 +1279,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-065.
+
+## BT25-066 — Guardromon — 10/10
+
+- Catalog evidence: black level-4 Digimon; alternate level-3 TS evolution for 2; Blocker; all-turn replacement prevents this Digimon from leaving by trashing one of its own link cards; inherited all-turn +1000 DP.
+- Knowledge base: no card-specific entries; standard replacement payment, hosted-link ownership, Blocker, evolution, and inherited continuous-effect rules apply.
+- Implementation: exact self leave event, own-host link-card cost, prevention replacement, keyword, alternate evolution, and inherited boost are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-066", compiled)`. The module IR is exported for reproducible direct/shared comparison without changing behavior.
+- Verification: focused — 6 passed; leave prevention — 18 passed; subtriggers — 23 passed; interpreter — 183 passed; adjacent peers — 11 passed; `git diff --check` — passed. No behavioral test change was needed.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-066
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-066.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-066.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-066.
