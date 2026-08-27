@@ -21,10 +21,10 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT3-041–050 | Static audit integrated | `internal-docs/audits/BT3/BT3-041-050.md` | Yes |
 | BT3-051–060 | Static audit integrated | `internal-docs/audits/BT3/BT3-051-060.md` | Yes |
 | BT3-061–070 | Static audit integrated | `internal-docs/audits/BT3/BT3-061-070.md` | Yes |
-| BT3-071–080 | Luna in progress | `internal-docs/audits/BT3/BT3-071-080.md` | No |
+| BT3-071–080 | Static audit integrated | `internal-docs/audits/BT3/BT3-071-080.md` | Yes |
 | BT3-081–090 | Luna in progress | `internal-docs/audits/BT3/BT3-081-090.md` | No |
 | BT3-091–100 | Luna in progress | `internal-docs/audits/BT3/BT3-091-100.md` | No |
-| BT3-101–110 | Queued | `internal-docs/audits/BT3/BT3-101-110.md` | No |
+| BT3-101–110 | Luna in progress | `internal-docs/audits/BT3/BT3-101-110.md` | No |
 | BT3-111–112 | Queued | `internal-docs/audits/BT3/BT3-111-112.md` | No |
 
 ## Score model
@@ -113,18 +113,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT3-068 Giromon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited opponent-turn DP modifier and legal stack proof |
 | BT3-069 RaijiLudomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Authoritative direct De-Digivolve IR and stack-floor proof |
 | BT3-070 Etemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blocker and On Deletion Etemon reveal/play proof |
+| BT3-071 MetalMamemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Reboot and level-7 Virus trash-return boundary proof |
+| BT3-072 BryweLudramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited Blocker and legal alternate evolution proof |
+| BT3-073 CresGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Reboot and opponent-scaled Black/Red reveal-play proof |
+| BT3-074 MetalEtemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Turn-scoped unblockable restriction and DP modifier proof |
+| BT3-075 Craniamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Printed/inherited Blocker protection and Q1096 cause proof |
+| BT3-076 Candlemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal purple evolution proof |
+| BT3-077 Gazimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent memory-gain restriction and Tamer exception proof |
+| BT3-078 Shamanmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-module boundary and legal purple evolution proof |
+| BT3-079 Tsukaimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited On Deletion memory gain and top-card exclusion proof |
+| BT3-080 Saberdramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited Retaliation with corrected legal higher-level host |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT3/`.
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 100
-- Integrated card audits: 70
+- Assigned: 110
+- Integrated card audits: 80
 - Corrected: 9
-- Provisional: 70
+- Provisional: 80
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 12
+- Remaining unassigned: 2
 
 BT3 remains open.
