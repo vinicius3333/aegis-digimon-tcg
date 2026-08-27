@@ -134,6 +134,27 @@ describe("BT26-082 compiled behavior", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-010")).toBe(true);
   });
 
+  it("resolves the same delete modal at End of Attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-084", as: "highest" },
+            { card: "BT1-010", as: "lower" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("ravemon"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-010"]);
+  });
+
   it("may decline the by-cost activation without deleting either Digimon", async () => {
     const s = setupEngine(
       {
@@ -351,6 +372,33 @@ describe("BT26-082 compiled behavior", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("ravemon").permanentId], "byEffect")).toBe(1);
 
     expect(s.state.players[1]!.hand).toHaveLength(8);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-082");
+  });
+
+  it("may decline the optional bottom-security placement at 7 opponent cards", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
+        1: {
+          hand: [
+            { card: "BT1-001", as: "chosen" },
+            "BT1-002",
+            "BT1-003",
+            "BT1-004",
+            "BT1-005",
+            "BT1-006",
+            "BT1-007",
+            "BT1-008",
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("ravemon").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[1]!.hand).toHaveLength(7);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-082");
   });

@@ -2919,6 +2919,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Correction: the DP-scaling count now explicitly uses `zone: "battleArea"`; breeding-area cards must not count under rule §3-4-5.
 - Proof: metadata, both evolution paths, Assembly, exact-cost-8 trash play, refusal, no-card reduction, breeding exclusion, scaling, and all grants. Full IR, exclusive `registerIrCard`; automation not run by instruction; diff check passed. No unresolved limitation.
 
+## BT26-082 — Ravemon — 10/10
+
+- Catalog/KB: purple Lv.6 DATA SQUAD, alternate Crowmon/DATA SQUAD evolution, Security/end-opponent-turn plays, modal deletion, On Deletion discard/security placement, and Rule Birdkin confirmed. Q7117–Q7123 cover face-up Security behavior, timing, thresholds, and indivisible two-card cost.
+- Implementation: full IR and exclusive `registerIrCard`; both modal timings offer self-delete or exactly two bottom face-down Tamer cards before highest-DP deletion; On Deletion enforces discard then optional face-up bottom-security placement.
+- Proof: existing evolution, both costs, insufficient/refusal, Security, end-turn, threshold, and trait cases plus new End of Attack execution and security-placement refusal. Automation not run; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
