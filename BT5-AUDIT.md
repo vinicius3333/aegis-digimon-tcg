@@ -2903,3 +2903,31 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   registration search, and `git diff --check` pass. No source or shared engine
   behavior changed.
 - Remaining ambiguity: none identified.
+
+## BT5-082 — Tactimon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.6 Mega Digimon, Data/Wizard, play cost
+  12, 11000 DP, and purple Lv.5 evolution cost 3. When Attacking it activates
+  one of three bullets—gain 1 memory, gain +2000 DP for the turn, or delete up
+  to three opposing Lv.3 Digimon—but activates all three if no other own Digimon
+  is in play. Q1350 permits choosing any one bullet with another Digimon; Q1351
+  gives the owner control of the activation order when all three apply.
+- Implementation: `apps/api/src/cards/BT5/BT5-082.ts` now shares three exact
+  option bodies between two conditional Modals: `choose: 1` when another own
+  Digimon exists and `choose: 3` when none exists. The latter preserves the
+  controller's selected order through the Modal executor. The delete remains
+  up to three opposing Lv.3 Digimon. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-082", compiled)` registration remain intact.
+- Behavioral proof: seven focused tests prove the all-three state, each
+  individual Q1350 mode with the other two inactive, up-to-three exact Lv.3
+  deletion with a Lv.4 survivor, and Q1351 through manual non-default
+  delete→DP→memory decisions. The recorded prompts prove three shrinking choice
+  sets and the final board, memory, and DP confirm every selected bullet ran.
+- Defect corrected: the no-other-Digimon branch previously used three fixed
+  sequential conditional actions, contradicting Q1351's owner-chosen order. It
+  now uses a three-choice Modal; focused tests were expanded to cover all modes,
+  order, and the level boundary.
+- Verification: focused BT5-082 — 7/7 passed; targeted Modal mechanism — 5/5
+  passed. API typecheck, targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No shared engine seam changed.
+- Remaining ambiguity: none identified.
