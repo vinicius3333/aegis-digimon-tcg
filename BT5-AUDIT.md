@@ -2820,3 +2820,33 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   registration search, and `git diff --check` pass. No source or shared engine
   behavior changed.
 - Remaining ambiguity: none identified.
+
+## BT5-079 — BlackWarGrowlmon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.5 Ultimate Digimon, Virus/Cyborg, play
+  cost 8, 7000 DP, and purple Lv.4 evolution cost 3. Its Main Digi-Burst 3
+  effect may play one purple Lv.3 Digimon from the owner's trash without cost
+  and without activating On Play effects. Its inherited When Attacking, Once
+  Per Turn effect may delete another own Digimon to unsuspend its host. The
+  knowledge base contains no card-specific ruling or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-079.ts` now pays Digi-Burst 3 in a
+  dedicated no-impact self action before offering the optional PlayWithoutCost,
+  preserving the distinct activation-cost and payload choices. The inherited
+  action deletes exactly one other own Digimon as its optional cost, unsuspends
+  self, and carries Once Per Turn identity. The module declares full
+  residual-free coverage and registers exclusively through `registerIrCard`.
+- Behavioral proof: five focused tests use legal purple stacks and prove exact
+  three-source Digi-Burst payment, zero-memory play, On Play suppression, and
+  the valid path where the cost is paid before the play is refused. Real attacks
+  prove another own Digimon is deleted to unsuspend the host, a second attack in
+  the same turn cannot reuse the effect, no-target resolution stays suspended,
+  and explicit refusal preserves the eligible cost Digimon and suspension.
+- Defect corrected: optional PlayWithoutCost previously carried the Digi-Burst
+  cost itself. Because optional actions are asked before attached generic costs,
+  this collapsed the two printed choices and made refusing the play also avoid
+  Digi-Burst payment. The cost and optional payload are now ordered separately;
+  test fixtures and private engine access were also corrected.
+- Verification: focused BT5-079 — 5/5 passed; targeted optional-cost interpreter
+  subset — 2/2 relevant tests passed. Targeted Oxfmt, Oxlint, registration
+  search, and `git diff --check` pass. No shared engine seam changed.
+- Remaining ambiguity: none identified.
