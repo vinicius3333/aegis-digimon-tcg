@@ -92697,12 +92697,24 @@
         "actions": [
           {
             "kind": "GrantStatic",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine" }, "count": 1 },
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "security"
+                },
+                "count": 1
+              },
               "raw": "By trashing your top or bottom security card"
             },
             "optional": true,
@@ -92717,12 +92729,24 @@
         "actions": [
           {
             "kind": "GrantStatic",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine" }, "count": 1 },
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "security"
+                },
+                "count": 1
+              },
               "raw": "By trashing your top or bottom security card"
             },
             "optional": true,
@@ -92737,12 +92761,24 @@
         "actions": [
           {
             "kind": "GrantStatic",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine" }, "count": 1 },
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "security"
+                },
+                "count": 1
+              },
               "raw": "By trashing your top or bottom security card"
             },
             "optional": true,
@@ -92758,34 +92794,73 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "sourceFilter": {
+              "controller": "mine"
+            },
             "actions": [
               {
                 "kind": "PlayWithoutCost",
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "levelComparison": { "op": "lte", "value": 4 },
-                    "nameOrTrait": [{ "tokens": ["Angel", "Iliad"], "match": "trait" }]
+                    "levelComparison": {
+                      "op": "lte",
+                      "value": 4
+                    },
+                    "nameOrTrait": [
+                      {
+                        "tokens": [
+                          "Angel",
+                          "Iliad"
+                        ],
+                        "match": "trait"
+                      }
+                    ]
                   },
                   "count": 1
                 },
-                "from": ["hand"],
+                "from": [
+                  "hand"
+                ],
                 "payCost": false,
                 "optional": true
+              },
+              {
+                "kind": "GainKeyword",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": [
+                      "Digimon"
+                    ]
+                  },
+                  "count": 2
+                },
+                "keyword": {
+                  "keyword": "Reboot",
+                  "raw": "＜Reboot＞"
+                },
+                "duration": "untilOpponentTurnEnd"
+              },
+              {
+                "kind": "GainKeyword",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": [
+                      "Digimon"
+                    ]
+                  },
+                  "count": 2,
+                  "sameTarget": true
+                },
+                "keyword": {
+                  "keyword": "Blocker",
+                  "raw": "＜Blocker＞"
+                },
+                "duration": "untilOpponentTurnEnd"
               }
             ]
-          },
-          {
-            "kind": "GainKeyword",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "keyword": { "keyword": "Reboot", "raw": "＜Reboot＞" },
-            "duration": "untilOpponentTurnEnd"
-          },
-          {
-            "kind": "GainKeyword",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
-            "duration": "untilOpponentTurnEnd"
           }
         ],
         "frequency": "OncePerTurn"
@@ -92793,7 +92868,18 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 5, "traits": ["Angel", "Archangel", "TS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 5,
+        "traits": [
+          "Angel",
+          "Archangel",
+          "TS"
+        ],
+        "cost": 3,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-043": {
     "effects": [
@@ -92802,12 +92888,25 @@
         "actions": [
           {
             "kind": "WaiveColorRequirement",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "condition": {
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }]
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Glowing Dawn"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "raw": "you have a card w/[Glowing Dawn] trait"
             }
@@ -92818,39 +92917,65 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "kind": "SecurityManipulation",
+            "op": "addTop",
+            "controller": "mine",
+            "source": "deck",
+            "amount": 1
+          },
+          {
+            "kind": "RecoverByTrashingMostSecurity",
+            "amount": 1,
+            "recover": false
+          },
+          {
             "kind": "Unsuspend",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "cost": {
-              "kind": "trash",
-              "target": { "filter": { "controllerDefault": "mine" }, "count": 1 },
-              "raw": "by trashing the top security card of 1 player with the most security cards"
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
             },
-            "optional": true,
-            "abortOnDecline": true
+            "condition": {
+              "kind": "ifThisEffectActed"
+            }
           }
         ],
         "frequency": "OncePerTurn",
-        "sharedUseKey": "ir-shared-0",
-        "keywords": [{ "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1＞" }]
+        "sharedUseKey": "ir-shared-0"
       },
       {
         "trigger": "WhenAttacking",
         "actions": [
           {
+            "kind": "SecurityManipulation",
+            "op": "addTop",
+            "controller": "mine",
+            "source": "deck",
+            "amount": 1
+          },
+          {
+            "kind": "RecoverByTrashingMostSecurity",
+            "amount": 1,
+            "recover": false
+          },
+          {
             "kind": "Unsuspend",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "cost": {
-              "kind": "trash",
-              "target": { "filter": { "controllerDefault": "mine" }, "count": 1 },
-              "raw": "by trashing the top security card of 1 player with the most security cards"
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
             },
-            "optional": true,
-            "abortOnDecline": true
+            "condition": {
+              "kind": "ifThisEffectActed"
+            }
           }
         ],
         "frequency": "OncePerTurn",
-        "sharedUseKey": "ir-shared-0",
-        "keywords": [{ "keyword": "Recovery", "amount": 1, "raw": "＜Recovery +1＞" }]
+        "sharedUseKey": "ir-shared-0"
       },
       {
         "trigger": "AllTurns",
@@ -92858,24 +92983,36 @@
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
-            "sourceFilter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }]
+            "mode": "prevent",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": [
+                  "Digimon"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Glowing Dawn"
+                    ],
+                    "match": "trait"
+                  }
+                ]
+              },
+              "count": "all"
             },
-            "actions": [
-              {
-                "kind": "Prevent",
-                "mode": "leavePlay",
-                "cost": {
-                  "kind": "trash",
-                  "target": { "filter": { "controller": "mine", "zone": "security" }, "count": 1 },
-                  "raw": "by trashing your top security card"
+            "affectsAll": true,
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "security"
                 },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
+                "count": 1
+              },
+              "raw": "by trashing your top security card"
+            }
           }
         ],
         "frequency": "OncePerTurn"
@@ -92885,18 +93022,40 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
             "amount": -8000,
             "duration": "forTheTurn"
           },
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": "all"
+            },
             "amount": -5000,
             "duration": "forTheTurn",
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine", "zone": "security" }, "count": 1 },
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "zone": "security"
+                },
+                "count": 1
+              },
               "raw": "by trashing your top security card"
             },
             "optional": true,
@@ -92907,7 +93066,16 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 5, "traits": ["Glowing Dawn"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 5,
+        "traits": [
+          "Glowing Dawn"
+        ],
+        "cost": 3,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-044": {
     "effects": [
@@ -92917,7 +93085,9 @@
           {
             "kind": "Replacement",
             "event": "wouldBePlayed",
-            "sourceFilter": { "isSelfRef": true },
+            "sourceFilter": {
+              "isSelfRef": true
+            },
             "actions": [
               {
                 "kind": "Replacement",
@@ -92926,7 +93096,9 @@
                 "amount": 5,
                 "raw": "reduce the cost by 5",
                 "condition": {
-                  "kind": "raw",
+                  "kind": "totalSecurityCount",
+                  "op": "lte",
+                  "value": 6,
                   "raw": "there are 6 or fewer total cards in both players' security stacks"
                 }
               }
@@ -92938,21 +93110,36 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine" }, "count": 1 },
+            "kind": "SecurityManipulation",
+            "op": "trashTop",
+            "controller": "mine",
+            "amount": 1,
+            "abortOnDecline": true,
             "cost": {
               "kind": "place",
+              "targetIsPermanent": true,
               "target": {
-                "filter": { "controllerDefault": "mine", "excludeSelf": true, "kind": ["Digimon"] },
+                "filter": {
+                  "controllerDefault": "mine",
+                  "excludeSelf": true,
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "zone": "battleArea"
+                },
                 "count": 1
               },
-              "raw": "By placing 1 other Digimon as the top security card",
               "destination": "security",
               "position": "top",
-              "faceDown": true
-            },
-            "optional": true,
-            "abortOnDecline": true
+              "faceDown": true,
+              "raw": "By placing 1 other Digimon as the top security card"
+            }
+          },
+          {
+            "kind": "SecurityManipulation",
+            "op": "trashTop",
+            "controller": "opponent",
+            "amount": 1
           }
         ]
       },
@@ -92960,21 +93147,36 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine" }, "count": 1 },
+            "kind": "SecurityManipulation",
+            "op": "trashTop",
+            "controller": "mine",
+            "amount": 1,
+            "abortOnDecline": true,
             "cost": {
               "kind": "place",
+              "targetIsPermanent": true,
               "target": {
-                "filter": { "controllerDefault": "mine", "excludeSelf": true, "kind": ["Digimon"] },
+                "filter": {
+                  "controllerDefault": "mine",
+                  "excludeSelf": true,
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "zone": "battleArea"
+                },
                 "count": 1
               },
-              "raw": "By placing 1 other Digimon as the top security card",
               "destination": "security",
               "position": "top",
-              "faceDown": true
-            },
-            "optional": true,
-            "abortOnDecline": true
+              "faceDown": true,
+              "raw": "By placing 1 other Digimon as the top security card"
+            }
+          },
+          {
+            "kind": "SecurityManipulation",
+            "op": "trashTop",
+            "controller": "opponent",
+            "amount": 1
           }
         ]
       },
@@ -92991,11 +93193,23 @@
                   "filter": {
                     "controller": "mine",
                     "playCostLte": 8,
-                    "nameOrTrait": [{ "tokens": ["Angel", "Archangel", "Iliad"], "match": "trait" }]
+                    "nameOrTrait": [
+                      {
+                        "tokens": [
+                          "Angel",
+                          "Archangel",
+                          "Iliad"
+                        ],
+                        "match": "trait"
+                      }
+                    ]
                   },
                   "count": 1
                 },
-                "from": ["hand", "trash"],
+                "from": [
+                  "hand",
+                  "trash"
+                ],
                 "payCost": false,
                 "optional": true
               }
@@ -93007,7 +93221,18 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 5, "traits": ["Angel", "Archangel", "TS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 5,
+        "traits": [
+          "Angel",
+          "Archangel",
+          "TS"
+        ],
+        "cost": 3,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-045": {
     "effects": [
