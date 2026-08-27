@@ -1,6 +1,6 @@
 # BT3 Card Implementation Audit
 
-Status: in progress
+Status: static card-by-card pass complete; execution gates deferred
 
 Catalog snapshot: `ef2e5b367c616299806c87d6b078ce6fc2822b78`
 
@@ -24,7 +24,7 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT3-071–080 | Static audit integrated | `internal-docs/audits/BT3/BT3-071-080.md` | Yes |
 | BT3-081–090 | Static audit integrated | `internal-docs/audits/BT3/BT3-081-090.md` | Yes |
 | BT3-091–100 | Static audit integrated | `internal-docs/audits/BT3/BT3-091-100.md` | Yes |
-| BT3-101–110 | Luna in progress | `internal-docs/audits/BT3/BT3-101-110.md` | No |
+| BT3-101–110 | Static audit integrated | `internal-docs/audits/BT3/BT3-101-110.md` | Yes |
 | BT3-111–112 | Static audit integrated | `internal-docs/audits/BT3/BT3-111-112.md` | Yes |
 
 ## Score model
@@ -143,18 +143,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT3-098 Plasma Stake | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inclusive 13000-DP deletion threshold with 12999 boundary |
 | BT3-099 We Have to Stop Fighting! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Both-players battle-deletion restriction and Security return |
 | BT3-100 Death Parade Blaster | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected up-to-two bottom-source semantics with conditional suspend |
+| BT3-101 Bifrost | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bound one target across DP and Security Attack modifiers |
+| BT3-102 Code Cracking | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected opponent-decline condition with empty-security boundary |
+| BT3-103 Hidden Potential Discovered! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected deferred interactive reduction and turn-end expiry |
+| BT3-104 Positron Laser | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Up-to-two restriction with blue-presence conditional return |
+| BT3-105 Breath of the Gods | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected shared target binding across all three Main grants |
+| BT3-106 Beast Cyclone | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live Blocker-or-Reboot filter with single keyword grant |
+| BT3-107 Looking Back on the Good Times | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected live post-De-Digivolve play-cost condition |
+| BT3-108 Dark Despair | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Retaliation grant through the opponent's next turn |
+| BT3-109 Back for Revenge! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Evolved top-card replay with On Play suppression |
+| BT3-110 Necrophobia | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Level-5 purple trash replay with On Play suppression |
 | BT3-111 Imperialdramon: Dragon Mode | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Named-source reduction, Piercing, legal-stack, and breeding-area proof |
 | BT3-112 Omnimon Alter-S | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected self-stack level-6 return scope and live threshold proof |
 
-Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT3/`.
+Detailed clause traces and deferred commands are recorded in the integrated range reports under `internal-docs/audits/BT3/`.
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 102
-- Corrected: 13
-- Provisional: 102
+- Integrated card audits: 112
+- Corrected: 17
+- Provisional: 112
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
