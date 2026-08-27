@@ -1,7 +1,28 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import compiled from "./BT1-065.js";
 
 describe("BT1-065 Mushroomon", () => {
+  it("matches the vanilla catalog contract and registers residual-free IR", () => {
+    expect(getCardDefinition("BT1-065")).toMatchObject({
+      cardId: "BT1-065",
+      nameEn: "Mushroomon",
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 2,
+      dp: 4000,
+      evoCosts: [{ color: "Green", level: 2, memoryCost: 1 }],
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Vegetation"],
+    });
+    expect(compiled).toEqual({ effects: [], coverage: "full", residual: [] });
+    expect(getEffectModule("BT1-065")?.cardId).toBe("BT1-065");
+  });
+
   it("plays for 2 memory as a 4000 DP Digimon", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT1-065", as: "mushroomon" }] } });
     s.state.memory = 2;
