@@ -19,9 +19,10 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT2-021–030 | Static audit complete | `internal-docs/audits/BT2/BT2-021-030.md` | Yes |
 | BT2-031–040 | Static audit complete | `internal-docs/audits/BT2/BT2-031-040.md` | Yes |
 | BT2-041–050 | Luna in progress | `internal-docs/audits/BT2/BT2-041-050.md` | No |
-| BT2-051–060 | Luna in progress | `internal-docs/audits/BT2/BT2-051-060.md` | No |
+| BT2-051–060 | Static audit complete | `internal-docs/audits/BT2/BT2-051-060.md` | Yes |
 | BT2-061–070 | Luna in progress | `internal-docs/audits/BT2/BT2-061-070.md` | No |
-| BT2-071–112 | Queued | Not assigned | No |
+| BT2-071–080 | Luna in progress | `internal-docs/audits/BT2/BT2-071-080.md` | No |
+| BT2-081–112 | Queued | Not assigned | No |
 
 ## Score model
 
@@ -79,18 +80,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT2-038 RizeGreymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-038.ts), [test](apps/api/src/cards/BT2/BT2-038.test.ts) |
 | BT2-039 Magnadramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-039.ts), [test](apps/api/src/cards/BT2/BT2-039.test.ts) |
 | BT2-040 Ophanimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-040.ts), [test](apps/api/src/cards/BT2/BT2-040.test.ts) |
+| BT2-051 RustTyrannomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-051.ts), [test](apps/api/src/cards/BT2/BT2-051.test.ts) |
+| BT2-052 Hagurumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-052.ts), [test](apps/api/src/cards/BT2/BT2-052.test.ts) |
+| BT2-053 Keramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-053.ts), [test](apps/api/src/cards/BT2/BT2-053.test.ts) |
+| BT2-054 Gotsumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-054.ts), [test](apps/api/src/cards/BT2/BT2-054.test.ts) |
+| BT2-055 ToyAgumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-055.ts), [test](apps/api/src/cards/BT2/BT2-055.test.ts) |
+| BT2-056 Numemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-056.ts), [test](apps/api/src/cards/BT2/BT2-056.test.ts) |
+| BT2-057 Greymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-057.ts), [test](apps/api/src/cards/BT2/BT2-057.test.ts) |
+| BT2-058 Guardromon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-058.ts), [test](apps/api/src/cards/BT2/BT2-058.test.ts) |
+| BT2-059 Kurisarimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-059.ts), [test](apps/api/src/cards/BT2/BT2-059.test.ts) |
+| BT2-060 Megadramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-060.ts), [test](apps/api/src/cards/BT2/BT2-060.test.ts) |
 
 Detailed clause traces and deferred commands are recorded in the integrated range reports under `internal-docs/audits/BT2/`.
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 70
-- Integrated card audits: 40
+- Assigned: 80
+- Integrated card audits: 50
 - Corrected: 0
-- Provisional: 40
+- Provisional: 50
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 42
+- Remaining unassigned: 32
 
 BT2 remains open.
