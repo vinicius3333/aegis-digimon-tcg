@@ -95766,27 +95766,38 @@
   },
   "BT25-066": {
     "effects": [
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          {
+            "keyword": "Blocker",
+            "raw": "＜Blocker＞"
+          }
+        ]
+      },
       {
         "trigger": "AllTurns",
         "actions": [
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
-            "sourceFilter": { "isSelfRef": true },
-            "actions": [
-              {
-                "kind": "Prevent",
-                "mode": "leavePlay",
-                "cost": {
-                  "kind": "trash",
-                  "target": { "filter": { "controllerDefault": "mine" }, "count": 1 },
-                  "raw": "by trashing 1 of its link cards"
+            "raw": "When this Digimon would leave the battle area, by trashing 1 of its link cards, it doesn't leave.",
+            "sourceFilter": {
+              "isSelfRef": true
+            },
+            "actions": [],
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "isSelfRef": true,
+                  "zone": "linked"
                 },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
+                "count": 1
+              },
+              "raw": "by trashing 1 of its link cards"
+            }
           }
         ]
       },
@@ -95795,9 +95806,16 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "amount": 1000,
-            "duration": "permanent"
+            "duration": "permanent",
+            "continuous": true
           }
         ],
         "isInherited": true
@@ -95805,7 +95823,16 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 3,
+        "traits": [
+          "TS"
+        ],
+        "cost": 2,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-067": {
     "effects": [
@@ -95858,17 +95885,38 @@
   },
   "BT25-068": {
     "effects": [
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Collision", "raw": "＜Collision＞" }] },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          {
+            "keyword": "Collision",
+            "raw": "＜Collision＞"
+          }
+        ]
+      },
       {
         "trigger": "AllTurns",
         "actions": [
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
+            "sourceFilter": {
+              "isSelfRef": true
+            },
+            "oncePerTurnKey": "BT25-068/suspend-de-digivolve",
             "actions": [
               {
                 "kind": "DeDigivolve",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+                "target": {
+                  "filter": {
+                    "controller": "opponent",
+                    "kind": [
+                      "Digimon"
+                    ]
+                  },
+                  "count": 1
+                },
                 "amount": 1
               }
             ]
@@ -95881,7 +95929,13 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "amount": 1000,
             "duration": "permanent"
           }
@@ -95891,7 +95945,16 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 3,
+        "traits": [
+          "TS"
+        ],
+        "cost": 2,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-069": {
     "effects": [
