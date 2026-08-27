@@ -2599,3 +2599,36 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   Security Attack proof. Targeted Oxfmt, Oxlint, and `git diff --check` pass.
   No typing-sensitive source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-070 — MetalGarurumon — 10/10
+
+- Catalog and ruling evidence: Black Lv.6 Mega Digimon, Virus/Cyborg, play cost
+  11, 11000 DP, and black Lv.5 evolution cost 3. It has Reboot and a When
+  Digivolving Digi-Burst 2 effect that deletes exactly one opposing Digimon with
+  play cost 6 or less; if no Digimon is actually deleted, it trashes the top of
+  the opponent's security. Comprehensive §16-14-2 makes Digi-Burst processing
+  optional. Q1345 defines the no-deletion branch, Q1346 requires choosing a
+  legal target after activation, and Q1347 permits choosing a deletion-immune
+  target so the security branch resolves.
+- Implementation: `apps/api/src/cards/BT5/BT5-070.ts` encodes static Reboot and
+  the evolution-triggered Digi-Burst chain. Its two-source trash cost is now
+  optional and aborts the remaining chain when declined; the following Delete
+  remains mandatory for one legal opposing play-cost-6-or-less target, and
+  `ifThisEffectDidNotDelete` gates the top-security trash from the actual delete
+  result. It declares full residual-free coverage and registers exclusively
+  through `registerIrCard("BT5-070", compiled)`.
+- Behavioral proof: six focused tests prove exact two-source payment while
+  preserving the pre-existing stack card, instance-specific deletion at the
+  play-cost-6 boundary, the no-target and above-cost security branches, complete
+  refusal without source/deletion/security movement, Q1347 with a real immune
+  BT14-062 chosen over another legal target, and Reboot unsuspension during the
+  opponent's Active Phase. BT2-063 supplies related Reboot regression coverage.
+- Defects corrected: Digi-Burst previously paid automatically despite its
+  optional rules processing. The positive test also used BT2-047, whose printed
+  play cost is 8 rather than the claimed boundary 6, and its non-throwing
+  `settle` timeout allowed the invalid proof to continue. The IR optionality and
+  all affected focused assertions were corrected.
+- Verification: focused BT5-070 — 6/6 passed; related BT2-063 Reboot coverage —
+  4/4 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No shared engine seam changed.
+- Remaining ambiguity: none identified.
