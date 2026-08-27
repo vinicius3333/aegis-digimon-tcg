@@ -2532,3 +2532,35 @@ git diff --check
 ```
 
 No unresolved BT26-061 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-062 — Ghostmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-062` (`Ghostmon`), a purple/red level-3 Digimon with play cost 3, 1000 DP, alternate evolution from a level-2 `NSo` Digimon for cost 0, and inherited Your Turn +2000 DP.
+- Printed behavior verified: Start of Your Main Phase, by trashing one `Ghost` or `NSo` card from hand, draws one and gains one memory. The payment is optional; the draw and memory gain follow only successful payment.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-062`; no card-specific Q&A, banlist restriction, or erratum is recorded. Phase timing, optional cost gates, Draw/Trash ordering, inherited duration, and evolution rules were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-062.ts` has `coverage: "full"`, `residual: []`, and registers exclusively through `registerIrCard("BT26-062", compiled)`.
+- Start of Your Main Phase uses an optional cost gated to one own hand card matching `Ghost` OR `NSo`; its successful body draws one and gains one memory in order.
+- The inherited Your Turn modifier supplies +2000 DP only while the host's controller owns the turn. The alternate evolution, hand filters, optional/no-cost path, duration, and analogous peers were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-062.test.ts` covers Ghost-only and NSo-only costs, positive resolution, optional refusal, no eligible-cost no-op, legal NSo evolution, inherited DP on owner versus opponent turns, and newly added mixed-hand and invalid-evolution boundaries.
+- The mixed hand case proves an unrelated card cannot pay and remains in hand while exactly one eligible card is trashed. The invalid case rejects a non-NSo Lv.2 despite sufficient memory. The implementation required no correction.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-062
+  PASS (no card-specific Q&A, errata, or restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-062 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
