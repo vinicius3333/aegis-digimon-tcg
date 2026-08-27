@@ -3186,3 +3186,32 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   passed. Targeted Oxfmt, Oxlint, registration search, and `git diff --check`
   pass. No shared engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-092 — Nokia Shiramine — 10/10
+
+- Catalog and ruling evidence: White Tamer with play cost 3. On Play it may play
+  one card named exactly Agumon or Gabumon from hand for free. Its Main effect
+  may suspend this Tamer to reduce by 1 the next evolution cost into a Digimon
+  with Garurumon, Omnimon, or Greymon in its name, excluding cards named exactly
+  DoruGreymon, BurningGreymon, or DexDoruGreymon. Security plays it for free.
+  Rule sections 2-3-1, 15-8-4, and 15-16-7 establish bracketed literal names
+  and Main activation timing.
+- Implementation: `apps/api/src/cards/BT5/BT5-092.ts` uses `nameExact` for both
+  On Play names, a Main CostModifier with self-suspend restriction and
+  for-the-turn duration, family substring matching, and exact-name exclusions.
+  Security plays self without cost. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-092", compiled)` registration are preserved.
+- Behavioral proof: nine focused tests cover both literal-name free-play
+  branches, rejection of extended and deceptive Agumon names, refusal, explicit
+  Main activation, exact reduced cost and suspension, unrelated destination,
+  already-suspended cost failure, exact DoruGreymon exclusion, and free Security
+  play. Structural assertions lock every name mode and activation timing.
+- Defects corrected: the reducer was encoded as a passive YourTurn effect
+  instead of Main activation. Agumon/Gabumon targets used substring matching,
+  and the three exclusions lacked explicit exact-name filters. Timing and all
+  literal-name boundaries are now corrected.
+- Verification: focused BT5-092 — 9/9 passed; P-098 peer — 4/4; exact-name
+  mechanism — 4/4; targeted CostModifier interpreter — 10/10; CAP-C-10 — 5/5.
+  Targeted Oxfmt, Oxlint, registration search, and `git diff --check` pass. No
+  shared engine seam changed.
+- Remaining ambiguity: none identified.
