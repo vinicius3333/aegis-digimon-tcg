@@ -16,6 +16,7 @@ describe("EX9-040", () => {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          sourceFilter: { isSelfRef: true },
           actions: [{ kind: "Suspend", target: { filter: { controller: "opponent" } } }],
         },
       ],
@@ -37,6 +38,29 @@ describe("EX9-040", () => {
     await advance(s.engine).verb.suspend([s.perm("source").permanentId]);
     await settle(() => s.perm("opponent").isSuspended);
     expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("opponent").isSuspended).toBe(true);
+  });
+
+  it("does not trigger when another Digimon suspends", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-040", as: "source" },
+            { card: "BT1-009", as: "other" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.suspend([s.perm("other").permanentId]);
+    await settle();
+    expect(s.perm("opponent").isSuspended).toBe(false);
+
+    await advance(s.engine).verb.suspend([s.perm("source").permanentId]);
+    await settle(() => s.perm("opponent").isSuspended);
     expect(s.perm("opponent").isSuspended).toBe(true);
   });
 });
