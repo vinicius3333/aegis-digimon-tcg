@@ -733,3 +733,25 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-036.
+
+## BT25-037 — Pegasusmon — 10/10
+
+- Catalog evidence: Yellow/blue level-4 Digimon, play cost 6, 6000 DP, `Armor Form`/`Free`, `Holy Beast`/`Iliad`/`TS`; standard yellow or blue level-3 evolution for 3 plus alternate Patamon or level-3 `TS` evolution for 2; Armor Purge; On Play/When Digivolving adds the top friendly security card to hand, then optionally places one Angel/Archangel/Three Great Angels/Iliad Digimon or TS Tamer from hand as top or bottom security.
+- Knowledge base: Q6304 permits activation at zero security: the unavailable security-to-hand step is skipped and the specified hand card may still be placed into security.
+- Implementation: both timings preserve the mandatory top-security movement and independently optional placement. The placement now explicitly sources the controller's hand, accepts the exact union of traited Digimon or TS Tamer, and offers top/bottom choice. Armor Purge and both alternate evolution routes are complete. Direct/shared IR are synchronized, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-037", compiled)`.
+- Defects corrected: the direct action encoded the source as a malformed nested object, and persisted IR only offered unfiltered bottom placement. Both timing copies now use `source: "hand"`, the exact union filter, and `addTopOrBottom`; persisted equality coverage includes BT25-037.
+- Behavioral proof: the focused suite proves both timings, Angel top placement, TS Tamer bottom placement, negative filtering, Q6304 at zero security, optional refusal after the mandatory move, live Armor Purge, and both Patamon/TS evolution stacks. Hand-source and top-choice assertions fail against the prior IR.
+- Verification: focused suite — 9 passed; hand-to-security peer/mechanism checks — 4 passed; BT25 persisted-IR sync — 12 passed; Oxlint/Oxfmt, shared-IR JSON parse, and `git diff --check` — passed. The broad Tier-1 baseline retains one unrelated BT1-093 failure. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-037 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-037
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-037.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-037.test.ts src/cards/BT25/BT25-catalog-sync.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-037.ts apps/api/src/cards/BT25/BT25-037.test.ts apps/api/src/cards/BT25/BT25-catalog-sync.test.ts
+node -e 'JSON.parse(require("fs").readFileSync("packages/shared/src/effects/effects.json", "utf8"))'
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-037.

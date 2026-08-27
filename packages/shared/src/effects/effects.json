@@ -92127,10 +92127,24 @@
           { "kind": "SecurityManipulation", "op": "toHand", "controller": "mine", "amount": 1, "toTop": true },
           {
             "kind": "SecurityManipulation",
-            "op": "addBottom",
+            "op": "addTopOrBottom",
             "controller": "mine",
             "amount": 1,
             "source": "hand",
+            "filter": {
+              "controllerDefault": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [
+                { "tokens": ["Angel", "Archangel", "Three Great Angels", "Iliad"], "match": "trait" }
+              ],
+              "orFilters": [
+                {
+                  "controllerDefault": "mine",
+                  "kind": ["Tamer"],
+                  "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                }
+              ]
+            },
             "optional": true
           }
         ]
@@ -92141,10 +92155,24 @@
           { "kind": "SecurityManipulation", "op": "toHand", "controller": "mine", "amount": 1, "toTop": true },
           {
             "kind": "SecurityManipulation",
-            "op": "addBottom",
+            "op": "addTopOrBottom",
             "controller": "mine",
             "amount": 1,
             "source": "hand",
+            "filter": {
+              "controllerDefault": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [
+                { "tokens": ["Angel", "Archangel", "Three Great Angels", "Iliad"], "match": "trait" }
+              ],
+              "orFilters": [
+                {
+                  "controllerDefault": "mine",
+                  "kind": ["Tamer"],
+                  "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                }
+              ]
+            },
             "optional": true
           }
         ]
