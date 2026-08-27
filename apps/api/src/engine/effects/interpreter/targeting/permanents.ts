@@ -98,7 +98,10 @@ export function candidatePermanents(
     ctx.fx.isBeAffectedBySourceKind !== undefined ? sourceKinds.filter((k) => k === "Option" || k === "Digimon") : [];
   const result: Permanent[] = [];
   const allowsZone = (filter: Filter, zone: "battleArea" | "breeding"): boolean => {
-    if (filter.zone !== undefined) return filter.zone === zone;
+    if (filter.zone !== undefined) {
+      const zones = Array.isArray(filter.zone) ? filter.zone : [filter.zone];
+      return zones.includes(zone);
+    }
     if (filter.or !== undefined && filter.or.length > 0) return filter.or.some((branch) => allowsZone(branch, zone));
     return zone === "battleArea";
   };

@@ -120,6 +120,39 @@ describe("orderTurnPlayerFirst", () => {
 });
 
 describe("resolveTiming: ordering and single-trigger resolution", () => {
+  it("classifies a linked Option clause as a Digimon effect while it resolves (BT25-100/101, Q6471/Q6476)", async () => {
+    const source = {
+      ...fakeSource(0, "linked-option"),
+      definition: { kinds: [CardKind.Option] } as CardSource["definition"],
+    } as CardSource;
+    source.permanent = () =>
+      ({
+        permanentId: "host",
+        topCard: { instanceId: "host-card" },
+        stack: [],
+        linked: [{ instanceId: source.instanceId }],
+      }) as never;
+    const effect = { ...fakeEffect("linked-clause"), isLinked: true };
+    const enteredKinds: string[][] = [];
+    const { env } = envOver([{ source, effect }], {
+      makeContext: (item) =>
+        ({
+          source: item.source,
+          trigger: {},
+          game: {},
+          ask: {},
+          fx: {
+            enterEffectResolution: (_seat: Seat, kinds?: string[]) => enteredKinds.push(kinds ?? []),
+            leaveEffectResolution: () => undefined,
+          },
+        }) as never,
+    });
+
+    await resolveTiming(EffectTiming.OnPlay, env);
+
+    expect(enteredKinds).toEqual([[CardKind.Digimon]]);
+  });
+
   it("re-entrantly drains the remaining effects without re-entering the current effect", async () => {
     const order: string[] = [];
     const first = fakeEffect("first", {

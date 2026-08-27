@@ -1,4 +1,4 @@
-import { CardColor } from "@aegis/shared";
+import { CardColor, CardKind } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import type { EffectContext } from "./EffectContext.js";
 import { SubTriggerRegistry } from "./subtriggers.js";
@@ -6,6 +6,34 @@ import { SubTriggerRegistry } from "./subtriggers.js";
 const fakeCtx = {} as EffectContext;
 
 describe("SubTriggerRegistry", () => {
+  it("preserves Digimon-effect provenance for a linked Option watcher (BT25-100/101, Q6471/Q6476)", async () => {
+    const registry = new SubTriggerRegistry();
+    const enteredKinds: string[][] = [];
+    let bodyKinds: readonly string[] | undefined;
+    registry.subscribe({
+      event: "whenAttacking",
+      sourcePermanentId: "host",
+      isLinkedSource: true,
+      once: false,
+      description: "linked Option watcher",
+      run: async (ctx) => {
+        bodyKinds = ctx.effectSourceKinds;
+      },
+    });
+    const ctx = {
+      source: { ownerSeat: 0 },
+      fx: {
+        enterEffectResolution: (_seat: number, kinds?: string[]) => enteredKinds.push(kinds ?? []),
+        leaveEffectResolution: () => undefined,
+      },
+    } as unknown as EffectContext;
+
+    await registry.fire("whenAttacking", () => ctx, "host");
+
+    expect(bodyKinds).toEqual([CardKind.Digimon]);
+    expect(enteredKinds).toEqual([[CardKind.Digimon]]);
+  });
+
   it("accepts a matches-gated watcher retained by activation context", () => {
     const registry = new SubTriggerRegistry();
     expect(() =>
