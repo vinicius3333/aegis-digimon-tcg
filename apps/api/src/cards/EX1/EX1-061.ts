@@ -31,6 +31,11 @@ const compiled: CompiledCard = {
           target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Retaliation"] }, count: "all" },
           duration: "permanent",
           defenderLevelMax: 4,
+          condition: {
+            kind: "selfHasNameContaining",
+            names: ["Myotismon"],
+            raw: "this Digimon has [Myotismon] in its name",
+          },
         },
       ],
       isInherited: true,

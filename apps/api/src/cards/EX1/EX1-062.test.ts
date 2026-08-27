@@ -23,6 +23,7 @@ describe("EX1-062 SkullGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT1-010"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-062")).toBe(false);
+    expect(s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT1-010")?.isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
@@ -55,6 +56,9 @@ describe("EX1-062 SkullGreymon", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === stackAgumonId),
     );
 
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === stackAgumonId)?.isSuspended,
+    ).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === stackAgumonId)).toBe(false);
   });
 });

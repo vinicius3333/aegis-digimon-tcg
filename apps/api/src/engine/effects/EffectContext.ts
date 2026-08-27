@@ -1601,6 +1601,7 @@ export interface ReplacementInstallReduceCost extends ReplacementInstallBase {
     target: Permanent,
     into: CardDefinition,
     evolvingInstanceId?: string,
+    materials?: readonly Permanent[],
   ) => Promise<boolean | number>;
   consumeOnActivate?: boolean;
 }

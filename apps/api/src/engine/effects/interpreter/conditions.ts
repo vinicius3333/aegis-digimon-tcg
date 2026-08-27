@@ -22,7 +22,23 @@ import { countMatching } from "./scaling.js";
 import { findLooseCandidateByInstance } from "./targeting/loose.js";
 import { candidatePermanents } from "./targeting/permanents.js";
 import { CardColor, CardKind, getCardDefinition, isDigimon, requireCardDefinition } from "@aegis/shared";
-import type { Condition, Filter } from "@aegis/shared";
+import type { Condition, Filter, Seat } from "@aegis/shared";
+
+/**
+ * A checked Security card remains physically in the security stack while its [Security]
+ * effect resolves, but the printed security count has already decreased by that check
+ * (CR 15-14-5; EX1-027 Q3211). Keep the physical card present for play-from-security and
+ * other source lookups, while excluding it from count predicates during the Security skill.
+ */
+function securityCardsForCondition(ctx: EffectContext, seat: Seat) {
+  const security = ctx.game.player(seat).security;
+  const isSecuritySkill = ctx.activeTiming === "Security" || ctx.activeTiming === "SecuritySkill";
+  return isSecuritySkill ? security.filter((card) => card.instanceId !== ctx.source.instanceId) : security;
+}
+
+function securityCountForCondition(ctx: EffectContext, seat: Seat): number {
+  return securityCardsForCondition(ctx, seat).length;
+}
 
 /** Evaluate a parsed Condition. An unrecognized ("raw") condition is treated as
  *  unmet so the interpreter never guesses a gate it could not parse. */
@@ -231,17 +247,17 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.game.state.memory <= value;
     }
     case "securityAtLeast":
-      return ctx.game.player(mine).security.length >= (cond.value ?? 0);
+      return securityCountForCondition(ctx, mine) >= (cond.value ?? 0);
     case "securityAtMost":
-      return ctx.game.player(mine).security.length <= (cond.value ?? 0);
+      return securityCountForCondition(ctx, mine) <= (cond.value ?? 0);
     case "faceUpSecurityAtMost":
-      return ctx.game.player(mine).security.filter((card) => card.faceUp === true).length <= (cond.value ?? 0);
+      return securityCardsForCondition(ctx, mine).filter((card) => card.faceUp === true).length <= (cond.value ?? 0);
     case "securityAtMostSelfFaceDownDigivolutionCards": {
       // EX9-029 / KB Q4783: "you have as many or fewer security cards as this Digimon has
       // face-down digivolution cards". An off-field source has an empty stack (0), not "always
       const self = ctx.source.permanent();
       const faceDownCount = self?.stack.filter((c) => c.faceUp !== true).length ?? 0;
-      return ctx.game.player(mine).security.length <= faceDownCount;
+      return securityCountForCondition(ctx, mine) <= faceDownCount;
     }
     case "handAtMost": {
       const seat = cond.controller === "opponent" ? opp : mine;
@@ -264,7 +280,9 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
                 permanent.topCard !== undefined &&
                 (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
             ).length
-          : player[zone].length;
+          : zone === "security"
+            ? securityCountForCondition(ctx, seat)
+            : player[zone].length;
       const value = cond.value ?? 0;
       if (cond.op === "eq") return size === value;
       if (cond.op === "lt") return size < value;

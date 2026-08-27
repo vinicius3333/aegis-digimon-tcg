@@ -11,6 +11,8 @@ describe("EX1-056 DemiDevimon", () => {
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("demidevimon"), "Retaliation")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("demidevimon"), "cantAttackDigimon")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "cantBeAttacked")).toBe(false);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

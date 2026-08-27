@@ -5997,6 +5997,39 @@ export class GameEngine {
         }
         return Math.max(0, cost - this.subTriggers.dnaCostReductionFor(materials, definition));
       },
+      potentialInteractiveDnaDigivolveReduction: (_state, seat, materials, definition) => {
+        const target = materials[0];
+        if (target === undefined || this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
+        return this.subTriggers.potentialInteractiveReductionFor("wouldDigivolve", seat, target, definition, {
+          hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+          markFired: (key) => this.tracker.register(key, "replacement"),
+        });
+      },
+      activateInteractiveDnaDigivolveReduction: async (_state, seat, materials, definition, evolvingInstanceId) => {
+        const target = materials[0];
+        if (target === undefined || this.continuous.blocksCostReduction(seat, "digivolve")) return 0;
+        return this.subTriggers.activateInteractiveReductionsFor(
+          "wouldDigivolve",
+          seat,
+          target,
+          definition,
+          evolvingInstanceId,
+          (sourcePermanentId, sourceInstanceId) => {
+            const source = this.access.permanentById(sourcePermanentId);
+            return source?.topCard === undefined
+              ? undefined
+              : this.buildEffectContext(
+                  this.cardSourceOf(this.findInstance(sourceInstanceId ?? "")?.instance ?? source.topCard),
+                  {},
+                );
+          },
+          {
+            hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+            markFired: (key) => this.tracker.register(key, "replacement"),
+          },
+          materials,
+        );
+      },
       costWaived: (_state, instance) => hasBlastDigivolveKeyword(instance.cardId),
       materialsRestricted: (_state, materials, definition) =>
         materials.some(

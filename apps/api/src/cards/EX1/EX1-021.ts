@@ -6,11 +6,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // runtime-effect fixes:
 // - Return target filter: changed match:"trait" to match:"text" for "On Deletion" (text
 //   says "Digimon with an [On Deletion] effect", a text-presence match, not a literal
-//   trait named "On Deletion"; BT5-031 pattern). Added bindAs:"returned" to reference
-//   that Digimon in the next action.
-// - Trash action: changed to TrashDigivolution on the bound "returned" Digimon (text:
-//   "Trash all of the digivolution cards of that Digimon") instead of trashing all of
-//   my own Digimon.
+//   trait named "On Deletion"; BT5-031 pattern). ReturnToDeck atomically moves the selected
+//   Digimon to its owner's deck and trashes its attached sources, which is the printed
+//   "trash all of the digivolution cards" result.
 // - Condition: requires BOTH 8+ cards in hand AND a Tamer in play (was hand-count only).
 const compiled: CompiledCard = {
   effects: [
@@ -48,7 +46,6 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
-            bindAs: "returned",
           },
           to: "deckBottom",
           condition: {
@@ -68,15 +65,6 @@ const compiled: CompiledCard = {
             ],
             raw: "you have 8 or more cards in your hand and a Tamer in play",
           },
-        },
-        {
-          kind: "TrashDigivolution",
-          target: {
-            fromSelectionRef: "returned",
-            filter: {},
-            count: 1,
-          },
-          amount: 99,
         },
       ],
     },

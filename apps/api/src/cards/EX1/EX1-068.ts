@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
@@ -21,6 +21,9 @@ const compiled: CompiledCard = {
           },
           effectText: "[When Attacking] Lose 2 memory",
           duration: "untilOpponentTurnEnd",
+          // Q3256: this is a player-wide timed aura, so Digimon that enter the
+          // opponent's battle area after resolution must receive it as well.
+          includeLaterEntrants: true,
         },
       ],
     },

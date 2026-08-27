@@ -44,7 +44,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Agumon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -52,6 +52,7 @@ const compiled: CompiledCard = {
           },
           from: ["trash"],
           payCost: false,
+          suspended: true,
           optional: true,
         },
       ],

@@ -33,12 +33,12 @@ const compiled: CompiledCard = {
             raw: "by trashing 1 level 5 Digimon card with [Cyborg] in its traits in your hand",
           },
           optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Draw",
           controller: "mine",
           amount: 1,
-          optional: true,
         },
       ],
     },

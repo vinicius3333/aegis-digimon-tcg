@@ -32,4 +32,24 @@ describe("EX1-003 Birdramon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("large").permanentId);
   });
+
+  it("does not delete a Digimon when the attack targets a Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-012", as: "attacker", under: ["EX1-003"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000, suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 40);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });

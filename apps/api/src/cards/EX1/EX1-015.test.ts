@@ -26,4 +26,27 @@ describe("EX1-015 Garurumon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === mattId));
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
+
+  it("does not play a different combined-name Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-017", as: "attacker", under: ["EX1-015"] }],
+          hand: [{ card: "AD1-019", as: "combined" }],
+        },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const combinedId = s.inst("combined").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === combinedId)).toBe(true);
+  });
 });

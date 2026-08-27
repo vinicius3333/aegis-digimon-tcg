@@ -28,15 +28,21 @@ const compiled: CompiledCard = {
             count: 1,
           },
           condition: {
-            kind: "youHave",
-            filter: {
-              zone: "battleArea",
-              controllerDefault: "mine",
-              kind: ["Tamer"],
-            },
-            raw: "you have a Tamer in play",
+            kind: "allOf",
+            conditions: [
+              {
+                kind: "youHave",
+                filter: {
+                  zone: "battleArea",
+                  controllerDefault: "mine",
+                  kind: ["Tamer"],
+                },
+                raw: "you have a Tamer in play",
+              },
+              { kind: "attackTargetsPlayer", raw: "when this Digimon attacks a player" },
+            ],
+            raw: "when this Digimon attacks a player and you have a Tamer in play",
           },
-          attackPlayer: true,
         },
       ],
     },
