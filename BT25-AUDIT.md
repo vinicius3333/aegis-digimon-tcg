@@ -798,3 +798,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-039.
+
+## BT25-040 — MagnaAngemon — 10/10
+
+- Catalog evidence: Yellow level-5 Digimon, play cost 7, 7000 DP, `Ultimate`/`Vaccine`, `Archangel`/`Iliad`/`TS`; standard yellow level-4 evolution for 3 plus alternate level-4 `TS` evolution for 3; direct effect-trash-from-security optionally plays one level-4-or-lower Angel/Iliad card from hand without cost; Ascension; On Play/When Digivolving may trash the controller's top or bottom security to give one opposing Digimon -8000 DP until their turn ends; inherited all-turn once-per-turn -4000 DP when friendly security is removed from.
+- Knowledge base: Q6309 restricts the security-trash trigger to direct effect trash, excluding reveal/search/look operations. Q6310 orders Security effects ahead of pending security-check/removal triggers, with turn-player priority afterward.
+- Implementation: `OnDiscardSecurity` uses exact hand/level/trait targeting and optional free play. Both entry DP clauses use an optional controller-security trash cost, abort on refusal/unpayability, and apply exact amount/duration on payment. The inherited watcher is controller-scoped and once per turn; Ascension and alternate evolution are complete. Direct/shared IR are synchronized, full/residual-free, and exclusively register through `registerIrCard("BT25-040", compiled)`.
+- Defects corrected: the cost filters omitted the security zone. The delegated patch also incorrectly removed optionality; root review restored `optional: true`/`abortOnDecline: true` because Digimon “By trashing…” is an optional activation cost, and added a live refusal regression. Persisted IR carries the same corrected semantics.
+- Behavioral proof: the focused suite proves accepted On Play/When Digivolving payment, empty-security negative path, explicit refusal with no trash or DP change, direct Q6309 security-trash play, and inherited own-security/once-per-turn scope. The zone and refusal assertions expose the prior underspecification and prevent the rejected mandatory interpretation.
+- Verification: focused suite — 9 passed; security mechanisms — 17 passed; interpreter/security regressions — 200 passed; targeted Oxfmt and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-040 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-040
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-040.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-040.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-040.ts apps/api/src/cards/BT25/BT25-040.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-040.

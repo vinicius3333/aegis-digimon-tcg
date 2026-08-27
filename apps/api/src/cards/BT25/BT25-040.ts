@@ -63,6 +63,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: "security",
               },
               count: 1,
             },
@@ -92,6 +93,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: "security",
               },
               count: 1,
             },
