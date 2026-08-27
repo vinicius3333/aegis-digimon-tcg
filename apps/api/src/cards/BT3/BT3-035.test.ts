@@ -6,7 +6,7 @@ describe("BT3-035 Gatomon", () => {
   it("gives 1 opposing Digimon -1000 DP for the turn when its host attacks", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT3-036", as: "host", under: ["BT3-035"] }] },
+        0: { battleArea: [{ card: "BT3-038", as: "host", under: ["BT3-032", "BT3-035"] }] },
         1: {
           battleArea: [{ card: "BT1-019", as: "target" }],
           security: ["BT1-011"],
