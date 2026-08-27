@@ -1351,3 +1351,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-069.
+
+## BT25-070 — Logamon — 10/10
+
+- Catalog evidence: black/purple level-4 Appmon; App Fusion from Offmon and Hackmon for 0; Main once per turn may link a Social, Tool, or Game Digimon with Link from trash or this Digimon's evolution cards at cost -1; controller-turn self-linked watcher deletes one opposing play-cost-4-or-less Digimon; while linked, prevents one opposing Digimon/Tamer from unsuspending through its turn.
+- Knowledge base: Q6367 confirms the Main effect cannot select a card without Link.
+- Defect corrected: a common host filter excluded the trash branch. The target now has separate hosted and trash-capable filters while `source: "thisDigimon"` restricts only evolution-card candidates to this Digimon's stack.
+- Verification: focused — 6 passed; Link/interpreter regressions — 204 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-070", compiled)` with full coverage and no residuals; persisted synchronization follows separately.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-070
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-070.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-070.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-070.
