@@ -2596,3 +2596,35 @@ git diff --check
 ```
 
 No unresolved BT26-063 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-064 — DemiDevimon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-064` (`DemiDevimon`), a purple level-3 Digimon with play cost 3, 2000 DP, and alternate evolution from a level-2 `TS` Digimon for cost 0.
+- Printed behavior verified: On Play reveals the top three, adds one `Fallen Angel`/`Undead`/`Wizard`/`Demon Lord` card and one `TS` card, then returns the remainder to deck bottom; inherited When Attacking Once Per Turn draws one, then trashes one hand card.
+- Knowledge-base query found no card-specific Q&A, restriction, or erratum. Reveal matching, duplicate exclusion, bottom ordering, inherited timing, and Draw/Trash rules were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-064.ts` has full compiled IR coverage and exclusive `registerIrCard("BT26-064", compiled)` registration.
+- `RevealAdd` encodes the four-trait union and independent `TS` slot across exactly three cards, with unused cards sent to deck bottom and no revealed instance reused. The inherited body has the correct Draw/Trash order and Once Per Turn budget.
+- Alternate evolution, trait-union matching, reveal state, inherited projection, and peers were inspected.
+
+### Behavioral proof
+
+- Existing `apps/api/src/cards/BT26/BT26-064.test.ts` covers positive dual-slot selection and bottom disposition, overlap without duplicate use, trait/color boundary, legal zero-cost evolution, real inherited attack behavior, and Once Per Turn enforcement.
+- Existing proof is sufficient for every printed clause; no implementation or test change was required.
+
+### Verification
+
+```text
+Knowledge-base card query
+  PASS (no card-specific Q&A, errata, or restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the ledger-only commit
+```
+
+No unresolved BT26-064 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
