@@ -23,6 +23,15 @@ describe("BT3-024 Airdramon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId), 5000);
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+
+    const checkIndex = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT3-024",
+    );
+    const playIndex = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "battleArea" && event.instanceIds.includes(instanceId),
+    );
+    expect(playIndex).toBeGreaterThan(checkIndex);
   });
 
   it("is played even when it loses the security battle against a stronger attacker (Q1062)", async () => {
@@ -43,6 +52,7 @@ describe("BT3-024 Airdramon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId), 5000);
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("plays before the next security check when the attacker has Security Attack +1 (Q1063)", async () => {
@@ -64,5 +74,17 @@ describe("BT3-024 Airdramon", () => {
 
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === instanceId)).toBe(true);
+
+    const firstCheckIndex = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT3-024",
+    );
+    const playIndex = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "battleArea" && event.instanceIds.includes(instanceId),
+    );
+    const secondCheckIndex = s.events.findIndex(
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT1-011",
+    );
+    expect(playIndex).toBeGreaterThan(firstCheckIndex);
+    expect(secondCheckIndex).toBeGreaterThan(playIndex);
   });
 });
