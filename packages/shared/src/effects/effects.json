@@ -95696,14 +95696,39 @@
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
-            "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
+            "sourceFilter": {
+              "isSelfRef": true
+            },
+            "actions": [
+              {
+                "kind": "Draw",
+                "controller": "mine",
+                "amount": 1
+              }
+            ]
           }
         ]
       },
       {
         "trigger": "YourTurn",
         "actions": [
-          { "kind": "SubTrigger", "event": "whenAttacking", "actions": [{ "kind": "GainMemory", "amount": -2 }] }
+          {
+            "kind": "SubTrigger",
+            "event": "whenAttacking",
+            "sourceFilter": {
+              "isSelfRef": true
+            },
+            "actions": [
+              {
+                "kind": "GainMemory",
+                "amount": -2,
+                "condition": {
+                  "kind": "attackTargetsPlayer",
+                  "raw": "this Digimon attacks a player"
+                }
+              }
+            ]
+          }
         ]
       },
       {
@@ -95711,9 +95736,16 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "amount": 1000,
-            "duration": "permanent"
+            "duration": "permanent",
+            "continuous": true
           }
         ],
         "isInherited": true
@@ -95721,7 +95753,16 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 2, "traits": ["TS"], "cost": 0, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 2,
+        "traits": [
+          "TS"
+        ],
+        "cost": 0,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-066": {
     "effects": [
