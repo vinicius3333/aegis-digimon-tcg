@@ -1284,13 +1284,15 @@ export class GameEngine {
    * `UntilOpponentTurnEnd` buff clears on the opponent's. The recompute that follows
    * re-applies the still-valid persistent effects from the post-sweep board.
    *
-   * `ownerTurnStart` / `ownerActivePhaseEnd` carry no modifier expiry of their own
-   * (the active-phase unsuspend is handled separately); they only trigger a recompute
-   * so a new turn re-derives its `[Your Turn]` / `[Opponent's Turn]` persistent tier.
+   * `ownerTurnStart` carries no modifier expiry of its own. `ownerActivePhaseEnd`
+   * sweeps phase-scoped entries after the active-phase unsuspend, including the
+   * `UntilNextUntap` window used by "during the next unsuspend phase" effects.
    */
   private async sweepDurations(boundary: TurnBoundary): Promise<void> {
     const seat = this.state.turnSeat;
-    const sweep = (b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd"): void => {
+    const sweep = (
+      b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd" | "ownerActivePhase" | "nextUntap",
+    ): void => {
       this.modifiers.sweep(this.state, b, seat);
       this.continuous.sweep(this.state, b, seat);
     };
@@ -1310,8 +1312,13 @@ export class GameEngine {
         this.securityDp.sweepTurnEnd(seat);
         break;
       case "ownerTurnStart":
+        break; // the recompute below refreshes the persistent tier for the new turn
       case "ownerActivePhaseEnd":
-        break; // no modifier expiry; the recompute below refreshes the persistent tier
+        // Active-phase unsuspend runs before this boundary. A restriction with
+        // UntilNextUntap must therefore block that unsuspend, then expire here.
+        sweep("ownerActivePhase");
+        sweep("nextUntap");
+        break;
     }
     // Re-derive the persistent tier from the post-sweep board.
     await this.recomputeContinuousEffects();

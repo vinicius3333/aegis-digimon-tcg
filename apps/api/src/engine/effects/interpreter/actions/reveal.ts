@@ -14,7 +14,10 @@ import type { Action, Filter, Target } from "@aegis/shared";
 /** Cards whose rule text changes their level only while they are revealed from deck. */
 export function revealedDefinition(ctx: EffectContext, card: import("@aegis/shared").CardInstance): DefinitionFacts {
   const def = ctx.game.definitionOf(card) as DefinitionFacts;
-  return card.cardId === "BT17-068" ? { ...def, level: 6 } : def;
+  // BT17-068 is printed Lv5 and is also treated as Lv6 while revealed. Keep the
+  // printed level available so effects such as BT3-051 can fill both slots with
+  // two copies (KB Q2827), while retaining level 6 for level-gated effects.
+  return card.cardId === "BT17-068" ? { ...def, level: 6, treatedAsLevels: [5, 6] } : def;
 }
 
 /**
