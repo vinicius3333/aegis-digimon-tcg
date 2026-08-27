@@ -134,4 +134,22 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(bottomOrder);
   });
+
+  it("returns the selected Searcher to the deck when no Mother D-Reaper exists", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX2-049", as: "source" }],
+        deck: [{ card: "EX2-046", as: "adr" }, "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true });
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("source").topCard.instanceId,
+      effectKey: "EX2-049/ir-27-0",
+    })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 5);
+    expect(s.state.players[0]!.deck).toHaveLength(5);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("adr").instanceId)).toBe(true);
+  });
 });

@@ -126,7 +126,7 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldBePlayed",
-          sourceFilter: { controllerDefault: "mine" },
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Replacement",

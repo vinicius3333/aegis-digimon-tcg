@@ -31,6 +31,7 @@ const compiled: CompiledCard = {
             {
               kind: "DeDigivolve",
               target: {
+                sourceRef: "triggerSubject",
                 filter: {
                   controllerDefault: "opponent",
                   kind: ["Digimon"],
