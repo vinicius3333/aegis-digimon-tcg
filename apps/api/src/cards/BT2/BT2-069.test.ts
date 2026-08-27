@@ -7,7 +7,7 @@ describe("BT2-069 Gabumon", () => {
   it("draws 2, then lets its controller choose 1 card in hand to trash when its host is deleted", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-074", as: "host", under: ["BT2-069"] }],
+        battleArea: [{ card: "BT2-074", as: "host", under: ["BT2-007", "BT2-069"] }],
         hand: [{ card: "BT1-012", as: "existing" }],
         deck: [
           { card: "BT1-010", as: "firstDraw" },
@@ -65,7 +65,7 @@ describe("BT2-069 Gabumon", () => {
       {
         0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 20000 }] },
         1: {
-          battleArea: [{ card: "BT2-074", as: "host", under: ["BT2-069"], suspended: true }],
+          battleArea: [{ card: "BT2-074", as: "host", under: ["BT2-007", "BT2-069"], suspended: true }],
           deck: [
             { card: "BT1-029", as: "first" },
             { card: "BT1-030", as: "second" },
