@@ -55,6 +55,7 @@ describe("BT26-071 Flarerizamon", () => {
     expect(s.state.memory).toBe(0);
   });
   it("deletes an own Digimon as cost, then deletes an opposing level-4 Digimon", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT26-071", as: "self" }], battleArea: [{ card: "BT26-012", as: "ownCost" }] },
@@ -65,8 +66,9 @@ describe("BT26-071 Flarerizamon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("ownCost").permanentId);
     s.state.memory = 5;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("self").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.players[1]!.battleArea.length === 1);
@@ -96,6 +98,7 @@ describe("BT26-071 Flarerizamon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(opponentCount);
   });
   it("may pay its own-Digimon cost even without a legal opposing level-4 target", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -106,8 +109,9 @@ describe("BT26-071 Flarerizamon", () => {
         },
         1: { battleArea: [{ card: "BT26-054", as: "opponentLevel5" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("ownCost").permanentId);
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("flarerizamon"));
