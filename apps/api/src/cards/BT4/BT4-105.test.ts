@@ -50,4 +50,47 @@ describe("BT4-105 Tactical Retreat!", () => {
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("recovered").instanceId);
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
+
+  it("routes Mother D-Reaper to its owner's Digi-Egg deck instead of security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-007", as: "mother" }],
+          eggDeck: ["BT1-001"],
+          security: ["BT4-033"],
+          hand: [{ card: "BT4-105", as: "option" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.eggDeck.map((card) => card.cardId)).toEqual(["BT1-001", "EX2-007"]);
+    expect(s.state.players[0]!.eggDeck.at(-1)?.faceUp).toBe(false);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).not.toContain("EX2-007");
+  });
+
+  it("removes a chosen token instead of adding it to security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "TOKEN-Diaboromon", as: "token" }],
+          security: ["BT4-033"],
+          hand: [{ card: "BT4-105", as: "option" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).not.toContain("TOKEN-Diaboromon");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("TOKEN-Diaboromon");
+    expect(s.state.players[0]!.eggDeck.map((card) => card.cardId)).not.toContain("TOKEN-Diaboromon");
+  });
 });
