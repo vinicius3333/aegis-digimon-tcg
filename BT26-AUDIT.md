@@ -3027,6 +3027,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Correction: restricted the Use Requirement waiver to DM Digimon/Tamers. The previous broad permanent filter wrongly allowed a DM Option; the reveal filter remains broad enough to add any DM card.
 - Proof: valid/invalid Use Req including DM Option, DM Option reveal, mandatory add, Security Main, Delay success and same-turn/face-up/non-Digimon/level-7 refusals. Full IR/exclusive `registerIrCard`; automation not run; diff check passed. No limitation.
 
+## BT26-100 — Dark Field — 10/10
+
+- Catalog/KB: purple/black cost-3 Titan/TS Option, empty/no-face-up-security waiver, face-up Security grants, Main security exchange/free Titan play, and Security free play confirmed. Q7174–Q7181 cover face-up/empty security and Titan boundaries.
+- Implementation: full IR/exclusive `registerIrCard`; exact waiver, dynamic Blocker/+3000 grants, bottom-security-to-hand then face-up self placement, and Lv.4-or-lower Titan hand/trash plays.
+- Proof: dynamic grants/enabler removal, non-Titan, zero-security/waiver boundary, Main movement/play, Security activation/fallback. No change; automation not run; diff check passed. No limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
