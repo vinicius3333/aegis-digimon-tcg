@@ -175,11 +175,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   }
   // Target-bearing source-trash and binding actions must not consume a Digi-Burst (or other
   // activation) cost when their target pool is empty. Return/Delete already have equivalent
-  // preflights above; BT4-032 uses TrashDigivolution and BT4-033 uses SelectBind before the
-  // subsequent bounce, so leaving these two verbs to pay first makes a no-target activation
+  // preflights above; BT4-032 uses TrashDigivolution, BT4-033 uses SelectBind before the
+  // subsequent bounce, and BT4-068 gates De-Digivolve with Digi-Burst, so leaving these
+  // target-bearing verbs to pay first makes a no-target activation
   // silently trash the source stack (CR §15-8-4-4-1).
   if (
-    (action.kind === "TrashDigivolution" || action.kind === "SelectBind") &&
+    (action.kind === "TrashDigivolution" || action.kind === "SelectBind" || action.kind === "DeDigivolve") &&
     action.cost !== undefined &&
     action.allowCostWithoutTarget !== true &&
     candidatePermanents(ctx, action.target).length === 0
