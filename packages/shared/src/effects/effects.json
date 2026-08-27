@@ -93242,46 +93242,65 @@
         "optional": true,
         "actions": [
           {
-            "kind": "Link",
+            "kind": "GrantLinkCostReduction",
             "target": {
-              "filter": { "nameOrTrait": [{ "tokens": ["Social", "Tool", "Game"], "match": "trait" }] },
-              "count": 1
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
             },
-            "costDelta": -1
+            "amount": 1,
+            "whenLinkingTrait": [
+              "Social",
+              "Tool",
+              "Game"
+            ],
+            "duration": "permanent",
+            "optionalAtDeclaration": true,
+            "oncePerTurn": true
           }
         ]
       },
       {
-        "trigger": "Main",
+        "trigger": "WhenLinking",
+        "isLinked": true,
         "actions": [
           {
-            "kind": "Link",
+            "kind": "Suspend",
             "target": {
-              "filter": { "nameOrTrait": [{ "tokens": ["Social", "Tool", "Game"], "match": "trait" }] },
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
               "count": 1
             }
-          }
-        ]
-      },
-      {
-        "trigger": "Static",
-        "actions": [
-          {
-            "kind": "SubTrigger",
-            "event": "whenLinked",
-            "actions": [
-              {
-                "kind": "Suspend",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
-              }
-            ],
-            "raw": "[When Linking] Suspend 1 of your opponent's Digimon."
           }
         ]
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      {
+        "level": 2,
+        "cost": 0,
+        "isAlternate": true,
+        "traits": [
+          "Appmon"
+        ]
+      }
+    ],
+    "linkRequirement": [
+      {
+        "cost": 1,
+        "traits": [
+          "Appmon"
+        ]
+      }
+    ]
   },
   "BT25-046": {
     "effects": [
