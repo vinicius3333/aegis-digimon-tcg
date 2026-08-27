@@ -54,6 +54,9 @@ import { compiled as bt25074 } from "./BT25-074.js";
 import { compiled as bt25075 } from "./BT25-075.js";
 import { compiled as bt25076 } from "./BT25-076.js";
 import { compiled as bt25077 } from "./BT25-077.js";
+import { compiled as bt25078 } from "./BT25-078.js";
+import { compiled as bt25079 } from "./BT25-079.js";
+import { compiled as bt25080 } from "./BT25-080.js";
 
 const effectsPath = fileURLToPath(new URL("../../../../../packages/shared/src/effects/effects.json", import.meta.url));
 const catalog = JSON.parse(readFileSync(effectsPath, "utf8")) as CompiledEffects;
@@ -136,6 +139,9 @@ describe("BT25 persisted IR", () => {
     ["BT25-075", bt25075],
     ["BT25-076", bt25076],
     ["BT25-077", bt25077],
+    ["BT25-078", bt25078],
+    ["BT25-079", bt25079],
+    ["BT25-080", bt25080],
     ["BT25-101", bt25101],
   ] as const)("keeps the stale-gap record %s synchronized", (cardId, compiled) => {
     expect(catalog[cardId]).toEqual(compiled);

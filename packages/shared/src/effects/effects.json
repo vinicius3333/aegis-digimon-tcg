@@ -97694,10 +97694,35 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Three Musketeers"
+                      ],
+                      "match": "text"
+                    }
+                  ]
                 },
                 "count": 1,
-                "to": "hand"
+                "to": "hand",
+                "orDispositions": [
+                  {
+                    "to": "placeUnder",
+                    "filter": {
+                      "nameOrTrait": [
+                        {
+                          "tokens": [
+                            "Three Musketeers"
+                          ],
+                          "match": "trait"
+                        }
+                      ]
+                    },
+                    "underFilter": {
+                      "isSelfRef": true
+                    }
+                  }
+                ]
               }
             ],
             "rest": "deckBottom"
@@ -97714,10 +97739,35 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Three Musketeers"
+                      ],
+                      "match": "text"
+                    }
+                  ]
                 },
                 "count": 1,
-                "to": "hand"
+                "to": "hand",
+                "orDispositions": [
+                  {
+                    "to": "placeUnder",
+                    "filter": {
+                      "nameOrTrait": [
+                        {
+                          "tokens": [
+                            "Three Musketeers"
+                          ],
+                          "match": "trait"
+                        }
+                      ]
+                    },
+                    "underFilter": {
+                      "isSelfRef": true
+                    }
+                  }
+                ]
               }
             ],
             "rest": "deckBottom"
@@ -97728,14 +97778,33 @@
         "trigger": "Static",
         "actions": [],
         "isInherited": true,
-        "keywords": [{ "keyword": "Retaliation", "raw": "＜Retaliation＞" }]
+        "keywords": [
+          {
+            "keyword": "Retaliation",
+            "raw": "＜Retaliation＞"
+          }
+        ]
       }
     ],
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "level": 2, "texts": ["Three Musketeers"], "cost": 0, "isAlternate": true },
-      { "traits": ["TS"], "cost": 0, "isAlternate": true, "level": 2 }
+      {
+        "level": 2,
+        "texts": [
+          "Three Musketeers"
+        ],
+        "cost": 0,
+        "isAlternate": true
+      },
+      {
+        "traits": [
+          "TS"
+        ],
+        "cost": 0,
+        "isAlternate": true,
+        "level": 2
+      }
     ]
   },
   "BT25-079": {
@@ -97767,14 +97836,28 @@
               "filter": {
                 "zone": "trash",
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Titan"], "match": "trait" }]
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Titan"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": 1
             },
+            "bindResultAs": "returnedTitan",
             "to": "hand",
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
+              "target": {
+                "filter": {
+                  "zone": "hand",
+                  "controller": "mine"
+                },
+                "count": 1
+              },
               "raw": "By trashing 1 card in your hand"
             },
             "optional": true,
@@ -97785,10 +97868,28 @@
             "target": {
               "filter": {
                 "controller": "opponent",
-                "kind": ["Digimon"],
-                "levelComparison": { "op": "lte", "value": 5 }
+                "kind": [
+                  "Digimon"
+                ],
+                "levelComparison": {
+                  "op": "lte",
+                  "value": 5
+                }
               },
               "count": 1
+            },
+            "condition": {
+              "kind": "allOf",
+              "conditions": [
+                {
+                  "kind": "triggerEnteredByEffect"
+                },
+                {
+                  "kind": "bindingExists",
+                  "ref": "returnedTitan"
+                }
+              ],
+              "raw": "if played by an effect"
             }
           }
         ],
@@ -97804,14 +97905,28 @@
               "filter": {
                 "zone": "trash",
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Titan"], "match": "trait" }]
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Titan"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": 1
             },
+            "bindResultAs": "returnedTitan",
             "to": "hand",
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "zone": "hand", "controller": "mine" }, "count": 1 },
+              "target": {
+                "filter": {
+                  "zone": "hand",
+                  "controller": "mine"
+                },
+                "count": 1
+              },
               "raw": "By trashing 1 card in your hand"
             },
             "optional": true,
@@ -97822,10 +97937,28 @@
             "target": {
               "filter": {
                 "controller": "opponent",
-                "kind": ["Digimon"],
-                "levelComparison": { "op": "lte", "value": 5 }
+                "kind": [
+                  "Digimon"
+                ],
+                "levelComparison": {
+                  "op": "lte",
+                  "value": 5
+                }
               },
               "count": 1
+            },
+            "condition": {
+              "kind": "allOf",
+              "conditions": [
+                {
+                  "kind": "selfEnteredByEffect"
+                },
+                {
+                  "kind": "bindingExists",
+                  "ref": "returnedTitan"
+                }
+              ],
+              "raw": "if played by an effect"
             }
           }
         ],
@@ -97844,12 +97977,30 @@
                 "target": {
                   "filter": {
                     "controller": "opponent",
-                    "kind": ["Digimon"],
-                    "levelComparison": { "op": "lte", "value": 4 }
+                    "kind": [
+                      "Digimon"
+                    ],
+                    "levelComparison": {
+                      "op": "lte",
+                      "value": 4
+                    }
                   },
                   "count": 1
                 },
-                "condition": { "kind": "raw", "raw": "this Digimon has the [Titan] trait" }
+                "condition": {
+                  "kind": "selfHasTrait",
+                  "filter": {
+                    "nameOrTrait": [
+                      {
+                        "tokens": [
+                          "Titan"
+                        ],
+                        "match": "trait"
+                      }
+                    ]
+                  },
+                  "raw": "this Digimon has the [Titan] trait"
+                }
               }
             ]
           }
@@ -97860,7 +98011,16 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 3,
+        "traits": [
+          "TS"
+        ],
+        "cost": 2,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-081": {
     "effects": [
