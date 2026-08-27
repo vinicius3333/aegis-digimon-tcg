@@ -1369,3 +1369,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-070.
+
+## BT25-071 — Orochimon — 10/10
+
+- Catalog evidence: black level-5 Digimon; alternate level-4 TS evolution for 3; On Play/When Digivolving prevents one opposing Digimon/Tamer from attacking through its turn; self-suspension reveals three, may play one play-cost-4-or-less TS Digimon free, then bottoms the remainder; inherited copy is once per turn.
+- Knowledge base: no card-specific entries; standard restriction, suspension, reveal/play/remainder, evolution, inherited, and once-per-turn rules apply.
+- Implementation: both restriction timings, exact target/duration, self-bound suspension watcher, reveal pool, optional filtered free play, ordered deck-bottom remainder, inherited scope, and frequency are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-071", compiled)`.
+- Verification: focused — 5 passed; interpreter/combat/subtrigger — 239 passed; suspension source-filter — 6 passed; `git diff --check` — passed. No direct defect was found, so no implementation or test change was made; persisted synchronization follows separately.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-071
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-071.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-071.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-071.
