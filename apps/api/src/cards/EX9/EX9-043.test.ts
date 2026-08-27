@@ -20,7 +20,10 @@ describe("EX9-043", () => {
   it("has inherited Piercing", () =>
     expect(
       compiled.effects?.find((entry) => entry.actions.some((action) => action.kind === "GainKeyword")),
-    ).toMatchObject({ actions: [{ kind: "GainKeyword", keyword: { keyword: "Piercing" } }] }));
+    ).toMatchObject({
+      isInherited: true,
+      actions: [{ kind: "GainKeyword", keyword: { keyword: "Piercing" } }],
+    }));
   it("accepts Tyrannomon name or DM trait as separate alternate evolution routes", () =>
     expect(compiled.digivolutionRequirement).toEqual([
       { cost: 3, isAlternate: true, level: 4, names: ["Tyrannomon"] },

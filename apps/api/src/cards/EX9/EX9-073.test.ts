@@ -14,6 +14,7 @@ describe("EX9-073", () => {
           {
             kind: "ActivateEffect",
             effectType: "OnPlay",
+            lastPlacedOnly: true,
             cost: { kind: "place", position: "top", target: { count: 1 } },
           },
         ],

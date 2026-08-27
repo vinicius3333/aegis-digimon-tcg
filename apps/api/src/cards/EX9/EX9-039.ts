@@ -44,6 +44,7 @@ export const compiled: CompiledCard = {
             per: 1,
             filter: {
               isSelfRef: true,
+              faceDown: true,
             },
             unit: "digivolutionCards",
           },
@@ -57,6 +58,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          attackPlayer: false,
           optional: true,
         },
       ],
@@ -88,6 +90,7 @@ export const compiled: CompiledCard = {
             per: 1,
             filter: {
               isSelfRef: true,
+              faceDown: true,
             },
             unit: "digivolutionCards",
           },
@@ -101,6 +104,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          attackPlayer: false,
           optional: true,
         },
       ],

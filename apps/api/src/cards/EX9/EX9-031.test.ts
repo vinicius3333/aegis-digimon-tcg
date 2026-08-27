@@ -24,7 +24,14 @@ describe("EX9-031", () => {
             amount: 1,
             cost: {
               kind: "trash",
-              target: { filter: { zone: "digivolutionCards", faceDown: true, position: "bottom" } },
+              target: {
+                filter: {
+                  zone: "digivolutionCards",
+                  faceDown: true,
+                  position: "bottom",
+                  hostFilter: { isSelfRef: true },
+                },
+              },
             },
           },
         ],
@@ -40,7 +47,10 @@ describe("EX9-031", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-031", as: "source", under: [{ card: "BT1-009", faceUp: false }] }],
+          battleArea: [
+            { card: "EX9-031", as: "source", under: [{ card: "BT1-009", faceUp: false }] },
+            { card: "BT1-010", as: "other", under: [{ card: "BT1-011", faceUp: false }] },
+          ],
           deck: ["BT1-090"],
           security: ["BT1-001"],
         },
@@ -57,5 +67,6 @@ describe("EX9-031", () => {
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT1-011"]);
   });
 });

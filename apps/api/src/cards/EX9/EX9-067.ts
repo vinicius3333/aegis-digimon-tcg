@@ -34,7 +34,6 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "YourTurn",
-      frequency: "OncePerTurn",
       actions: [
         {
           kind: "SubTrigger",
@@ -43,7 +42,7 @@ export const compiled: CompiledCard = {
             controllerDefault: "mine",
             kind: ["Digimon"],
           },
-          resultFilter: {
+          digivolveIntoFilter: {
             nameOrTrait: [
               {
                 tokens: ["Puppet"],

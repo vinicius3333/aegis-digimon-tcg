@@ -15,6 +15,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               isSelfRef: true,
+              digivolutionCards: "hasFaceDown",
             },
             count: 1,
             isSelf: true,
@@ -30,6 +31,7 @@ export const compiled: CompiledCard = {
             ],
           },
           from: ["hand"],
+          payCost: true,
           reduceCost: 1,
           optional: true,
         },

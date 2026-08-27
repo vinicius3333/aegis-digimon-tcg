@@ -56,14 +56,16 @@ export function playCostScalingDelta(scaling: Scaling, factor: number): number {
 }
 
 function paidReduction(ctx: EffectContext, action: Extract<Action, { kind: "PlayWithoutCost" }>): number | undefined {
-  const base =
-    action.reduceCostByScaling === undefined ? action.reduceCostBy : scaleFactor(ctx, action.reduceCostByScaling);
+  const base = action.reduceCostBy;
+  const scaling = action.reduceCostByScaling === undefined ? 0 : scaleFactor(ctx, action.reduceCostByScaling);
   const conditional = (
     action as typeof action & { reduceCostByIf?: { amount: number; condition: import("@aegis/shared").Condition } }
   ).reduceCostByIf;
-  if (base === undefined && conditional === undefined) return undefined;
+  if (base === undefined && action.reduceCostByScaling === undefined && conditional === undefined) return undefined;
   return (
-    (base ?? 0) + (conditional !== undefined && evaluateCondition(ctx, conditional.condition) ? conditional.amount : 0)
+    (base ?? 0) +
+    scaling +
+    (conditional !== undefined && evaluateCondition(ctx, conditional.condition) ? conditional.amount : 0)
   );
 }
 

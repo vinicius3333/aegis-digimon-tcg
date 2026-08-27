@@ -11,9 +11,23 @@ describe("EX9-006", () => {
         {
           kind: "Digivolve",
           from: ["trash"],
+          payCost: true,
           reduceCost: 1,
           optional: true,
-          cost: { kind: "trash", target: { count: 1 } },
+          cost: {
+            kind: "trash",
+            target: {
+              count: 1,
+              filter: {
+                zone: "digivolutionCards",
+                controller: "mine",
+                faceDown: true,
+                position: "bottom",
+                sameHost: true,
+                hostFilter: { isSelfRef: true },
+              },
+            },
+          },
         },
       ],
     }));
@@ -42,6 +56,7 @@ describe("EX9-006", () => {
 
     expect(s.perm("source").topCard?.cardId).toBe("EX9-010");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.memory).toBe(2);
   });
 
   it("does not pay the effect with a face-up bottom source", async () => {

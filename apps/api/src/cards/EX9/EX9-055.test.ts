@@ -28,7 +28,7 @@ describe("EX9-055", () => {
         },
       ],
     }));
-  it("requires four total Negamon-text cards across trash and digivolution cards for either play trigger", () => {
+  it("requires four Negamon cards across trash and digivolution cards for either play trigger", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"])
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
         optional: true,
@@ -38,7 +38,11 @@ describe("EX9-055", () => {
         condition: {
           kind: "youHave",
           count: 4,
-          filter: { zone: ["trash", "digivolutionCards"], nameOrTrait: [{ tokens: ["Negamon"], match: "text" }] },
+          filter: {
+            zone: ["trash", "digivolutionCards"],
+            kind: ["Digimon", "DigiEgg"],
+            nameOrTrait: [{ tokens: ["Negamon"], match: "nameExact" }],
+          },
         },
       });
   });

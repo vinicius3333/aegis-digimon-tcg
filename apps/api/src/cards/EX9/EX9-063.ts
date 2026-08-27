@@ -35,6 +35,7 @@ export const compiled: CompiledCard = {
                 per: 1,
                 filter: {
                   controllerDefault: "mine",
+                  faceDown: true,
                 },
                 unit: "digivolutionCards",
               },
@@ -79,8 +80,10 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 zone: "digivolutionCards",
+                controller: "mine",
                 faceDown: true,
                 position: "bottom",
+                hostFilter: { isSelfRef: true },
               },
               count: 1,
             },
@@ -119,8 +122,10 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 zone: "digivolutionCards",
+                controller: "mine",
                 faceDown: true,
                 position: "bottom",
+                hostFilter: { isSelfRef: true },
               },
               count: 1,
             },

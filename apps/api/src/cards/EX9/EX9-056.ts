@@ -22,18 +22,16 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              controller: "opponent",
-            },
-            count: 1,
-          },
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
           cost: {
             kind: "place",
             targetIsPermanent: true,
             target: {
               filter: {
+                controller: "any",
                 kind: ["Digimon"],
                 dp: {
                   op: "lte",
@@ -47,21 +45,7 @@ export const compiled: CompiledCard = {
             position: "bottom",
             faceDown: true,
           },
-          optional: true,
           abortOnDecline: true,
-        },
-        {
-          kind: "SecurityManipulation",
-          op: "trash",
-          controller: "opponent",
-          target: {
-            filter: {
-              controller: "opponent",
-            },
-            count: 1,
-          },
-          from: ["security"],
-          toTop: true,
         },
       ],
     },
@@ -69,18 +53,16 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              controller: "opponent",
-            },
-            count: 1,
-          },
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
           cost: {
             kind: "place",
             targetIsPermanent: true,
             target: {
               filter: {
+                controller: "any",
                 kind: ["Digimon"],
                 dp: {
                   op: "lte",
@@ -94,21 +76,7 @@ export const compiled: CompiledCard = {
             position: "bottom",
             faceDown: true,
           },
-          optional: true,
           abortOnDecline: true,
-        },
-        {
-          kind: "SecurityManipulation",
-          op: "trash",
-          controller: "opponent",
-          target: {
-            filter: {
-              controller: "opponent",
-            },
-            count: 1,
-          },
-          from: ["security"],
-          toTop: true,
         },
       ],
     },

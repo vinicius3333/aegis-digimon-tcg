@@ -31,6 +31,13 @@ export const compiled: CompiledCard = {
           },
           amount: -3000,
           duration: "untilOpponentTurnEnd",
+          alsoGainKeywords: [
+            {
+              keyword: "SecurityAttack",
+              amount: -1,
+              raw: "＜Security Attack -1＞",
+            },
+          ],
           cost: {
             kind: "place",
             target: {
@@ -65,6 +72,13 @@ export const compiled: CompiledCard = {
           },
           amount: -3000,
           duration: "untilOpponentTurnEnd",
+          alsoGainKeywords: [
+            {
+              keyword: "SecurityAttack",
+              amount: -1,
+              raw: "＜Security Attack -1＞",
+            },
+          ],
           cost: {
             kind: "place",
             target: {

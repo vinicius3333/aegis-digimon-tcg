@@ -11,7 +11,7 @@ describe("EX9-063", () => {
       compiled.effects?.find((entry) => entry.keywords?.some((keyword) => keyword.keyword === "Scapegoat"))?.keywords,
     ).toContainEqual({ keyword: "Scapegoat", raw: "＜Scapegoat＞" });
     expect(compiled.effects?.find((entry) => entry.trigger === "Static" && entry.actions.length > 0)).toMatchObject({
-      actions: [{ actions: [{ mode: "reduceCost", amount: 1 }] }],
+      actions: [{ actions: [{ mode: "reduceCost", amount: 1, scaling: { filter: { faceDown: true } } }] }],
     });
   });
   it("once per turn plays a low-cost DM Digimon from trash by trashing the bottom face-down source", () =>
@@ -23,7 +23,15 @@ describe("EX9-063", () => {
           from: ["trash"],
           cost: {
             kind: "trash",
-            target: { filter: { zone: "digivolutionCards", faceDown: true, position: "bottom" } },
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                controller: "mine",
+                faceDown: true,
+                position: "bottom",
+                hostFilter: { isSelfRef: true },
+              },
+            },
           },
         },
       ],

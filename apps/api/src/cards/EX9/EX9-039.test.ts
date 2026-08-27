@@ -15,8 +15,8 @@ describe("EX9-039", () => {
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
           { kind: "PlaceUnder", optional: true },
-          { kind: "Suspend", scaling: { unit: "digivolutionCards", per: 1 } },
-          { kind: "Attack", optional: true },
+          { kind: "Suspend", scaling: { unit: "digivolutionCards", per: 1, filter: { faceDown: true } } },
+          { kind: "Attack", attackPlayer: false, optional: true },
         ],
       });
   });
@@ -30,17 +30,35 @@ describe("EX9-039", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX9-039", as: "source", under: [{ card: "BT1-009", faceUp: false }] }],
+          battleArea: [
+            {
+              card: "EX9-039",
+              as: "source",
+              dp: 12000,
+              under: [
+                { card: "BT1-009", faceUp: false },
+                { card: "BT1-009", faceUp: true },
+              ],
+            },
+          ],
           hand: ["BT1-001"],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "opponent1", dp: 1000 },
+            { card: "BT1-010", as: "opponent2", dp: 1000 },
+            { card: "BT1-010", as: "opponent3", dp: 1000 },
+          ],
+          security: ["BT1-001"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.perm("opponent").isSuspended);
-    expect(s.perm("source").stack.map((card) => card.faceUp)).toEqual([false, false]);
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+    expect(s.perm("source").stack.map((card) => card.faceUp)).toEqual([false, true, false]);
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.filter((permanent) => permanent.isSuspended)).toHaveLength(1);
   });
 });

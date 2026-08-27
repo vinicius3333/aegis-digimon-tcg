@@ -216,10 +216,7 @@ export const compiled: CompiledCard = {
           duration: "permanent",
           scaling: {
             per: 1,
-            filter: {
-              controllerDefault: "mine",
-            },
-            unit: "colors",
+            unit: "digivolutionCardColors",
           },
         },
       ],

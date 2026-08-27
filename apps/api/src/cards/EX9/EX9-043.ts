@@ -144,6 +144,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
+      isInherited: true,
       keywords: [],
       actions: [
         {

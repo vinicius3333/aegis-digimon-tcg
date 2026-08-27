@@ -21,14 +21,14 @@ describe("EX9-070", () => {
           kind: "Digivolve",
           target: {
             filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DM"], match: "trait" }] },
+            fromSelectionRef: "paidHost",
           },
           reduceCost: 2,
           cost: {
             kind: "place",
-            host: {
-              filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DM"], match: "trait" }] },
-              count: 1,
-            },
+            host: "target",
+            underFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DM"], match: "trait" }] },
+            bindHostAs: "paidHost",
             faceDown: true,
             destination: "digivolutionStack",
           },

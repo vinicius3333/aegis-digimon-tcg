@@ -85,18 +85,20 @@ export const compiled: CompiledCard = {
           kind: "ModifyDP",
           target: {
             filter: {
-              isSelfRef: true,
+              controller: "opponent",
+              kind: ["Digimon"],
             },
             count: 1,
-            isSelf: true,
+            sameTarget: true,
           },
           amount: -2000,
-          duration: "permanent",
+          duration: "untilOpponentTurnEnd",
           scaling: {
             per: 1,
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
+              faceDown: true,
             },
             unit: "digivolutionCards",
           },
@@ -141,18 +143,20 @@ export const compiled: CompiledCard = {
           kind: "ModifyDP",
           target: {
             filter: {
-              isSelfRef: true,
+              controller: "opponent",
+              kind: ["Digimon"],
             },
             count: 1,
-            isSelf: true,
+            sameTarget: true,
           },
           amount: -2000,
-          duration: "permanent",
+          duration: "untilOpponentTurnEnd",
           scaling: {
             per: 1,
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
+              faceDown: true,
             },
             unit: "digivolutionCards",
           },

@@ -15,7 +15,25 @@ describe("EX9-004", () => {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          actions: [{ kind: "GainMemory", amount: 1, optional: true, cost: { kind: "trash" } }],
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              optional: true,
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    zone: "digivolutionCards",
+                    controller: "mine",
+                    faceDown: true,
+                    position: "bottom",
+                    hostFilter: { isSelfRef: true },
+                  },
+                },
+              },
+            },
+          ],
         },
       ],
     }));
@@ -63,6 +81,34 @@ describe("EX9-004", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-038"));
 
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT1-009");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not use an upper face-down card when the bottom card is face up", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX9-035",
+              as: "host",
+              under: ["BT1-009", { card: "BT1-010", faceUp: false }, "EX9-004"],
+            },
+          ],
+          hand: [{ card: "EX9-038", as: "played" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-038"));
+
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT1-009");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT1-010");
     expect(s.state.memory).toBe(0);
   });
 });
