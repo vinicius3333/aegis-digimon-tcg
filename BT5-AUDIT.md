@@ -2476,3 +2476,32 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
 - Verification: focused BT5-064 — 2/2 passed. Targeted Oxfmt, Oxlint, and
   `git diff --check` pass. No typing-sensitive source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-065 — Shademon — 10/10
+
+- Catalog and ruling evidence: Black Lv.4 Champion Digimon,
+  Virus/Unidentified, play cost 6, 5000 DP, and black Lv.3 evolution cost 2.
+  It has Blocker, cannot attack during its controller's turn, and its Security
+  effect plays it without cost at the end of the battle. Q1339 confirms it is a
+  normal Digimon after entering play; Q1340 requires the play regardless of the
+  security battle outcome; Q1341 requires that play after its battle and before
+  the attack's next security check.
+- Implementation: `apps/api/src/cards/BT5/BT5-065.ts` retains static Blocker
+  and a `YourTurn` self attack restriction. Its Security effect now installs a
+  once-only `whenSecurityBattleEnded` subtrigger whose nested
+  `PlayWithoutCost` moves the exact Shademon source into play. It declares full
+  residual-free coverage and registers exclusively through `registerIrCard`.
+- Behavioral proof: BlackWarGreymon's Security Attack +1 checks Shademon first
+  and a second card afterward. Event order proves Shademon's 5000-DP security
+  battle completes, then its exact instance enters the battle area, then the
+  second check occurs. This simultaneously proves Q1339-Q1341 even though
+  Shademon loses to the 12000-DP attacker. Additional focused cases reject a
+  real owner-turn attack intent and prove Shademon can suspend to redirect an
+  opposing attack through the production block window.
+- Defect corrected: the Security effect previously played Shademon immediately
+  before its security battle, which skipped the battle entirely and violated
+  Q1340/Q1341. It now waits for the dedicated battle-ended event.
+- Verification: focused BT5-065 — 3/3 passed. Targeted Oxfmt, Oxlint, and
+  `git diff --check` pass. Typecheck was not rerun because the IR timing change
+  uses established typed actions and the unrelated baseline remains known.
+- Remaining ambiguity: none identified.
