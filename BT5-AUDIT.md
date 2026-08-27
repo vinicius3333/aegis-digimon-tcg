@@ -3215,3 +3215,26 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   Targeted Oxfmt, Oxlint, registration search, and `git diff --check` pass. No
   shared engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-093 — Tai Kamiya & Matt Ishida — 10/10
+
+- Catalog and ruling evidence: White Tamer with play cost 4. At the start of the
+  controller's turn it gains 2 memory if the opponent has a Lv.6 or higher
+  Digimon. During the controller's turn all own Digimon with Omnimon in their
+  names gain Security Attack +1. Security plays it for free. Knowledge-base
+  entries Q2189/Q3191 describe unrelated text and are not applicable to this
+  committed catalog definition.
+- Implementation: `apps/api/src/cards/BT5/BT5-093.ts` uses the exact opponent
+  Lv.6+ condition, a controller-turn aura for all own Omnimon-family Digimon,
+  and cost-free self play from Security. Full residual-free coverage and
+  exclusive `registerIrCard("BT5-093", compiled)` registration are preserved.
+- Behavioral proof: five focused tests prove the positive and negative memory
+  conditions, including that an own Lv.6 does not qualify; all own Omnimon
+  targets gain exactly +1 while an opposing Omnimon does not; the aura lapses
+  on the opponent's turn; and Security plays the Tamer without cost.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for controller side, level threshold, aura ownership, and turn expiry.
+- Verification: focused BT5-093 — 5/5 passed; BT5-057 turn-scope peer — 1/1;
+  exact-name mechanism — 4/4. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No production or shared engine source changed.
+- Remaining ambiguity: none identified.
