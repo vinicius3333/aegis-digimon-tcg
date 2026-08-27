@@ -2,7 +2,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-validated effect IR for BT5-063 (Kurisarimon).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
@@ -12,7 +12,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              nameOrTrait: [{ tokens: ["Arata Sanada"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Arata Sanada"], match: "nameExact" }],
             },
             count: 1,
           },
@@ -25,7 +25,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Arata Sanada"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

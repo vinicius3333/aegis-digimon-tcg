@@ -2446,12 +2446,13 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   inherited stack proves Rush is absent on the opponent's turn, present only
   on another same-name own Digimon during the owner's turn, absent from the
   host/different name, and lapses per Q1338 after the recipient evolves into
-  differently named Armageddemon.
-- Defect corrected: the free-play filter previously accepted any own hand card;
-  it now requires exact Arata Sanada name matching.
-- Verification: focused BT5-063 — 4/4 passed. Targeted Oxfmt, Oxlint, and
-  `git diff --check` pass. Typecheck was not rerun because the narrow IR filter
-  addition is not typing-sensitive and the unrelated baseline remains known.
+  differently named, non-Rush BT18-102 through a legal white-Lv.6 evolution.
+- Defect corrected: the free-play filter originally accepted any own hand card,
+  and the repaired target/absence filters still used substring matching for the
+  literal `[Arata Sanada]` reference. Both now require `nameExact`.
+- Verification: focused BT5-063 — 5/5 passed; exact-name mechanism — 4/4.
+  Targeted Oxfmt, Oxlint, and `git diff --check` pass. Typecheck was not rerun
+  for this narrow IR/test correction; the unrelated baseline remains known.
 - Remaining ambiguity: none identified.
 
 ## BT5-064 — BlackGaogamon — 10/10
@@ -3646,10 +3647,11 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   Security adds this card to its owner's hand. Q1384 confirms own Digimon and
   Tamers are also deleted; Q5304 defines prevention interaction.
 - Implementation: `apps/api/src/cards/BT5/BT5-110.ts` uses an optional,
-  abort-on-decline Return of one own Omnimon-name Digimon to hand with
-  `trashSources`, followed by all-target Delete over both controllers' Digimon
-  and Tamers. Security uses AddToHandSelf. Full residual-free coverage and
-  exclusive `registerIrCard("BT5-110", compiled)` registration are preserved.
+  abort-on-decline selection and Return of one own Omnimon-name Digimon to hand;
+  the shared Return primitive trashes the moved permanent's evolution sources.
+  An all-target Delete then covers both controllers' Digimon and Tamers.
+  Security uses AddToHandSelf. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-110", compiled)` registration are preserved.
 - Behavioral proof: four focused tests use a legal Lv.5→Lv.6→Lv.7 Omnimon stack
   to prove exact top-card return, all evolution sources trashed, and deletion of
   every remaining own/opposing Digimon and Tamer. Refusal proves no return,

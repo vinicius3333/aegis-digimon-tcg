@@ -2,9 +2,19 @@ import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT5-063.js";
+import { compiled } from "./BT5-063.js";
 
 describe("BT5-063 Kurisarimon", () => {
+  it("uses exact-name matching for both Arata Sanada references", () => {
+    const whenDigivolving = compiled.effects?.find((effect) => effect.trigger === "WhenDigivolving");
+    const play = whenDigivolving?.actions[0];
+    expect(play).toMatchObject({
+      kind: "PlayWithoutCost",
+      target: { filter: { nameOrTrait: [{ tokens: ["Arata Sanada"], match: "nameExact" }] } },
+      condition: { filter: { nameOrTrait: [{ tokens: ["Arata Sanada"], match: "nameExact" }] } },
+    });
+  });
+
   it("plays Arata Sanada without cost when none is in play", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -107,7 +117,9 @@ describe("BT5-063 Kurisarimon", () => {
           { card: "BT5-084", as: "sameName" },
           { card: "BT5-066", as: "differentName" },
         ],
-        hand: [{ card: "BT5-085", as: "renamed" }],
+        // BT18-102 is a legal white Lv.7 evolution from BT5-084 and has no
+        // intrinsic Rush, so the post-evolution assertion isolates the inherited grant.
+        hand: [{ card: "BT18-102", as: "renamed" }],
       },
     });
 
@@ -122,7 +134,7 @@ describe("BT5-063 Kurisarimon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("differentName"), "Rush")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Rush")).toBe(false);
 
-    s.state.memory = 3;
+    s.state.memory = 6;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -130,7 +142,7 @@ describe("BT5-063 Kurisarimon", () => {
         instanceId: s.inst("renamed").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("sameName").topCard?.cardId === "BT5-085");
+    await settle(() => s.perm("sameName").topCard?.cardId === "BT18-102");
     expect(observe(s.engine).hasKeyword(s.perm("sameName"), "Rush")).toBe(false);
   });
 });
