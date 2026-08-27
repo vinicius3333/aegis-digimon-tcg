@@ -2380,3 +2380,23 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `git diff --check` pass. Typecheck was not rerun because no typing-sensitive
   source changed; the last known unrelated baseline remains documented.
 - Remaining ambiguity: none identified.
+
+## BT5-061 — Commandramon — 10/10
+
+- Catalog evidence: Black Lv.3 Rookie Digimon, Virus/Cyborg/D-Brigade, play
+  cost 4, 2000 DP, and black Lv.2 evolution cost 0. Its only executable text is
+  Blocker, and its knowledge-base query exposes no card-specific QA, errata,
+  restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-061.ts` carries one static
+  Blocker keyword, declares `coverage: "full"` and `residual: []`, and
+  registers exclusively through `registerIrCard("BT5-061", compiled)`.
+- Behavioral proof: existing focused coverage proves the keyword is active and
+  drives the production combat block window. An opposing attack targeting the
+  player is legally redirected to Commandramon, records the exact blocker
+  permanent, and resolves the battle with Commandramon reaching trash.
+- Defect corrected: none. The faithful implementation and focused behavioral
+  proof required no source or test changes.
+- Verification: focused BT5-061 — 2/2 passed. Targeted Oxfmt, Oxlint, and
+  `git diff --check` pass. Typecheck was not rerun because no typing-sensitive
+  source changed.
+- Remaining ambiguity: none identified.
