@@ -2192,3 +2192,35 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-055 — BanchoLillymon — 10/10
+
+- Catalog evidence: Green Lv.6 Mega Digimon, Data/Fairy/Boss, play cost 11,
+  11000 DP, and green Lv.5 evolution cost 3. On deletion it returns exactly 1
+  opposing suspended Digimon to the bottom of its owner's deck and trashes all
+  digivolution cards belonging to that Digimon. Its knowledge-base query
+  exposes no QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-055.ts` now contains one
+  mandatory `OnDeletion` `Return` action selecting exactly one opposing
+  suspended Digimon and sending it to `deckBottom`. The shared Return primitive
+  moves only the top card and automatically trashes every source from that
+  returned permanent. The module declares `coverage: "full"`, `residual: []`,
+  and registers exclusively through `registerIrCard("BT5-055", compiled)`.
+- Primitive, peer, and behavioral evidence: Return/deletion peers BT2-083,
+  BT2-095, BT2-096, and BT4-031 establish that returning a Digimon already
+  trashes only that target's digivolution cards. Focused tests prove exact
+  target instance placement at deck bottom, two target sources in the target
+  owner's trash, exclusion of an upright opposing Digimon, survival of an
+  unrelated own Digimon and its source, and safe no-op resolution when no
+  suspended opposing Digimon exists.
+- Defect corrected: removed an erroneous generated `Trash` action targeting
+  all own Digimon. It duplicated source cleanup incorrectly and could delete
+  every unrelated Digimon controlled by BanchoLillymon's owner after the
+  legitimate return resolved.
+- Verification: focused BT5-055 — 2/2 passed; shared return/deletion suites —
+  145/145 passed. Root's focused peer matrix — 5 files and 16 tests passed.
+  Targeted Oxfmt, Oxlint, and `git diff --check` pass. Workspace typecheck
+  retains only the known unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
