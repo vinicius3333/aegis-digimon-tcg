@@ -4,6 +4,29 @@ import "./BT1-072.js";
 import "./BT1-079.js";
 
 describe("BT1-079 Lillymon", () => {
+  it("evolves from a green level 4 and preserves the source stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-074", as: "base" }],
+        hand: [{ card: "BT1-079", as: "lillymon" }],
+        deck: ["BT1-010"],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("lillymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("lillymon").instanceId);
+
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-074"]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("suspends an opposing Digimon without Blocker when its Digimon attacks", async () => {
     const s = setupEngine(
       {
