@@ -221,6 +221,16 @@ export const whenBlocked = (opts: BuilderOptions): Effect =>
 /** start/end/your-turn windows (source rule implementation, rule implementation, ...). */
 export const turnTiming = (opts: BuilderOptions): Effect => build(opts, {});
 
+/** "When Moving" effects trigger only for the permanent that actually moved. */
+export const whenMoving = (opts: BuilderOptions): Effect =>
+  build(opts, {
+    baseGuard: (ctx) => {
+      const movedPermanentId = ctx.trigger?.movedPermanentId;
+      if (movedPermanentId === undefined) return opts.source.isOnBattleArea();
+      return opts.source.permanent()?.permanentId === movedPermanentId;
+    },
+  });
+
 /**
  * `{Hand}`-icon effects (source OnAddHand window; card-module contract). No
  * on-field base guard: §15-14-2-1 is that the effect activates while the card sits

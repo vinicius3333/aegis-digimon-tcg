@@ -1781,3 +1781,50 @@ git diff --check
 ```
 
 No unresolved BT26-039 ambiguity or unsupported printed clause remains. Only `apps/api/src/cards/BT26/BT26-039.ts`, its colocated focused test, and this appended audit section were changed; no shared engine files were modified. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-039; the collection is not marked complete.
+
+## BT26-040 — Drimogemon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-040` (`Drimogemon`), a green level-4 Champion/Data Digimon with play cost 5, 5000 DP, and `Beast`/`DM`/`Ver.3` traits. Its normal evolution requirement is green Lv.3 for cost 2, and its alternate requirement is `[Digivolve] Lv.3 w/[DM] trait: Cost 2`. The printed keywords are `＜Training＞` and `＜Piercing＞`. The main text is `[When Moving] [On Play] Suspend 1 of your opponent's Digimon. Then, by placing 1 card in your hand face down as this Digimon's bottom digivolution card, this Digimon gets +1000 DP until your opponent's turn ends for each of its face-down digivolution cards.` Its inherited text is `＜Piercing＞`; it has no Security text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-040 --json`; it returns `qa: []`, `banlist: null`, and `errata: null`. No card-specific ruling, erratum, or restriction remains to resolve.
+- Comprehensive Rules evidence: §§2-3-5-1–3 and 8-1-1–3 define the alternate evolution requirement, requirement checking, payment, stack transition, and evolution draw; §§4-7-4, 4-7-9–10 define bottom-stack ordering, face-down information, and owner visibility; §§15-16-2-1 and 15-16-16-1 define On Play and When Moving; §15-7-1–5 covers mandatory/optional processing; §16-7-1–6 defines Piercing; and §16-41-1–3 defines Training. No unresolved card-specific ambiguity remains.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-040.ts` is compiled IR with `coverage: "full"` and `residual: []`. It registers exactly once through `registerIrCard("BT26-040", compiled)` and has no `registerCard` registration.
+- The alternate evolution requirement is exact (`level: 3`, `traits: ["DM"]`, `cost: 2`, `isAlternate: true`); the shared evolution path supplies the normal green Lv.3/cost-2 route and preserves requirement validation, cost payment, stack transition, and draw behavior.
+- The printed `Training` and `Piercing` keywords are carried by a static effect; keyword registration synthesizes the standard Training activation, while the inherited static effect supplies Piercing to a host carrying Drimogemon. The combined `[When Moving] [On Play]` clause is represented by independent trigger entries sharing one action sequence.
+- That sequence mandates `Suspend` of exactly one opponent-controlled Digimon, then offers the optional processing condition to place exactly one card from the controller's hand (with no kind restriction, matching “1 card”) face down at the bottom of this Digimon's stack. `ModifyDP` targets this Digimon, scales by every face-down card in its digivolution stack (including the newly placed card), and lasts through the opponent's turn end only when the placement acted.
+- Shared seams inspected: alternate/normal evolution legality and stack transition; Training keyword synthesis and On Declaration activation; permanent targeting/controller/kind matching; `PlaceUnder` hand-zone selection, bottom ordering, face-down orientation, and acted receipt; face-down stack scaling; duration sweep; inherited keyword projection; Piercing combat processing; and the `WhenMoving` subject guard that scopes the trigger to the moved permanent. Relevant peers inspected: BT26-038, BT26-041, BT26-042, BT26-043, BT26-045, and BT26-077 for DM/TS evolution, suspend/DP, face-down stack, inherited Piercing, and Ver.3 trait interactions.
+
+### Behavioral proof and correction
+
+- The audit found two real fidelity gaps and kept only the necessary corrections: the hand placement had `kind: ["Digimon"]`, which incorrectly excluded Tamer, Option, and other non-Digimon cards despite the printed “1 card in your hand,” and the shared `WhenMoving` builder did not scope the event to its `movedPermanentId`. The card filter now scopes only to the controller's hand, and the reusable builder guard now rejects unrelated moves.
+- `apps/api/src/cards/BT26/BT26-040.test.ts` has 11 passing tests. It proves both the printed green Lv.3 evolution and exact DM alternate evolution, plus rejection of a non-DM Lv.3 base; mandatory opponent-Digimon suspension while excluding a Tamer; placement of a non-Digimon Tamer card from hand; explicit refusal of the optional placement while the mandatory suspension still resolves; scaling from a pre-existing plus newly placed face-down stack; DP expiry at opponent turn end; self-only When Moving source behavior including rejection of an unrelated move; no buff with no hand card; Training activation; and inherited Piercing projection on a realistic evolution host.
+- The mixed-board and stacked-source tests assert final zones, face-down state, exact DP totals (5000 + 2000 for two face-down cards), and no action rejection. The evolution-stack test confirms the Drimogemon transition from a real off-color DM base and the negative near-match. Shared Training and Piercing conformance suites provide the mechanism-level keyword proof.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-040 --json
+  PASS (qa: []; banlist: null; errata: null)
+pnpm --filter @aegis/api exec vitest run src/cards/BT26/BT26-040.test.ts
+  PASS (1 file, 11 tests)
+pnpm --filter @aegis/api exec vitest run src/cards/BT24/BT24-034.test.ts src/cards/BT26/BT26-034.test.ts src/cards/BT26/BT26-035.test.ts src/cards/BT26/BT26-036.test.ts src/cards/BT26/BT26-038.test.ts src/cards/BT26/BT26-039.test.ts src/cards/BT26/BT26-041.test.ts src/cards/BT26/BT26-042.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts
+  PASS (11 files, 405 tests)
+pnpm --filter @aegis/api exec vitest run src/engine/actions/digivolve.test.ts src/engine/effects/digivolveCandidateLegality.test.ts src/engine/conformance/ch16a-security-blocker-draw.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts
+  PASS (4 files, 79 tests)
+pnpm --filter @aegis/api exec vitest run <all 26 focused card suites containing WhenMoving> src/engine/conformance/ch15-04-continuous-and-static.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts
+  27 files PASS (477 tests); 2 pre-existing unrelated failures in EX11-038 and EX11-048 (both expect undefined but receive [] for an empty digivolution-requirement list, reproduced in isolation)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxlint apps/api/src/cards/BT26/BT26-040.ts apps/api/src/cards/BT26/BT26-040.test.ts apps/api/src/engine/effects/builders.ts apps/api/src/engine/effects/interpreter/effect.ts
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-040.ts apps/api/src/cards/BT26/BT26-040.test.ts apps/api/src/engine/effects/builders.ts apps/api/src/engine/effects/interpreter/effect.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-040 ambiguity or unsupported printed clause remains. `apps/api/src/cards/BT26/BT26-040.ts`, its colocated focused test, the reusable `WhenMoving` builder/interpreter seam, and this appended audit section were changed. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-040; the collection is not marked complete.
