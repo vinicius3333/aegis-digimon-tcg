@@ -2841,3 +2841,30 @@ git diff --check: PASS before commit
 ```
 
 No unresolved BT26-071 limitation remains. The direct IR module, focused test, and ledger changed; the shared engine did not.
+
+## BT26-072 — Peckmon — 10/10
+
+### Contract evidence
+
+- Catalog confirms a purple level-4 `Avian`/`DATA SQUAD` Digimon with play cost 4, 5000 DP, alternate level-3 `DATA SQUAD` evolution for cost 2, Blocker, and inherited On Deletion opponent hand trash.
+- On Play/When Digivolving offers a modal cost: trash one hand card, or place one hand card face down at the bottom under an own `Keenan Crier`; either paid mode deletes one opposing level-4-or-lower Digimon. KB Q7094–Q7097 cover bottom placement, face-down access/order, and face-up trash conversion.
+
+### Implementation mapping
+
+- `BT26-072.ts` has full IR coverage, no residual, and exclusive `registerIrCard` registration. Static Blocker, both optional modal windows, exact placement/trash costs, opponent level filter, and inherited opponent-selected hand trash are encoded.
+- Modal processing, bottom/face state, target boundary, chooser semantics, evolution, Blocker, and peers were inspected.
+
+### Behavioral proof
+
+- `BT26-072.test.ts` covers catalog/IR, evolution, hand-trash deletion, bottom placement under an existing Keenan stack, face-down-to-face-up trash conversion, Blocker, and inherited discard.
+- Added direct When Digivolving execution, refusal of both alternatives, and an exact level-4 target while a level-7 target remains, closing timing/optional/boundary proof gaps. The module required no correction.
+
+### Verification
+
+```text
+Knowledge-base query: PASS (Q7094-Q7097)
+Automation: NOT RUN by user instruction
+git diff --check: PASS before commit
+```
+
+No unresolved BT26-072 limitation remains. Only its focused test and ledger changed; the implementation and engine remain unchanged.
