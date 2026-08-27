@@ -3489,3 +3489,27 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   runAction/loose targeting, and the primitive interface exhaustiveness test;
   no changed file reports an error.
 - Remaining ambiguity: none identified.
+
+## BT5-104 — Catastrophe Cannon — 10/10
+
+- Catalog and ruling evidence: Black Option with use cost 4. Main performs
+  De-Digivolve 2 on one opposing Digimon, then may play one Diaboromon Token for
+  free if the controller has a Digimon named exactly Diaboromon. Security
+  activates Main. Q1377/Q1378 confirm the De-Digivolve and token sequencing and
+  boundaries.
+- Implementation: `apps/api/src/cards/BT5/BT5-104.ts` sequences mandatory
+  opponent DeDigivolve 2 and an independent optional PlayToken gated by an own
+  battle-area `nameExact` Diaboromon condition. Security activates Main. Full
+  residual-free coverage and exclusive `registerIrCard("BT5-104", compiled)`
+  registration are preserved.
+- Behavioral proof: seven focused tests prove exact two-card removal and source
+  identities, the Lv.3 stopping boundary, token creation even without a valid
+  De-Digivolve target, exact-name rejection of Diaboromon (X Antibody), optional
+  refusal, full token identity/stats, and Security activation.
+- Defect corrected: the Diaboromon condition used substring matching and
+  incorrectly admitted Diaboromon (X Antibody). It now uses `nameExact` with a
+  real near-name regression fixture.
+- Verification: focused BT5-104 — 7/7 passed; exact-name mechanism — 4/4.
+  Targeted Oxfmt, Oxlint, registration search, and `git diff --check` pass. No
+  shared engine seam changed.
+- Remaining ambiguity: none identified.
