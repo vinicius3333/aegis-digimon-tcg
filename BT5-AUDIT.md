@@ -2170,3 +2170,25 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-054 — Piximon — 10/10
+
+- Catalog evidence: Green Lv.5 Ultimate Digimon, Data/Fairy, play cost 7,
+  8000 DP, and green Lv.4 evolution cost 2. It has no main, inherited,
+  Security, or alternate-evolution text, and its knowledge-base query exposes
+  no QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-054.ts` intentionally contains
+  `effects: []`, `coverage: "full"`, and `residual: []`, and registers
+  exclusively through `registerIrCard("BT5-054", compiled)`. This exactly
+  represents the vanilla card without a legacy registration seam.
+- Behavioral and structural proof: focused coverage verifies Piximon has no
+  continuous DP modification after recomputation and verifies the empty,
+  residual-free runtime module remains registered.
+- Defect corrected: none. The module and existing focused tests were already
+  faithful, so no source or test changes were made.
+- Verification: focused BT5-054 — 2/2 passed. Exact-file Oxfmt, Oxlint, and
+  `git diff --check` pass. Workspace typecheck retains only the known unrelated
+  baseline errors in `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
