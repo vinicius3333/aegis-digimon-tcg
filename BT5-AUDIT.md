@@ -3263,3 +3263,31 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   mechanism — 5/5 passed. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No production or shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-095 — Transcendent Sword — 10/10
+
+- Catalog and ruling evidence: Red Option with use cost 7. Main deletes one
+  opposing Digimon with 11000 DP or less; if the controller has an Omnimon or a
+  Digimon with Greymon in its name, excluding cards named exactly DoruGreymon,
+  BurningGreymon, and DexDoruGreymon, the ceiling becomes 15000 DP instead.
+  Security activates the Main effect. The local knowledge base contains no
+  card-specific ruling or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-095.ts` encodes mutually exclusive
+  one-target Delete branches at the exact DP ceilings, with own-board
+  Omnimon/Greymon qualification and explicit `nameExact` exclusions. Security
+  activates Main. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-095", compiled)` registration are preserved.
+- Behavioral proof: seven focused tests prove the exact 11000 and 15000
+  boundaries, one deletion among multiple legal targets, opponent-only
+  targeting, upgrade from an own Omnimon, no upgrade from an opposing Omnimon
+  or excluded DoruGreymon, resolution with no legal target, and Security
+  activation. Structural proof locks both branches and every exact exclusion.
+- Defect corrected: the three excluded names used the legacy `excludeNames`
+  representation without explicit literal semantics. They now use
+  `excludeNameOrTrait` entries with `nameExact`; the focused test also waits for
+  the exact post-resolution board rather than an impossible intermediate size.
+- Verification: focused BT5-095 — 7/7 passed; BT5-096 peer — 3/3; exact-name
+  mechanism — 4/4; targeted activation/deletion interpreter subset — 9/9.
+  Targeted Oxfmt, Oxlint, registration search, and `git diff --check` pass. No
+  shared engine seam changed.
+- Remaining ambiguity: none identified.

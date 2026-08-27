@@ -26,7 +26,11 @@ const compiled: CompiledCard = {
           condition: {
             kind: "youHaveNone",
             filter: {
-              excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+              excludeNameOrTrait: [
+                { tokens: ["DoruGreymon"], match: "nameExact" },
+                { tokens: ["BurningGreymon"], match: "nameExact" },
+                { tokens: ["DexDoruGreymon"], match: "nameExact" },
+              ],
               zone: "battleArea",
               controllerDefault: "mine",
               kind: ["Digimon"],
@@ -56,7 +60,11 @@ const compiled: CompiledCard = {
           condition: {
             kind: "youHave",
             filter: {
-              excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
+              excludeNameOrTrait: [
+                { tokens: ["DoruGreymon"], match: "nameExact" },
+                { tokens: ["BurningGreymon"], match: "nameExact" },
+                { tokens: ["DexDoruGreymon"], match: "nameExact" },
+              ],
               zone: "battleArea",
               controllerDefault: "mine",
               kind: ["Digimon"],
