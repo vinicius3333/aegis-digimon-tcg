@@ -3317,3 +3317,26 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   subset — 7/7 passed. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No shared engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-097 — Absolute Blast — 10/10
+
+- Catalog and ruling evidence: Blue Option with use cost 6. Main trashes the
+  bottom evolution card of one opposing Digimon, then places one opposing
+  Digimon with no evolution cards at the bottom of its owner's deck. Security
+  activates Main. Q1373 confirms the two selected Digimon may be different.
+- Implementation: `apps/api/src/cards/BT5/BT5-097.ts` sequences an opposing
+  source-bearing TrashDigivolution 1 from bottom and an opposing no-source
+  Return to deck bottom. Security activates Main. Full residual-free coverage
+  and exclusive `registerIrCard("BT5-097", compiled)` registration are
+  preserved.
+- Behavioral proof: three focused tests prove distinct Q1373 targets, exact
+  bottom-source identity with the top source retained, opponent-only selection
+  while an own no-source Digimon remains, and exact bottom-deck destination,
+  order, and instance identity. Security proof executes the same Main sequence.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for distinct targets, source order and identity, controller scope, and deck
+  bottom ordering.
+- Verification: focused BT5-097 — 3/3 passed; targeted return-to-deck primitive
+  subset — 3/3 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No production or shared engine source changed.
+- Remaining ambiguity: none identified.
