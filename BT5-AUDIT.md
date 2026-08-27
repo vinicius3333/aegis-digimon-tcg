@@ -3688,3 +3688,30 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   registration search, and `git diff --check` pass. No production or shared
   engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-112 — Omnimon Zwart Defeat — 10/10
+
+- Catalog and ruling evidence: White Lv.7 Mega Digimon,
+  Virus/Royal Knight, play cost 15 and 13000 DP, evolving for 3 from black or
+  purple Lv.6. Its Security effect plays it without battling and without cost.
+  When Digivolving it deletes one opposing Tamer; On Deletion it deletes one
+  opposing Digimon. Q1395–Q1397 and Q5026 confirm the Security, target, and
+  timing interactions.
+- Implementation: `apps/api/src/cards/BT5/BT5-112.ts` encodes Security self-play
+  without cost, count-one opponent-Tamer deletion on evolution, and count-one
+  opponent-Digimon deletion on deletion. Full residual-free coverage and
+  exclusive `registerIrCard("BT5-112", compiled)` registration are preserved.
+- Behavioral proof: eight focused structural and real-engine tests prove
+  registration, exact Security self instance and free play, legal evolution and
+  opponent-Tamer-only deletion, On Deletion opponent-Digimon deletion, timing
+  isolation, and an actual Security attack where Zwart Defeat enters without a
+  battle and the attacker survives. Four focused control-deck tests cover the
+  same Security/control interactions in representative decks.
+- Defect corrected: no executable behavior defect. Real-engine evolution,
+  deletion, and Security integration proofs were added to the existing
+  structural suite.
+- Verification: focused BT5-112 — 8/8 passed; Security play primitive — 1/1;
+  Zwart Defeat control/security peers — 4/4. Targeted Oxfmt, Oxlint (one
+  pre-existing fake-context naming warning only), registration search, and
+  `git diff --check` pass. No production or shared engine source changed.
+- Remaining ambiguity: none identified.
