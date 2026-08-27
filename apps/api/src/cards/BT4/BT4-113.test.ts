@@ -15,6 +15,16 @@ describe("BT4-113 AncientGreymon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("ancient"), "SecurityAttack")).toBe(3);
   });
 
+  it("counts a source matching both Greymon and Hybrid only once", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT4-113", as: "ancient", under: ["BT12-017"] }],
+      },
+    });
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).keywordAmount(s.perm("ancient"), "SecurityAttack")).toBe(1);
+  });
+
   it("may play a red level 4 or lower Hybrid from hand when deleted", async () => {
     const s = setupEngine(
       {

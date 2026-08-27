@@ -1,6 +1,6 @@
 # BT4 Card Implementation Audit
 
-Status: static card-by-card pass in progress; execution gates deferred
+Status: initial static card-by-card pass complete; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -25,7 +25,7 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT4-081–090 | Static audit delivered | `internal-docs/audits/BT4/BT4-081-090.md` | Yes |
 | BT4-091–100 | Static audit delivered | `internal-docs/audits/BT4/BT4-091-100.md` | Yes |
 | BT4-101–110 | Static audit delivered | `internal-docs/audits/BT4/BT4-101-110.md` | Yes |
-| BT4-111–115 | Luna in progress | `internal-docs/audits/BT4/BT4-111-115.md` | No |
+| BT4-111–115 | Static audit delivered | `internal-docs/audits/BT4/BT4-111-115.md` | Yes |
 
 ## Score model
 
@@ -153,6 +153,11 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-108 Cyclonic Kick | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected own-unsuspend then opponent-suspend order with independent-half proof |
 | BT4-109 Final Zubagon Punch | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bound DP threshold and three-keyword duration through the opponent's next turn |
 | BT4-110 Dark Roar | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Dynamic D-Brigade target-ceiling scaling with positive and negative cost boundaries |
+| BT4-111 Jack Raid | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Complete-ten trash scaling, nine-card pre-resolution boundary, and Security memory gain |
+| BT4-112 Hell's Gate | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent level-6-or-higher deletion with level-5 negative and Security hand return |
+| BT4-113 AncientGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Greymon-or-Hybrid source union, overlap de-duplication, and optional Hybrid play |
+| BT4-114 AncientGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Garurumon/Hybrid union with KendoGarurumon boundary, two-target cap, and optional play |
+| BT4-115 Lucemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Hand-resident play discount, Recovery +1, and Lucemon-only evolution restriction |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT4/`.
 
@@ -160,9 +165,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 115
 - Assigned: 115
-- Integrated card audits: 110
-- Corrected: 16
-- Provisional: 110
+- Integrated card audits: 115
+- Corrected: 17
+- Provisional: 115
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
