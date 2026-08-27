@@ -2400,3 +2400,26 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `git diff --check` pass. Typecheck was not rerun because no typing-sensitive
   source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-062 — Mekanorimon — 10/10
+
+- Catalog evidence: Black Lv.4 Champion Digimon, Virus/Machine, play cost 4,
+  6000 DP, and black Lv.3 evolution cost 3. It has Blocker, cannot attack
+  during its controller's turn, and during the opponent's turn unsuspends when
+  it deletes an opposing Digimon in battle and survives. Its knowledge-base
+  query exposes no card-specific QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-062.ts` carries the static
+  Blocker keyword, a `YourTurn` self attack restriction, and an
+  `OpponentsTurn` `whenDeletesInBattle` self-anchored watcher that unsuspends
+  Mekanorimon. It declares full residual-free coverage and registers
+  exclusively through `registerIrCard("BT5-062", compiled)`.
+- Behavioral proof: focused coverage proves the Blocker keyword and rejects a
+  real attack intent by Mekanorimon during its own turn. A production combat
+  case on the opponent's turn has a weaker opposing attacker battle suspended
+  Mekanorimon; Mekanorimon deletes it, survives, and becomes unsuspended.
+- Defect corrected: none. The module and focused behavioral proof were already
+  faithful, so no source or test changes were made.
+- Verification: focused BT5-062 — 2/2 passed. Targeted Oxfmt, Oxlint, and
+  `git diff --check` pass. Typecheck was not rerun because no typing-sensitive
+  source changed.
+- Remaining ambiguity: none identified.
