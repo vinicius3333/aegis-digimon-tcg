@@ -1,15 +1,18 @@
 // HAND-AUTHORED IR for BT25-041 Murasamemon.
 //
 // The printed effect offers two independent cost choices (add the top security card to hand or
-// trash a bottom face-down card under a Tamer), followed by a choice to play a Digimon or use an
-// Option. The nested modals preserve both choices instead of tying one cost to one card kind.
+// trash a bottom face-down card under a Tamer), followed by a choice to play a Digimon/Tamer or use
+// an Option. The nested modals preserve both choices instead of tying one cost to one card kind.
 import type { CompiledCard, Cost } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const trait = [{ tokens: ["Glowing Dawn"], match: "trait" as const }];
 const digimon = {
   kind: "PlayWithoutCost" as const,
-  target: { filter: { controller: "mine" as const, kind: ["Digimon" as const], nameOrTrait: trait }, count: 1 },
+  target: {
+    filter: { controller: "mine" as const, kind: ["Digimon" as const, "Tamer" as const], nameOrTrait: trait },
+    count: 1,
+  },
   from: ["hand" as const],
   payCost: true,
   reduceCostBy: 3,
@@ -26,7 +29,7 @@ function playOrUseWithCost(cost: Cost) {
   return {
     kind: "Modal" as const,
     choose: 1,
-    labels: ["Play a Glowing Dawn Digimon", "Use a Glowing Dawn Option"],
+    labels: ["Play a Glowing Dawn Digimon or Tamer", "Use a Glowing Dawn Option"],
     options: [[{ ...digimon }], [{ ...option }]],
     cost,
   };
@@ -75,7 +78,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Unsuspend",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          target: { filter: { isSelfRef: true, kind: ["Digimon"], nameOrTrait: trait }, count: 1, isSelf: true },
           cost: {
             kind: "trashBottomFaceDownUnderTamer",
             controller: "mine",

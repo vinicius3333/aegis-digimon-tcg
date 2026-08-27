@@ -819,3 +819,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-040.
+
+## BT25-041 — Murasamemon — 10/10
+
+- Catalog evidence: Yellow level-5 Digimon, play cost 7, 7000 DP, `Ultimate`/`Virus`, `Beastkin`/`Glowing Dawn`/`BEATBREAK`; standard yellow level-4 evolution for 3 plus alternate level-4 `Glowing Dawn` evolution for 3; Alliance; shared once-per-turn When Digivolving/When Attacking during the controller's turn chooses either top-security-to-hand or bottom-face-down-under-Tamer payment, then may play or use one Glowing Dawn card from hand at cost -3; inherited End of Attack once-per-turn pays the Tamer-under-card cost to unsuspend this Glowing Dawn Digimon.
+- Knowledge base: `node tools/kb/query.mjs card BT25-041` returned no entries, so there are no local card-specific rulings, errata, restrictions, or unresolved ambiguities to apply. The printed modal grammar requires both payment choices to feed both play/use choices rather than pairing one cost with one card kind.
+- Implementation: nested Modal actions preserve the 2×2 choice matrix, use executable `securityToHand` and `trashBottomFaceDownUnderTamer` costs, allow Glowing Dawn Digimon/Tamers through PlayWithoutCost or Options through UseOptionWithoutCost, pay the remaining cost after -3, and share once-per-turn scope. The inherited target requires the resulting host to be a Glowing Dawn Digimon. Alliance and alternate evolution are complete. Direct/shared IR are synchronized, full/residual-free, and exclusively register through `registerIrCard("BT25-041", compiled)`.
+- Defects corrected: the play branch excluded Tamers despite the printed word “card”; stale raw replacement/cost forms were replaced with the full nested modal execution; the inherited Unsuspend lacked the Glowing Dawn host restriction; and alternate evolution coverage was added. Root review also updated the modal label so the UI accurately advertises Digimon-or-Tamer selection.
+- Behavioral proof: the focused suite verifies Alliance, both costs across both shared timings, Glowing Dawn Tamer play with exact remaining payment, inherited accepted cost/unsuspend, non-Glowing-Dawn host rejection, alternate evolution, and accurate modal labels. The Tamer play and inherited negative case fail against the prior IR.
+- Verification: focused suite — 7 passed; focused/catalog — 22 passed; mechanisms — 45 passed; targeted Oxfmt/Oxlint, shared-IR JSON parse, and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-041 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-041
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-041.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-041.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-041.ts apps/api/src/cards/BT25/BT25-041.test.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-041.
