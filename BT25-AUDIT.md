@@ -1117,3 +1117,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-056.
+
+## BT25-057 — Monarchlizamon / Final Judgment — 10/10
+
+- Catalog evidence: green/black level-5 dual Digimon/Option; alternate level-4 Glowing Dawn evolution for 3; conditional color waiver; shared once-per-turn When Digivolving/When Attacking paid De-Digivolve 1; separate When Digivolving rules battle; Final Judgment grants one friendly Digimon Rush, Security Attack +1, and +5000 DP for the turn, then may attack with that same Digimon.
+- Knowledge base: 2026-05-15 errata changes Final Judgment's grants to `for the turn`. Q6341–Q6344 cover simultaneous triggers, direct battle, unaffected participants, and the Arts Digivolve attack timing.
+- Implementation: exact paid cost, shared-use key, direct battle, corrected errata duration, and same-target Option chain are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-057", compiled)`.
+- Verification: focused — 5 passed; neighboring battle regressions — 15 passed; `git diff --check` — passed. No direct behavioral defect was found, so no implementation or test change was made; persisted IR synchronization follows separately.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-057
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-057.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-057.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-057.
