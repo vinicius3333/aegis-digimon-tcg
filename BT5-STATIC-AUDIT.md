@@ -14,9 +14,9 @@ The re-audit intentionally does not execute tests, typecheck, lint, formatting, 
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT5-001–010 | Queued for Luna | `internal-docs/audits/BT5/BT5-001-010.md` | No |
-| BT5-011–020 | Queued for Luna | `internal-docs/audits/BT5/BT5-011-020.md` | No |
-| BT5-021–030 | Queued for Luna | `internal-docs/audits/BT5/BT5-021-030.md` | No |
+| BT5-001–010 | Luna in progress | `internal-docs/audits/BT5/BT5-001-010.md` | No |
+| BT5-011–020 | Luna in progress | `internal-docs/audits/BT5/BT5-011-020.md` | No |
+| BT5-021–030 | Luna in progress | `internal-docs/audits/BT5/BT5-021-030.md` | No |
 | BT5-031–040 | Queued for Luna | `internal-docs/audits/BT5/BT5-031-040.md` | No |
 | BT5-041–050 | Queued for Luna | `internal-docs/audits/BT5/BT5-041-050.md` | No |
 | BT5-051–060 | Queued for Luna | `internal-docs/audits/BT5/BT5-051-060.md` | No |
