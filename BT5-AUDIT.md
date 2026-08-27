@@ -3103,3 +3103,30 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   search, and `git diff --check` pass. No production or shared engine source
   changed.
 - Remaining ambiguity: none identified.
+
+## BT5-089 — Izzy Izumi & Mimi Tachikawa — 10/10
+
+- Catalog and ruling evidence: Green Tamer with play cost 4. At the start of the
+  controller's turn it gains 2 memory if the opponent has a suspended Digimon.
+  During the controller's turn, when an own green Lv.5 attacks, this Tamer may
+  suspend to reveal the top three cards, may evolve the attacker into one
+  revealed green Lv.6 for free, and places the rest at deck bottom in any
+  order. Security plays it for free. Q1360–Q1367 confirm the timing,
+  optionality, reveal boundary, evolution behavior, ordering, and activation
+  boundaries.
+- Implementation: `apps/api/src/cards/BT5/BT5-089.ts` maps the exact suspended
+  opponent memory condition, installs an own green exact-Lv.5 attack
+  subtrigger, and uses an optional self-suspend RevealAdd with optional free
+  evolution onto the trigger source and bottom-any-order cleanup. Security
+  plays self without cost. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-089", compiled)` registration are preserved.
+- Behavioral proof: eight focused tests prove the memory condition, exact
+  attack source scope, free revealed evolution and remaining-card bottom
+  ordering, no valid evolution choice, refusal before reveal, fewer-than-three
+  deck clamping, rejection of a green non-Lv.5 attacker, and free Security play.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for refusal, short-deck behavior, and exact attacker-level exclusion.
+- Verification: focused BT5-089 — 8/8 passed; targeted RevealAdd interpreter
+  mechanism — 7/7 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No production or shared engine source changed.
+- Remaining ambiguity: none identified.

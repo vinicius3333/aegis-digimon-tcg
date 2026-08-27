@@ -180,6 +180,92 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
     expect(s.perm("attacker").topCard.cardId).toBe("BT5-058");
   });
 
+  it("may decline before revealing cards, leaving the Tamer and deck unchanged", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-089", as: "tamer" },
+            { card: "BT5-052", as: "attacker" },
+          ],
+          deck: ["BT5-055", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").isSuspended);
+
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
+  it("reveals as many cards as available when fewer than three remain", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-089", as: "tamer" },
+            { card: "BT5-052", as: "attacker" },
+          ],
+          deck: [
+            { card: "BT5-055", as: "level6" },
+            { card: "BT1-010", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.instanceId === s.inst("level6").instanceId);
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.deck[0]?.instanceId).toBe(s.inst("other").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("does not trigger when a non-level-5 green Digimon attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-089", as: "tamer" },
+            { card: "BT5-051", as: "attacker" },
+          ],
+          deck: ["BT5-055", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").isSuspended);
+
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
   it("plays itself from security without paying its cost", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT5-089", as: "security", faceUp: true }] } });
 
