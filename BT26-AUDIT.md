@@ -3015,6 +3015,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR/exclusive `registerIrCard`; current-security cost scaling, bound Aegiomon host, hand/trash Jupitermon evolution ignoring requirements, gated optional top-source placement, and Security fallback.
 - Proof: scaling, both named Tamers, both evolution zones, follow-up/refusal/unavailable cost, Security play/fallback. No change; automation not run; diff check passed. No limitation.
 
+## BT26-098 — Queen of Thorns — 10/10
+
+- Catalog/KB: green cost-5 DATA SQUAD Option, face-down Tamer-stack reduction, named two-material Main evolution, and Security play/add confirmed. Q7173 requires both Sunflowmon and Lilamon atomically.
+- Implementation: full IR/exclusive `registerIrCard`; optional cost modifier trashes one bottom face-down card for -2, Main places both exact trash materials under one Lalamon then offers free Rosemon evolution, and Security offers Lalamon/Yoshino before adding self to hand.
+- Proof: reducer/refusal, both Security branches/fallback, positive evolution, and Q7173 partial failure. No change; automation not run; diff check passed. No unresolved static limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
