@@ -12,6 +12,7 @@ const deleteAction = {
   },
   optional: true,
   abortOnDecline: true,
+  allowCostWithoutTarget: true,
 };
 export const compiled: CompiledCard = {
   effects: [

@@ -2814,3 +2814,30 @@ git diff --check: PASS before commit
 ```
 
 No unresolved BT26-070 limitation remains. Only its focused test and this ledger section changed; the implementation remains unchanged.
+
+## BT26-071 — Flarerizamon — 10/10
+
+### Contract evidence
+
+- Catalog confirms a purple/red level-4 Digimon with play cost 4, 5000 DP, alternate level-3 `NSo` evolution for cost 2, and inherited Raid.
+- On Play/When Digivolving, by deleting one own Digimon, may delete one opposing level-4-or-lower Digimon. Under Comprehensive Rules §15-7-5, the optional processing cost may be paid even if the following target does not exist.
+- The KB has no card-specific Q&A, erratum, or restriction.
+
+### Implementation mapping
+
+- `BT26-071.ts` has full IR coverage and exclusive `registerIrCard` registration. Both timing windows share the optional own-delete cost and opponent level filter; inherited Raid and evolution are exact.
+- `allowCostWithoutTarget: true` was added to match §15-7-5. Previously the engine incorrectly suppressed payment when no legal opposing target existed.
+
+### Behavioral proof
+
+- `BT26-071.test.ts` covers positive payment/deletion, refusal, off-color NSo evolution, inherited Raid publication/execution, and now payment without a legal opposing level-4 target. The corrected case observes the own Digimon deleted while the opposing level-5 survives.
+
+### Verification
+
+```text
+Knowledge-base query: PASS (no card-specific entries)
+Automation: NOT RUN by user instruction
+git diff --check: PASS before commit
+```
+
+No unresolved BT26-071 limitation remains. The direct IR module, focused test, and ledger changed; the shared engine did not.

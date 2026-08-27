@@ -25,7 +25,11 @@ describe("BT26-071 Flarerizamon", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects.map((e) => e.trigger)).toEqual(["Static", "OnPlay", "WhenDigivolving"]);
-    expect(compiled.effects[1]?.actions[0]).toMatchObject({ optional: true, abortOnDecline: true });
+    expect(compiled.effects[1]?.actions[0]).toMatchObject({
+      optional: true,
+      abortOnDecline: true,
+      allowCostWithoutTarget: true,
+    });
   });
   it("uses the cost-2 NSo evolution path from an off-color level 3", async () => {
     const s = setupEngine({
@@ -91,7 +95,7 @@ describe("BT26-071 Flarerizamon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(ownCount);
     expect(s.state.players[1]!.battleArea).toHaveLength(opponentCount);
   });
-  it("does not pay its own-Digimon cost without a legal opposing level-4 target", async () => {
+  it("may pay its own-Digimon cost even without a legal opposing level-4 target", async () => {
     const s = setupEngine(
       {
         0: {
@@ -104,13 +108,12 @@ describe("BT26-071 Flarerizamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const ownIds = s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId);
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("flarerizamon"));
 
-    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(ownIds);
-    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-071"]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-054"]);
   });
   it("grants inherited Raid to its evolution host", async () => {
     const s = setupEngine({
