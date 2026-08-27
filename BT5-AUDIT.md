@@ -3385,3 +3385,27 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   registration search, and `git diff --check` pass. No production or shared
   engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-100 — Royal Nuts — 10/10
+
+- Catalog and ruling evidence: Green Option with use cost 3. Main reveals the
+  top five cards, adds one Digimon card with Digisorption among them to hand,
+  and places the remaining revealed cards at deck bottom in any order. Security
+  adds this card to its owner's hand. The local knowledge base contains no
+  card-specific ruling or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-100.ts` uses RevealAdd 5 with a
+  count-one Digimon keyword filter, deck-bottom cleanup, and AddToHandSelf for
+  Security. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-100", compiled)` registration are preserved.
+- Behavioral proof: three focused tests prove exactly five revealed cards with
+  an unrevealed sentinel preserved, exactly one chosen instance among duplicate
+  eligible Digisorption cards, and every other revealed instance placed below
+  the sentinel. The no-match case bottoms all five, and Security moves the exact
+  Option instance to hand.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for reveal count, duplicate eligibility, exact selection cardinality,
+  remaining-card destination, no-match cleanup, and instance identity.
+- Verification: focused BT5-100 — 3/3 passed; targeted RevealAdd interpreter
+  mechanism — 7/7 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No production or shared engine source changed.
+- Remaining ambiguity: none identified.
