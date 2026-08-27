@@ -98029,7 +98029,18 @@
         "actions": [
           {
             "kind": "Suspend",
-            "target": { "filter": { "controllerDefault": "any", "kind": ["Tamer"], "colors": ["Purple"] }, "count": 1 }
+            "target": {
+              "filter": {
+                "controllerDefault": "any",
+                "kind": [
+                  "Tamer"
+                ],
+                "excludeColors": [
+                  "Purple"
+                ]
+              },
+              "count": 1
+            }
           }
         ]
       },
@@ -98038,7 +98049,18 @@
         "actions": [
           {
             "kind": "Suspend",
-            "target": { "filter": { "controllerDefault": "any", "kind": ["Tamer"], "colors": ["Purple"] }, "count": 1 }
+            "target": {
+              "filter": {
+                "controllerDefault": "any",
+                "kind": [
+                  "Tamer"
+                ],
+                "excludeColors": [
+                  "Purple"
+                ]
+              },
+              "count": 1
+            }
           }
         ]
       },
@@ -98048,8 +98070,18 @@
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
-            "sourceFilter": { "controller": "opponent", "kind": ["Tamer"] },
-            "actions": [{ "kind": "GainMemory", "amount": 1 }]
+            "sourceFilter": {
+              "controller": "opponent",
+              "kind": [
+                "Tamer"
+              ]
+            },
+            "actions": [
+              {
+                "kind": "GainMemory",
+                "amount": 1
+              }
+            ]
           }
         ],
         "frequency": "OncePerTurn"
@@ -98058,7 +98090,12 @@
         "trigger": "Static",
         "actions": [],
         "isInherited": true,
-        "keywords": [{ "keyword": "Retaliation", "raw": "＜Retaliation＞" }]
+        "keywords": [
+          {
+            "keyword": "Retaliation",
+            "raw": "＜Retaliation＞"
+          }
+        ]
       }
     ],
     "coverage": "full",
@@ -98074,17 +98111,34 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Tamer"],
-                "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                "kind": [
+                  "Tamer"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Three Musketeers"
+                    ],
+                    "match": "text"
+                  }
+                ]
               },
               "count": 1
             },
-            "from": ["hand"],
+            "from": [
+              "hand"
+            ],
             "payCost": false,
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "kind": ["Tamer"] },
-              "raw": "you have 1 or fewer Tamers"
+              "filter": {
+                "controllerDefault": "mine",
+                "kind": [
+                  "Tamer"
+                ],
+                "countMax": 1
+              },
+              "countMax": 1
             },
             "optional": true
           }
@@ -98098,17 +98152,34 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Tamer"],
-                "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                "kind": [
+                  "Tamer"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Three Musketeers"
+                    ],
+                    "match": "text"
+                  }
+                ]
               },
               "count": 1
             },
-            "from": ["hand"],
+            "from": [
+              "hand"
+            ],
             "payCost": false,
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "kind": ["Tamer"] },
-              "raw": "you have 1 or fewer Tamers"
+              "filter": {
+                "controllerDefault": "mine",
+                "kind": [
+                  "Tamer"
+                ],
+                "countMax": 1
+              },
+              "countMax": 1
             },
             "optional": true
           }
@@ -98119,12 +98190,27 @@
         "actions": [
           {
             "kind": "Digivolve",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "into": {
               "filter": {
                 "controllerDefault": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Three Musketeers"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": 1
             },
@@ -98136,16 +98222,26 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "kind": ["Tamer"],
-                "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
-              },
-              "raw": "you have a Tamer with [Three Musketeers] in its text"
+                "kind": [
+                  "Tamer"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Three Musketeers"
+                    ],
+                    "match": "text"
+                  }
+                ]
+              }
             }
           }
         ]
       },
       {
         "trigger": "WhenAttacking",
+        "isInherited": true,
+        "frequency": "OncePerTurn",
         "actions": [
           {
             "kind": "Draw",
@@ -98156,12 +98252,21 @@
               "target": {
                 "filter": {
                   "controller": "mine",
-                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }]
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Three Musketeers"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
                 },
                 "count": 1,
-                "from": ["hand", "trash"]
+                "from": [
+                  "hand",
+                  "trash"
+                ]
               },
-              "raw": "By placing 1 [Three Musketeers] trait card from your hand or trash as this Digimon's bottom digivolution card",
               "destination": "digivolutionStack",
               "position": "bottom",
               "host": "self"
@@ -98169,16 +98274,28 @@
             "optional": true,
             "abortOnDecline": true
           }
-        ],
-        "isInherited": true,
-        "frequency": "OncePerTurn"
+        ]
       }
     ],
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "level": 3, "texts": ["Three Musketeers"], "cost": 2, "isAlternate": true },
-      { "traits": ["TS"], "cost": 2, "isAlternate": true, "level": 3 }
+      {
+        "level": 3,
+        "texts": [
+          "Three Musketeers"
+        ],
+        "cost": 2,
+        "isAlternate": true
+      },
+      {
+        "level": 3,
+        "traits": [
+          "TS"
+        ],
+        "cost": 2,
+        "isAlternate": true
+      }
     ]
   },
   "BT25-083": {
@@ -98195,11 +98312,31 @@
               "target": {
                 "filter": {
                   "controller": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }]
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Three Musketeers"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
                 },
                 "count": 1,
-                "from": ["hand", "trash"]
+                "from": [
+                  "hand",
+                  "trash"
+                ]
+              },
+              "destination": "digivolutionStack",
+              "position": "bottom",
+              "host": {
+                "filter": {
+                  "controller": "mine",
+                  "kind": [
+                    "Digimon"
+                  ]
+                },
+                "count": 1
               },
               "raw": "By placing 1 [Three Musketeers] trait card from your hand or trash as any of your Digimon's bottom digivolution cards"
             },
@@ -98221,11 +98358,31 @@
               "target": {
                 "filter": {
                   "controller": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }]
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Three Musketeers"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
                 },
                 "count": 1,
-                "from": ["hand", "trash"]
+                "from": [
+                  "hand",
+                  "trash"
+                ]
+              },
+              "destination": "digivolutionStack",
+              "position": "bottom",
+              "host": {
+                "filter": {
+                  "controller": "mine",
+                  "kind": [
+                    "Digimon"
+                  ]
+                },
+                "count": 1
               },
               "raw": "By placing 1 [Three Musketeers] trait card from your hand or trash as any of your Digimon's bottom digivolution cards"
             },
@@ -98241,18 +98398,35 @@
             "kind": "UseOptionWithoutCost",
             "filter": {
               "controller": "mine",
-              "kind": ["Option"],
+              "kind": [
+                "Option"
+              ],
               "playCostLte": 99,
-              "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }]
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Three Musketeers"
+                  ],
+                  "match": "trait"
+                }
+              ]
             },
-            "from": ["trash"],
+            "from": [
+              "trash"
+            ],
             "payCost": true,
             "reduceCostBy": 3,
             "allowMultiColor": true,
             "cost": {
               "kind": "trash",
               "target": {
-                "filter": { "controller": "mine", "zone": "digivolutionCards", "kind": ["Option"] },
+                "filter": {
+                  "controller": "mine",
+                  "zone": "digivolutionCards",
+                  "kind": [
+                    "Option"
+                  ]
+                },
                 "count": 1
               },
               "raw": "By trashing 1 Option card from any of your Digimon's digivolution cards"
@@ -98271,18 +98445,35 @@
             "kind": "UseOptionWithoutCost",
             "filter": {
               "controller": "mine",
-              "kind": ["Option"],
+              "kind": [
+                "Option"
+              ],
               "playCostLte": 99,
-              "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "trait" }]
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Three Musketeers"
+                  ],
+                  "match": "trait"
+                }
+              ]
             },
-            "from": ["trash"],
+            "from": [
+              "trash"
+            ],
             "payCost": true,
             "reduceCostBy": 3,
             "allowMultiColor": true,
             "cost": {
               "kind": "trash",
               "target": {
-                "filter": { "controller": "mine", "zone": "digivolutionCards", "kind": ["Option"] },
+                "filter": {
+                  "controller": "mine",
+                  "zone": "digivolutionCards",
+                  "kind": [
+                    "Option"
+                  ]
+                },
                 "count": 1
               },
               "raw": "By trashing 1 Option card from any of your Digimon's digivolution cards"
@@ -98302,13 +98493,27 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "levelComparison": { "op": "lte", "value": 4 },
-                "nameOrTrait": [{ "tokens": ["Three Musketeers"], "match": "text" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "levelComparison": {
+                  "op": "lte",
+                  "value": 4
+                },
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Three Musketeers"
+                    ],
+                    "match": "text"
+                  }
+                ]
               },
               "count": 1
             },
-            "from": ["trash"],
+            "from": [
+              "trash"
+            ],
             "payCost": false,
             "optional": true
           }
@@ -98319,8 +98524,22 @@
     "coverage": "full",
     "residual": [],
     "digivolutionRequirement": [
-      { "level": 4, "texts": ["Three Musketeers"], "cost": 3, "isAlternate": true },
-      { "traits": ["TS"], "cost": 3, "isAlternate": true, "level": 4 }
+      {
+        "level": 4,
+        "texts": [
+          "Three Musketeers"
+        ],
+        "cost": 3,
+        "isAlternate": true
+      },
+      {
+        "traits": [
+          "TS"
+        ],
+        "cost": 3,
+        "isAlternate": true,
+        "level": 4
+      }
     ]
   },
   "BT25-084": {
