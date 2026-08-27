@@ -45,7 +45,7 @@ describe("BT26-057 Bearcatmon", () => {
     });
   });
 
-  it("uses the Lv.4 Glowing Dawn alternate evolution and rejects a non-trait Lv.4", async () => {
+  it("uses the Lv.4 Glowing Dawn alternate evolution and rejects a non-trait base", async () => {
     const legal = setupEngine({
       0: {
         battleArea: [{ card: "BT25-035", as: "glowingDawnBase" }],
@@ -69,7 +69,7 @@ describe("BT26-057 Bearcatmon", () => {
 
     const invalid = setupEngine({
       0: {
-        battleArea: [{ card: "AD1-001", as: "nonGlowingDawnBase" }],
+        battleArea: [{ card: "BT1-032", as: "nonGlowingDawnBase" }],
         hand: [{ card: "BT26-057", as: "bearcatmon" }],
       },
     });
