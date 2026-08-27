@@ -1871,3 +1871,47 @@ git diff --check
 ```
 
 No unresolved BT26-041 ambiguity or unsupported printed clause remains. Only the colocated focused test and this appended audit section were changed; the card implementation and shared engine required no correction. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-041; the collection is not marked complete.
+
+## BT26-042 — Okuwamon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-042` (`Okuwamon`), a green level-5 Ultimate Digimon with play cost 7, 7000 DP, Virus attribute, and `Insectoid`/`Titan`/`TS` traits. Its normal evolution requirement is green Lv.4 for cost 3. Its alternate requirement is `[Digivolve] Lv.4 w/[TS] trait: Cost 3`. The main text is `[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.` The second main clause is `[On Play] [When Attacking] [Once Per Turn] Until your opponent's turn ends, 1 of your [Insectoid] or [Titan] trait Digimon gains ＜Piercing＞ and +3000 DP.` The inherited text is `[All Turns] [Once Per Turn] When this Digimon deletes your opponent's Digimon in battle, trash their top security card.` It has no Security text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-042 --json`; it returns Q7031–Q7033, with no banlist restriction or erratum. Q7031 confirms that the second Digimon/Tamer need not be the card suspended by the first clause. Q7032 confirms that the inherited effect cannot activate when this Digimon and the opponent's Digimon are deleted simultaneously. Q7033 confirms that the two On Play effects trigger simultaneously and the controller chooses their activation order.
+- Comprehensive Rules evidence: §§2-3-5-1–3 and 8-1-1–3 define normal/alternate evolution requirements, payment, and stack transition; §§15-7-1–5 define ordered processing and independent target selection; §§15-14-1-1–5 define Once Per Turn counting, per-copy identity, and reset; §§15-16-2-1, 15-16-3-1, 15-16-5-1, and 15-16-9-1 define On Play, When Digivolving, When Attacking, and All Turns timing; §§14-1–2 define battle winners, deletion, simultaneous deletion, and battle-trigger resolution; and §§16-7-1–6 define Piercing's mandatory security check. The target and duration rules in §§4-13, 15-15, and 15-16 cover suspended state, selected-target persistence, and the opponent-turn-end boundary. These sources cover every printed clause and the three card-specific rulings.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-042.ts` is compiled IR with `coverage: "full"` and `residual: []`. It registers executable behavior exactly once through `registerIrCard("BT26-042", compiled)`; no `registerCard` registration exists.
+- The alternate requirement is exact (`level: 4`, `traits: ["TS"]`, `cost: 3`, `isAlternate: true`), while the catalog supplies the normal green Lv.4/cost-3 route. The shared digivolution legality path validates both routes, pays the selected cost, and preserves the evolution stack.
+- The first clause is installed independently for On Play and When Digivolving. It suspends exactly one opponent-controlled Digimon or Tamer, then resolves a fresh, independent target selection for exactly one opponent-controlled Digimon or Tamer and installs an `unsuspend` restriction through the opponent's turn end. The separate target object and duration mapping preserve Q7031.
+- The second clause is installed independently for On Play and When Attacking with `frequency: "OncePerTurn"` and shared key `bt26-042-piercing-dp`, so either timing consumes the same per-copy turn budget while separate Okuwamon copies remain independent. Its target is exactly one own Digimon with the OR trait filter `Insectoid`/`Titan`; `GainKeyword(Piercing)` and `ModifyDP(+3000)` both last until the opponent's turn end.
+- The inherited clause is an All Turns, Once Per Turn `whenDeletesInBattle` SubTrigger with `sourceFilter: { isSelfRef: true }`. Shared subtrigger identity binds the event to the Okuwamon-bearing host, while the combat controller publishes the event only when the winner survives and the opponent's Digimon is deleted. `SecurityManipulation(trashTop, controller: "opponent")` then removes exactly one opponent security card.
+- Shared seams inspected: alternate/normal evolution legality and stack transition; independent target resolution, `Restrict`/unsuspend enforcement, `durationForTarget`, and turn-end cleanup; `GainKeyword`/`ModifyDP` targeting and Piercing combat consumption; shared Once Per Turn keys; simultaneous On Play trigger ordering; inherited-host identity; and the battle deletion/security dispatch. Relevant peers inspected: BT26-038, BT26-041, BT26-043, BT26-044, BT26-045, BT26-049, BT26-051, BT26-066, and BT1/BT9 Okuwamon implementations for TS evolution, mixed Digimon/Tamer targets, Insectoid/Titan matching, shared attack limits, inherited battle deletion, and Piercing/security behavior.
+
+### Behavioral proof and correction
+
+- The implementation was already faithful; no card or shared-engine correction was required. The audit added only two focused proof cases that were missing from the prior suite: a real normal green Lv.4 evolution and a real own attack that activates the When Attacking buff. The existing proof already covers alternate evolution rejection, independent Q7031 target selection, Q7033 trigger ordering, shared On Play/When Attacking Once Per Turn behavior, target-copy independence, Q7032 simultaneous deletion, surviving-host security trash, and source isolation.
+- `apps/api/src/cards/BT26/BT26-042.test.ts` now has 11 passing tests. It asserts exact alternate metadata and full IR shape; executes both evolution paths; resolves the mixed opponent Digimon/Tamer On Play body; independently locks a different target; observes simultaneous On Play ordering; proves shared and per-copy Once Per Turn behavior; executes the When Attacking clause through a real attack and checks +3000/Piercing; and verifies inherited security trash only for a surviving Okuwamon host that deletes in battle.
+- The focused scenarios use public intents, `advance`, `settle()`, and observable final state. They assert exact memory payment, stack transition, suspension/restriction state, DP totals, Piercing projection, security/trash zones, and no activation after simultaneous host deletion or an unrelated ally's battle.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-042 --json
+  PASS (qa: Q7031–Q7033; banlist: null; errata: null)
+pnpm --filter @aegis/api exec vitest run --pool=forks --poolOptions.forks.singleFork=true src/cards/BT26/BT26-042.test.ts
+  PASS (1 file, 11 tests)
+pnpm --filter @aegis/api exec vitest run --pool=forks --poolOptions.forks.singleFork=true src/cards/BT26/BT26-038.test.ts src/cards/BT26/BT26-041.test.ts src/cards/BT26/BT26-043.test.ts src/cards/BT26/BT26-044.test.ts src/cards/BT26/BT26-045.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/security/securityCheck.test.ts src/engine/conformance/ch16b-digivolve-and-battle-keywords.test.ts src/engine/conformance/ch16c-deletion-and-advanced-keywords.test.ts
+  PASS (12 files, 446 tests)
+pnpm typecheck
+  PASS (shared build, shared/API/web typecheck)
+pnpm exec oxlint apps/api/src/cards/BT26/BT26-042.ts apps/api/src/cards/BT26/BT26-042.test.ts
+  PASS
+pnpm exec oxfmt --check apps/api/src/cards/BT26/BT26-042.ts apps/api/src/cards/BT26/BT26-042.test.ts
+  PASS
+git diff --check
+  PASS
+```
+
+No unresolved BT26-042 ambiguity or unsupported printed clause remains. Only the colocated focused test and this appended audit section were changed; the card implementation and shared engine required no correction. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-042; the collection is not marked complete.
