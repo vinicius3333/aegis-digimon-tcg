@@ -1729,3 +1729,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-090.
+
+## BT25-091 — Monica Simmons — 10/10
+
+- Catalog evidence: blue Tamer; On Play may return one TS Option from trash and draws regardless; all-turn TS Option-use watcher may activate by suspending this Tamer to prevent one opposing Digimon from attacking; Security plays this card free.
+- Knowledge base: Q6430–Q6431 require the draw after either declining or lacking a return target, Q6432 places the watcher after the used Option finishes and reaches trash, and Q6433 excludes Security/Delay activations that did not use the Option.
+- Defects corrected: the On Play return was mandatory, and the watcher modeled suspension as an unconditional body action rather than the optional activation payment. The return is now optional, while the watcher prompts for activation because it carries the self-suspension cost and resolves no restriction when declined or unpayable.
+- Verification: focused — 9 passed; mechanism suite — 381 passed in the delegated audit; combined batch/interpreter/subtrigger gate — 236 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-091", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-091
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-091.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/subtriggers.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-091.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-091.

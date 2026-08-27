@@ -35,10 +35,9 @@ export const compiled: CompiledCard = {
               ],
             },
             count: 1,
-            upTo: true,
           },
           to: "hand",
-          optional: false,
+          optional: true,
         },
         {
           kind: "Draw",
@@ -57,7 +56,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOptionUsed",
-          optional: true,
           fireCondition: {
             kind: "triggerOptionMatchesFilter",
             filter: {
@@ -66,11 +64,12 @@ export const compiled: CompiledCard = {
             },
             raw: "when you use a [TS] trait Option card",
           },
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "by suspending this Tamer",
+          },
           actions: [
-            {
-              kind: "Suspend",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            },
             {
               kind: "Restrict",
               target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
