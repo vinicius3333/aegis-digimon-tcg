@@ -101,7 +101,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 2;
     const optionId = s.inst("glowingDawn").instanceId;
     await s.ready();
 
@@ -113,13 +113,17 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
       s.inst("nonGlowingOption").instanceId,
     );
-    expect(s.state.players[0]!.trash).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ instanceId: s.inst("a").instanceId, faceUp: true }),
-        expect.objectContaining({ instanceId: s.inst("b").instanceId, faceUp: true }),
-      ]),
-    );
-    expect(s.state.memory).toBe(19);
+    expect(
+      s.state.players[0]!.trash.some(
+        ({ instanceId, faceUp }) => instanceId === s.inst("a").instanceId && faceUp === true,
+      ),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.trash.some(
+        ({ instanceId, faceUp }) => instanceId === s.inst("b").instanceId && faceUp === true,
+      ),
+    ).toBe(true);
+    expect(s.state.memory).toBe(1);
   });
 
   it("may decline the legal Main effect without trashing Tamers or using the Option", async () => {
