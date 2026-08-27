@@ -1297,3 +1297,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-066.
+
+## BT25-067 — Sealsdramon — 10/10
+
+- Catalog evidence: black/purple level-4 Digimon; alternate level-3 D-Brigade/ACCEL evolution for 2; controller-turn watcher when a matching Digimon is played, including self-play, may evolve this Digimon from hand with cost reduced; inherited all-turn +1000 DP.
+- Knowledge base: Q6365 confirms playing this Sealsdramon itself triggers its effect.
+- Implementation: play watcher, exact trait scope, self-entry handling, hand-only evolution candidate and reduction, alternate evolution, and continuous inherited boost are complete. Direct/shared IR match, coverage is full/residual-free, and registration is exclusively `registerIrCard("BT25-067", compiled)`.
+- Verification: focused — 4 passed; subtrigger/digivolution mechanisms — 28 passed; `git diff --check` — passed. No defect was found, so no implementation or test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-067
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-067.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-067.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-067.
