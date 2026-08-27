@@ -91974,7 +91974,7 @@
   "BT25-034": {
     "effects": [
       {
-        "trigger": "Static",
+        "trigger": "OnDiscardSecurity",
         "actions": [
           {
             "kind": "PlayWithoutCost",
@@ -91987,7 +91987,8 @@
               },
               "count": 1
             },
-            "payCost": false
+            "payCost": false,
+            "optional": true
           }
         ]
       },

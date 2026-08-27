@@ -668,3 +668,24 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-033.
+
+## BT25-034 — Angemon — 10/10
+
+- Catalog evidence: Yellow level-4 Digimon, play cost 5, 5000 DP, `Champion`/`Vaccine`, `Angel`/`Iliad`/`TS`; standard yellow level-3 evolution for 2 plus alternate level-3 `TS` evolution for 2; when an effect trashes this card directly from security, optionally play one level-4-or-lower Angel/Iliad trait card from hand without cost; Ascension; inherited Barrier.
+- Knowledge base: Q6298 excludes reveals, searches, and looks at security; only direct effect-driven trashing from security triggers the effect. `OnDiscardSecurity` is the dedicated effect-trash seam and does not fire for those excluded observations.
+- Implementation: the direct module already used `OnDiscardSecurity`, an optional controller-hand PlayWithoutCost action, the exact level and Angel/Iliad union filters, and no payment. Ascension, inherited Barrier, and alternate evolution are complete. The persisted IR now matches the authoritative module, with full coverage/no residual clauses and exclusive `registerIrCard("BT25-034", compiled)` registration.
+- Defect corrected: the persisted shared IR incorrectly represented the security-trash clause as an unconditional Static play action and omitted optionality. It now uses the Q6298-specific timing and optional free-play semantics. The BT25 catalog-sync suite now includes BT25-033 and BT25-034 to prevent renewed direct/shared drift.
+- Behavioral proof: the focused suite verifies the Q6298 trigger shape, eligible hand target, optional no-cost play, Ascension, and inherited Barrier. Security-trash peer mechanisms distinguish direct trashing from reveal/search paths. Persisted-IR equality now fails against the prior stale Static entry.
+- Verification: focused suite — 2 passed; security-trash peers — 6 passed; interpreter/primitives — 319 passed; BT25 persisted-IR sync — 9 passed; registration audit — 2 passed; shared-IR JSON parse and `git diff --check` — passed. The broader reencoded-IR baseline retains 10 unrelated failures. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-034 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-034
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-034.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-034.test.ts src/cards/BT25/BT25-catalog-sync.test.ts
+node -e 'JSON.parse(require("fs").readFileSync("packages/shared/src/effects/effects.json", "utf8"))'
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-034.
