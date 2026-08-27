@@ -73,10 +73,52 @@ describe("EX10-059 DarknessBagramon", () => {
                 "This Digimon gains all [All Turns] effects on all level 6 [Bagra Army] trait Digimon cards in its digivolution cards",
             },
           },
-          duration: "forTheTurn",
+          duration: "permanent",
         },
       ],
     });
+  });
+
+  it("runs and preserves a copied All Turns effect from a valid mixed evolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "darkness",
+              under: [{ card: "EX10-058", as: "lilithmon" }, { card: "EX10-057", as: "piedmon" }, "BT1-009", "BT1-010"],
+            },
+          ],
+          trash: [{ card: "BT10-071", as: "payoff" }],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    for (const turnSeat of [1, 0] as const) {
+      s.state.turnSeat = turnSeat;
+      await advance(s.engine).recompute();
+      const conferrals = advance(s.engine).ledgers.continuous.listStackEffectConferrals();
+      expect(conferrals).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            targetPermanentId: s.perm("darkness").permanentId,
+            stackInstanceId: s.inst("lilithmon").instanceId,
+          }),
+        ]),
+      );
+      expect(conferrals.some(({ stackInstanceId }) => stackInstanceId === s.inst("piedmon").instanceId)).toBe(false);
+    }
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT10-071"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT10-071")).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("payoff").instanceId)).toBe(false);
+    expect(s.perm("darkness").stack).toHaveLength(2);
   });
 
   it("Q5162 places a random opposing hand card only under an opposing host at the bottom", async () => {

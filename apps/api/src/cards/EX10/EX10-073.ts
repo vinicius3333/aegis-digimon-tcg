@@ -37,23 +37,8 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          keyword: {
-            keyword: "Link",
-          },
-          duration: "permanent",
-        },
-      ],
-      keywords: [],
+      actions: [],
+      keywords: [{ keyword: "Link", amount: 1, raw: "＜Link +1＞" }],
     },
     {
       trigger: "WhenDigivolving",
@@ -65,7 +50,6 @@ export const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
               hasLinkRequirement: true,
-              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
@@ -102,7 +86,6 @@ export const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
               hasLinkRequirement: true,
-              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },

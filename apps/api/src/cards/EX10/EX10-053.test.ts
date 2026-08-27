@@ -34,7 +34,8 @@ describe("EX10-053 Regulusmon", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.digivolutionRequirement).toEqual([{ level: 4, names: ["Gammamon"], cost: 5, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
-      expect(compiled.effects?.find((effect) => effect.trigger === trigger)).toMatchObject({
+      const effect = compiled.effects?.find((candidate) => candidate.trigger === trigger);
+      expect(effect).toMatchObject({
         actions: [
           {
             kind: "PlaceUnder",
@@ -47,10 +48,10 @@ describe("EX10-053 Regulusmon", () => {
               filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },
               count: 1,
             },
-            optional: true,
           },
         ],
       });
+      expect(effect?.actions?.[1]?.optional).toBeUndefined();
     }
     expect(compiled.effects?.find((effect) => effect.trigger === "EndOfYourTurn")).toMatchObject({
       frequency: "OncePerTurn",

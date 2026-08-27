@@ -143,14 +143,14 @@ describe("EX10-012 MetalSeadramon — card-specific effects", () => {
     preferred.push(s.perm("chosenDigimon").permanentId, s.perm("chosenTamer").permanentId);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("metal"));
     const ledger = advance(s.engine).ledgers.continuous;
-    expect(ledger.hasRestriction(s.perm("chosenDigimon").permanentId, "suspend")).toBe(true);
-    expect(ledger.hasRestriction(s.perm("chosenTamer").permanentId, "suspend")).toBe(true);
-    expect(ledger.hasRestriction(s.perm("otherDigimon").permanentId, "suspend")).toBe(false);
-    expect(ledger.hasRestriction(s.perm("otherTamer").permanentId, "suspend")).toBe(false);
+    expect(ledger.hasRestriction(s.perm("chosenDigimon").permanentId, "beSuspended")).toBe(true);
+    expect(ledger.hasRestriction(s.perm("chosenTamer").permanentId, "beSuspended")).toBe(true);
+    expect(ledger.hasRestriction(s.perm("otherDigimon").permanentId, "beSuspended")).toBe(false);
+    expect(ledger.hasRestriction(s.perm("otherTamer").permanentId, "beSuspended")).toBe(false);
 
     ledger.sweep(s.state, "ownerTurnEnd", 1);
-    expect(ledger.hasRestriction(s.perm("chosenDigimon").permanentId, "suspend")).toBe(false);
-    expect(ledger.hasRestriction(s.perm("chosenTamer").permanentId, "suspend")).toBe(false);
+    expect(ledger.hasRestriction(s.perm("chosenDigimon").permanentId, "beSuspended")).toBe(false);
+    expect(ledger.hasRestriction(s.perm("chosenTamer").permanentId, "beSuspended")).toBe(false);
   });
 
   it("places itself face up in security on deletion when no blue face-up security exists", async () => {
