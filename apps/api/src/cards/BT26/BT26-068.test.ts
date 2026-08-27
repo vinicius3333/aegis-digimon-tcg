@@ -269,7 +269,8 @@ describe("BT26-068 Devimon", () => {
     expect(subscription).toBeDefined();
     // The static builder must inject a source-instance-scoped key; the card must not
     // install its former card-global key itself.
-    expect(subscription!.oncePerTurnKey).toContain(`${cardSource.instanceId}/${CARD_ID}`);
+    expect(subscription!.oncePerTurnKey?.startsWith(`${cardSource.instanceId}/`)).toBe(true);
+    expect(subscription!.oncePerTurnKey).not.toContain("global:");
 
     const ownCard = instance("own-card");
     const opponentCard = instance("opponent-card", "TEST", 1 as Seat);
