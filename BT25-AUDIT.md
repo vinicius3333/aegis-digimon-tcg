@@ -916,3 +916,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-045.
+
+## BT25-046 — Gekkomon — 10/10
+
+- Catalog evidence: green level-3 Digimon; alternate level-2 Glowing Dawn evolution for 0; On Play reveals top 3, adds one Glowing Dawn card and one green BEATBREAK card with distinct selection, then bottoms the remainder; inherited Piercing.
+- Knowledge base: no card-specific entries; general RevealAdd, evolution, inherited-effect, and Piercing rules apply.
+- Implementation: exact reveal slots, conjunctive green/BEATBREAK filter, distinct-card consumption, bottom remainder, alternate evolution, and inherited keyword are complete. Direct/shared IR match, coverage is full/residual-free, and registration is exclusively `registerIrCard("BT25-046", compiled)`.
+- Verification: focused — 1 passed; live deck interaction — 1 passed; RevealAdd — 7 passed; Piercing — 2 passed; registration — 2 passed; card-data — 17 passed; `git diff --check` — passed. No defect was found, so no implementation/test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-046
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-046.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-046.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-046.
