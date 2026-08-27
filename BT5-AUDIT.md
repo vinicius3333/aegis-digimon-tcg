@@ -3340,3 +3340,26 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   subset — 3/3 passed. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No production or shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-098 — Meteor Shower — 10/10
+
+- Catalog and ruling evidence: Yellow Option with use cost 3. Main may play one
+  yellow Digimon card with Starmon in its name from the controller's hand
+  without paying its memory cost. Security activates Main. The local knowledge
+  base contains no card-specific ruling or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-098.ts` uses an optional,
+  count-one PlayWithoutCost from own hand with exact Digimon/yellow filters and
+  Starmon name containment. Security activates Main. Full residual-free
+  coverage and exclusive `registerIrCard("BT5-098", compiled)` registration are
+  preserved.
+- Behavioral proof: four focused tests prove a legal Starmons instance enters
+  for free with memory unchanged beyond the Option cost, while a non-yellow
+  candidate and a yellow non-Starmon both remain in hand. Refusal preserves an
+  eligible card and board, and Security executes the same Main effect.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  to distinguish color from name filtering and cover explicit refusal.
+- Verification: focused BT5-098 — 4/4 passed; optional PlayWithoutCost
+  interpreter mechanism — 1/1 passed. Targeted Oxfmt, Oxlint, registration
+  search, and `git diff --check` pass. No production or shared engine source
+  changed.
+- Remaining ambiguity: none identified.
