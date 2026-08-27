@@ -2793,3 +2793,30 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   registration search, and `git diff --check` pass. No typing-sensitive source
   changed.
 - Remaining ambiguity: none identified.
+
+## BT5-078 — Jokermon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.5 Ultimate Digimon, Virus/Wizard, play
+  cost 7, 7000 DP, and purple Lv.4 evolution cost 3. Its On Deletion effect may
+  play one purple Lv.3 Digimon card from the owner's trash without paying its
+  memory cost, and suppresses that Digimon's On Play effects. The knowledge base
+  contains no card-specific ruling, errata, restriction, or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-078.ts` encodes an optional
+  PlayWithoutCost from own trash filtered to purple Lv.3 Digimon, with count 1,
+  `payCost: false`, and `suppressOnPlayEffects: true`. It declares full
+  residual-free coverage and registers exclusively through
+  `registerIrCard("BT5-078", compiled)`.
+- Behavioral proof: four focused tests prove an exact eligible instance enters
+  play at zero memory while its real On Play draw is suppressed, reject a
+  purple Digimon at the wrong level, select only the own purple Lv.3 from a
+  mixed pool containing a wrong-color own card and an opponent candidate, and
+  allow refusal while an eligible card remains in trash. Deletion uses the
+  named test seam.
+- Defect corrected: no executable behavior defect. Focused proof was
+  strengthened for free-play memory, controller, color, level, exact movement,
+  On Play suppression, and optional refusal; an initially ambiguous refusal
+  fixture was split from the accepted mixed-pool filter proof.
+- Verification: focused BT5-078 — 4/4 passed. Targeted Oxfmt, Oxlint,
+  registration search, and `git diff --check` pass. No source or shared engine
+  behavior changed.
+- Remaining ambiguity: none identified.
