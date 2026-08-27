@@ -1,5 +1,6 @@
-import { getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import module from "./BT3-112.js";
@@ -17,7 +18,7 @@ describe("BT3-112 Omnimon Alter-S", () => {
       ]),
       effectText: expect.stringContaining("De-Digivolve 1"),
     });
-    expect(getCompiledCard("BT3-112")).toMatchObject({
+    expect(runtimeCompiledCard("BT3-112")).toMatchObject({
       coverage: "full",
       residual: [],
       effects: [

@@ -25,7 +25,7 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT3-081–090 | Static audit integrated | `internal-docs/audits/BT3/BT3-081-090.md` | Yes |
 | BT3-091–100 | Static audit integrated | `internal-docs/audits/BT3/BT3-091-100.md` | Yes |
 | BT3-101–110 | Luna in progress | `internal-docs/audits/BT3/BT3-101-110.md` | No |
-| BT3-111–112 | Luna in progress | `internal-docs/audits/BT3/BT3-111-112.md` | No |
+| BT3-111–112 | Static audit integrated | `internal-docs/audits/BT3/BT3-111-112.md` | Yes |
 
 ## Score model
 
@@ -143,6 +143,8 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT3-098 Plasma Stake | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inclusive 13000-DP deletion threshold with 12999 boundary |
 | BT3-099 We Have to Stop Fighting! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Both-players battle-deletion restriction and Security return |
 | BT3-100 Death Parade Blaster | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected up-to-two bottom-source semantics with conditional suspend |
+| BT3-111 Imperialdramon: Dragon Mode | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Named-source reduction, Piercing, legal-stack, and breeding-area proof |
+| BT3-112 Omnimon Alter-S | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected self-stack level-6 return scope and live threshold proof |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT3/`.
 
@@ -150,9 +152,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 100
-- Corrected: 12
-- Provisional: 100
+- Integrated card audits: 102
+- Corrected: 13
+- Provisional: 102
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0

@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT3-111.js";
 
 describe("BT3-111 Imperialdramon: Dragon Mode", () => {
   it("publishes the named-source reducer, Piercing, and once-per-turn trigger in IR", () => {
-    const compiled = getCompiledCard("BT3-111");
+    const compiled = runtimeCompiledCard("BT3-111");
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects).toEqual(
       expect.arrayContaining([
