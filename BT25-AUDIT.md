@@ -840,3 +840,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-041.
+
+## BT25-042 — ClavisAngemon — 10/10
+
+- Catalog evidence: Yellow/black level-6 Digimon, play cost 12, 12000 DP; alternate level-5 Angel/Archangel/TS evolution for 3; shared once-per-turn On Play/When Digivolving/When Attacking may trash top/bottom friendly security to grant self immunity to opposing Digimon effects; all-turn once-per-turn on friendly security removal optionally plays a level-4-or-lower Angel/Iliad card from hand, then grants Reboot and Blocker to the same two friendly Digimon until the opponent's turn ends.
+- Knowledge base: Q6311 orders immediate Security effects before pending security-check/removal triggers, then uses turn-player priority.
+- Implementation: all three optional by-cost clauses now target the controller's security zone. The removal watcher contains the entire optional play plus two linked keyword grants, with `sameTarget` preserving the same pair. Controller direction, once-per-turn scope, alternate evolution, full coverage/no residual clauses, and exclusive `registerIrCard("BT25-042", compiled)` are complete.
+- Defects corrected: all three costs lacked the security zone; Reboot/Blocker sat outside the watcher and could apply without security removal; and independent selection could grant the keywords to different Digimon. All are corrected with focused live proof.
+- Verification: focused suite — 8 passed; neighboring security-cost and interpreter regressions — 194 passed; `git diff --check` — passed. Workspace typecheck retains unrelated pre-existing errors and no BT25-042 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-042
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-042.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-042.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-042.

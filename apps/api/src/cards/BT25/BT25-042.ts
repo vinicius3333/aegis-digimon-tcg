@@ -26,6 +26,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: "security",
               },
               count: 1,
             },
@@ -57,6 +58,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: "security",
               },
               count: 1,
             },
@@ -88,6 +90,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: "security",
               },
               count: 1,
             },
@@ -132,37 +135,38 @@ export const compiled: CompiledCard = {
               payCost: false,
               optional: true,
             },
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 2,
+              },
+              keyword: {
+                keyword: "Reboot",
+                raw: "＜Reboot＞",
+              },
+              duration: "untilOpponentTurnEnd",
+            },
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 2,
+                sameTarget: true,
+              },
+              keyword: {
+                keyword: "Blocker",
+                raw: "＜Blocker＞",
+              },
+              duration: "untilOpponentTurnEnd",
+            },
           ],
-        },
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 2,
-          },
-          keyword: {
-            keyword: "Reboot",
-            raw: "＜Reboot＞",
-          },
-          duration: "untilOpponentTurnEnd",
-        },
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 2,
-          },
-          keyword: {
-            keyword: "Blocker",
-            raw: "＜Blocker＞",
-          },
-          duration: "untilOpponentTurnEnd",
         },
       ],
       frequency: "OncePerTurn",
