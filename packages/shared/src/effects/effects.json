@@ -96353,7 +96353,16 @@
   },
   "BT25-072": {
     "effects": [
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Jamming", "raw": "＜Jamming＞" }] },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          {
+            "keyword": "Jamming",
+            "raw": "＜Jamming＞"
+          }
+        ]
+      },
       {
         "trigger": "OnPlay",
         "actions": [
@@ -96362,14 +96371,55 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Social", "Tool", "Game"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "hasLinkRequirement": true,
+                "hostFilter": {
+                  "isSelfRef": true
+                },
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Social",
+                      "Tool",
+                      "Game"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
-              "count": 1
+              "orFilters": [
+                {
+                  "controller": "mine",
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "hasLinkRequirement": true,
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Social",
+                        "Tool",
+                        "Game"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
+                }
+              ],
+              "count": 1,
+              "source": "thisDigimon"
             },
-            "from": ["trash", "digivolutionCards"],
+            "from": [
+              "trash",
+              "digivolutionCards"
+            ],
             "costDelta": -2,
-            "condition": { "kind": "isYourTurn", "raw": "it's your turn" },
+            "condition": {
+              "kind": "isYourTurn",
+              "raw": "it's your turn"
+            },
             "optional": true
           }
         ]
@@ -96382,14 +96432,55 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Social", "Tool", "Game"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "hasLinkRequirement": true,
+                "hostFilter": {
+                  "isSelfRef": true
+                },
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Social",
+                      "Tool",
+                      "Game"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
-              "count": 1
+              "orFilters": [
+                {
+                  "controller": "mine",
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "hasLinkRequirement": true,
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Social",
+                        "Tool",
+                        "Game"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
+                }
+              ],
+              "count": 1,
+              "source": "thisDigimon"
             },
-            "from": ["trash", "digivolutionCards"],
+            "from": [
+              "trash",
+              "digivolutionCards"
+            ],
             "costDelta": -2,
-            "condition": { "kind": "isYourTurn", "raw": "it's your turn" },
+            "condition": {
+              "kind": "isYourTurn",
+              "raw": "it's your turn"
+            },
             "optional": true
           }
         ]
@@ -96402,14 +96493,55 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Social", "Tool", "Game"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "hasLinkRequirement": true,
+                "hostFilter": {
+                  "isSelfRef": true
+                },
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Social",
+                      "Tool",
+                      "Game"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
-              "count": 1
+              "orFilters": [
+                {
+                  "controller": "mine",
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "hasLinkRequirement": true,
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Social",
+                        "Tool",
+                        "Game"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
+                }
+              ],
+              "count": 1,
+              "source": "thisDigimon"
             },
-            "from": ["trash", "digivolutionCards"],
+            "from": [
+              "trash",
+              "digivolutionCards"
+            ],
             "costDelta": -2,
-            "condition": { "kind": "isYourTurn", "raw": "it's your turn" },
+            "condition": {
+              "kind": "isYourTurn",
+              "raw": "it's your turn"
+            },
             "optional": true
           }
         ]
@@ -96423,7 +96555,16 @@
             "actions": [
               {
                 "kind": "Restrict",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+                "target": {
+                  "filter": {
+                    "controller": "opponent",
+                    "kind": [
+                      "Digimon",
+                      "Tamer"
+                    ]
+                  },
+                  "count": 1
+                },
                 "restriction": "digivolve",
                 "duration": "untilOpponentTurnEnd"
               }
@@ -96431,29 +96572,146 @@
           }
         ],
         "frequency": "OncePerTurn"
+      },
+      {
+        "trigger": "Static",
+        "isLinked": true,
+        "actions": [
+          {
+            "kind": "SubTrigger",
+            "event": "whenLinked",
+            "sourceFilter": {
+              "isSelfRef": true
+            },
+            "actions": [
+              {
+                "kind": "Restrict",
+                "target": {
+                  "filter": {
+                    "controller": "opponent",
+                    "kind": [
+                      "Digimon",
+                      "Tamer"
+                    ]
+                  },
+                  "count": 2
+                },
+                "restriction": "unsuspend",
+                "duration": "untilOpponentTurnEnd"
+              }
+            ]
+          }
+        ]
       }
     ],
     "coverage": "full",
     "residual": [],
-    "appFusionRequirement": [{ "names": ["Logamon", "Timemon"], "cost": 0 }]
+    "appFusionRequirement": [
+      {
+        "names": [
+          "Logamon",
+          "Timemon"
+        ],
+        "cost": 0
+      }
+    ],
+    "linkRequirement": [
+      {
+        "traits": [
+          "Appmon"
+        ],
+        "cost": 3
+      }
+    ]
   },
   "BT25-073": {
     "effects": [
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Jamming", "raw": "＜Jamming＞" }] },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          {
+            "keyword": "Jamming",
+            "raw": "＜Jamming＞"
+          }
+        ]
+      },
       {
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }] },
-              "count": 1
-            },
-            "from": ["hand"],
-            "payCost": false,
+            "kind": "Modal",
+            "choose": 1,
+            "labels": [
+              "Play a TS Digimon or Tamer",
+              "Use a TS Option"
+            ],
+            "options": [
+              [
+                {
+                  "kind": "PlayWithoutCost",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "kind": [
+                        "Digimon",
+                        "Tamer"
+                      ],
+                      "nameOrTrait": [
+                        {
+                          "tokens": [
+                            "TS"
+                          ],
+                          "match": "trait"
+                        }
+                      ],
+                      "playCostLte": 5
+                    },
+                    "count": 1
+                  },
+                  "from": [
+                    "hand"
+                  ],
+                  "payCost": false
+                }
+              ],
+              [
+                {
+                  "kind": "UseOptionWithoutCost",
+                  "filter": {
+                    "controller": "mine",
+                    "kind": [
+                      "Option"
+                    ],
+                    "nameOrTrait": [
+                      {
+                        "tokens": [
+                          "TS"
+                        ],
+                        "match": "trait"
+                      }
+                    ],
+                    "playCostLte": 5
+                  },
+                  "from": [
+                    "hand"
+                  ],
+                  "payCost": false
+                }
+              ]
+            ],
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "zone": "linked"
+                },
+                "count": 1
+              },
               "raw": "By trashing 1 of your Digimon's link cards"
             },
             "optional": true,
@@ -96465,16 +96723,78 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }] },
-              "count": 1
-            },
-            "from": ["hand"],
-            "payCost": false,
+            "kind": "Modal",
+            "choose": 1,
+            "labels": [
+              "Play a TS Digimon or Tamer",
+              "Use a TS Option"
+            ],
+            "options": [
+              [
+                {
+                  "kind": "PlayWithoutCost",
+                  "target": {
+                    "filter": {
+                      "controller": "mine",
+                      "kind": [
+                        "Digimon",
+                        "Tamer"
+                      ],
+                      "nameOrTrait": [
+                        {
+                          "tokens": [
+                            "TS"
+                          ],
+                          "match": "trait"
+                        }
+                      ],
+                      "playCostLte": 5
+                    },
+                    "count": 1
+                  },
+                  "from": [
+                    "hand"
+                  ],
+                  "payCost": false
+                }
+              ],
+              [
+                {
+                  "kind": "UseOptionWithoutCost",
+                  "filter": {
+                    "controller": "mine",
+                    "kind": [
+                      "Option"
+                    ],
+                    "nameOrTrait": [
+                      {
+                        "tokens": [
+                          "TS"
+                        ],
+                        "match": "trait"
+                      }
+                    ],
+                    "playCostLte": 5
+                  },
+                  "from": [
+                    "hand"
+                  ],
+                  "payCost": false
+                }
+              ]
+            ],
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "zone": "linked"
+                },
+                "count": 1
+              },
               "raw": "By trashing 1 of your Digimon's link cards"
             },
             "optional": true,
@@ -96488,20 +96808,22 @@
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
-            "sourceFilter": { "isSelfRef": true },
-            "actions": [
-              {
-                "kind": "Prevent",
-                "mode": "leavePlay",
-                "cost": {
-                  "kind": "trash",
-                  "target": { "filter": { "controllerDefault": "mine" }, "count": 1 },
-                  "raw": "by trashing 1 of its link cards"
+            "raw": "When this Digimon would leave the battle area, by trashing 1 of its link cards, it doesn't leave.",
+            "sourceFilter": {
+              "isSelfRef": true
+            },
+            "actions": [],
+            "cost": {
+              "kind": "trash",
+              "target": {
+                "filter": {
+                  "isSelfRef": true,
+                  "zone": "linked"
                 },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
+                "count": 1
+              },
+              "raw": "by trashing 1 of its link cards, it doesn't leave"
+            }
           }
         ],
         "isInherited": true
@@ -96509,7 +96831,16 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 4,
+        "traits": [
+          "TS"
+        ],
+        "cost": 3,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-074": {
     "effects": [
@@ -96522,8 +96853,18 @@
             "add": [
               {
                 "filter": {
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["D-Brigade", "ACCEL"], "match": "trait" }],
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "D-Brigade",
+                        "ACCEL"
+                      ],
+                      "match": "trait"
+                    }
+                  ],
                   "playCostLte": 12
                 },
                 "count": 1,
@@ -96547,8 +96888,18 @@
             "add": [
               {
                 "filter": {
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["D-Brigade", "ACCEL"], "match": "trait" }],
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "D-Brigade",
+                        "ACCEL"
+                      ],
+                      "match": "trait"
+                    }
+                  ],
                   "playCostLte": 12
                 },
                 "count": 1,
@@ -96571,13 +96922,31 @@
             "event": "whenPlayed",
             "sourceFilter": {
               "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["D-Brigade", "ACCEL"], "match": "trait" }]
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "D-Brigade",
+                    "ACCEL"
+                  ],
+                  "match": "trait"
+                }
+              ]
             },
             "actions": [
               {
                 "kind": "Restrict",
-                "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+                "target": {
+                  "filter": {
+                    "controller": "opponent",
+                    "kind": [
+                      "Digimon"
+                    ]
+                  },
+                  "count": 1
+                },
                 "restriction": "digivolve",
                 "duration": "untilOpponentTurnEnd"
               }
@@ -96589,26 +96958,120 @@
       },
       {
         "trigger": "OpponentsTurn",
+        "isInherited": true,
         "actions": [
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "Reboot", "raw": "＜Reboot＞" },
-            "duration": "permanent"
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Reboot"
+            },
+            "duration": "permanent",
+            "condition": {
+              "kind": "selfHasNameContaining",
+              "names": [
+                "Chaosmon"
+              ]
+            }
           },
           {
             "kind": "GainKeyword",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
-            "duration": "permanent"
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Blocker"
+            },
+            "duration": "permanent",
+            "condition": {
+              "kind": "selfHasNameContaining",
+              "names": [
+                "Chaosmon"
+              ]
+            }
+          },
+          {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Reboot"
+            },
+            "duration": "permanent",
+            "condition": {
+              "kind": "selfHasTrait",
+              "filter": {
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "D-Brigade",
+                      "ACCEL"
+                    ],
+                    "match": "trait"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Blocker"
+            },
+            "duration": "permanent",
+            "condition": {
+              "kind": "selfHasTrait",
+              "filter": {
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "D-Brigade",
+                      "ACCEL"
+                    ],
+                    "match": "trait"
+                  }
+                ]
+              }
+            }
           }
-        ],
-        "isInherited": true
+        ]
       }
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["D-Brigade", "ACCEL"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      {
+        "level": 4,
+        "traits": [
+          "D-Brigade",
+          "ACCEL"
+        ],
+        "cost": 3,
+        "isAlternate": true
+      }
+    ]
   },
   "BT25-075": {
     "effects": [
