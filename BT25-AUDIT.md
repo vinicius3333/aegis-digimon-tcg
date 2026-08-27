@@ -1153,3 +1153,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-058.
+
+## BT25-059 — Ceresmon — 10/10
+
+- Catalog evidence: green/yellow level-6 Digimon; alternate level-5 Vegetation/TS evolution for 3; self play-cost reduction of 5 at two or more suspended Digimon; On Play/When Digivolving may suspend up to two Digimon from either side, then grants friendly suspended Vegetation/TS Digimon immunity from opposing Digimon effects through the opponent's turn; all-turn once-per-turn global suspension reaction gives one opposing Digimon -3000 DP per suspended Digimon.
+- Knowledge base: Q6306 covers stacked play-cost reductions. Q6350 permits either-side suspension. Q6351–Q6356 define effect immunity, selection, grants, later immunity changes, and trigger suppression.
+- Implementation: thresholded replacement, either-controller up-to-two targeting, exact friendly suspended trait scope, opponent-Digimon-effect immunity, global suspension watcher, and live suspended-count DP scaling are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-059", compiled)`.
+- Verification: focused — 5 passed; focused/peer/mechanism aggregate — 49 passed; `git diff --check` — passed. No direct behavioral defect was found, so no implementation or test change was made; persisted IR equality is recorded separately.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-059
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-059.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-059.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-059.
