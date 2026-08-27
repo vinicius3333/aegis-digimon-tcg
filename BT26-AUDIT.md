@@ -2756,3 +2756,35 @@ git diff --check
 ```
 
 No unresolved BT26-068 limitation remains. No card, engine, or test file changed; only this audit section was appended. The collection is not marked complete.
+
+## BT26-069 — Dobermon — 10/10
+
+### Contract evidence
+
+- Catalog confirms a purple level-4 Digimon with play cost 5, 6000 DP, `Dark Animal`/`Titan`/`TS` traits, and alternate evolution from level-3 `TS` for cost 2.
+- Printed behavior verified: when this card is trashed from hand and five or fewer cards remain, draw one; On Play/When Digivolving may trash one hand card to delete any level-4-or-lower Digimon; inherited Your Turn Once Per Turn, when the owner's hand is trashed, may evolve a `Titan` host into `Titamon` or a `Titan` from trash with cost reduced by 1.
+- KB Q7090–Q7091 cover non-retroactive Alliance and simultaneous two-copy hand-trash draw behavior. Hand-trash timing, optional costs, inherited anchoring, and trash evolution were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-069.ts` has full IR coverage, no residual, and exclusive `registerIrCard("BT26-069", compiled)` registration.
+- The self-bound hand-trash watcher evaluates the post-trash five-card ceiling. Both entry windows use an optional abortable hand-trash cost and target one Digimon of either controller at level 4 or lower.
+- The inherited watcher scopes the event to the owner, binds to and requires a `Titan` host, applies one Once Per Turn budget, and evolves from own trash into `Titamon` or `Titan` with reduction 1. Relevant primitives and peers were inspected.
+
+### Behavioral proof
+
+- `BT26-069.test.ts` now covers exact structural filters; alternate evolution; On Play and direct When Digivolving behavior; optional refusal; exact hand-size boundary; own/opponent level-4 targets; inherited Titan evolution, direction, and Once Per Turn; Q7091 simultaneous copies; and Q7090's non-retroactive Alliance during attack evolution.
+- This audit added the missing When Digivolving and rulings paths and strengthened the target boundary with an exact level-4 fixture. The implementation required no correction.
+
+### Verification
+
+```text
+Knowledge-base card query
+  PASS (Q7090-Q7091; no errata/restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-069 limitation remains. Only its focused test and this ledger section changed; the implementation and engine remain unchanged. The collection is not marked complete.
