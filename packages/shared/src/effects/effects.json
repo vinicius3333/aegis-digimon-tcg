@@ -92304,24 +92304,20 @@
             },
             "from": ["hand"],
             "payCost": true,
-            "optional": true
-          },
-          {
-            "kind": "Replacement",
-            "event": "wouldBePlayed",
-            "mode": "reduceCost",
-            "amount": 7,
-            "raw": "play 1 [Ceresmon] from your hand with the cost reduced by 7",
+            "reduceCostBy": 7,
             "optional": true
           },
           {
             "kind": "PlaceUnder",
             "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "condition": { "kind": "raw", "raw": "this effect played" },
+            "condition": { "kind": "ifThisEffectActed" },
+            "underFilter": { "lastPlayed": true, "controller": "mine", "kind": ["Digimon"] },
+            "position": "bottom",
             "optional": true
           }
         ],
-        "isSecurity": true
+        "isSecurity": true,
+        "raw": "[Security][End of Your Turn] You may play 1 [Ceresmon] from your hand with the cost reduced by 7. If this effect played, you may place this card as the played Digimon's bottom digivolution card."
       },
       {
         "trigger": "AllTurns",
@@ -92329,25 +92325,21 @@
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
+            "mode": "prevent",
             "sourceFilter": {
               "controller": "mine",
               "excludeSelf": true,
               "kind": ["Digimon", "Tamer"],
               "nameOrTrait": [{ "tokens": ["Shaman", "Iliad"], "match": "trait" }]
             },
-            "actions": [
-              {
-                "kind": "Prevent",
-                "mode": "leavePlay",
-                "cost": {
-                  "kind": "deleteOwn",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by deleting this Digimon"
-                },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
+            "leaveCause": "otherThanYourEffect",
+            "affectsAll": true,
+            "cost": {
+              "kind": "deleteOwn",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by deleting this Digimon"
+            },
+            "raw": "When any of your other [Shaman] or [Iliad] trait Digimon or Tamers would leave the battle area other than by your effects, by deleting this Digimon, they don't leave."
           }
         ]
       },
@@ -92358,8 +92350,8 @@
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "controller": "mine",
-            "source": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "toTop": false,
+            "faceUp": true,
             "optional": true
           }
         ]
@@ -92390,7 +92382,7 @@
   "BT25-040": {
     "effects": [
       {
-        "trigger": "Static",
+        "trigger": "OnDiscardSecurity",
         "actions": [
           {
             "kind": "PlayWithoutCost",
@@ -92403,7 +92395,8 @@
               },
               "count": 1
             },
-            "payCost": false
+            "payCost": false,
+            "optional": true
           }
         ]
       },
@@ -92418,7 +92411,7 @@
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine" }, "count": 1 },
+              "target": { "filter": { "controller": "mine", "zone": "security" }, "count": 1 },
               "raw": "By trashing your top or bottom security card"
             },
             "optional": true,
@@ -92436,7 +92429,7 @@
             "duration": "untilOpponentTurnEnd",
             "cost": {
               "kind": "trash",
-              "target": { "filter": { "controller": "mine" }, "count": 1 },
+              "target": { "filter": { "controller": "mine", "zone": "security" }, "count": 1 },
               "raw": "By trashing your top or bottom security card"
             },
             "optional": true,
@@ -92450,6 +92443,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "sourceFilter": { "controller": "mine" },
             "actions": [
               {
                 "kind": "ModifyDP",
@@ -92470,33 +92464,99 @@
   },
   "BT25-041": {
     "effects": [
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Alliance", "raw": "＜Alliance＞" }] },
+      {"trigger":"Static","actions":[],"keywords":[{"keyword":"Alliance"}]},
       {
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }] },
-              "count": 1
-            },
-            "from": ["hand"],
-            "payCost": true,
-            "condition": { "kind": "isYourTurn", "raw": "it's your turn" },
-            "cost": {
-              "kind": "raw",
-              "raw": "by adding your top security card to the hand or trashing the bottom face-down card under any of your Tamers"
-            },
-            "optional": true,
-            "abortOnDecline": true
-          },
-          {
-            "kind": "Replacement",
-            "event": "wouldBePlayed",
-            "mode": "reduceCost",
-            "amount": 3,
-            "raw": "play or use 1 card with the [Glowing Dawn] trait from your hand with the cost reduced by 3",
-            "condition": { "kind": "isYourTurn", "raw": "it's your turn" },
+            "kind": "Modal",
+            "choose": 1,
+            "labels": ["Add your top security card","Trash a bottom face-down Tamer card"],
+            "options": [
+              [
+                {
+                  "kind": "Modal",
+                  "choose": 1,
+                  "labels": ["Play a Glowing Dawn Digimon or Tamer","Use a Glowing Dawn Option"],
+                  "options": [
+                    [
+                      {
+                        "kind": "PlayWithoutCost",
+                        "target": {
+                          "filter": {
+                            "controller": "mine",
+                            "kind": ["Digimon","Tamer"],
+                            "nameOrTrait": [{"tokens":["Glowing Dawn"],"match":"trait"}]
+                          },
+                          "count": 1
+                        },
+                        "from": ["hand"],
+                        "payCost": true,
+                        "reduceCostBy": 3
+                      }
+                    ],
+                    [
+                      {
+                        "kind": "UseOptionWithoutCost",
+                        "filter": {
+                          "controller": "mine",
+                          "kind": ["Option"],
+                          "nameOrTrait": [{"tokens":["Glowing Dawn"],"match":"trait"}]
+                        },
+                        "from": ["hand"],
+                        "payCost": true,
+                        "reduceCostBy": 3
+                      }
+                    ]
+                  ],
+                  "cost": {"kind":"securityToHand","raw":"by adding your top security card to the hand"}
+                }
+              ],
+              [
+                {
+                  "kind": "Modal",
+                  "choose": 1,
+                  "labels": ["Play a Glowing Dawn Digimon or Tamer","Use a Glowing Dawn Option"],
+                  "options": [
+                    [
+                      {
+                        "kind": "PlayWithoutCost",
+                        "target": {
+                          "filter": {
+                            "controller": "mine",
+                            "kind": ["Digimon","Tamer"],
+                            "nameOrTrait": [{"tokens":["Glowing Dawn"],"match":"trait"}]
+                          },
+                          "count": 1
+                        },
+                        "from": ["hand"],
+                        "payCost": true,
+                        "reduceCostBy": 3
+                      }
+                    ],
+                    [
+                      {
+                        "kind": "UseOptionWithoutCost",
+                        "filter": {
+                          "controller": "mine",
+                          "kind": ["Option"],
+                          "nameOrTrait": [{"tokens":["Glowing Dawn"],"match":"trait"}]
+                        },
+                        "from": ["hand"],
+                        "payCost": true,
+                        "reduceCostBy": 3
+                      }
+                    ]
+                  ],
+                  "cost": {
+                    "kind": "trashBottomFaceDownUnderTamer",
+                    "controller": "mine",
+                    "raw": "by trashing the bottom face-down card from under any of your Tamers"
+                  }
+                }
+              ]
+            ],
+            "condition": {"kind":"isYourTurn","raw":"it's your turn"},
             "optional": true,
             "abortOnDecline": true
           }
@@ -92508,28 +92568,94 @@
         "trigger": "WhenAttacking",
         "actions": [
           {
-            "kind": "PlayWithoutCost",
-            "target": {
-              "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }] },
-              "count": 1
-            },
-            "from": ["hand"],
-            "payCost": true,
-            "condition": { "kind": "isYourTurn", "raw": "it's your turn" },
-            "cost": {
-              "kind": "raw",
-              "raw": "by adding your top security card to the hand or trashing the bottom face-down card under any of your Tamers"
-            },
-            "optional": true,
-            "abortOnDecline": true
-          },
-          {
-            "kind": "Replacement",
-            "event": "wouldBePlayed",
-            "mode": "reduceCost",
-            "amount": 3,
-            "raw": "play or use 1 card with the [Glowing Dawn] trait from your hand with the cost reduced by 3",
-            "condition": { "kind": "isYourTurn", "raw": "it's your turn" },
+            "kind": "Modal",
+            "choose": 1,
+            "labels": ["Add your top security card","Trash a bottom face-down Tamer card"],
+            "options": [
+              [
+                {
+                  "kind": "Modal",
+                  "choose": 1,
+                  "labels": ["Play a Glowing Dawn Digimon or Tamer","Use a Glowing Dawn Option"],
+                  "options": [
+                    [
+                      {
+                        "kind": "PlayWithoutCost",
+                        "target": {
+                          "filter": {
+                            "controller": "mine",
+                            "kind": ["Digimon","Tamer"],
+                            "nameOrTrait": [{"tokens":["Glowing Dawn"],"match":"trait"}]
+                          },
+                          "count": 1
+                        },
+                        "from": ["hand"],
+                        "payCost": true,
+                        "reduceCostBy": 3
+                      }
+                    ],
+                    [
+                      {
+                        "kind": "UseOptionWithoutCost",
+                        "filter": {
+                          "controller": "mine",
+                          "kind": ["Option"],
+                          "nameOrTrait": [{"tokens":["Glowing Dawn"],"match":"trait"}]
+                        },
+                        "from": ["hand"],
+                        "payCost": true,
+                        "reduceCostBy": 3
+                      }
+                    ]
+                  ],
+                  "cost": {"kind":"securityToHand","raw":"by adding your top security card to the hand"}
+                }
+              ],
+              [
+                {
+                  "kind": "Modal",
+                  "choose": 1,
+                  "labels": ["Play a Glowing Dawn Digimon or Tamer","Use a Glowing Dawn Option"],
+                  "options": [
+                    [
+                      {
+                        "kind": "PlayWithoutCost",
+                        "target": {
+                          "filter": {
+                            "controller": "mine",
+                            "kind": ["Digimon","Tamer"],
+                            "nameOrTrait": [{"tokens":["Glowing Dawn"],"match":"trait"}]
+                          },
+                          "count": 1
+                        },
+                        "from": ["hand"],
+                        "payCost": true,
+                        "reduceCostBy": 3
+                      }
+                    ],
+                    [
+                      {
+                        "kind": "UseOptionWithoutCost",
+                        "filter": {
+                          "controller": "mine",
+                          "kind": ["Option"],
+                          "nameOrTrait": [{"tokens":["Glowing Dawn"],"match":"trait"}]
+                        },
+                        "from": ["hand"],
+                        "payCost": true,
+                        "reduceCostBy": 3
+                      }
+                    ]
+                  ],
+                  "cost": {
+                    "kind": "trashBottomFaceDownUnderTamer",
+                    "controller": "mine",
+                    "raw": "by trashing the bottom face-down card from under any of your Tamers"
+                  }
+                }
+              ]
+            ],
+            "condition": {"kind":"isYourTurn","raw":"it's your turn"},
             "optional": true,
             "abortOnDecline": true
           }
@@ -92542,10 +92668,14 @@
         "actions": [
           {
             "kind": "Unsuspend",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {"isSelfRef":true,"kind":["Digimon"],"nameOrTrait":[{"tokens":["Glowing Dawn"],"match":"trait"}]},
+              "count": 1,
+              "isSelf": true
+            },
             "cost": {
-              "kind": "trash",
-              "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1 },
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
               "raw": "By trashing the bottom face-down card from under any of your Tamers"
             },
             "optional": true,
@@ -92558,7 +92688,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "traits": ["Glowing Dawn"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [{"level":4,"traits":["Glowing Dawn"],"cost":3,"isAlternate":true}]
   },
   "BT25-042": {
     "effects": [

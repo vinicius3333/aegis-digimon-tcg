@@ -16,6 +16,9 @@ import { compiled as bt25058 } from "./BT25-058.js";
 import { compiled as bt25101 } from "./BT25-101.js";
 import { compiled as bt25099 } from "./BT25-099.js";
 import { compiled as bt25102 } from "./BT25-102.js";
+import { compiled as bt25039 } from "./BT25-039.js";
+import { compiled as bt25040 } from "./BT25-040.js";
+import { compiled as bt25041 } from "./BT25-041.js";
 
 const effectsPath = fileURLToPath(new URL("../../../../../packages/shared/src/effects/effects.json", import.meta.url));
 const catalog = JSON.parse(readFileSync(effectsPath, "utf8")) as CompiledEffects;
@@ -68,5 +71,23 @@ describe("BT25 persisted IR", () => {
     expect(catalog[cardId]).toEqual(compiled);
     expect(catalog[cardId]?.coverage).toBe("full");
     expect(catalog[cardId]?.residual).toEqual([]);
+  });
+
+  it("keeps the corrected BT25-039 security, replacement, and evolution IR synchronized", () => {
+    expect(catalog["BT25-039"]).toEqual(bt25039);
+    expect(catalog["BT25-039"]?.coverage).toBe("full");
+    expect(catalog["BT25-039"]?.residual).toEqual([]);
+  });
+
+  it("keeps the corrected BT25-040 security-cost IR synchronized", () => {
+    expect(catalog["BT25-040"]).toEqual(bt25040);
+    expect(catalog["BT25-040"]?.coverage).toBe("full");
+    expect(catalog["BT25-040"]?.residual).toEqual([]);
+  });
+
+  it("keeps the corrected BT25-041 play-or-use and inherited IR synchronized", () => {
+    expect(catalog["BT25-041"]).toEqual(bt25041);
+    expect(catalog["BT25-041"]?.coverage).toBe("full");
+    expect(catalog["BT25-041"]?.residual).toEqual([]);
   });
 });
