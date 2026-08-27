@@ -41,7 +41,7 @@ describe("BT4-094 Tai Kamiya", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT4-094", as: "tai" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 3000 }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 0 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
