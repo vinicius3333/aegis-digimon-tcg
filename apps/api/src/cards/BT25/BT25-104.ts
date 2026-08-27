@@ -1,7 +1,5 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { CompiledCard, Target } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-
-type Actions = CompiledCard["effects"][number]["actions"];
 
 // Hand-corrected effect IR for BT25-104 (ShineGreymon: Burst Mode // Final Shining
 // Burst), a Red/Yellow DUAL card. The AUTO-GENERATED header was intentionally
@@ -46,9 +44,9 @@ const marcusTarget = {
     nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }],
   },
   count: "all",
-};
+} satisfies Target;
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     // ＜Raid＞ ＜Piercing＞ ＜Security A. +1＞ ＜Blocker＞ ＜Barrier＞.
     {
@@ -125,7 +123,7 @@ const compiled: CompiledCard = {
           keyword: { keyword: "Rush", raw: "＜Rush＞" },
           duration: "permanent",
         },
-      ] as unknown as Actions,
+      ],
     },
     // ＜Use Req. ([DATA SQUAD] trait)＞ (§16-42-1): a color-requirement waiver on this
     // card, gated on having a [DATA SQUAD] trait card in play — the corpus' established
@@ -143,7 +141,12 @@ const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           condition: {
             kind: "youHave",
-            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] },
+            filter: {
+              controllerDefault: "mine",
+              zone: "battleArea",
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }],
+            },
             raw: "you have a card w/[DATA SQUAD] trait",
           },
         },
@@ -179,6 +182,12 @@ const compiled: CompiledCard = {
       isAlternate: true,
       level: 6,
       traits: ["DATA SQUAD"],
+    },
+    {
+      cost: 0,
+      isAlternate: true,
+      names: ["ShineGreymon"],
+      burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
     },
   ],
 };
