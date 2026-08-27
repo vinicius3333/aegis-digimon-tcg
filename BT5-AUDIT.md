@@ -2291,3 +2291,36 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-058 — Argomon — 10/10
+
+- Catalog evidence: Green Lv.6 Mega Digimon, Virus/Mutant, play cost 13,
+  11000 DP, and green Lv.5 evolution cost 4. Digisorption -2 optionally
+  suspends one own Digimon while evolving from hand to reduce that cost by 2.
+  When digivolving it suspends all opposing Tamers, and during all turns those
+  opposing Tamers cannot unsuspend. Its knowledge-base query exposes no
+  card-specific QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-058.ts` models the optional
+  Digisorption replacement with an own-Digimon suspend cost and exact -2
+  reduction, a mandatory all-opposing-Tamers `WhenDigivolving` suspension, and
+  an `AllTurns` opponent-Tamer unsuspend restriction aura that exists only
+  while Argomon remains in play. It declares `coverage: "full"`,
+  `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-058", compiled)`.
+- Behavioral proof: four focused tests use legal Lv.5-to-Lv.6 evolution states
+  and prove accepting Digisorption suspends the chosen own Digimon and pays 2
+  memory, while declining leaves it active and pays the full 4. They also prove
+  every opposing Tamer suspends on evolution while an opposing Digimon does
+  not; actual unsuspend attempts remain blocked for opposing Tamers while an
+  own Tamer and opposing Digimon are unrestricted; after Argomon leaves play,
+  the former opposing Tamers can unsuspend normally.
+- Defect corrected: none in the module. Existing coverage was strong; the audit
+  added the missing controller/kind exclusions, actual restriction consumption,
+  and aura-lapse proof.
+- Verification: focused BT5-058 — 4/4 passed. Targeted Oxfmt, Oxlint, and
+  `git diff --check` pass. Typecheck was not rerun per the user's request to
+  avoid broad suites; the last run's known unrelated baseline remains in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
