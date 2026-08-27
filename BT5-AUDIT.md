@@ -3238,3 +3238,28 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   exact-name mechanism — 4/4. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No production or shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-094 — Rowdy Rocker — 10/10
+
+- Catalog and ruling evidence: Red Option with use cost 2. Main may place one
+  red Lv.4-or-lower Digimon card from hand at the bottom of one own Digimon's
+  evolution cards; if placement succeeds, draw 2. Security adds this card to
+  its owner's hand. Q1371 confirms a Digimon stack originating from a Tamer is
+  a legal host, and Q1372 confirms the placed source persists through
+  De-Digivolve.
+- Implementation: `apps/api/src/cards/BT5/BT5-094.ts` uses an optional
+  PlaceUnder from own hand with exact red/Lv.4-or-lower filtering, own Digimon
+  host and bottom placement, then a success-gated Draw 2. Security returns self
+  to hand. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-094", compiled)` registration are preserved.
+- Behavioral proof: four focused tests prove paid Option cost, exact level/color
+  boundaries, own-host filtering against an opposing candidate, bottom stack
+  identity and order, a legal Tamer-derived Digimon host, conditional Draw 2,
+  optional refusal with no draw, and exact Security routing to hand.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for every target/host boundary, bottom order, success coupling, refusal, and
+  the Q1371 host case.
+- Verification: focused BT5-094 — 4/4 passed; targeted PlaceUnder interpreter
+  mechanism — 5/5 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No production or shared engine source changed.
+- Remaining ambiguity: none identified.
