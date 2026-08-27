@@ -2955,6 +2955,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR and exclusive `registerIrCard`; optional transactional return of one TS Digimon from trash to deck bottom then +1 memory, optional exact Giant Slayer recovery, optional On Play TS hand-trash then Draw 2, and free Security play.
 - Proof: positive start-main/recovery, wrong kind/trait, unavailable/refused costs, On Play Draw 2, Security play, and strengthened mixed-pool cases preserving non-TS cards. Automation not run; diff check passed. No unresolved limitation.
 
+## BT26-088 — Hiroko Sagisaka — 10/10
+
+- Catalog/KB: red cost-4 TS Tamer, start-turn memory, conditional Boss/TS Digimon play reduction, and Security play confirmed; no card-specific Q&A/erratum.
+- Implementation: full IR and exclusive `registerIrCard`; Start Main gains memory when the opponent has a Digimon; optional suspension reduces a qualifying Boss/TS Digimon's play cost by 2 with no own Digimon or 1 otherwise; Security plays free.
+- Proof: both reduction branches, Boss/TS routes, refusal, suspended source, Security, start-turn condition, plus new negative non-Boss/non-TS Digimon boundary. Automation not run; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
