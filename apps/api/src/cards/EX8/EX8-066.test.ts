@@ -3,6 +3,7 @@ import { EffectTiming, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-066.js";
+import "./index.js";
 
 describe("EX8-066", () => {
   it("registers the printed start-main memory gain", () => {
@@ -68,7 +69,9 @@ describe("EX8-066", () => {
           ],
           hand: [{ card: "EX8-022", as: "iceEvolution" }],
         },
-        1: { battleArea: [{ card: "AD1-001", as: "opponent", under: ["BT1-010", "BT1-011"] }] },
+        1: {
+          battleArea: [{ card: "AD1-001", as: "opponent", under: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"] }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
