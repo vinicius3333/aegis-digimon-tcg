@@ -2882,3 +2882,10 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR, no residual, exclusive `registerIrCard`. On Play/When Digivolving/When Attacking share one Once Per Turn owner-turn body: optional hand-trash cost, then use an own `Titan` Option from trash with cost reduced by 2. Inherited lowest-level selection and evolution are exact.
 - Proof: existing cases cover off-color evolution, mixed Option/Titan filtering, near matches, cost payment, reduced use, affordability failure, decline, shared timing budget, lowest-level ties, and real deleted-stack behavior.
 - Verification: automation not run by user instruction; `git diff --check` passed before the ledger-only commit. No files besides this ledger changed; no unresolved limitation remains.
+
+## BT26-075 — ScourgeChiropmon — 10/10
+
+- Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
+- Implementation: full IR with exclusive `registerIrCard`. Conditional color waiver, permanent keywords, bottom-face-down Tamer cost, optional play of a cost-5-or-lower `Glowing Dawn` Digimon/Tamer from trash, and Option deletion of opposing lowest-level Digimon match the contract.
+- Proof: existing tests cover catalog/IR, evolution, Option face, cost payment, Security, On Deletion, Ascension ordering, Security lock, lowest-level deletion, Execute, and Ascension. No gap required a change.
+- Verification: automation not run by user instruction; `git diff --check` passed before the ledger-only commit. No files besides this ledger changed; no unresolved limitation remains.
