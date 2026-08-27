@@ -897,3 +897,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-044.
+
+## BT25-045 — Onmon — 10/10
+
+- Catalog evidence: Green level-3 Appmon, play cost 3, 2000 DP; alternate level-2 Appmon evolution for 0; during the controller's turn once per turn, a Social/Tool/Game card linking to this Digimon may reduce its link cost by 1; linked When Linking suspends one opposing Digimon.
+- Knowledge base: no card-specific entries; general Link rules require a legal Link card, declaration-time optional reduction, real memory payment, linked-effect timing, and once-per-turn use.
+- Implementation: recipient-scoped `GrantLinkCostReduction` now records declaration optionality and once-per-turn use with exact trait filters. The linked `WhenLinking` entry suspends one opponent Digimon. Evolution requires level 2 plus Appmon trait, and registration remains exclusively `registerIrCard("BT25-045", compiled)` with full coverage/no residuals.
+- Defects corrected: the alternate evolution omitted level 2, reduction lacked optional/once-per-turn semantics, and the linked suspension effect was absent.
+- Verification: focused suite — 8 passed; BT25-004/interpreter regressions — 189 passed; targeted lint/format and `git diff --check` — passed. Workspace typecheck retains unrelated pre-existing errors and no BT25-045 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-045
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-045.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-045.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-045.
