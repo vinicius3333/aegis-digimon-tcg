@@ -14,10 +14,12 @@ describe("EX9-064", () => {
       actions: [
         {
           kind: "Delete",
-          target: { count: 2, filter: { playCostLte: 4 } },
+          target: {
+            count: 2,
+            filter: { playCostLte: 4, playCostLteScaling: { per: 1, unit: "selfFaceDownDigivolutionCards" } },
+          },
           cost: { kind: "place", faceDown: true, destination: "digivolutionStack" },
         },
-        { kind: "CostModifier", amount: 1, scaling: { unit: "selfFaceDownDigivolutionCards" } },
       ],
     });
   });
@@ -31,7 +33,15 @@ describe("EX9-064", () => {
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions).toMatchObject([
         {
           kind: "Delete",
-          target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 4 }, count: 2 },
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              playCostLte: 4,
+              playCostLteScaling: { per: 1, unit: "selfFaceDownDigivolutionCards" },
+            },
+            count: 2,
+          },
           cost: {
             target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"] }, count: 1, from: ["trash"] },
             destination: "digivolutionStack",
@@ -40,21 +50,13 @@ describe("EX9-064", () => {
             faceDown: true,
           },
         },
-        {
-          kind: "CostModifier",
-          scaling: {
-            per: 1,
-            unit: "selfFaceDownDigivolutionCards",
-            filter: { controllerDefault: "mine", kind: ["Digimon"], faceDown: true },
-          },
-        },
       ]);
   });
   it.each([
     ["OnPlay", EffectTiming.OnPlay],
     ["WhenDigivolving", EffectTiming.WhenDigivolving],
   ] as const)(
-    "%s places a trash Digimon face-down and deletes only opposing play-cost-four-or-lower Digimon",
+    "%s places a trash Digimon face-down and deletes two opposing Digimon through the scaled play-cost ceiling",
     async (_label, timing) => {
       const s = setupEngine(
         {
@@ -62,18 +64,18 @@ describe("EX9-064", () => {
             battleArea: [{ card: "EX9-064", as: "source", under: [{ card: "EX9-015", faceUp: false }] }],
             trash: ["EX9-010"],
           },
-          1: { battleArea: ["BT1-009", "BT1-010", "BT1-021"] },
+          1: { battleArea: ["BT1-009", "BT1-018", "BT1-021"] },
         },
         { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
       );
 
       await advance(s.engine).fireForPermanent(timing, s.perm("source"));
-      await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.topCard?.cardId === "BT1-021"));
+      await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-021"));
 
       expect(s.perm("source").stack).toHaveLength(2);
       expect(s.perm("source").stack[0]).toMatchObject({ cardId: "EX9-010", faceUp: false });
       expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-010")).toBe(false);
-      expect(s.state.players[1]!.trash.filter((card) => ["BT1-009", "BT1-010"].includes(card.cardId))).toHaveLength(2);
+      expect(s.state.players[1]!.trash.filter((card) => ["BT1-009", "BT1-018"].includes(card.cardId))).toHaveLength(2);
       expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-021")).toBe(true);
     },
   );
