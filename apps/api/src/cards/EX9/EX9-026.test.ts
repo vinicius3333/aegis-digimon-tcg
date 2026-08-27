@@ -3,6 +3,7 @@ import { compiled } from "./EX9-026.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX9-026", () => {
@@ -18,6 +19,7 @@ describe("EX9-026", () => {
             kind: "ModifyDP",
             amount: -3000,
             duration: "untilOpponentTurnEnd",
+            alsoGainKeywords: [{ keyword: "SecurityAttack", amount: -1 }],
             cost: { kind: "place", faceDown: true, destination: "digivolutionStack" },
           },
         ],
@@ -34,7 +36,7 @@ describe("EX9-026", () => {
       expect.objectContaining({ kind: "SecurityManipulation", op: "addTop" }),
     ));
 
-  it("places a hand card face down on play before reducing one opposing Digimon", async () => {
+  it("places a hand card face down on play before reducing one opposing Digimon and its security attack", async () => {
     const s = setupEngine(
       {
         0: {
@@ -42,7 +44,12 @@ describe("EX9-026", () => {
           hand: ["BT1-001"],
           security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "target", dp: 5000 },
+            { card: "BT1-010", as: "other", dp: 5000 },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -52,6 +59,9 @@ describe("EX9-026", () => {
     expect(s.perm("source").stack).toHaveLength(1);
     expect(s.perm("source").stack[0]!.faceUp).toBe(false);
     expect(s.perm("target").currentDP).toBe(2000);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
+    expect(s.perm("other").currentDP).toBe(5000);
+    expect(observe(s.engine).keywordAmount(s.perm("other"), "SecurityAttack")).toBe(0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
