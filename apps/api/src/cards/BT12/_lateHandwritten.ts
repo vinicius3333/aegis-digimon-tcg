@@ -42,7 +42,7 @@ registerWouldBePlayedSelfReducer("BT12-112", {
       );
     const chosen = await choosePermanent(ctx, candidates);
     if (chosen === undefined) return false;
-    ctx.pendingSelfReducerRelocations = [...(ctx.pendingSelfReducerRelocations ?? []), chosen];
+    ctx.pendingSelfReducerRelocations = [...(ctx.pendingSelfReducerRelocations ?? []), { permanentId: chosen }];
     return true;
   },
 });
