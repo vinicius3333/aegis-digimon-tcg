@@ -3076,3 +3076,30 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   mechanism — 3/3 passed. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No shared engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-088 — Sora Takenouchi & Joe Kido — 10/10
+
+- Catalog and ruling evidence: Blue Tamer with play cost 4. At the start of the
+  controller's turn it gains 2 memory if the opponent has a Digimon with no
+  evolution cards. During the controller's turn, when an own blue Digimon
+  attacks, this Tamer may suspend to trash the bottom two evolution cards of
+  one opposing Digimon. Its Security effect plays itself for free. The
+  knowledge base contains no additional card-specific ruling or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-088.ts` applies the exact opposing
+  no-source condition and memory amount, installs a controller-turn attack
+  subtrigger limited to own blue Digimon, and uses an optional self-suspend
+  cost before bottom-source TrashDigivolution 2. Security plays self without
+  cost. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-088", compiled)` registration are preserved.
+- Behavioral proof: six focused tests prove the start-turn condition and +2
+  memory, correct blue-attacker scope, exact bottom-two source instance removal
+  with the top source preserved, clamping to the sole available source, and
+  optional refusal leaving both Tamer and stack unchanged. Security proof
+  confirms self enters play without a memory payment.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for exact bottom ordering, fewer-than-two clamping, and refusal boundaries.
+- Verification: focused BT5-088 — 6/6 passed; targeted TrashDigivolution
+  interpreter mechanism — 4/4 passed. Targeted Oxfmt, Oxlint, registration
+  search, and `git diff --check` pass. No production or shared engine source
+  changed.
+- Remaining ambiguity: none identified.
