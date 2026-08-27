@@ -2140,3 +2140,33 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-053 — Deramon — 10/10
+
+- Catalog evidence: Green Lv.5 Ultimate Digimon, Data/Avian, play cost 7,
+  7000 DP, and green Lv.4 evolution cost 3. During its controller's turn it
+  gets +2000 DP for each other suspended Digimon that controller has in play.
+  Its knowledge-base query exposes no QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-053.ts` uses a `YourTurn`
+  continuous self-targeted `ModifyDP` action scaled by each battle-area card
+  matching own controller, Digimon kind, suspended state, and `excludeSelf`.
+  The amount is exactly 2000 per match. It declares `coverage: "full"`,
+  `residual: []`, and registers exclusively through
+  `registerIrCard("BT5-053", compiled)`.
+- Behavioral and lifecycle proof: the focused matrix proves two eligible own
+  suspended Digimon grant exactly +4000 while suspended Deramon itself, an own
+  unsuspended Digimon, an own suspended Tamer, and an opposing suspended
+  Digimon do not count. A second test proves live recomputation from +2000 to
+  zero and back as the ally unsuspends and suspends, then proves the entire
+  modifier lapses during the opponent's turn.
+- Defect corrected: none in the module. The audit strengthened the previously
+  positive-only test to prove every printed filter and the dynamic Your Turn
+  lifecycle.
+- Verification: focused BT5-053 — 2/2 passed; filtered interpreter scaling —
+  1/1 relevant test passed; continuous lifecycle/lapse suites — 7/7 passed.
+  Targeted Oxfmt, Oxlint, and `git diff --check` pass. Shared and web
+  typechecks pass; API/workspace typecheck retains only the known unrelated
+  baseline errors in `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
