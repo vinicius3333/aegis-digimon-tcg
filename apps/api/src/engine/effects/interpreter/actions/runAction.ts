@@ -288,6 +288,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // card makes the permission inert in continuous contexts (EX1-071, BT6 Options).
     action.kind !== "WaiveColorRequirement" &&
     action.optional &&
+    // RedirectAttack with chooser:"opponent" owns its optional decline at the combat
+    // primitive so the defending player, rather than the source controller, decides
+    // whether to switch targets (BT4-075 / Q1224-Q1227).
+    (action.kind !== "RedirectAttack" || action.chooser !== "opponent") &&
     actionCost?.optional !== true
   ) {
     if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
