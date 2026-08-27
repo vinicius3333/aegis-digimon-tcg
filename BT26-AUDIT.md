@@ -2937,6 +2937,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR and exclusive `registerIrCard`; source-scoped linked Once Per Turn reveal of three, optional reduced-by-3 Seven Code play/use, top/bottom remainder, and optional free link from trash of a non-white Lv.4-or-lower System/Seven Code card carrying Link.
 - Proof: metadata, evolution/link, eligible boundaries, Digimon/Option branches, reduction, remainder, turn/frequency, Detach, Q7127/Q7128, plus new trash-link refusal. Automation not run; diff check passed. No unresolved static limitation.
 
+## BT26-085 — Giant Slayer — 10/10
+
+- Catalog/KB: white `NO DATA`/`TS` Digimon, Assembly -5 from five different-level `Chronomon`-text/Shaman cards, Collision/Reboot/Blocker, opponent-effect protection, and Destroy Mode leave replacement confirmed. Catalog intentionally has no level field; no clause depends on its own level. No KB entry/erratum.
+- Implementation: full IR and exclusive `registerIrCard`; exact Assembly, keyword suite, opponent-only DP/stack-trash protection, and optional free Destroy Mode evolution from hand/trash replacing departure.
+- Proof: valid/invalid Assembly, protection ownership, combat keywords, replacement from both zones, refusal, and final zones. No change needed; automation not run; diff check passed. No unresolved implementation limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
