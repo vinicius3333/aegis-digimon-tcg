@@ -99162,7 +99162,17 @@
     "effects": [
       {
         "trigger": "StartOfYourTurn",
-        "actions": [{ "kind": "SetMemory", "value": 3, "condition": { "kind": "memoryAtMost", "value": 2 } }]
+        "actions": [
+          {
+            "kind": "SetMemory",
+            "value": 3,
+            "condition": {
+              "kind": "memoryAtMost",
+              "value": 2,
+              "raw": "you have 2 or less memory"
+            }
+          }
+        ]
       },
       {
         "trigger": "AllTurns",
@@ -99170,65 +99180,91 @@
           {
             "kind": "SubTrigger",
             "event": "whenEffectAddsToOpponentHand",
+            "optional": true,
             "actions": [
               {
                 "kind": "PlaceUnder",
-                "target": { "filter": { "controller": "mine" }, "count": 1 },
-                "underFilter": { "controllerDefault": "mine", "kind": ["Tamer"] },
-                "cost": {
-                  "kind": "suspend",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by suspending this Tamer"
+                "target": {
+                  "filter": {},
+                  "count": 1
                 },
-                "optional": true,
-                "abortOnDecline": true
+                "fromDeckTop": true,
+                "position": "top"
+              },
+              {
+                "kind": "PlaceUnder",
+                "target": {
+                  "filter": {},
+                  "count": 1
+                },
+                "fromDeckTop": true,
+                "position": "top"
               }
-            ]
+            ],
+            "cost": {
+              "kind": "suspend",
+              "target": {
+                "filter": {
+                  "isSelfRef": true
+                },
+                "count": 1,
+                "isSelf": true
+              },
+              "raw": "by suspending this Tamer"
+            },
+            "raw": "When effects add cards to your opponent's hand, by suspending this Tamer, you may place the top 2 cards of your deck face down under this Tamer."
           }
         ]
       },
       {
-        "trigger": "YourTurn",
+        "trigger": "Static",
         "actions": [
           {
             "kind": "Replacement",
             "event": "wouldDigivolve",
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
+            "mode": "reduceCost",
+            "amount": 1,
             "into": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }]
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "DATA SQUAD"
+                  ],
+                  "match": "trait"
+                }
+              ]
             },
-            "actions": [
-              {
-                "kind": "Replacement",
-                "event": "wouldDigivolve",
-                "mode": "reduceCost",
-                "amount": 1,
-                "raw": "reduce the cost by 1",
-                "cost": {
-                  "kind": "trash",
-                  "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1 },
-                  "raw": "by trashing the bottom face-down card from under any of your Tamers"
-                },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 1,
+              "raw": "by trashing the bottom face-down card from under any of your Tamers"
+            },
+            "raw": "When any of your Digimon would digivolve into a [DATA SQUAD] trait Digimon card, by trashing the bottom face-down card from under any of your Tamers, reduce the cost by 1."
           }
         ],
         "frequency": "OncePerTurn"
       },
       {
         "trigger": "Security",
+        "isSecurity": true,
         "actions": [
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "payCost": false
           }
-        ],
-        "isSecurity": true
+        ]
       }
     ],
     "coverage": "full",
@@ -99238,7 +99274,17 @@
     "effects": [
       {
         "trigger": "StartOfYourTurn",
-        "actions": [{ "kind": "SetMemory", "value": 3, "condition": { "kind": "memoryAtMost", "value": 2 } }]
+        "actions": [
+          {
+            "kind": "SetMemory",
+            "value": 3,
+            "condition": {
+              "kind": "memoryAtMost",
+              "value": 2,
+              "raw": "you have 2 or less memory"
+            }
+          }
+        ]
       },
       {
         "trigger": "AllTurns",
@@ -99246,20 +99292,39 @@
           {
             "kind": "SubTrigger",
             "event": "whenSecurityRemoved",
+            "optional": true,
             "actions": [
               {
                 "kind": "PlaceUnder",
-                "target": { "filter": { "controller": "mine" }, "count": 1 },
-                "underFilter": { "controllerDefault": "mine", "kind": ["Tamer"] },
-                "cost": {
-                  "kind": "suspend",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by suspending this Tamer"
+                "target": {
+                  "filter": {},
+                  "count": 1
                 },
-                "optional": true,
-                "abortOnDecline": true
+                "fromDeckTop": true,
+                "position": "top"
+              },
+              {
+                "kind": "PlaceUnder",
+                "target": {
+                  "filter": {},
+                  "count": 1
+                },
+                "fromDeckTop": true,
+                "position": "top"
               }
-            ]
+            ],
+            "cost": {
+              "kind": "suspend",
+              "target": {
+                "filter": {
+                  "isSelfRef": true
+                },
+                "count": 1,
+                "isSelf": true
+              },
+              "raw": "by suspending this Tamer"
+            },
+            "raw": "When your security stack is removed from, by suspending this Tamer, you may place the top 2 cards of your deck face down under this Tamer."
           }
         ]
       },
@@ -99269,37 +99334,53 @@
           {
             "kind": "Replacement",
             "event": "wouldBePlayed",
-            "sourceFilter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }] },
-            "actions": [
-              {
-                "kind": "Replacement",
-                "event": "wouldBePlayed",
-                "mode": "reduceCost",
-                "amount": 1,
-                "raw": "reduce the cost by 1",
-                "cost": {
-                  "kind": "trash",
-                  "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1 },
-                  "raw": "by trashing the bottom face-down card from under any of your Tamers"
-                },
-                "optional": true,
-                "abortOnDecline": true
-              }
-            ]
+            "mode": "reduceCost",
+            "amount": 1,
+            "sourceFilter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon",
+                "Tamer"
+              ],
+              "excludeKind": [
+                "Option"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Glowing Dawn"
+                  ],
+                  "match": "trait"
+                }
+              ]
+            },
+            "cost": {
+              "kind": "trashBottomFaceDownUnderTamer",
+              "controller": "mine",
+              "count": 1,
+              "raw": "by trashing the bottom face-down card from under any of your Tamers"
+            },
+            "raw": "When any of your [Glowing Dawn] trait cards would be played, by trashing the bottom face-down card from under any of your Tamers, reduce the cost by 1."
           }
         ],
         "frequency": "OncePerTurn"
       },
       {
         "trigger": "Security",
+        "isSecurity": true,
         "actions": [
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "payCost": false
           }
-        ],
-        "isSecurity": true
+        ]
       }
     ],
     "coverage": "full",
@@ -99315,7 +99396,12 @@
             "amount": 1,
             "condition": {
               "kind": "opponentHas",
-              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"] },
+              "filter": {
+                "controllerDefault": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
               "raw": "your opponent has a Digimon"
             }
           }
@@ -99329,22 +99415,48 @@
             "optional": true,
             "cost": {
               "kind": "suspend",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "target": {
+                "filter": {
+                  "isSelfRef": true
+                },
+                "count": 1,
+                "isSelf": true
+              },
               "raw": "By suspending this Tamer"
             },
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }],
+                "kind": [
+                  "Digimon"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Appmon"
+                    ],
+                    "match": "trait"
+                  }
+                ],
                 "hasLinkRequirement": true
               },
               "count": 1
             },
-            "recipient": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "from": ["hand", "digivolutionCards"],
+            "recipient": {
+              "filter": {
+                "controller": "mine",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
+            "from": [
+              "hand",
+              "digivolutionCards"
+            ],
             "costDelta": -2,
-            "raw": "[Main] By suspending this Tamer, you may link 1 [Appmon] trait Digimon card from your hand or your Digimon's digivolution cards to 1 of your Digimon with the cost reduced by 2."
+            "raw": "[Main] By suspending this Tamer, link an Appmon Digimon at cost -2."
           }
         ]
       },
@@ -99354,10 +99466,26 @@
         "actions": [
           {
             "kind": "AppFuse",
-            "source": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "into": { "kind": ["Digimon"] },
-            "from": ["hand"],
-            "raw": "[End of Your Turn] [Once Per Turn] 1 of your Digimon may app fuse into a Digimon card in the hand."
+            "source": {
+              "filter": {
+                "controller": "mine",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
+            "into": {
+              "controllerDefault": "mine",
+              "kind": [
+                "Digimon"
+              ]
+            },
+            "from": [
+              "hand"
+            ],
+            "optional": true,
+            "raw": "1 of your Digimon may app fuse into a Digimon card in the hand."
           }
         ]
       },
@@ -99367,7 +99495,13 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "payCost": false
           }
         ]
