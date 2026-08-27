@@ -2692,3 +2692,35 @@ git diff --check
 ```
 
 No unresolved BT26-066 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-067 — Wizardmon — 10/10
+
+### Contract evidence
+
+- Catalog confirms a purple/red level-4 Digimon, play cost 4, 4000 DP, alternate evolution from level-3 `TS` for cost 2, On Play/When Digivolving Draw 1 then trash one, End of Your Turn processing, and inherited Retaliation.
+- End of Your Turn requires an own blue or yellow Digimon, then may return Wizardmon to deck bottom to play one red or blue `Iliad` Digimon from trash with cost reduced by 4.
+- The KB has no card-specific Q&A, erratum, or restriction. End-turn timing, optional cost payment, reduced-cost play, and Retaliation were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-067.ts` has full IR coverage and exclusive `registerIrCard("BT26-067", compiled)` registration.
+- Both entry timings encode ordered Draw/Trash. The end-turn block checks the color condition, optionally returns self to deck bottom, and only then performs the filtered reduced-cost trash play. Alternate evolution and inherited Retaliation are exact.
+- Conditional payment, cost reduction, zone transition, target filters, and peers were inspected.
+
+### Behavioral proof
+
+- `BT26-067.test.ts` covers Draw/Trash, positive reduced-cost play and memory, illegal target, insufficient memory, missing color condition, real evolution, and inherited Retaliation.
+- The added optional-decline case proves a legal activation can be refused without returning Wizardmon, moving the trash target, or changing memory. The module required no correction.
+
+### Verification
+
+```text
+Knowledge-base card query
+  PASS (no card-specific Q&A, errata, or restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-067 limitation remains. Only its focused test and this ledger section changed; the implementation and engine remain unchanged. The collection is not marked complete.
