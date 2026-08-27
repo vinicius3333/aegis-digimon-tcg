@@ -6,7 +6,7 @@ describe("BT2-007 Pagumon", () => {
   it("trashes exactly the top card of its owner's deck when attacking", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-009", as: "attacker", under: ["BT2-007"] }],
+        battleArea: [{ card: "BT2-067", as: "attacker", under: ["BT2-007"] }],
         deck: [
           { card: "BT1-010", as: "top" },
           { card: "BT1-011", as: "remaining" },
@@ -28,7 +28,7 @@ describe("BT2-007 Pagumon", () => {
 
   it("resolves harmlessly when its owner's deck is empty", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-009", as: "attacker", under: ["BT2-007"] }] },
+      0: { battleArea: [{ card: "BT2-067", as: "attacker", under: ["BT2-007"] }] },
       1: { security: ["BT1-012"] },
     });
     expect(
