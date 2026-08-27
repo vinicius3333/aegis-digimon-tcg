@@ -2875,3 +2875,10 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR, no residual, exclusive `registerIrCard`. Alternate evolution, exact one-material Assembly, shared optional self-delete/deck-bottom modal, opposing Lv.5 deletion, optional On Deletion TS play from hand/trash, inherited keyword, and trait grant map exactly.
 - Proof: existing cases cover evolution, Assembly and Q7098 boundary, both modal costs/refusal, TS Digimon/Tamer plays, deletion completion, real Security A. attack, and Wizard projection. Added optional On Deletion refusal, preserving the eligible hand card.
 - Verification: automation not run by user instruction; `git diff --check` passed before commit. No unresolved limitation remains.
+
+## BT26-074 — Cerberusmon — 10/10
+
+- Catalog/KB: purple/black Lv.5, alternate Lv.4 `TS` evolution for cost 3, and inherited On Deletion deletion of an opposing lowest-level Digimon confirmed. No card-specific Q&A, erratum, or restriction.
+- Implementation: full IR, no residual, exclusive `registerIrCard`. On Play/When Digivolving/When Attacking share one Once Per Turn owner-turn body: optional hand-trash cost, then use an own `Titan` Option from trash with cost reduced by 2. Inherited lowest-level selection and evolution are exact.
+- Proof: existing cases cover off-color evolution, mixed Option/Titan filtering, near matches, cost payment, reduced use, affordability failure, decline, shared timing budget, lowest-level ties, and real deleted-stack behavior.
+- Verification: automation not run by user instruction; `git diff --check` passed before the ledger-only commit. No files besides this ledger changed; no unresolved limitation remains.
