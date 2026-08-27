@@ -45,6 +45,47 @@ describe("BT26-057 Bearcatmon", () => {
     });
   });
 
+  it("uses the Lv.4 Glowing Dawn alternate evolution and rejects a non-trait Lv.4", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-035", as: "glowingDawnBase" }],
+        hand: [{ card: "BT26-057", as: "bearcatmon" }],
+      },
+    });
+    legal.state.memory = 3;
+    await legal.ready();
+
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("glowingDawnBase").permanentId,
+        instanceId: legal.inst("bearcatmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("glowingDawnBase").topCard.cardId === "BT26-057");
+    expect(legal.state.memory).toBe(0);
+    expect(legal.perm("glowingDawnBase").stack.map(({ cardId }) => cardId)).toEqual(["BT25-035"]);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "AD1-001", as: "nonGlowingDawnBase" }],
+        hand: [{ card: "BT26-057", as: "bearcatmon" }],
+      },
+    });
+    invalid.state.memory = 3;
+    await invalid.ready();
+
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("nonGlowingDawnBase").permanentId,
+        instanceId: invalid.inst("bearcatmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
   it("publicly pays with a face-down Tamer card and gains DP plus Digimon-effect immunity", async () => {
     const s = setupEngine(
       {

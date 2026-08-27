@@ -2372,3 +2372,35 @@ git diff --check
 ```
 
 No unresolved BT26-056 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-057 — Bearcatmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-057` (`Bearcatmon`), a black/red level-5 dual Digimon/Option with play/use cost 4 and 8000 DP. Normal evolution is black or red Lv.4 for cost 4, with alternate evolution from a level-4 `Glowing Dawn` Digimon for cost 3.
+- Printed Digimon behavior verified: by trashing the bottom face-down card under any own Tamer, it becomes unaffected by opposing Digimon effects and gains +3000 DP through the opponent's turn; and All Turns Once Per Turn, when attack targets change or an effect trashes cards from under a Tamer, it may unsuspend. Its Option body De-Digivolves one opposing Digimon by 1, then grants one opposing Digimon a Start of Your Main Phase attack through the opponent's turn end; `Glowing Dawn` satisfies its Use Requirement.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-057 --json`; Q7060–Q7066 confirm targeting, granted effects, and their interaction with immunity and duration. No banlist restriction or erratum applies.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-057.ts` has `coverage: "full"`, `residual: []`, and registers exclusively through `registerIrCard("BT26-057", compiled)`.
+- The When Digivolving cost uses the exact face-down Tamer-bottom primitive, then grants opposing-Digimon-effect immunity and +3000 DP through the opponent's turn. The All Turns watcher shares one Once Per Turn budget across target-switch and effect-attributed own-Tamer-stack-trash routes.
+- The `Glowing Dawn` color waiver, dual Option routing, De-Digivolve 1, and granted Start of Your Main Phase attack are encoded with correct duration. Cost payment, immunity, event attribution, gained-trigger anchoring, and peers were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-057.test.ts` covers exact IR shape/metadata; the newly added real alternate-evolution success over a `Glowing Dawn` Lv.4 and rejection of a nonmatching Lv.4; face-down Tamer cost and unavailable-cost path; opposing Digimon-effect immunity versus Options; shared Once Per Turn behavior; and the dual Option route.
+- The Q7060/Q7062–Q7066 proof shows the Option can grant an attack effect to an immune Digimon, that it does not affect the Digimon while immunity remains active, and that it activates after immunity expires. The implementation required no correction.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-057 --json
+  PASS (Q7060-Q7066; banlist: null; errata: null)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-057 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
