@@ -128,4 +128,31 @@ describe("BT1-056 Petermon", () => {
       s.inst("opponentTinkermon").instanceId,
     );
   });
+
+  it("does not fire its On Play effect when Petermon is digivolved", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-050", as: "base" }],
+        hand: [
+          { card: "BT1-056", as: "petermon" },
+          { card: "BT1-047", as: "tinkermon" },
+        ],
+        deck: [{ card: "BT1-010", as: "evolutionDraw" }],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("petermon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("petermon").instanceId);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tinkermon").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 });
