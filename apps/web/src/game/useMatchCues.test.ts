@@ -2,16 +2,19 @@
 
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ServerEvent } from "@aegis/shared";
+import type { GameState, ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import {
   CLASH_OUTCOME_AT_MS,
+  CLASH_REVEAL_SHOWN_AT_MS,
   CLASH_TOTAL_MS,
   FIELD_CLASH_IMPACT_AT_MS,
   FIELD_CLASH_LUNGE_AT_MS,
   SECURITY_BRANCH_IN_MS,
   SECURITY_BRANCH_TOTAL_MS,
   SECURITY_BREAK_TOTAL_MS,
+  SECURITY_DESTROY_OUTCOME_AT_MS,
+  SECURITY_DESTROY_TOTAL_MS,
   SHOWCASE_TOTAL_MS,
   TIMINGS,
   COMBAT_IMPACT_TOTAL_MS,
@@ -89,6 +92,64 @@ function renderCues(initialEvents: readonly ServerEvent[] = [], onActionRejected
     { initialProps: initialEvents },
   );
   return { ...view, onActionRejected };
+}
+
+/**
+ * A board with two cards already in the opponent's trash, which is what lets the hook
+ * name the cards a `cardsMoved` out of security refers to — the event carries instance
+ * ids and no seat, and trash is public.
+ */
+const TRASHED_SECURITY_BOARD = {
+  players: [
+    { battleArea: [], trash: [], hand: [] },
+    {
+      battleArea: [],
+      trash: [
+        { instanceId: "sec-1", cardId: "BT1-010" },
+        { instanceId: "sec-2", cardId: "BT1-011" },
+      ],
+      hand: [],
+    },
+  ],
+} as unknown as GameState;
+
+/** The same board, with a stack still showing the cards the events are about to spend. */
+const STACKED_SECURITY_BOARD = {
+  players: [
+    { battleArea: [], trash: [], hand: [], securityCount: 5 },
+    {
+      battleArea: [],
+      trash: [
+        { instanceId: "sec-1", cardId: "BT1-010" },
+        { instanceId: "sec-2", cardId: "BT1-011" },
+      ],
+      hand: [],
+      securityCount: 5,
+    },
+  ],
+} as unknown as GameState;
+
+const SECURITY_TRASHED: ServerEvent = {
+  kind: "cardsMoved",
+  instanceIds: ["sec-1", "sec-2"],
+  from: "security",
+  to: "trash",
+};
+
+/** The same hook over a board, so movements the events name resolve to real cards. */
+function renderCuesOverBoard(state: GameState) {
+  return renderHook(
+    (events: readonly ServerEvent[]) =>
+      useMatchCues({
+        events,
+        state,
+        viewerSeat: VIEWER,
+        mulliganOpen: false,
+        anchors,
+        onActionRejected: vi.fn<(reason: string) => void>(),
+      }),
+    { initialProps: [] as readonly ServerEvent[] },
+  );
 }
 
 /** The same hook, with the question the server is waiting on as a second input. */
@@ -835,5 +896,89 @@ describe("server-named signals", () => {
     rerender([ATTACK, CHECK]);
     await advance(SECURITY_BREAK_TOTAL_MS + 1);
     expect(result.current.securityClash?.loser).toBeUndefined();
+  });
+});
+
+describe("security a card effect trashes", () => {
+  it("plays one scene per card, naming each card the stack lost", async () => {
+    const { result, rerender } = renderCuesOverBoard(TRASHED_SECURITY_BOARD);
+    await advance(0);
+    rerender([SECURITY_TRASHED]);
+
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-010");
+    expect(result.current.securityClash?.cause).toBe("destruction");
+
+    // The second card gets the whole sequence again rather than sharing the first's scene.
+    await advance(SECURITY_DESTROY_TOTAL_MS + SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.securityClash?.revealed.cardId).toBe("BT1-011");
+
+    await advance(SECURITY_DESTROY_TOTAL_MS);
+    expect(result.current.securityClash).toBeNull();
+  });
+
+  it("breaks the shield of the stack that lost the cards, once per card", async () => {
+    const { result, rerender } = renderCuesOverBoard(TRASHED_SECURITY_BOARD);
+    await advance(0);
+    rerender([SECURITY_TRASHED]);
+
+    await advance(TIMINGS.securityArm);
+    expect(result.current.securityBreak).toMatchObject({ seat: 1, phase: "break" });
+
+    // The same shield arms and breaks again for the second card rather than staying broken
+    // through both, so a stack losing several cards is seen losing each one.
+    const first = result.current.securityBreak?.key;
+    await advance(SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS - TIMINGS.securityArm);
+    expect(result.current.securityBreak).toMatchObject({ seat: 1, phase: "arm" });
+    expect(result.current.securityBreak?.key).not.toBe(first);
+
+    await advance(TIMINGS.securityArm);
+    expect(result.current.securityBreak).toMatchObject({ seat: 1, phase: "break" });
+  });
+});
+
+describe("the figure a shield shows", () => {
+  it("keeps the card the board dropped until the reveal has put it on screen", async () => {
+    const { result, rerender } = renderCuesOverBoard(STACKED_SECURITY_BOARD);
+    await advance(0);
+    rerender([ATTACK, REVEAL]);
+
+    // The shield breaks first; the stack is still five while it does.
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.heldSecurityCounts.get(0)).toBe(5);
+
+    await advance(CLASH_REVEAL_SHOWN_AT_MS);
+    expect(result.current.heldSecurityCounts.get(0)).toBeUndefined();
+  });
+
+  it("drops one figure per card an effect trashes, as each card breaks", async () => {
+    const { result, rerender } = renderCuesOverBoard(STACKED_SECURITY_BOARD);
+    await advance(0);
+    rerender([SECURITY_TRASHED]);
+
+    await advance(SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.heldSecurityCounts.get(1)).toBe(5);
+
+    // The first card breaks, so the shield gives up one — the second is still owed.
+    await advance(SECURITY_DESTROY_OUTCOME_AT_MS);
+    expect(result.current.heldSecurityCounts.get(1)).toBe(4);
+
+    await advance(SECURITY_DESTROY_TOTAL_MS - SECURITY_DESTROY_OUTCOME_AT_MS + SECURITY_BREAK_TOTAL_MS);
+    expect(result.current.heldSecurityCounts.get(1)).toBe(4);
+
+    await advance(SECURITY_DESTROY_OUTCOME_AT_MS);
+    expect(result.current.heldSecurityCounts.get(1)).toBeUndefined();
+  });
+
+  it("hands the figure back when a newer scene takes the board off the one holding it", async () => {
+    const { result, rerender } = renderCuesOverBoard(STACKED_SECURITY_BOARD);
+    await advance(0);
+    rerender([ATTACK, REVEAL]);
+    await advance(TIMINGS.securityArm);
+    expect(result.current.heldSecurityCounts.get(0)).toBe(5);
+
+    rerender([ATTACK, REVEAL, SECOND_REVEAL, SECOND_CHECK]);
+    await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS);
+    expect(result.current.heldSecurityCounts.get(0)).toBeUndefined();
   });
 });

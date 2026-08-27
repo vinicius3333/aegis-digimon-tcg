@@ -6600,6 +6600,11 @@ button.side-panel__name:focus-visible {
   opacity: 0;
   animation: battle-clash-shatter-in var(--t-clash-outcome, 350ms) steps(1, end) var(--t-clash-outcome-at, 1283ms)
     forwards;
+  /* The shards break on the outcome beat's clock rather than the longer one a field
+     deletion uses: the scene starts fading when the beat ends, so anything still in
+     flight would simply be cut off. The stagger that starts the last shard is already
+     taken out of this number. */
+  --t-card-shatter: var(--t-clash-shatter, 260ms);
 }
 
 @keyframes battle-clash-shatter-in {

@@ -33,6 +33,15 @@ const RESOLUTION_LABEL_KEYS = {
   trashed: "overlay.securityTrashed",
 } as const;
 
+/* A card an effect trashed never had a chance to do anything, so neither the badge nor the
+   outcome line may say what a check's would: it was not checked, and "no effect" would read
+   as a verdict on a card that was never given one. */
+const DESTRUCTION_BADGE_KEY = "overlay.securityDestroyed";
+
+const DESTRUCTION_OUTCOME_KEY = "overlay.securityDestroyedDetail";
+
+const DESTRUCTION_ROLE_KEY = "overlay.trashedFromSecurity";
+
 /** The battle verdict for one of the two cards. */
 type ClashFate = "none" | "beaten" | "stands";
 
@@ -41,6 +50,7 @@ function ClashCard({
   role,
   fate,
   spent,
+  destroyed,
 }: {
   fighter: SecurityClashFighter;
   role: "attacker" | "revealed";
@@ -48,6 +58,8 @@ function ClashCard({
   fate: ClashFate;
   /** This card leaves the board after the beat, whatever the verdict was. */
   spent: boolean;
+  /** An effect took this card out of the stack rather than a check flipping it. */
+  destroyed: boolean;
 }) {
   const { t } = useTranslation();
   const cardName = getCardDefinition(fighter.cardId)?.nameEn ?? fighter.cardId;
@@ -74,7 +86,9 @@ function ClashCard({
       </div>
       <figcaption className="battle-clash__caption">
         <span className="battle-clash__role">
-          {role === "attacker" ? t("overlay.isAttacking", { name: cardName }) : t("overlay.revealedFromSecurity")}
+          {role === "attacker"
+            ? t("overlay.isAttacking", { name: cardName })
+            : t(destroyed ? DESTRUCTION_ROLE_KEY : "overlay.revealedFromSecurity")}
         </span>
         <strong className="battle-clash__name">{cardName}</strong>
         {fighter.dp === undefined ? null : <span className="battle-clash__dp">{fighter.dp.toLocaleString()} DP</span>}
@@ -117,20 +131,27 @@ function clashShatterColor(cardId: string): ColorName {
 export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
   const { t } = useTranslation();
   const fighters = orderSecurityClashFighters(scene);
+  const destroyed = scene.cause === "destruction";
   return (
     <div
       className="battle-clash"
       data-testid="security-clash"
       data-resolution={scene.resolution}
-      // A check that held on stage while it resolved has already spent the lead-in, so the
-      // outcome beat and the fade behind it run from the settle instead of the mount.
-      style={scene.outcomeStartsNow === true ? ({ "--t-clash-outcome-at": "0ms" } as CSSProperties) : undefined}
+      data-cause={scene.cause ?? "check"}
+      // A scene that names its own outcome beat runs the break and the fade behind it from
+      // that moment: zero for a check that held on stage while it resolved and has already
+      // spent the lead-in, and the shorter destruction beat for a card no attacker faced.
+      style={
+        scene.outcomeAtMs === undefined
+          ? undefined
+          : ({ "--t-clash-outcome-at": `${scene.outcomeAtMs}ms` } as CSSProperties)
+      }
       role="status"
       aria-live="assertive"
     >
       <p className="battle-clash__badge">
         <Icons.Shield size={13} />
-        {t("overlay.securityCheck")}
+        {t(destroyed ? DESTRUCTION_BADGE_KEY : "overlay.securityCheck")}
       </p>
       <div className="battle-clash__stage">
         <ClashCard
@@ -138,6 +159,7 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
           role={fighters[0]!.role}
           fate={clashFate(scene, fighters[0]!.role)}
           spent={clashSpent(scene, fighters[0]!.role)}
+          destroyed={destroyed}
         />
         {fighters.length > 1 ? (
           <span className="battle-clash__mark" aria-hidden="true">
@@ -151,10 +173,13 @@ export function SecurityClash({ scene }: { scene: SecurityClashScene }) {
             role={fighters[1].role}
             fate={clashFate(scene, fighters[1].role)}
             spent={clashSpent(scene, fighters[1].role)}
+            destroyed={destroyed}
           />
         ) : null}
       </div>
-      <p className="battle-clash__outcome">{t(RESOLUTION_LABEL_KEYS[scene.resolution])}</p>
+      <p className="battle-clash__outcome">
+        {t(destroyed ? DESTRUCTION_OUTCOME_KEY : RESOLUTION_LABEL_KEYS[scene.resolution])}
+      </p>
     </div>
   );
 }

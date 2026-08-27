@@ -141,6 +141,7 @@ import type { SpotlightSubject } from "./spotlight";
 import { pendingFateBadges } from "./pendingFate";
 import { buildPermanentDetail } from "./permanentDetail";
 import { hasFaceUpSecurity, securityAttackLabelKey } from "./securityChrome";
+import { shieldSecurityCount } from "./securityClash";
 import { activeAttackArrow, effectTargetArrow, type ArrowEndpoint, type TrackingArrow } from "./trackingArrow";
 import { predictedMemory } from "./memoryArc";
 import { memoryCostPreview, type MemoryDropTarget } from "./memoryCostPreview";
@@ -483,6 +484,7 @@ export function GameScreen({
     securityClash,
     securityRevealPending,
     securityHitSeat,
+    heldSecurityCounts,
     sidePanels,
     turnTransition,
     unsuspendSweep,
@@ -2417,7 +2419,7 @@ export function GameScreen({
               <Pile
                 className={`game-security-pile${securityHitSeat === viewerSeat ? " game-security-shield--hit" : ""}`}
                 compact={compactPiles}
-                count={you.securityCount}
+                count={shieldSecurityCount(you.securityCount, heldSecurityCounts.get(viewerSeat))}
                 shield="you"
                 armed={securityBreak?.seat === viewerSeat && securityBreak.phase === "arm"}
                 breaking={securityBreak?.seat === viewerSeat && securityBreak.phase === "break"}
@@ -2621,7 +2623,7 @@ export function GameScreen({
                 <Pile
                   className={`game-security-pile${securityHitSeat === otherSeat(viewerSeat) ? " game-security-shield--hit" : ""}`}
                   compact={compactPiles}
-                  count={opp.securityCount}
+                  count={shieldSecurityCount(opp.securityCount, heldSecurityCounts.get(otherSeat(viewerSeat)))}
                   shield="opp"
                   armed={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "arm"}
                   breaking={securityBreak?.seat === otherSeat(viewerSeat) && securityBreak.phase === "break"}

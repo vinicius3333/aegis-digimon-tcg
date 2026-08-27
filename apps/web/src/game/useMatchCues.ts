@@ -52,10 +52,14 @@ import {
 import {
   buildSecurityBranchScene,
   buildSecurityBreakScene,
+  buildSecurityDestructionScene,
   buildSecurityRevealScene,
+  securityDestructionsFromEvents,
   settleSecurityClashScene,
   SECURITY_BRANCH_TOTAL_MS,
   SECURITY_BREAK_TIMINGS,
+  SECURITY_DESTROY_OUTCOME_AT_MS,
+  SECURITY_DESTROY_TOTAL_MS,
   type SecurityBranchScene,
   type SecurityBreakScene,
   type SecurityClashAttacker,
@@ -86,6 +90,7 @@ import { dpPulses as diffDpPulses, type DpPulse } from "./dpPulse";
 import { freezePulses as diffFreezePulses, type FreezeFlags, type FreezePulse } from "./freezePulse";
 import {
   CLASH_OUTCOME_AT_MS,
+  CLASH_REVEAL_SHOWN_AT_MS,
   CLASH_TOTAL_MS,
   COMBAT_IMPACT_TOTAL_MS,
   cutInTotalMs,
@@ -227,6 +232,12 @@ export interface MatchCues {
   /** The attack/block lock each permanent is currently jolting over, by permanent id. */
   freezePulses: ReadonlyMap<string, FreezePulse>;
   securityHitSeat: number | null;
+  /**
+   * The figure each shield must keep while a scene is still holding a card the board has
+   * already dropped. Pass it through {@link shieldSecurityCount} with the live count —
+   * absent for a seat whose stack nothing is currently spending.
+   */
+  heldSecurityCounts: ReadonlyMap<Seat, number>;
   drawFlights: readonly DrawFlight[];
   drawBursts: readonly DrawBurst[];
   /** Plays a cue for a locally triggered action, sharing the repeat suppression with the event fan-out. */
@@ -336,6 +347,12 @@ export function useMatchCues({
   const [turnTransition, setTurnTransition] = useState<TurnTransitionCue | null>(null);
   const [securityClash, setSecurityClash] = useState<SecurityClashScene | null>(null);
   const [securityBreak, setSecurityBreak] = useState<SecurityBreakCue | null>(null);
+  // Security cards a scene is still holding: the board has already dropped each one, and
+  // the scene that shows it leaving has not reached that beat yet. Keyed by scene so a
+  // cancelled scene releases exactly its own card and never a newer scene's.
+  const [heldSecurityCards, setHeldSecurityCards] = useState<ReadonlyMap<number, { seat: Seat; count: number }>>(
+    new Map(),
+  );
   const [securityBranch, setSecurityBranch] = useState<SecurityBranchScene | null>(null);
   // The check whose reveal the screen still owes the viewer, by clash key.
   const [pendingRevealKey, setPendingRevealKey] = useState<number | null>(null);
@@ -455,6 +472,56 @@ export function useMatchCues({
     sidePanelLookupRef.current = { cardId: (id) => cardIds.get(id), seat: (id) => seats.get(id) };
     cardSiteRef.current = buildCardSiteIndex(state);
   });
+
+  /**
+   * The figure this seat's shield is showing right now. Read as a scene is staged, which
+   * is normally before the patch that removes the card has even landed — the server sends
+   * events as they happen and patches on its own tick — so it is the figure that still
+   * counts the card the scene is about to spend.
+   */
+  function securityCountOf(seat: Seat): number | undefined {
+    return state?.players[seat]?.securityCount;
+  }
+
+  /** Keep this seat's shield on `count` until the scene `key` has shown the card leaving. */
+  function holdSecurityCard(key: number, seat: Seat, count: number | undefined) {
+    if (count === undefined) return;
+    setHeldSecurityCards((held) => new Map(held).set(key, { seat, count }));
+  }
+
+  /**
+   * The highest figure any scene is still holding for each seat, which is what the shield
+   * shows. Several scenes hold at once when one effect spends a run of cards: each holds
+   * the figure its own card is the last of, so the max is always the card on stage now.
+   */
+  const heldSecurityCounts = useMemo(() => {
+    const highest = new Map<Seat, number>();
+    for (const { seat, count } of heldSecurityCards.values()) {
+      highest.set(seat, Math.max(highest.get(seat) ?? 0, count));
+    }
+    return highest;
+  }, [heldSecurityCards]);
+
+  /**
+   * A scene the queue drops before it ever starts — a newer check replacing the track —
+   * runs no `finally`, and its hold would keep a card on the shield for the rest of the
+   * match. Whatever it was holding is given back at the latest when nothing is running.
+   * Call after the scene's steps are enqueued, or the queue is idle at that instant and
+   * the figure is handed back before the scene has shown anything.
+   */
+  function releaseSecurityCardWhenIdle(key: number) {
+    void queue.idle().then(() => releaseSecurityCard(key));
+  }
+
+  /** The card has been seen to go, so the shield catches up with the board. */
+  function releaseSecurityCard(key: number) {
+    setHeldSecurityCards((held) => {
+      if (!held.has(key)) return held;
+      const next = new Map(held);
+      next.delete(key);
+      return next;
+    });
+  }
 
   function openNotice(notice: MatchNotice) {
     setNotices((stack) => pushNotice(expireNotices(stack, notice.createdAt), notice));
@@ -785,6 +852,9 @@ export function useMatchCues({
     function stageSecurityReveal(key: number, scene: SecurityClashScene, seat: Seat) {
       // Whatever the check this one replaces had not said yet is said now, before it goes.
       flushHeldNotices();
+      // The board drops the checked card as soon as its patch lands; the shield keeps the
+      // figure that still counts it until the reveal has actually put the card on screen.
+      holdSecurityCard(key, seat, securityCountOf(seat));
       enqueue(shieldBreakStep(buildSecurityBreakScene({ key, defenderSeat: seat, viewerSeat })));
       // Everything the check will present is held back from here until the reveal has
       // been seen. Cleared by the presentation step, and by the queue going idle in
@@ -799,11 +869,20 @@ export function useMatchCues({
         track: CENTER_STAGE_TRACK,
         skippable: false,
         async run(context) {
-          setSecurityClash(scene);
-          await context.wait(CLASH_OUTCOME_AT_MS);
-          if (context.cancelled) setSecurityClash((current) => (current?.key === scene.key ? null : current));
+          try {
+            setSecurityClash(scene);
+            await context.wait(CLASH_REVEAL_SHOWN_AT_MS);
+            // The card is out of the stack and on the screen, so the shield may drop.
+            releaseSecurityCard(scene.key);
+            await context.wait(CLASH_OUTCOME_AT_MS - CLASH_REVEAL_SHOWN_AT_MS);
+          } finally {
+            // A cancelled scene must not leave a card the shield keeps counting for good.
+            releaseSecurityCard(scene.key);
+            if (context.cancelled) setSecurityClash((current) => (current?.key === scene.key ? null : current));
+          }
         },
       });
+      releaseSecurityCardWhenIdle(key);
     }
 
     /**
@@ -918,7 +997,7 @@ export function useMatchCues({
             viewerSeat,
             attacker: securityAttackerRef.current,
           }),
-        { ...securityCheck, ...(heldOnStage ? { outcomeStartsNow: true } : {}) },
+        { ...securityCheck, ...(heldOnStage ? { outcomeAtMs: 0 } : {}) },
       );
       const staging = staged === null;
       if (staging) {
@@ -995,6 +1074,60 @@ export function useMatchCues({
         });
       }
     }
+    // A card an effect took out of a security stack is not checked, so nothing above
+    // narrates it — the stack simply got shorter. The reference client plays the whole
+    // per-card sequence instead (shield break, the card revealed centre-stage, then the
+    // card broken where it stands), once for EVERY card, so a Ragnarok Cannon emptying a
+    // stack is seen card by card rather than as a counter dropping by four.
+    const destructions = securityDestructionsFromEvents(fresh, sidePanelLookupRef.current);
+    // Read once, before any of the scenes: it is the figure that still counts every card
+    // the run is about to spend, and each card puts one back as its own scene breaks it.
+    const securityBeforeDestruction = new Map<Seat, number | undefined>(
+      destructions.map((destruction) => [destruction.seat, securityCountOf(destruction.seat)]),
+    );
+    const spentPerSeat = new Map<Seat, number>();
+    destructions.forEach((destruction, index) => {
+      securityClashKeyRef.current += 1;
+      const key = securityClashKeyRef.current;
+      const spent = spentPerSeat.get(destruction.seat) ?? 0;
+      spentPerSeat.set(destruction.seat, spent + 1);
+      const before = securityBeforeDestruction.get(destruction.seat);
+      holdSecurityCard(key, destruction.seat, before === undefined ? undefined : before - spent);
+      const scene = buildSecurityDestructionScene({
+        key,
+        cardId: destruction.cardId,
+        trashedSeat: destruction.seat,
+        viewerSeat,
+      });
+      // Only the first card takes the centre of the screen off whatever held it; the rest
+      // queue behind their predecessor on the same track.
+      enqueue(
+        shieldBreakStep(buildSecurityBreakScene({ key, defenderSeat: destruction.seat, viewerSeat }), {
+          replace: index === 0,
+        }),
+      );
+      enqueue({
+        id: `security-destroyed-${key}`,
+        track: CENTER_STAGE_TRACK,
+        // Which card the stack just lost is information, not decoration: it keeps its
+        // time even under reduced motion or on a hidden tab.
+        skippable: false,
+        async run(context) {
+          try {
+            setSecurityClash(scene);
+            // The stack loses this card as it breaks, so the shield drops one at that beat
+            // rather than all of them at once when the effect resolved.
+            await context.wait(SECURITY_DESTROY_OUTCOME_AT_MS);
+            releaseSecurityCard(key);
+            await context.wait(SECURITY_DESTROY_TOTAL_MS - SECURITY_DESTROY_OUTCOME_AT_MS);
+          } finally {
+            releaseSecurityCard(key);
+            setSecurityClash((current) => (current?.key === key ? null : current));
+          }
+        },
+      });
+      releaseSecurityCardWhenIdle(key);
+    });
     for (const scene of clashScenes) {
       const impacted: ReadonlySet<string> = new Set(scene.loserPermanentIds);
       enqueue({
@@ -1331,13 +1464,16 @@ export function useMatchCues({
    * board holds while the shards clear. Pure motion — the clash that follows carries the
    * information — so it is skipped outright unless the queue is live.
    */
-  function shieldBreakStep(scene: SecurityBreakScene): AnimationStep {
+  function shieldBreakStep(scene: SecurityBreakScene, { replace = true }: { replace?: boolean } = {}): AnimationStep {
     return {
       id: `security-break-${scene.key}`,
       track: CENTER_STAGE_TRACK,
       // The check owns the centre of the screen from here, so whatever was being
-      // announced there gives way at the break rather than during the reveal.
-      replace: true,
+      // announced there gives way at the break rather than during the reveal. Only the
+      // FIRST break of a run takes the track: a destruction that spends several cards
+      // breaks the same shield once per card, and each of those would otherwise cancel
+      // the card before it.
+      replace,
       async run(context) {
         if (context.mode !== "live") return;
         try {
@@ -1558,6 +1694,7 @@ export function useMatchCues({
     dpPulses,
     freezePulses,
     securityHitSeat,
+    heldSecurityCounts,
     drawFlights,
     drawBursts,
     playCue,

@@ -1,7 +1,9 @@
 import {
   Phase,
   SECURITY_CHECK_NARRATION_MS,
+  SECURITY_DESTRUCTION_NARRATION_MS,
   SECURITY_EFFECT_NARRATION_MS,
+  Zone,
   type DecisionRequest,
   type GameState,
   type Intent,
@@ -127,6 +129,13 @@ export class BotPlayer {
         // after another, so a multi-check attack owes the sum of them.
         this.pendingNarrationMs +=
           event.resolution === "effect" ? SECURITY_EFFECT_NARRATION_MS : SECURITY_CHECK_NARRATION_MS;
+        break;
+      case "cardsMoved":
+        // An effect that spends a security stack is narrated card by card, so a bot that
+        // empties one owes the whole sequence before it may act again.
+        if (event.from === Zone.Security && event.to === Zone.Trash) {
+          this.pendingNarrationMs += event.instanceIds.length * SECURITY_DESTRUCTION_NARRATION_MS;
+        }
         break;
       case "blockWindowOpened":
         if (this.state.turnSeat !== this.seat) {
