@@ -6,7 +6,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [On Play][When Digivolving][When Attacking][Counter] PlayWithoutCost:
 //   Added playCost ≤ 10 restriction to all 4 effects (text: "play or use cost 10
 //   or lower card"). Each effect also applies to Option cards ("play or use"), so
-//   the filter must not restrict to Digimon only — no kind filter is correct.
+//   the filter names Digimon, Tamer AND Option: a kind-less filter no longer reaches
+//   Options at all, because "play" alone never does.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -126,6 +127,9 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              // "play or use": Digimon and Tamers are played, Options are used. Naming all
+              // three keeps every kind in the pool; the play/use split then routes each one.
+              kind: ["Digimon", "Tamer", "Option"],
               nameOrTrait: [
                 {
                   tokens: ["Gammamon"],
@@ -156,6 +160,9 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              // "play or use": Digimon and Tamers are played, Options are used. Naming all
+              // three keeps every kind in the pool; the play/use split then routes each one.
+              kind: ["Digimon", "Tamer", "Option"],
               nameOrTrait: [
                 {
                   tokens: ["Gammamon"],
@@ -186,6 +193,9 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              // "play or use": Digimon and Tamers are played, Options are used. Naming all
+              // three keeps every kind in the pool; the play/use split then routes each one.
+              kind: ["Digimon", "Tamer", "Option"],
               nameOrTrait: [
                 {
                   tokens: ["Gammamon"],
@@ -216,6 +226,9 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              // "play or use": Digimon and Tamers are played, Options are used. Naming all
+              // three keeps every kind in the pool; the play/use split then routes each one.
+              kind: ["Digimon", "Tamer", "Option"],
               nameOrTrait: [
                 {
                   tokens: ["Gammamon"],

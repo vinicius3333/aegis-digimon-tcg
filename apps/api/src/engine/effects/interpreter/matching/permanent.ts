@@ -151,12 +151,19 @@ export function permanentMatchesFilter(
   source: CardSource,
 ): boolean {
   if (permanent.topCard === undefined) return false;
+  // Controller is a live permanent property, not part of the card definition. Keep
+  // watcher-side matching (for example, a later entrant to an opponent-only aura)
+  // subject to the same source-relative seat scope used during target enumeration.
+  if (!seatsForController(ctx, filter).includes(permanent.controllerSeat)) return false;
   // A permanent filter naming a field zone must distinguish the breeding area from
   // the battle area. Cost-modifier predicates receive both kinds of permanent directly,
   // so relying on the caller's candidate scan would let battle-area-only reducers apply
   // in breeding (BT2-088 Q1038).
-  if (filter.zone === "battleArea" && permanent.inBreeding) return false;
-  if (filter.zone === "breeding" && !permanent.inBreeding) return false;
+  if (filter.zone !== undefined) {
+    const zones = Array.isArray(filter.zone) ? filter.zone : [filter.zone];
+    const fieldZones = zones.filter((zone) => zone === "battleArea" || zone === "breeding");
+    if (fieldZones.length > 0 && !fieldZones.includes(permanent.inBreeding ? "breeding" : "battleArea")) return false;
+  }
   if (filter.excludeLeavingSubject === true && ctx.trigger.deletedPermanentId === permanent.permanentId) return false;
   const stackKeywords = (filter as Filter & { stackKeywords?: string[] }).stackKeywords;
   if (stackKeywords !== undefined) {
@@ -256,6 +263,30 @@ export function permanentMatchesFilter(
   // a battle-area Option permanent always satisfies this — a non-Option never does (Cap-E-006).
   if (filter.placedInBattleAreaByEffect === true && !def.kinds.includes(CardKind.Option)) {
     return false;
+  }
+
+  // Dynamic level bounds such as "level >= the total cards in both security stacks"
+  // carry their live counting filter as the comparison value. Resolve that count before
+  // delegating to definitionMatches; treating the object as a numeric bound silently rejects
+  // every candidate (EX5-033 / KB Q3597-Q3599).
+  const levelComparison = filter.levelComparison as
+    | { op?: Condition["op"]; value?: number | { kind?: string; filter?: Filter } }
+    | undefined;
+  const dynamicCount = levelComparison?.value;
+  if (typeof dynamicCount === "object" && dynamicCount !== null && dynamicCount.kind === "dynamicCount") {
+    const bound = scaleFactor(ctx, {
+      per: 1,
+      unit: "cards",
+      filter: dynamicCount.filter ?? {},
+    });
+    if (
+      def.level === undefined ||
+      levelComparison?.op === undefined ||
+      !compareNumber(def.level, levelComparison.op, bound)
+    )
+      return false;
+    const { levelComparison: _levelComparison, ...rest } = filter;
+    filter = rest;
   }
 
   // DP threshold needs the live permanent, so it lives here (not in definitionMatches).
@@ -472,10 +503,18 @@ export function permanentMatchesFilter(
   // Digivolution-stack name/trait gate: unlike the ordinary `nameOrTrait` predicate (which
   // inspects the permanent's TOP card), this requires a matching card UNDER that top card.
   if (filter.digivolutionStackNameOrTrait && filter.digivolutionStackNameOrTrait.length > 0) {
-    const hit = permanent.stack.some((card) =>
-      definitionMatches({ nameOrTrait: filter.digivolutionStackNameOrTrait }, ctx.game.definitionOf(card)),
-    );
-    if (!hit) return false;
+    const refs = filter.digivolutionStackNameOrTrait;
+    const hit = permanent.stack.some((card) => {
+      const def = ctx.game.definitionOf(card);
+      return refs.some((ref) => definitionMatches({ nameOrTrait: [{ ...ref, negate: false }] }, def));
+    });
+    // A negated stack predicate means that NONE of the stacked cards may match the
+    // referenced name/trait (EX5-070: without [X Antibody] in its digivolution cards).
+    if (refs.every((ref) => ref.negate === true)) {
+      if (hit) return false;
+    } else if (!hit) {
+      return false;
+    }
   }
 
   // Digivolution-stack NAME exclusion ("[Diaboromon] without [Doomsday Clock] in its
@@ -593,6 +632,43 @@ export function permanentMatchesFilter(
     }
   }
 
+  // Text-presence references such as "with an [On Deletion] effect" observe live
+  // inherited text and named effects granted by another card (EX1-021 Q3208), not
+  // merely the printed text of the permanent's top card.  Keep name/trait matching
+  // definition-based; a live text hit satisfies the whole OR-list.
+  if (filter.nameOrTrait?.some((reference) => reference.match === "text")) {
+    const textRefs = filter.nameOrTrait.filter((reference) => reference.match === "text");
+    const inheritedText = permanent.stack
+      .map((card) => ctx.game.definitionOf(card).inheritedEffectText ?? "")
+      .join("\n")
+      .toLowerCase();
+    const grantedTokens = ctx.fx.customEffectGrants?.(permanent.permanentId) ?? [];
+    const liveMatches = textRefs.some((reference) =>
+      reference.tokens.some((token) => {
+        const normalizedToken = token.toLowerCase().replace(/[\s-]+/g, "");
+        const inheritedHeader = new RegExp(
+          `(?:^|\\n)\\s*\\[${token.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\]`,
+          "i",
+        );
+        return (
+          inheritedHeader.test(inheritedText) ||
+          grantedTokens.some((grant) => {
+            const granted = grant.token.toLowerCase();
+            return (
+              granted.includes(`[${token.toLowerCase()}]`) || granted.replace(/[\s-]+/g, "").includes(normalizedToken)
+            );
+          })
+        );
+      }),
+    );
+    if (liveMatches) {
+      // nameOrTrait is a union (OR), so a live text hit satisfies the whole field;
+      // retaining non-text alternatives here would accidentally turn it into AND.
+      const { nameOrTrait: _nameOrTrait, ...rest } = filter;
+      filter = rest;
+    }
+  }
+
   // Color predicates on a LIVE permanent must observe "also treated as <color>" grants.
   // Definition-only filters still use printed colors, but board predicates such as `youHave`
   // and effect targets see the permanent's effective set (printed union active grants).
@@ -655,11 +731,10 @@ export function permanentMatchesFilter(
       return (
         liveKeyword === true ||
         granted.has(token) ||
-        (liveKeyword === undefined &&
-          (printedKeywordsOf(def.effectText).includes(token) ||
-            permanent.stack.some((card) =>
-              printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
-            )))
+        printedKeywordsOf(def.effectText).includes(token) ||
+        permanent.stack.some((card) =>
+          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
+        )
       );
     };
     if (!filter.keywords.every(hasKeyword)) return false;
@@ -674,11 +749,10 @@ export function permanentMatchesFilter(
       return (
         liveKeyword === true ||
         granted.has(token) ||
-        (liveKeyword === undefined &&
-          (printedKeywordsOf(def.effectText).includes(token) ||
-            permanent.stack.some((card) =>
-              printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
-            )))
+        printedKeywordsOf(def.effectText).includes(token) ||
+        permanent.stack.some((card) =>
+          printedKeywordsOf(ctx.game.definitionOf(card).inheritedEffectText).includes(token),
+        )
       );
     };
     if (filter.excludeKeywords.some(hasKeyword)) return false;

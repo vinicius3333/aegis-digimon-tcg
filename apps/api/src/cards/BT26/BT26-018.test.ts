@@ -116,14 +116,11 @@ describe("BT26-018 public engine behavior", () => {
       kind: string;
       add: { filter: { nameOrTrait?: { tokens: string[]; match: string }[] }; orFilters?: unknown[] }[];
     };
-    expect(add.add[0]!.filter.nameOrTrait).toEqual([{ tokens: ["Aqua"], match: "traitContains" }]);
-    expect(add.add[0]!.orFilters).toEqual([
-      { nameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }] },
-      { nameOrTrait: [{ tokens: ["DS"], match: "trait" }] },
-    ]);
+    expect(add.add[0]!.filter.nameOrTrait).toEqual([{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }]);
+    expect(add.add[0]!.orFilters).toEqual([{ nameOrTrait: [{ tokens: ["DS"], match: "trait" }] }]);
     expect(definitionMatches(add.add[0]!.filter as never, requireCardDefinition("BT15-025"))).toBe(true);
-    expect(definitionMatches(add.add[0]!.filter as never, requireCardDefinition("BT1-033"))).toBe(false);
-    expect(definitionMatches(add.add[0]!.orFilters![0] as never, requireCardDefinition("BT1-033"))).toBe(true);
+    expect(definitionMatches(add.add[0]!.filter as never, requireCardDefinition("BT1-033"))).toBe(true);
+    expect(definitionMatches(add.add[0]!.orFilters![0] as never, requireCardDefinition("BT26-020"))).toBe(true);
     expect(definitionMatches(add.add[0]!.orFilters![0] as never, requireCardDefinition("BT1-009"))).toBe(false);
   });
 

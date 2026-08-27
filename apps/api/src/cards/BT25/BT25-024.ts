@@ -27,7 +27,7 @@ export const compiled: CompiledCard = {
           },
           fireCondition: {
             kind: "triggerSubjectHasColor",
-            value: "Red",
+            filter: { colors: ["Red"] },
           },
           actions: [
             {
@@ -50,6 +50,7 @@ export const compiled: CompiledCard = {
               },
               from: ["hand"],
               reduceCost: 1,
+              payCost: true,
               optional: true,
             },
           ],
@@ -64,7 +65,7 @@ export const compiled: CompiledCard = {
           },
           fireCondition: {
             kind: "triggerSubjectHasColor",
-            value: "Red",
+            filter: { colors: ["Red"] },
           },
           actions: [
             {
@@ -87,6 +88,7 @@ export const compiled: CompiledCard = {
               },
               from: ["hand"],
               reduceCost: 1,
+              payCost: true,
               optional: true,
             },
           ],

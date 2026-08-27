@@ -109,6 +109,7 @@ const compiled: CompiledCard = {
       ],
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "Digivolve",
           target: {
             filter: {

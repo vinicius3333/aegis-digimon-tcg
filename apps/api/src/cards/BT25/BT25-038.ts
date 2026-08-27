@@ -29,9 +29,11 @@ export const compiled: CompiledCard = {
           amount: 1,
           source: {
             filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
               trait: ["Angel", "Archangel", "Three Great Angels", "Iliad"],
+              zone: ["hand", "digivolutionCards"],
             },
-            location: ["hand", "digivolution"],
           },
           optional: true,
         },
@@ -58,9 +60,11 @@ export const compiled: CompiledCard = {
           amount: 1,
           source: {
             filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
               trait: ["Angel", "Archangel", "Three Great Angels", "Iliad"],
+              zone: ["hand", "digivolutionCards"],
             },
-            location: ["hand", "digivolution"],
           },
           optional: true,
         },
@@ -83,8 +87,8 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenAddSecurity",
-          sourceFilter: {
-            controller: "mine",
+          fireCondition: {
+            kind: "triggerSecurityIsYours",
           },
           actions: [
             {
@@ -136,6 +140,19 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Patamon"],
+      cost: 2,
+      isAlternate: true,
+    },
+    {
+      level: 3,
+      traits: ["TS"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT25-038", compiled);

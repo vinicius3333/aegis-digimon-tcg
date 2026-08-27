@@ -1,4 +1,4 @@
-import type { CardDefinition, Permanent, Seat } from "@aegis/shared";
+import { CardKind, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import type { EffectContext, RemovalCause, ReplacementEventName, SubTriggerEventName } from "./EffectContext.js";
 
 /**
@@ -141,6 +141,14 @@ export interface SubTriggerSubscription {
   /** Human description (log / diagnostics). */
   description: string;
 }
+
+/**
+ * Told that a watcher body is about to run, once every gate has passed. A watcher is a
+ * triggered effect and can stop the game to ask its controller something, so the caller uses
+ * this to announce it to the players the way the effect stack announces the effects it
+ * resolves. Called immediately before the body, never for a watcher that was skipped.
+ */
+export type SubTriggerAnnounce = (sub: SubTriggerSubscription, ctx: EffectContext | undefined) => void;
 
 /** The per-turn firing ledger `fire` consults/updates for `oncePerTurnKey`-gated watchers. */
 export interface SubTriggerTurnLedger {
@@ -440,9 +448,10 @@ export class SubTriggerRegistry {
     windowToken?: unknown,
     turnLedger?: SubTriggerTurnLedger,
     skip?: (sub: SubTriggerSubscription) => boolean,
+    announce?: SubTriggerAnnounce,
   ): Promise<number> {
     const matching = this.subscriptionsFor(event, sourcePermanentId);
-    return this.fireSnapshot(matching, makeContext, windowToken, turnLedger, skip);
+    return this.fireSnapshot(matching, makeContext, windowToken, turnLedger, skip, announce);
   }
 
   /**
@@ -456,6 +465,7 @@ export class SubTriggerRegistry {
     windowToken?: unknown,
     turnLedger?: SubTriggerTurnLedger,
     skip?: (sub: SubTriggerSubscription) => boolean,
+    announce?: SubTriggerAnnounce,
   ): Promise<number> {
     let fired = 0;
     for (const sub of matching) {
@@ -488,6 +498,7 @@ export class SubTriggerRegistry {
         // by that combination only when it is the intentional, contextless BT1-021 shape.
         if (sub.sourcePermanentId === undefined && sub.sourceInstanceId === undefined && sub.matches === undefined) {
           this.markFired(sub, windowToken, turnLedger);
+          announce?.(sub, undefined);
           await sub.run(undefined as unknown as EffectContext);
           fired += 1;
         }
@@ -495,7 +506,21 @@ export class SubTriggerRegistry {
       }
       if (sub.matches !== undefined && !sub.matches(ctx)) continue;
       this.markFired(sub, windowToken, turnLedger);
-      await sub.run(ctx);
+      announce?.(sub, ctx);
+      // A linked card's triggered watcher remains an effect of its host Digimon,
+      // including when the physical linked card is an Option (BT25-100/101, KB Q6471/Q6476).
+      if (sub.isLinkedSource === true) {
+        const sourceKinds = [CardKind.Digimon];
+        ctx.effectSourceKinds = sourceKinds;
+        ctx.fx.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds);
+        try {
+          await sub.run(ctx);
+        } finally {
+          ctx.fx.leaveEffectResolution?.();
+        }
+      } else {
+        await sub.run(ctx);
+      }
       if (sub.oncePerTurnKey !== undefined && ctx.oncePerTurnActivationDeclined === true) {
         turnLedger?.unmarkFired?.(sub.oncePerTurnKey);
         ctx.oncePerTurnActivationDeclined = false;

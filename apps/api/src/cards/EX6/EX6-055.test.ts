@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-055.js";
 
-describe("EX6-055 BeelStarmon", () => {
+describe("EX6-055 DanDevimon", () => {
   it("deletes an opposing level 5 or lower Digimon, or trashes one of their hand cards if no deletion occurs", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
       { kind: "Delete", target: { filter: { levelComparison: { op: "lte", value: 5 } } } },

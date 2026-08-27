@@ -23,7 +23,7 @@ import { formatKeyword } from "./keywordDisplay";
 import { gameOverSplash, type GameOverOutcome } from "./gameOverSplash";
 import { pendingFateBadge, type PendingFateBadge } from "./pendingFate";
 import { inspectorPlacement, type PermanentDetail } from "./permanentDetail";
-import { useTranslation, type Translate } from "../i18n";
+import { useTranslation, type Translate, type TranslationKey } from "../i18n";
 import { CardLink, CardLinkedText } from "./cardLinks";
 import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
 import { useMediaQuery, WIDE_DIALOG_QUERY } from "../design/useMediaQuery";
@@ -177,14 +177,21 @@ export function MulliganOverlay({
 export function BlockOverlay({
   attackerCardId,
   blockers,
+  mustBlock = false,
   onBlock,
   onDecline,
 }: {
   attackerCardId?: string;
   blockers: { permanentId: string; cardId: string; currentDP: number; sourceCount: number }[];
+  /**
+   * ＜Collision＞ (§16-30): the block is compulsory while a Digimon can make it, so the
+   * window states the compulsion and drops the refusal the server would reject anyway.
+   */
+  mustBlock?: boolean;
   onBlock: (permanentId: string) => void;
   onDecline: () => void;
 }) {
+  const forced = mustBlock && blockers.length > 0;
   const { t } = useTranslation();
   return (
     <div
@@ -222,8 +229,35 @@ export function BlockOverlay({
           <Icons.Swords size={18} />
         </span>
         <div>
-          <div style={{ fontFamily: "var(--ds-font-display)", fontWeight: 700, fontSize: 17, color: "var(--ds-fg)" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontFamily: "var(--ds-font-display)",
+              fontWeight: 700,
+              fontSize: 17,
+              color: "var(--ds-fg)",
+            }}
+          >
             {t("overlay.blockWindow")}
+            {forced ? (
+              <span
+                style={{
+                  fontFamily: "var(--ds-font-mono)",
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  letterSpacing: 0.4,
+                  textTransform: "uppercase",
+                  padding: "2px 7px",
+                  borderRadius: 999,
+                  background: "var(--ds-warning-surface)",
+                  color: "var(--ds-warning)",
+                }}
+              >
+                {t("overlay.blockForced")}
+              </span>
+            ) : null}
           </div>
           <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
             {attackerCardId ? (
@@ -238,7 +272,7 @@ export function BlockOverlay({
         </div>
       </div>
       <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 12 }}>
-        {t("overlay.blockPrompt")}
+        {t(forced ? "overlay.blockForcedPrompt" : "overlay.blockPrompt")}
       </div>
       {blockers.length ? (
         <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
@@ -282,9 +316,11 @@ export function BlockOverlay({
       ) : (
         <div style={{ fontSize: 12, color: "var(--ds-fg-muted)", marginBottom: 16 }}>{t("overlay.noBlockers")}</div>
       )}
-      <Button full variant="secondary" icon={Icons.Shield} onClick={onDecline}>
-        {t("overlay.takeAttack")}
-      </Button>
+      {forced ? null : (
+        <Button full variant="secondary" icon={Icons.Shield} onClick={onDecline}>
+          {t("overlay.takeAttack")}
+        </Button>
+      )}
     </div>
   );
 }
@@ -1003,6 +1039,9 @@ const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
   /^[A-Z][a-z0-9]*(?: [a-z0-9]+)+$/,
 ];
 
+/** A watcher's event name, e.g. "whenSecurityRemoved" — one camelCase or PascalCase token. */
+const INTERNAL_WATCHER_DESCRIPTION = /^[A-Za-z][A-Za-z0-9]*$/;
+
 /**
  * Whether a description is the engine's own summary of an effect rather than the
  * card's text.
@@ -1014,6 +1053,10 @@ const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
  */
 function isInternalEffectDescription(text: string): boolean {
   if (INTERNAL_IR_DESCRIPTION.test(text)) return true;
+  // A watcher is described by the event it watches ("whenSecurityRemoved"): an identifier
+  // the engine reads, never a clause a player can. Card text is a sentence, so a single
+  // unspaced token is the engine's own name for the effect.
+  if (INTERNAL_WATCHER_DESCRIPTION.test(text)) return true;
   const body = text
     .replace(/^(?:\s*\[[^\]]*\])+/, "")
     .replace(/^\s*＜[^＞]+＞/, "")
@@ -1094,6 +1137,25 @@ export interface TriggerDetail {
   summary?: string;
 }
 
+/*
+   The choices a `chooseOption` decision names are the engine's own words for where a card
+   goes — the destination keys `RevealAdd` builds its prompt from, and the two deck ends an
+   ordering asks about. Printed straight, a Zenith-style "add it or play it" prompt offered
+   buttons reading "hand" and "play"; each one gets the sentence a player would recognise.
+*/
+const CHOICE_LABEL_KEYS: Readonly<Record<string, TranslationKey>> = {
+  top: "overlay.deckTop",
+  bottom: "overlay.deckBottom",
+  hand: "overlay.dispositionHand",
+  play: "overlay.dispositionPlay",
+  useOption: "overlay.dispositionUseOption",
+  trash: "overlay.dispositionTrash",
+  digivolve: "overlay.dispositionDigivolve",
+  security: "overlay.dispositionSecurity",
+  placeUnder: "overlay.dispositionPlaceUnder",
+  underTamer: "overlay.dispositionUnderTamer",
+};
+
 export function DecisionOverlay({
   request,
   sourceCardId,
@@ -1166,9 +1228,11 @@ export function DecisionOverlay({
     return undefined;
   };
   const choiceLabel = (choice: string): string => {
-    if (choice === "top") return t("overlay.deckTop");
-    if (choice === "bottom") return t("overlay.deckBottom");
-    return choice;
+    const key = CHOICE_LABEL_KEYS[choice];
+    // Anything the server has not been taught a label for still reads: the raw
+    // choice is the fallback, so a new disposition ships as a plain word rather
+    // than as a blank button.
+    return key === undefined ? choice : t(key);
   };
 
   const [isViewingBoard, setIsViewingBoard] = useState(false);

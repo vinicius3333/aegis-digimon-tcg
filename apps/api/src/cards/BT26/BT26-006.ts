@@ -32,6 +32,9 @@ export const compiled: CompiledCard = {
                   filter: {
                     controllerDefault: "mine",
                     zone: "hand",
+                    // "play or use 1 [Bagra Army] trait card": the play half covers both
+                    // playable kinds (BT10-093 / EX10-064 are [Bagra Army] Tamers); the
+                    // use half below covers Option cards.
                     kind: ["Digimon", "Tamer"],
                     nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }],
                   },

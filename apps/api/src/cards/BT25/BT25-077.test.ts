@@ -212,8 +212,8 @@ describe("BT25-077 Bacchusmon", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT25-071");
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === TARGET)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === LOW)).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("base"), "Rush")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("base"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Rush")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Reboot")).toBe(false);
   });
 });

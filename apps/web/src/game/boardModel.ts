@@ -332,10 +332,11 @@ export function buildInstanceIndex(state: GameState, viewerSeat: Seat): Map<stri
     player.battleArea.forEach(addPermanent);
     addPermanent(player.breeding);
     player.trash.forEach(add);
-    if (seat === viewerSeat) {
-      player.hand.forEach(add);
-      player.deck.forEach(add);
-    }
+    // Deck and egg deck are absent by design — the server never encodes them (see
+    // HIDDEN_ZONE_VIEW_TAG), so there is nothing to index. A deck card whose identity an
+    // effect legitimately reveals arrives in the decision payload instead, which
+    // `decisionVisibleCards` already prefers over this index.
+    if (seat === viewerSeat) player.hand.forEach(add);
   });
   return index;
 }
@@ -1189,6 +1190,8 @@ export function describeEvent(
 export interface ActiveBlockWindow {
   attackerPermanentId: string;
   eligibleBlockerIds: string[];
+  /** ＜Collision＞: the block is compulsory, so the window offers no way out of it. */
+  mustBlock: boolean;
 }
 
 /** Derive a real, still-pending block response from the synchronized event stream. */
@@ -1203,6 +1206,7 @@ export function activeBlockWindow(events: readonly ServerEvent[], isViewerTurn: 
       return {
         attackerPermanentId: event.attackerPermanentId,
         eligibleBlockerIds: event.eligibleBlockerIds,
+        mustBlock: event.mustBlock === true,
       };
     }
     if (

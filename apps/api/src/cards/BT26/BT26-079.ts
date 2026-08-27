@@ -3,11 +3,13 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+// ＜Decode ([Plutomon])＞ is a bracket-only card reference (§2-3-1-2): exact name only, so
+// this card's own ZombiePlutomon copies in the digivolution stack do not qualify.
 const plutomon = {
   controller: "mine",
   zone: "trash",
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["Plutomon"], match: "name" }],
+  nameOrTrait: [{ tokens: ["Plutomon"], match: "nameExact" }],
 };
 const deleteLevel6 = {
   kind: "CostGatedBlock",
@@ -49,7 +51,9 @@ const trimHands = [
     chooser: "opponent",
   },
 ];
-const shared = { actions: [deleteLevel6] };
+// No [Once Per Turn] is printed on the On Play / When Digivolving / When Attacking clause, so the
+// shared key only collapses the three timings onto one ledger entry — it must not cap uses.
+const shared = { sharedUseKey: "bt26-079-trash-cost-delete", actions: [deleteLevel6] };
 
 export const compiled: CompiledCard = {
   keywords: [
@@ -110,6 +114,9 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  // NOTE: these two fields are documentation only. Runtime legality reads
+  // `generated-digivolve-overrides.json` and `ASSEMBLY_REQUIREMENT_OVERRIDES` in
+  // packages/shared, which both spell [Plutomon] as a SUBSTRING name gate. See the audit note.
   digivolutionRequirement: [
     { names: ["Plutomon"], cost: 1, isAlternate: true },
     { level: 5, traits: ["TS"], cost: 3, isAlternate: true },

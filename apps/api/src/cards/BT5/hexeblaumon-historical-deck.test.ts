@@ -29,7 +29,7 @@ describe("BT5 Hexeblaumon historical deck gauntlet", () => {
           security: ["BT9-081", "BT9-081"],
         },
       },
-      { autoSelectCards: true, autoOrderTriggers: true },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
     );
     await s.ready();
 

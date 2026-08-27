@@ -16,6 +16,26 @@ import type { Seat } from "./enums.js";
 export const PRIVATE_VIEW_TAG = 0;
 
 /**
+ * View tag for the zones NOBODY may read the contents of — not even their owner. The deck and
+ * egg deck are shuffled, hidden piles: under the Comprehensive Rules a player knows only how
+ * many cards are in them, and the ordering is secret until a card is drawn or an effect reveals
+ * it.
+ *
+ * No StateView ever adds a PlayerState with this tag, which is the point: a `@view`-tagged
+ * field is withheld from every view that has not explicitly unlocked it, so tagging with a
+ * never-granted tag means the field is never encoded for anyone. The public sizes travel in
+ * `deckCount` / `eggDeckCount` instead, and effects that legitimately reveal deck cards send
+ * the identities in the decision payload (`DecisionRequest.options.visibleCards`), never by
+ * exposing the zone.
+ *
+ * Before this existed both fields shared PRIVATE_VIEW_TAG with hand and security, so unlocking
+ * a seat's own hand also shipped that seat its entire deck in draw order — readable from
+ * devtools or a patched client, and decisive information in a game whose whole tension is not
+ * knowing what you will draw.
+ */
+export const HIDDEN_ZONE_VIEW_TAG = 3;
+
+/**
  * Every zone the analysis enumerated (deck, hand, battle area, security, trash,
  * breeding, egg deck) plus per-player flags. Mirrors documented behavior. Memory is global
  * on GameState, not per-player.
@@ -25,13 +45,19 @@ export class PlayerState extends Schema {
   @type("string") displayName = "";
   @type("string") sessionId = "";
 
-  // Hidden zones: private to the owner. A field tagged with @view is withheld in
-  // full from every viewer that has not unlocked this PlayerState with the tag, so
-  // the opponent sees neither the items NOR the array length. The public per-zone
-  // counts the UI needs are mirrored separately below (see *Count fields and
-  // syncPublicCounts in engine/state/visibility.ts).
-  @view(PRIVATE_VIEW_TAG) @type([CardInstance]) deck = new ArraySchema<CardInstance>();
-  @view(PRIVATE_VIEW_TAG) @type([CardInstance]) eggDeck = new ArraySchema<CardInstance>();
+  // Hidden zones. A field tagged with @view is withheld in full from every viewer that has
+  // not unlocked this PlayerState with the tag, so a viewer without it sees neither the items
+  // NOR the array length. The public per-zone counts the UI needs are mirrored separately
+  // below (see *Count fields and syncPublicCounts in engine/state/visibility.ts).
+  //
+  // Two different tags, because "hidden" means two different things. Deck and egg deck are
+  // secret from EVERYONE including their owner (HIDDEN_ZONE_VIEW_TAG is never granted).
+  // Hand and security are secret from the OPPONENT only, so the owner's view unlocks them
+  // with PRIVATE_VIEW_TAG — but note that unlocking the security ARRAY is not the same as
+  // revealing the cards in it: identity lives behind CARD_ID_VIEW_TAG on CardInstance, and
+  // engine/state/visibility.ts grants that only for a face-up security card.
+  @view(HIDDEN_ZONE_VIEW_TAG) @type([CardInstance]) deck = new ArraySchema<CardInstance>();
+  @view(HIDDEN_ZONE_VIEW_TAG) @type([CardInstance]) eggDeck = new ArraySchema<CardInstance>();
   @view(PRIVATE_VIEW_TAG) @type([CardInstance]) hand = new ArraySchema<CardInstance>();
   // security is private by default; the engine re-exposes an individual card to the
   // opponent's view when it is turned face-up (engine/state/visibility.ts).

@@ -7,7 +7,7 @@ import { compiled } from "./BT26-027.js";
 
 describe("BT26-027 Petermon", () => {
   it("models both printed timing windows and suspension cost", () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["WG"], cost: 2 }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["WG"], cost: 2, isAlternate: true }]);
     expect(compiled.effects).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

@@ -68,6 +68,9 @@ export type Restriction = EnforcedRestriction | DeprecatedRestriction;
 
 /** Future events a delayed/triggered sub-effect can watch (delayed-and-rule-effects). */
 export type SubTriggerEventName =
+  // Every actual entry into the battle area; mirrors OnEnterFieldAnyone rather
+  // than the narrower whenPlayed bus (which excludes breeding movement/digivolve).
+  | "onEnterFieldAnyone"
   | "whenAttacking"
   | "whenOpponentAttacks"
   | "whenBlocked"
@@ -173,6 +176,8 @@ export interface TriggerInfo {
   /** Whether the pay-time declaration is using the card as an Option rather than playing a permanent. */
   wouldBePlayedAsOption?: boolean;
   attackerPermanentId?: string;
+  /** Attacker's effective DP immediately after declaration/suspension, before [When Attacking] effects. */
+  attackerDPAtDeclaration?: number;
   /** Stable identity for this attack across all reactive attack sub-trigger fires. */
   attackSequence?: number;
   /** Named attack procedure that caused the current attack watcher, when applicable. */
@@ -269,8 +274,8 @@ export interface TriggerInfo {
   playedPlayCost?: number;
   /** Permanent that just moved breeding -> battle area (OnMove). */
   movedPermanentId?: string;
-  /** Why an OnEnterFieldAnyone subject entered: a play or a digivolution. */
-  entryCause?: "play" | "digivolve";
+  /** Why an OnEnterFieldAnyone subject entered the battle area. */
+  entryCause?: "play" | "digivolve" | "move";
   /**
    * The permanent whose ENTRY drove this SubTrigger event — the played card
    * (whenPlayed), the linked/host card (whenLinked / whenOneOfYoursDigivolves), or the
@@ -496,6 +501,17 @@ export interface GameAccess {
    * live engine always supplies it via createGameAccess from the continuous ledger.
    */
   linkCostReduction?(recipientId: string, cardTraits: readonly string[]): number;
+  linkCostReductionGrant?(
+    recipientId: string,
+    cardTraits: readonly string[],
+  ):
+    | {
+        amount: number;
+        controllerSeat?: Seat;
+        optional?: boolean;
+        oncePerTurnKey?: string;
+      }
+    | undefined;
   /**
    * A permanent's EFFECTIVE card kinds (static def.kinds ∪ continuous KindGrants).
    * A Tamer granted Digimon kind via grantKind is a Digimon for type-check gates
@@ -630,6 +646,11 @@ export interface Primitives {
   ): Promise<boolean>;
   /** Current play cost of a live permanent after active play-cost modifiers. */
   effectivePlayCost?(permanent: Permanent): number;
+  /**
+   * Current cost of a loose card when used by its controller, after the same
+   * continuous hand-use reductions as an ordinary Option use.
+   */
+  effectiveLooseUseCost?(instanceId: string, controllerSeat: Seat): number | undefined;
   /**
    * Play specific loose card instances as new battle-area permanents, locating each
    * one wherever it currently sits (hand, trash, deck, security, breeding, or as a
@@ -966,7 +987,7 @@ export interface Primitives {
    */
   returnStackTopsToDeck(
     instanceIds: string[],
-    opts?: { byEffectSeat?: Seat; byEffectCardId?: string },
+    opts?: { byEffectSeat?: Seat; byEffectCardId?: string; position?: "top" | "bottom" },
   ): Promise<CardInstance[]>;
   /** Return loose cards to the bottom of their owners' Digi-Egg decks, face-down. */
   returnToEggDeck?(instanceIds: string[]): Promise<CardInstance[]>;
@@ -1174,7 +1195,20 @@ export interface Primitives {
    * `rule implementation`): while active, a card carrying one of `traits` that would link
    * to this permanent has its link cost reduced by `amount`. `runLink`/`linkCostOf` read it.
    */
-  grantLinkCostReduction(permanentId: string, amount: number, traits: string[], duration: EffectDuration): void;
+  grantLinkCostReduction(
+    permanentId: string,
+    amount: number,
+    traits: string[],
+    duration: EffectDuration,
+    opts?: {
+      sourceInstanceId?: string;
+      controllerSeat?: Seat;
+      optional?: boolean;
+      oncePerTurnKey?: string;
+    },
+  ): void;
+  linkCostReductionUsed?(key: string): boolean;
+  markLinkCostReductionUsed?(key: string): void;
   /**
    * Grant a card kind to a permanent for a duration ("this Tamer is also treated as
    * a Digimon"). Recorded on the ContinuousEffectLedger; the permanent's effective
@@ -1204,6 +1238,8 @@ export interface Primitives {
    * parallel/inert path. Duration-scoped: lapses at its boundary or when the host leaves play.
    */
   grantCustomEffect?(instanceId: string, ownerSeat: Seat, token: string, duration: EffectDuration): void;
+  /** Active named effects granted to a permanent, for live text-presence filters. */
+  customEffectGrants?(permanentId: string): readonly { token: string }[];
   /**
    * Record a seat-level "can't ignore digivolution requirements" rule (documented behavior
    * `rule implementation`). Normal and effect-driven digivolve legality

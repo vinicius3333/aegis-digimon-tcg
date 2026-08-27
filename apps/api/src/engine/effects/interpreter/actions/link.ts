@@ -64,6 +64,9 @@ export function canAttemptLink(ctx: EffectContext, action: Extract<Action, { kin
  * permanent's linked list.
  */
 export async function runLink(ctx: EffectContext, action: Extract<Action, { kind: "Link" }>): Promise<void> {
+  // A downstream "by linking ..., then ..." clause must distinguish a link made by this
+  // resolving action from cards that were already linked to the source.
+  ctx.lastEffectActed = false;
   // The recipient is a chosen friendly Digimon ("link ... to 1 of your Digimon") or, by
   // default, the source permanent ("to this Digimon").
   let recipientId = ctx.source.permanent()?.permanentId;
@@ -184,11 +187,33 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
     // not stack on one declaration (the store returns its largest single matching grant); both the
     // self delta and the recipient reduction are signed-summed and floored at 0 by linkCostOf.
     const cardTraits = [...(def.types ?? []), ...(def.forms ?? []), ...(def.attributes ?? [])];
-    const recipientReduction = ctx.game.linkCostReduction?.(recipientId, cardTraits) ?? 0;
+    const grantResolver = ctx.game.linkCostReductionGrant;
+    const grant = grantResolver?.(recipientId, cardTraits);
+    // When the live engine exposes the declaration-time grant resolver, its `undefined`
+    // result is authoritative: it can mean a matching once-per-turn grant was already
+    // consumed. Falling back to the legacy amount-only reader in that case would silently
+    // re-apply the reduction on later Link declarations. Lightweight contexts that only
+    // implement the legacy reader still retain that compatibility path.
+    let recipientReduction =
+      grant !== undefined
+        ? grant.amount
+        : grantResolver === undefined
+          ? (ctx.game.linkCostReduction?.(recipientId, cardTraits) ?? 0)
+          : 0;
+    if (grant?.oncePerTurnKey !== undefined && ctx.fx.linkCostReductionUsed?.(grant.oncePerTurnKey)) {
+      recipientReduction = 0;
+    } else if (recipientReduction > 0 && grant?.optional === true) {
+      const accepted = await ctx.ask.optional(ctx, `Reduce this Link cost by ${recipientReduction}?`);
+      if (!accepted) recipientReduction = 0;
+    }
+    if (recipientReduction > 0 && grant?.oncePerTurnKey !== undefined) {
+      ctx.fx.markLinkCostReductionUsed?.(grant.oncePerTurnKey);
+    }
     const cost = action.payCost === false ? 0 : linkCostOf(def, (action.costDelta ?? 0) - recipientReduction);
     if (cost > 0) ctx.fx.gainMemory(-cost);
   }
   await ctx.fx.link(recipientId, chosen);
+  ctx.lastEffectActed = true;
 }
 
 /**

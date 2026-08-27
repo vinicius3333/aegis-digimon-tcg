@@ -17,3 +17,10 @@ export const SECURITY_CHECK_NARRATION_MS = 2_300;
  * the side of the screen while its effect notice reads.
  */
 export const SECURITY_EFFECT_NARRATION_MS = 3_650;
+
+/**
+ * ONE security card an effect trashed outright: the shield breaking, then the card
+ * revealed centre-stage and broken there. A destruction that spends several cards plays
+ * this sequence once per card, so the budget is multiplied by the number trashed.
+ */
+export const SECURITY_DESTRUCTION_NARRATION_MS = 1_900;

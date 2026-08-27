@@ -16,6 +16,13 @@ describe("BT11-111 Galacticmon", () => {
       kind: "Replacement",
       event: "wouldLeavePlay",
       sourceFilter: { isSelfRef: true },
+      actions: [
+        {
+          cost: {
+            target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }, from: ["digivolutionCards"] },
+          },
+        },
+      ],
     });
   });
 

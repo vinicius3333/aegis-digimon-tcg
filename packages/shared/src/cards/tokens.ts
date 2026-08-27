@@ -8,14 +8,18 @@ export const tokenDefinitions: readonly CardDefinition[] = [
     dp: 3000,
     playCost: 14,
     colors: [CardColor.White],
-    types: ["Unknown", "Unidentified"],
+    forms: ["Mega"],
+    attributes: ["Unknown"],
+    types: ["Unidentified"],
   }),
   tok("Diaboromon Token", {
     level: 6,
     dp: 3000,
     playCost: 14,
     colors: [CardColor.White],
-    types: ["Unknown", "Unidentified"],
+    forms: ["Mega"],
+    attributes: ["Unknown"],
+    types: ["Unidentified"],
   }),
   tok("Familiar Token", { level: 3, dp: 3000, playCost: 0, colors: [CardColor.Yellow] }),
   tok("SelfDeleteFamiliar Token", { level: 3, dp: 1000, playCost: 0, colors: [CardColor.Purple] }),
@@ -28,14 +32,22 @@ export const tokenDefinitions: readonly CardDefinition[] = [
   tok("AthoRenePor Token", { level: 6, dp: 6000, playCost: 6, colors: [CardColor.White] }),
   tok("Petrification Token", { dp: 3000, playCost: -1, colors: [CardColor.White] }),
   tok("Hinukamuy Token", { dp: 6000, playCost: -1, colors: [CardColor.White] }),
-  tok("Fujitsumon Token", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Blue] }),
+  tok("Fujitsumon Token", { level: 4, dp: 3000, playCost: 0, colors: [CardColor.Purple] }),
   tok("Uka no Mitama", {
     dp: 9000,
     playCost: -1,
     colors: [CardColor.Yellow],
     effectText: "＜Rush＞",
   }),
-  tok("Gyuukimon Token", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Purple] }),
+  tok("Gyuukimon Token", {
+    level: 5,
+    dp: 3000,
+    playCost: 7,
+    colors: [CardColor.Purple],
+    forms: ["Ultimate"],
+    attributes: ["Virus"],
+    types: ["Dark Animal"],
+  }),
   tok("Pipe Fox", {
     level: 4,
     dp: 6000,
@@ -59,6 +71,8 @@ function tok(
     dp: number;
     playCost: number;
     colors: CardColor[];
+    forms?: string[];
+    attributes?: string[];
     types?: string[];
     effectText?: string;
   },
@@ -74,6 +88,8 @@ function tok(
     playCost: stats.playCost,
     dp: stats.dp,
     evoCosts: [],
+    ...(stats.forms !== undefined ? { forms: stats.forms } : {}),
+    ...(stats.attributes !== undefined ? { attributes: stats.attributes } : {}),
     types: stats.types,
     effectText: stats.effectText,
     maxCountInDeck: 0,

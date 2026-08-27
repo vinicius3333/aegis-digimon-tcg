@@ -1,6 +1,7 @@
 // Playing cards from hand, deck, trash, and security.
 
 import type { EffectContext } from "../../EffectContext.js";
+import { evaluateCondition } from "../conditions.js";
 import type { ActionScope } from "../dispatch.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
@@ -12,10 +13,58 @@ import type { Action, Scaling, Seat, Target } from "@aegis/shared";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
 import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
 
+/**
+ * The card kinds a play target explicitly asks for, across its filter and every alternative.
+ * Empty means the IR named no kind at all.
+ */
+function requestedPlayKinds(target: Target | undefined): string[] {
+  if (target === undefined) return [];
+  const filters = [target.filter, ...(target.orFilters ?? []), ...(target.filter?.orFilters ?? [])];
+  return filters.flatMap((filter) => filter?.kind ?? []);
+}
+
+/**
+ * Drop Option-only cards from a play candidate pool whose IR named no card kind.
+ *
+ * Only Digimon and Tamers are ever PLAYED; an Option card is USED (comprehensive rules
+ * §6-4 vs §6-5), and no printed card says "play N ... Option card". A kind-less filter such
+ * as BT21-098's "play 1 card with [Vemmon] in its text and a play cost of 6 or less"
+ * therefore means Digimon and Tamers, but matched Options too because `kind` was the only
+ * thing excluding them.
+ *
+ * An IR that genuinely means "use an Option" says so with `kind: ["Option"]`, which is the
+ * same signal the play-vs-use split further down already reads — so naming Option keeps the
+ * card in the pool, and a DUAL Digimon/Option is never dropped because it has a playable side.
+ */
+function playableCandidates<T extends { cardId: string }>(
+  ctx: EffectContext,
+  target: Target | undefined,
+  candidates: readonly T[],
+): T[] {
+  if (requestedPlayKinds(target).length > 0) return [...candidates];
+  return candidates.filter((candidate) => {
+    const kinds = ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds;
+    if (!kinds.includes(CardKind.Option)) return true;
+    return kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
+  });
+}
+
 export function playCostScalingDelta(scaling: Scaling, factor: number): number {
   if (scaling.subtract !== undefined) return -scaling.subtract * factor;
   if (scaling.bonus !== undefined) return scaling.bonus * factor;
   return factor;
+}
+
+function paidReduction(ctx: EffectContext, action: Extract<Action, { kind: "PlayWithoutCost" }>): number | undefined {
+  const base =
+    action.reduceCostByScaling === undefined ? action.reduceCostBy : scaleFactor(ctx, action.reduceCostByScaling);
+  const conditional = (
+    action as typeof action & { reduceCostByIf?: { amount: number; condition: import("@aegis/shared").Condition } }
+  ).reduceCostByIf;
+  if (base === undefined && conditional === undefined) return undefined;
+  return (
+    (base ?? 0) + (conditional !== undefined && evaluateCondition(ctx, conditional.condition) ? conditional.amount : 0)
+  );
 }
 
 export function applyPlayCostCeiling(
@@ -58,7 +107,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         ? action.from
         : [action.from === "digivolution" ? "digivolutionCards" : action.from];
       const target: Target = { filter: action.filter, count: "all", upTo: true };
-      const candidates = candidateLooseInstances(ctx, target, from);
+      const candidates = playableCandidates(ctx, target, candidateLooseInstances(ctx, target, from));
       if (candidates.length === 0) {
         ctx.lastPlayedPermanentIds = [];
         return false;
@@ -177,10 +226,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // A scaled reduction ("with the play cost reduced by the play cost of the returned
           // Tamer" — LM-006) resolves against the live context, which already carries the
           // receipts written while this action's own cost was paid.
-          const scaledReduction =
-            action.reduceCostByScaling === undefined
-              ? action.reduceCostBy
-              : scaleFactor(ctx, action.reduceCostByScaling);
+          const scaledReduction = paidReduction(ctx, action);
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
@@ -197,10 +243,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // This is an effect-driven play, not a bare zone move. Route through the
           // generalized play seam so the card's [On Play] window and `whenPlayed`
           // watchers both fire (the same contract used by filtered plays).
-          const selfReduction =
-            action.reduceCostByScaling === undefined
-              ? action.reduceCostBy
-              : scaleFactor(ctx, action.reduceCostByScaling);
+          const selfReduction = paidReduction(ctx, action);
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
@@ -223,10 +266,14 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           ...(action.target.orFilters ?? []),
           ...(action.target.filter.orFilters ?? []),
         ];
-        const matching = self.stack.filter((c) => {
-          const definition = ctx.game.definitionOf({ cardId: c.cardId } as never);
-          return filters.some((filter) => definitionMatches(filter, definition));
-        });
+        const matching = playableCandidates(
+          ctx,
+          action.target,
+          self.stack.filter((c) => {
+            const definition = ctx.game.definitionOf({ cardId: c.cardId } as never);
+            return filters.some((filter) => definitionMatches(filter, definition));
+          }),
+        );
         if (matching.length === 0) {
           ctx.lastEffectActed = false;
           return false;
@@ -322,7 +369,11 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
       const playCostAdjustedTarget = applyPlayCostCeiling(ctx, action, scaledCostAdjustedTarget);
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      let candidates = candidateLooseInstances(ctx, playCostAdjustedTarget, zones);
+      let candidates = playableCandidates(
+        ctx,
+        playCostAdjustedTarget,
+        candidateLooseInstances(ctx, playCostAdjustedTarget, zones),
+      );
       if (action.fromTriggerHandTrash === true) {
         const triggeringIds = new Set(ctx.trigger.handTrashedInstanceIds ?? []);
         candidates = candidates.filter((candidate) => triggeringIds.has(candidate.instanceId));
@@ -421,10 +472,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               .filter((instanceId, index, all) => all.indexOf(instanceId) === index)
           : undefined;
       const chosen = await pickLoose(ctx, playCostAdjustedTarget, candidates, undefined, ctx.ask, visibleZoneIds);
-      const costReduction =
-        action.reduceCostByScaling === undefined
-          ? (action.reduceCostBy ?? action.costReduction)
-          : scaleFactor(ctx, action.reduceCostByScaling);
+      const costReduction = paidReduction(ctx, action) ?? action.costReduction;
       if (chosen.length > 0) {
         // Options are USED, not played as permanents. `playInstances` intentionally rejects
         // Option definitions, so routing every PlayWithoutCost target through it silently
@@ -595,7 +643,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // when present, prompt the controller, then play the chosen instance with cost reduced by
       // `costReduction` (floored at 0). `payCost` defaults to true; false means free play.
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
-      let pfzCandidates = candidateLooseInstances(ctx, action.target, zones);
+      let pfzCandidates = playableCandidates(ctx, action.target, candidateLooseInstances(ctx, action.target, zones));
 
       // relativeToLeavingDigimon: the target's printed playCost must equal the triggering
       // leaving Digimon's playCost + N (BT19-099 ＜Delay＞ body, KB Q3175).

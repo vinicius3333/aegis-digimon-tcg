@@ -198,7 +198,11 @@ export function zoneList(zone: ZoneRef | ZoneRef[] | undefined): ZoneRef[] {
 }
 
 export function candidateLooseInstances(ctx: EffectContext, target: Target, zones: ZoneRef[]): LooseCandidate[] {
-  if (target.filter.isSelfRef === true) {
+  // For a loose card in hand/trash/security, `this card` is the source instance.  In a
+  // hosted-card zone, though, "this Digimon's digivolution cards" means every stack card
+  // whose HOST is the source permanent (EX6-073), not the source's top-card instance.
+  const hostedZone = zones.length > 0 && zones.every((zone) => zone === "digivolutionCards" || zone === "linked");
+  if (target.filter.isSelfRef === true && !hostedZone) {
     const self = findLooseCandidateByInstance(ctx, ctx.source.instanceId);
     if (
       self === undefined ||
@@ -273,6 +277,13 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
           // this gate, BT13-019's Royal Knight-from-breeding branch also admitted Royal
           // Knights from trash merely because definitionMatches ignores hostFilter.
           if (filter.hostFilter !== undefined && zone !== "digivolutionCards" && zone !== "linked") return false;
+          // LM-023 Q5516: an Option's "use cost" can be reduced while it is
+          // in hand. This ceiling deliberately queries the shared cost ledger
+          // instead of the card's printed play cost.
+          if (filter.effectiveUseCostLte !== undefined) {
+            const effectiveCost = ctx.fx.effectiveLooseUseCost?.(cand.instanceId, seat);
+            if (effectiveCost === undefined || effectiveCost > filter.effectiveUseCostLte) return false;
+          }
           // `isSelfRef` belongs to the individual union branch, not the primary filter.
           // EX11-027 can link either this resolving card OR a Maquinamon from hand; applying
           // the primary branch's self gate to the whole union incorrectly removes the hand
@@ -322,7 +333,9 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
         }
         const hostFilter = matchedFilter?.hostFilter;
         if ((zone === "digivolutionCards" || zone === "linked") && hostFilter && cand.hostPermanentId) {
-          if (hostFilter.isSelfRef === true) {
+          if (hostFilter.sourceRef === "triggerSubject") {
+            if (cand.hostPermanentId !== ctx.trigger.subjectPermanentId) continue;
+          } else if (hostFilter.isSelfRef === true) {
             const self = ctx.source.permanent();
             if (self === undefined || self.permanentId !== cand.hostPermanentId) continue;
           } else {

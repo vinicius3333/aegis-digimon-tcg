@@ -38,6 +38,7 @@ describe("BT25-100 Iron Slash", () => {
     });
     await settle(() => s.perm("breedingHost").linked.some((card) => card.instanceId === optionId));
 
+    expect(s.perm("breedingHost").linked.map((card) => card.instanceId)).toContain(optionId);
     expect(s.perm("opponent").topCard.cardId).toBe("BT25-009");
     expect(s.perm("opponent").stack).toHaveLength(2);
     expect(s.state.memory).toBe(0); // Option cost only; the link cost 2 was waived.

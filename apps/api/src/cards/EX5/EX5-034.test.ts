@@ -36,6 +36,7 @@ describe("EX5-034 BanchoLeomon", () => {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          sourceFilter: { kind: ["Digimon"] },
           actions: [
             { kind: "SelectBind", optional: true, target: { bindAs: "ex5034OptionalTarget" } },
             { kind: "ModifyDP", amount: -4000, target: { fromSelectionRef: "ex5034OptionalTarget" } },

@@ -8,13 +8,6 @@ describe("EX5-055 HeavyLeomon", () => {
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions).toMatchObject([
         { kind: "DeDigivolve", amount: 1, target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } } },
         {
-          kind: "TrashDigivolution",
-          fromTop: true,
-          position: "top",
-          scope: "acrossDigimon",
-          condition: { kind: "lastTargetCanTrashDigivolution" },
-        },
-        {
           kind: "Return",
           to: "deckBottom",
           target: {

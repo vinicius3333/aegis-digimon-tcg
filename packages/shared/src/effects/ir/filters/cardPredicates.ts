@@ -71,6 +71,14 @@ export interface CardPredicates {
   /** Runtime bonus added to the printed-DP ceiling for hand/deck candidates. */
   dpAtMostScaling?: Scaling;
   playCostLte?: number;
+  /**
+   * Use-cost ceiling evaluated with active hand-use reductions, rather than the
+   * card's printed play cost (LM-023 Q5516).
+   *
+   * This is intentionally limited to loose-card selection. Permanent targets
+   * continue to use `playCostLte`, whose contract is the printed play cost.
+   */
+  effectiveUseCostLte?: number;
   /** "with a play/use cost of N or more" (EX9-068). */
   playCostGte?: number;
   /** OR-of-exact-values ("a memory cost of 1 or 7", ST6-04). There is no OR-of-ranges. */

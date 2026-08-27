@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   Phase,
   SECURITY_CHECK_NARRATION_MS,
+  SECURITY_DESTRUCTION_NARRATION_MS,
+  Zone,
   type DecisionRequest,
   type GameState,
   type Intent,
@@ -358,6 +360,47 @@ describe("BotPlayer action pacing and player attacks", () => {
     bot.onActionSettled("attack");
     // Longer than the think time the same seat would otherwise have taken.
     await advance(SECURITY_CHECK_NARRATION_MS - 1);
+    expect(intents).toHaveLength(1);
+
+    await advance(1);
+    expect(intents).toHaveLength(2);
+  });
+
+  // An effect that spends a security stack is narrated card by card, so the whole run
+  // owes its budget before the bot may play anything over it.
+  it("waits out one narration per security card an effect trashed", async () => {
+    vi.useFakeTimers();
+    const { state, attackers } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        if (intent.type === "attack") {
+          const attacker = attackers.find((candidate) => candidate.permanentId === intent.attackerPermanentId);
+          if (attacker) {
+            attacker.isSuspended = true;
+            attacker.canAttackPlayer = false;
+          }
+        }
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
+
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    await advance(2_000);
+    expect(intents).toHaveLength(1);
+
+    bot.onEvent({
+      kind: "cardsMoved",
+      instanceIds: ["sec-1", "sec-2"],
+      from: Zone.Security,
+      to: Zone.Trash,
+    } as ServerEvent);
+    bot.onActionSettled("attack");
+    await advance(2 * SECURITY_DESTRUCTION_NARRATION_MS - 1);
     expect(intents).toHaveLength(1);
 
     await advance(1);

@@ -23,7 +23,7 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
       residual: [],
       digivolutionRequirement: [
         { level: 6, texts: ["Chronomon"], cost: 5, isAlternate: true },
-        { level: 6, namesExact: ["Giant Slayer"], cost: 5, isAlternate: true },
+        { namesExact: ["Giant Slayer"], cost: 5, isAlternate: true },
       ],
     });
     expect(compiled.keywords?.map(({ keyword }) => keyword)).toEqual(

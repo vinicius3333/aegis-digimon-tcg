@@ -56,10 +56,10 @@ describe("BT26-079 compiled behavior", () => {
       ],
     });
     for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
-      const effect = compiled.effects.find((candidate) => candidate.trigger === trigger);
-      expect(effect).not.toHaveProperty("frequency");
-      expect(effect).not.toHaveProperty("sharedUseKey");
-      expect(effect).toMatchObject({
+      // The printed clause carries NO [Once Per Turn] — unlike the [All Turns] hand trim below.
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.frequency).toBeUndefined();
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
+        sharedUseKey: "bt26-079-trash-cost-delete",
         actions: [
           {
             kind: "CostGatedBlock",
@@ -214,7 +214,7 @@ describe("BT26-079 compiled behavior", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("resolves the hand-trash deletion independently at each printed timing", async () => {
+  it("repeats the hand-trash deletion at every printed timing (no [Once Per Turn])", async () => {
     const s = setupEngine(
       {
         0: {
@@ -236,9 +236,15 @@ describe("BT26-079 compiled behavior", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("zombie"));
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("zombie"));
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("zombie"));
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("zombie"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+
+    // A third timing with no hand card left cannot pay the cost, so nothing more happens.
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("zombie"));
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

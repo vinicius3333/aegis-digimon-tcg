@@ -30,7 +30,10 @@ describe("BT7-030 AncientMegatheriummon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-011", under: ["BT7-023", "BT7-025"], as: "base" }],
+          battleArea: [
+            { card: "AD1-011", under: ["BT7-023", "BT7-025"], as: "base" },
+            { card: "BT1-010", under: ["BT7-023"], as: "otherWithHybrid" },
+          ],
           hand: [{ card: "BT7-030", as: "evolving" }],
           deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006"],
         },

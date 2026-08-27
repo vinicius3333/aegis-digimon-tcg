@@ -5,6 +5,7 @@ import {
   Permanent,
   CardInstance,
   EffectTiming,
+  getCardDefinition,
   type Seat,
   type ServerEvent,
   type CompiledCard,
@@ -16,14 +17,15 @@ import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../
 import { createCardSource, type CardStateLookup } from "../../engine/cards/CardSource.js";
 import { createGameAccess, createEffectContext } from "../../engine/effects/context.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 // The REAL authored IR (a hand-override exports it so the A3 asserts against the on-disk source).
 import { compiled as BT25_045 } from "./BT25-045.js";
 // Boot side-effect: self-register every compiled-IR card module (so BT25-045's real IR loads).
 import "../index.js";
 
 /**
- * Full-engine A3 for BT25-045 Onmon's link-cost-reduction clause (plan 08-04), consuming the
- * Phase-7 `LinkAction.costDelta` / `linkCostOf` seam (07-01-SUMMARY.md):
+ * Full-engine A3 for BT25-045 Onmon's link-cost-reduction clause, consuming the
+ * recipient-scoped `GrantLinkCostReduction` / `linkCostOf` seam:
  *
  *   "[Your Turn] [Once Per Turn] When a [Social], [Tool] or [Game] trait card would link to
  *    this Digimon, you may reduce the cost by 1."  (documented behavior WhenWouldLink region,
@@ -31,19 +33,18 @@ import "../index.js";
  *
  * KB authority (node tools/kb/query.mjs card BT25-045): no card-specific Q&A; general link
  * rules apply (BT25-089 Q4881: only a <Link>-bearing card may be linked; the cost is real and
- * reducible). BT25-045 is authored here as the EASY discharge that bakes `costDelta:-1` onto a
- * trait-gated, once-per-turn Link action (the cross-actor WhenWouldLink continuous grant — the
- * broader documented behavior shape shared with BT25-004 — is serialized to the engine wave 08-09, per the plan).
+ * reducible). BT25-045 is authored as the recipient-scoped, optional, once-per-turn grant shared
+ * with BT25-004.
  *
- * Vehicle: resolve BT25-045's REAL registered Link effect through the interpreter against a
+ * Vehicle: resolve BT25-045's REAL registered grant through the interpreter against a
  * battle-area BT25-045 with a [Social]-trait link card (BT21-009, printed link Cost 1) in hand,
- * and compare the memory paid AS-AUTHORED (costDelta:-1 => pays 0) vs. with the costDelta
+ * and compare the memory paid with the grant active (reduction => pays 0) vs. with the grant
  * STRIPPED (pays the full 1). The reduction is exactly 1.
  *
- * FAILS-WHEN-REVERTED: drop the `costDelta:-1` from BT25-045.ts's Link action — the as-authored
+ * FAILS-WHEN-REVERTED: drop the grant from BT25-045.ts — the as-authored
  * run then pays the full link cost, the memory delta between the two runs collapses to 0, and the
  * "reduced by exactly 1" assertion goes RED. (Equivalently the proven Phase-7 lever: drop the
- * `+ costDelta` in `linkCostOf`.)
+ * recipient reduction disappears and the "reduced by exactly 1" assertion goes RED.
  */
 
 const LINKABLE = "BT21-009"; // [Social] [Appmon] trait, printed "[Link] [Appmon] trait: Cost 1"
@@ -65,11 +66,11 @@ interface RunResult {
 }
 
 /**
- * Resolve the given compiled BT25-045 IR's [Main]/OnDeclaration Link effect once, returning how
+ * Resolve a generic [Main]/OnDeclaration Link effect once, returning how
  * much memory the engine charged for the link and how many cards landed. A linkable BT21-009 sits
  * in the controller's hand; BT25-045 is the on-field recipient ("link a card to this Digimon").
  */
-async function runLinkEffect(compiled: CompiledCard): Promise<RunResult> {
+async function runLinkEffect(compiled: CompiledCard, optionalAnswers: boolean[] = [true]): Promise<RunResult> {
   seq = 0;
   const state = new GameState();
   state.turnSeat = 0;
@@ -98,6 +99,7 @@ async function runLinkEffect(compiled: CompiledCard): Promise<RunResult> {
   const ledger = new ModifierLedger();
   const continuous = new ContinuousEffectLedger();
   const memory = new MemoryGauge(state, (e) => events.push(e));
+  const usedReductions = new Set<string>();
 
   const stateLookup: CardStateLookup = {
     permanentOf: (instanceId) => {
@@ -116,9 +118,10 @@ async function runLinkEffect(compiled: CompiledCard): Promise<RunResult> {
   const ask: SelectionPort = {
     selectInstances: async (_seat, candidates, _min, max) => candidates.slice(0, max),
   };
+  const answers = [...optionalAnswers];
   const decisionApi = {
     selectPermanents: async () => [],
-    optional: async () => true,
+    optional: async () => answers.shift() ?? true,
     chooseTargets: async (_ctx: unknown, opts: { candidates: string[]; max: number }) =>
       opts.candidates.slice(0, opts.max),
     selectCards: async (_ctx: unknown, opts: { candidates: string[]; max: number }) =>
@@ -135,12 +138,26 @@ async function runLinkEffect(compiled: CompiledCard): Promise<RunResult> {
     continuous,
     ask,
     controllerSeat: () => state.turnSeat,
+    barrierFired: (key) => usedReductions.has(key),
+    markBarrierFired: (key) => usedReductions.add(key),
   };
   const fx = createPrimitives(engine);
   const game = createGameAccess(
     state,
     (id) => continuous.linkMaxDelta(id),
     (id, traits) => continuous.linkCostReduction(id, traits),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    (id, traits) => continuous.linkCostReductionGrant(id, traits, (key) => usedReductions.has(key)),
   );
 
   const module = irCardModule("BT25-045", compiled);
@@ -192,16 +209,53 @@ function withoutGrant(compiled: CompiledCard): CompiledCard {
 }
 
 describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
+  it("matches the catalog requirements and both printed effect clauses", () => {
+    expect(getCardDefinition("BT25-045")).toMatchObject({
+      colors: ["Green"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      forms: ["Stnd.", "Appmon"],
+      attributes: ["Game"],
+      types: ["Online"],
+      linkDp: 2000,
+      linkRequirement: "[Link] [Appmon] trait: Cost 1",
+      effectText:
+        "[Digivolve] Lv.2 w/[Appmon] trait: Cost 0 \n\n[Your Turn] [Once Per Turn] When a [Social], [Tool] or [Game] trait card would link to this Digimon, you may reduce the cost by 1.",
+      linkEffect: "[When Linking] Suspend 1 of your opponent's Digimon.",
+    });
+    expect(BT25_045.digivolutionRequirement).toEqual([{ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true }]);
+    expect(BT25_045.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 1 }]);
+    expect(BT25_045.coverage).toBe("full");
+    expect(BT25_045.residual).toEqual([]);
+  });
+
   it("authors a GrantLinkCostReduction action (amount 1, Social/Tool/Game)", () => {
     const links = (BT25_045.effects ?? [])
       .flatMap((e) => e.actions ?? [])
       .filter((a) => (a as { kind?: string }).kind === "GrantLinkCostReduction") as {
       amount?: number;
       whenLinkingTrait?: string[];
+      optionalAtDeclaration?: boolean;
+      oncePerTurn?: boolean;
     }[];
     expect(links.length).toBeGreaterThan(0);
     expect(links.some((l) => l.amount === 1)).toBe(true);
     expect(links[0]?.whenLinkingTrait).toEqual(["Social", "Tool", "Game"]);
+    expect(links[0]).toMatchObject({ optionalAtDeclaration: true, oncePerTurn: true });
+    expect(BT25_045.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "WhenLinking",
+        isLinked: true,
+        actions: [
+          {
+            kind: "Suspend",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          },
+        ],
+      }),
+    );
   });
 
   it("pays exactly 1 less memory to link a [Social] card than with the reduction reverted", async () => {
@@ -217,5 +271,134 @@ describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
     expect(full.memoryPaid).toBe(1);
     expect(reduced.memoryPaid).toBe(0);
     expect(full.memoryPaid - reduced.memoryPaid).toBe(1);
+  });
+
+  it("allows declining the optional reduction, paying the printed link cost", async () => {
+    const declined = await runLinkEffect(BT25_045, [false]);
+    expect(declined.linkedCount).toBe(1);
+    expect(declined.memoryPaid).toBe(1);
+  });
+
+  it("suspends exactly one opponent Digimon when Onmon is linked", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [{ card: "BT25-045", as: "onmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target", dp: 3000 },
+            { card: "BT1-013", as: "other", dp: 5000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").permanentId);
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("onmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").linked.some((linkedCard) => linkedCard.instanceId === s.inst("onmon").instanceId) &&
+        s.perm("target").isSuspended,
+    );
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("other").isSuspended).toBe(false);
+  });
+
+  it("reduces a qualifying link once per turn and does not reduce the second link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-045", as: "onmon" }],
+          hand: [
+            { card: "BT21-009", as: "first" },
+            { card: "BT21-009", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("first").instanceId,
+        targetPermanentId: s.perm("onmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("onmon").linked.length === 1);
+    expect(s.state.memory).toBe(4);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("second").instanceId,
+        targetPermanentId: s.perm("onmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 3);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not reduce an Appmon link card without Social, Tool, or Game", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-045", as: "onmon" }],
+          hand: [{ card: "BT21-047", as: "link" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("onmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("onmon").linked.length === 1);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("digivolves for zero from a level-2 Appmon", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT21-005", as: "base" },
+        hand: [{ card: "BT25-045", as: "onmon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("onmon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("onmon").instanceId);
+    expect(s.state.memory).toBe(3);
   });
 });

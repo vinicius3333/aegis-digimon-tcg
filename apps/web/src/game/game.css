@@ -3057,7 +3057,13 @@ button.side-panel__name:focus-visible {
      1283ms   outcome beat, per resolution                (350ms)
      1633ms   scene fades out                             (160ms)
    Everything from 1283ms on is a separate, skippable queue step: a click through
-   the scene takes the board back at the outcome rather than at the fade. */
+   the scene takes the board back at the outcome rather than at the fade.
+
+   A check the server has not closed yet holds at `data-resolution="pending"`: the
+   entrance plays, the cards stay up, and nothing that belongs to the outcome is
+   applied. When the close finally lands, the scene sets `--t-clash-outcome-at` to
+   zero, so the outcome beat and the fade after it run from that moment rather than
+   from a clock that started at the reveal. */
 .battle-clash {
   position: absolute;
   z-index: calc(var(--ds-z-dialog) - 5);
@@ -3072,7 +3078,17 @@ button.side-panel__name:focus-visible {
      to win against it. The dim travels with the scene's own fade, and the layer
      stays pointer-transparent, so nothing under it stops being clickable. */
   background: radial-gradient(ellipse at center, rgb(4 8 20 / 74%) 0%, rgb(4 8 20 / 58%) 55%, rgb(4 8 20 / 28%) 100%);
-  animation: battle-clash-scene var(--t-clash-total, 1793ms) linear both;
+  animation: battle-clash-in var(--t-clash-enter, 150ms) linear both;
+}
+
+/* The exit is its own animation rather than the tail of one long scene keyframe, so a
+   scene that held through a still-resolving check leaves on the outcome it was given
+   instead of on the clock it was mounted at. */
+.battle-clash:not([data-resolution="pending"]) {
+  animation:
+    battle-clash-in var(--t-clash-enter, 150ms) linear both,
+    battle-clash-out var(--t-clash-exit, 160ms) linear
+      calc(var(--t-clash-outcome-at, 1283ms) + var(--t-clash-outcome, 350ms)) both;
 }
 
 .battle-clash__badge {
@@ -3227,19 +3243,20 @@ button.side-panel__name:focus-visible {
   box-shadow: 0 4px 18px rgb(4 8 20 / 70%);
 }
 
-/* Percentages of the 1793ms scene: up at 150ms with the attacker (8%), and starting to
-   go at 1633ms, where the outcome beat ends and `clashExit` begins (91%). */
-@keyframes battle-clash-scene {
-  0% {
+@keyframes battle-clash-in {
+  from {
     opacity: 0;
   }
-  8% {
+  to {
     opacity: 1;
   }
-  91% {
+}
+
+@keyframes battle-clash-out {
+  from {
     opacity: 1;
   }
-  100% {
+  to {
     opacity: 0;
   }
 }
@@ -6583,6 +6600,11 @@ button.side-panel__name:focus-visible {
   opacity: 0;
   animation: battle-clash-shatter-in var(--t-clash-outcome, 350ms) steps(1, end) var(--t-clash-outcome-at, 1283ms)
     forwards;
+  /* The shards break on the outcome beat's clock rather than the longer one a field
+     deletion uses: the scene starts fading when the beat ends, so anything still in
+     flight would simply be cut off. The stagger that starts the last shard is already
+     taken out of this number. */
+  --t-card-shatter: var(--t-clash-shatter, 260ms);
 }
 
 @keyframes battle-clash-shatter-in {
@@ -6601,6 +6623,16 @@ button.side-panel__name:focus-visible {
   animation:
     battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
     battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+/* A card the check simply trashes breaks apart the same way, so a security card
+   leaving play always reads as a deletion. It takes no impact, and it breaks instead
+   of falling: the shatter replaces the `battle-clash-fall` the resolution otherwise
+   carries, which is why the chain is restated here. */
+.battle-clash[data-resolution="trashed"] .battle-clash__card[data-spent="true"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
     battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
 }
 
@@ -6693,6 +6725,7 @@ button.side-panel__name:focus-visible {
   }
 
   .battle-clash[data-resolution="battle"] .battle-clash__card[data-spent="true"] .battle-clash__art,
+  .battle-clash[data-resolution="trashed"] .battle-clash__card[data-spent="true"] .battle-clash__art,
   .battle-clash__card[data-fate="beaten"],
   .battle-clash__card[data-fate="beaten"] .battle-clash__frame,
   .battle-clash__card[data-fate="stands"] {

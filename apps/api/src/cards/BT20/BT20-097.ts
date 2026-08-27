@@ -82,6 +82,7 @@ export const compiled: CompiledCard = {
       keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "PlayWithoutCost",
           target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["DeathXmon"], match: "name" }] }, count: 1 },
           from: ["trash"],

@@ -26,9 +26,22 @@ const attackBody = [
     optional: true,
     abortOnDecline: true,
     actions: [
-      { kind: "PlaceUnder", fromDeckTop: true, target: { filter: {}, count: 1 }, faceDown: true },
-      { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Collision" }, duration: "untilEachTurnEnd" },
-      { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Blocker" }, duration: "untilEachTurnEnd" },
+      {
+        kind: "PlaceUnder",
+        fromDeckTop: true,
+        target: { filter: {}, count: 1 },
+        position: "bottom",
+        faceDown: true,
+      },
+      // One chosen Digimon gains BOTH keywords; two separate GainKeyword actions would open
+      // two independent target choices and could split the grants across two Digimon.
+      {
+        kind: "GainKeyword",
+        target: beatbreak,
+        keyword: { keyword: "Collision" },
+        keywords: [{ keyword: "Blocker" }],
+        duration: "untilEachTurnEnd",
+      },
     ],
   },
 ];

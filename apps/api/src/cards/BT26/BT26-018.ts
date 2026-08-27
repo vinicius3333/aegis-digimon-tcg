@@ -8,11 +8,8 @@ const revealAndTrash = [
     revealCount: 3,
     add: [
       {
-        filter: { nameOrTrait: [{ tokens: ["Aqua"], match: "traitContains" }] },
-        orFilters: [
-          { nameOrTrait: [{ tokens: ["Sea Animal"], match: "traitContains" }] },
-          { nameOrTrait: [{ tokens: ["DS"], match: "trait" }] },
-        ],
+        filter: { nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }] },
+        orFilters: [{ nameOrTrait: [{ tokens: ["DS"], match: "trait" }] }],
         count: 1,
       },
     ],

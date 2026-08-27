@@ -23,6 +23,12 @@ export interface CardShard {
 /** Wedges the card is cut into. Six reads as breakage; more reads as dust. */
 export const CARD_SHARD_COUNT = 6;
 
+/** Stagger between one shard leaving and the next, so the card comes apart in order. */
+export const CARD_SHARD_STAGGER_MS = 18;
+
+/** How long after the first shard the last one starts, which every window has to allow for. */
+export const CARD_SHARD_SPREAD_MS = (CARD_SHARD_COUNT - 1) * CARD_SHARD_STAGGER_MS;
+
 /** How far a shard travels, in card widths. */
 const SHARD_DRIFT = 0.62;
 
@@ -56,7 +62,7 @@ export function cardShards(count: number = CARD_SHARD_COUNT): CardShard[] {
       driftX: Math.round(Math.cos(mid) * SHARD_DRIFT * 1000) / 1000,
       driftY: Math.round(Math.sin(mid) * SHARD_DRIFT * 1000) / 1000,
       spinDeg: SPINS[index % SPINS.length]!,
-      delayMs: index * 18,
+      delayMs: index * CARD_SHARD_STAGGER_MS,
     });
   }
   return shards;

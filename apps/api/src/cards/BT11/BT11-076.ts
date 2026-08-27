@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 2, traits: ["Xros Heart"], cost: 0, isAlternate: true }],
 };
 
 registerIrCard("BT11-076", compiled);

@@ -16,8 +16,8 @@ const first = {
   },
   destination: "digivolutionStack",
   position: "bottom",
-  host: "target",
-  underFilter: host,
+  host: { filter: host, count: 1 },
+  bindHostAs: "gaomonHost",
 };
 const second = {
   kind: "place",
@@ -28,8 +28,7 @@ const second = {
   },
   destination: "digivolutionStack",
   position: "bottom",
-  host: "target",
-  underFilter: host,
+  host: { filter: { boundRef: "gaomonHost" }, count: 1 },
 };
 const _playGaomon = {
   kind: "PlayWithoutCost",
@@ -57,15 +56,21 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Digivolve",
-          target: { filter: host, count: 1 },
-          into: { nameOrTrait: [{ tokens: ["MirageGaogamon"], match: "name" }] },
-          from: ["hand"],
-          payCost: false,
-          ignoreRequirements: true,
+          kind: "CostGatedBlock",
+          cost: { kind: "compound", costs: [first, second] },
           optional: true,
           abortOnDecline: true,
-          additionalCosts: [first, second],
+          actions: [
+            {
+              kind: "Digivolve",
+              target: { filter: host, count: 1, fromSelectionRef: "gaomonHost" },
+              into: { nameOrTrait: [{ tokens: ["MirageGaogamon"], match: "name" }] },
+              from: ["hand"],
+              payCost: false,
+              ignoreRequirements: true,
+              optional: true,
+            },
+          ],
         },
       ],
     },

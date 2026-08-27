@@ -10,7 +10,7 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { definitionOf, dpOf } from "../cards/cardData.js";
-import { placePermanent as appendPermanent, takeTop } from "../state/access.js";
+import { placePermanent as appendPermanent, setBreeding, setTopCard, takeTop } from "../state/access.js";
 
 /**
  * The breeding-phase verbs `hatchEgg` and `moveFromBreeding` (subsystem:
@@ -136,7 +136,7 @@ export function applyHatchEgg(
   const permanent = new Permanent();
   permanent.permanentId = deps.nextPermanentId();
   permanent.controllerSeat = seat;
-  permanent.topCard = egg;
+  setTopCard(permanent, egg);
   permanent.stack = new ArraySchema<CardInstance>();
   permanent.linked = new ArraySchema<CardInstance>();
   const dp = dpOf(definitionOf(egg.cardId));
@@ -144,7 +144,7 @@ export function applyHatchEgg(
   permanent.currentDP = dp;
   permanent.isSuspended = false;
   permanent.inBreeding = true;
-  player.breeding = permanent;
+  setBreeding(player, permanent);
 
   deps.emit?.({ kind: "hatched", seat, cardId: egg.cardId, permanentId: permanent.permanentId });
   deps.emit?.({
@@ -204,7 +204,7 @@ export function applyMoveFromBreeding(
   const { player, permanent } = check;
 
   permanent.inBreeding = false;
-  player.breeding = undefined;
+  setBreeding(player, undefined);
   appendPermanent(player, permanent);
 
   deps.emit?.({

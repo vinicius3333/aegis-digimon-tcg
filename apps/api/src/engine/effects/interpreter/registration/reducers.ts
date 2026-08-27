@@ -89,6 +89,8 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "ST9-04", // condition: you have a green Digimon in play -> -1
   "ST9-09", // condition: you have a blue Digimon in play -> -1
   "EX2-045", // condition: you have Guilmon/Terriermon/Renamon/Impmon in play -> -2
+  "EX5-012", // qualifying 3+ source Light Fang/Night Claw/Galaxy stack -> self play cost -2 (Q3549)
+  "EX5-072", // -1 per distinct Deva/Four Sovereigns name in trash -> self Option cost reduction
   "BT9-112", // scaling: -3 per opponent Digimon/Tamer in play (KB Q1928)
   "BT10-098", // condition: opponent has 2+ Digimon -> Option use cost -2
   "BT10-103", // condition: you have 2+ suspended green Digimon -> Option use cost -2
@@ -103,6 +105,9 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT20-043", // condition: you have an [ACCEL] Digimon -> self play cost -5
   "BT20-057", // condition: you have a Huckmon/Jesmon/Sistermon-named Digimon -> self play cost -4
   "BT8-097", // scaling: Option use cost -1 per opposing Digimon (floor applied by play path)
+  "BT25-018", // opponent has a 12000+ DP Digimon -> self play cost -5
+  "BT25-028", // opponent has a level 6+ Digimon -> self play cost -5
+  "BT25-020", // any Digimon has 13000+ DP -> self play cost -5
   "BT25-044", // 6 or fewer total security cards -> -5 (Q7004 effect-driven stacking)
   "BT25-059", // 2+ suspended Digimon -> -5 (Q6306/Q6350)
   "BT25-075", // fewer Digimon than your opponent -> -5 (Q6370-Q6372)
@@ -283,7 +288,13 @@ export function collectWouldBePlayedSelfReducers(cardId: string, effects: readon
           ...inner,
           condition: inner.condition ?? a.condition,
         };
-        captureReducer(costActions, innerWithGate as never, a.scaling, "Reduce the play cost.", out);
+        captureReducer(
+          costActions,
+          innerWithGate as never,
+          (inner.scaling as Scaling | undefined) ?? a.scaling,
+          "Reduce the play cost.",
+          out,
+        );
       }
     }
   }
@@ -313,6 +324,7 @@ const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
   "BT8-112", // return a white level 7 from trash to the deck bottom -> -4
   "BT3-111", // Paildramon/Dinobeemon would digivolve into this card -> -2 (KB card ruling)
   "BT11-059", // -1 per green/black Tamer when one of your Digimon digivolves into this card (Q2092)
+  "EX5-012", // qualifying 3+ source Light Fang/Night Claw/Galaxy stack -> self evo cost -2 (Q3549)
 ]);
 
 export function collectWouldDigivolveSelfReducers(cardId: string, effects: readonly CardEffect[]): void {
@@ -513,4 +525,19 @@ export async function applyWouldBePlayedSelfReducer(
   if (reducer.condition !== undefined && !evaluateCondition(ctx, reducer.condition)) return;
   const scale = reducer.scaling !== undefined ? scaleFactor(ctx, reducer.scaling) : 1;
   ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount * scale);
+}
+
+/**
+ * Read the reduction which automatically applies while this card remains in hand.
+ *
+ * This deliberately excludes every reducer with a payment or choice: targeting effects such
+ * as LM-023 need the card's current use cost, not a speculative cost after a player might pay
+ * an optional reducer. It is therefore the read-only counterpart to the final automatic branch
+ * of {@link applyWouldBePlayedSelfReducer}.
+ */
+export function potentialWouldBePlayedSelfReduction(ctx: EffectContext, reducer: WouldBePlayedSelfReducer): number {
+  if (reducer.pay !== undefined || reducer.cost !== undefined || reducer.costActions !== undefined) return 0;
+  if (reducer.condition !== undefined && !evaluateCondition(ctx, reducer.condition)) return 0;
+  const scale = reducer.scaling !== undefined ? scaleFactor(ctx, reducer.scaling) : 1;
+  return Math.max(0, reducer.amount * scale);
 }

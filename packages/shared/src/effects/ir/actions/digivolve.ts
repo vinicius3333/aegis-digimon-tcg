@@ -142,6 +142,8 @@ export interface PlaceUnderAction extends ActionBase {
    */
   underSelectionRef?: string;
   position?: string;
+  /** Store the number of distinct printed names actually placed by this action (EX6-073). */
+  trackDistinctNames?: string;
   /** Let the controller arrange multiple selected cards before they enter the stack. */
   order?: "any";
   /**
@@ -195,6 +197,8 @@ export interface TrashDigivolutionAction extends ActionBase {
   minAmount?: number;
   /** The default source form. */
   fromTop?: boolean;
+  /** Allow choosing fewer than `amount`; when sources exist, at least one is required. */
+  upTo?: boolean;
   position?: string;
   /**
    * `"acrossDigimon"` pools digivolution cards from ALL matching permanents and lets the

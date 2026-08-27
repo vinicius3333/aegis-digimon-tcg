@@ -40,9 +40,8 @@ describe("BT26-093 compiled fidelity", () => {
         kind: "CostGatedBlock",
         cost: { kind: "suspend" },
         actions: [
-          { kind: "PlaceUnder", fromDeckTop: true, faceDown: true },
-          { kind: "GainKeyword", keyword: { keyword: "Collision" } },
-          { kind: "GainKeyword", keyword: { keyword: "Blocker" } },
+          { kind: "PlaceUnder", fromDeckTop: true, position: "bottom", faceDown: true },
+          { kind: "GainKeyword", keyword: { keyword: "Collision" }, keywords: [{ keyword: "Blocker" }] },
         ],
       },
     ]);

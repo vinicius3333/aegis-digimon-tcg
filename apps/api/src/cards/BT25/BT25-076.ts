@@ -38,7 +38,7 @@ export const compiled: CompiledCard = {
                 kind: ["Digimon"],
                 playCostLte: 11,
                 nameOrTrait: [{ tokens: ["Negamon"], match: "text" }],
-                digivolutionStackNameOrTrait: [{ tokens: ["Negamon"], match: "name" }],
+                digivolutionStackNameOrTrait: [{ tokens: ["Negamon"], match: "nameExact" }],
               },
               count: 1,
             },

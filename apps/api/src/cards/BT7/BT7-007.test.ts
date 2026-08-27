@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import "./BT7-007.js";
 
 describe("BT7-007 ToyAgumon", () => {
   it("matches its official effectless card metadata", () => {

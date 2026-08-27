@@ -267,10 +267,10 @@ describe("BT26-068 Devimon", () => {
     await effect.resolve(staticCtx);
 
     expect(subscription).toBeDefined();
-    // The static builder must inject a source-instance-scoped key; the card must not
-    // install its former card-global key itself.
-    expect(subscription!.oncePerTurnKey?.startsWith(`${cardSource.instanceId}/`)).toBe(true);
-    expect(subscription!.oncePerTurnKey).not.toContain("global:");
+    // The watcher key must be scoped to this source instance and to the conferral origin
+    // ("printed" for a card's own clause), so two copies keep separate budgets; the card
+    // must not install its former card-global key itself.
+    expect(subscription!.oncePerTurnKey).toMatch(new RegExp(`^${cardSource.instanceId}/printed/${CARD_ID}/`));
 
     const ownCard = instance("own-card");
     const opponentCard = instance("opponent-card", "TEST", 1 as Seat);

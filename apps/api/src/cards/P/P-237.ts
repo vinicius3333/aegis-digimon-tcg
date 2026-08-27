@@ -102,6 +102,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "Digivolve",
           target: {
             filter: {

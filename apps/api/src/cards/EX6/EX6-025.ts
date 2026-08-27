@@ -14,7 +14,7 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: {
             filter: {
-              controllerDefault: "mine",
+              controller: "any",
               kind: ["Digimon"],
             },
             count: 1,
@@ -78,7 +78,7 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: {
             filter: {
-              controllerDefault: "mine",
+              controller: "any",
               kind: ["Digimon"],
             },
             count: 1,
@@ -172,7 +172,7 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: {
             filter: {
-              controllerDefault: "mine",
+              controller: "any",
               kind: ["Digimon"],
             },
             count: 1,

@@ -3067,6 +3067,6 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 ## Collection closeout — BT26 — 104/104 at 10/10
 
 - Every card from BT26-001 through BT26-104 has reproducible catalog, rules/KB, implementation, registration, and behavioral evidence recorded above.
-- Full collection regression: PASS, 104 files and 949 tests.
+- Full collection regression after merging `origin/main`: PASS, 104 files and 952 tests.
 - Cost-reduction mechanism regression: PASS, 7 files and 68 tests, including BT26-098 and existing peer consumers.
 - Gates: `pnpm typecheck` PASS; Oxlint and Oxfmt PASS for all changed files; `git diff --check` PASS. Repository-wide lint/format checks remain blocked only by pre-existing findings outside this BT26 audit diff.

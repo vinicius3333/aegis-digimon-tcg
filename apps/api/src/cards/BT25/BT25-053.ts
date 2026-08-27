@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -31,22 +31,29 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Suspend",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon", "Tamer"],
             },
             count: 1,
-            bindAs: "suspendedTarget",
+            bindAs: "onPlayTarget",
+          },
+        },
+        {
+          kind: "Suspend",
+          target: {
+            fromSelectionRef: "onPlayTarget",
+            filter: {},
+            count: 1,
           },
         },
         {
           kind: "Restrict",
           target: {
-            filter: {
-              fromSelectionRef: "suspendedTarget",
-            },
+            fromSelectionRef: "onPlayTarget",
+            filter: {},
             count: 1,
           },
           restriction: "unsuspend",
@@ -101,22 +108,29 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Suspend",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon", "Tamer"],
             },
             count: 1,
-            bindAs: "suspendedTarget",
+            bindAs: "whenDigivolvingTarget",
+          },
+        },
+        {
+          kind: "Suspend",
+          target: {
+            fromSelectionRef: "whenDigivolvingTarget",
+            filter: {},
+            count: 1,
           },
         },
         {
           kind: "Restrict",
           target: {
-            filter: {
-              fromSelectionRef: "suspendedTarget",
-            },
+            fromSelectionRef: "whenDigivolvingTarget",
+            filter: {},
             count: 1,
           },
           restriction: "unsuspend",

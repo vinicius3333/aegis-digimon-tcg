@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-056.js";
 
-describe("EX6-056 Ogudomon", () => {
+describe("EX6-056 Beelzemon", () => {
   it("has Rush, trashes four deck cards, and de-digivolves an opponent by two when your trash has ten cards", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.keywords?.[0]?.keyword).toBe("Rush");
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([

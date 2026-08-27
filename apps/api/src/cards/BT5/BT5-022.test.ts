@@ -35,6 +35,25 @@ describe("BT5-022 Bulucomon", () => {
     expect(s.state.memory).toBe(before);
   });
 
+  it("does not gain memory during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022"] }] },
+      1: { battleArea: [{ card: "BT4-073", as: "opponent", under: [{ card: "BT1-009", as: "source" }] }] },
+    });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    const before = s.state.memory;
+
+    await (s.engine as any).primitives.trashDigivolutionCards(
+      s.perm("opponent").permanentId,
+      [s.inst("source").instanceId],
+      { byEffectSeat: 0 },
+    );
+    await settle();
+
+    expect(s.state.memory).toBe(before);
+  });
+
   it("does not count returning a Digimon to hand as trashing its sources", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT4-028", as: "host", under: ["BT5-022"] }] },

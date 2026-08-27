@@ -57,7 +57,14 @@ describe("EX5-040 [On Play] play a [Deva] from hand without cost into the breedi
       isInherited: true,
       frequency: "OncePerTurn",
       actions: [
-        { kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "Piercing" } }, while: { kind: "youHave" } },
+        {
+          kind: "Aura",
+          effect: { kind: "keyword", keyword: { keyword: "Piercing" } },
+          while: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Four Sovereigns", "God Beast"], match: "trait" }] },
+          },
+        },
       ],
     });
   });

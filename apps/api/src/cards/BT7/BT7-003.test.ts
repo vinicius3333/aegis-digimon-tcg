@@ -5,7 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT4/BT4-026.js";
 import "./BT7-003.js";
 
-describe("BT7-003 Kyaromon", () => {
+describe("BT7-003 Pusurimon", () => {
   it("gives an opposing Digimon -1000 DP when trashed for its host's Digi-Burst", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

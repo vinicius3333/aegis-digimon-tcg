@@ -27,14 +27,6 @@ export const compiled: CompiledCard = {
               zone: "trash",
               controller: "mine",
               levels: [6],
-              orFilters: [
-                {
-                  colors: ["Yellow", "Black"],
-                },
-                {
-                  colors: ["Green", "Purple"],
-                },
-              ],
             },
             count: 2,
             upTo: true,
@@ -55,7 +47,6 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           to: "deckBottom",
-          optional: true,
           scaling: {
             per: 1,
             filter: {

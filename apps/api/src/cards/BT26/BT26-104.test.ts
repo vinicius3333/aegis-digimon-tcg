@@ -179,6 +179,27 @@ describe("BT26-104 compiled fidelity", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 
+  it("does not offer the free Option use without a Tentei Hachibushu Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-104", as: "kunlun" },
+            { card: "BT1-009", as: "plainDigimon" },
+          ],
+          hand: [{ card: "EX12-070", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kunlun"));
+
+    expect(s.perm("kunlun").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
+  });
+
   it("plays itself without cost from security", async () => {
     const s = setupEngine({
       0: { security: [{ card: "BT26-104", as: "security", faceUp: true }] },

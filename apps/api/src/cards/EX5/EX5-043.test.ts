@@ -21,5 +21,28 @@ describe("EX5-043 Leopardmon (X Antibody)", () => {
     expect(module.effectsForTiming(EffectTiming.OnDeclaration, source)[0]?.maxPerTurn).toBe(1);
     const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn");
     expect(watcher?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenPlayed" });
+    for (const trigger of ["Main", "WhenDigivolving"] as const) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions).toContainEqual(
+        expect.objectContaining({
+          kind: "PlayWithoutCost",
+          reduceCostBy: 4,
+          reduceCostByIf: {
+            amount: 3,
+            condition: expect.objectContaining({
+              kind: "selfDigivolutionStackHasTrait",
+              filter: {
+                nameOrTrait: [
+                  { tokens: ["Leopardmon"], match: "name" },
+                  { tokens: ["X Antibody"], match: "trait" },
+                ],
+              },
+            }),
+          },
+        }),
+      );
+    }
+    expect((watcher?.actions[0] as { actions?: unknown[] }).actions).toContainEqual(
+      expect.objectContaining({ kind: "Return", dpCeilingScaling: expect.objectContaining({ amount: 3000 }) }),
+    );
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-041.js";
 
-describe("EX6-041 Diaboromon", () => {
+describe("EX6-041 Infermon", () => {
   it("offers free Diaboromon evolution from hand by deleting a Diaboromon", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "Digivolve",

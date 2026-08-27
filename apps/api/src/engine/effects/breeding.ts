@@ -11,7 +11,14 @@ import {
   type Seat,
   type ServerEvent,
 } from "@aegis/shared";
-import { findPermanentInState, takeTop } from "../state/access.js";
+import {
+  findPermanentInState,
+  pushOnStack,
+  setBreeding,
+  setTopCard,
+  takeTop,
+  unshiftOnStack,
+} from "../state/access.js";
 
 /**
  * Breeding/hatch effect verbs (subsystem: effect-primitives; sources: documented behavior hatch +
@@ -77,7 +84,7 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
     const permanent = new Permanent();
     permanent.permanentId = engine.nextPermanentId();
     permanent.controllerSeat = owner.seat;
-    permanent.topCard = egg;
+    setTopCard(permanent, egg);
     permanent.stack = new ArraySchema<CardInstance>();
     permanent.linked = new ArraySchema<CardInstance>();
     const def = requireCardDefinition(egg.cardId);
@@ -86,7 +93,7 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
     permanent.currentDP = dp;
     permanent.isSuspended = false;
     permanent.inBreeding = true;
-    owner.breeding = permanent;
+    setBreeding(owner, permanent);
     engine.emit({
       kind: "cardsMoved",
       instanceIds: [egg.instanceId],
@@ -115,8 +122,8 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
     if (host === undefined) return undefined;
     const egg = takeTop(owner, Zone.EggDeck)!;
     egg.faceUp = false;
-    if (opts?.belowTop) host.stack.push(egg);
-    else host.stack.unshift(egg);
+    if (opts?.belowTop) pushOnStack(host, egg);
+    else unshiftOnStack(host, egg);
     engine.emit({
       kind: "cardsMoved",
       instanceIds: [egg.instanceId],
@@ -147,7 +154,7 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
     if (host === undefined) return undefined;
     const egg = takeTop(owner, Zone.EggDeck)!;
     egg.faceUp = true; // revealed (Q4856)
-    host.stack.push(egg); // top of the digivolution stack
+    pushOnStack(host, egg); // top of the digivolution stack
     engine.emit({
       kind: "cardsMoved",
       instanceIds: [egg.instanceId],

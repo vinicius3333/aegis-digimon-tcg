@@ -24,7 +24,8 @@ export function soundForEvent(event: ServerEvent, viewerSeat: Seat): SoundKind |
       return "hatch";
     case "attackDeclared":
       return "attackDeclare";
-    case "securityChecked":
+    // The shield breaking, which is the reveal — not the outcome the check settles on later.
+    case "securityRevealed":
       return "securityHit";
     case "turnEnded":
       return "turnChange";

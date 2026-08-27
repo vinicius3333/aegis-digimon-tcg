@@ -81,6 +81,34 @@ describe("BT25-097 Guardian Palace", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("allows declining the optional Security play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-097", as: "checkedPalace", faceUp: true }],
+          hand: [{ card: "BT25-033", as: "eligible" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+
+    const resolving = advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("checkedPalace"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(true);
+  });
+
   it("adds the bottom security card and places itself face up at the bottom", async () => {
     const s = setupEngine(
       {

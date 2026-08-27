@@ -168,6 +168,22 @@ export function dismissNotice(notices: readonly MatchNotice[], id: string): Matc
   return notices.filter((notice) => notice.id !== id);
 }
 
+/**
+ * Drop the viewer's own effect notices for `cardId`.
+ *
+ * The decision dialog that asks the viewer whether to activate their own effect already
+ * names the card and prints the clause, so the notice would repeat it word for word in the
+ * corner. The opponent's notices stay: their dialog is not on this screen.
+ */
+export function dismissOwnEffectNotices(notices: readonly MatchNotice[], cardId: string): readonly MatchNotice[] {
+  const kept = notices.filter(
+    (notice) => !(notice.side === "you" && notice.body.variant === "effect" && notice.body.cardId === cardId),
+  );
+  // Same array back when nothing matched, so a caller storing this in state re-renders
+  // only when a notice was actually dropped.
+  return kept.length === notices.length ? notices : kept;
+}
+
 /** The notices sharing one anchor, oldest first — which is how they stack. */
 export function noticesAt(
   notices: readonly MatchNotice[],

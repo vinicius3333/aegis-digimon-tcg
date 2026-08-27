@@ -118,7 +118,14 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
       // the recipient's grant when a `whenLinkingTrait` card would link to it.
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
-      for (const id of ids) ctx.fx.grantLinkCostReduction(id, action.amount, action.whenLinkingTrait, duration);
+      for (const id of ids) {
+        ctx.fx.grantLinkCostReduction(id, action.amount, action.whenLinkingTrait, duration, {
+          sourceInstanceId: ctx.source.instanceId,
+          controllerSeat: ctx.source.ownerSeat,
+          optional: action.optionalAtDeclaration === true,
+          oncePerTurnKey: action.oncePerTurn === true ? `${ctx.source.instanceId}/link-cost-reduction` : undefined,
+        });
+      }
       return false;
     }
     case "CannotIgnoreDigivolutionRequirements": {

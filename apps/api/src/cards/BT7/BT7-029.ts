@@ -6,7 +6,13 @@ const bounce = {
   actions: [
     {
       kind: "Return",
-      target: { filter: { nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] }, count: 1 },
+      target: {
+        filter: {
+          hostFilter: { isSelfRef: true },
+          nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }],
+        },
+        count: 1,
+      },
       from: ["digivolutionCards"],
       to: "hand",
       storeAs: "selectedHybridLevel",

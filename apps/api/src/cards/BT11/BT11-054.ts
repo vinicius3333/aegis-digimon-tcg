@@ -36,7 +36,8 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          sourceFilter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"] },
+          // Printed "by an effect" excludes ordinary hand plays.
+          sourceFilter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"], byEffect: true },
           actions: [
             {
               kind: "GainKeyword",

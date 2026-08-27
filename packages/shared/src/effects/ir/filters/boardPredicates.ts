@@ -35,6 +35,8 @@ export interface BoardPredicates {
   sameOrientationAsSource?: boolean;
   /** "this Digimon" / "this card". */
   isSelfRef?: boolean;
+  /** Match the permanent that drove the enclosing watcher when this filter is nested as a host filter. */
+  sourceRef?: "triggerSubject";
   /** "another", "other". */
   excludeSelf?: boolean;
   /**

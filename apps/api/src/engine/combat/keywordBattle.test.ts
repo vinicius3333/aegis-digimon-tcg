@@ -336,6 +336,8 @@ describe("<Collision> (Comprehensive Rules §16-30) — grants Blocker and force
       return s.events.find((e) => e.kind === "blockWindowOpened");
     })();
     expect(opened && "eligibleBlockerIds" in opened ? opened.eligibleBlockerIds : []).toContain(nonBlocker.permanentId);
+    // The window states the compulsion, so the client never offers the decline below.
+    expect(opened && "mustBlock" in opened ? opened.mustBlock : undefined).toBe(true);
 
     // Declaring the block with the Collision-granted blocker is legal.
     const block = s.engine.applyIntent(1, {

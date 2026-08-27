@@ -15,11 +15,13 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              hasLinkRequirement: true,
               nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }],
+              // "from your hand or this Digimon's digivolution cards": the hand branch
+              // must carry no hostFilter (a hostFilter branch only matches hosted zones),
+              // while the stack branch is pinned to this Digimon's own stack.
+              or: [{ zone: "hand" }, { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }],
             },
             count: 1,
-            source: "thisDigimon",
           },
           from: ["hand", "digivolutionCards"],
           costDelta: -2,

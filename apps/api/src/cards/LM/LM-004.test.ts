@@ -52,6 +52,30 @@ describe("LM-004 Thetismon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("thetismon"), "Blocker")).toBe(false);
   });
 
+  it("cannot resolve the entrance effect with fewer than two blue cards to trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "LM-004", as: "thetismon" },
+            { card: "BT1-027", as: "digimon", suspended: true },
+            { card: "BT9-086", as: "kiyoshiro", suspended: true },
+          ],
+          hand: ["BT1-027", "BT1-020"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("thetismon"));
+    await settle(() => s.state.pendingDecision === null);
+
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("digimon").isSuspended).toBe(true);
+    expect(s.perm("kiyoshiro").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("thetismon"), "Blocker")).toBe(false);
+  });
+
   it("unsuspends the host once per turn when a Jellymon-text card is trashed from hand", async () => {
     const s = setupEngine(
       {

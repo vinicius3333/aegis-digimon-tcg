@@ -76,6 +76,33 @@ describe("BT21-098 Ragnarok Cannon", () => {
     expect(security?.actions[1]).toEqual({ kind: "AddToHandSelf" });
   });
 
+  /**
+   * FAILS-WHEN-REVERTED: the Security filter named no card kind, so the "play 1 card with
+   * [Vemmon] in its text" prompt also offered Option cards. Only Digimon and Tamers are
+   * ever PLAYED — Options are used — so an Option-only candidate must leave the pool empty.
+   */
+  it("never offers an Option card to the Security play", async () => {
+    const s = setup(
+      {
+        0: {
+          security: [{ card: "BT21-098", as: "option" }],
+          trash: [{ card: "BT11-105", as: "vemmonOption" }], // Fusionize — Option, cost 1, [Vemmon] in text
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId));
+
+    const offered = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).not.toContain(s.inst("vemmonOption").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT11-105")).toBe(true);
+  });
+
   it("Security plays a cost-6-or-less Vemmon-text card from trash and adds itself to hand", async () => {
     const s = setup(
       {

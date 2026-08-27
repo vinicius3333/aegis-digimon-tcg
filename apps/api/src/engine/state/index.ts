@@ -5,11 +5,19 @@
 // filtering. See visibility.ts for the StateView policy and access.ts for the
 // zone/permanent read & mutation helpers.
 
-export { GameStateAccess } from "./access.js";
+export {
+  GameStateAccess,
+  installVisibilityPort,
+  isHiddenZone,
+  isOwnerPrivateZone,
+  isPermanentZone,
+} from "./access.js";
+export type { VisibilityPort, VisibilityZone, CardZone } from "./access.js";
 export {
   buildStateView,
   refreshStateView,
   syncPublicCounts,
   revealSecurityCardToOpponent,
   privateZoneSnapshot,
+  exposeCardInZone,
 } from "./visibility.js";

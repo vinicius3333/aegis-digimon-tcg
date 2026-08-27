@@ -31,17 +31,13 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "SelectBind",
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, bindAs: "chosenDigimon" },
-        },
-        {
           kind: "ModifyDP",
-          target: { filter: {}, count: 1, fromSelectionRef: "chosenDigimon" },
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           amount: 5000,
           duration: "forTheTurn",
           alsoGainKeywords: [{ keyword: "Rush", raw: "＜Rush＞" }],
         },
-        { kind: "Attack", target: { filter: {}, count: 1, fromSelectionRef: "chosenDigimon" }, optional: true },
+        { kind: "Attack", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, optional: true },
       ],
     },
     { trigger: "Security", actions: [{ kind: "AddToHandSelf" }], isSecurity: true },

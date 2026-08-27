@@ -26,7 +26,7 @@ describe("BT25-091 Monica Simmons", () => {
           deck: [{ card: "BT25-001", as: "deckTop" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
@@ -38,7 +38,7 @@ describe("BT25-091 Monica Simmons", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("deckTop").instanceId);
   });
 
-  it("draws when the optional return is declined (Q6430-Q6431)", async () => {
+  it("draws when the optional return is declined (Q6430)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -47,21 +47,38 @@ describe("BT25-091 Monica Simmons", () => {
           deck: [{ card: "BT25-001", as: "deckTop" }],
         },
       },
-      { autoSelectCards: false },
+      { autoAcceptOptional: false, autoSelectCards: true },
     );
     const resolving = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("monica"));
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const pending = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: pending.decisionId,
-        response: { kind: "selectCards", instanceIds: [] },
+        response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
     await resolving;
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("deckTop").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("tsOption").instanceId);
+  });
+
+  it("draws when the trash has no TS Option to return (Q6431)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-091", as: "monica" }],
+          trash: [{ card: "BT25-038", as: "nonTsOption" }],
+          deck: [{ card: "BT25-001", as: "deckTop" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("monica"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("deckTop").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("nonTsOption").instanceId);
   });
 
   it("reacts after a real TS Option finishes routing, then suspends and restricts (Q6432)", async () => {
@@ -119,6 +136,37 @@ describe("BT25-091 Monica Simmons", () => {
       } as never),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("nonTsOption").instanceId));
+    expect(s.perm("monica").isSuspended).toBe(false);
+    expect(observe(s.engine).hasRestriction(s.perm("target"), "attack")).toBe(false);
+  });
+
+  it("allows declining the suspension cost of the TS Option reaction", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-094", as: "tsOption" }], battleArea: [{ card: "BT25-091", as: "monica" }] },
+        1: { battleArea: [{ card: "AD1-001", as: "target" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("tsOption").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tsOption").instanceId));
     expect(s.perm("monica").isSuspended).toBe(false);
     expect(observe(s.engine).hasRestriction(s.perm("target"), "attack")).toBe(false);
   });

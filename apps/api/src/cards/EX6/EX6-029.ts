@@ -49,25 +49,23 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
-          kind: "PlaceUnder",
-          target: {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
             filter: {
               excludeSelf: true,
               kind: ["Digimon"],
-              zone: "battleArea",
             },
             count: 1,
           },
-          underFilter: {
-            zone: "security",
-            position: "bottom",
-            owner: "owner",
-          },
+          from: ["battleArea"],
+          toTop: false,
+          ownerSecurity: true,
           condition: {
             kind: "isDnaDigivolving",
             raw: "DNA digivolving",
           },
-          optional: true,
         },
         {
           kind: "SecurityManipulation",
@@ -78,7 +76,6 @@ export const compiled: CompiledCard = {
             kind: "isDnaDigivolving",
             raw: "DNA digivolving",
           },
-          optional: true,
         },
       ],
     },
@@ -109,25 +106,23 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
-          kind: "PlaceUnder",
-          target: {
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
             filter: {
               excludeSelf: true,
               kind: ["Digimon"],
-              zone: "battleArea",
             },
             count: 1,
           },
-          underFilter: {
-            zone: "security",
-            position: "bottom",
-            owner: "owner",
-          },
+          from: ["battleArea"],
+          toTop: false,
+          ownerSecurity: true,
           condition: {
             kind: "isDnaDigivolving",
             raw: "DNA digivolving",
           },
-          optional: true,
         },
         {
           kind: "SecurityManipulation",
@@ -138,7 +133,6 @@ export const compiled: CompiledCard = {
             kind: "isDnaDigivolving",
             raw: "DNA digivolving",
           },
-          optional: true,
         },
       ],
     },

@@ -25,6 +25,7 @@ const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
+              hostFilter: { isSelfRef: true },
               nameOrTrait: [
                 {
                   tokens: ["Hybrid"],

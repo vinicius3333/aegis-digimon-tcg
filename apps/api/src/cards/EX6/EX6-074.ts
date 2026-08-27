@@ -27,41 +27,22 @@ export const compiled: CompiledCard = {
             {
               kind: "GainMemory",
               amount: 1,
+              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+              optional: true,
+              abortOnDecline: true,
+            },
+            {
+              kind: "Digivolve",
+              target: { sourceRef: "triggerSubject", filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Angewomon", "LadyDevimon"], match: "name" }],
+              },
+              from: ["trash"],
+              reduceCost: 1,
+              optional: true,
             },
           ],
-          cost: {
-            kind: "suspend",
-            target: {
-              filter: {
-                isSelfRef: true,
-              },
-              count: 1,
-              isSelf: true,
-            },
-            raw: "by suspending this Tamer",
-          },
-        },
-        {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Angewomon", "LadyDevimon"],
-                match: "name",
-              },
-            ],
-          },
-          from: ["trash"],
-          reduceCost: 1,
-          optional: true,
         },
       ],
     },

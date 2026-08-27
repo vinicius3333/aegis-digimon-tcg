@@ -16,33 +16,21 @@ export const compiled: CompiledCard = {
           options: [
             [
               {
-                kind: "PlayWithoutCost",
-                target: {
-                  filter: {
-                    name: "Fujitsumon",
-                    isToken: true,
-                  },
-                  count: 1,
-                },
+                kind: "PlayToken",
+                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+                count: 1,
                 payCost: false,
-                suspend: true,
-                controller: "self",
+                suspended: true,
               },
             ],
             [
               {
                 kind: "PlayToken",
-                target: {
-                  filter: {
-                    name: "Fujitsumon",
-                    isToken: true,
-                  },
-                  count: 1,
-                },
-                to: "opponentBattleArea",
-                suspend: true,
-                controller: "self",
-                asOpponentDigimon: true,
+                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+                count: 1,
+                payCost: false,
+                suspended: true,
+                placedAs: "opponentDigimon",
               },
             ],
           ],
@@ -86,33 +74,21 @@ export const compiled: CompiledCard = {
           options: [
             [
               {
-                kind: "PlayWithoutCost",
-                target: {
-                  filter: {
-                    name: "Fujitsumon",
-                    isToken: true,
-                  },
-                  count: 1,
-                },
+                kind: "PlayToken",
+                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+                count: 1,
                 payCost: false,
-                suspend: true,
-                controller: "self",
+                suspended: true,
               },
             ],
             [
               {
                 kind: "PlayToken",
-                target: {
-                  filter: {
-                    name: "Fujitsumon",
-                    isToken: true,
-                  },
-                  count: 1,
-                },
-                to: "opponentBattleArea",
-                suspend: true,
-                controller: "self",
-                asOpponentDigimon: true,
+                tokens: [{ name: "Fujitsumon Token", kind: "Digimon", color: "Purple", dp: 3000 }],
+                count: 1,
+                payCost: false,
+                suspended: true,
+                placedAs: "opponentDigimon",
               },
             ],
           ],
@@ -176,3 +152,33 @@ export const compiled: CompiledCard = {
 };
 
 registerIrCard("EX5-058", compiled);
+
+// Fujitsumon is synthetic, but its printed reminder text is executable card
+// behavior. Register it beside its creating card so every token-placement route
+// receives the same continuous and deletion clauses.
+registerIrCard("TOKEN-Fujitsumon-Token", {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "Restrict",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          restriction: "unsuspend",
+          duration: "permanent",
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "Trash",
+          target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+});

@@ -19,11 +19,13 @@ describe("BT25-056 Bootmon", () => {
       linkDp: 4000,
       linkRequirement: expect.stringContaining("[Appmon]"),
     });
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 3 }]);
     expect(compiled.appFusionRequirement).toEqual([{ names: ["Logimon", "Craftmon"], cost: 0 }]);
     const links = compiled.effects.flatMap((effect) => effect.actions).filter((action) => action.kind === "Link");
     expect(links).toHaveLength(3);
     expect(links.every((action) => action.target.filter.hasLinkRequirement === true)).toBe(true);
-    expect(links.every((action) => action.target.filter.hostFilter?.isSelfRef === true)).toBe(true);
+    expect(links.every((action) => action.target.source === "thisDigimon")).toBe(true);
+    expect(links.every((action) => action.from?.join(",") === "hand,digivolutionCards")).toBe(true);
   });
 
   it("On Play links only a legal Social/Tool/Game card at cost -2, then suspends an opponent", async () => {
@@ -63,6 +65,35 @@ describe("BT25-056 Bootmon", () => {
     expect(s.perm("opponentDigimon").isSuspended).toBe(true);
     expect(s.perm("opponentTamer").isSuspended).toBe(false);
     expect(observe(s.engine).hasKeyword(boot, "Barrier")).toBe(true);
+  });
+
+  it("When Digivolving can link a matching card from this Digimon's digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-051", as: "host", under: [{ card: "BT26-010", as: "stackLink" }] }],
+          hand: [{ card: CARD_ID, as: "boot" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-089", as: "opponentTamer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        instanceId: s.inst("boot").instanceId,
+        permanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("stackLink").instanceId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("host").topCard?.cardId).toBe(CARD_ID);
+    expect(s.perm("host").linked[0]?.instanceId).toBe(s.inst("stackLink").instanceId);
+    expect(s.perm("opponentTamer").isSuspended).toBe(true);
   });
 
   it("linked Bootmon fires in the same window and returns one suspended opposing Digimon to deck bottom", async () => {

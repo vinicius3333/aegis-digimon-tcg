@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_044 } from "./BT25-044.js";
 import { wouldBePlayedSelfReducersFor } from "../../engine/effects/interpreter/registration/reducers.js";
 import "../index.js";
@@ -21,23 +23,28 @@ describe("BT25-044 Junomon", () => {
       const [place, trash] = effect!.actions!;
       expect(place).toMatchObject({
         kind: "SecurityManipulation",
-        op: "placeAsSecurity",
+        op: "trashTop",
         controller: "mine",
-        toTop: true,
-        source: {
-          filter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"] },
-          count: 1,
+        amount: 1,
+        abortOnDecline: true,
+        cost: {
+          kind: "place",
+          targetIsPermanent: true,
+          destination: "security",
+          position: "top",
+          faceDown: true,
+          target: {
+            filter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"], zone: "battleArea" },
+            count: 1,
+          },
         },
       });
       expect(trash).toMatchObject({
         kind: "SecurityManipulation",
         op: "trashTop",
-        controller: "mine",
-        bothPlayers: true,
+        controller: "opponent",
         amount: 1,
       });
-      expect((place as { optional?: boolean }).optional).toBeUndefined();
-      expect((trash as { optional?: boolean }).optional).toBeUndefined();
     }
   });
 
@@ -59,5 +66,98 @@ describe("BT25-044 Junomon", () => {
         },
       },
     });
+  });
+
+  it("does not trash security when the mandatory placement cost cannot be paid", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-044", as: "junomon" }], security: ["BT1-001"] },
+        1: { security: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("junomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-044"));
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("pays the placement cost before trashing both security tops", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-044", as: "junomon" }],
+          security: ["BT1-001"],
+          battleArea: [{ card: "BT1-009", as: "other" }],
+        },
+        1: { security: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("junomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-044"));
+
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-002"]);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("reacts once per turn only to removal from its own security and filters the free play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-044", as: "junomon" }],
+          hand: [
+            { card: "BT25-034", as: "angel" },
+            { card: "BT24-030", as: "tooExpensive" },
+            { card: "BT1-009", as: "wrongTrait" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { security: ["BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(1, 1, { fromTop: true });
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-034", "BT24-030", "BT1-009"]);
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-034"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT24-030", "BT1-009"]);
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => false, 40);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT24-030", "BT1-009"]);
+  });
+
+  it("can play the matching free-play card from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-044", as: "junomon" }],
+          hand: [{ card: "BT1-009", as: "wrongTrait" }],
+          trash: [{ card: "BT25-034", as: "angel" }],
+          security: ["BT1-001"],
+        },
+        1: { security: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-034"));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 });

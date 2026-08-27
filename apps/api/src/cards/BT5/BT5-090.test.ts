@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, requireCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -55,9 +55,18 @@ describe("BT5-090 Arata Sanada", () => {
         s.state.players[0]?.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon") === true,
     );
 
-    expect(s.state.players[0]?.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon")).toBe(
-      true,
-    );
+    const token = s.state.players[0]?.battleArea.find((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon");
+    expect(token).toBeDefined();
+    expect(requireCardDefinition(token!.topCard.cardId)).toMatchObject({
+      nameEn: "Diaboromon",
+      level: 6,
+      playCost: 14,
+      dp: 3000,
+      forms: ["Mega"],
+      attributes: ["Unknown"],
+      types: ["Unidentified"],
+      isToken: true,
+    });
   });
 
   it("does not trigger when a different Digimon digivolves", async () => {
@@ -82,6 +91,66 @@ describe("BT5-090 Arata Sanada", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT5-067");
+    expect(s.perm("arata").isSuspended).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon"),
+    ).toHaveLength(0);
+  });
+
+  it("does not treat Diaboromon (X Antibody) as an exact Diaboromon name match", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-090", as: "arata" },
+            { card: "BT5-066", as: "base" },
+          ],
+          hand: [{ card: "BT24-065", as: "xAntibody" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("xAntibody").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT24-065");
+
+    expect(s.perm("arata").isSuspended).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon"),
+    ).toHaveLength(0);
+  });
+
+  it("may decline playing the Diaboromon Token", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-090", as: "arata" },
+            { card: "BT5-066", as: "base" },
+          ],
+          hand: [{ card: "BT5-084", as: "evolving" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT5-084");
+
     expect(s.perm("arata").isSuspended).toBe(false);
     expect(
       s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon"),

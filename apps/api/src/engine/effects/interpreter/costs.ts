@@ -708,6 +708,7 @@ export async function payCost(
       const trashStackZone = cost.target.filter.zone;
       const trashesStackCards =
         trashStackZone === "digivolutionCards" ||
+        (Array.isArray(trashStackZone) && trashStackZone.includes("digivolutionCards")) ||
         (cost.target.filter.isSelfRef === true &&
           (cost.target.filter.faceDown !== undefined || cost.target.filter.position !== undefined)) ||
         cost.target.from?.includes("digivolutionCards") === true ||
@@ -1145,7 +1146,11 @@ export async function payCost(
         }
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
-        if (cost.to === "deckBottom") {
+        // Some generated return costs encode the destination as `position: "bottom"`
+        // (rather than the legacy `to: "deckBottom"`). Preserve that distinction here:
+        // EX6-073's seven distinct-name self-stack payment must actually bottom-deck the
+        // selected cards, while `pickLoose` enforces the distinct-name constraint.
+        if (cost.to === "deckBottom" || cost.position === "bottom") {
           await ctx.fx.returnToDeck(chosen, { toTop: false });
         } else {
           await ctx.fx.returnToHand(chosen);
@@ -1461,6 +1466,19 @@ export async function payCost(
       if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /\btop\s+(?:stacked\s+)?card/i.test(cost.raw)) {
         const selfPerm = ctx.source.permanent();
         if (selfPerm === undefined) return false;
+        // EX5-016's inherited payment names the HOST trait, not merely a top-card
+        // rotation. Do not let the generic self-restack shortcut pay it on another host.
+        if (/Night Claw.*Light Fang|Light Fang.*Night Claw/i.test(cost.raw)) {
+          const top = selfPerm.topCard;
+          if (
+            top === undefined ||
+            !definitionMatches(
+              { nameOrTrait: [{ tokens: ["Night Claw", "Light Fang"], match: "trait" }] },
+              ctx.game.definitionOf(top),
+            )
+          )
+            return false;
+        }
         const rotated = await ctx.fx.placeOwnTopAtStackBottom(selfPerm.permanentId);
         if (rotated && out) out.paidCount = 1;
         return rotated;
@@ -1683,10 +1701,6 @@ export async function payCost(
           }
         }
         if (hostPermId === undefined) return false;
-        if (cost.bindHostAs !== undefined) {
-          ctx.selections ??= new Map();
-          ctx.selections.set(cost.bindHostAs, hostPermId);
-        }
         let orderedPicked = picked;
         if (picked.length > 1 && /in any order/i.test(cost.raw ?? "") && ctx.ask.orderCards !== undefined) {
           orderedPicked = await ctx.ask.orderCards(ctx, {
@@ -1698,21 +1712,36 @@ export async function payCost(
             destination: "stackBottom",
           });
         }
+        const placedIds = new Set<string>();
         if (cost.position === "choice") {
           // "top or bottom" — prompt the controller per placed card via the shared
           // binary-choice helper ctx.ask.chooseOption (index 0 = top, 1 = bottom).
           for (const instanceId of orderedPicked) {
             const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
-            await ctx.fx.placeUnder(hostPermId, [instanceId], {
+            const placed = await ctx.fx.placeUnder(hostPermId, [instanceId], {
               belowTop: idx === 0,
               faceUp: cost.faceDown !== true,
             });
+            for (const card of placed) placedIds.add(card.instanceId);
           }
         } else {
-          await ctx.fx.placeUnder(hostPermId, orderedPicked, {
+          const placed = await ctx.fx.placeUnder(hostPermId, orderedPicked, {
             belowTop: cost.position !== "bottom",
             faceUp: cost.faceDown !== true,
           });
+          for (const card of placed) placedIds.add(card.instanceId);
+        }
+        // A placement cost is paid only when every selected card actually entered the
+        // requested digivolution stack.  The primitive is allowed to reject individual
+        // cards (for example, if a replacement or intervening effect makes one no longer
+        // movable), so a selection alone must not bind a target or unlock a dependent
+        // "if you did" action.
+        if (placedIds.size !== orderedPicked.length || orderedPicked.some((instanceId) => !placedIds.has(instanceId))) {
+          return false;
+        }
+        if (cost.bindHostAs !== undefined) {
+          ctx.selections ??= new Map();
+          ctx.selections.set(cost.bindHostAs, hostPermId);
         }
         if (cost.storeAs !== undefined && orderedPicked.length > 0) {
           const pickedCard = srcCandidates.find((c) => c.instanceId === picked[0]);

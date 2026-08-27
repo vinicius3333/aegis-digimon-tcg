@@ -53,6 +53,16 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
 }
 
 async function runActionInner(ctx: EffectContext, action: Action): Promise<boolean> {
+  // A placement tally is scoped to this action's current resolution.  In particular, a
+  // declined/blocked optional placement must overwrite a prior activation's count rather
+  // than allowing a later conditional to borrow it (EX6-073 Q3825).
+  if (action.kind === "PlaceUnder") {
+    if (action.trackCount !== undefined || action.trackDistinctNames !== undefined) {
+      ctx.namedCounts ??= new Map();
+      if (action.trackCount !== undefined) ctx.namedCounts.set(action.trackCount, 0);
+      if (action.trackDistinctNames !== undefined) ctx.namedCounts.set(action.trackDistinctNames, 0);
+    }
+  }
   if (action.kind === "PlayWithoutCost" && action.target.filter?.sameColorAsReturned === true) {
     ctx.lastReturnedColors = undefined;
   }
@@ -101,15 +111,25 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.playCostCeiling !== undefined ||
       action.scaling !== undefined ||
       action.target.filter?.playCostLteScaling !== undefined);
+  const actionCost = action.kind === "DigivolveViaPlacement" ? undefined : action.cost;
+  const additionalCost = action.kind === "RawUnparsed" ? undefined : action.additionalCost;
+  const additionalCosts = action.kind === "RawUnparsed" ? [] : (action.additionalCosts ?? []);
+  const placementCosts = [
+    ...(actionCost?.kind === "place" ? [actionCost] : []),
+    ...(additionalCost?.kind === "place" ? [additionalCost] : []),
+    ...additionalCosts.filter((cost): cost is Cost => cost.kind === "place"),
+  ];
   const placeCostProducesDeleteTarget =
     action.kind === "Delete" &&
-    action.cost?.kind === "place" &&
-    ((action.cost.storeAs !== undefined && action.target.filter.levelEq === action.cost.storeAs) ||
-      (action.cost.storeAs !== undefined &&
-        action.target.filter.levelComparison?.scaling?.unit === "namedCount" &&
-        action.target.filter.levelComparison.scaling.countSource === action.cost.storeAs) ||
-      (action.cost.bindResultAs !== undefined &&
-        action.target.filter.levelComparison?.relativeTo === action.cost.bindResultAs));
+    placementCosts.some(
+      (cost) =>
+        (cost.storeAs !== undefined && action.target.filter.levelEq === cost.storeAs) ||
+        (cost.storeAs !== undefined &&
+          action.target.filter.levelComparison?.scaling?.unit === "namedCount" &&
+          action.target.filter.levelComparison.scaling.countSource === cost.storeAs) ||
+        (cost.bindHostAs !== undefined && action.target.filter.relativeTo?.selectionRef === cost.bindHostAs) ||
+        (cost.bindResultAs !== undefined && action.target.filter.levelComparison?.relativeTo === cost.bindResultAs),
+    );
   // A "by deleting 1 of your Digimon, delete 1 with a level no higher than it" target
   // cannot be matched until the deleteOwn cost captures `lastDeletedLevel`.  Preflighting
   // it before payment makes the target set look empty and silently skips the whole action.
@@ -156,6 +176,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   if (
     action.kind === "Unsuspend" &&
     action.cost !== undefined &&
+    action.allowCostWithoutTarget !== true &&
     !(action.cost.bindHostAs !== undefined && action.cost.bindHostAs === action.target.fromSelectionRef) &&
     (await resolvePermanentTargets(ctx, action.target)).every((id) => {
       const permanent = ctx.game.permanentById(id);
@@ -266,7 +287,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // player may choose to USE the card; asking again while recomputing a hand
     // card makes the permission inert in continuous contexts (EX1-071, BT6 Options).
     action.kind !== "WaiveColorRequirement" &&
-    action.optional
+    action.optional &&
+    actionCost?.optional !== true
   ) {
     if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
       return action.abortOnDecline === true;
@@ -460,7 +482,14 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ) {
     if (action.cost.optional) {
       const willPay = await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`);
-      if (willPay) await payCost(ctx, action.cost, costPayment);
+      if (willPay) {
+        const paid = await payCost(ctx, action.cost, costPayment);
+        if (!paid) return action.abortOnDecline === true;
+      } else if (action.abortOnDecline === true) {
+        // A clause may make only its processing condition optional; refusal skips
+        // the remaining effect even when the payload itself is not optional.
+        return true;
+      }
     } else {
       const deferSuspendTriggers = action.kind === "Attack" && action.cost.kind === "suspend";
       const paid = await payCost(ctx, action.cost, costPayment, { deferSuspendTriggers });
@@ -480,6 +509,15 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         const isSecurityTrashCost = action.cost.kind === "trash" && action.cost.target?.filter.zone === "security";
         return action.abortOnDecline === true || isDigiBurstCost || isSecurityTrashCost;
       }
+    }
+  }
+  // When both the processing condition and payload are optional, pay the former
+  // first, then offer the payload choice (e.g. Q6255: trash, then decline return).
+  if (action.kind !== "RawUnparsed" && action.optional && actionCost?.optional === true) {
+    const yes = await ctx.ask.optional(ctx, describeAction(action));
+    if (!yes) {
+      ctx.lastEffectActed = false;
+      return action.abortOnDecline === true;
     }
   }
   if (

@@ -8,6 +8,14 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [],
+      keywords: [
+        { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+        { keyword: "Blocker", raw: "＜Blocker＞" },
+      ],
+    },
+    {
       trigger: "WhenDigivolving",
       actions: [
         {
@@ -36,10 +44,6 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          condition: {
-            kind: "isDnaDigivolving",
-            raw: "DNA digivolving",
-          },
         },
       ],
     },
@@ -55,10 +59,6 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-          },
-          condition: {
-            kind: "isDnaDigivolving",
-            raw: "DNA digivolving",
           },
         },
       ],
@@ -81,6 +81,7 @@ export const compiled: CompiledCard = {
                 target: {
                   filter: {
                     zone: "digivolutionCards",
+                    isSelfRef: true,
                     sameLevelPair: true,
                   },
                   count: 2,

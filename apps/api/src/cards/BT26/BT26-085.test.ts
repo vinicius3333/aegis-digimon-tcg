@@ -65,6 +65,7 @@ describe("BT26-085 compiled behavior", () => {
           target: { isSelf: true },
           into: { nameOrTrait: [{ tokens: ["Chronomon: Destroy Mode"], match: "nameExact" }] },
         },
+        { kind: "Prevent", condition: { kind: "ifThisEffectDigivolved" } },
       ],
     });
   });
@@ -318,5 +319,24 @@ describe("BT26-085 compiled behavior", () => {
     expect(declined.state.players[0]!.battleArea).toHaveLength(0);
     expect(declined.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-085");
     expect(declined.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-060");
+  });
+
+  it("leaves the battle area when no Destroy Mode is available to digivolve into", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-085", as: "giantSlayer" }],
+          hand: [{ card: "BT26-016", as: "wrongChronomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("giantSlayer").permanentId], "byEffect")).toBe(1);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-085");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-016");
   });
 });

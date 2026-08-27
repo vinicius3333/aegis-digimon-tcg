@@ -60,7 +60,7 @@ describe("BT25-060 Rebootmon", () => {
     expect(observe(s.engine).hasEffectiveTrait(s.perm("reboot"), "Appmon")).toBe(true);
   });
 
-  it("links exactly one legal Appmon link card from hand for free, then grants the linked face", async () => {
+  it("links exactly one legal Appmon link card from hand, then grants the linked face", async () => {
     const s = setupEngine(
       {
         0: {
@@ -94,6 +94,34 @@ describe("BT25-060 Rebootmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("reboot"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("reboot"), "beAffected", "Digimon")).toBe(true);
     expect(observe(s.engine).hasRestriction(s.perm("reboot"), "beAffected", "Option")).toBe(false);
+  });
+
+  it("prevents an opponent Digimon effect from suspending Rebootmon while its reaction is active", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "reboot" }],
+          hand: [{ card: VALID_LINK, as: "linked" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linked").instanceId,
+        targetPermanentId: s.perm("reboot").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasRestriction(s.perm("reboot"), "beAffected", "Digimon"));
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    await advance(s.engine).verb.suspend([s.perm("reboot").permanentId], 1);
+    advance(s.engine).verb.leaveEffectResolution();
+    expect(s.perm("reboot").isSuspended).toBe(false);
   });
 
   it("does not arm the linked reaction for another Rebootmon's link event", async () => {
@@ -228,7 +256,7 @@ describe("BT25-060 Rebootmon", () => {
         },
         1: { security: ["BT1-009"] },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     await declined.ready();
     expect(
@@ -238,9 +266,58 @@ describe("BT25-060 Rebootmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => declined.perm("reboot").isSuspended);
+    await settle(() => declined.state.pendingDecision === undefined && declined.perm("reboot").isSuspended);
     expect(declined.perm("reboot").linked).toHaveLength(0);
     expect(declined.perm("reboot").isSuspended).toBe(true);
+  });
+
+  it("does not unsuspend when no legal Appmon Link card is available", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "reboot" }], hand: [{ card: NO_LINK_APPMON, as: "noLink" }] },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reboot").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("reboot").isSuspended);
+
+    expect(s.perm("reboot").isSuspended).toBe(true);
+    expect(s.perm("reboot").linked).toHaveLength(0);
+  });
+
+  it("does not treat a pre-existing link card as payment for the current effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "reboot", linked: [{ card: VALID_LINK, as: "oldLink" }] }],
+          hand: [{ card: NO_LINK_APPMON, as: "noLink" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reboot").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("reboot").isSuspended);
+
+    expect(s.perm("reboot").isSuspended).toBe(true);
+    expect(s.perm("reboot").linked.map((card) => card.instanceId)).toEqual([s.inst("oldLink").instanceId]);
   });
 
   it("rejects a no-Link Appmon near-match while accepting a different legal Appmon Link card", async () => {

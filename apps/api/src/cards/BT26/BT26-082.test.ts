@@ -23,7 +23,9 @@ describe("BT26-082 compiled behavior", () => {
       { namesExact: ["Crowmon"], cost: 3, isAlternate: true },
       { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
     ]);
-    expect(compiled.effects.find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });
+    // Q7117/Q7122: the printed clause is a {Security} [End of Opponent's Turn] effect, not the
+    // check-triggered [Security] tag, so no effect may be filed under the security-check timing.
+    expect(compiled.effects.find((effect) => effect.trigger === "Security")).toBeUndefined();
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfOpponentsTurn")).toMatchObject({
       isSecurity: true,
     });
@@ -242,7 +244,7 @@ describe("BT26-082 compiled behavior", () => {
     );
   });
 
-  it("Q7119/Q7120 triggers the Security effect when the face-up card is checked", async () => {
+  it("Q7119 checks the face-up card like a standard security card instead of playing it", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "AD1-001", as: "attacker" }] },
       1: { security: [{ card: "BT26-082", as: "securityRavemon", faceUp: true }] },
@@ -259,7 +261,8 @@ describe("BT26-082 compiled behavior", () => {
     await settle(() => s.events.some(({ kind }) => kind === "combatResolved"));
 
     expect(s.state.players[1]!.security).toHaveLength(0);
-    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-082");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT26-082");
   });
 
   it("Q7122 still loses when an end-of-turn attack succeeds after Ravemon leaves the last security", async () => {

@@ -95,6 +95,7 @@ const compiled: CompiledCard = {
       keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
+          requiresDelayArmed: true,
           kind: "Digivolve",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           into: {

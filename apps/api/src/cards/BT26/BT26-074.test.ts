@@ -292,11 +292,39 @@ describe("BT26-074 Cerberusmon", () => {
 
   it("the inherited effect offers only tied lowest-level Digimon and deletes exactly the chosen one", async () => {
     const opponents = [
-      { permanentId: "low-a", topCard: card("low-a-card", "LOW-A"), currentLevel: 3, inBreeding: false },
-      { permanentId: "low-b", topCard: card("low-b-card", "LOW-B"), currentLevel: 3, inBreeding: false },
-      { permanentId: "high", topCard: card("high-card", "HIGH"), currentLevel: 6, inBreeding: false },
-      { permanentId: "level-less", topCard: card("level-less-card", "LEVEL-LESS"), inBreeding: false },
-      { permanentId: "tamer", topCard: card("tamer-card", "TAMER"), inBreeding: false },
+      {
+        permanentId: "low-a",
+        controllerSeat: 1 as Seat,
+        topCard: card("low-a-card", "LOW-A"),
+        currentLevel: 3,
+        inBreeding: false,
+      },
+      {
+        permanentId: "low-b",
+        controllerSeat: 1 as Seat,
+        topCard: card("low-b-card", "LOW-B"),
+        currentLevel: 3,
+        inBreeding: false,
+      },
+      {
+        permanentId: "high",
+        controllerSeat: 1 as Seat,
+        topCard: card("high-card", "HIGH"),
+        currentLevel: 6,
+        inBreeding: false,
+      },
+      {
+        permanentId: "level-less",
+        controllerSeat: 1 as Seat,
+        topCard: card("level-less-card", "LEVEL-LESS"),
+        inBreeding: false,
+      },
+      {
+        permanentId: "tamer",
+        controllerSeat: 1 as Seat,
+        topCard: card("tamer-card", "TAMER"),
+        inBreeding: false,
+      },
     ];
     const definitions: Record<string, CardDefinition> = {
       "LOW-A": definition({ cardId: "LOW-A", level: 3 }),

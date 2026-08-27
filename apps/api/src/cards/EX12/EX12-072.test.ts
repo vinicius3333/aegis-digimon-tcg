@@ -165,11 +165,14 @@ describe("EX12-072 Metal Empire", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tooExpensive").instanceId)).toBe(true);
   });
 
+  // EX12-073 Giant Meat carries the [ME] trait but is an Option, and Options are USED, never
+  // played — so a "play 1 [ME] trait card" effect cannot reach it. The trash target here is
+  // the cheapest [ME] Digimon instead.
   it("also plays a qualifying ME card from the trash", async () => {
     const s = setupEngine(
       {
         0: {
-          trash: [{ card: "EX12-073", as: "trashTarget" }],
+          trash: [{ card: "EX12-010", as: "trashTarget" }],
           security: [{ card: CARD_ID, as: "security", faceUp: true }],
           deck: ["EX12-008", "EX12-008", "EX12-008"],
         },
@@ -179,9 +182,9 @@ describe("EX12-072 Metal Empire", () => {
     await s.ready();
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-073"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-010"));
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-073")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-010")).toBe(true);
   });
 
   it("activates its Security effect when checked while already face-up", async () => {

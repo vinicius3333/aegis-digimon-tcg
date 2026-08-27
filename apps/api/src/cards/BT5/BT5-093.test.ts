@@ -28,6 +28,21 @@ describe("BT5-093 Tai Kamiya & Matt Ishida", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("requires the level 6+ Digimon to belong to the opponent", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT5-093", as: "tamer" },
+          { card: "BT5-084", as: "ownLevel6" },
+        ],
+      },
+      1: { battleArea: [] },
+    });
+    s.state.memory = 0;
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tamer"));
+    expect(s.state.memory).toBe(0);
+  });
+
   it("gives all own Omnimon Security Attack +1 on your turn", async () => {
     const s = setupEngine({
       0: {
@@ -37,10 +52,18 @@ describe("BT5-093 Tai Kamiya & Matt Ishida", () => {
           { card: "BT5-111", as: "omni-b" },
         ],
       },
+      1: { battleArea: [{ card: "BT5-086", as: "opponentOmni" }] },
     });
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).keywordAmount(s.perm("omni-a"), "SecurityAttack")).toBe(1);
     expect(observe(s.engine).keywordAmount(s.perm("omni-b"), "SecurityAttack")).toBe(1);
+    expect(observe(s.engine).keywordAmount(s.perm("opponentOmni"), "SecurityAttack")).toBe(0);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).keywordAmount(s.perm("omni-a"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).keywordAmount(s.perm("omni-b"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).keywordAmount(s.perm("opponentOmni"), "SecurityAttack")).toBe(0);
   });
 
   it("plays itself from security without paying its cost", async () => {

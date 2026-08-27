@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-025.js";
 
-describe("EX6-025 Sagomon", () => {
+describe("EX6-025 Sanzomon", () => {
   it("during DigiXros grants Security Attack -1 and reveals four named cards", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
-      { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 }, optional: true },
+      {
+        kind: "GainKeyword",
+        target: { filter: { controller: "any" } },
+        keyword: { keyword: "SecurityAttack", amount: -1 },
+        optional: true,
+      },
       { kind: "RevealAdd", revealCount: 4, condition: { kind: "digiXrosCount", minimum: 1 }, rest: "deckBottom" },
     ]);
   });
