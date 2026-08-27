@@ -7,14 +7,14 @@ import "./BT2-002.js";
 describe("BT2-002 DemiVeemon", () => {
   it("gives +1000 DP when its suspended host becomes unsuspended in the main phase", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-012", as: "host", under: ["BT2-002"], suspended: true }] },
+      0: { battleArea: [{ card: "BT2-022", as: "host", under: ["BT2-002"], suspended: true }] },
     });
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
 
   it("Q993 requires a real unsuspend during the main phase", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-012", as: "host", under: ["BT2-002"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-022", as: "host", under: ["BT2-002"] }] } });
     s.state.phase = Phase.Main;
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
@@ -22,7 +22,7 @@ describe("BT2-002 DemiVeemon", () => {
 
   it("does not activate when the host really unsuspends outside the main phase", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-012", as: "host", under: ["BT2-002"], suspended: true }] },
+      0: { battleArea: [{ card: "BT2-022", as: "host", under: ["BT2-002"], suspended: true }] },
     });
     s.state.phase = Phase.Active;
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
@@ -31,7 +31,7 @@ describe("BT2-002 DemiVeemon", () => {
 
   it("activates only once per turn after multiple real main-phase unsuspends", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-012", as: "host", under: ["BT2-002"], suspended: true }] },
+      0: { battleArea: [{ card: "BT2-022", as: "host", under: ["BT2-002"], suspended: true }] },
     });
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
@@ -43,7 +43,7 @@ describe("BT2-002 DemiVeemon", () => {
 
   it("does not activate during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-012", as: "host", under: ["BT2-002"], suspended: true }] },
+      0: { battleArea: [{ card: "BT2-022", as: "host", under: ["BT2-002"], suspended: true }] },
     });
     s.state.turnSeat = 1;
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
