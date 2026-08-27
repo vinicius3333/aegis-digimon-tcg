@@ -1171,3 +1171,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-059.
+
+## BT25-060 — Rebootmon — 10/10
+
+- Catalog evidence: green/white level-6 Appmon; App Fusion from Bootmon and Shutmon for 0; Security Attack +1, Reboot, and Link +1; shared once-per-turn When Digivolving/When Attacking pays by linking one Appmon card with Link from hand or this Digimon's evolution cards free, then may unsuspend a friendly Digimon; all-turn once-per-turn self Link/unsuspend reaction grants Piercing, Blocker, and immunity from opposing Digimon effects through the controller's turn.
+- Knowledge base: Q6357 requires Link eligibility. Q6358–Q6363 define Digimon-effect immunity, selection, grants, later immunity changes, and trigger suppression.
+- Defects corrected: common host filters excluded hand cards; both Link actions now use the combined source restricted to this Digimon's stack. The Link executor now records whether the current action actually linked a card, so the dependent unsuspend cannot be enabled by a pre-existing link. Opponent-Digimon-effect immunity is behaviorally proven.
+- Verification: focused — 11 passed; link-state/link-eligibility/conformance — 34 passed; broader link/interpreter/subtrigger mechanisms — 218 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-060", compiled)` with full coverage and no residuals; persisted synchronization follows separately.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-060
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-060.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-060.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-060.

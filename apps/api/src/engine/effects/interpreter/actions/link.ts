@@ -64,6 +64,9 @@ export function canAttemptLink(ctx: EffectContext, action: Extract<Action, { kin
  * permanent's linked list.
  */
 export async function runLink(ctx: EffectContext, action: Extract<Action, { kind: "Link" }>): Promise<void> {
+  // A downstream "by linking ..., then ..." clause must distinguish a link made by this
+  // resolving action from cards that were already linked to the source.
+  ctx.lastEffectActed = false;
   // The recipient is a chosen friendly Digimon ("link ... to 1 of your Digimon") or, by
   // default, the source permanent ("to this Digimon").
   let recipientId = ctx.source.permanent()?.permanentId;
@@ -210,6 +213,7 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
     if (cost > 0) ctx.fx.gainMemory(-cost);
   }
   await ctx.fx.link(recipientId, chosen);
+  ctx.lastEffectActed = true;
 }
 
 /**
