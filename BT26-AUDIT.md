@@ -2907,6 +2907,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Correction: removed the erroneous shared Once Per Turn limit from On Play/When Digivolving/When Attacking deletion; the printed three timings are independent. The All Turns hand-trim effect retains its printed limit.
 - Proof: existing evolution, Assembly, Trash Main, hand trim, Decode, Retaliation, and Security cases; updated independent-timing proof and new optional Decode refusal. Exclusive `registerIrCard`; automation not run by instruction; diff check passed. No unresolved limitation.
 
+## BT26-080 — Bacchusmon / Reversal of the Dead — 10/10
+
+- Catalog/KB: purple/green dual Lv.6 Digimon/Option, purple Option requirement, TS Use Requirement, Security A. +1, Succession, orientation deletion, digivolution attack, and Option unsuspend/delete confirmed. Q7112–Q7114 define orientation and either-player suspension/unsuspension.
+- Implementation: full IR, exclusive `registerIrCard`; exact alternate evolution, optional either-player suspend cost followed by attack without suspending, live same-orientation deletion Once Per Turn, TS color waiver, and Option lowest-DP sequence.
+- Proof: both orientations/ownership cases, Succession, evolution, Once Per Turn, Security Attack, and deletion plus new purple requirement assertion and no-TS Option rejection. Automation not run by instruction; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
