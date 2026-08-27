@@ -2967,6 +2967,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR and exclusive `registerIrCard`; optional BEATBREAK hand placement then Draw 1/+1 memory, distinct normal/effect security-removal watchers, suspend-gated face-down top-deck placement, effect-only Security A. -1, and Security free play.
 - Proof: stack order, refusal, normal/effect distinction, suspended and opponent-security negatives, ordering, debuff, and Security play. No change needed; automation not run; diff check passed. No unresolved limitation.
 
+## BT26-090 — Kanan Yuki — 10/10
+
+- Catalog/KB: green cost-3 `ADAMAS`/`TS` Tamer, Start Main memory, End Turn TS Option use, and Security play confirmed. Q7143 defines the controller-side memory gauge positions for “4 or less.”
+- Correction: added `allowMultiColor: true` to the unrestricted TS Option action. Multicolor TS Options now qualify while the engine still requires every printed color; previously they were rejected categorically.
+- Proof: Q7143 boundaries, paid/reduced/floored Option costs, optional refusal, wrong trait, suspended source, Security, and new multicolor success/missing-color rejection. Full IR, exclusive `registerIrCard`; automation not run; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
