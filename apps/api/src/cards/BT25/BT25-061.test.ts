@@ -1,13 +1,53 @@
-import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { EffectTiming, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT25-061.js";
+import { compiled } from "./BT25-061.js";
 
 const CARD_ID = "BT25-061";
 
 describe("BT25-061 Offmon", () => {
+  it("matches the compiled catalog for its start-phase cost and link face", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      nameEn: "Offmon",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [{ color: "Black", level: 2, memoryCost: 0 }],
+      forms: ["Stnd.", "Appmon"],
+      attributes: ["Game"],
+      types: ["Offline"],
+      linkDp: 2000,
+      linkRequirement: "[Link] [Appmon]\u00a0trait: Cost 1",
+      linkEffect: "[When Linking] 1 of your opponent's Digimon can't unsuspend until their turn ends.",
+    });
+    const start = compiled.effects.find((effect) => effect.trigger === "StartOfYourMainPhase");
+    expect(start?.actions[0]).toMatchObject({
+      kind: "Draw",
+      amount: 1,
+      optional: true,
+      abortOnDecline: true,
+      cost: {
+        kind: "trash",
+        target: {
+          filter: { zone: "hand", controller: "mine", nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] },
+          count: 1,
+        },
+      },
+    });
+    expect(start?.actions[1]).toEqual({ kind: "GainMemory", amount: 1 });
+    const linked = compiled.effects.find((effect) => effect.trigger === "Static");
+    expect(linked).toMatchObject({ isLinked: true });
+    expect(linked?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenLinked",
+      sourceFilter: { isSelfRef: true },
+    });
+  });
+
   it("evolves for 0 from an off-color Lv.2 Appmon and rejects a non-Appmon", async () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
       level: 2,
@@ -49,12 +89,13 @@ describe("BT25-061 Offmon", () => {
           battleArea: [{ card: CARD_ID, as: "offmon" }],
           hand: [
             { card: "BT21-005", as: "cost" },
+            { card: "BT25-089", as: "secondCost" },
             { card: "BT1-009", as: "plain" },
           ],
           deck: [{ card: "BT1-013", as: "drawn" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("offmon"));
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId));
@@ -63,7 +104,7 @@ describe("BT25-061 Offmon", () => {
       expect.arrayContaining([s.inst("plain").instanceId, s.inst("drawn").instanceId]),
     );
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
-    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
   });
 
   it("may decline the cost and receives neither benefit", async () => {
@@ -75,13 +116,13 @@ describe("BT25-061 Offmon", () => {
       },
     });
     const pending = advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("offmon"));
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.decisionId,
-        response: { kind: "selectCards", instanceIds: [] },
+        response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
     await pending;
@@ -118,6 +159,10 @@ describe("BT25-061 Offmon", () => {
     expect(s.perm("host").linked[0]?.instanceId).toBe(s.inst("link").instanceId);
     expect(observe(s.engine).isRestricted(s.perm("digimon"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(false);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(observe(s.engine).isRestricted(s.perm("digimon"), "unsuspend")).toBe(false);
   });
 
   it("does not retrigger an already linked Offmon for a later link", async () => {

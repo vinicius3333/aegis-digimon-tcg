@@ -1189,3 +1189,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-060.
+
+## BT25-061 — Offmon — 10/10
+
+- Catalog evidence: black level-3 Appmon; alternate level-2 Appmon evolution for 0; start of controller's main phase may pay by trashing exactly one Appmon card from hand to Draw 1 and gain 1 memory; this card links to an Appmon for 1 and, while linked, prevents one opposing Digimon from unsuspending through its controller's turn.
+- Knowledge base: no card-specific entries; standard activation-cost, Draw, memory, Link, linked-effect, target, and duration rules apply.
+- Defects corrected: the trash cost incorrectly allowed zero cards, making it non-payment. It now requires exactly one eligible card behind a single optional activation; accepting pays once and makes both Draw 1 and gain 1 memory mandatory, while refusal grants neither benefit.
+- Verification: focused — 6 passed, covering payment, refusal, exact filter, one optional decision, alternate evolution, linked target kind, non-retrigger, and expiry; hand-trash — 2 passed; restriction — 17 passed; subtrigger — 23 passed; adjacent Link peers — 35 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-061", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-061
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-061.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-061.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-061.
