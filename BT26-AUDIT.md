@@ -2308,3 +2308,35 @@ git diff --check
 ```
 
 No unresolved BT26-054 ambiguity or unsupported printed clause remains. Only the direct IR module, its colocated focused test, and this ledger section changed; the shared engine remains unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-055 — Giromon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-055` (`Giromon`), a black level-5 Digimon with play cost 7, 7000 DP, and alternate evolution from a level-4 `DM` Digimon for cost 3. Its printed bodies are Fragment (2), a shared On Play/When Digivolving/Counter Once Per Turn effect, and an inherited All Turns leave-play security effect.
+- The shared body optionally places one hand card face down at this Digimon's stack bottom, then independently may delete one own `Ver.3` Digimon to delete all opposing Digimon tied for lowest play cost. The inherited effect trashes the opponent's top security when this Digimon leaves play.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-055`; Q7058 confirms only one Counter effect may activate during an attack. Optional sequencing, lowest-cost ties, Fragment, leave-play timing, and Counter limits were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-055.ts` has full compiled IR coverage and registers exclusively through `registerIrCard("BT26-055", compiled)`.
+- On Play, When Digivolving, and Counter share one Once Per Turn body. It independently models optional face-down bottom placement and optional bound deletion of an own `Ver.3`, then deletes all opposing lowest-play-cost Digimon.
+- Fragment (2), the inherited self leave-play watcher, alternate evolution, target binding, optional processing, superlative selection, and relevant peers were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-055.test.ts` covers structural mapping; inherited security trash; positive own/opponent deletion processing; shared timing budget; Fragment combat survival; Q7058 Counter exclusivity; and the newly added positive hand placement route.
+- The added case accepts placement, independently declines deletion, and proves the selected instance enters the source's stack bottom face down. The production module required no correction.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-055
+  PASS (Q7058; no errata/restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-055 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
