@@ -3130,3 +3130,30 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   mechanism — 7/7 passed. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No production or shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-090 — Arata Sanada — 10/10
+
+- Catalog and ruling evidence: Black Tamer with play cost 3. At the start of the
+  controller's turn it gains 1 memory if own trash contains an Unidentified
+  Digimon. During the controller's turn, when an own Digimon evolves into a
+  card named exactly Diaboromon, this Tamer may suspend to play one Diaboromon
+  Token for free. Security plays it for free. Q1368 confirms the token identity
+  and the shared token definition supplies White Lv.6, play cost 14, 3000 DP,
+  Mega, Unknown, and Unidentified metadata.
+- Implementation: `apps/api/src/cards/BT5/BT5-090.ts` gates the memory gain on
+  own trash, installs an exact `nameExact` Diaboromon digivolution watcher with
+  an optional self-suspend PlayToken action, and plays self without cost from
+  Security. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-090", compiled)` registration are preserved.
+- Behavioral proof: six focused tests prove the trash condition and exact +1
+  memory, real Diaboromon evolution, self suspension, free token creation and
+  full token metadata, exclusion of an unrelated evolution and Diaboromon (X
+  Antibody), optional refusal, and free Security play.
+- Defect corrected: the evolution watcher used substring `name` matching and
+  incorrectly treated Diaboromon (X Antibody) as exact Diaboromon. It now uses
+  `nameExact`, with a real near-name regression fixture.
+- Verification: focused BT5-090 — 6/6 passed; BT5-084 token peer and exact-name
+  mechanism — 6/6 passed. Targeted Oxfmt, Oxlint (one pre-existing harness
+  warning only), registration search, and `git diff --check` pass. No shared
+  engine seam changed.
+- Remaining ambiguity: none identified.
