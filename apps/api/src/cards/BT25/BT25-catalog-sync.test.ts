@@ -17,6 +17,8 @@ import { compiled as bt25101 } from "./BT25-101.js";
 import { compiled as bt25099 } from "./BT25-099.js";
 import { compiled as bt25100 } from "./BT25-100.js";
 import { compiled as bt25102 } from "./BT25-102.js";
+import { compiled as bt25103 } from "./BT25-103.js";
+import { compiled as bt25104 } from "./BT25-104.js";
 import { compiled as bt25039 } from "./BT25-039.js";
 import { compiled as bt25040 } from "./BT25-040.js";
 import { compiled as bt25041 } from "./BT25-041.js";
@@ -181,6 +183,8 @@ describe("BT25 persisted IR", () => {
     ["BT25-098", bt25098],
     ["BT25-100", bt25100],
     ["BT25-101", bt25101],
+    ["BT25-103", bt25103],
+    ["BT25-104", bt25104],
   ] as const)("keeps the stale-gap record %s synchronized", (cardId, compiled) => {
     expect(catalog[cardId]).toEqual(compiled);
     expect(catalog[cardId]?.coverage).toBe("full");

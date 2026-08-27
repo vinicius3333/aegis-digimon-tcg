@@ -101500,13 +101500,33 @@
       {
         "trigger": "Static",
         "actions": [],
-        "keywords": [{ "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" }]
+        "keywords": [
+          {
+            "keyword": "SecurityAttack",
+            "amount": 1,
+            "raw": "＜Security Attack +1＞"
+          }
+        ]
       },
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "IceClad", "raw": "＜Ice Clad＞" }] },
       {
         "trigger": "Static",
         "actions": [],
-        "keywords": [{ "keyword": "Partition", "raw": "＜Partition ([Apollomon] & [Dianamon])＞" }]
+        "keywords": [
+          {
+            "keyword": "IceClad",
+            "raw": "＜Ice Clad＞"
+          }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          {
+            "keyword": "Partition",
+            "raw": "＜Partition ([Apollomon] & [Dianamon])＞"
+          }
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -101514,7 +101534,13 @@
           {
             "kind": "Return",
             "target": {
-              "filter": { "digivolutionCardsCompareToSource": "lte", "controller": "opponent", "kind": ["Digimon"] },
+              "filter": {
+                "digivolutionCardsCompareToSource": "lte",
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
               "count": 1
             },
             "to": "deckBottom"
@@ -101527,7 +101553,13 @@
           {
             "kind": "Return",
             "target": {
-              "filter": { "digivolutionCardsCompareToSource": "lte", "controller": "opponent", "kind": ["Digimon"] },
+              "filter": {
+                "digivolutionCardsCompareToSource": "lte",
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
               "count": 1
             },
             "to": "deckBottom"
@@ -101540,20 +101572,36 @@
           {
             "kind": "TrashDigivolution",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ],
+                "digivolutionCards": "hasAny"
+              },
               "count": 1
             },
             "amount": 1,
+            "scope": "acrossDigimon",
             "optional": true,
             "scaling": {
               "per": 1,
-              "filter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+              "filter": {
+                "controllerDefault": "mine",
+                "kind": [
+                  "Digimon"
+                ]
+              },
               "unit": "digivolutionCards"
             }
           },
-          { "kind": "EndAttack", "optional": true }
+          {
+            "kind": "EndAttack",
+            "optional": true
+          }
         ],
-        "frequency": "OncePerTurn"
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "BT25-103/trash-sources-end-attack"
       },
       {
         "trigger": "Counter",
@@ -101561,20 +101609,36 @@
           {
             "kind": "TrashDigivolution",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ],
+                "digivolutionCards": "hasAny"
+              },
               "count": 1
             },
             "amount": 1,
+            "scope": "acrossDigimon",
             "optional": true,
             "scaling": {
               "per": 1,
-              "filter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+              "filter": {
+                "controllerDefault": "mine",
+                "kind": [
+                  "Digimon"
+                ]
+              },
               "unit": "digivolutionCards"
             }
           },
-          { "kind": "EndAttack", "optional": true }
+          {
+            "kind": "EndAttack",
+            "optional": true
+          }
         ],
-        "frequency": "OncePerTurn"
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "BT25-103/trash-sources-end-attack"
       }
     ],
     "coverage": "full",
@@ -101582,53 +101646,175 @@
   },
   "BT25-104": {
     "effects": [
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Raid", "raw": "＜Raid＞" }] },
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Piercing", "raw": "＜Piercing＞" }] },
       {
         "trigger": "Static",
-        "actions": [],
-        "keywords": [{ "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" }]
-      },
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
-      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Barrier", "raw": "＜Barrier＞" }] },
-      {
-        "trigger": "WhenDigivolving",
-        "actions": [
-          {
-            "kind": "ActivateOptionMain",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "count": 1
-          }
-        ],
-        "frequency": "OncePerTurn",
-        "sharedUseKey": "ir-shared-0"
-      },
-      {
-        "trigger": "WhenAttacking",
-        "actions": [
-          {
-            "kind": "ActivateOptionMain",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "count": 1
-          }
-        ],
-        "frequency": "OncePerTurn",
-        "sharedUseKey": "ir-shared-0"
-      },
-      {
-        "trigger": "YourTurn",
         "actions": [
           {
             "kind": "GainKeyword",
             "target": {
               "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Raid"
+            },
+            "duration": "permanent"
+          },
+          {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Piercing"
+            },
+            "duration": "permanent"
+          },
+          {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "SecurityAttack",
+              "amount": 1
+            },
+            "duration": "permanent"
+          },
+          {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Blocker"
+            },
+            "duration": "permanent"
+          },
+          {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
+            "keyword": {
+              "keyword": "Barrier"
+            },
+            "duration": "permanent"
+          }
+        ]
+      },
+      {
+        "trigger": "WhenDigivolving",
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "bt25-104/activate-option-main",
+        "actions": [
+          {
+            "kind": "ActivateMain"
+          }
+        ]
+      },
+      {
+        "trigger": "WhenAttacking",
+        "frequency": "OncePerTurn",
+        "sharedUseKey": "bt25-104/activate-option-main",
+        "actions": [
+          {
+            "kind": "ActivateMain"
+          }
+        ]
+      },
+      {
+        "trigger": "YourTurn",
+        "actions": [
+          {
+            "kind": "GrantStatic",
+            "target": {
+              "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Marcus Damon"], "match": "name" }]
+                "kind": [
+                  "Tamer"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Marcus Damon"
+                    ],
+                    "match": "name"
+                  }
+                ]
               },
               "count": "all"
             },
-            "keyword": { "keyword": "Rush", "raw": "＜Rush＞" },
+            "grant": "kinds",
+            "tokens": [
+              "Digimon"
+            ],
+            "duration": "permanent"
+          },
+          {
+            "kind": "SetBaseDP",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": [
+                  "Tamer"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Marcus Damon"
+                    ],
+                    "match": "name"
+                  }
+                ]
+              },
+              "count": "all"
+            },
+            "value": 12000,
+            "duration": "permanent"
+          },
+          {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": [
+                  "Tamer"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Marcus Damon"
+                    ],
+                    "match": "name"
+                  }
+                ]
+              },
+              "count": "all"
+            },
+            "keyword": {
+              "keyword": "Rush",
+              "raw": "＜Rush＞"
+            },
             "duration": "permanent"
           }
         ]
@@ -101638,12 +101824,30 @@
         "actions": [
           {
             "kind": "WaiveColorRequirement",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "condition": {
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["DATA SQUAD"], "match": "trait" }]
+                "zone": "battleArea",
+                "kind": [
+                  "Digimon",
+                  "Tamer"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "DATA SQUAD"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "raw": "you have a card w/[DATA SQUAD] trait"
             }
@@ -101655,22 +101859,62 @@
         "actions": [
           {
             "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
             "amount": -15000,
             "duration": "forTheTurn"
           },
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1 },
-            "from": ["hand"],
+            "target": {
+              "filter": {
+                "kind": [
+                  "Tamer"
+                ]
+              },
+              "count": 1,
+              "upTo": true
+            },
+            "optional": true,
             "payCost": false,
-            "optional": true
+            "from": [
+              "hand"
+            ]
           }
         ]
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      {
+        "cost": 5,
+        "isAlternate": true,
+        "level": 6,
+        "traits": [
+          "DATA SQUAD"
+        ]
+      },
+      {
+        "cost": 0,
+        "isAlternate": true,
+        "names": [
+          "ShineGreymon"
+        ],
+        "burstDigivolve": {
+          "returnTamerNamesExact": [
+            "Marcus Damon"
+          ]
+        }
+      }
+    ]
   },
   "BT3-001": {
     "effects": [
