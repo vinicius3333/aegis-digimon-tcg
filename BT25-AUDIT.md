@@ -1225,3 +1225,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-062.
+
+## BT25-063 — Commandramon — 10/10
+
+- Catalog evidence: black/purple level-3 Digimon; two zero-cost alternate evolutions; When Moving/On Play reveals three, adds one Chaosmon or D-Brigade/ACCEL card, and returns the remainder to chosen deck top/bottom positions; inherited all-turn +1000 DP.
+- Knowledge base: no card-specific entries; standard reveal, distinct remainder placement, moving, evolution, and inherited continuous-effect rules apply.
+- Implementation: both timings, exact reveal/filter/count, ordered top-or-bottom remainder, evolution requirements, and inherited boost are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-063", compiled)`.
+- Verification: focused — 4 passed; BT25 audit — 2 passed; action-kind gate — 1 passed; `git diff --check` — passed. No defect was found, so no implementation or test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-063
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-063.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-063.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-063.
