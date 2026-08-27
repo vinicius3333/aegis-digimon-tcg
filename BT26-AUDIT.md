@@ -2660,3 +2660,35 @@ git diff --check
 ```
 
 No unresolved BT26-065 ambiguity or unsupported printed clause remains. Only the direct IR module, its colocated focused test, and this ledger section changed; the shared engine remains unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-066 — Salamon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-066` (`Salamon`), a purple level-3 Digimon with play cost 3, 2000 DP, `Mammal`/`Titan`/`TS` traits, and alternate evolution from a level-2 `TS` Digimon for cost 0.
+- Printed behavior verified: Start of Your Main Phase at five or fewer hand cards may evolve an own `Titan` Digimon into a `Titan` from trash with cost reduced by 2; inherited Your Turn Once Per Turn, when the controller's hand is trashed, may evolve its `Titan` host into `Titamon` or a `Titan` from trash with cost reduced by 1.
+- KB Q7089 confirms Alliance does not retroactively apply after evolving during an attack. Start-main timing, hand-trash attribution, inherited anchoring, cost reduction, and evolution legality were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-066.ts` has `coverage: "full"`, `residual: []`, and exclusive `registerIrCard("BT26-066", compiled)` registration.
+- Both optional evolution windows use the printed `Titan` filters, correct controller/zones, and cost deltas -2/-1 while preserving normal evolution legality and zero-floor costs.
+- The inherited watcher binds to its host, requires a `Titan` host, scopes hand trash to the owner, and has one Once Per Turn budget. Relevant timing, trash evolution, trait, and peer seams were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-066.test.ts` covers successful start-main evolution, the six-card boundary, inherited evolution, non-Titan inherited-host rejection, opponent-effect hand trash, inherited Once Per Turn, and Q7089's non-retroactive Alliance behavior.
+- This audit added a start-main negative case using a non-Titan purple Lv.5 that otherwise meets the candidate card's normal evolution route, independently proving the source-target `Titan` restriction. The existing inherited negative fixture was strengthened similarly. The module required no correction.
+
+### Verification
+
+```text
+Knowledge-base card query
+  PASS (Q7089; no errata/restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-066 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
