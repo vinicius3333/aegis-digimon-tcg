@@ -1081,3 +1081,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-054.
+
+## BT25-055 — Deramon — 10/10
+
+- Catalog evidence: green level-5 Digimon; alternate level-4 TS evolution for 3; On Play/When Digivolving may suspend either player's Digimon, then at two or more suspended Digimon may unsuspend one friendly Digimon; all-turn once-per-turn after this Deramon suspends may play a qualifying 4000-DP-or-less Digimon from hand free; inherited opponent-turn once-per-turn attack redirection to a friendly suspended Digimon.
+- Knowledge base: Q6338 confirms either player's Digimon may be suspended. Q6339 defines the exact Vegetation/Plant/Avian/Bird-or-TS and 4000-DP play filter.
+- Defect corrected: the all-turn watcher had no source filter and could trigger when any permanent suspended. It is now bound to this Deramon; the free play remains optional and once per turn.
+- Verification: focused — 2 passed; Deramon deck oracle — 1 passed; subtrigger mechanisms — 23 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-055", compiled)` with full coverage and no residuals; shared synchronization follows separately.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-055
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-055.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-055.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-055.
