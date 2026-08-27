@@ -1549,3 +1549,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-080.
+
+## BT25-081 — Devidramon — 10/10
+
+- Catalog evidence: purple level-4 Digimon; mandatory On Play/When Digivolving suspension of exactly one opposing non-purple Tamer; all-turn once-per-turn after an opposing Tamer suspends gains 1 memory; inherited Retaliation.
+- Knowledge base: no unresolved card-specific ambiguity; standard color exclusion, multicolor handling, Tamer suspension, memory, once-per-turn, and inherited keyword rules apply.
+- Implementation: both entry timings, exact non-purple exclusion including multicolor, opponent-Tamer watcher, memory gain, frequency reset, and inherited Retaliation are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-081", compiled)`. The IR is exported for persistence proof only.
+- Verification: focused — 5 passed; BT25 audit — 2 passed; exclude-colors mechanism — 2 passed; `git diff --check` — passed. No behavioral defect was found, so no test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-081
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-081.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-081.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-081.
