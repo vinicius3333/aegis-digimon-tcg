@@ -15,9 +15,9 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT4-001–010 | Luna in progress | `internal-docs/audits/BT4/BT4-001-010.md` | No |
-| BT4-011–020 | Luna in progress | `internal-docs/audits/BT4/BT4-011-020.md` | No |
+| BT4-011–020 | Static audit delivered | `internal-docs/audits/BT4/BT4-011-020.md` | Yes |
 | BT4-021–030 | Luna in progress | `internal-docs/audits/BT4/BT4-021-030.md` | No |
-| BT4-031–040 | Unassigned | `internal-docs/audits/BT4/BT4-031-040.md` | No |
+| BT4-031–040 | Luna in progress | `internal-docs/audits/BT4/BT4-031-040.md` | No |
 | BT4-041–050 | Unassigned | `internal-docs/audits/BT4/BT4-041-050.md` | No |
 | BT4-051–060 | Unassigned | `internal-docs/audits/BT4/BT4-051-060.md` | No |
 | BT4-061–070 | Unassigned | `internal-docs/audits/BT4/BT4-061-070.md` | No |
@@ -43,18 +43,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT4-011 Agunimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Red Tamer alternate-evolution trace and legal host/source proof |
+| BT4-012 GeoGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Digi-Burst source cost and inclusive 4000-DP deletion boundary |
+| BT4-013 BurningGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Tamer alternate evolution and opponent-turn DP modifier proof |
+| BT4-014 Vermilimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and legal red level-4-to-5 evolution proof |
+| BT4-015 Volcdramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited Security Attack +1 and legal evolution-source proof |
+| BT4-016 Aldamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Hybrid/Tamer alternate evolution and once-only 4000-DP modifier proof |
+| BT4-017 RizeGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Yellow-turn Tamer play, inherited DP reduction, and host-retention proof |
+| BT4-018 Spinomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Own-turn-only 3000-DP modifier and opposite-turn boundary proof |
+| BT4-019 VictoryGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Digi-Burst source cost and inclusive 8000-DP deletion boundary |
+| BT4-020 ShineGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Separate red/yellow Tamer suspension triggers and blue-Digimon negative proof |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT4/`.
 
 ## Aggregate
 
 - Catalog cards: 115
-- Assigned: 30
-- Integrated card audits: 0
-- Corrected: 0
-- Provisional: 0
+- Assigned: 40
+- Integrated card audits: 10
+- Corrected: 2
+- Provisional: 10
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 85
+- Remaining unassigned: 75
 
 BT4 remains open.
