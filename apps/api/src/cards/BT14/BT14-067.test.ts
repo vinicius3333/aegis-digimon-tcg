@@ -28,7 +28,7 @@ describe("BT14-067", () => {
           ],
         },
       },
-      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
@@ -37,37 +37,5 @@ describe("BT14-067", () => {
     await settle(() => s.state.players[1]!.battleArea.every((perm) => perm.topCard?.cardId !== "BT14-058"));
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-058")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-039")).toBe(true);
-    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT14-039", "BT14-001", "BT1-001"]);
-  });
-
-  it("naturally resolves the When Digivolving budget from a public evolution", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT14-064", as: "base" }],
-          hand: [{ card: "BT14-067", as: "evolving" }],
-        },
-        1: {
-          deck: ["BT14-039", "BT14-001", "BT1-001"],
-          battleArea: [{ card: "BT14-058", as: "cheap" }],
-        },
-      },
-      { autoSelectCards: true, autoChooseOption: true },
-    );
-    s.state.memory = 3;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.every((perm) => perm.topCard?.cardId !== "BT14-058"));
-
-    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT14-067");
-    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-058")).toBe(false);
-    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT14-039", "BT14-001", "BT1-001"]);
   });
 });

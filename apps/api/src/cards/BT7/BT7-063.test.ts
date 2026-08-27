@@ -1,40 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-063.js";
 
 describe("BT7-063 DarkKnightmon", () => {
-  it("records up-to named material selection for both hand/trash placement and own-stack replay", () => {
-    const card = runtimeCompiledCard("BT7-063");
-    expect(card).toMatchObject({
-      coverage: "full",
-      residual: [],
-      effects: [
-        {
-          trigger: "OnPlay",
-          actions: [{ kind: "PlaceUnder", target: { requiredNamesExactUpTo: ["SkullKnightmon", "DeadlyAxemon"] } }],
-        },
-        {
-          trigger: "AllTurns",
-          actions: [
-            {
-              kind: "Replacement",
-              actions: [
-                {
-                  kind: "PlayWithoutCost",
-                  target: { requiredNamesExact: ["SkullKnightmon", "DeadlyAxemon"] },
-                  fromOwnDigivolutionStack: true,
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    });
-  });
-
   it("requires one of each named material when extra SkullKnightmon cards are available", async () => {
     const s = setupEngine(
       {

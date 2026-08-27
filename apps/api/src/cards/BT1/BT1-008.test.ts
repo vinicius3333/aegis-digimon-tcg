@@ -40,16 +40,4 @@ describe("BT1-008 Frimon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(5000);
   });
-
-  it("does not count a suspended Digimon in the opponent's breeding area", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-075", as: "host", dp: 5000, under: ["BT1-008"] }] },
-      1: {
-        battleArea: [{ card: "BT1-016", suspended: true }],
-        breeding: { card: "BT1-017", suspended: true },
-      },
-    });
-    await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(5000);
-  });
 });

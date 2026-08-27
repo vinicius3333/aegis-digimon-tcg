@@ -89,7 +89,6 @@ export type SubTriggerEventName =
   | "onDeletionOf"
   | "whenSecurityRemoved"
   | "whenCardTrashedFromSecurity"
-  | "whenEffectTrashesFromSecurity"
   | "whenEffectRemovesFromSecurity"
   | "whenAddSecurity"
   | "whenFaceUpCardsAddedToOpponentSecurity"
@@ -160,7 +159,6 @@ export interface TriggerInfo {
     targetPermanentId: string;
     stackInstanceId: string;
     trigger?: string;
-    excludeInherited?: boolean;
     inheritedOnly?: boolean;
   }[];
   /** Named effect grants captured at the same pre-deletion boundary. */
@@ -572,9 +570,8 @@ export interface Primitives {
    * Record a seat-level play/move prohibition (rule implementation / rule implementation /
    * rule implementation): the restricted `seat` may not play/move a card matching `match` for
    * `duration`. Only the RESTRICTED seat's own actions/effects are blocked (the source
-   * player's effects may still play such cards), and token plays are exempt unless the match
-   * opts into them (KB EX7-014 Q4673-4676/Q3834; BT14-017/Q2381). Consulted by play-card /
-   * breeding-move legality and effect-driven plays.
+   * player's effects may still play such cards), and token plays are exempt (KB EX7-014
+   * Q4673-4676/Q3834). Consulted by play-card / breeding-move legality and effect-driven plays.
    * When `byEffectOnly` is true the prohibition applies only to effect-driven plays, leaving
    * normal hand play unaffected (KB Q4665–Q4668, Q6245 BT20-020).
    */
@@ -591,8 +588,7 @@ export interface Primitives {
    * right now by an active RestrictPlay prohibition? Used by the interpreter to gate an
    * EFFECT-driven play attributed to the resolving effect's owner seat — so a "your opponent
    * can't play <X>" effect blocks the opponent's effects (Q4676) but not the source player's
-   * (Q4675). Token plays return false (exempt by default, Q3834) unless the active match opts into tokens
-   * (BT14-017/Q2381). Optional on the port (test fakes skip).
+   * (Q4675). Token plays return false (exempt, Q3834). Optional on the port (test fakes skip).
    */
   isPlayProhibited?(seat: Seat, cardId: string, mode: "play" | "move", fromZone?: ZoneRef): boolean;
   /**
@@ -979,14 +975,9 @@ export interface Primitives {
   /**
    * Return cards to their owners' hands. Async because a permanent bounce consults the
    * leave-the-battle-area PREVENT reactions first (a "would leave" reaction voids hand
-   * bounce too, not just deletion); a prevented permanent is left in play. When
-   * `detachPermanentTop` is set, each id names a permanent's visible top card and only that
-   * card returns while its underlying stack card is promoted in place.
+   * bounce too, not just deletion); a prevented permanent is left in play.
    */
-  returnToHand(
-    instanceIds: string[],
-    opts?: { silent?: boolean; byEffectSeat?: Seat; detachPermanentTop?: boolean },
-  ): Promise<CardInstance[]>;
+  returnToHand(instanceIds: string[], opts?: { silent?: boolean; byEffectSeat?: Seat }): Promise<CardInstance[]>;
   returnToDeck(
     instanceIds: string[],
     opts?: {
@@ -1255,14 +1246,6 @@ export interface Primitives {
    * parallel/inert path. Duration-scoped: lapses at its boundary or when the host leaves play.
    */
   grantCustomEffect?(instanceId: string, ownerSeat: Seat, token: string, duration: EffectDuration): void;
-  /** Grant a named effect to every matching current/future permanent controlled by `seat`. */
-  grantPlayerCustomEffect?(
-    seat: Seat,
-    ownerSeat: Seat,
-    token: string,
-    duration: EffectDuration,
-    matches: (permanentId: string) => boolean,
-  ): void;
   /** Active named effects granted to a permanent, for live text-presence filters. */
   customEffectGrants?(permanentId: string): readonly { token: string }[];
   /**
@@ -1296,14 +1279,13 @@ export interface Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     duration: EffectDuration,
-    opts?: { trigger?: string; excludeInherited?: boolean; inheritedOnly?: boolean; granterInstanceId?: string },
+    opts?: { trigger?: string; inheritedOnly?: boolean; granterInstanceId?: string },
   ): void;
   /** Read the currently active stack-effect conferrals (for effects that borrow another card's skills). */
   stackEffectConferrals?(): readonly {
     targetPermanentId: string;
     stackInstanceId: string;
     trigger?: string;
-    excludeInherited?: boolean;
     inheritedOnly?: boolean;
     granterInstanceId?: string;
   }[];
@@ -1922,11 +1904,9 @@ export interface EffectContext {
    * real destination id, so the relocation itself can't run yet). The engine reads this list once the
    * played permanent is created and performs the deferred `relocatePermanent` calls then (mirrors the
    * BT10-093 cross-permanent reducer's `pendingPlayReducerPlacements` queue). Undefined / empty =>
-   * no self-reducer requested a relocation this play. `shedOwnCards` relocates only the source
-   * permanent's top card and trashes the rest of its stack (BT15-102 places battle-area top cards
-   * per KB Q2599); without it the whole permanent moves under the played card (BT12-112).
+   * no self-reducer requested a relocation this play.
    */
-  pendingSelfReducerRelocations?: (string | { permanentId: string; shedOwnCards?: boolean })[];
+  pendingSelfReducerRelocations?: string[];
   /** Loose card instance ids committed under the card being played once its permanent exists. */
   pendingSelfReducerPlacements?: string[];
   /**
@@ -1942,11 +1922,6 @@ export interface EffectContext {
   lastMemoryGainAmount?: number;
   /** Loose card instances moved by the immediately preceding PlaceUnder action. */
   lastPlacedUnderInstanceIds?: string[];
-  /**
-   * Loose card instances moved by all PlaceUnder actions in this effect resolution. Reset at the
-   * action-bearing runEffect boundary; nested resolutions restore their caller's accumulator.
-   */
-  placedUnderInstanceIdsThisEffect?: string[];
   /**
    * The permanent ids resolved by the most recent primary-target action in this effect
    * resolution. Written after each `resolvePermanentTargets` call for a non-sameTarget target;

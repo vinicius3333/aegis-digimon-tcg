@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Marcus Damon"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },
@@ -52,7 +52,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Marcus Damon"],
-                      match: "nameExact",
+                      match: "name",
                     },
                   ],
                 },
@@ -88,7 +88,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Marcus Damon"],
-                      match: "nameExact",
+                      match: "name",
                     },
                   ],
                 },
@@ -108,7 +108,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      namesExact: ["GeoGreymon"],
+      names: ["GeoGreymon"],
       cost: 3,
       isAlternate: true,
     },

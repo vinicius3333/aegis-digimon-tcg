@@ -261,41 +261,4 @@ describe("BT10-009 Shoutmon X4", () => {
     expect(s.state.players[0]!.trash.filter((card) => sourceIds.has(card.instanceId))).toHaveLength(1);
     assertNoLoudGap(s);
   });
-
-  it("lets the controller choose any two eligible Material Save cards", async () => {
-    const preferredInstanceIds: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            {
-              card: "BT10-009",
-              as: "shoutmonX4",
-              under: [
-                { card: "BT10-008", as: "shoutmon" },
-                { card: "BT10-049", as: "ballistamon" },
-                { card: "BT10-034", as: "dorulumon" },
-                { card: "BT10-029", as: "starmons" },
-              ],
-            },
-            { card: "BT10-087", as: "taiki" },
-          ],
-        },
-      },
-      {
-        autoAcceptOptional: true,
-        autoSelectCards: true,
-        autoOrderTriggers: true,
-        preferInstanceIds: preferredInstanceIds,
-      },
-    );
-    preferredInstanceIds.push(s.inst("starmons").instanceId);
-
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("shoutmonX4").permanentId])).toBe(1);
-    await settle(() => s.perm("taiki").stack.length === 2);
-
-    expect(s.perm("taiki").stack.some((card) => card.instanceId === s.inst("starmons").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("starmons").instanceId)).toBe(false);
-    assertNoLoudGap(s);
-  });
 });

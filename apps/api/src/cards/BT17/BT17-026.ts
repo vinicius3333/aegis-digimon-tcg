@@ -24,7 +24,6 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
-            fromSelectionRef: "beowolfHost",
           },
           into: {
             filter: {
@@ -50,17 +49,15 @@ const compiled: CompiledCard = {
               from: ["trash"],
             },
             raw: "By placing 1 [Lobomon] and 1 [KendoGarurumon] from your trash under 1 of your [Koji Minamoto]s",
-            destination: "digivolutionStack",
-            host: {
-              filter: {
-                controller: "mine",
-                kind: ["Tamer"],
-                nameOrTrait: [{ tokens: ["Koji Minamoto"], match: "name" }],
-              },
-              count: 1,
+            underFilter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Koji Minamoto"],
+                  match: "name",
+                },
+              ],
             },
-            position: "bottom",
-            bindHostAs: "beowolfHost",
           },
           additionalCosts: [
             {
@@ -80,15 +77,20 @@ const compiled: CompiledCard = {
                 from: ["trash"],
               },
               raw: "By placing 1 [Lobomon] and 1 [KendoGarurumon] from your trash under 1 of your [Koji Minamoto]s",
-              destination: "digivolutionStack",
-              host: { filter: { boundRef: "beowolfHost" }, count: 1 },
-              position: "bottom",
+              underFilter: {
+                controller: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Koji Minamoto"],
+                    match: "name",
+                  },
+                ],
+              },
             },
           ],
           costOverride: 3,
           asLevel: 4,
           asColors: ["Blue"],
-          virtualBase: { level: 4, colors: ["Blue"] },
         },
       ],
       isFromHand: true,

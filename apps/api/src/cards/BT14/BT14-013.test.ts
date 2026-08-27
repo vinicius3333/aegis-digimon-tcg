@@ -55,8 +55,7 @@ describe("BT14-013", () => {
       },
     });
     s.state.memory = 10;
-    const turn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrannomon"));
 
     expect(
       s.engine.applyIntent(0, {
@@ -77,8 +76,6 @@ describe("BT14-013", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("tyrannomon").topCard.cardId === "BT14-017");
     expect(s.state.memory).toBe(7);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await turn;
     assertNoLoudGap(s);
   });
 

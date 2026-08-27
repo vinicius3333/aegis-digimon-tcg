@@ -8,7 +8,7 @@ describe("BT8-038 Magnamon", () => {
       0: {
         battleArea: [{ card: "BT1-027", as: "base", suspended: true }],
         hand: [{ card: "BT8-038", as: "evolving" }],
-        trash: ["BT8-023", "BT8-048", "BT8-034"],
+        trash: ["BT8-023", "BT8-048"],
       },
     });
     s.state.memory = 4;

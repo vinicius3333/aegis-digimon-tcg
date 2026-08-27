@@ -24,7 +24,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Garudamon"],
-                match: "nameExact",
+                match: "name",
               },
             ],
           },
@@ -44,7 +44,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Kristy Damon"],
-                    match: "nameExact",
+                    match: "name",
                   },
                 ],
               },

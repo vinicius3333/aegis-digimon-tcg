@@ -4,21 +4,10 @@ import type { EffectContext } from "../../EffectContext.js";
 import { relocateByEffect } from "../costs.js";
 import { unsupported } from "../errors.js";
 import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
-import { scaleFactor } from "../scaling.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import { EffectDuration } from "@aegis/shared";
 import type { Action, Target, ZoneRef } from "@aegis/shared";
-
-function rememberPlacedUnder(ctx: EffectContext, instanceIds: string[]): void {
-  ctx.lastPlacedUnderInstanceIds = instanceIds;
-  if (instanceIds.length > 0) {
-    ctx.placedUnderInstanceIdsThisEffect = [
-      ...(ctx.placedUnderInstanceIdsThisEffect ?? []),
-      ...instanceIds,
-    ];
-  }
-}
 
 /**
  * "Place [X] under <permanent>" / "place as the bottom digivolution card". The common
@@ -143,26 +132,11 @@ export async function runPlaceUnder(
     return;
   }
   // "Place [a battle-area permanent A] under another permanent B" (the cross-select
-  // IPlacePermanentToDigivolutionCards form): relocate the whole permanent through the shared
-  // effect relocation primitive, preserving its stack unless shedOwnCards requests the
-  // DigiXros-style source shedding required by the printed effect.
+  // IPlacePermanentToDigivolutionCards form): relocating a whole permanent-with-stack under
+  // another is a mechanic the placeUnder primitive (loose cards only) does not yet implement.
+  // The IR captures it; execution is a loud gap until the relocate-permanent primitive exists.
   if (action.targetIsPermanent) {
-    const levelCeilingTarget =
-      action.scaling?.levelCeilingAdd !== undefined && action.target.filter.levelComparison?.value !== undefined
-        ? {
-            ...action.target,
-            filter: {
-              ...action.target.filter,
-              levelComparison: {
-                ...action.target.filter.levelComparison,
-                value:
-                  action.target.filter.levelComparison.value +
-                  scaleFactor(ctx, action.scaling) * action.scaling.levelCeilingAdd,
-              },
-            },
-          }
-        : action.target;
-    const sourceIds = await resolvePermanentTargets(ctx, levelCeilingTarget);
+    const sourceIds = await resolvePermanentTargets(ctx, action.target);
     if (sourceIds.length === 0) return;
     let destId: string | undefined;
     if (action.underSelectionRef && ctx.selections?.has(action.underSelectionRef)) {
@@ -187,10 +161,7 @@ export async function runPlaceUnder(
     }
     if (destId === undefined) return;
     for (const sourcePermanentId of sourceIds) {
-      await relocateByEffect(ctx, destId, sourcePermanentId, {
-        belowTop: action.position !== "bottom",
-        ...(action.shedOwnCards === true ? { shedOwnCards: true } : {}),
-      });
+      await relocateByEffect(ctx, destId, sourcePermanentId, { belowTop: action.position !== "bottom" });
     }
     return;
   }
@@ -214,7 +185,7 @@ export async function runPlaceUnder(
       });
     }
     await ctx.fx.placeUnder(hostId, chosen, { belowTop: action.position !== "bottom" });
-    rememberPlacedUnder(ctx, chosen);
+    ctx.lastPlacedUnderInstanceIds = chosen;
     ctx.lastEffectActed = chosen.length > 0;
     if (action.trackCount !== undefined) {
       ctx.namedCounts ??= new Map();
@@ -303,30 +274,15 @@ export async function runPlaceUnder(
   // Cards to place: loose cards matching the target filter.
   // Priority: action.from (top-level) > action.target.from > target.filter.zone (for non-default
   // zones like "underTamer" used by BT19-081) > legacy hand/trash/deck sweep.
-  const levelCeilingTarget =
-    action.scaling?.levelCeilingAdd !== undefined && action.target.filter.levelComparison?.value !== undefined
-      ? {
-          ...action.target,
-          filter: {
-            ...action.target.filter,
-            levelComparison: {
-              ...action.target.filter.levelComparison,
-              value:
-                action.target.filter.levelComparison.value +
-                scaleFactor(ctx, action.scaling) * action.scaling.levelCeilingAdd,
-            },
-          },
-        }
-      : action.target;
   const zones: ZoneRef[] =
     (action.from?.length ?? 0) > 0
       ? (action.from as ZoneRef[])
-      : (levelCeilingTarget.from?.length ?? 0) > 0
-        ? (levelCeilingTarget.from as ZoneRef[])
-        : levelCeilingTarget.filter.zone !== undefined
-          ? zoneList(levelCeilingTarget.filter.zone)
+      : (action.target.from?.length ?? 0) > 0
+        ? (action.target.from as ZoneRef[])
+        : action.target.filter.zone !== undefined
+          ? zoneList(action.target.filter.zone)
           : ["hand", "trash", "deck"];
-  const candidates = candidateLooseInstances(ctx, levelCeilingTarget, zones);
+  const candidates = candidateLooseInstances(ctx, action.target, zones);
   if (candidates.length === 0) return;
   // Destination host (priority): explicit `destination` selector (BT19-038: place a card
   // from hand/trash under a chosen Tamer) > `underFilter` > the source permanent itself.
@@ -376,10 +332,10 @@ export async function runPlaceUnder(
   // EX10-025 require 2 when 2 exist but still permit the single available card (Q5078-Q5079).
   const placementTarget =
     typeof action.count === "number"
-      ? { ...levelCeilingTarget, count: Math.min(action.count, candidates.length) }
+      ? { ...action.target, count: Math.min(action.count, candidates.length) }
       : action.count === "all"
-        ? { ...levelCeilingTarget, count: candidates.length }
-        : levelCeilingTarget;
+        ? { ...action.target, count: candidates.length }
+        : action.target;
   let chosen = await pickLoose(
     ctx,
     placementTarget,
@@ -398,7 +354,7 @@ export async function runPlaceUnder(
       destination: "stackBottom",
     });
   }
-  rememberPlacedUnder(ctx, chosen);
+  ctx.lastPlacedUnderInstanceIds = chosen;
   // `asDigiXrosMaterial: true` marks placed cards as DigiXros materials for the host Digimon.
   // The placeUnder primitive records them as material cards in the host's stack (belowTop as
   // the DigiXros convention; the flag is structural metadata for the DigiXros system to read).

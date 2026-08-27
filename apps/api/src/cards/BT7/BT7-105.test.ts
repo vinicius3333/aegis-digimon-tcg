@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-105.js";
-describe("BT7-105 Pride Memory Boost!", () => {
+describe("BT7-105 Black Memory Boost!", () => {
   it("reveals and plays a low-cost black Digimon", async () => {
     const s = setupEngine(
       {

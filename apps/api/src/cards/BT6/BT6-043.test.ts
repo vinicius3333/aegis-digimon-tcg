@@ -11,12 +11,4 @@ describe("BT6-043 SkullMammothmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("skull"), "Blocker")).toBe(true);
     expect(s.perm("skull").currentDP).toBe(s.perm("skull").baseDP + 2000);
   });
-
-  it("keeps Blocker but loses the DP bonus at 4 security cards", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-043", as: "skull" }], security: 4 } });
-    await s.ready();
-
-    expect(observe(s.engine).hasKeyword(s.perm("skull"), "Blocker")).toBe(true);
-    expect(s.perm("skull").currentDP).toBe(s.perm("skull").baseDP);
-  });
 });

@@ -3,7 +3,7 @@ import type { Permanent } from "@aegis/shared";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT6-013.js";
 
-describe("BT6-013 Megadramon", () => {
+describe("BT6-013 Hackmon", () => {
   function effectiveColors(s: ReturnType<typeof setupEngine>, permanent: Permanent): string[] {
     return (
       s.engine as unknown as {
@@ -27,7 +27,7 @@ describe("BT6-013 Megadramon", () => {
   });
 
   it("gives its host +2000 DP on its turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-016", under: ["BT6-013"], as: "host" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", under: ["BT6-013"], as: "host" }] } });
     await s.ready();
 
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 2000);

@@ -33,8 +33,6 @@ const compiled: CompiledCard = {
           sourceFilter: {
             controller: "opponent",
             kind: ["Digimon"],
-            zone: "battleArea",
-            byEffect: true,
           },
           actions: [
             {

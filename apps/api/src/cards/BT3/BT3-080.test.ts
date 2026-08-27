@@ -6,7 +6,7 @@ describe("BT3-080 Saberdramon", () => {
   it("grants Retaliation to its host", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT3-085", dp: 1000, suspended: true, as: "host", under: ["BT3-080"] }],
+        battleArea: [{ card: "BT3-081", dp: 1000, suspended: true, as: "host", under: ["BT3-080"] }],
       },
       1: { battleArea: [{ card: "BT1-057", dp: 5000, as: "attacker" }] },
     });

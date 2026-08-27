@@ -31,7 +31,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["King Drasil_7D6"],
-                match: "nameExact",
+                match: "name",
               },
             ],
           },
@@ -62,6 +62,7 @@ export const compiled: CompiledCard = {
           },
           from: ["digivolutionCards"],
           payCost: false,
+          optional: true,
           suppressOnPlayEffects: true,
           bindResultAs: "playedDigimon",
         },

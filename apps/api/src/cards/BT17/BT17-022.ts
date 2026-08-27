@@ -122,7 +122,6 @@ const compiled: CompiledCard = {
       names: ["Koji Minamoto"],
       cost: 2,
       isAlternate: true,
-      baseIsTamer: true,
     },
     {
       names: ["KendoGarurumon"],

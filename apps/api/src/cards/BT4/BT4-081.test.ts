@@ -8,8 +8,8 @@ describe("BT4-081 Devimon", () => {
   it("Digi-Bursts 2 to delete an opposing level 3 Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT4-081", as: "devimon", under: ["BT4-077", "BT3-076"] }] },
-        1: { battleArea: [{ card: "BT3-076", as: "target" }] },
+        0: { battleArea: [{ card: "BT4-081", as: "devimon", under: ["BT4-077", "BT1-009"] }] },
+        1: { battleArea: [{ card: "BT4-076", as: "target" }] },
       },
       { autoSelectCards: true },
     );
@@ -34,8 +34,8 @@ describe("BT4-081 Devimon", () => {
   it("does not pay Digi-Burst or delete an opposing level 4 Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT4-081", as: "devimon", under: ["BT4-077", "BT3-076"] }] },
-        1: { battleArea: [{ card: "BT4-082", as: "target" }] },
+        0: { battleArea: [{ card: "BT4-081", as: "devimon", under: ["BT4-077", "BT1-009"] }] },
+        1: { battleArea: [{ card: "BT4-083", as: "target" }] },
       },
       { autoSelectCards: true },
     );

@@ -5,7 +5,7 @@ import "./BT7-032.js";
 describe("BT7-032 Pulsemon", () => {
   it("gains 2 memory when attacking with exactly 3 security cards", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-034", under: ["BT1-005", "BT7-032"], as: "host" }], security: 3 },
+      0: { battleArea: [{ card: "BT6-034", under: ["BT7-032"], as: "host" }], security: 3 },
       1: { security: ["BT1-101"] },
     });
     s.state.memory = 0;
@@ -24,7 +24,7 @@ describe("BT7-032 Pulsemon", () => {
 
   it("does not gain memory with 4 security cards", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-034", under: ["BT1-005", "BT7-032"], as: "host" }], security: 4 },
+      0: { battleArea: [{ card: "BT6-034", under: ["BT7-032"], as: "host" }], security: 4 },
       1: { security: ["BT1-101"] },
     });
     s.state.memory = 0;

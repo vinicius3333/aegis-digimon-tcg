@@ -5,13 +5,12 @@ import "./BT3-052.js";
 describe("BT3-052 Rapidmon", () => {
   it("gives its host +1000 DP for each suspended opposing Digimon during its turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-057", as: "host", under: ["BT2-044", "BT3-052"] }] },
+      0: { battleArea: [{ card: "BT3-054", as: "host", under: ["BT3-052"] }] },
       1: {
         battleArea: [
           { card: "BT1-019", suspended: true },
           { card: "BT1-019", suspended: true },
           { card: "BT1-019", suspended: false },
-          { card: "BT1-088", suspended: true, as: "tamer" },
         ],
       },
     });
@@ -23,7 +22,7 @@ describe("BT3-052 Rapidmon", () => {
 
   it("does not apply the inherited bonus during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-057", as: "host", under: ["BT2-044", "BT3-052"] }] },
+      0: { battleArea: [{ card: "BT3-054", as: "host", under: ["BT3-052"] }] },
       1: { battleArea: [{ card: "BT1-019", suspended: true }] },
     });
     s.state.turnSeat = 1;

@@ -8,7 +8,6 @@ import {
   breeding,
   colorWaiverStatic,
   digivolveCostStatic,
-  handCounter,
   inTrash,
   onAddHand,
   onDiscardSecurity,
@@ -320,7 +319,6 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
   // trigger with every ordinary activated ability, so it cannot be routed by builder
   // selection alone.
   if (effect.isFromTrash && effect.trigger !== "Main") return inTrash;
-  if (effect.trigger === "Counter" && effect.isFromHand) return handCounter;
   switch (effect.trigger) {
     case "OnPlay":
       return onPlay;
@@ -595,12 +593,6 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       ctxWithSelections.fx.grantKeyword(self.permanentId, "Reboot", EffectDuration.Permanent);
     }
   }
-  // `placedCards` is scoped to this CardEffect resolution, not to the lifetime of a reusable
-  // context. Most callers create a fresh context, but pay-time and nested effect paths may seed
-  // `selections` and intentionally reuse one; reset here so a prior PlaceUnder cannot inflate a
-  // later effect's count. Restore the caller's outer accumulator after nested resolution.
-  const outerPlacedUnderInstanceIds = ctxWithSelections.placedUnderInstanceIdsThisEffect;
-  ctxWithSelections.placedUnderInstanceIdsThisEffect = [];
   try {
     for (const [actionIndex, action] of actions.entries()) {
       // Legacy compiled Reboot records carry a self-Unsuspend action beside the keyword
@@ -621,7 +613,6 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   } finally {
     // `activeTiming` / `activeEffectText` deliberately survive: they are the provenance a decision
     // raised by this resolution is stamped with, and it is read after the resolution returns.
-    ctxWithSelections.placedUnderInstanceIdsThisEffect = outerPlacedUnderInstanceIds;
     ctxWithSelections.effectRestrictions = outerRestrictions;
     mirrorResultBindings(ctxWithSelections, ctx);
   }

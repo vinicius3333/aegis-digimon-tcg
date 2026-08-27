@@ -12,10 +12,6 @@ export interface DefinitionFacts {
   kinds: CardKind[];
   colors: CardColor[];
   level?: number;
-  /** Additional levels a card is treated as having in a temporary zone context. */
-  treatedAsLevels?: number[];
-  /** Additional names a card is treated as having in a temporary zone context. */
-  nameAliases?: string[];
   nameEn: string;
   types?: string[];
   forms?: string[];
@@ -68,7 +64,6 @@ export function parseCopyEffectsFilterText(raw: string): Filter | undefined {
  * (e.g. `hasLevel` excludes Lv.- cards from a level-budget delete).
  */
 export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean {
-  if (filter.cardId !== undefined && def.cardId !== filter.cardId) return false;
   if (filter.forms && filter.forms.length > 0 && !filter.forms.some((form) => def.forms?.includes(form))) return false;
   // A small set of catalog records still uses the legacy `cardType`/`trait`
   // spelling inside `orFilters` (notably BT25-085's dual Option clause).
@@ -127,8 +122,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   if (filter.colorCount !== undefined && def.colors.length !== filter.colorCount) return false;
   if (filter.singleColor === true && def.colors.length !== 1) return false;
   if (filter.levels && filter.levels.length > 0) {
-    const levels = [...(def.level === undefined ? [] : [def.level]), ...(def.treatedAsLevels ?? [])];
-    if (!filter.levels.some((level) => levels.includes(level))) return false;
+    if (def.level === undefined || !filter.levels.includes(def.level)) return false;
   }
   // "HAS a level" gate (BT17-051 level-budget delete, BT18-019 different-levels select): exclude
   // Lv.- cards (Digi-Eggs / level-less Digimon), where `def.level` is undefined or 0 (KB Q2807).
@@ -308,7 +302,6 @@ export function matchNameOrTrait(
   const names = [
     normalizeName(def.nameEn ?? ""),
     ...(def.cardId ? effectiveStaticNames(def as CardDefinition).map(normalizeName) : []),
-    ...(def.nameAliases ?? []).map(normalizeName),
   ];
   const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
   const traits = staticTraitsOf(def as CardDefinition).map(normalizeTrait);

@@ -43,8 +43,7 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card with [Sukamon] or [Etemon] in its name in your hand",
           },
-          optional: true,
-          abortOnDecline: true,
+          optional: false,
         },
       ],
     },
@@ -59,7 +58,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Chuumon"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },

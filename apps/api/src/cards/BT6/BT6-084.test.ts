@@ -1,18 +1,8 @@
-import { effectiveStaticNames, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { universalNameAliasesFor } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-084.js";
 
 describe("BT6-084 Sistermon Ciel", () => {
-  it("Q1470 treats it as Sistermon Noir and Virus in every zone", () => {
-    const definition = getCardDefinition("BT6-084")!;
-
-    expect(effectiveStaticNames(definition)).toEqual(expect.arrayContaining(["Sistermon Ciel", "Sistermon Noir"]));
-    expect(definition.attributes).toContain("Virus");
-    expect(universalNameAliasesFor("BT6-084")).toContain("Sistermon Noir");
-  });
-
   it("gives Huckmon and Royal Knights +2000 DP", async () => {
     const s = setupEngine({
       0: {

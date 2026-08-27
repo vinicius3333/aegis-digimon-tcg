@@ -2,20 +2,10 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { compiled } from "./BT8-069.js";
+import "./BT8-069.js";
 import "./BT8-092.js";
 
 describe("BT8-069 Ouryumon", () => {
-  it("scopes the source-placement watcher to effect-driven additions under your Digimon", () => {
-    const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn")?.actions[0];
-    expect(watcher).toMatchObject({
-      kind: "SubTrigger",
-      event: "onAddDigivolutionCards",
-      sourceFilter: { byEffect: true },
-      triggerFilter: { controllerDefault: "mine", kind: ["Digimon"] },
-    });
-  });
-
   it("places an X Antibody card from hand as its bottom source to delete a play-cost-7-or-less Digimon", async () => {
     const s = setupEngine(
       {
@@ -48,7 +38,7 @@ describe("BT8-069 Ouryumon", () => {
       0: {
         battleArea: [
           {
-            card: "BT9-111",
+            card: "BT6-111",
             as: "alphamon",
             suspended: true,
             under: ["BT8-069"],
@@ -66,7 +56,7 @@ describe("BT8-069 Ouryumon", () => {
   it("unsuspends an Alphamon host through the real combat end window", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT9-111", as: "alphamon", under: ["BT8-069"] }],
+        battleArea: [{ card: "BT9-066", as: "alphamon", under: ["BT8-069"] }],
       },
       1: { security: ["BT1-001"] },
     });

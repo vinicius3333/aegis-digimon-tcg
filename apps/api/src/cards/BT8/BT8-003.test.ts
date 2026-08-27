@@ -6,7 +6,7 @@ describe("BT8-003 Frimon", () => {
   it("gives its host +1000 DP during your turn with at least 3 security", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-034", as: "host", under: ["BT8-003"] }],
+        battleArea: [{ card: "BT8-042", as: "host", under: ["BT8-003"] }],
         security: ["BT8-034", "BT8-034", "BT8-034"],
       },
     });
@@ -17,7 +17,7 @@ describe("BT8-003 Frimon", () => {
   it("does not grant DP with only 2 security cards", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-034", as: "host", under: ["BT8-003"] }],
+        battleArea: [{ card: "BT8-042", as: "host", under: ["BT8-003"] }],
         security: ["BT8-034", "BT8-034"],
       },
     });
@@ -28,7 +28,7 @@ describe("BT8-003 Frimon", () => {
   it("does not grant DP during the opponent's turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-034", as: "host", under: ["BT8-003"] }],
+        battleArea: [{ card: "BT8-042", as: "host", under: ["BT8-003"] }],
         security: ["BT8-034", "BT8-034", "BT8-034"],
       },
     });

@@ -36,7 +36,6 @@ const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
-          allowCostWithoutTarget: true,
         },
         {
           kind: "Draw",
@@ -45,7 +44,6 @@ const compiled: CompiledCard = {
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
-              kind: ["Tamer"],
               nameOrTrait: [
                 {
                   tokens: ["SoC"],

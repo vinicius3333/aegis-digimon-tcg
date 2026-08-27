@@ -25,6 +25,5 @@ describe("BT3-069 RaijiLudomon", () => {
     await settle(() => s.perm("target").topCard.cardId === "BT2-013", 5000);
 
     expect(s.perm("target").topCard.cardId).toBe("BT2-013");
-    expect(s.perm("target").stack).toHaveLength(0);
   });
 });

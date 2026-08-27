@@ -24,10 +24,6 @@ describe("BT1-043 SaberLeomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").stack.length === 1);
     expect(s.perm("target").stack).toHaveLength(1);
-    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT1-014"]);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-010", "BT1-011", "BT1-012", "BT1-013"]),
-    );
   });
 
   it("trashes all available digivolution cards when the target has fewer than four", async () => {

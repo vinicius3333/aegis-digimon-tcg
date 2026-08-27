@@ -37,6 +37,7 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
+          optional: true,
           scaling: {
             per: 1,
             filter: {

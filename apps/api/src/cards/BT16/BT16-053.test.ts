@@ -46,28 +46,4 @@ describe("BT16-053", () => {
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "attackPlayers")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ankylomon"), "Barrier")).toBe(true);
   });
-
-  it("restricts an opponent Digimon from attacking players on digivolution", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT16-049", as: "armadillomon" }], hand: [{ card: "BT16-053", as: "ankylomon" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 2;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("armadillomon").permanentId,
-        instanceId: s.inst("ankylomon").instanceId,
-        useAlternateCost: true,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "attackPlayers"));
-
-    expect(observe(s.engine).isRestricted(s.perm("opponent"), "attackPlayers")).toBe(true);
-    expect(s.perm("armadillomon").topCard?.cardId).toBe("BT16-053");
-  });
 });

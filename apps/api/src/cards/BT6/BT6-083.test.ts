@@ -8,7 +8,7 @@ describe("BT6-083 Eosmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT6-085", under: ["BT6-083"], as: "attacker" }],
+          battleArea: [{ card: "BT6-086", under: ["BT6-083"], as: "attacker" }],
           hand: [{ card: "BT6-092", as: "tamer" }],
         },
         1: { security: ["BT6-074"] },

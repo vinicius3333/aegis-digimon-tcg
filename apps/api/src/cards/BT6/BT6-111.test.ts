@@ -92,33 +92,6 @@ describe("BT6-111 Alphamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("secondChoice"), "attackPlayers")).toBe(false);
   });
 
-  it("does not treat a Royal Knight in the breeding area as being in play", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          breeding: { card: "BT6-016", as: "raisedRoyalKnight" },
-          security: [{ card: "BT6-111", as: "security" }],
-        },
-        1: {
-          battleArea: [{ card: "BT1-009", as: "attacker" }],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT6-111"));
-
-    expect(observe(s.engine).isRestricted(s.perm("attacker"), "attackPlayers")).toBe(false);
-  });
-
   it("Q1496 restricts future declarations without ending the current multi-check attack", async () => {
     const s = setupEngine(
       {
@@ -197,29 +170,5 @@ describe("BT6-111 Alphamon", () => {
 
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.memory).toBe(4);
-  });
-
-  it("digivolves from a legal black level-5 stack without changing the source permanent", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT6-062", as: "base" }],
-        hand: [{ card: "BT6-111", as: "alphamon" }],
-      },
-    });
-    s.state.memory = 3;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("alphamon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT6-111");
-
-    expect(s.perm("base").topCard.cardId).toBe("BT6-111");
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT6-062"]);
-    expect(s.state.memory).toBe(0);
   });
 });

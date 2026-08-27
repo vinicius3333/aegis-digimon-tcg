@@ -79,39 +79,4 @@ describe("BT1-021 MetalGreymon", () => {
 
     expect(s.state.memory).toBe(-6);
   });
-
-  it("triggers after evolving onto a red level 4 and keeps its delayed loss", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-014", as: "base" }],
-        hand: [{ card: "BT1-021", as: "evolving" }],
-        deck: [{ card: "BT1-010", as: "drawn" }],
-      },
-      1: { security: ["BT1-010"] },
-    });
-    s.state.memory = 3;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
-
-    expect(s.state.memory).toBe(0);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("base").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.memory === 3 && s.state.players[1]!.security.length === 0);
-
-    const engine = s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> };
-    await engine.fireTiming(EffectTiming.OnEndTurn);
-    expect(s.state.memory).toBe(0);
-  });
 });

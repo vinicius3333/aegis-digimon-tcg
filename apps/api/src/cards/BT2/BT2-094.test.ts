@@ -8,8 +8,11 @@ import { compiled } from "./BT2-094.js";
 //   Then, 1 of your Digimon gets +2000 DP for the turn.
 // [Security] Add this card to its owner's hand.
 //
-// The shared interpreter's TrashDigivolution primitive executes this source-card choice directly;
-// the test guards the source-trash behavior and the subsequent own-Digimon boost.
+// FAILS-WHEN-REVERTED: The hand-written module trashes a chosen digivolution card from
+// the opponent's Digimon. The declarative effect has the trash-divo-card action as a
+// inert legacy parser fallback — the digivolution card stays in the opponent's stack. The test
+// asserts the digivolution card is in trash after the [Main] fires, which fails with
+// the declarative effect record.
 
 describe("BT2-094 Arctic Blizzard", () => {
   it("matches its official Option and Security text through a direct module import", () => {
@@ -53,7 +56,7 @@ describe("BT2-094 Arctic Blizzard", () => {
         },
         1: {
           // Opponent has a Digimon with a digivolution card in its stack.
-          battleArea: [{ card: "BT1-057", dp: 5000, as: "oppDigimon", under: [{ card: "BT1-051", as: "divoCard" }] }],
+          battleArea: [{ card: "BT1-057", dp: 5000, as: "oppDigimon", under: [{ card: "BT1-029", as: "divoCard" }] }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -111,7 +114,7 @@ describe("BT2-094 Arctic Blizzard", () => {
           hand: [{ card: "BT2-094", as: "option" }],
         },
         1: {
-          battleArea: [{ card: "BT1-057", as: "opponent", under: [{ card: "BT1-051", as: "source" }] }],
+          battleArea: [{ card: "BT1-057", as: "opponent", under: [{ card: "BT1-029", as: "source" }] }],
         },
       },
       { autoSelectCards: true },

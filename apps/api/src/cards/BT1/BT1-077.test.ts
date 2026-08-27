@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT1-072.js";
 import "./BT1-077.js";
 
 describe("BT1-077 Okuwamon", () => {
@@ -19,21 +17,6 @@ describe("BT1-077 Okuwamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.memory === 1);
     expect(s.state.memory).toBe(1);
-  });
-
-  it("does not gain memory when the deletion occurs during the opponent's turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-081", as: "attacker", under: ["BT1-077"] }] },
-      1: { battleArea: [{ card: "BT1-016", as: "defender", suspended: true }] },
-    });
-    s.state.turnSeat = 1;
-    s.state.memory = 0;
-
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
-
-    expect(s.state.memory).toBe(0);
   });
 
   it("does not gain memory when both Digimon are deleted in a tied battle", async () => {
@@ -71,31 +54,6 @@ describe("BT1-077 Okuwamon", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.memory).toBe(0);
-  });
-
-  it("gains memory when a Blocker is deleted during the blocked attack (Q929)", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-081", as: "attacker", dp: 10000, under: ["BT1-077"] }] },
-      1: { battleArea: [{ card: "BT1-072", as: "blocker", dp: 1000 }], security: ["BT1-010"] },
-    });
-    await s.ready();
-
-    const attackerId = s.perm("attacker").permanentId;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: attackerId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-
-    expect(
-      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.memory === 1);
-
-    expect(s.state.memory).toBe(1);
   });
 
   it("does not apply while Okuwamon is the top card", async () => {

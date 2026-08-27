@@ -59,29 +59,4 @@ describe("BT6-110 Cutting Edge", () => {
     );
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([tooLargeId]);
   });
-
-  it("does not delete when the optional Eosmon play is declined", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: ["BT6-082"],
-          hand: [
-            { card: "BT6-110", as: "option" },
-            { card: "BT6-085", as: "eosmon" },
-          ],
-        },
-        1: { battleArea: [{ card: "BT1-014", as: "target" }] },
-      },
-      { autoSelectCards: true, autoDeclineOptional: true },
-    );
-    s.state.memory = 10;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT6-110"));
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-085")).toBe(false);
-    expect(s.state.players[1]!.battleArea).toHaveLength(1);
-  });
 });

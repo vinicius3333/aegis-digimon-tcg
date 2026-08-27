@@ -44,14 +44,14 @@ describe("BT1-114 MetalGreymon", () => {
 
   it("gives its host +3000 DP during its turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-025", under: ["BT1-114"], as: "host", dp: 11000 }] },
+      0: { battleArea: [{ card: "BT1-115", under: ["BT1-114"], as: "host", dp: 10000 }] },
     });
     await s.ready();
 
-    expect(s.perm("host").currentDP).toBe(14000);
+    expect(s.perm("host").currentDP).toBe(13000);
 
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(11000);
+    expect(s.perm("host").currentDP).toBe(10000);
   });
 });

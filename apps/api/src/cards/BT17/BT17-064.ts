@@ -41,11 +41,9 @@ export const compiled: CompiledCard = {
             isSelfRef: true,
           },
           condition: {
-            kind: "attackTargetMatchesFilter",
+            kind: "targetHasNone",
             filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              digivolutionCards: "hasNone",
+              digivolutionCards: "hasAny",
             },
             raw: "when this Digimon attacks an opponent's Digimon with no digivolution cards",
           },
@@ -53,9 +51,13 @@ export const compiled: CompiledCard = {
             {
               kind: "Delete",
               target: {
-                sourceRef: "triggerDefender",
-                filter: {},
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "hasNone",
+                },
                 count: 1,
+                isCombatTarget: true,
               },
             },
           ],

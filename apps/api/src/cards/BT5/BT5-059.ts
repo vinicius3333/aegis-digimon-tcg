@@ -34,7 +34,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Arata Sanada"],
-                    match: "nameExact",
+                    match: "name",
                   },
                 ],
               },

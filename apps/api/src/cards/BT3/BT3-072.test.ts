@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT3-071.js";
 import "./BT3-072.js";
 
 describe("BT3-072 BryweLudramon", () => {
@@ -13,26 +12,5 @@ describe("BT3-072 BryweLudramon", () => {
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
-  });
-
-  it("grants inherited Blocker through a legal black level 5 evolution", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT3-071", as: "base" }],
-        hand: [{ card: "BT3-072", as: "evolving" }],
-      },
-    });
-    s.state.memory = 3;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT3-072");
-
-    expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(true);
   });
 });

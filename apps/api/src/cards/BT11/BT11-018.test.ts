@@ -4,7 +4,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-018.js";
-import "./BT11-019.js";
 
 describe("BT11-018 Shoutmon DX", () => {
   it("matches the catalog and publishes every complete contract", () => {
@@ -31,33 +30,6 @@ describe("BT11-018 Shoutmon DX", () => {
       },
     ]);
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-  });
-
-  it("uses its unconditional names as loose DigiXros aliases", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [
-          { card: "BT11-019", as: "x7" },
-          { card: "BT11-018", as: "dx" },
-          { card: "BT11-031", as: "zeig" },
-        ],
-      },
-    });
-    s.state.memory = 10;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "playCard",
-        instanceId: s.inst("x7").instanceId,
-        digiXros: { materialInstanceIds: [s.inst("dx").instanceId, s.inst("zeig").instanceId] },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 1);
-
-    expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT11-018", "BT11-031"]),
-    );
   });
 
   it("DigiXroses the two distinct materials for 3 memory each", async () => {

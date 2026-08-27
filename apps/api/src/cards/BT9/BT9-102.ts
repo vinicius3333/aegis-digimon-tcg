@@ -34,13 +34,12 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "GrantKeyword",
           target: { filter: { controller: "mine", kind: ["Digimon"], levels: [6], traits: ["Machine"] }, count: "all" },
-          keyword: { keyword: "Rush" },
+          keyword: "Rush",
           duration: "forTheTurn",
           cost: handCost,
           optional: true,
-          includeLaterEntrants: true,
         },
         {
           kind: "GrantStatic",
@@ -49,7 +48,6 @@ export const compiled: CompiledCard = {
           tokens: ["OnPlayBlitzIfHasDigivolutionCard"],
           duration: "forTheTurn",
           condition: { kind: "ifThisEffectActed", raw: "you did" },
-          includeLaterEntrants: true,
         },
       ],
     },

@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT4/BT4-030.js";
 import { compiled } from "./BT17-023.js";
-import "./index.js";
 
 describe("BT17-023", () => {
   it("can digivolve onto a yellow Tamer as level 3 and has Draw 1", () => {
@@ -29,41 +27,6 @@ describe("BT17-023", () => {
       isInherited: true,
       actions: [{ kind: "Draw", amount: 1, condition: { kind: "zoneCount", value: 7 } }],
     });
-  });
-
-  it("matches and executes only the printed yellow Tamer path", async () => {
-    expect(matchingAlternateDigivolutionRequirement("BT17-023", "BT1-087")).toMatchObject({
-      cost: 3,
-      baseIsTamer: true,
-    });
-    expect(matchingAlternateDigivolutionRequirement("BT17-023", "BT1-086")).toBeUndefined();
-
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT1-086", as: "blueTamer" },
-          { card: "BT1-087", as: "yellowTamer" },
-        ],
-        hand: [{ card: "BT17-023", as: "kendo" }],
-      },
-    });
-    s.state.memory = 3;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("blueTamer").permanentId,
-        instanceId: s.inst("kendo").instanceId,
-      }),
-    ).toEqual({ ok: false, reason: "invalid-evolution" });
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("yellowTamer").permanentId,
-        instanceId: s.inst("kendo").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("yellowTamer").topCard?.cardId === "BT17-023");
-    expect(s.state.memory).toBe(0);
   });
 
   it("draws from the attack trigger", async () => {

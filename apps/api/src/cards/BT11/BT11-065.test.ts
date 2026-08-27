@@ -32,13 +32,9 @@ describe("BT11-065 inherited: Vemmon returned from this Digimon's stack to deck 
       dp: 6000,
     });
     expect(compiled.effects).toMatchObject([
-      {
-        trigger: "WhenDigivolving",
-        actions: [{ kind: "PlaceUnder", position: "bottom" }, { kind: "Return", to: "hand" }],
-      },
+      { trigger: "WhenDigivolving", actions: [{ kind: "PlaceUnder" }, { kind: "Return", to: "hand" }] },
       { trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger" }] },
     ]);
-    expect(compiled.effects[0]?.actions[1]).not.toHaveProperty("optional");
   });
 
   it("returning a [Vemmon] to the deck bottom unsuspends the host", async () => {
@@ -128,7 +124,7 @@ describe("BT11-065 when digivolving", () => {
       {
         0: {
           battleArea: [
-            { card: VEMMON, as: "base", under: [{ card: VEMMON, as: "preexisting" }] },
+            { card: VEMMON, as: "base", under: [VEMMON] },
             { card: "BT1-010", as: "neighbor" },
           ],
           hand: [{ card: SNATCH, as: "snatch" }],
@@ -153,7 +149,6 @@ describe("BT11-065 when digivolving", () => {
     await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT11-105"));
 
     expect(s.perm("base").stack.filter(({ cardId }) => cardId === VEMMON)).toHaveLength(4);
-    expect(s.perm("base").stack.at(-1)?.instanceId).toBe(s.inst("preexisting").instanceId);
     expect(s.perm("neighbor").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT11-105");
     expect(s.state.players[0]!.trash).toHaveLength(0);

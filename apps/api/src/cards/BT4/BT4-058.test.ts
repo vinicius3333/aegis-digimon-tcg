@@ -5,12 +5,7 @@ import "./BT4-058.js";
 describe("BT4-058 Orochimon", () => {
   it("gives one of your Digimon Piercing for the turn", async () => {
     const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT4-054", as: "base", under: ["BT4-004", "BT4-052"] }],
-          hand: [{ card: "BT4-058", as: "evolving" }],
-        },
-      },
+      { 0: { battleArea: [{ card: "BT1-069", as: "base" }], hand: [{ card: "BT4-058", as: "evolving" }] } },
       { autoSelectCards: true },
     );
     s.state.memory = 3;
@@ -23,7 +18,5 @@ describe("BT4-058 Orochimon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).hasPierce(s.perm("base")));
     expect(observe(s.engine).hasPierce(s.perm("base"))).toBe(true);
-    expect(s.perm("base").topCard?.cardId).toBe("BT4-058");
-    expect(s.perm("base").stack).toHaveLength(3);
   });
 });

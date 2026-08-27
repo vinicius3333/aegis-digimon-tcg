@@ -1,30 +1,12 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { definitionOf } from "../../engine/cards/cardData.js";
-import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT15/BT15-088.js";
-import { compiled } from "./BT13-010.js";
+import "./BT13-010.js";
 import "./BT13-014.js";
 
 describe("BT13-010 Biyomon", () => {
-  it("keeps Garudamon and Kristy Damon bracket references exact", () => {
-    const action = compiled.effects[0]!.actions[0] as unknown as {
-      into: { nameOrTrait: [{ tokens: string[]; match: string }] };
-      cost: { target: { filter: { nameOrTrait: [{ tokens: string[]; match: string }] } } };
-    };
-    const garudamonReference = action.into.nameOrTrait[0]!;
-    const kristyReference = action.cost.target.filter.nameOrTrait[0]!;
-
-    expect(garudamonReference).toEqual({ tokens: ["Garudamon"], match: "nameExact" });
-    expect(kristyReference).toEqual({ tokens: ["Kristy Damon"], match: "nameExact" });
-    expect(matchNameOrTrait(definitionOf("BT13-014"), garudamonReference as never)).toBe(true);
-    expect(matchNameOrTrait(definitionOf("BT16-011"), garudamonReference as never)).toBe(false);
-    expect(matchNameOrTrait({ nameEn: "Kristy Damon" }, kristyReference as never)).toBe(true);
-    expect(matchNameOrTrait({ nameEn: "Kristy Damon & Marcus Damon" }, kristyReference as never)).toBe(false);
-  });
-
   it("when played by an effect, may return Kristy Damon and digivolve into Garudamon for free", async () => {
     const s = setupEngine(
       {

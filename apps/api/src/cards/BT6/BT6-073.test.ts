@@ -7,7 +7,7 @@ describe("BT6-073 Ginkakumon", () => {
   it("gains 1 memory only once per turn when cards are trashed from hand by effects", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT6-076", under: ["BT6-073"], as: "host" }],
+        battleArea: [{ card: "BT1-010", under: ["BT6-073"], as: "host" }],
         hand: [
           { card: "BT1-011", as: "first" },
           { card: "BT1-012", as: "second" },

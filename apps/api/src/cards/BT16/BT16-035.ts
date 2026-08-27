@@ -60,20 +60,6 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [
-    {
-      colors: ["Yellow"],
-      level: 5,
-      cost: 3,
-      isAlternate: true,
-    },
-    {
-      colors: ["Black"],
-      level: 5,
-      cost: 3,
-      isAlternate: true,
-    },
-  ],
 };
 
 registerIrCard("BT16-035", compiled);

@@ -1,23 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-015.js";
 
 describe("BT7-015 AvengeKidmon", () => {
-  it("declares the hand-play reducer in the BeforePayCost IR window", () => {
-    const costEffect = runtimeCompiledCard("BT7-015")?.effects.find(
-      (effect) => effect.trigger === "BeforePayCost",
-    );
-
-    expect(costEffect?.actions[0]).toMatchObject({
-      kind: "CostModifier",
-      costType: "play",
-      handResident: true,
-      target: { filter: { isSelfRef: true }, isSelf: true },
-    });
-  });
-
   it("Q1517 reduces its play cost for Option cards in both players' trashes", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT7-015", as: "source" }], trash: ["BT7-092"] },

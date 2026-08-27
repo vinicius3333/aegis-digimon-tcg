@@ -1,24 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { compiled } from "./BT13-009.js";
+import "./BT13-009.js";
 
 describe("BT13-009 Huckmon", () => {
-  it("keeps the BaoHuckmon destination exact while Sistermon remains a name family", () => {
-    const digivolve = compiled.effects[0]!.actions[0] as unknown as {
-      sourceFilter: { nameOrTrait: [{ tokens: string[]; match: string }] };
-      actions: [{ into: { nameOrTrait: [{ tokens: string[]; match: string }] } }];
-    };
-    const sourceReference = digivolve.sourceFilter.nameOrTrait[0]!;
-    const destinationReference = digivolve.actions[0].into.nameOrTrait[0]!;
-
-    expect(sourceReference).toEqual({ tokens: ["Sistermon"], match: "name" });
-    expect(destinationReference).toEqual({ tokens: ["BaoHuckmon"], match: "nameExact" });
-    expect(matchNameOrTrait({ nameEn: "Sistermon Ciel" }, sourceReference as never)).toBe(true);
-    expect(matchNameOrTrait({ nameEn: "BaoHuckmon" }, destinationReference as never)).toBe(true);
-    expect(matchNameOrTrait({ nameEn: "BaoHuckmon: Werewolf Mode" }, destinationReference as never)).toBe(false);
-  });
-
   it("may digivolve into BaoHuckmon from hand for free when its controller plays a Sistermon", async () => {
     const s = setupEngine(
       {

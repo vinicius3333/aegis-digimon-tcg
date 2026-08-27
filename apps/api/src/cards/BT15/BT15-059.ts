@@ -89,9 +89,19 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
-      actions: [],
+      actions: [
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+        },
+      ],
       isInherited: true,
-      keywords: [{ keyword: "Reboot", raw: "＜Reboot＞" }],
     },
   ],
   coverage: "full",

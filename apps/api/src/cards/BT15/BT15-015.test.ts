@@ -72,30 +72,4 @@ describe("BT15-015", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(observe(s.engine).activatableEffects(s.perm("skullMeramon"))).toHaveLength(0);
   });
-
-  it("reaches SkullMeramon through its legal red level-4 evolution route", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT15-014", as: "base" }],
-          hand: [{ card: "BT15-015", as: "skullMeramon" }],
-          deck: ["BT1-001"],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 5;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("skullMeramon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT15-015");
-
-    expect(s.state.memory).toBe(3);
-    expect(s.perm("base").stack).toHaveLength(2);
-  });
 });

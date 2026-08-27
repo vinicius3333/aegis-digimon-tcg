@@ -2,8 +2,8 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-fixed IR for BT5-031 (MetalGarurumon).
-// BT6-002 Q1399: returning a Digimon tears down its attached sources by rule and
-// does not count as trashing digivolution cards by an effect.
+// Returning a Digimon moves its digivolution cards to trash through the canonical
+// Return primitive, so no post-return stack action is necessary.
 const compiled: CompiledCard = {
   effects: [
     {

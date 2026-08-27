@@ -8,7 +8,7 @@ describe("BT11-108 DG Dimension", () => {
     expect(getCardDefinition("BT11-108")).toMatchObject({ cardId: "BT11-108", colors: ["Black"], kinds: ["Option"], playCost: 8 });
     expect(compiled.effects).toMatchObject([
       { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed" }] },
-      { trigger: "Main", actions: [{ kind: "DeDigivolve", amount: 1, stopAtLevel: 3 }, { kind: "Delete", target: { filter: { playCostLte: 6 } } }] },
+      { trigger: "Main", actions: [{ kind: "DeDigivolve", amount: 1 }, { kind: "Trash" }, { kind: "Delete", target: { filter: { playCostLte: 6 } } }] },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
     ]);
   });
@@ -49,14 +49,5 @@ describe("BT11-108 DG Dimension", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
     await settle();
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("expensive").permanentId)).toBe(true);
-  });
-
-  it("encodes the level-3 reminder on De-Digivolve instead of trashing a level-3 top card", () => {
-    const main = compiled.effects.find((effect) => effect.trigger === "Main");
-    expect(main?.actions).toEqual([
-      expect.objectContaining({ kind: "DeDigivolve", amount: 1, stopAtLevel: 3 }),
-      expect.objectContaining({ kind: "Delete" }),
-    ]);
-    expect(main?.actions.some(({ kind }) => kind === "Trash")).toBe(false);
   });
 });

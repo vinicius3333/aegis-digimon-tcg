@@ -13,8 +13,7 @@ export const compiled: CompiledCard = {
             upTo: true,
             from: ["trash"],
           },
-          underFilter: { isSelfRef: true },
-          position: "bottom",
+          underFilter: { controllerDefault: "mine", kind: ["Digimon"] },
           optional: true,
         },
         {
@@ -26,6 +25,7 @@ export const compiled: CompiledCard = {
             count: 8,
             raw: "there are 8 or more [Vemmon] in this Digimon's digivolution cards",
           },
+          optional: true,
         },
       ],
     },
@@ -40,7 +40,7 @@ export const compiled: CompiledCard = {
             {
               kind: "Prevent",
               cost: {
-                kind: "return",
+                kind: "place",
                 target: {
                   filter: {
                     zone: "digivolutionCards",
@@ -53,7 +53,6 @@ export const compiled: CompiledCard = {
                   from: ["digivolutionCards"],
                 },
                 raw: "by placing 4 [Vemmon] from this Digimon's digivolution cards at the bottom of their owners' decks",
-                to: "deckBottom",
               },
               optional: true,
               abortOnDecline: true,
@@ -69,6 +68,5 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["Snatchmon"], cost: 9, isAlternate: true }],
 };
 registerIrCard("BT11-111", compiled);

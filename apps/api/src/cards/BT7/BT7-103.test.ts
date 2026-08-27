@@ -1,28 +1,11 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-103.js";
 
 describe("BT7-103 Mugen", () => {
-  it("restricts the same opposing Digimon that the preceding action suspended", () => {
-    const whenDigivolving = runtimeCompiledCard("BT7-103")?.effects.find(
-      (effect) => effect.trigger === "Main",
-    );
-
-    expect(whenDigivolving?.actions[1]).toMatchObject({
-      kind: "Restrict",
-      target: {
-        sameTarget: true,
-        filter: { controllerDefault: "opponent", kind: ["Digimon"] },
-      },
-      restriction: "unsuspend",
-      duration: "untilOpponentTurnEnd",
-    });
-  });
-
   it("suspends one opposing Digimon and prevents that same Digimon from unsuspending", async () => {
     const s = setupEngine(
       {

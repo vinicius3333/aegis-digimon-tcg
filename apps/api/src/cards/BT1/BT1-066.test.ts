@@ -6,7 +6,7 @@ describe("BT1-066 Tentomon", () => {
   it("suspends an opposing Digimon with 3000 DP or less when its Digimon attacks", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-070", as: "attacker", under: ["BT1-066"] }] },
+        0: { battleArea: [{ card: "BT1-068", as: "attacker", under: ["BT1-066"] }] },
         1: { battleArea: [{ card: "BT1-016", as: "target", dp: 3000 }], security: ["BT1-010"] },
       },
       { autoSelectCards: true },
@@ -24,7 +24,7 @@ describe("BT1-066 Tentomon", () => {
 
   it("does not suspend an opposing Digimon with 4000 DP", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-070", as: "attacker", under: ["BT1-066"] }] },
+      0: { battleArea: [{ card: "BT1-068", as: "attacker", under: ["BT1-066"] }] },
       1: { battleArea: [{ card: "BT1-016", as: "target", dp: 4000 }], security: ["BT1-010"] },
     });
 

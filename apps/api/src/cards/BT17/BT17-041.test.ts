@@ -1,25 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-041.js";
 import "./index.js";
 
 describe("BT17-041 ShineGreymon: Burst Mode", () => {
-  it("matches the catalog identity and printed evolution route", () => {
-    expect(getCardDefinition("BT17-041")).toMatchObject({
-      cardId: "BT17-041",
-      colors: ["Yellow"],
-      level: 7,
-      playCost: 8,
-      dp: 15000,
-      evoCosts: [{ color: "Yellow", level: 6, memoryCost: 5 }],
-    });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["ShineGreymon"], cost: 4, isAlternate: true },
-    ]);
-  });
-
   it("has Blast Digivolve and plays a Tamer before reducing an opponent's DP per Tamer", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "Counter")?.keywords).toEqual([
       { keyword: "BlastDigivolve", raw: "＜Blast Digivolve＞" },

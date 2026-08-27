@@ -7,7 +7,7 @@ describe("BT2-034 Salamon", () => {
   it("recovers 1 from deck on deletion with 3 or fewer security", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-034", as: "salamon", under: ["BT2-003"] }],
+        battleArea: [{ card: "BT2-034", as: "salamon" }],
         security: ["BT1-010", "BT1-011", "BT1-012"],
         deck: [{ card: "BT1-013", as: "recovery" }],
       },
@@ -20,7 +20,7 @@ describe("BT2-034 Salamon", () => {
   it("does not recover when its controller already has 4 security cards", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-034", as: "salamon", under: ["BT2-003"] }],
+        battleArea: [{ card: "BT2-034", as: "salamon" }],
         security: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         deck: [{ card: "BT1-014", as: "topDeck" }],
       },
@@ -37,8 +37,8 @@ describe("BT2-034 Salamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT2-034", as: "first", under: ["BT2-003"] },
-          { card: "BT2-034", as: "second", under: ["BT2-003"] },
+          { card: "BT2-034", as: "first" },
+          { card: "BT2-034", as: "second" },
         ],
         security: ["BT1-010", "BT1-011", "BT1-012"],
         deck: ["BT1-013", "BT1-014"],

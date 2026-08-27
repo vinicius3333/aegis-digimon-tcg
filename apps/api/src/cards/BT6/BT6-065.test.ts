@@ -11,7 +11,7 @@ describe("BT6-065 Gundramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT6-065", under: ["BT6-061"], as: "gundramon" }],
+          battleArea: [{ card: "BT6-065", as: "gundramon" }],
           deck: [{ card: "BT6-109", as: "option" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
         1: { battleArea: [{ card: "BT6-030", as: "target" }] },
@@ -32,7 +32,7 @@ describe("BT6-065 Gundramon", () => {
   it("publishes all five revealed card identities before using the selected Option", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT6-065", under: ["BT6-061"], as: "gundramon" }],
+        battleArea: [{ card: "BT6-065", as: "gundramon" }],
         deck: [
           { card: "BT6-109", as: "option" },
           { card: "BT1-010", as: "otherOne" },
@@ -71,7 +71,7 @@ describe("BT6-065 Gundramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT6-065", under: ["BT6-061"], as: "gundramon" }],
+          battleArea: [{ card: "BT6-065", as: "gundramon" }],
           deck: [{ card: "BT6-109", as: "option" }, "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target" }] },

@@ -5,10 +5,7 @@ describe("BT4-055 Leomon", () => {
   it("suspends an opposing 3000 DP or lower Digimon", async () => {
     const s = setupEngine(
       {
-        0: {
-          battleArea: [{ card: "BT4-051", as: "base", under: ["BT4-004"] }],
-          hand: [{ card: "BT4-055", as: "evolving" }],
-        },
+        0: { battleArea: [{ card: "BT1-064", as: "base" }], hand: [{ card: "BT4-055", as: "evolving" }] },
         1: { battleArea: [{ card: "BT2-025", as: "target" }] },
       },
       { autoSelectCards: true },
@@ -28,10 +25,7 @@ describe("BT4-055 Leomon", () => {
   it("does not suspend an opposing Digimon with more than 3000 DP", async () => {
     const s = setupEngine(
       {
-        0: {
-          battleArea: [{ card: "BT4-051", as: "base", under: ["BT4-004"] }],
-          hand: [{ card: "BT4-055", as: "evolving" }],
-        },
+        0: { battleArea: [{ card: "BT1-064", as: "base" }], hand: [{ card: "BT4-055", as: "evolving" }] },
         1: { battleArea: [{ card: "BT2-025", dp: 4000, as: "target" }] },
       },
       { autoSelectCards: true },

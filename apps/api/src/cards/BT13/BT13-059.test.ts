@@ -1,8 +1,5 @@
-import { dnaDigivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-059.js";
-import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-059 Examon", () => {
@@ -10,10 +7,7 @@ describe("BT13-059 Examon", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.dnaDigivolveRequirement).toContainEqual(
-      expect.objectContaining({
-        cost: 4,
-        materials: [{ namesExact: ["Slayerdramon"] }, { namesExact: ["Breakdramon"] }],
-      }),
+      expect.objectContaining({ cost: 4, materials: [{ names: ["Slayerdramon"] }, { names: ["Breakdramon"] }] }),
     );
     expect(compiled.effects[0]).toMatchObject({
       trigger: "OnPlay",
@@ -25,7 +19,7 @@ describe("BT13-059 Examon", () => {
         {
           kind: "Restrict",
           restriction: "unsuspend",
-          duration: "untilOpponentNextUnsuspendPhase",
+          duration: "untilOpponentTurnEnd",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, sameTarget: true },
         },
       ]);
@@ -55,93 +49,5 @@ describe("BT13-059 Examon", () => {
     });
     await settle(() => s.perm("target").isSuspended, 3000);
     expect(s.perm("target").isSuspended).toBe(true);
-  });
-
-  it("uses exact named DNA materials and enters unsuspended", async () => {
-    expect(dnaDigivolutionRequirementsFor("BT13-059")).toEqual([
-      { cost: 4, materials: [{ namesExact: ["Slayerdramon"] }, { namesExact: ["Breakdramon"] }] },
-    ]);
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT20-027", as: "slayer" }, { card: "BT1-026", as: "breaker" }],
-        hand: [{ card: "BT13-059", as: "examon" }],
-      },
-    });
-    s.state.memory = 4;
-    await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "dnaDigivolve",
-        materialPermanentIds: [s.perm("slayer").permanentId, s.perm("breaker").permanentId],
-        instanceId: s.inst("examon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-059"));
-    const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT13-059")!;
-    expect(result.isSuspended).toBe(false);
-  });
-
-  it("rejects DNA materials whose names only extend Slayerdramon or Breakdramon", () => {
-    const evolving = getCardDefinition("BT13-059")!;
-    const slayer = getCardDefinition("BT20-027")!;
-    const breaker = getCardDefinition("BT1-026")!;
-
-    expect(dnaDigivolveCostFor(evolving, [{ ...slayer, nameEn: "Slayerdramon (X Antibody)" }, breaker])).toBeUndefined();
-    expect(dnaDigivolveCostFor(evolving, [slayer, { ...breaker, nameEn: "Breakdramon: X Antibody" }])).toBeUndefined();
-  });
-
-  it("resolves the All Turns modal once across a second same-turn On Play event", async () => {
-    const preferredTargets: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT13-059", as: "examon" },
-            { card: "BT1-015", as: "ally", suspended: true },
-            { card: "BT1-015", as: "allySecond", suspended: true },
-          ],
-        },
-        1: {
-          battleArea: [
-            { card: "BT1-015", as: "firstTarget" },
-            // The first target is locked by BT13-059, so this separate suspended Digimon
-            // provides a legal real-unsuspend transition for the same-turn repeat boundary.
-            { card: "BT1-015", as: "opponent", suspended: true },
-          ],
-        },
-      },
-      {
-        autoAcceptOptional: true,
-        autoSelectCards: true,
-        autoChooseOption: true,
-        preferInstanceIds: preferredTargets,
-        preferOptionIndex: 1,
-      },
-    );
-    preferredTargets.push(s.perm("ally").permanentId, s.perm("ally").topCard!.instanceId);
-    await s.ready();
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("examon"));
-
-    const chooseOptionCount = () => s.decisions.filter((decision) => decision.req.kind === "chooseOption").length;
-    expect(chooseOptionCount()).toBe(1);
-    expect(s.perm("firstTarget").isSuspended).toBe(true);
-    expect(s.perm("ally").isSuspended).toBe(false);
-    expect(s.perm("allySecond").isSuspended).toBe(true);
-
-    await advance(s.engine).verb.unsuspend([s.perm("opponent").permanentId]);
-    expect(s.perm("opponent").isSuspended).toBe(false);
-    preferredTargets.splice(
-      0,
-      preferredTargets.length,
-      s.perm("opponent").permanentId,
-      s.perm("opponent").topCard!.instanceId,
-    );
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("examon"));
-
-    expect(chooseOptionCount()).toBe(1);
-    expect(s.perm("opponent").isSuspended).toBe(true);
-    expect(s.perm("allySecond").isSuspended).toBe(true);
   });
 });

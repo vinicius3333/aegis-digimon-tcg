@@ -11,9 +11,7 @@ describe("BT1-069 Ogremon", () => {
   });
 
   it("does not grant Jamming while it is a digivolution card", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-081", as: "host", under: ["BT1-069", "BT1-075"] }] },
-    });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-081", as: "host", under: ["BT1-069"] }] } });
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(false);

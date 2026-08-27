@@ -16,7 +16,7 @@ const multicolorCondition = {
   ],
 };
 
-export const compiled: CompiledCard = {
+const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",

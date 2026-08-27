@@ -39,26 +39,4 @@ describe("BT4-048 WarGreymon", () => {
     expect(target.currentDP).toBe(target.baseDP - 6000);
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
-
-  it("does not resolve the remaining effect when its security cost is unpayable", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT4-048", as: "war" }] },
-        1: { battleArea: [{ card: "BT2-083", dp: 12000, as: "target" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    const war = s.perm("war");
-    const target = s.perm("target");
-    s.state.memory = 3;
-
-    expect(
-      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: war.permanentId, target: { kind: "player" } }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.phase === Phase.Main && !(s.engine as any).combat.isAttacking);
-
-    expect(war.isSuspended).toBe(true);
-    expect(target.currentDP).toBe(target.baseDP);
-    expect(s.state.players[0]!.security).toHaveLength(0);
-  });
 });

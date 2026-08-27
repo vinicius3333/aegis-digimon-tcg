@@ -21,7 +21,7 @@ describe("BT13-052 SymbareAngoramon", () => {
           effect: { kind: "modifyDP", amount: 1000 },
           while: {
             kind: "opponentHasNone",
-            filter: { controllerDefault: "opponent", zone: "battleArea", unsuspended: true, kind: ["Digimon"] },
+            filter: { controllerDefault: "opponent", unsuspended: true, kind: ["Digimon"] },
             raw: expect.stringContaining("no unsuspended Digimon"),
           },
         },
@@ -55,16 +55,6 @@ describe("BT13-052 SymbareAngoramon", () => {
     s.perm("opponent").isSuspended = false;
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(4000);
-  });
-
-  it("does not count an unsuspended opposing breeding Digimon for the inherited bonus", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-051", as: "host", under: ["BT13-052"] }] },
-      1: { breeding: { card: "BT1-015", as: "breedingOpponent" } },
-    });
-    await s.ready();
-
-    expect(s.perm("host").currentDP).toBe(5000);
   });
 
   it("digivolves from a green level 3 for exactly 2 memory", async () => {

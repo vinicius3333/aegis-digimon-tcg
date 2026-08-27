@@ -1,18 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { compiled } from "./BT8-053.js";
 import "./BT8-053.js";
 
 describe("BT8-053 Lighdramon", () => {
-  it("uses only the catalog's green level-3 evolution requirement", () => {
-    expect(compiled).not.toHaveProperty("digivolutionRequirement");
-  });
-
   it("suspends an opposing level-4-or-lower Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT8-046", as: "base" }], hand: [{ card: "BT8-053", as: "evolving" }] },
+        0: { battleArea: [{ card: "BT8-021", as: "base" }], hand: [{ card: "BT8-053", as: "evolving" }] },
         1: {
           battleArea: [
             { card: "BT1-015", as: "target" },
@@ -22,7 +17,7 @@ describe("BT8-053 Lighdramon", () => {
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 5;
+    s.state.memory = 4;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

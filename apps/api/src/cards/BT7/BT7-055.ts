@@ -16,8 +16,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  *
  * The [Opponent's Turn] effect grants an unsuspend cost to each opponent Digimon. This
  * requires engine-level support for per-permanent unsuspend costs (GrantUnsuspendCost).
- * The OpponentsTurn trigger installs the cost gate only during the opponent's turn; the
- * engine's unsuspend path consults the continuous ledger for active unsuspend-cost requirements.
+ * Modeled here as a static modifier that installs the cost gate; the engine's unsuspend
+ * path consults the continuous ledger for active unsuspend-cost requirements.
  */
 const compiled: CompiledCard = {
   effects: [
@@ -33,11 +33,11 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "OpponentsTurn",
+      trigger: "Static",
       actions: [
         {
           kind: "Restrict",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 99 },
           restriction: "unsuspendHandTrashCost",
           duration: "untilOpponentTurnEnd",
         },

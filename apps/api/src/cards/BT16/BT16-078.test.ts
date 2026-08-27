@@ -43,7 +43,6 @@ describe("BT16-078", () => {
       actions: [{ kind: "SubTrigger", sourceFilter: { excludeSelf: true, kind: ["Digimon"] } }],
     });
     expect(compiled.effects?.[2]?.actions?.[0]).not.toMatchObject({ sourceFilter: { controllerDefault: "mine" } });
-    expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({ sourceFilter: { deleteCause: "byEffect" } });
   });
 
   it("can delete your own low-level Digimon and react to that effect deletion", async () => {

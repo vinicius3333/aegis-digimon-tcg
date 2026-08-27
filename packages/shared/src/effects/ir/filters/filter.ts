@@ -49,12 +49,10 @@ export interface Target {
   isSelf?: boolean;
   /**
    * On a `Trash` target: trash each permanent's TOP CARD and promote the card beneath, rather
-   * than treating the permanent as a loose card. On a `Return` cost, return only that visible top
-   * card and promote the card beneath while leaving the permanent in play.
+   * than treating the permanent as a loose card.
    *
-   * "Trash the top card of 1 of your Digimon" (BT8-110), "return the top card of one of your
-   * [Leopardmon: Leopard Mode]" (BT13-107), and "trash/return 1 of your Digimon" reach the
-   * interpreter as similar shapes but mean different things. The prose compiler cannot yet tell
+   * "Trash the top card of 1 of your Digimon" (BT8-110) and "trash 1 of your Digimon" reach the
+   * interpreter as the same shape but mean different things. The prose compiler cannot yet tell
    * them apart, so this is set by hand on the affected card's module.
    */
   topCardOnly?: boolean;

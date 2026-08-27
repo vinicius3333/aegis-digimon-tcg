@@ -8,7 +8,7 @@ describe("BT8-006 DemiMeramon", () => {
   it("draws once when an effect trashes cards from the deck", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-076", as: "base", under: ["BT8-006", "BT8-072"] }],
+        battleArea: [{ card: "BT8-076", as: "base", under: ["BT8-006"] }],
         hand: [{ card: "BT8-079", as: "evolving" }],
         deck: ["BT8-033", "BT8-034", { card: "BT8-035", as: "drawn" }],
       },
@@ -32,7 +32,7 @@ describe("BT8-006 DemiMeramon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT8-076", as: "host", under: ["BT8-006", "BT8-072"] }],
+          battleArea: [{ card: "BT8-076", as: "host", under: ["BT8-006"] }],
           hand: [{ card: "BT8-072", as: "demidevimon" }],
           deck: [
             { card: "BT8-092", as: "tamer" },

@@ -1,28 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-045.js";
 import "./index.js";
 
 describe("BT17-045 Argomon", () => {
-  it("matches the catalog identity and alternate Argomon evolution", () => {
-    expect(getCardDefinition("BT17-045")).toMatchObject({
-      cardId: "BT17-045",
-      colors: ["Green", "Purple"],
-      level: 4,
-      playCost: 5,
-      dp: 5000,
-      evoCosts: [
-        { color: "Green", level: 3, memoryCost: 3 },
-        { color: "Purple", level: 3, memoryCost: 3 },
-      ],
-    });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Argomon"], cost: 2, isAlternate: true },
-    ]);
-  });
-
   it("may play Rhythm from hand when no Rhythm is in play after digivolving", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",

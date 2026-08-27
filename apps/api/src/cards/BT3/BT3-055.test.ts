@@ -5,9 +5,7 @@ import "./BT3-055.js";
 
 describe("BT3-055 Dinobeemon", () => {
   it("has Piercing and Jamming", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-055", as: "dinobeemon", under: ["BT2-044"] }] },
-    });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT3-055", as: "dinobeemon" }] } });
 
     await s.engine.recomputeContinuousEffects();
 

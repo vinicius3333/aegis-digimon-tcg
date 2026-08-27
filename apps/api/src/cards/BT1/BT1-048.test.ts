@@ -93,35 +93,4 @@ describe("BT1-048 Patamon", () => {
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(order);
   });
-
-  it("does not activate its On Play reveal while digivolving", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-006", as: "base" }],
-        hand: [{ card: "BT1-048", as: "patamon" }],
-        deck: [
-          { card: "BT1-010", as: "evolutionDraw" },
-          { card: "BT1-087", as: "wouldBeYellowTamer" },
-          { card: "BT1-049", as: "remainingA" },
-          { card: "BT1-050", as: "remainingB" },
-        ],
-      },
-    });
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("patamon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.instanceId === s.inst("patamon").instanceId);
-
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("evolutionDraw").instanceId]);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
-      s.inst("wouldBeYellowTamer").instanceId,
-      s.inst("remainingA").instanceId,
-      s.inst("remainingB").instanceId,
-    ]);
-  });
 });

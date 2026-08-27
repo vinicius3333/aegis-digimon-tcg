@@ -6,6 +6,13 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
+  digivolutionRequirement: [
+    {
+      namesExact: ["Armadillomon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
   effects: [
     {
       trigger: "Static",
@@ -39,7 +46,5 @@ const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
 };
-
-export { compiled };
 
 registerIrCard("BT8-051", compiled);

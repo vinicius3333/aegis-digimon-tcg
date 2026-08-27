@@ -10,7 +10,7 @@ const highCap: CompiledCard["effects"][number]["condition"] = {
   ],
 };
 
-export const compiled: CompiledCard = {
+const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",

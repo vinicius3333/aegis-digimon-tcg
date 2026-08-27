@@ -24,12 +24,12 @@ describe('BT8-031 FrosVelgrmon — granted "[When Attacking] Trash the bottom di
         1: {
           battleArea: [
             {
-              card: "BT1-014",
+              card: "BT1-009",
               dp: 3000,
               as: "attacker",
               under: [
-                { card: "BT1-001", as: "bottomCard" },
-                { card: "BT1-009", as: "topCard" },
+                { card: "BT1-014", as: "bottomCard" },
+                { card: "BT1-001", as: "topCard" },
               ],
             },
           ],
@@ -82,12 +82,12 @@ describe('BT8-031 FrosVelgrmon — granted "[When Attacking] Trash the bottom di
         1: {
           battleArea: [
             {
-              card: "BT1-014",
+              card: "BT1-009",
               dp: 3000,
               as: "attacker",
               under: [
-                { card: "BT1-001", as: "bottomCard" },
-                { card: "BT1-009", as: "topCard" },
+                { card: "BT1-014", as: "bottomCard" },
+                { card: "BT1-001", as: "topCard" },
               ],
             },
           ],

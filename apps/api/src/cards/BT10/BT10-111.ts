@@ -45,14 +45,20 @@ const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "DigiXrosSubstitute" },
-          duration: "forTheTurn",
+          duration: "untilOwnerTurnEnd",
         },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
       ],
     },
   ],
   coverage: "full",
   residual: [],
-  digiXrosRequirement: [{ materials: [{ traits: ["Xros Heart"] }], count: 2 }],
 };
 
 registerIrCard("BT10-111", compiled);

@@ -13,7 +13,6 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              zone: "trash",
               nameOrTrait: [
                 {
                   tokens: ["X Antibody"],
@@ -23,7 +22,6 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          position: "bottom",
         },
       ],
     },

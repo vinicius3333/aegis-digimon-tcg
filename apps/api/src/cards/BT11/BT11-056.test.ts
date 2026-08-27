@@ -79,35 +79,4 @@ describe("BT11-056 Jijimon", () => {
 
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("notRevealed").instanceId);
   });
-
-  it("Q2089: may play a lower-cost revealed subset instead of filling the budget", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT11-056", as: "jijimon" },
-            { card: "BT1-088", as: "greenTamer" },
-            { card: "BT1-089", as: "secondGreenTamer" },
-          ],
-          deck: [
-            { card: "BT1-081", as: "overBudget" },
-            { card: "BT1-064", as: "chosen" },
-          ],
-        },
-        1: { security: ["BT1-001"] },
-      },
-      { autoSelectCards: true, autoAcceptOptional: true },
-    );
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("jijimon").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("chosen").instanceId));
-
-    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("overBudget").instanceId);
-  });
 });

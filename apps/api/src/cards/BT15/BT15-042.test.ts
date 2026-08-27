@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 import { compiled } from "./BT15-042.js";
 
@@ -24,7 +23,7 @@ describe("BT15-042", () => {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
           sourceFilter: { controller: "mine" },
-          actions: [{ kind: "SecurityManipulation", op: "placeAsSecurity", from: ["hand"], position: "choice" }],
+          actions: [{ kind: "SecurityManipulation", op: "placeAsSecurity", from: ["hand"] }],
         },
       ],
     }));
@@ -45,59 +44,5 @@ describe("BT15-042", () => {
     expect(s.perm("target").currentDP).toBe(1000);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
-  });
-
-  it("places a yellow hand card at the chosen bottom after own security removal", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT15-042", as: "magnadramon" }],
-          hand: [{ card: "BT15-033", as: "yellow" }],
-          security: [
-            { card: "BT1-001", as: "top" },
-            { card: "BT1-002", as: "bottom" },
-          ],
-        },
-        1: { security: ["BT1-003"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
-    );
-
-    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
-    await settle(() => s.state.players[0]!.security.length === 2);
-
-    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("bottom").instanceId,
-      s.inst("yellow").instanceId,
-    ]);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("top").instanceId);
-  });
-
-  it("digivolves legally from a level-5 yellow Digimon and preserves the source stack", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT1-060", as: "yellowBase" }],
-          hand: [{ card: "BT15-042", as: "magnadramon" }],
-          security: [{ card: "BT1-001", as: "cost" }],
-        },
-        1: { battleArea: [{ card: "BT1-009", dp: 10000, as: "target" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
-    );
-    s.state.memory = 3;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("yellowBase").permanentId,
-        instanceId: s.inst("magnadramon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("yellowBase").topCard?.cardId === "BT15-042");
-
-    expect(s.perm("yellowBase").stack.map((card) => card.cardId)).toEqual(["BT1-060"]);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("cost").instanceId);
-    expect(s.perm("target").currentDP).toBe(1000);
   });
 });

@@ -328,6 +328,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/add-xros-heart`,
                 description:
                   "Place a Xros Heart Digimon under this Digimon; Sparrowmon grants team protection and Blocker.",
+                optional: true,
                 resolve: async (ctx) => {
                   const self = source.permanent();
                   if (!self) return;
@@ -710,14 +711,11 @@ export function lateBt12Module(cardId: string): EffectModule {
           const resolve = async (ctx: EffectContext) => {
             const target = await choosePermanent(ctx, opposingDigimon(ctx, source));
             if (target) await ctx.fx.deletePermanent([target], "byEffect");
-            const shoutmon = await choosePermanent(
-              ctx,
-              myPermanents(ctx, source, (d) => d.nameEn === "Shoutmon X7: Superior Mode"),
-            );
+            const shoutmon = myPermanents(ctx, source, (d) => d.nameEn.includes("Shoutmon X7: Superior Mode"))[0];
             if (shoutmon) {
-              await ctx.fx.unsuspend([shoutmon]);
+              await ctx.fx.unsuspend([shoutmon.permanentId]);
               if (await ctx.ask.optional(ctx, "Attack a player with this Digimon?"))
-                await ctx.fx.forceAttack(shoutmon, { attackPlayer: true, attackPlayerOnly: true });
+                await ctx.fx.forceAttack(shoutmon.permanentId, { attackPlayer: true, attackPlayerOnly: true });
             }
           };
           if (timing === EffectTiming.OnUseOption)
@@ -797,7 +795,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     blue.filter(({ permanentId }) => permanentId !== moved),
                   );
                   if (!destination) return;
-                  if (ctx.fx.relocatePermanent(destination, moved, { shedOwnCards: true })) {
+                  if (ctx.fx.relocatePermanent(destination, moved)) {
                     ctx.playCostDelta = (ctx.playCostDelta ?? 0) + 3;
                   }
                 },

@@ -30,15 +30,6 @@ describe("BT5-109 Mega Digimon Fusion!", () => {
         levelComparison: { op: "eq", value: 7 },
       },
     });
-    expect(runtimeCompiledCard("BT5-109")?.effects[0]?.actions[0]).toMatchObject({
-      onConsume: [
-        {
-          kind: "Return",
-          target: { fromSelectionRef: "digivolvedWithMegaDigimonFusion" },
-          to: "deckBottom",
-        },
-      ],
-    });
   });
 
   it("reduces the next level 6-to-7 digivolution by 6, then bottoms it and trashes its stack at turn end", async () => {

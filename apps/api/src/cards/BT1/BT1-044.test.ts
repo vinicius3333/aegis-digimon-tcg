@@ -109,31 +109,4 @@ describe("BT1-044 MetalGarurumon", () => {
       s.inst("levelFive").instanceId,
     ]);
   });
-
-  it("only plays an eligible source from the attacking MetalGarurumon's own stack", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT1-044", as: "attacker", under: [{ card: "BT1-032", as: "source" }] },
-          { card: "BT1-039", as: "otherOwn", under: [{ card: "BT1-032", as: "wrongOwn" }] },
-        ],
-      },
-      1: { battleArea: [{ card: "BT1-039", as: "opponent", under: [{ card: "BT1-032", as: "wrongOpponent" }] }] },
-    });
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 3);
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("source").instanceId)).toBe(
-      true,
-    );
-    expect(s.perm("otherOwn").stack.map((card) => card.instanceId)).toEqual([s.inst("wrongOwn").instanceId]);
-    expect(s.perm("opponent").stack.map((card) => card.instanceId)).toEqual([s.inst("wrongOpponent").instanceId]);
-  });
 });

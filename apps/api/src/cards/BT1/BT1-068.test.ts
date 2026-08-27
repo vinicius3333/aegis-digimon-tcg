@@ -5,19 +5,13 @@ import "./BT1-068.js";
 
 describe("BT1-068 Kokuwamon", () => {
   it("gives Security Attack +1 while its Digimon is level 6 or higher during its turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-081", as: "host", under: ["BT1-068", "BT1-074", "BT1-075"] }] },
-    });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-081", as: "host", under: ["BT1-068"] }] } });
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
   });
 
   it("still grants exactly Security Attack +1 at level 7", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT12-057", as: "host", under: ["BT1-068", "BT1-074", "BT1-075", "BT1-081"] }],
-      },
-    });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-084", as: "host", under: ["BT1-068"] }] } });
     await s.ready();
 
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
@@ -25,7 +19,7 @@ describe("BT1-068 Kokuwamon", () => {
 
   it("does not grant Security Attack +1 below level 6", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-075", as: "host", under: ["BT1-068", "BT1-074"] }] },
+      0: { battleArea: [{ card: "BT1-075", as: "host", under: ["BT1-068"] }] },
     });
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(false);
@@ -33,7 +27,7 @@ describe("BT1-068 Kokuwamon", () => {
 
   it("does not grant Security Attack +1 during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-081", as: "host", under: ["BT1-068", "BT1-074", "BT1-075"] }] },
+      0: { battleArea: [{ card: "BT1-081", as: "host", under: ["BT1-068"] }] },
     });
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();

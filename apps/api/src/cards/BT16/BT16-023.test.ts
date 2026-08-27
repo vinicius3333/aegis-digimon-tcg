@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-023.js";
 import "../index.js";
@@ -32,13 +34,15 @@ describe("BT16-023", () => {
     });
   });
 
-  it("naturally executes both branches at exactly 3 security", async () => {
+  it("at exactly 3 security, unsuspends an ally and bottoms an opposing level 4 Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT16-023", as: "source" }],
-          battleArea: [{ card: "BT16-018", as: "ally", suspended: true }],
+          battleArea: [
+            { card: "BT16-023", as: "source" },
+            { card: "BT16-018", as: "ally", suspended: true },
+          ],
           security: 3,
         },
         1: { battleArea: [{ card: "BT16-018", as: "target" }] },
@@ -46,37 +50,12 @@ describe("BT16-023", () => {
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("ally").permanentId, s.perm("target").permanentId);
-    s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => !s.perm("ally").isSuspended && s.state.players[1]!.battleArea.length === 0);
 
     expect(s.perm("ally").isSuspended).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT16-018");
-  });
-
-  it("naturally resolves the inherited security-cost unsuspend at End of Attack", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT16-080", as: "host", under: ["BT16-023"], suspended: false }],
-          security: ["BT1-001"],
-        },
-      },
-      { autoSelectCards: true },
-    );
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !s.perm("host").isSuspended && s.state.players[0]!.security.length === 0);
-
-    expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 });

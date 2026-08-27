@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    Digivolve ability: while you have 10+ cards in trash, your Impmon in the BATTLE AREA
 //    can digivolve into this card in hand for cost 4, ignoring digivolution requirements.
 //    KB Q1042 confirms this only works from the battle area (not breeding area).
-//    KB Q4212 confirms that another card's <Delay> effect can use this hand target.
+//    KB Q4212 confirms this works with <Delay> (the option trigger).
 // 2. ignoreRequirements:true added to Digivolve action.
 // 3. Source zone restricted to battleArea via condition.
 // 4. Controller "mine" for the Impmon filter.

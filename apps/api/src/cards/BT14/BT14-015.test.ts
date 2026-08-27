@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -43,7 +43,7 @@ describe("BT14-015", () => {
             { card: "BT1-009", as: "secondExact", dp: 5000 },
             { card: "BT1-020", as: "above", dp: 5001 },
           ],
-          security: ["BT1-085", "BT1-085"],
+          security: ["BT1-085"],
         },
       },
       { autoSelectCards: true },
@@ -65,17 +65,7 @@ describe("BT14-015", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveId)).toBe(true);
 
-    // A natural second attack proves the inherited Once Per Turn gate without injecting
-    // another OnUseAttack timing directly.
-    await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveId)).toBe(true);
     assertNoLoudGap(s);

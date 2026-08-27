@@ -50,10 +50,6 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          underFilter: {
-            controller: "mine",
-            kind: ["Tamer"],
-          },
           optional: true,
         },
       ],

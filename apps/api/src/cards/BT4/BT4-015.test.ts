@@ -5,7 +5,7 @@ import "./BT4-015.js";
 
 describe("BT4-015 Volcdramon", () => {
   it("gives Security Attack +1 to its host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-018", as: "host", under: ["BT4-015"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-025", as: "host", under: ["BT4-015"] }] } });
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);

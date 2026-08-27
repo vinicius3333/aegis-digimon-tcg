@@ -21,7 +21,7 @@ describe("BT13-047 Angoramon", () => {
           effect: { kind: "modifyDP", amount: 1000 },
           while: {
             kind: "opponentHasNone",
-            filter: { controllerDefault: "opponent", zone: "battleArea", unsuspended: true, kind: ["Digimon"] },
+            filter: { controllerDefault: "opponent", unsuspended: true, kind: ["Digimon"] },
             raw: expect.stringContaining("no unsuspended Digimon"),
           },
         },
@@ -31,16 +31,6 @@ describe("BT13-047 Angoramon", () => {
 
   it("gains the inherited +1000 DP when the opponent has no Digimon", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", under: ["BT13-047"], as: "host" }] } });
-    await s.ready();
-    await settle(() => s.perm("host").currentDP === 4000);
-    expect(s.perm("host").currentDP).toBe(4000);
-  });
-
-  it("still gains +1000 when the opponent only has an unsuspended breeding Digimon", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", under: ["BT13-047"], as: "host" }] },
-      1: { breeding: { card: "BT13-047", as: "breeding-opponent" } },
-    });
     await s.ready();
     await settle(() => s.perm("host").currentDP === 4000);
     expect(s.perm("host").currentDP).toBe(4000);

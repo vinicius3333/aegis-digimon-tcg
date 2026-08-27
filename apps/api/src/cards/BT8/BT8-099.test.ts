@@ -2,33 +2,9 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { compiled } from "./BT8-099.js";
+import "./BT8-099.js";
 
-describe("BT8-099 Giga Death", () => {
-  it("keeps the suspend-before-bottom-deck sequence in executable IR", () => {
-    expect(compiled).toMatchObject({
-      coverage: "full",
-      residual: [],
-      effects: [
-        {
-          trigger: "Main",
-          actions: [
-            { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: false }, count: 1 } },
-            { kind: "Return", target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: true }, count: 10, upTo: true }, to: "deckBottom" },
-          ],
-        },
-        {
-          trigger: "Security",
-          isSecurity: true,
-          actions: [
-            { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: false }, count: 1 } },
-            { kind: "Return", target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: true }, count: 1 }, to: "deckBottom" },
-          ],
-        },
-      ],
-    });
-  });
-
+describe("BT8-099 Cocytus Breath", () => {
   it("suspends an unsuspended opposing Digimon before returning suspended Digimon", async () => {
     const s = setupEngine(
       {

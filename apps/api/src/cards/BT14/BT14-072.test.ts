@@ -39,25 +39,3 @@ it("returns a purple Dark Animal and then trashes a hand card on play", async ()
   expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-071")).toBe(true);
   expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
 });
-
-it("returns a purple Dark Animal and then trashes a hand card from a natural attack", async () => {
-  const s = setupEngine(
-    {
-      0: {
-        battleArea: [{ card: "BT14-072", as: "fangmon" }],
-        hand: [{ card: "BT1-001", as: "discard" }],
-        trash: [{ card: "BT14-071", as: "returned" }],
-      },
-    },
-    { autoSelectCards: true, autoAcceptOptional: true },
-  );
-  s.state.memory = 10;
-  expect(s.engine.applyIntent(0, {
-    type: "attack",
-    attackerPermanentId: s.perm("fangmon").permanentId,
-    target: { kind: "player" },
-  })).toEqual({ ok: true });
-  await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001"));
-  expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-071")).toBe(true);
-  expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
-});

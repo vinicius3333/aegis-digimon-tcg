@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { compiled } from "./BT13-015.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,41 +6,6 @@ import "./BT13-008.js";
 import "./BT13-015.js";
 
 describe("BT13-015 RizeGreymon", () => {
-  it("uses exact bracketed names for its GeoGreymon evolution and Marcus Damon references", () => {
-    expect(compiled.digivolutionRequirement).toEqual([
-      { namesExact: ["GeoGreymon"], cost: 3, isAlternate: true },
-    ]);
-    expect(compiled.effects[0]).toMatchObject({
-      trigger: "WhenDigivolving",
-      actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] } } }],
-    });
-    expect(compiled.effects[1]).toMatchObject({
-      trigger: "AllTurns",
-      actions: [
-        {
-          actions: [
-            {
-              actions: [{ source: { filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] } } }],
-            },
-          ],
-        },
-      ],
-    });
-    expect(compiled.effects[2]).toMatchObject({
-      trigger: "AllTurns",
-      isInherited: true,
-      actions: [
-        {
-          actions: [
-            {
-              actions: [{ source: { filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] } } }],
-            },
-          ],
-        },
-      ],
-    });
-  });
-
   it("digivolves from GeoGreymon for 3 and may play Marcus Damon from hand for free", async () => {
     const s = setupEngine(
       {
@@ -68,37 +32,6 @@ describe("BT13-015 RizeGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT12-092"));
     expect(s.state.memory).toBe(7);
-  });
-
-  it("does not play the near-name Marcus Damon & Agumon Tamer", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT13-012", as: "geo" }],
-          hand: [
-            { card: "BT13-015", as: "rize" },
-            { card: "AD1-021", as: "nearMarcus" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("geo").permanentId,
-        instanceId: s.inst("rize").instanceId,
-        alternateRequirementIndex: 0,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("geo").topCard.cardId === "BT13-015");
-    await settle();
-
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nearMarcus").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-021")).toHaveLength(0);
   });
 
   it("may decline to play Marcus Damon when digivolving", async () => {

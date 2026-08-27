@@ -29,23 +29,13 @@ function placeCostHostCandidates(ctx: EffectContext, host: Target): Permanent[] 
 }
 
 /**
- * A return-cost target with `topCardOnly` names a permanent's visible top card, not a loose
- * digivolution-card instance. A stack card must exist beneath that top card so the permanent can
- * remain in play after payment (BT13-107 Q2359/Q2360).
- */
-function permanentTopReturnCostCandidates(ctx: EffectContext, target: Target): Permanent[] {
-  return candidatePermanents(ctx, target).filter((permanent) => permanent.stack.length > 0);
-}
-
-/**
  * Conservative feasibility precheck for an action's cost, used to avoid prompting "you may…"
  * for an optional cost-bearing action the controller cannot actually perform, and (CR
  * §15-8-4-3-1) to refuse DECLARING an activation-type effect whose cost can't be paid. Returns
  * false ONLY when the cost is provably unpayable; unknown cost shapes return true so a payable
  * option is never hidden. Currently covers own-Digimon deletion, security-stack costs (BT15-003
  * "by trashing the top or bottom card of your security stack" with an empty stack),
- * `securityToHand`, `payMemory`, and stacked-permanent visible-top return costs; extend as other
- * provable cases arise.
+ * `securityToHand`, and `payMemory`; extend as other provable cases arise.
  */
 export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "raw") return false;
@@ -168,16 +158,6 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
           ? candidates.length
           : (cost.target.count ?? 1);
     return cost.target.upTo === true ? true : required > 0 && candidates.length >= required;
-  }
-  if (
-    cost.kind === "return" &&
-    cost.target !== undefined &&
-    cost.target.filter.zone === "battleArea" &&
-    cost.target.topCardOnly === true
-  ) {
-    const candidates = permanentTopReturnCostCandidates(ctx, cost.target);
-    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
-    return required > 0 && candidates.length >= required;
   }
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "digivolutionCards") {
     const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
@@ -1162,30 +1142,12 @@ export async function payCost(
         if (out) out.paidCount = chosen.length;
         return true;
       }
-      if (cost.target.filter.zone === "battleArea" && cost.target.topCardOnly === true) {
-        // This printed form names the visible top card of a permanent, but only its underlying
-        // stack card is retained. Resolve the permanent with the stack-length eligibility before
-        // selecting it, then detach its top via the shared primitive seam.
-        const permanentIds = await resolvePermanentTargets(ctx, cost.target, {
-          eligible: (permanentId) => (ctx.game.permanentById(permanentId)?.stack.length ?? 0) > 0,
-        });
-        const n = cost.target.count === "all" ? permanentIds.length : cost.target.count;
-        if (n <= 0 || permanentIds.length < n) return false;
-        const topIds = topInstanceIds(ctx, permanentIds);
-        if (topIds.length < n) return false;
-        const moved = await ctx.fx.returnToHand(topIds, {
-          detachPermanentTop: true,
-          byEffectSeat: ctx.source.ownerSeat,
-        });
-        if (out) out.paidCount = moved.length;
-        return moved.length >= n;
-      }
       // Stack-card return cost ("by returning 2 [Vemmon] from that Digimon's digivolution
       // cards to the bottom of the deck", BT18-092): these are loose stack instances, not
       // battle-area permanent top cards. Resolve them through the loose-card path so
       // returnToDeck can remove the selected stack cards from their hosts.
       if (cost.target.filter.zone === "digivolutionCards") {
-        const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
+        let candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
         if (cost.target.filter.sameHost === true) {
@@ -1804,7 +1766,6 @@ export async function payCost(
         if (placedIds.size !== orderedPicked.length || orderedPicked.some((instanceId) => !placedIds.has(instanceId))) {
           return false;
         }
-        ctx.lastPlacedUnderInstanceIds = [...orderedPicked];
         if (cost.bindHostAs !== undefined) {
           ctx.selections ??= new Map();
           ctx.selections.set(cost.bindHostAs, hostPermId);
@@ -1903,7 +1864,6 @@ export async function payCost(
         belowTop: false,
         faceUp: cost.faceDown !== true,
       });
-      ctx.lastPlacedUnderInstanceIds = [...orderedChosen];
       if (cost.storeAs !== undefined && chosen.length > 0) {
         const pickedCard = candidates.find((c) => c.instanceId === chosen[0]);
         const level = pickedCard !== undefined ? ctx.game.definitionOf(pickedCard as never).level : undefined;

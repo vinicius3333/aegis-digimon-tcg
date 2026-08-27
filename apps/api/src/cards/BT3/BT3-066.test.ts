@@ -12,9 +12,5 @@ describe("BT3-066 Clockmon", () => {
     await s.engine.recomputeContinuousEffects();
 
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
-
-    s.state.turnSeat = 0;
-    await s.engine.recomputeContinuousEffects();
-    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
 });

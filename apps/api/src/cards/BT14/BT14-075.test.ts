@@ -32,27 +32,6 @@ describe("BT14-075", () => {
     await settle(() => s.state.players[0]!.trash.length >= 3);
     expect(s.state.players[0]!.trash.slice(-3).map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
   });
-  it("trashes three cards from the deck on a natural attack and updates DP scaling", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT14-075", as: "source" }],
-          trash: ["BT1-001", "BT1-002", "BT1-003"],
-          deck: ["BT1-004", "BT1-005", "BT1-006"],
-        },
-      },
-      { autoSelectCards: true, autoAcceptOptional: true },
-    );
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("source").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.length === 6 && s.perm("source").currentDP === 8000);
-    expect(s.state.players[0]!.trash.slice(-3).map((card) => card.cardId)).toEqual(["BT1-004", "BT1-005", "BT1-006"]);
-    expect(s.perm("source").currentDP).toBe(8000);
-  });
   it("trashes a random opponent hand card on deletion", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT14-075", as: "source" }] }, 1: { hand: [{ card: "BT1-002", as: "victim" }] } },

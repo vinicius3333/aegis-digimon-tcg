@@ -2,13 +2,11 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT2-057.js";
-import "./BT2-055.js";
+import "./BT2-065.js";
 
 describe("BT2-057 Greymon", () => {
   it("grants inherited Jamming during its turn while the host has Reboot", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-060", as: "host", under: ["BT2-055", "BT2-057"] }] },
-    });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-065", as: "host", under: ["BT2-057"] }] } });
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
@@ -17,7 +15,7 @@ describe("BT2-057 Greymon", () => {
 
   it("survives battle against a stronger Security Digimon through Jamming", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-060", as: "host", under: ["BT2-055", "BT2-057"] }] },
+      0: { battleArea: [{ card: "BT2-065", as: "host", under: ["BT2-057"] }] },
       1: { security: ["BT2-083"] },
     });
     await s.engine.recomputeContinuousEffects();
@@ -36,7 +34,7 @@ describe("BT2-057 Greymon", () => {
   });
 
   it("does not grant Jamming when the host lacks Reboot", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-060", as: "host", under: ["BT2-057"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-064", as: "host", under: ["BT2-057"] }] } });
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(false);
@@ -44,9 +42,7 @@ describe("BT2-057 Greymon", () => {
   });
 
   it("does not grant Jamming during the opponent's turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-060", as: "host", under: ["BT2-055", "BT2-057"] }] },
-    });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-065", as: "host", under: ["BT2-057"] }] } });
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
 

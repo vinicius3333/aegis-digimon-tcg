@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-105.js";
 
-describe("BT6-105 Gewalt Schwärmer", () => {
+describe("BT6-105 Gewalt Schwarmer", () => {
   it("adds itself to hand from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT6-105", as: "security", faceUp: true }] } });
     const instanceId = s.inst("security").instanceId;
@@ -20,7 +20,7 @@ describe("BT6-105 Gewalt Schwärmer", () => {
         0: {
           battleArea: [
             { card: "BT1-009", as: "ownLow" },
-            { card: "BT6-017", as: "ownHigh" },
+            { card: "BT6-112", as: "ownHigh" },
           ],
           hand: [{ card: "BT6-105", as: "option" }],
         },

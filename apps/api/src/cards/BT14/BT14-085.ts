@@ -39,7 +39,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
-          triggerFilter: { kind: ["Digimon"] },
           actions: [
             {
               kind: "GainMemory",

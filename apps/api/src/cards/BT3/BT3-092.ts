@@ -11,7 +11,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
-          sourceFilter: { excludeSelf: true, kind: ["Digimon"] },
+          sourceFilter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"] },
           actions: [
             { kind: "GainMemory", amount: 1, scaling: { per: 1, filter: { deletedByTrigger: true }, unit: "cards" } },
           ],

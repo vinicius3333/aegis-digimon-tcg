@@ -10,17 +10,16 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // Corrections:
 // - Removed "Leomon" from digivolutionRequirement.names (only Panjyamon per printed text).
-// - Added Rule GrantStatic name: "Leomon" to encode the continuous (Rule) name alias.
+// - Added Static GrantStatic name: "Leomon" to encode the continuous (Rule) name alias.
 // - "would be deleted in battle" is enforced by leaveCause:"byBattle" on the
 //   replacement subscription. Effect deletion therefore cannot play the source.
-// - PlayWithoutCost from this Digimon's digivolution cards targets the exact name "Leomon";
-//   KB Q1848 says
+// - PlayWithoutCost from digivolutionCards targets name "Leomon" exactly; KB Q1848 says
 //   the (Rule) does NOT allow this card to be chosen for "the name [Leomon]" text, so
 //   filtering to name "Leomon" is correct (excludes this card itself as a target).
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Rule",
+      trigger: "Static",
       actions: [
         {
           kind: "GrantStatic",
@@ -56,13 +55,13 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Leomon"],
-                      match: "nameExact",
+                      match: "name",
                     },
                   ],
                 },
                 count: 1,
               },
-              fromOwnDigivolutionStack: true,
+              from: ["digivolutionCards"],
               payCost: false,
               optional: true,
             },

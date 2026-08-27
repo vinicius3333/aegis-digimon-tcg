@@ -13,7 +13,7 @@ describe("BT4-090 Chaosmon", () => {
         },
         1: { battleArea: [{ card: "BT3-019", as: "target", dp: 13_000 }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     s.state.memory = 6;
     expect(
@@ -55,7 +55,7 @@ describe("BT4-090 Chaosmon", () => {
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 1000 }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     s.state.memory = 20;
 

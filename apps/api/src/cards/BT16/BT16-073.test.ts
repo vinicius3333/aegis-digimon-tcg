@@ -25,7 +25,6 @@ describe("BT16-073", () => {
           payCost: false,
           optional: true,
           abortOnDecline: true,
-          notSameNameAs: ["battleArea"],
           target: { count: 1, filter: { kind: ["Tamer"], controller: "mine", textContains: "[Myotismon]" } },
           from: ["trash"],
         },
@@ -45,32 +44,5 @@ describe("BT16-073", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-089"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-089")).toBe(true);
-  });
-
-  it("does not play a same-name Myotismon-text Tamer already in the battle area", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT16-073", as: "first" },
-            { card: "BT16-073", as: "second" },
-            { card: "BT8-093", as: "existingTamer" },
-          ],
-          trash: ["BT8-093", "BT8-093"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-
-    await advance(s.engine).verb.deletePermanent(
-      [s.perm("first").permanentId, s.perm("second").permanentId],
-      "byEffect",
-    );
-    await settle(
-      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT8-093").length === 1,
-    );
-
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT8-093")).toHaveLength(1);
   });
 });

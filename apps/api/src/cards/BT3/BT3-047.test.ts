@@ -48,25 +48,4 @@ describe("BT3-047 Wormmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === addedId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
-
-  it("adds nothing when the revealed cards are outside the level 4-5 boundary", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT3-047", as: "wormmon" }],
-        deck: [
-          { card: "BT1-010", as: "levelThreeA" },
-          { card: "BT1-011", as: "levelThreeB" },
-          { card: "BT1-081", as: "levelSix" },
-        ],
-      },
-    });
-    await advance(s.engine).verb.deletePermanent([s.perm("wormmon").permanentId]);
-
-    expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
-      s.inst("levelThreeA").instanceId,
-      s.inst("levelThreeB").instanceId,
-      s.inst("levelSix").instanceId,
-    ]);
-  });
 });

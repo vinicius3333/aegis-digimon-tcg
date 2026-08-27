@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-011.js";
 import "./P-077.js";
-import "../BT2/BT2-075.js";
 
 describe("P-077 Wizardmon", () => {
   it("gains 1 memory only when directly trashed from the deck", async () => {
@@ -36,7 +35,7 @@ describe("P-077 Wizardmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT2-081", as: "attacker", under: ["P-077", "BT2-075"] }],
+          battleArea: [{ card: "BT2-081", as: "attacker", under: ["P-077"] }],
           hand: [
             { card: "BT2-107", as: "purple" },
             { card: "BT1-009", as: "red" },

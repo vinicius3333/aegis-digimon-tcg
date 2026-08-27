@@ -1,27 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT7-082.js";
 
 describe("BT7-082 Sistermon Blanc (Awakened)", () => {
-  it("limits the recovery cost source to Sistermon Blanc in hand or trash", () => {
-    expect(runtimeCompiledCard("BT7-082")?.effects[0]?.actions[0]).toMatchObject({
-      kind: "SecurityManipulation",
-      optional: true,
-      cost: {
-        kind: "place",
-        target: {
-          from: ["hand", "trash"],
-          filter: { nameOrTrait: [{ tokens: ["Sistermon Blanc"], match: "nameExact" }] },
-        },
-        destination: "digivolutionStack",
-        position: "bottom",
-        host: "self",
-      },
-    });
-  });
-
   it("places Sistermon Blanc under itself to recover one card", async () => {
     const s = setupEngine(
       {

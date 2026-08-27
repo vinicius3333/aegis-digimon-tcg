@@ -31,7 +31,6 @@ describe("BT14-029", () => {
           condition: {
             kind: "opponentHasNone",
             filter: { controllerDefault: "opponent", digivolutionCardsCompareToSource: "gte" },
-            raw: "your opponent has no Digimon with as many or more digivolution cards as this Digimon",
           },
         },
       ],

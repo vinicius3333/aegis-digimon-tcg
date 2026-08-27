@@ -3,20 +3,9 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT7-095.js";
 
 describe("BT7-095 Blue Hawaii Death", () => {
-  it("binds the attack permission to the Digimon that received +3000 DP", () => {
-    const main = runtimeCompiledCard("BT7-095")?.effects.find((effect) => effect.trigger === "Main");
-    expect(main).toMatchObject({
-      actions: [
-        { kind: "ModifyDP", target: { count: 1 } },
-        { kind: "GrantCanAttackUnsuspended", target: { sameTarget: true, count: 1 } },
-      ],
-    });
-  });
-
   it("gives the same Digimon +3000 DP and permission to attack a source-less unsuspended Digimon", async () => {
     const s = setupEngine(
       {

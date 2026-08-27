@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Yoshino Fujieda"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },

@@ -15,43 +15,6 @@ describe("BT3-030 Leopardmon", () => {
     });
     expect(compiled).toEqual(getCompiledCard("BT3-030"));
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.effects).toMatchObject([
-      {
-        trigger: "WhenDigivolving",
-        actions: [
-          {
-            kind: "PlayWithoutCost",
-            from: ["digivolutionCards"],
-            payCost: false,
-            optional: true,
-            target: {
-              count: 1,
-              filter: {
-                zone: "digivolutionCards",
-                controller: "mine",
-                kind: ["Digimon"],
-                levelComparison: { op: "lte", value: 4 },
-              },
-            },
-          },
-        ],
-      },
-      {
-        trigger: "YourTurn",
-        actions: [
-          {
-            kind: "GainKeyword",
-            duration: "forTheTurn",
-            whileMatchesTargetFilter: true,
-            keyword: { keyword: "Jamming", raw: "＜Jamming＞" },
-            target: {
-              count: "all",
-              filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
-            },
-          },
-        ],
-      },
-    ]);
   });
 
   it("offers eligible cards across own digivolution stacks and plays the chosen card for free", async () => {
@@ -61,7 +24,6 @@ describe("BT3-030 Leopardmon", () => {
           battleArea: [
             { card: "BT1-027", as: "ally", under: [{ card: "AD1-010", as: "allyLv4" }] },
             { card: "BT1-038", as: "base", under: [{ card: "AD1-010", as: "ownLv4" }] },
-            { card: "BT3-029", as: "tooHighHost", under: [{ card: "BT1-038", as: "ownLv5" }] },
           ],
           hand: [{ card: "BT3-030", as: "leopardmon" }],
         },

@@ -19,7 +19,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Marcus Damon"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },
@@ -42,12 +42,11 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Marcus Damon"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },
             count: 1,
-            sameTarget: true,
           },
           restriction: "digivolve",
           duration: "untilOpponentTurnEnd",
@@ -61,12 +60,11 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Marcus Damon"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },
             count: 1,
-            sameTarget: true,
           },
           keyword: {
             keyword: "Blocker",
@@ -88,7 +86,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Marcus Damon"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },
@@ -111,12 +109,11 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Marcus Damon"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },
             count: 1,
-            sameTarget: true,
           },
           restriction: "digivolve",
           duration: "untilOpponentTurnEnd",
@@ -130,12 +127,11 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Marcus Damon"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },
             count: 1,
-            sameTarget: true,
           },
           keyword: {
             keyword: "Blocker",

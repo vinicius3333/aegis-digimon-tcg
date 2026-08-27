@@ -11,17 +11,13 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Delete",
+          kind: "Trash",
           target: {
             filter: {
-              controller: "opponent",
+              controllerDefault: "mine",
               kind: ["Digimon"],
-              dp: {
-                op: "lte",
-                value: 8000,
-              },
             },
-            count: 1,
+            count: 2,
           },
           cost: {
             kind: "trash",
@@ -33,6 +29,20 @@ const compiled: CompiledCard = {
               count: 2,
             },
             raw: "＜Digi-Burst 2＞",
+          },
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 8000,
+              },
+            },
+            count: 1,
           },
         },
       ],

@@ -27,7 +27,7 @@ describe("BT6-061 Gigadramon", () => {
   });
 
   it("gives its host +2000 DP on the opponent's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-065", under: ["BT6-061"], as: "host" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", under: ["BT6-061"], as: "host" }] } });
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
 

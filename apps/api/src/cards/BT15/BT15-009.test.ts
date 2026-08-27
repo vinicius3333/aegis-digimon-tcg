@@ -17,7 +17,7 @@ describe("BT15-009", () => {
   it("pays exactly 2 memory and deletes one opposing Digimon at the source's current-DP boundary", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT15-009", as: "meramon", dp: 4000, under: ["BT1-009"] }] },
+        0: { battleArea: [{ card: "BT15-009", as: "meramon", dp: 4000 }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "equal", dp: 4000 },
@@ -50,7 +50,7 @@ describe("BT15-009", () => {
 
   it("does not pay or delete but still spends the activated once-per-turn effect when no target exists", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT15-009", as: "meramon", dp: 4000, under: ["BT1-009"] }] },
+      0: { battleArea: [{ card: "BT15-009", as: "meramon", dp: 4000 }] },
       1: { battleArea: [{ card: "BT1-009", as: "above", dp: 5000 }] },
     });
     s.state.memory = 3;

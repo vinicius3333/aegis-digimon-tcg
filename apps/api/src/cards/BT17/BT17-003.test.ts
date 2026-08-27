@@ -1,28 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import { compiled } from "./BT17-003.js";
+import "./BT17-003.js";
 
 describe("BT17-003 Bibimon", () => {
-  it("exports the once-per-turn inherited Tamer-placement watcher", () => {
-    expect(compiled.effects).toContainEqual(
-      expect.objectContaining({
-        trigger: "YourTurn",
-        isInherited: true,
-        frequency: "OncePerTurn",
-        actions: [
-          expect.objectContaining({
-            kind: "SubTrigger",
-            event: "onAddDigivolutionCards",
-            triggerFilter: { isSelfRef: true },
-            addedDigivolutionCardFilter: { kind: ["Tamer"] },
-            actions: [{ kind: "GainMemory", amount: 1 }],
-          }),
-        ],
-      }),
-    );
-  });
-
   it("Q2703: gains memory only when an effect places a Tamer in this inherited host", async () => {
     const s = setupEngine({
       0: {

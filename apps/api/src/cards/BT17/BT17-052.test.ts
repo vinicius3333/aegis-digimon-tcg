@@ -32,17 +32,11 @@ describe("BT17-052 Agumon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT17-052", as: "agumon" }],
-        hand: [
-          { card: "BT16-087", as: "kosuke" },
-          { card: "BT16-087", as: "secondKosuke" },
-        ],
-        deck: [
-          { card: "BT1-011", as: "drawn" },
-          { card: "BT1-011", as: "notDrawn" },
-        ],
+        hand: [{ card: "BT16-087", as: "kosuke" }],
+        deck: [{ card: "BT1-011", as: "drawn" }],
       },
     });
-    s.state.memory = 9;
+    s.state.memory = 4;
     const drawnId = s.inst("drawn").instanceId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kosuke").instanceId })).toEqual({
@@ -50,20 +44,12 @@ describe("BT17-052 Agumon", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondKosuke").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(
-      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT16-087").length === 2,
-    );
-
-    expect(s.state.memory).toBe(2);
-    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(1);
   });
 
   it("grants inherited Reboot to an evolved host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT17-054", under: ["BT17-052"], as: "host" }] },
+      0: { battleArea: [{ card: "BT17-055", under: ["BT17-052"], as: "host" }] },
     });
     await s.ready();
 

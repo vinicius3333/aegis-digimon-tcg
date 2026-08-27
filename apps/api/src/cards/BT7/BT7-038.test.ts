@@ -6,8 +6,7 @@ describe("BT7-038 JetSilphymon", () => {
   it("reduces its evolution cost by 2 when the base has a Tamer source", async () => {
     const s = setupEngine({
       0: {
-        // Legal frontier stack: Zoe Orimoto -> L4 Hybrid Kazemon -> L5 JetSilphymon.
-        battleArea: [{ card: "BT7-035", under: ["BT7-088"], as: "base" }],
+        battleArea: [{ card: "BT7-036", under: ["BT7-089"], as: "base" }],
         hand: [{ card: "BT7-038", as: "evolving" }],
         deck: ["BT1-048", "BT1-049"],
       },
@@ -31,8 +30,7 @@ describe("BT7-038 JetSilphymon", () => {
   it("recovers one card when it has a Hybrid source", async () => {
     const s = setupEngine({
       0: {
-        // Legal ordinary evolution base with a Hybrid source: L4 Kazemon -> L5 JetSilphymon.
-        battleArea: [{ card: "BT7-035", as: "base" }],
+        battleArea: [{ card: "BT7-036", as: "base" }],
         hand: [{ card: "BT7-038", as: "evolving" }],
         deck: ["BT1-048", "BT1-049"],
       },

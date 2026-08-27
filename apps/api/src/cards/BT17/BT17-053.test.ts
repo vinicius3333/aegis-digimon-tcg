@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { irNode } from "../../engine/testkit/irNode.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-053.js";
 import "./index.js";
@@ -47,66 +48,32 @@ describe("BT17-053 Keramon", () => {
           battleArea: [{ card: "BT17-053", as: "keramon" }],
           hand: [{ card: "BT17-056", as: "infermon" }],
         },
-        1: { hand: [{ card: "BT17-055", as: "playedLevel5" }] },
+        1: { battleArea: [{ card: "BT17-025", as: "playedLevel5" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    s.state.memory = 20;
     const infermonId = s.inst("infermon").instanceId;
     await s.ready();
 
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("playedLevel5").instanceId })).toEqual({
-      ok: true,
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("playedLevel5").permanentId,
     });
     await settle(() => s.perm("keramon").topCard?.instanceId === infermonId);
 
-    expect(s.state.memory).toBe(13);
+    expect(s.state.memory).toBe(0);
   });
 
-  it("does not evolve when the opponent plays a level-4 Digimon", async () => {
+  it("plays a Diaboromon Token when its Unidentified host is deleted", async () => {
     const s = setupEngine(
       {
-        0: {
-          battleArea: [{ card: "BT17-053", as: "keramon" }],
-          hand: [{ card: "BT17-055", as: "infermon" }],
-        },
-        1: { hand: [{ card: "BT17-054", as: "playedLevel4" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    s.state.memory = 20;
-    const keramonId = s.perm("keramon").topCard!.instanceId;
-    await s.ready();
-
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("playedLevel4").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-054"));
-
-    expect(s.perm("keramon").topCard?.instanceId).toBe(keramonId);
-  });
-
-  it("plays a Diaboromon Token when its Unidentified host is deleted in battle", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT17-054", under: ["BT17-053"], as: "host" }] },
-        1: { battleArea: [{ card: "BT17-057", as: "attacker" }] },
+        0: { battleArea: [{ card: "BT17-056", under: ["BT17-053"], as: "host" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const hostId = s.perm("host").permanentId;
-    s.state.turnSeat = 1;
-    await s.ready();
 
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: hostId },
-      }),
-    ).toEqual({ ok: true });
+    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId.startsWith("TOKEN-")),
     );

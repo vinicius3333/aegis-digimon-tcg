@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-062.js";
@@ -37,18 +36,6 @@ describe("BT5-062 Mekanorimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.perm("mekanori").isSuspended);
-    expect(s.perm("mekanori").isSuspended).toBe(false);
-  });
-
-  it("can unsuspend after each qualifying battle deletion", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-062", as: "mekanori", suspended: true }] } });
-    const payload = { attackerPermanentId: s.perm("mekanori").permanentId };
-
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", payload);
-    expect(s.perm("mekanori").isSuspended).toBe(false);
-
-    s.perm("mekanori").isSuspended = true;
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", payload);
     expect(s.perm("mekanori").isSuspended).toBe(false);
   });
 });

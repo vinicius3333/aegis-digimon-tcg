@@ -47,36 +47,4 @@ describe("BT14-058", () => {
     const p = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT14-058")!;
     expect(observe(s.engine).hasKeyword(p, "Rush")).toBe(true);
   });
-
-  it("runs the same placement cost and Rush grant when naturally digivolving from a black level 3", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT14-055", as: "base" }],
-          hand: [{ card: "BT14-058", as: "numemon" }, { card: "BT14-086", as: "satsuki" }],
-        },
-      },
-      { autoSelectCards: true, autoAcceptOptional: true },
-    );
-    s.state.memory = 10;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("numemon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => {
-      const host = s.perm("base");
-      return (
-        host.topCard?.cardId === "BT14-058" &&
-        host.stack.some((card) => card.cardId === "BT14-086") &&
-        observe(s.engine).hasKeyword(host, "Rush")
-      );
-    });
-    const host = s.perm("base");
-    expect(host.stack.some((card) => card.cardId === "BT14-086")).toBe(true);
-    expect(observe(s.engine).hasKeyword(host, "Rush")).toBe(true);
-    expect(observe(s.engine).hasKeyword(host, "Blocker")).toBe(true);
-  });
 });

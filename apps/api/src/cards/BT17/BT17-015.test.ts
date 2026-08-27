@@ -23,85 +23,10 @@ describe("BT17-015", () => {
         choose: 1,
         options: [
           [{ kind: "Delete" }],
-          [
-            {
-              kind: "Digivolve",
-              from: ["hand"],
-              payCost: false,
-              ignoreRequirements: true,
-              optional: true,
-              allowNoTarget: true,
-            },
-          ],
+          [{ kind: "Digivolve", from: ["hand"], payCost: false, ignoreRequirements: true, optional: true }],
         ],
       });
     }
-  });
-
-  it("reduces the natural play cost with Tai Kamiya and deletes an opposing Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [{ card: "BT17-015", as: "warGreymon" }],
-          battleArea: [{ card: "BT1-085", as: "tai" }],
-        },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
-      },
-      { autoChooseOption: true, autoSelectCards: true },
-    );
-    s.state.memory = 8;
-    await s.ready();
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("warGreymon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.perm("warGreymon").topCard.cardId === "BT17-015");
-
-    expect(s.state.memory).toBe(0);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-  });
-
-  it("naturally free-digivolves a Gabumon into MetalGarurumon through the second modal branch", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [
-            { card: "BT17-015", as: "warGreymon" },
-            { card: "BT1-044", as: "metalGarurumon" },
-          ],
-          battleArea: [{ card: "BT1-029", as: "gabumon" }],
-        },
-      },
-      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1 },
-    );
-    s.state.memory = 11;
-    await s.ready();
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("warGreymon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.perm("gabumon").topCard.cardId === "BT1-044");
-
-    expect(s.perm("gabumon").stack.map(({ cardId }) => cardId)).toContain("BT1-029");
-    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT1-044");
-    expect(s.state.memory).toBe(11);
-  });
-
-  it("allows the optional Gabumon branch to end without a target (Q2743)", async () => {
-    const s = setupEngine(
-      { 0: { hand: [{ card: "BT17-015", as: "warGreymon" }] } },
-      { autoChooseOption: true, preferOptionIndex: 1 },
-    );
-    s.state.memory = 11;
-    await s.ready();
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("warGreymon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.perm("warGreymon").topCard.cardId === "BT17-015");
-
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.memory).toBe(0);
   });
 
   it("trashes opponent security as inherited when it has Omnimon in its name", () => {

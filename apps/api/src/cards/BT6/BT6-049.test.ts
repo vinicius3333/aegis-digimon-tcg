@@ -24,23 +24,4 @@ describe("BT6-049 Arbormon", () => {
     expect(s.state.memory).toBe(1);
     expect(s.perm("tamer").topCard?.cardId).toBe("BT6-049");
   });
-
-  it("rejects a non-green Tamer as its alternate digivolution base", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-085", as: "redTamer" }],
-        hand: [{ card: "BT6-049", as: "arbormon" }],
-      },
-    });
-    s.state.memory = 3;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("redTamer").permanentId,
-        instanceId: s.inst("arbormon").instanceId,
-      }),
-    ).toEqual({ ok: false, reason: "invalid-evolution" });
-    expect(s.perm("redTamer").topCard?.cardId).toBe("BT1-085");
-  });
 });

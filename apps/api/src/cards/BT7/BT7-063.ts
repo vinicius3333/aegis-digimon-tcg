@@ -13,7 +13,7 @@ const compiled: CompiledCard = {
               controller: "mine",
               nameOrTrait: [{ tokens: ["SkullKnightmon", "DeadlyAxemon"], match: "name" }],
             },
-            requiredNamesExactUpTo: ["SkullKnightmon", "DeadlyAxemon"],
+            requiredNamesExact: ["SkullKnightmon", "DeadlyAxemon"],
             from: ["hand", "trash"],
             count: 2,
           },

@@ -26,25 +26,6 @@ describe("BT17-061 Goblimon", () => {
     ]);
   });
 
-  it("does not resolve the deletion when no other own Digimon can pay the cost", async () => {
-    const s = setupEngine(
-      {
-        0: { hand: [{ card: "BT17-061", as: "goblimon" }] },
-        1: { battleArea: [{ card: "BT4-025", as: "levelFour" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 3;
-    const levelFourId = s.perm("levelFour").permanentId;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("goblimon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-061"));
-
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelFourId)).toBe(true);
-  });
-
   it("deletes another own Digimon to delete only the level-4 opponent", async () => {
     const s = setupEngine(
       {

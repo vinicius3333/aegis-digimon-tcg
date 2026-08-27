@@ -1,11 +1,9 @@
 import { digiXrosRequirementFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { universalNameAliasesFor } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-009.js";
-import "../BT10/BT10-009.js";
 
 describe("BT11-009 Shoutmon + StarSword", () => {
   it("matches the errata catalog, exact recipe, rule aliases, and complete IR", async () => {
@@ -32,7 +30,7 @@ describe("BT11-009 Shoutmon + StarSword", () => {
     expect(digiXrosRequirementFor("BT11-009")).toEqual(compiled.digiXrosRequirement);
     expect(compiled).toMatchObject({
       effects: [
-        { trigger: "Rule", keywords: [{ keyword: "MaterialSave", amount: 1 }] },
+        { trigger: "Static", keywords: [{ keyword: "MaterialSave", amount: 1 }] },
         { trigger: "OnPlay", actions: [{ kind: "ModifyDP", amount: -3000 }, { kind: "Delete" }] },
       ],
       coverage: "full",
@@ -43,40 +41,6 @@ describe("BT11-009 Shoutmon + StarSword", () => {
     await advance(s.engine).recompute();
     expect(observe(s.engine).effectiveNames(s.perm("source"))).toEqual(
       expect.arrayContaining(["shoutmon + starsword", "shoutmon", "starmons"]),
-    );
-    expect(universalNameAliasesFor("BT11-009")).toEqual(["Shoutmon", "Starmons"]);
-  });
-
-  it("uses its unconditional names as loose-zone DigiXros aliases", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [
-            { card: "BT10-009", as: "x4" },
-            { card: "BT11-009", as: "aliasSource" },
-            { card: "BT10-029", as: "starmons" },
-          ],
-          deck: ["BT10-007", "BT10-008"],
-        },
-      },
-      { autoSelectCards: true, autoOrderTriggers: true },
-    );
-    s.state.memory = 5;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "playCard",
-        instanceId: s.inst("x4").instanceId,
-        digiXros: {
-          materialInstanceIds: [s.inst("aliasSource").instanceId, s.inst("starmons").instanceId],
-        },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 1);
-
-    expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT11-009", "BT10-029"]),
     );
   });
 

@@ -23,8 +23,7 @@ describe("BT16-093", () => {
         },
         {
           kind: "Restrict",
-          restriction: "dpImmune",
-          byOpponentEffectsOnly: true,
+          restriction: "can't reduce DP",
           duration: "untilOpponentTurnEnd",
           target: { filter: { boundRef: "bt16093Rapidmon" } },
         },

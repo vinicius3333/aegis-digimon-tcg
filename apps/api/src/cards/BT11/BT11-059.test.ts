@@ -6,7 +6,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 import { compiled } from "./BT11-059.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { definitionMatches } from "../../engine/effects/interpreter/matching/definition.js";
 
 /**
  * Drive the REAL digivolve into BT11-059 over `tamerCardIds` green/black Tamers and return
@@ -41,15 +40,6 @@ describe("A3 BT11-059 — digivolve cost reduced per green/black Tamer (Q2092 du
   it("maps catalog facts and both executable clauses", () => {
     expect(getCardDefinition("BT11-059")).toMatchObject({ cardId: "BT11-059", colors: ["Green", "Black"], level: 6, playCost: 13, dp: 13000 });
     expect(compiled.effects).toHaveLength(2);
-  });
-
-  it("scopes the cost replacement to the BT11-059 card number", () => {
-    const into = compiled.effects[0]!.actions[0]!.into;
-    expect(into).toEqual({ cardId: "BT11-059" });
-    expect(definitionMatches(into, getCardDefinition("BT11-059") as never)).toBe(true);
-    expect(definitionMatches(into, getCardDefinition("BT2-051") as never)).toBe(false);
-    expect(definitionMatches(into, getCardDefinition("P-113") as never)).toBe(false);
-    expect(definitionMatches(into, getCardDefinition("P-173") as never)).toBe(false);
   });
 
   it("0 Tamers pays the printed evoCost 5 (revert-equivalent baseline)", async () => {

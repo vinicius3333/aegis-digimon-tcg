@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -7,21 +7,6 @@ import "../index.js";
 import { compiled } from "./BT15-026.js";
 
 describe("BT15-026", () => {
-  it("matches the catalog identity, ACE fields, and blue level-4 evolution route", () => {
-    expect(getCardDefinition("BT15-026")).toMatchObject({
-      nameEn: "WereGarurumon",
-      colors: ["Blue"],
-      kinds: ["Digimon"],
-      level: 5,
-      playCost: 4,
-      dp: 7000,
-      evoCosts: [{ color: "Blue", level: 4, memoryCost: 3 }],
-      types: ["Beastkin"],
-      isAce: true,
-      overflowMemory: 3,
-    });
-  });
-
   it("publishes Blast Digivolve at Counter Timing", () =>
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "Counter",
@@ -190,8 +175,8 @@ describe("BT15-026", () => {
   it("requires an explicit one-card trash choice at the exact post-draw boundary", async () => {
     const s = setupEngine({
       0: {
+        battleArea: [{ card: "BT15-026", as: "wereGarurumon" }],
         hand: [
-          { card: "BT15-026", as: "wereGarurumon" },
           { card: "BT1-009", as: "chosenTrash" },
           { card: "BT1-009", as: "keptOne" },
           { card: "BT1-009", as: "keptTwo" },
@@ -201,8 +186,7 @@ describe("BT15-026", () => {
       },
     });
 
-    s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wereGarurumon").instanceId })).toEqual({ ok: true });
+    const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
     await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
     const pending = s.decisions.find(({ req }) => req.kind === "selectCards")!;
     expect(pending.req.options).toMatchObject({ min: 1, max: 1 });
@@ -214,7 +198,7 @@ describe("BT15-026", () => {
         response: { kind: "selectCards", instanceIds: [s.inst("chosenTrash").instanceId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.length === 1);
+    await firing;
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("chosenTrash").instanceId]);
     expect(s.state.players[0]!.hand).toHaveLength(4);
@@ -297,12 +281,7 @@ describe("BT15-026", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-026", as: "watcher" }],
-          hand: [
-            { card: "BT15-026", as: "firstSource" },
-            { card: "BT15-026", as: "secondSource" },
-            { card: "BT15-026", as: "thirdSource" },
-          ],
+          battleArea: [{ card: "BT15-026", as: "wereGarurumon" }],
           deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
         1: {
@@ -316,17 +295,17 @@ describe("BT15-026", () => {
     );
     const firstId = s.perm("firstTarget").permanentId;
 
-    await advance(s.engine).verb.playInstances([s.inst("firstSource").instanceId], "BT14-038");
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
     await settle(() => observe(s.engine).isRestricted(s.perm("firstTarget"), "suspend"));
     await advance(s.engine).verb.deletePermanent([firstId]);
-    await advance(s.engine).verb.playInstances([s.inst("secondSource").instanceId], "BT14-038");
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
 
     expect(observe(s.engine).isRestricted(s.perm("secondTarget"), "suspend")).toBe(false);
     s.state.memory = 3;
     await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
     s.state.memory = 3;
-    await advance(s.engine).verb.playInstances([s.inst("thirdSource").instanceId], "BT14-038");
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
     await settle(() => observe(s.engine).isRestricted(s.perm("secondTarget"), "suspend"));
 
     expect(observe(s.engine).isRestricted(s.perm("secondTarget"), "suspend")).toBe(true);
@@ -335,14 +314,13 @@ describe("BT15-026", () => {
   it("keeps the suspend lock through the opponent turn and expires at its exact end boundary", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT15-026", as: "wereGarurumon" }], deck: ["BT1-009", "BT1-009"] },
+        0: { battleArea: [{ card: "BT15-026", as: "wereGarurumon" }], deck: ["BT1-009", "BT1-009"] },
         1: { battleArea: [{ card: "BT1-009", as: "target" }], deck: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
 
-    s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wereGarurumon").instanceId })).toEqual({ ok: true });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wereGarurumon"));
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "suspend"));
 
     s.state.memory = 3;

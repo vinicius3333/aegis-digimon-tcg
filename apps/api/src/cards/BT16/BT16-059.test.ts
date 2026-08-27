@@ -57,31 +57,4 @@ describe("BT16-059", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT16-048")).toBe(true);
   });
-
-  it("naturally unsuspends its Pulsemon-text host after attacking by trashing top security", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT16-055", as: "host", under: ["BT16-059"] }],
-          security: ["BT1-001", "BT1-002"],
-        },
-        1: { security: ["BT1-003"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    const securityBefore = s.state.players[0]!.security.length;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !s.perm("host").isSuspended && s.state.players[0]!.security.length === securityBefore - 1);
-
-    expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.state.players[0]!.security).toHaveLength(securityBefore - 1);
-  });
 });

@@ -38,6 +38,8 @@ const compiled: CompiledCard = {
             },
             raw: "By trashing 1 Digimon card with the [Machine]/[Cyborg]/[SoC] trait in your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },

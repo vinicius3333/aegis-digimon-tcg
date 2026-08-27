@@ -19,7 +19,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Hybrid"],
-                  match: "traitContains",
+                  match: "trait",
                 },
               ],
             },
@@ -55,7 +55,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Takuya Kanbara"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },

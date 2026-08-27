@@ -2,42 +2,9 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { compiled } from "./BT8-093.js";
+import "./BT8-093.js";
 
 describe("BT8-093 Yukio Oikawa", () => {
-  it("keeps the Myotismon and suspended-Tamer gates in executable IR", () => {
-    expect(compiled).toMatchObject({
-      coverage: "full",
-      residual: [],
-      effects: [
-        {
-          trigger: "AllTurns",
-          actions: [
-            {
-              kind: "SubTrigger",
-              event: "onDeletionOf",
-              sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Myotismon"], match: "name" }] },
-              actions: [{ kind: "GainMemory", amount: 1, optional: true, cost: { kind: "suspend" } }],
-            },
-          ],
-        },
-        {
-          trigger: "EndOfOpponentsTurn",
-          condition: { kind: "selfIsSuspended" },
-          actions: [
-            {
-              kind: "PlayWithoutCost",
-              from: ["trash"],
-              target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["MaloMyotismon"], match: "name" }] } },
-              cost: { kind: "deleteOwn" },
-            },
-          ],
-        },
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
-      ],
-    });
-  });
-
   it("suspends to gain 1 memory when one of your Myotismon Digimon is deleted", async () => {
     const s = setupEngine(
       {

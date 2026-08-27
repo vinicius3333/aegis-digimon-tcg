@@ -17,7 +17,7 @@ import {
   type Permanent,
   type ZoneRef,
 } from "@aegis/shared";
-import { tamerOntoDigivolveColors, tamerOntoDigivolveLevel } from "./tamerOntoDigivolve.js";
+import { tamerOntoDigivolveLevel } from "./tamerOntoDigivolve.js";
 import type { GameAccess } from "../effects/EffectContext.js";
 
 /**
@@ -546,13 +546,9 @@ export function matchingAlternateDigivolutionRequirement(
     const named = matchGatedRequirement(requirements, baseDef, baseEffectiveNames, options, true);
     if (named) return named;
     if (!isTamer(baseDef)) return undefined;
-    const tamerColors = tamerOntoDigivolveColors(evolvingId);
-    if (tamerColors !== undefined && !tamerColors.some((color) => baseDef.colors.includes(color as CardColor))) {
-      return undefined;
-    }
-    // The base Tamer must satisfy the printed "onto one of your <color> Tamers" filter, then
-    // share a color with the evolving card (standard digivolve color rule), and the cost is the
-    // evolving card's evo cost at the "as if" level for that shared color. The stale gateless/baseIsTamer-only
+    // The base Tamer must share a color with the evolving card ("onto one of your <color>
+    // Tamers" — standard digivolve color rule), and the cost is the evolving card's evo cost
+    // at the "as if" level for that shared color. The stale gateless/baseIsTamer-only
     // effects.json entry for these cards is intentionally ignored here.
     const evolvingDef = resolve(evolving);
     const evo = evolvingDef.evoCosts.find((c) => c.level === tamerOntoLevel && baseDef.colors.includes(c.color));

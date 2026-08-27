@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-107.js";
-describe("BT7-107 Calling From the Darkness", () => {
+describe("BT7-107 Trump Sword", () => {
   it("deletes one Digimon and returns purple cards from trash", async () => {
     const s = setupEngine(
       { 0: { battleArea: ["BT7-067"], hand: [{ card: "BT7-107", as: "option" }], trash: ["BT7-068"] } },

@@ -8,7 +8,7 @@ describe("BT6-032 Tapirmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT6-041", under: ["BT6-032", "BT6-035"], as: "host" }],
+          battleArea: [{ card: "BT6-041", under: ["BT6-032"], as: "host" }],
           security: ["BT1-001"],
           deck: [{ card: "BT1-010", as: "drawn" }],
         },

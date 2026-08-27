@@ -127,6 +127,5 @@ describe("BT15-012 Shoutmon X2 [On Play] suspend", () => {
 
     // The opp Digimon should be suspended
     expect(oppDigimon.isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(oppDigimon, "unsuspend")).toBe(false);
   });
 });

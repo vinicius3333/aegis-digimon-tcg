@@ -1,7 +1,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Pukumon — BT6-028 (Blue Lv.6 Digimon).
+// Pukumon — BT6-028 (Black Lv.7 Digimon).
 //
 // [Main] <Digi-Burst 2> (Trash 2 of this Digimon's Digivolution cards to activate
 // the effect below.) Your Digimon can't be blocked by your opponent's Digimon this turn.

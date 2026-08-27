@@ -30,7 +30,7 @@ describe("BT10-035 Darcmon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT10-039", as: "host", under: ["BT10-035"] }] },
+        0: { battleArea: [{ card: "BT10-036", as: "host", under: ["BT10-035"] }] },
         1: {
           battleArea: [
             { card: "BT10-020", as: "chosen" },
@@ -72,7 +72,7 @@ describe("BT10-035 Darcmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-039", as: "host", under: ["BT10-035"] }],
+          battleArea: [{ card: "BT10-036", as: "host", under: ["BT10-035"] }],
           deck: ["BT1-001", "BT1-002"],
         },
         1: {

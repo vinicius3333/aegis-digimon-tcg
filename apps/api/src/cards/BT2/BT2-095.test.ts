@@ -9,7 +9,7 @@ describe("BT2-095 River of Power", () => {
         0: { battleArea: [{ card: "BT2-021", as: "ownDigimon" }], hand: [{ card: "BT2-095", as: "option" }] },
         1: {
           battleArea: [
-            { card: "BT2-033", as: "first", under: [{ card: "BT2-003", as: "firstSource" }] },
+            { card: "BT2-033", as: "first", under: [{ card: "BT2-001", as: "firstSource" }] },
             { card: "BT2-021", as: "second" },
             { card: "BT2-067", as: "third" },
             { card: "BT2-071", as: "levelFour" },

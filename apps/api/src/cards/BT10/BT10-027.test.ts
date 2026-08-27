@@ -16,17 +16,11 @@ describe("BT10-027 Regalecusmon", () => {
         actions: [
           expect.objectContaining({
             kind: "PlayWithoutCost",
-            fromOwnDigivolutionStack: true,
-            target: expect.objectContaining({
-              filter: expect.objectContaining({ controller: "mine", level: 3 }),
-            }),
+            target: expect.objectContaining({ filter: expect.objectContaining({ level: 3 }) }),
           }),
           expect.objectContaining({
             kind: "PlayWithoutCost",
-            fromOwnDigivolutionStack: true,
-            target: expect.objectContaining({
-              filter: expect.objectContaining({ controller: "mine", level: 4 }),
-            }),
+            target: expect.objectContaining({ filter: expect.objectContaining({ level: 4 }) }),
           }),
         ],
       }),
@@ -176,60 +170,5 @@ describe("BT10-027 Regalecusmon", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("level3").instanceId),
     ).toBe(true);
     expect(s.perm("regalecusmon").stack).toHaveLength(0);
-  });
-
-  it("only plays matching cards from its own stack, not neighboring or opposing stacks", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT10-027", as: "regalecusmon", under: ["BT10-023"] },
-            {
-              card: "BT1-015",
-              as: "neighbor",
-              under: [
-                { card: "BT9-021", as: "neighborLevel3" },
-                { card: "BT9-025", as: "neighborLevel4" },
-              ],
-            },
-          ],
-        },
-        1: {
-          battleArea: [
-            { card: "BT1-010", as: "sourceLess" },
-            {
-              card: "BT1-015",
-              as: "opposingStack",
-              under: [
-                { card: "BT9-021", as: "opposingLevel3" },
-                { card: "BT9-025", as: "opposingLevel4" },
-              ],
-            },
-          ],
-          security: ["BT1-001"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-    );
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("regalecusmon").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined);
-
-    expect(s.state.players[0]!.battleArea).toHaveLength(2);
-    expect(s.perm("neighbor").stack.map((card) => card.instanceId)).toEqual([
-      s.inst("neighborLevel3").instanceId,
-      s.inst("neighborLevel4").instanceId,
-    ]);
-    expect(s.perm("opposingStack").stack.map((card) => card.instanceId)).toEqual([
-      s.inst("opposingLevel3").instanceId,
-      s.inst("opposingLevel4").instanceId,
-    ]);
   });
 });

@@ -91,7 +91,7 @@ const compiled: CompiledCard = {
                     raw: "you have a Tamer",
                   },
                   {
-                    kind: "triggerPlayedOrDigivolvedByEffect",
+                    kind: "triggerEnteredByEffect",
                     raw: "played or digivolved by an effect",
                   },
                 ],
@@ -140,7 +140,7 @@ const compiled: CompiledCard = {
                     raw: "you have a Tamer",
                   },
                   {
-                    kind: "triggerPlayedOrDigivolvedByEffect",
+                    kind: "triggerEnteredByEffect",
                     raw: "digivolved by an effect",
                   },
                 ],

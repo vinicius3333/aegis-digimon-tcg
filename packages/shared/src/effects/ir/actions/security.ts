@@ -32,8 +32,6 @@ export interface DisableSecurityEffectAction extends ActionBase {
   /** Defaults to the source. */
   target: Target;
   sourceKind: "option" | "any";
-  /** Apply to every attacker controlled by the source owner, rather than one resolved permanent. */
-  scope?: "seat";
   duration: EffectDurationRef;
 }
 

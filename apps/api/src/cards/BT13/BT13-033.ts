@@ -57,7 +57,7 @@ export const compiled: CompiledCard = {
     {
       cost: 0,
       isAlternate: true,
-      namesExact: ["MirageGaogamon"],
+      names: ["MirageGaogamon"],
       burstDigivolve: { returnTamerNamesExact: ["Thomas H. Norstein"] },
     },
   ],

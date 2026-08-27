@@ -43,7 +43,6 @@ const compiled: CompiledCard = {
       cost: 0,
       isAlternate: true,
       baseIsTamer: true,
-      baseColors: ["Black"],
     },
   ],
 };

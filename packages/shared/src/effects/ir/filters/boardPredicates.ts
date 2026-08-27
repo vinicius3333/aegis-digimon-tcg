@@ -98,7 +98,7 @@ export interface BoardPredicates {
     orPrevious?: boolean;
     negate?: boolean;
   }[];
-  /** Reject the permanent if any card under its top has one of these exact names (BT17-100). */
+  /** Reject the permanent if any card under its top matches these names (BT17-100). */
   excludeCardsNamed?: string[];
   /**
    * Compare stack size against the effect source's ("as many or fewer digivolution cards as

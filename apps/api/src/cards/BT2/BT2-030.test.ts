@@ -80,14 +80,4 @@ describe("BT2-030 MetalSeadramon", () => {
     await settle(() => s.state.players[1]!.security.length === 1, 1000);
     expect(s.perm("blocker").isSuspended).toBe(false);
   });
-
-  it("only restricts blockers during its controller's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-030", as: "attacker" }] } });
-    await s.engine.recomputeContinuousEffects();
-    expect(observe(s.engine).hasRestriction(s.perm("attacker"), "cantBeBlockedByNoDigivolution")).toBe(true);
-
-    s.state.turnSeat = 1;
-    await s.engine.recomputeContinuousEffects();
-    expect(observe(s.engine).hasRestriction(s.perm("attacker"), "cantBeBlockedByNoDigivolution")).toBe(false);
-  });
 });

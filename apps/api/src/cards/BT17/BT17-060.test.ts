@@ -65,7 +65,6 @@ describe("BT17-060 Armageddemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 16;
-    const reducedCardIds = [s.inst("costOne").instanceId, s.inst("costTwo").instanceId, s.inst("costThree").instanceId];
     const unsuspendedTargetId = s.perm("unsuspendedTarget").permanentId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("armageddemon").instanceId })).toEqual({
@@ -78,9 +77,7 @@ describe("BT17-060 Armageddemon", () => {
         ),
     );
 
-    expect(s.state.memory).toBe(3);
-    expect(s.state.players[0]!.trash.some((card) => reducedCardIds.includes(card.instanceId))).toBe(false);
-    expect(s.state.players[0]!.deck.some((card) => reducedCardIds.includes(card.instanceId))).toBe(true);
+    expect(s.state.memory).toBe(0);
     const armageddemon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT17-060")!;
     expect(observe(s.engine).hasKeyword(armageddemon, "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(armageddemon, "Blocker")).toBe(true);

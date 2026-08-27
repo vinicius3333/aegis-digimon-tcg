@@ -9,7 +9,7 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "Return",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "opponent",
@@ -17,6 +17,25 @@ const compiled: CompiledCard = {
               levels: [3],
             },
             count: 1,
+            bindAs: "returnTarget",
+          },
+        },
+        {
+          kind: "TrashDigivolution",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "returnTarget",
+          },
+          amount: 99,
+          raw: "Trash all of the digivolution cards of that Digimon.",
+        },
+        {
+          kind: "Return",
+          target: {
+            filter: {},
+            count: 1,
+            fromSelectionRef: "returnTarget",
           },
           to: "hand",
         },

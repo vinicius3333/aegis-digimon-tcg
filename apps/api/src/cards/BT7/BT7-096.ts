@@ -11,40 +11,18 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "SelectBind",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              digivolutionCards: "hasAny",
-            },
-            count: 1,
-            bindAs: "chosenHost",
-          },
-        },
-        {
           kind: "PlayWithoutCost",
           target: {
             filter: {
               controller: "mine",
-              zone: "digivolutionCards",
-              kind: ["Tamer"],
-              hostFilter: { boundRef: "chosenHost" },
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [
+                {
+                  tokens: ["Hybrid"],
+                  match: "trait",
+                },
+              ],
             },
-            orFilters: [
-              {
-                controller: "mine",
-                zone: "digivolutionCards",
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Hybrid"],
-                    match: "traitContains",
-                  },
-                ],
-                hostFilter: { boundRef: "chosenHost" },
-              },
-            ],
             count: 1,
           },
           from: ["digivolutionCards"],
@@ -64,7 +42,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Koji Minamoto"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },

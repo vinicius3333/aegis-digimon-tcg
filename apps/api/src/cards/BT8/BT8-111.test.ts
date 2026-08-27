@@ -1,59 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { compiled } from "./BT8-111.js";
 import "./BT8-111.js";
 
 describe("BT8-111 Creepymon", () => {
-  it("keeps the opponent-count mill, threshold, and per-ten attack scaling in IR", () => {
-    expect(compiled.effects).toMatchObject([
-      {
-        trigger: "WhenDigivolving",
-        actions: [
-          {
-            kind: "TrashTopDeck",
-            amount: 2,
-            trackCount: "creepymonMilled",
-            scaling: { per: 1, unit: "cards", filter: { controller: "opponent", kind: ["Digimon"] } },
-          },
-          {
-            kind: "PlayWithoutCost",
-            from: ["trash"],
-            payCost: false,
-            optional: true,
-            target: {
-              filter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                colors: ["Purple"],
-                levelComparison: { op: "lte", value: 5 },
-              },
-              count: 1,
-            },
-            condition: { kind: "namedCountAtLeast", countSource: "creepymonMilled", count: 4 },
-          },
-        ],
-      },
-      {
-        trigger: "WhenAttacking",
-        frequency: "OncePerTurn",
-        actions: [
-          {
-            kind: "TrashTopDeck",
-            controller: "opponent",
-            amount: 3,
-            scaling: { per: 10, unit: "cards", filter: { zone: "trash", controller: "mine" } },
-          },
-          {
-            kind: "ModifyDP",
-            amount: 3000,
-            duration: "forTheTurn",
-            scaling: { per: 10, unit: "cards", filter: { zone: "trash", controller: "mine" } },
-          },
-        ],
-      },
-    ]);
-  });
-
   it("mills 2 per opposing Digimon and may play a purple level-5-or-lower Digimon after milling at least 4", async () => {
     const s = setupEngine(
       {

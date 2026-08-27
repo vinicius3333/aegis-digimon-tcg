@@ -3,33 +3,9 @@ import type { PlayerState } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { compiled } from "./BT8-091.js";
+import "./BT8-091.js";
 
 describe("BT8-091 Willis", () => {
-  it("keeps the hatch, name gate, and Security clause in executable IR", () => {
-    expect(compiled).toMatchObject({
-      coverage: "full",
-      residual: [],
-      effects: [
-        { trigger: "OnPlay", actions: [{ kind: "Hatch", optional: true }] },
-        {
-          trigger: "YourTurn",
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldDigivolve",
-              mode: "reduceCost",
-              amount: 1,
-              into: { nameOrTrait: [{ tokens: ["Gargomon", "Rapidmon"], match: "name" }] },
-              cost: { kind: "suspend" },
-            },
-          ],
-        },
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
-      ],
-    });
-  });
-
   it("may hatch a Digi-Egg into an empty breeding area", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT8-091", as: "source" }], eggDeck: [{ card: "BT8-005", as: "egg" }] },

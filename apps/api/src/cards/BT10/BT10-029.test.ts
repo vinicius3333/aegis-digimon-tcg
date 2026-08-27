@@ -6,16 +6,7 @@ import { compiled } from "./BT10-029.js";
 describe("BT10-029 Starmons", () => {
   it("encodes Save, conditional inherited Draw 1, and the alternate Xros Heart evolution", () => {
     expect(compiled.effects).toEqual([
-      expect.objectContaining({
-        trigger: "OnDeletion",
-        keywords: [expect.objectContaining({ keyword: "Save" })],
-        actions: [
-          expect.objectContaining({
-            kind: "PlaceUnder",
-            underFilter: { controller: "mine", kind: ["Tamer"] },
-          }),
-        ],
-      }),
+      expect.objectContaining({ trigger: "OnDeletion", keywords: [expect.objectContaining({ keyword: "Save" })] }),
       expect.objectContaining({
         trigger: "WhenAttacking",
         isInherited: true,

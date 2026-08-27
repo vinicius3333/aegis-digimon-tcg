@@ -50,7 +50,6 @@ const compiled: CompiledCard = {
           payCost: false,
           optional: true,
           abortOnDecline: true,
-          notSameNameAs: ["battleArea"],
         },
       ],
     },

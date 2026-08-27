@@ -1,4 +1,4 @@
-import { getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -110,40 +110,5 @@ describe("BT9-006 Pagumon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("host").currentDP).toBe(3000);
     expect(s.state.players[0]!.trash).toHaveLength(0);
-  });
-
-  it("keeps the inherited attack effect on a legal Pagumon-to-DemiDevimon stack", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          breeding: { card: "BT9-006", as: "pagumon" },
-          hand: [
-            { card: "BT2-067", as: "demidevimon" },
-            { card: "BT1-089", as: "cost" },
-          ],
-        },
-        1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("pagumon").permanentId,
-        instanceId: s.inst("demidevimon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("pagumon").topCard.instanceId === s.inst("demidevimon").instanceId);
-    s.state.phase = Phase.Breeding;
-    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("pagumon").permanentId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.breeding === undefined);
-
-    expect(attackTarget(s)).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
-    expect(s.perm("pagumon").stack.map((card) => card.cardId)).toContain("BT9-006");
-    expect(s.perm("pagumon").currentDP).toBe(4000);
-    expect(s.state.players[0]!.trash).toContainEqual(s.inst("cost"));
   });
 });

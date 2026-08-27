@@ -38,33 +38,6 @@ describe("BT8-068 BanchoMamemon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("rest").instanceId)).toBe(true);
   });
 
-  it("may decline the reveal even when no opposing Digimon are in play", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT10-013", as: "base" }],
-          hand: [{ card: "BT8-068", as: "evolving" }],
-          deck: ["BT6-064", "BT3-071", "BT1-010"],
-        },
-        1: { battleArea: [] },
-      },
-      { autoDeclineOptional: true },
-    );
-    s.state.memory = 3;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
-
-    expect(s.state.players[0]!.deck).toHaveLength(3);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
-    expect(s.perm("base").topCard?.cardId).toBe("BT8-068");
-  });
-
   it("checks one additional security while another Mamemon is in play", async () => {
     const s = setupEngine({
       0: {

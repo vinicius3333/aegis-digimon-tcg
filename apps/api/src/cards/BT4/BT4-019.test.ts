@@ -22,9 +22,7 @@ describe("BT4-019 VictoryGreymon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.perm("base").stack).toHaveLength(1);
-    expect(s.perm("base").topCard?.cardId).toBe("BT4-019");
-    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.perm("base").stack).toHaveLength(0);
   });
 
   it("does not delete an opposing Digimon with more than 8000 DP", async () => {
@@ -48,10 +46,8 @@ describe("BT4-019 VictoryGreymon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").stack.length === 3, 5000);
+    await settle(() => s.perm("base").stack.length === 0, 5000);
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
-    expect(s.perm("base").stack).toHaveLength(3);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });

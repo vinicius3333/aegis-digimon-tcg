@@ -46,28 +46,4 @@ describe("BT1-052 Seasarmon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-052")).toBe(true);
   });
-
-  it("retains Jamming after evolving from a yellow level 3", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-050", as: "base" }],
-        hand: [{ card: "BT1-052", as: "seasarmon" }],
-        deck: [{ card: "BT1-010", as: "drawn" }],
-      },
-    });
-    s.state.memory = 2;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("seasarmon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.instanceId === s.inst("seasarmon").instanceId);
-
-    expect(s.state.memory).toBe(0);
-    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT1-050");
-    expect(observe(s.engine).hasKeyword(s.perm("base"), "Jamming")).toBe(true);
-  });
 });

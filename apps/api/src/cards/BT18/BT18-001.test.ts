@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-001.js";
 
@@ -22,12 +24,7 @@ describe("BT18-001 DemiMeramon", () => {
       {
         0: {
           battleArea: [
-            {
-              card: "BT6-016",
-              as: "host",
-              under: ["BT18-001", "BT18-008", "BT4-010", "BT6-015"],
-            },
-            { card: "BT6-084", as: "sistermon" },
+            { card: "BT1-030", as: "host", under: ["BT18-001"] },
             { card: "BT1-085", as: "tamer" },
           ],
         },
@@ -58,22 +55,15 @@ describe("BT18-001 DemiMeramon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondSmallId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === largeId)).toBe(true);
 
-    await settle(() => !s.perm("host").isSuspended);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("host").isSuspended);
+    await advance(s.engine).fireForInstance(EffectTiming.OnUseAttack, s.perm("host").topCard!);
+    await settle();
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondSmallId)).toBe(true);
   });
 
   it("does not delete without a red Tamer", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-008", as: "host", under: ["BT18-001"] }] },
+        0: { battleArea: [{ card: "BT1-030", as: "host", under: ["BT18-001"] }] },
         1: { battleArea: [{ card: "BT1-030", dp: 3000, as: "target" }] },
       },
       { autoSelectCards: true },

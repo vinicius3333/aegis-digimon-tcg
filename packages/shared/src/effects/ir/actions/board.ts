@@ -138,8 +138,6 @@ export interface GainKeywordAction extends ActionBase {
   duration: EffectDurationRef;
   /** Apply the grant to the controller's current and future Digimon for the duration. */
   playerWide?: boolean;
-  /** Apply the filtered grant to matching permanents that enter before the duration expires. */
-  includeLaterEntrants?: boolean;
   /**
    * How many times each target gains the keyword; default 1. BT19-091 "gains ＜Alliance＞ twice"
    * — each extra Alliance grant adds one more security check.

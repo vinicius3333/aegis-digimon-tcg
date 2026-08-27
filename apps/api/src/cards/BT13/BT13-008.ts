@@ -6,7 +6,7 @@ type Actions = CompiledCard["effects"][number]["actions"];
 const marcusTarget = {
   filter: {
     controller: "mine" as const,
-    nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" as const }],
+    nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" as const }],
   },
   count: 1 as const,
 };

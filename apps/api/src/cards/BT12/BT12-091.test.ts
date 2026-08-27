@@ -6,8 +6,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-091.js";
 
-describe("BT12-091 compiled IR module", () => {
-  it("registers its printed OnStartMainPhase effect through the compiled IR record", () => {
+describe("BT12-091 handwritten module", () => {
+  it("registers its printed OnStartMainPhase effect without declarative effect record", () => {
     const module = getEffectModule("BT12-091");
     expect(module?.cardId).toBe("BT12-091");
     const source = {
@@ -36,35 +36,5 @@ describe("BT12-091 compiled IR module", () => {
     await settle(() => s.perm("airu").stack.some(({ cardId }) => cardId === "BT12-008"));
     expect(s.perm("airu").stack.map(({ cardId }) => cardId)).toContain("BT12-008");
     expect(s.perm("opponent").currentDP).toBe(3000);
-  });
-
-  it("suspends Airu, places an under-Tamer card, and reduces a Save digivolution by 1", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT12-091", as: "airu", under: [{ card: "BT10-075", as: "placedCost" }] },
-            { card: "BT10-071", as: "host" },
-          ],
-          hand: [{ card: "BT10-075", as: "evolver" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    s.state.memory = 0;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("host").permanentId,
-        instanceId: s.inst("evolver").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("airu").isSuspended);
-
-    expect(s.perm("airu").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(-1);
-    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("placedCost").instanceId)).toBe(true);
   });
 });

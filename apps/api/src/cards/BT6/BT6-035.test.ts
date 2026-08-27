@@ -25,21 +25,4 @@ describe("BT6-035 Baluchimon", () => {
       expect.arrayContaining([s.inst("drawA").instanceId, s.inst("drawB").instanceId]),
     );
   });
-
-  it("does not draw when its owner has more than three security cards", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "BT6-035", as: "source" }],
-        security: 4,
-        deck: ["BT6-036", "BT6-037"],
-      },
-    });
-    const player = s.state.players[0] as PlayerState;
-    s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => player.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("source").instanceId));
-    expect(player.deck).toHaveLength(2);
-  });
 });

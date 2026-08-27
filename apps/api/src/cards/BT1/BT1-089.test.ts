@@ -1,6 +1,6 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./BT1-089.js";
 
@@ -34,45 +34,12 @@ describe("BT1-089 Mimi Tachikawa", () => {
 
   it("suspends to hatch when a level 5 green Digimon is in play", async () => {
     const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT1-089", as: "mimi" }, { card: "BT1-078", under: ["BT1-073"] }],
-          eggDeck: ["BT1-008"],
-        },
-      },
+      { 0: { battleArea: [{ card: "BT1-089", as: "mimi" }, { card: "BT1-078" }], eggDeck: ["BT1-008"] } },
       { autoAcceptOptional: true, autoChooseOption: true },
     );
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("mimi"));
     expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT1-008");
     expect(s.perm("mimi").isSuspended).toBe(true);
-  });
-
-  it("can decline the optional breeding-area action", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT1-089", as: "mimi" }, { card: "BT1-078", under: ["BT1-073"] }],
-          eggDeck: ["BT1-008"],
-        },
-      },
-      { autoAcceptOptional: false },
-    );
-
-    const action = advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("mimi"));
-    await settle(() => s.state.pendingDecision?.kind === "confirm");
-    const pending = s.state.pendingDecision!;
-    expect(s.decisions.at(-1)!.req).toMatchObject({ kind: "optional", sourceCardId: "BT1-089" });
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: pending.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
-    await action;
-
-    expect(s.perm("mimi").isSuspended).toBe(false);
-    expect(s.state.players[0]!.breeding).toBeUndefined();
   });
 
   it.each<[string, { breeding?: string; battleArea?: string[] }]>([

@@ -28,7 +28,7 @@ const compiled: CompiledCard = {
           handResident: true,
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           sourceFilter: { controller: "mine", kind: ["Digimon"], digivolutionStackKind: ["Tamer"] },
-          into: { nameOrTrait: [{ tokens: ["JetSilphymon"], match: "nameExact" }] },
+          into: { nameOrTrait: [{ tokens: ["JetSilphymon"], match: "name" }] },
           duration: "permanent",
         },
       ],

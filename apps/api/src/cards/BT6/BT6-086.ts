@@ -41,7 +41,6 @@ const compiled: CompiledCard = {
           },
           from: ["trash"],
           position: "top",
-          order: "any",
           optional: true,
           trackCount: "bt6-086-placed",
         },

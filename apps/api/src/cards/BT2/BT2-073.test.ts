@@ -8,7 +8,7 @@ describe("BT2-073 Garurumon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT2-075", as: "host", under: ["BT2-073"] },
+          { card: "BT2-074", as: "host", under: ["BT2-073"] },
           { card: "BT2-068", as: "other" },
         ],
       },
@@ -22,7 +22,7 @@ describe("BT2-073 Garurumon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT2-075", as: "host", under: ["BT2-073"] },
+          { card: "BT2-074", as: "host", under: ["BT2-073"] },
           { card: "BT2-068", as: "first" },
           { card: "BT2-070", as: "second" },
         ],
@@ -37,7 +37,7 @@ describe("BT2-073 Garurumon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT2-075", as: "host", under: ["BT2-073"] },
+          { card: "BT2-074", as: "host", under: ["BT2-073"] },
           { card: "BT2-068", as: "first" },
           { card: "BT2-070", as: "second" },
         ],
@@ -54,7 +54,7 @@ describe("BT2-073 Garurumon", () => {
 
   it("does not trigger when an opponent's Digimon is deleted", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-075", as: "host", under: ["BT2-073"] }] },
+      0: { battleArea: [{ card: "BT2-074", as: "host", under: ["BT2-073"] }] },
       1: { battleArea: [{ card: "BT2-068", as: "opponent" }] },
     });
     s.state.memory = 0;
@@ -68,7 +68,7 @@ describe("BT2-073 Garurumon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT2-075", as: "host", under: ["BT2-073"] },
+          { card: "BT2-074", as: "host", under: ["BT2-073"] },
           { card: "BT2-068", as: "other" },
         ],
       },

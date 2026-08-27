@@ -25,7 +25,6 @@ describe("BT3-064 TiaLudomon", () => {
     await settle(() => s.perm("target").topCard.cardId === "BT2-013", 5000);
 
     expect(s.perm("target").topCard.cardId).toBe("BT2-013");
-    expect(s.perm("target").stack).toHaveLength(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });

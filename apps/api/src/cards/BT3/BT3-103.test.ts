@@ -29,7 +29,6 @@ describe("BT3-103 Hidden Potential Discovered!", () => {
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT3-103"));
     const memoryAfterOption = s.state.memory;
-    expect(s.perm("payer").isSuspended).toBe(false);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

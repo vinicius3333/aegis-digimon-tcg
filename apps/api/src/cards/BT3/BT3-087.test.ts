@@ -8,7 +8,7 @@ describe("BT3-087 Mummymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT3-087", as: "mummymon", under: ["BT3-083"] }],
+          battleArea: [{ card: "BT3-087", as: "mummymon" }],
           trash: [{ card: "BT3-092", as: "maloMyotismon" }],
         },
         1: { security: ["BT1-011"] },
@@ -40,7 +40,7 @@ describe("BT3-087 Mummymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT3-087", as: "mummymon", under: ["BT3-083"] }],
+          battleArea: [{ card: "BT3-087", as: "mummymon" }],
           trash: [{ card: "BT3-092", as: "maloMyotismon" }],
         },
         1: { security: ["BT1-011"] },

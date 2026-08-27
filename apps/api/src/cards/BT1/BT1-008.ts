@@ -12,11 +12,7 @@ export const compiled: CompiledCard = {
           amount: 2000,
           duration: "forTheTurn",
           target: { isSelf: true },
-          condition: {
-            kind: "opponentHas",
-            countMin: 2,
-            filter: { kind: ["Digimon"], zone: "battleArea", suspended: true },
-          },
+          condition: { kind: "opponentHas", countMin: 2, filter: { kind: ["Digimon"], suspended: true } },
         },
       ],
     },

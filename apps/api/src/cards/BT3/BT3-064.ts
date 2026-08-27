@@ -9,11 +9,6 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",
-      condition: {
-        kind: "selfLevelIs",
-        value: 7,
-        raw: "this Digimon is level 7",
-      },
       actions: [
         {
           kind: "DeDigivolve",
@@ -25,6 +20,23 @@ const compiled: CompiledCard = {
             count: 1,
           },
           amount: 1,
+          condition: {
+            kind: "selfLevelIs",
+            value: 7,
+            raw: "this Digimon is level 7",
+          },
+        },
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              digivolutionCards: "none",
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [3],
+            },
+            count: 1,
+          },
         },
       ],
       isInherited: true,

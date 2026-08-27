@@ -1,28 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import compiled from "./BT1-037.js";
 
 describe("BT1-037 Gorillamon", () => {
-  it("matches the vanilla catalog contract and registers residual-free IR", () => {
-    expect(getCardDefinition("BT1-037")).toMatchObject({
-      cardId: "BT1-037",
-      nameEn: "Gorillamon",
-      colors: ["Blue"],
-      kinds: ["Digimon"],
-      level: 4,
-      playCost: 6,
-      dp: 6000,
-      evoCosts: [{ color: "Blue", level: 3, memoryCost: 1 }],
-      forms: ["Champion"],
-      attributes: ["Data"],
-      types: ["Beastkin"],
-    });
-    expect(compiled).toEqual({ effects: [], coverage: "full", residual: [] });
-    expect(getEffectModule("BT1-037")?.cardId).toBe("BT1-037");
-  });
-
   it("plays for 6 memory as a 6000 DP Digimon", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT1-037", as: "gorillamon" }] } });
     s.state.memory = 6;

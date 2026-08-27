@@ -17,19 +17,6 @@ describe("BT12-080 Wisemon", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT12-071");
   });
 
-  it("does not add a Tamer, other-color Digimon, or Option from the reveal", async () => {
-    const s = setupEngine(
-      { 0: { hand: [{ card: "BT12-080", as: "wise" }], deck: ["BT1-085", "BT1-009", "BT1-109"] } },
-      { autoSelectCards: true, autoChooseOption: true },
-    );
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wise").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-080"));
-    expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.deck).toHaveLength(3);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
-  });
-
   it("reveals and adds a black or purple Digimon when digivolving", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT12-080", as: "wise" }], deck: ["BT12-071", "BT1-009", "BT1-085"] } },

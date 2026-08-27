@@ -2,32 +2,9 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT7-023.js";
 
 describe("BT7-023 Korikakumon", () => {
-  it("publishes the blue-Tamer evolution path and one shared attack-or-block target", () => {
-    const compiled = runtimeCompiledCard("BT7-023");
-    const staticDigivolve = compiled?.effects
-      .find((effect) => effect.trigger === "Static")
-      ?.actions.find((action) => action.kind === "Digivolve");
-    expect(staticDigivolve).toMatchObject({
-      kind: "Digivolve",
-      onto: { filter: { controller: "mine", kind: ["Tamer"], colors: ["Blue"] }, count: 1 },
-      asLevel: 3,
-      from: "hand",
-    });
-
-    const whenDigivolving = compiled?.effects.find((effect) => effect.trigger === "WhenDigivolving");
-    expect(whenDigivolving?.actions).toHaveLength(1);
-    expect(whenDigivolving?.actions[0]).toMatchObject({
-      kind: "Restrict",
-      restriction: "attackOrBlock",
-      duration: "untilOpponentTurnEnd",
-      target: { count: 1 },
-    });
-  });
-
   it("prevents a source-less opposing Digimon from attacking or blocking", async () => {
     const s = setupEngine(
       {

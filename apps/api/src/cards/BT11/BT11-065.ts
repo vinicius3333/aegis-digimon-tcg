@@ -20,7 +20,6 @@ export const compiled: CompiledCard = {
             from: ["trash"],
           },
           underFilter: { isSelfRef: true },
-          position: "bottom",
           optional: true,
         },
         {
@@ -39,6 +38,7 @@ export const compiled: CompiledCard = {
             filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
             count: 4,
           },
+          optional: true,
         },
       ],
     },

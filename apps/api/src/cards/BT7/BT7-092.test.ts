@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-092.js";
-describe("BT7-092 Flame Memory Boost!", () => {
+describe("BT7-092 Atomic Inferno", () => {
   it("gives Security Attack +1 and enters the battle area", async () => {
     const s = setupEngine(
       { 0: { battleArea: ["BT7-007"], hand: [{ card: "BT7-092", as: "option" }] } },

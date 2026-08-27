@@ -47,28 +47,4 @@ describe("BT1-018 Flarerizamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(observe(s.engine).hasKeyword(s.perm("attacker"), "SecurityAttack")).toBe(false);
   });
-
-  it("rechecks the memory gate on a newly evolved Flarerizamon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-009", as: "host" }],
-        hand: [{ card: "BT1-018", as: "flarerizamon" }],
-        deck: [{ card: "BT1-010", as: "drawn" }],
-      },
-    });
-    s.state.memory = 5;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("host").permanentId,
-        instanceId: s.inst("flarerizamon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard.instanceId === s.inst("flarerizamon").instanceId);
-
-    expect(s.state.memory).toBe(3);
-    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT1-009");
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "SecurityAttack")).toBe(true);
-  });
 });

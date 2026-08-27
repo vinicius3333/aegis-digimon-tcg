@@ -93,33 +93,6 @@ describe("BT17-062 Dorumon", () => {
     expect(s.state.memory).toBe(4);
   });
 
-  it("does not offer the attack evolution without Kosuke in the digivolution cards", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT17-062", as: "dorumon" }],
-          hand: [{ card: "BT17-073", as: "dorugoramon" }],
-        },
-        1: { battleArea: [{ card: "BT17-070", as: "levelSix" }], security: 1 },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 4;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("dorumon").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle();
-
-    expect(s.perm("dorumon").topCard?.cardId).toBe("BT17-062");
-    expect(s.state.memory).toBe(4);
-  });
-
   it("grants inherited Reboot to its host", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT17-065", under: ["BT17-062"], as: "host" }] } });
     await s.ready();

@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Gizmon: AT"],
-                match: "nameExact",
+                match: "name",
               },
             ],
           },
@@ -89,9 +89,21 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "CostGatedBlock",
-          optional: true,
-          abortOnDecline: true,
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Gizmon: XT"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
           cost: {
             kind: "return",
             target: {
@@ -107,30 +119,10 @@ export const compiled: CompiledCard = {
               },
               count: 2,
             },
-            orderReturnedCards: true,
-            to: "deckBottom",
             raw: "By returning 2 cards with [Gizmon] in their names from your trash to the bottom of the deck in any order",
           },
-          actions: [
-            {
-              kind: "PlayWithoutCost",
-              target: {
-                filter: {
-                  controller: "mine",
-                  nameOrTrait: [
-                    {
-                      tokens: ["Gizmon: XT"],
-                      match: "nameExact",
-                    },
-                  ],
-                },
-                count: 1,
-              },
-              from: ["trash"],
-              payCost: false,
-              optional: true,
-            },
-          ],
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },

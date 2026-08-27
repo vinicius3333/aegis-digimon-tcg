@@ -7,7 +7,7 @@ import "./BT2-055.js";
 describe("BT2-055 ToyAgumon", () => {
   it("grants Reboot to its host without immediately unsuspending it", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-060", as: "host", under: ["BT2-055", "BT2-056"], suspended: true }] },
+      0: { battleArea: [{ card: "BT2-065", as: "host", under: ["BT2-055"], suspended: true }] },
     });
     await s.engine.recomputeContinuousEffects();
 
@@ -17,7 +17,7 @@ describe("BT2-055 ToyAgumon", () => {
 
   it("unsuspends its host during the opponent's unsuspend phase", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-060", as: "host", under: ["BT2-055", "BT2-056"], suspended: true }] },
+      0: { battleArea: [{ card: "BT2-065", as: "host", under: ["BT2-055"], suspended: true }] },
     });
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();

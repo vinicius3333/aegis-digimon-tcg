@@ -77,7 +77,6 @@ export const compiled: CompiledCard = {
             per: 1,
             filter: {
               controller: "mine",
-              zone: "battleArea",
               kind: ["Digimon"],
               nameOrTrait: [
                 {

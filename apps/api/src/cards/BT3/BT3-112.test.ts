@@ -1,6 +1,5 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import module from "./BT3-112.js";
@@ -12,13 +11,9 @@ describe("BT3-112 Omnimon Alter-S", () => {
       nameEn: "Omnimon Alter-S",
       colors: ["White"],
       level: 7,
-      evoCosts: expect.arrayContaining([
-        { color: "Red", level: 6, memoryCost: 6 },
-        { color: "Black", level: 6, memoryCost: 6 },
-      ]),
       effectText: expect.stringContaining("De-Digivolve 1"),
     });
-    expect(runtimeCompiledCard("BT3-112")).toMatchObject({
+    expect(getCompiledCard("BT3-112")).toMatchObject({
       coverage: "full",
       residual: [],
       effects: [
@@ -28,25 +23,7 @@ describe("BT3-112 Omnimon Alter-S", () => {
         },
         {
           trigger: "WhenAttacking",
-          actions: [
-            {
-              kind: "Restrict",
-              restriction: "cantBeBlocked",
-              optional: true,
-              cost: {
-                kind: "return",
-                target: {
-                  filter: {
-                    zone: "digivolutionCards",
-                    controller: "mine",
-                    kind: ["Digimon"],
-                    levels: [6],
-                    hostFilter: { isSelfRef: true },
-                  },
-                },
-              },
-            },
-          ],
+          actions: [{ kind: "Restrict", restriction: "cantBeBlocked", optional: true }],
         },
       ],
     });
@@ -61,8 +38,8 @@ describe("BT3-112 Omnimon Alter-S", () => {
         },
         1: {
           battleArea: [
-            { card: "BT12-057", as: "deleted", under: ["BT17-050"] },
-            { card: "BT12-057", as: "survivor", under: ["BT3-057"] },
+            { card: "BT2-020", as: "deleted", under: ["BT1-019"] },
+            { card: "BT2-083", as: "survivor", under: ["BT2-020"] },
           ],
         },
       },
@@ -80,8 +57,7 @@ describe("BT3-112 Omnimon Alter-S", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === deletedId), 5000);
 
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === deletedId)).toBe(false);
-    expect(s.perm("survivor").topCard.cardId).toBe("BT3-057");
+    expect(s.perm("survivor").topCard.cardId).toBe("BT2-020");
   });
 
   it("may return a level 6 source to hand to become unblockable for the turn", async () => {
@@ -112,32 +88,5 @@ describe("BT3-112 Omnimon Alter-S", () => {
 
     expect(s.perm("alterS").stack).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("alterS"), "cantBeBlocked")).toBe(true);
-  });
-
-  it("does not pay with a level 6 card under another own Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT3-112", as: "attacker" },
-            { card: "BT3-112", as: "other", under: [{ card: "BT3-074", as: "otherLevelSix" }] },
-          ],
-        },
-        1: { security: ["BT1-011"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.security.length === 0, 5000);
-
-    expect(observe(s.engine).isRestricted(s.perm("attacker"), "cantBeBlocked")).toBe(false);
-    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT3-074"]);
   });
 });

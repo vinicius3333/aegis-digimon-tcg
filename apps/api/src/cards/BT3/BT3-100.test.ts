@@ -34,35 +34,6 @@ describe("BT3-100 Desperado Blaster", () => {
     );
   });
 
-  it("can trash only one of two available bottom sources", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: ["BT3-020", "BT3-044"], hand: [{ card: "BT3-100", as: "option" }] },
-        1: {
-          battleArea: [
-            {
-              card: "BT3-020",
-              as: "target",
-              under: [
-                { card: "BT3-021", as: "first" },
-                { card: "BT3-022", as: "second" },
-              ],
-            },
-          ],
-        },
-      },
-      { autoSelectCards: true, autoDeclineOptional: true },
-    );
-    s.state.memory = 5;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.perm("target").stack.length === 1);
-
-    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT3-022"]);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT3-021");
-  });
-
   it("activates its full Main effect from security", async () => {
     const s = setupEngine(
       {

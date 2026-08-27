@@ -34,7 +34,7 @@ export const compiled: CompiledCard = {
                 target: {
                   filter: {
                     controller: "mine",
-                    kind: ["Digimon", "DigiEgg"],
+                    kind: ["Digimon"],
                     zone: "breeding",
                     levels: [2],
                   },
@@ -90,9 +90,21 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "CostGatedBlock",
-          optional: true,
-          abortOnDecline: true,
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Gizmon: AT"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
           cost: {
             kind: "return",
             target: {
@@ -109,30 +121,9 @@ export const compiled: CompiledCard = {
               count: 2,
             },
             raw: "By returning 2 cards with [Gizmon] in their names from your trash to the bottom of the deck in any order",
-            to: "deckBottom",
-            orderReturnedCards: true,
           },
-          actions: [
-            {
-              kind: "PlayWithoutCost",
-              target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [
-                    {
-                      tokens: ["Gizmon: AT"],
-                      match: "nameExact",
-                    },
-                  ],
-                },
-                count: 1,
-              },
-              from: ["trash"],
-              payCost: false,
-              optional: true,
-            },
-          ],
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-086.js";
 
@@ -12,7 +11,7 @@ describe("BT13-086 BT13-086", () => {
       actions: [
         {
           kind: "Replacement",
-          sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ match: "nameExact", tokens: ["Gizmon: XT"] }] },
+          sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ match: "name", tokens: ["Gizmon: XT"] }] },
           actions: [
             {
               kind: "Replacement",
@@ -41,11 +40,12 @@ describe("BT13-086 BT13-086", () => {
           kind: "PlayWithoutCost",
           from: ["trash"],
           payCost: false,
+          optional: true,
           target: {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
-              nameOrTrait: [{ match: "nameExact", tokens: ["Akihiro Kurata"] }],
+              nameOrTrait: [{ match: "name", tokens: ["Akihiro Kurata"] }],
             },
             count: 1,
           },
@@ -72,7 +72,7 @@ describe("BT13-086 BT13-086", () => {
           payCost: false,
           optional: true,
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ match: "nameExact", tokens: ["ProtoGizmon"] }] },
+            filter: { controller: "mine", nameOrTrait: [{ match: "name", tokens: ["ProtoGizmon"] }] },
             count: 1,
           },
         },
@@ -96,15 +96,5 @@ describe("BT13-086 BT13-086", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("xt").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-103"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-103")).toBe(true);
-  });
-
-  it("plays the exact ProtoGizmon from trash when deleted", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-086", as: "xt" }], trash: [{ card: "BT13-080", as: "proto" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await advance(s.engine).verb.deletePermanent([s.perm("xt").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-080"));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-080")).toBe(true);
   });
 });

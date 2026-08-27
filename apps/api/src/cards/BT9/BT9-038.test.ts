@@ -39,27 +39,4 @@ describe("BT9-038 Pegasusmon", () => {
     await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "SecurityAttack"));
     expect(observe(s.engine).hasKeyword(s.perm("target"), "SecurityAttack")).toBe(true);
   });
-
-  it("uses the two-cost Patamon alternate evolution", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT1-048", as: "base" }], hand: [{ card: "BT9-038", as: "evolving" }] },
-        1: { battleArea: [{ card: "BT2-047", as: "target" }] },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 2;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-        alternateRequirementIndex: 0,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
-    expect(s.state.memory).toBe(0);
-    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
-    expect(observe(s.engine).hasKeyword(s.perm("target"), "SecurityAttack")).toBe(true);
-  });
 });

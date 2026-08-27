@@ -1,7 +1,6 @@
 // Effects that replace or prevent an event before it happens.
 
 import type { Filter, Target } from "../filters/filter.js";
-import type { EffectDurationRef } from "../durations.js";
 import type { Condition } from "../predicates/conditions.js";
 import type { Scaling } from "../predicates/scaling.js";
 import type { Action } from "./action.js";
@@ -27,8 +26,6 @@ export type ReplacementEvent =
 export interface ReplacementAction extends ActionBase {
   kind: "Replacement";
   event: ReplacementEvent;
-  /** Turn window for a triggered replacement installed by an activated effect. */
-  duration?: EffectDurationRef;
   on?: Target;
   /**
    * `"prevent"` means the event does not happen, at the price of a cost. Optional: the prose

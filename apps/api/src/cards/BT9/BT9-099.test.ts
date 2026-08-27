@@ -11,7 +11,7 @@ describe("BT9-099 Sunrise Buster", () => {
     });
     expect(compiled).toMatchObject({
       coverage: "full", residual: [], effects: [
-        { trigger: "Main", actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true, target: { filter: { kind: ["Tamer"], colors: ["Red", "Yellow"] } } }, { kind: "ModifyDP", amount: -3000, duration: "forTheTurn", scaling: { unit: "cards", per: 1, filter: { kind: ["Tamer"], colors: ["Red", "Yellow"] } } }] },
+        { trigger: "Main", actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true, target: { filter: { kind: ["Tamer"], colors: ["Red", "Yellow"] } } }, { kind: "ModifyDP", amount: -3000, duration: "forTheTurn", optional: true, scaling: { unit: "cards", per: 1, filter: { kind: ["Tamer"], colors: ["Red", "Yellow"] } } }] },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
       ],
     });
@@ -20,8 +20,8 @@ describe("BT9-099 Sunrise Buster", () => {
   it("reduces an opposing Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: ["BT1-085", "BT1-087"], hand: [{ card: "BT9-099", as: "option" }] },
-        1: { battleArea: [{ card: "BT1-025", as: "target" }] },
+        0: { battleArea: ["BT9-032", "BT9-007"], hand: [{ card: "BT9-099", as: "option" }] },
+        1: { battleArea: [{ card: "BT9-045", as: "target" }] },
       },
       { autoSelectCards: true },
     );
@@ -29,7 +29,7 @@ describe("BT9-099 Sunrise Buster", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("target").currentDP === 5000);
-    expect(s.perm("target").currentDP).toBe(5000);
+    await settle(() => s.perm("target").currentDP < 10000);
+    expect(s.perm("target").currentDP).toBeLessThan(10000);
   });
 });

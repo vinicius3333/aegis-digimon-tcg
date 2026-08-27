@@ -109,18 +109,6 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         })
       );
     }
-    case "lastTargetPlayCostAtMost": {
-      const ids = ctx.lastResolvedPermanentIds ?? [];
-      const maximum = cond.value ?? Infinity;
-      return (
-        ids.length > 0 &&
-        ids.every((id) => {
-          const permanent = ctx.game.permanentById(id);
-          if (permanent?.topCard === undefined) return false;
-          return ctx.game.definitionOf(permanent.topCard).playCost <= maximum;
-        })
-      );
-    }
     case "triggerRevealedFromDeck":
       return (ctx.lastRevealedCards ?? []).some((card) => card.cardId === ctx.source.cardId);
     case "triggerRevealedMatchesFilter":
@@ -237,7 +225,6 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "noFaceUpSecurity":
       return ctx.game.player(mine).security.every((card) => card.faceUp !== true);
     case "ifOpponentDeclined":
-    case "opponentDeclinedTrash":
       return ctx.lastOpponentDeclined === true;
     case "opponentHasNone":
       return cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) === 0 : false;

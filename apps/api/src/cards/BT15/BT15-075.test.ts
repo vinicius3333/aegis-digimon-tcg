@@ -7,14 +7,14 @@ describe("BT15-075", () => {
       trigger: "WhenDigivolving",
       actions: [
         { kind: "ModifyDP", amount: 2000, cost: { kind: "trash" }, optional: true },
-        { kind: "Draw", amount: 1, condition: { filter: { kind: ["Tamer"] } } },
+        { kind: "Draw", amount: 1 },
       ],
     });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "WhenAttacking",
       actions: [
         { kind: "ModifyDP", amount: 2000 },
-        { kind: "Draw", amount: 1, condition: { filter: { kind: ["Tamer"] } } },
+        { kind: "Draw", amount: 1 },
       ],
     });
   });

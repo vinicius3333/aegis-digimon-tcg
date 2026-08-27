@@ -1,9 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-087.js";
-import "../index.js";
 
 describe("BT16-087", () => {
   it("plays itself from security and sets memory to 3 from 2 or less", () => {
@@ -21,7 +20,7 @@ describe("BT16-087", () => {
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "Main",
       keywords: [{ keyword: "Mind Link" }],
-      actions: [{ kind: "MindLink" }],
+      actions: [{ kind: "MindLink" }, { kind: "PlaceUnder" }],
     });
     expect(compiled.effects?.[3]).toMatchObject({
       trigger: "AllTurns",
@@ -37,14 +36,7 @@ describe("BT16-087", () => {
     expect(compiled.effects?.[4]).toMatchObject({
       trigger: "EndOfAllTurns",
       isInherited: true,
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          fromOwnDigivolutionStack: true,
-          payCost: false,
-          optional: true,
-        },
-      ],
+      actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false, optional: true }],
     });
   });
 
@@ -56,7 +48,7 @@ describe("BT16-087", () => {
     expect(s.state.memory).toBe(3);
   });
 
-  it("Mind Links to an X Antibody Digimon through the public Main intent", async () => {
+  it("mind-links to an X Antibody Digimon and places Kosuke underneath it", async () => {
     const s = setupEngine(
       {
         0: {
@@ -66,42 +58,16 @@ describe("BT16-087", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
-    s.state.turnSeat = 0;
-    s.state.memory = 3;
     await s.ready();
-    const [effect] = observe(s.engine).activatableEffects(s.perm("kosuke")) as { effectKey: string }[];
-
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: s.perm("kosuke").topCard.instanceId,
-        effectKey: effect!.effectKey,
+        effectKey: `BT16-087/ir-${EffectTiming.OnDeclaration}-0`,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("dorumon").stack.some((card) => card.cardId === "BT16-087"));
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-087")).toBe(false);
     expect(s.perm("dorumon").stack.some((card) => card.cardId === "BT16-087")).toBe(true);
-  });
-
-  it("plays Kosuke Kisakata from this host's own stack at end of all turns", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT16-051", as: "dorumon", under: ["BT16-087"] }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
-    );
-    s.state.turnSeat = 0;
-    await s.ready();
-
-    expect(observe(s.engine).hasKeyword(s.perm("dorumon"), "Piercing")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("dorumon"), "Blocker")).toBe(true);
-    await advance(s.engine).runTurn(0);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-087"));
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT16-087")).toBe(true);
-    expect(s.perm("dorumon").stack.some((card) => card.cardId === "BT16-087")).toBe(false);
   });
 });

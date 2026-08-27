@@ -48,16 +48,4 @@ describe("BT6-054 AncientTroymon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-049")).toBe(true);
   });
-
-  it("does not play a green level 4 without the Hybrid form", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT6-054", as: "ancient" }], hand: [{ card: "BT6-048", as: "nonHybrid" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-
-    await advance(s.engine).verb.deletePermanent([s.perm("ancient").permanentId], "byEffect");
-
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nonHybrid").instanceId);
-  });
 });

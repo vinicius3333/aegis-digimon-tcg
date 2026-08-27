@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-export const compiled: CompiledCard = {
+const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",

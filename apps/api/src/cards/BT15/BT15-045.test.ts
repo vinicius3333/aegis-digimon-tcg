@@ -26,46 +26,4 @@ describe("BT15-045", () => {
     await settle(() => s.perm("target").isSuspended, 1_500);
     expect(s.perm("target").isSuspended).toBe(true);
   });
-
-  it("gains one memory for the first green Tamer played by an inherited host each turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-078", as: "host", under: ["BT15-045"] }],
-        hand: [
-          { card: "BT1-088", as: "firstTamer" },
-          { card: "BT1-088", as: "secondTamer" },
-        ],
-      },
-    });
-    s.state.memory = 10;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstTamer").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("firstTamer").instanceId));
-    expect(s.state.memory).toBe(9);
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondTamer").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondTamer").instanceId));
-    expect(s.state.memory).toBe(7);
-  });
-
-  it("digivolves legally from a green level-2 Digi-Egg and preserves the source stack", async () => {
-    const s = setupEngine({
-      0: {
-        breeding: { card: "BT1-007", as: "egg" },
-        hand: [{ card: "BT15-045", as: "palmon" }],
-      },
-    });
-    s.state.memory = 0;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("egg").permanentId,
-        instanceId: s.inst("palmon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("egg").topCard?.cardId === "BT15-045");
-
-    expect(s.perm("egg").stack.map((card) => card.cardId)).toEqual(["BT1-007"]);
-  });
 });

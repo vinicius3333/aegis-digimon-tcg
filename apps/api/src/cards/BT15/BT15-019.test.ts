@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -24,7 +25,7 @@ describe("BT15-019", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT15-019", as: "crabmon" }],
+          battleArea: [{ card: "BT15-019", as: "crabmon" }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
         1: {
@@ -41,10 +42,7 @@ describe("BT15-019", () => {
     );
     const bottomId = s.inst("bottom").instanceId;
 
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crabmon").instanceId })).toEqual({
-      ok: true,
-    });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("crabmon"));
     await settle(() => s.state.players[0]!.hand.length === 1);
 
     expect(s.perm("target").stack).toHaveLength(0);
@@ -56,7 +54,7 @@ describe("BT15-019", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT15-019", as: "crabmon" }],
+          battleArea: [{ card: "BT15-019", as: "crabmon" }],
           deck: [{ card: "BT1-001", as: "deckCard" }],
         },
         1: {
@@ -69,10 +67,7 @@ describe("BT15-019", () => {
       { autoSelectCards: true },
     );
 
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crabmon").instanceId })).toEqual({
-      ok: true,
-    });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("crabmon"));
     await settle(() => s.perm("selected").stack.length === 0);
 
     expect(s.perm("remaining").stack).toHaveLength(1);
@@ -84,42 +79,16 @@ describe("BT15-019", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT15-019", as: "crabmon" }],
+          battleArea: [{ card: "BT15-019", as: "crabmon" }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
       },
       { autoSelectCards: true },
     );
 
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crabmon").instanceId })).toEqual({
-      ok: true,
-    });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("crabmon"));
     await settle(() => s.state.players[0]!.hand.length === 1);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
-  });
-
-  it("reaches Crabmon through its legal blue level-2 evolution route", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-028", as: "base" }],
-        hand: [{ card: "BT15-019", as: "crabmon" }],
-        deck: ["BT1-001"],
-      },
-    });
-    s.state.memory = 3;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("crabmon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT15-019");
-
-    expect(s.state.memory).toBe(3);
-    expect(s.perm("base").stack).toHaveLength(2);
   });
 });

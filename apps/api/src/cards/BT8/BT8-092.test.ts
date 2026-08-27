@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, getCompiledCard, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { compiled } from "./BT8-092.js";
+import "./BT8-092.js";
 
 describe("BT8-092 Yuji Musya", () => {
   it("matches its official metadata and typed effect contract", () => {
@@ -12,38 +12,7 @@ describe("BT8-092 Yuji Musya", () => {
       playCost: 3,
       kinds: ["Tamer"],
     });
-    expect(compiled).toMatchObject({
-      coverage: "full",
-      residual: [],
-      effects: [
-        {
-          trigger: "YourTurn",
-          actions: [
-            {
-              kind: "SubTrigger",
-              event: "whenMovedFromBreeding",
-              sourceFilter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["X-Antibody"], match: "trait" }],
-              },
-            },
-            {
-              kind: "SubTrigger",
-              event: "whenAttacking",
-              sourceFilter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                colors: ["Black"],
-                nameOrTrait: [{ tokens: ["X-Antibody"], match: "trait" }],
-              },
-              actions: [{ kind: "PlaceUnder", underFilter: { isTriggerSource: true }, position: "bottom" }],
-            },
-          ],
-        },
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
-      ],
-    });
+    expect(getCompiledCard("BT8-092")).toMatchObject({ coverage: "full", residual: [] });
   });
 
   it("gains 1 memory and draws when an X-Antibody Digimon moves out of breeding", async () => {

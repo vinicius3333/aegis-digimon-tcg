@@ -15,7 +15,6 @@ const compiled: CompiledCard = {
               kind: ["Digimon", "Tamer"],
             },
             count: 1,
-            bindResultAs: "samadhiSuspended",
           },
           cost: {
             kind: "suspend",
@@ -33,7 +32,7 @@ const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: {
-            fromSelectionRef: "samadhiSuspended",
+            sameTarget: true,
             filter: {
               controller: "opponent",
               suspended: true,

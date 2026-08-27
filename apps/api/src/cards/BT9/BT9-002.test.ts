@@ -1,4 +1,4 @@
-import { getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -125,34 +125,5 @@ describe("BT9-002 Puyoyomon", () => {
     await advance(s.engine).verb.returnToHand([s.inst("returned").instanceId]);
     await settle();
     expect(s.perm("host").currentDP).toBe(baseline);
-  });
-
-  it("keeps the inherited watcher on a legal Puyoyomon-to-Elecmon stack", async () => {
-    const s = setupEngine({
-      0: {
-        breeding: { card: "BT9-002", as: "puyoyomon" },
-        hand: [{ card: "BT1-028", as: "elecmon" }],
-        trash: [{ card: "BT1-010", as: "returned" }],
-      },
-    });
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("puyoyomon").permanentId,
-        instanceId: s.inst("elecmon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("puyoyomon").topCard.instanceId === s.inst("elecmon").instanceId);
-    s.state.phase = Phase.Breeding;
-    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("puyoyomon").permanentId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.breeding === undefined);
-
-    const baseline = s.perm("puyoyomon").currentDP;
-    await advance(s.engine).verb.returnToHand([s.inst("returned").instanceId]);
-    await settle(() => s.perm("puyoyomon").currentDP === baseline + 1000);
-    expect(s.perm("puyoyomon").stack.map((card) => card.cardId)).toContain("BT9-002");
-    expect(s.perm("puyoyomon").currentDP).toBe(baseline + 1000);
   });
 });

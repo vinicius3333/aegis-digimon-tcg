@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-067.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 
@@ -25,19 +24,5 @@ describe("BT13-067 Gladimon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT13-067", as: "gladi" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("gladi"), "Jamming")).toBe(true);
-  });
-
-  it("grants inherited Reboot and unsuspends its host during the opponent's phase", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT13-066", as: "host", under: ["BT13-067"], suspended: true }] },
-    });
-    await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(false);
-
-    s.state.turnSeat = 1;
-    s.state.memory = 1;
-    await advance(s.engine).runTurn(1);
-    expect(s.perm("host").isSuspended).toBe(false);
   });
 });

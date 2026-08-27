@@ -100,29 +100,6 @@ describe("BT6-087 Tai Kamiya", () => {
     ).toEqual({ ok: false, reason: "illegal-target" });
   });
 
-  it("requires exact Agumon and does not activate for Agumon Expert", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT1-011", as: "agumonExpert" },
-          { card: "BT6-087", as: "tai" },
-        ],
-        hand: [{ card: "BT6-018", as: "bond" }],
-        security: ["BT1-001", "BT1-002"],
-      },
-    });
-    s.state.memory = 5;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.perm("tai").topCard.instanceId,
-        effectKey: "BT6-087/main-digivolve-bond-of-bravery",
-      }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
-  });
-
   it("Q1472 trashes the only security and keeps the Bond at end of turn", async () => {
     const s = setupEngine(
       {

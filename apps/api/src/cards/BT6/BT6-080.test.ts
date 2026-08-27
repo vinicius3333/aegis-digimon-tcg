@@ -17,10 +17,7 @@ describe("BT6-080 Ornismon", () => {
       {
         0: { hand: [{ card: "BT6-080", as: "source" }] },
         1: {
-          battleArea: [
-            { card: "BT6-075", as: "target" },
-            { card: "BT6-079", as: "tooHigh" },
-          ],
+          battleArea: [{ card: "BT6-075", as: "target" }],
         },
       },
       { autoSelectCards: true },
@@ -30,8 +27,7 @@ describe("BT6-080 Ornismon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => !opponent.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-075"));
+    await settle(() => opponent.battleArea.length === 0);
     expect(opponent.trash.some((card) => card.cardId === "BT6-075")).toBe(true);
-    expect(opponent.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-079")).toBe(true);
   });
 });

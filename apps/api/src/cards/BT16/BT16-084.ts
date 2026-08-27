@@ -27,19 +27,10 @@ const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
-          abortOnDecline: true,
-          bindResultAs: "playedHawkmonOrSalamon",
         },
         {
           kind: "SubTrigger",
           event: "endOfOpponentTurn",
-          once: true,
-          on: {
-            filter: {
-              boundRef: "playedHawkmonOrSalamon",
-            },
-            count: 1,
-          },
           actions: [
             {
               kind: "Return",

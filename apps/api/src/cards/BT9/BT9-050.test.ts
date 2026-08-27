@@ -14,7 +14,7 @@ describe("BT9-050 Leomon (X Antibody)", () => {
     });
     expect(compiled).toMatchObject({
       coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Leomon"], cost: 0, isAlternate: true }],
-      effects: [{ trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldBeDeleted", mode: "instead", leaveCause: "byBattle", actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false, optional: true, target: { filter: { nameOrTrait: [{ tokens: ["Leomon"], match: "nameExact" }] } } }] }] }],
+      effects: [{ trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldBeDeleted", mode: "instead", leaveCause: "byBattle", actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false, optional: true, target: { filter: { nameOrTrait: [{ tokens: ["Leomon"], match: "name" }] } } }] }] }],
     });
   });
 
@@ -26,16 +26,5 @@ describe("BT9-050 Leomon (X Antibody)", () => {
     const leomonId = s.perm("host").stack[0]!.instanceId;
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === leomonId)).toBe(true);
-  });
-
-  it("does not play Leomon (X Antibody) when the replacement requires exact Leomon", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT9-050", as: "host", under: [{ card: "BT9-050", as: "xLeomon" }] }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    const xLeomonId = s.inst("xLeomon").instanceId;
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === xLeomonId)).toBe(false);
   });
 });

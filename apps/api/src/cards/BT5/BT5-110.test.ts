@@ -10,17 +10,6 @@ describe("BT5-110 All Delete", () => {
     expect(runtimeCompiledCard("BT5-110")).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("returns the bound Omnimon with Q1399 rule teardown before deleting the board", () => {
-    expect(runtimeCompiledCard("BT5-110")?.effects[0]?.actions).toMatchObject([
-      expect.objectContaining({ kind: "SelectBind" }),
-      expect.objectContaining({
-        kind: "Return",
-        target: expect.objectContaining({ fromSelectionRef: "omnimonSelected" }),
-      }),
-      expect.objectContaining({ kind: "Delete" }),
-    ]);
-  });
-
   it("returns an Omnimon, trashes its sources, and deletes every remaining Digimon and Tamer", async () => {
     const s = setupEngine(
       {

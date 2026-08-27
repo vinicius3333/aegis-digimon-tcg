@@ -25,25 +25,43 @@ const compiled: CompiledCard = {
           scaling: {
             per: 1,
             filter: {
+              excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
               controllerDefault: "mine",
               kind: ["Digimon"],
-              or: [
+              nameOrTrait: [
                 {
-                  excludeNames: ["DoruGreymon", "BurningGreymon", "DexDoruGreymon"],
-                  nameOrTrait: [
-                    {
-                      tokens: ["Greymon"],
-                      match: "name",
-                    },
-                  ],
+                  tokens: ["Greymon"],
+                  match: "name",
                 },
+              ],
+            },
+            unit: "digivolutionCards",
+          },
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
+          },
+          duration: "permanent",
+          scaling: {
+            per: 1,
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  nameOrTrait: [
-                    {
-                      tokens: ["Hybrid"],
-                      match: "trait",
-                    },
-                  ],
+                  tokens: ["Hybrid"],
+                  match: "trait",
                 },
               ],
             },

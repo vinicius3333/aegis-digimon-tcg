@@ -6,7 +6,7 @@ describe("BT2-008 Yaamon", () => {
   it("gives +1000 DP during its turn at the 5-card own-trash threshold", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-067", as: "host", under: ["BT2-008"] }],
+        battleArea: [{ card: "BT2-009", as: "host", under: ["BT2-008"] }],
         trash: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
       },
     });
@@ -17,7 +17,7 @@ describe("BT2-008 Yaamon", () => {
   it("does not give +1000 DP with only 4 cards in its owner's trash", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-067", as: "host", under: ["BT2-008"] }],
+        battleArea: [{ card: "BT2-009", as: "host", under: ["BT2-008"] }],
         trash: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
       },
     });
@@ -27,7 +27,7 @@ describe("BT2-008 Yaamon", () => {
 
   it("does not count cards in the opponent's trash", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-067", as: "host", under: ["BT2-008"] }] },
+      0: { battleArea: [{ card: "BT2-009", as: "host", under: ["BT2-008"] }] },
       1: { trash: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"] },
     });
     await s.engine.recomputeContinuousEffects();
@@ -37,7 +37,7 @@ describe("BT2-008 Yaamon", () => {
   it("does not give +1000 DP during the opponent's turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-067", as: "host", under: ["BT2-008"] }],
+        battleArea: [{ card: "BT2-009", as: "host", under: ["BT2-008"] }],
         trash: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
       },
     });

@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -60,15 +60,12 @@ describe("BT14-033", () => {
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
-    const turn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(0);
-    await settle(() => s.perm("patamon").topCard.cardId === "BT14-033");
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("patamon"));
+    await settle();
     expect(s.perm("patamon").topCard.cardId).toBe("BT14-033");
     expect(s.state.players[0]!.security.map((card) => card.cardId).sort()).toEqual(["BT1-001", "BT14-035"]);
     expect(s.state.players[0]!.security.every((card) => card.faceUp === false)).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT14-037");
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await turn;
     assertNoLoudGap(s);
   });
 
@@ -88,8 +85,7 @@ describe("BT14-033", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    const turn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("patamon"));
     await settle(() => s.perm("patamon").topCard.cardId === "BT14-035");
     await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT14-037"));
     expect(s.perm("patamon").stack.map((card) => card.cardId)).toEqual(["BT14-033"]);
@@ -107,8 +103,6 @@ describe("BT14-033", () => {
     );
     expect(parentIndex).toBeGreaterThanOrEqual(0);
     if (childIndex >= 0) expect(childIndex).toBeGreaterThan(parentIndex);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await turn;
     assertNoLoudGap(s);
   });
 });

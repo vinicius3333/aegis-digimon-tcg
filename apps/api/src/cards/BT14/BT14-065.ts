@@ -15,7 +15,7 @@ export const compiled: CompiledCard = {
           controller: "opponent",
           revealCount: 3,
           add: [],
-          rest: "deckTopOrBottom",
+          rest: "deck",
         },
         {
           kind: "DeDigivolve",
@@ -46,7 +46,7 @@ export const compiled: CompiledCard = {
           controller: "opponent",
           revealCount: 3,
           add: [],
-          rest: "deckTopOrBottom",
+          rest: "deck",
         },
         {
           kind: "DeDigivolve",

@@ -6,8 +6,8 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } },
         { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+        { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } },
       ],
     },
     { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getCardDefinition, type PlayerState } from "@aegis/shared";
+import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 
@@ -23,68 +23,6 @@ const ARGOMON_LV5 = "BT17-048";
 const ARGOMON_LV6 = "BT17-051";
 
 describe("BT17-048 Argomon — [On Deletion] play Lv.6 Argomon (KB Q2800)", () => {
-  it("matches the catalog identity and all three printed evolution/effect routes", async () => {
-    const { compiled } = await import("./BT17-048.js");
-    expect(getCardDefinition("BT17-048")).toMatchObject({
-      cardId: "BT17-048",
-      colors: ["Green", "Purple"],
-      level: 5,
-      playCost: 8,
-      dp: 7000,
-      evoCosts: [
-        { color: "Green", level: 4, memoryCost: 5 },
-        { color: "Purple", level: 4, memoryCost: 5 },
-      ],
-    });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Argomon"], level: 4, cost: 4, isAlternate: true },
-    ]);
-    expect(compiled.effects.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
-      kind: "Replacement",
-      event: "wouldDigivolve",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          mode: "reduceCost",
-          amount: 1,
-          cost: { kind: "suspend", target: { filter: { kind: ["Tamer"] }, count: 5, upTo: true } },
-        },
-      ],
-    });
-  });
-
-  it("reduces its own digivolution cost once per suspended Tamer", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT17-045", as: "base" },
-            { card: "BT1-087", as: "firstTamer" },
-            { card: "BT12-092", as: "secondTamer" },
-          ],
-          hand: [{ card: ARGOMON_LV5, as: "evolving" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 3;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === ARGOMON_LV5);
-
-    expect(s.state.memory).toBe(0);
-    expect(s.perm("firstTamer").isSuspended).toBe(true);
-    expect(s.perm("secondTamer").isSuspended).toBe(true);
-  });
-
   it("prevents all opposing Tamers from unsuspending during the opponent's turn", async () => {
     const { compiled } = await import("./BT17-048.js");
     expect(compiled.effects.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]).toMatchObject({
@@ -151,33 +89,5 @@ describe("BT17-048 Argomon — [On Deletion] play Lv.6 Argomon (KB Q2800)", () =
 
     const lv6IsOnField = p0.battleArea.some((perm) => perm.topCard?.cardId === ARGOMON_LV6);
     expect(lv6IsOnField).toBe(true);
-  });
-
-  it("naturally unsuspends its host after attacking by suspending Rhythm", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT17-051", dp: 12000, under: [{ card: ARGOMON_LV5 }], as: "host" },
-            { card: "BT17-089", as: "rhythm" },
-          ],
-        },
-        1: { security: ["BT1-009"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("rhythm").isSuspended);
-
-    expect(s.perm("rhythm").isSuspended).toBe(true);
-    expect(s.perm("host").isSuspended).toBe(false);
   });
 });

@@ -26,8 +26,6 @@ describe("BT3-090 Mastemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((e) => e.kind === "effectResolved" && e.sourceCardId === "BT3-090"));
-    expect(p.security).toHaveLength(0);
-    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(p.battleArea.some((x) => x.topCard.cardId === "BT2-072")).toBe(true);
   });
 });

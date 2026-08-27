@@ -9,7 +9,7 @@ describe("BT4-087 Anubismon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT4-085", as: "base", under: ["BT4-081"] }],
+          battleArea: [{ card: "BT10-012", as: "base" }],
           hand: [{ card: "BT4-087", as: "evolving" }],
           trash: [{ card: "BT10-071", as: "played" }],
         },
@@ -39,7 +39,7 @@ describe("BT4-087 Anubismon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT4-085", as: "base", under: ["BT4-081"] }],
+          battleArea: [{ card: "BT10-012", as: "base" }],
           hand: [
             { card: "BT4-087", as: "anubismon" },
             { card: "BT4-081", as: "evolving" },

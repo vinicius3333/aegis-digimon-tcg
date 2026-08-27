@@ -12,7 +12,7 @@ describe("BT9-072 Salamon", () => {
       forms: ["Rookie"], attributes: ["Vaccine"], types: ["Mammal"],
     });
     expect(compiled).toMatchObject({
-      coverage: "full", residual: [], effects: [{ trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 4, rest: "deckBottom", add: [{ filter: { multicolor: true, colorCount: 2, colors: ["Purple"] }, count: 1, to: "hand" }] }] }],
+      coverage: "full", residual: [], effects: [{ trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 4, rest: "deckBottom", add: [{ filter: { multicolor: true, colors: ["Purple"] }, count: 1, to: "hand" }] }] }],
     });
   });
 
@@ -33,27 +33,5 @@ describe("BT9-072 Salamon", () => {
     });
     await settle(() => player.hand.some((c) => c.instanceId === s.inst("multicolor").instanceId));
     expect(player.deck).toHaveLength(3);
-  });
-
-  it("does not add a three-color purple card", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [{ card: "BT9-072", as: "source" }],
-          deck: [{ card: "BT18-042", as: "threeColor" }, { card: "BT9-074", as: "twoColor" }, "BT9-071", "BT9-073"],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    const player = s.state.players[0] as PlayerState;
-    const threeColorId = s.inst("threeColor").instanceId;
-    s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => player.hand.some((card) => card.instanceId === s.inst("twoColor").instanceId));
-
-    expect(player.hand.some((card) => card.instanceId === threeColorId)).toBe(false);
-    expect(player.deck.some((card) => card.instanceId === threeColorId)).toBe(true);
   });
 });

@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-103.js";
 
-describe("BT6-103 Blasted Disaster", () => {
+describe("BT6-103 Ancient Troymon", () => {
   it("suspends all opponent Digimon and gains 1 memory for each suspended opponent Digimon", async () => {
     const s = setupEngine(
       {

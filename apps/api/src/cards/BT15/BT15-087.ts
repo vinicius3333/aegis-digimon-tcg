@@ -12,7 +12,7 @@ export const compiled: CompiledCard = {
     {
       trigger: "AllTurns", isInherited: true,
       actions: [
-        { kind: "Aura", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, effect: { kind: "keyword", keyword: { keyword: "Alliance", raw: "＜Alliance＞" } }, while: { kind: "selfTopHasText", filter: traitFilter } },
+        { kind: "Aura", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, effect: { kind: "keyword", keyword: { keyword: "TeamWork" } }, while: { kind: "selfTopHasText", filter: traitFilter } },
         { kind: "Aura", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, effect: { kind: "keyword", keyword: { keyword: "Reboot" } }, while: { kind: "selfTopHasText", filter: traitFilter } },
       ],
     },

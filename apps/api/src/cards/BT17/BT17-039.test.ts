@@ -2,9 +2,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-039.js";
-import "../../cards/BT1/BT1-064.js";
-import "../../cards/BT3/BT3-020.js";
-import "../../cards/BT3/BT3-104.js";
 import "./index.js";
 
 describe("BT17-039 ShineGreymon", () => {
@@ -86,34 +83,6 @@ describe("BT17-039 ShineGreymon", () => {
 
     await advance(s.engine).verb.deletePermanent([shineId], "byEffect");
     await settle();
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shineId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === tamerId)).toBe(true);
-  });
-
-  it("returns a yellow Tamer to prevent a natural opponent Option return", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT17-039", as: "shine", suspended: true },
-            { card: "BT1-087", as: "tamer" },
-          ],
-        },
-        1: {
-          battleArea: ["BT3-020", "BT1-064"],
-          hand: [{ card: "BT3-104", as: "option" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    s.state.memory = 8;
-    const shineId = s.perm("shine").permanentId;
-    const tamerId = s.perm("tamer").topCard!.instanceId;
-
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === tamerId));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shineId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === tamerId)).toBe(true);

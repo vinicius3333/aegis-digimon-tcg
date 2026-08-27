@@ -59,22 +59,6 @@ describe("BT5-017 ZeigGreymon", () => {
     ).toEqual({ ok: true });
   });
 
-  it("does not allow an unsuspended-target attack without Blitz", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT5-019", as: "host", under: ["BT5-017"] }] },
-      1: { battleArea: [{ card: "BT5-071", as: "unsuspended" }] },
-    });
-    await s.engine.recomputeContinuousEffects();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("unsuspended").permanentId },
-      }).ok,
-    ).toBe(false);
-  });
-
   it("uses the actual digivolution-granted Blitz while the opponent has memory", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT5-015", as: "base" }], hand: [{ card: "BT5-017", as: "evolving" }] },

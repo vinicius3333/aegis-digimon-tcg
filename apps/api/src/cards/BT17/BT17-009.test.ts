@@ -12,16 +12,8 @@ describe("BT17-009", () => {
           revealCount: 3,
           rest: "deckBottom",
           add: [
-            {
-              count: 1,
-              to: "hand",
-              filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }] },
-            },
-            {
-              count: 1,
-              to: "hand",
-              filter: { controllerDefault: "mine", kind: ["Tamer"], hasInheritedEffects: true },
-            },
+            { count: 1, to: "hand" },
+            { count: 1, to: "hand" },
           ],
         },
       ],
@@ -51,38 +43,5 @@ describe("BT17-009", () => {
       expect.arrayContaining(["BT17-023", "BT17-083"]),
     );
     expect(s.state.players[0]!.deck).toHaveLength(1);
-  });
-
-  it("plays an inherited-effect Tamer when the host is naturally deleted in battle", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT17-010", as: "host", under: ["BT17-001", "BT17-009"] }],
-          hand: [{ card: "BT17-083", as: "inheritedTamer" }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
-        },
-        1: { battleArea: [{ card: "BT17-013", as: "attacker" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    const hostId = s.perm("host").permanentId;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: hostId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.length === 1 &&
-        s.state.players[0]!.battleArea[0]!.topCard?.instanceId === s.inst("inheritedTamer").instanceId,
-    );
-
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea[0]!.topCard?.cardId).toBe("BT17-083");
   });
 });

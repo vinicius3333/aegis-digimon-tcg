@@ -14,11 +14,10 @@ const compiled: CompiledCard = {
           kind: "GainMemory",
           amount: 1,
           condition: {
-            kind: "allOf",
-            conditions: [
-              { kind: "securityAtLeast", value: 3 },
-              { kind: "securityAtMost", value: 3 },
-            ],
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+            },
             raw: "you have 3 security cards",
           },
         },

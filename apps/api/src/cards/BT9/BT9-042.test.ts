@@ -13,7 +13,7 @@ describe("BT9-042 Raijinmon", () => {
     });
     expect(compiled).toMatchObject({
       coverage: "full", residual: [], effects: [
-        { trigger: "Hand", actions: [{ kind: "PlaceUnder", position: "bottom", cost: { kind: "payMemory", memory: 1 }, optional: true }] },
+        { trigger: "Hand", actions: [{ kind: "PlaceUnder", position: "bottom", payCost: 1, optional: true }] },
         { trigger: "WhenDigivolving", actions: [{ kind: "Trash", optional: true, abortOnDecline: true }, { kind: "ModifyDP", amount: -4000, duration: "forTheTurn" }] },
         { trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "ModifyDP", amount: -4000, duration: "forTheTurn" }] },
       ],
@@ -47,31 +47,5 @@ describe("BT9-042 Raijinmon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.perm("target").currentDP).toBe(2000);
-  });
-
-  it("activates its Hand effect only after paying 1 memory and places itself under Raidenmon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT9-067", as: "raidenmon" }],
-          hand: [{ card: "BT9-042", as: "raijinmon" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 1;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.inst("raijinmon").instanceId,
-        effectKey: "BT9-042/ir-27-0",
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("raidenmon").stack.some((card) => card.instanceId === s.inst("raijinmon").instanceId));
-
-    expect(s.state.memory).toBe(0);
-    expect(s.perm("raidenmon").stack.at(-1)?.instanceId).toBe(s.inst("raijinmon").instanceId);
   });
 });

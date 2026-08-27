@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-101.js";
-describe("BT7-101 Thunder Laser", () => {
+describe("BT7-101 Green Memory Boost!", () => {
   it("suspends an opposing Digimon when Ten Warriors is present", async () => {
     const s = setupEngine(
       {

@@ -1,23 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT4-032.js";
 
 describe("BT4-032 MachGaogamon", () => {
-  it("uses one cost-bearing Return so Q1399 teardown cannot fire source-trash watchers", () => {
-    const main = runtimeCompiledCard("BT4-032")!.effects.find((effect) => effect.trigger === "Main")!;
-    expect(main.actions).toMatchObject([
-      {
-        kind: "Return",
-        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-        to: "hand",
-        cost: { kind: "trash", target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 } },
-      },
-    ]);
-  });
-
   it("Digi-Bursts 2 to return a level 4 Digimon after trashing all of its sources", async () => {
     const s = setupEngine(
       {
@@ -73,34 +60,5 @@ describe("BT4-032 MachGaogamon", () => {
     await s.engine.recomputeContinuousEffects();
 
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
-  });
-
-  it("does not pay Digi-Burst when no level 4-or-lower target exists", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT4-032", as: "mach", under: ["BT1-001", "BT4-021"] }] },
-        1: { battleArea: [{ card: "BT3-015", as: "target", under: ["BT1-001"] }] },
-      },
-      { autoSelectCards: true },
-    );
-    const mach = s.perm("mach");
-    const eventsBefore = s.events.length;
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(mach.topCard!)).find((effect) =>
-      effect.effectKey.startsWith("BT4-032/"),
-    )!.effectKey;
-    await s.engine.recomputeContinuousEffects();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: mach.topCard!.instanceId,
-        effectKey,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.events.slice(eventsBefore).some((event) => event.kind === "effectActivated"), 5000);
-
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT3-015")).toBe(true);
-    expect(mach.stack).toHaveLength(2);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });

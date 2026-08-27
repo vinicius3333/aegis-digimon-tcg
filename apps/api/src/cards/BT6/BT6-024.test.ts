@@ -3,12 +3,12 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT6-024.js";
 
-describe("BT6-024 Mojyamon", () => {
+describe("BT6-024 AncientGarurumon", () => {
   it("gains Jamming while the opponent has no Digimon with sources", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-024", as: "mojyamon" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-024", as: "ancient" }] } });
     await s.ready();
 
-    expect(observe(s.engine).hasKeyword(s.perm("mojyamon"), "Jamming")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("ancient"), "Jamming")).toBe(true);
   });
 
   it("trashes the bottom source of an opposing Digimon when attacking", async () => {

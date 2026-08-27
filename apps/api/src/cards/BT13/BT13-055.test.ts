@@ -20,7 +20,7 @@ describe("BT13-055 Lamortmon", () => {
       isFromHand: true,
       condition: {
         kind: "youHave",
-        filter: { controllerDefault: "mine", kind: ["Tamer"], nameOrTrait: [{ match: "nameExact", tokens: ["Ruli Tsukiyono"] }] },
+        filter: { controllerDefault: "mine", kind: ["Tamer"], nameOrTrait: [{ match: "name", tokens: ["Ruli Tsukiyono"] }] },
       },
       actions: [
         {
@@ -30,18 +30,18 @@ describe("BT13-055 Lamortmon", () => {
           costOverride: 3,
           ignoreRequirements: true,
           target: {
-            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "nameExact", tokens: ["Angoramon"] }] },
+            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "name", tokens: ["Angoramon"] }] },
             count: 1,
             fromSelectionRef: "lamortHost",
           },
-          into: { controllerDefault: "mine", nameOrTrait: [{ match: "nameExact", tokens: ["Lamortmon"] }] },
+          into: { controllerDefault: "mine", nameOrTrait: [{ match: "name", tokens: ["Lamortmon"] }] },
           cost: {
             kind: "place",
             position: "bottom",
             host: "target",
             destination: "digivolutionStack",
             bindHostAs: "lamortHost",
-            underFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "nameExact", tokens: ["Angoramon"] }] },
+            underFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "name", tokens: ["Angoramon"] }] },
           },
         },
       ],
@@ -54,7 +54,6 @@ describe("BT13-055 Lamortmon", () => {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
-          sourceFilter: { isSelfRef: true },
           actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
         },
       ],
@@ -120,30 +119,12 @@ describe("BT13-055 Lamortmon", () => {
     }
   });
 
-  it("does not treat SymbareAngoramon as an exact Angoramon host", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT13-052", as: "symbareHost" }, { card: "BT10-091", as: "ruli" }],
-        hand: [{ card: "BT13-055", as: "lamort" }, "BT13-052"],
-      },
-    });
-    await s.ready();
-    expect(s.inst("lamort").activatableEffectsJson).toBe("");
-  });
-
   it("inherited security trash is own-turn once per turn and uses the exact top card", async () => {
     const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT13-054", as: "host", under: ["BT13-055"] },
-          { card: "BT13-051", as: "other" },
-        ],
-      },
+      0: { battleArea: [{ card: "BT13-054", as: "host", under: ["BT13-055"] }] },
       1: { security: [{ card: "BT1-001", as: "top-security" }, "BT1-002"] },
     });
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { subjectPermanentId: s.perm("other").permanentId });
-    expect(s.state.players[1]!.security).toHaveLength(2);
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { subjectPermanentId: s.perm("host").permanentId });
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { subjectPermanentId: s.perm("host").permanentId });
     expect(s.state.players[1]!.security).toHaveLength(1);

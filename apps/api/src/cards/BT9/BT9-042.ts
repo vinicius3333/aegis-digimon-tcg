@@ -17,7 +17,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 2. [When Digivolving] trash is a cost for the DP reduction: Trash is optional with
 //    abortOnDecline:true so declining prevents the ModifyDP from executing.
 // 3. Added missing [When Attacking] inherited effect.
-// 4. [Hand][Main] pays the printed 1 memory through the canonical action cost field.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -39,10 +38,7 @@ export const compiled: CompiledCard = {
             ],
           },
           position: "bottom",
-          cost: {
-            kind: "payMemory",
-            memory: 1,
-          },
+          payCost: 1,
           condition: {
             kind: "youHave",
             filter: {

@@ -42,17 +42,14 @@ const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 {
-                  tokens: ["Garudamon"],
+                  tokens: ["Garudamon", "X Antibody"],
                   match: "name",
-                },
-                {
-                  tokens: ["X Antibody"],
-                  match: "trait",
                 },
               ],
             },
             raw: "[Garudamon] or [X Antibody] is in this Digimon's digivolution cards",
           },
+          optional: true,
         },
       ],
     },
@@ -91,17 +88,14 @@ const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 {
-                  tokens: ["Garudamon"],
+                  tokens: ["Garudamon", "X Antibody"],
                   match: "name",
-                },
-                {
-                  tokens: ["X Antibody"],
-                  match: "trait",
                 },
               ],
             },
             raw: "[Garudamon] or [X Antibody] is in this Digimon's digivolution cards",
           },
+          optional: true,
         },
       ],
     },

@@ -1,21 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-060.js";
 
 describe("BT5-060 Monitamon", () => {
-  it("uses exact-name matching for the revealed Monitamon play", () => {
-    expect(runtimeCompiledCard("BT5-060")?.effects[1]?.actions[0]).toMatchObject({
-      add: [
-        expect.objectContaining({
-          filter: { nameOrTrait: [{ tokens: ["Monitamon"], match: "nameExact" }] },
-        }),
-      ],
-    });
-  });
-
   it("looks at the top card without moving or publicly revealing it", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT5-060", as: "source" }], deck: [{ card: "BT5-061", as: "deckTop" }] },
@@ -106,24 +95,5 @@ describe("BT5-060 Monitamon", () => {
     await settle(() => player.deck.length === 3);
     expect(player.battleArea).toHaveLength(0);
     expect(player.deck).toHaveLength(3);
-  });
-
-  it("does not treat Hi-VisionMonitamon as an exact Monitamon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT5-060", as: "source" }],
-          deck: ["BT10-063", "BT5-061", "BT5-062"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    const player = s.state.players[0] as PlayerState;
-
-    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
-    await settle(() => player.deck.length === 3);
-
-    expect(player.battleArea).toHaveLength(0);
-    expect(player.deck.some(({ cardId }) => cardId === "BT10-063")).toBe(true);
   });
 });

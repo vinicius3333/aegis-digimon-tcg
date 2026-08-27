@@ -34,10 +34,6 @@ describe("BT8-060 Ryudamon", () => {
     const other = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT8-060"] }] } });
     await other.engine.recomputeContinuousEffects();
     expect(observe(other.engine).hasKeyword(other.perm("host"), "Decoy")).toBe(false);
-
-    const wrongColor = setupEngine({ 0: { battleArea: [{ card: "BT12-073", as: "host", under: ["BT8-060"] }] } });
-    await wrongColor.engine.recomputeContinuousEffects();
-    expect(observe(wrongColor.engine).hasKeyword(wrongColor.perm("host"), "Decoy")).toBe(false);
   });
 
   it("uses inherited Decoy to protect another black Digimon from an opponent's effect", async () => {

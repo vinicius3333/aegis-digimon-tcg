@@ -25,8 +25,8 @@ const compiled: CompiledCard = {
             colors: ["Red"],
             nameOrTrait: [
               { tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" },
+              { tokens: ["Sea Animal"], match: "trait", negate: true },
             ],
-            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
           },
           actions: [
             {
@@ -38,8 +38,8 @@ const compiled: CompiledCard = {
                   colors: ["Red"],
                   nameOrTrait: [
                     { tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" },
+                    { tokens: ["Sea Animal"], match: "trait", negate: true },
                   ],
-                  excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
                   dp: { op: "lte", value: 13000 },
                 },
                 count: 1,

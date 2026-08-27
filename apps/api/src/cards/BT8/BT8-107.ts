@@ -29,7 +29,6 @@ const compiled: CompiledCard = {
             },
             raw: "by deleting 1 of your Digimon",
           },
-          allowCostWithoutTarget: true,
           optional: true,
         },
       ],

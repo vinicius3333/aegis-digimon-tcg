@@ -7,8 +7,8 @@ describe("BT2-006 Tsumemon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT2-055", as: "host", under: ["BT2-006"] },
-          { card: "BT2-055", as: "other" },
+          { card: "BT2-009", as: "host", under: ["BT2-006"] },
+          { card: "BT2-009", as: "other" },
         ],
       },
     });
@@ -20,8 +20,8 @@ describe("BT2-006 Tsumemon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT2-055", as: "host", under: ["BT2-006"] },
-          { card: "BT2-052", as: "different" },
+          { card: "BT2-009", as: "host", under: ["BT2-006"] },
+          { card: "BT2-008", as: "different" },
         ],
       },
     });
@@ -31,8 +31,8 @@ describe("BT2-006 Tsumemon", () => {
 
   it("does not count an opponent's Digimon with the same name", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-055", as: "host", under: ["BT2-006"] }] },
-      1: { battleArea: ["BT2-055"] },
+      0: { battleArea: [{ card: "BT2-009", as: "host", under: ["BT2-006"] }] },
+      1: { battleArea: ["BT2-009"] },
     });
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
@@ -40,7 +40,7 @@ describe("BT2-006 Tsumemon", () => {
 
   it("does not give +2000 DP during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-055", as: "host", under: ["BT2-006"] }, "BT2-055"] },
+      0: { battleArea: [{ card: "BT2-009", as: "host", under: ["BT2-006"] }, "BT2-009"] },
     });
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();

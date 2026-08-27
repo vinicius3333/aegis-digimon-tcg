@@ -31,7 +31,6 @@ export const compiled: CompiledCard = {
               filter: {
                 controllerDefault: "mine",
                 multicolor: true,
-                colorCount: 2,
                 colors: ["Black"],
               },
               count: 1,
@@ -56,19 +55,7 @@ export const compiled: CompiledCard = {
             controllerDefault: "mine",
             kind: ["Digimon"],
             multicolor: true,
-            colorCount: 2,
             colors: ["Black"],
-          },
-          cost: {
-            kind: "suspend",
-            target: {
-              filter: {
-                isSelfRef: true,
-              },
-              count: 1,
-              isSelf: true,
-            },
-            raw: "by suspending this Tamer",
           },
           actions: [
             {
@@ -77,6 +64,17 @@ export const compiled: CompiledCard = {
               mode: "reduceCost",
               amount: 1,
               raw: "reduce the digivolution cost by 1",
+            },
+            {
+              kind: "Suspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              optional: true,
             },
           ],
         },

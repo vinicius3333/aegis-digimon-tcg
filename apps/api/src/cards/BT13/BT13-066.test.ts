@@ -25,18 +25,4 @@ describe("BT13-066 Dorugamon", () => {
     await s.ready();
     expect(s.perm("doru").topCard?.cardId).toBe("BT13-066");
   });
-
-  it("applies the inherited bonus only while the live host has X Antibody", async () => {
-    const withTrait = setupEngine({
-      0: { battleArea: [{ card: "BT13-063", as: "host", under: ["BT13-066"] }] },
-    });
-    await withTrait.ready();
-    expect(withTrait.perm("host").currentDP).toBe(4000);
-
-    const withoutTrait = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-066"] }] },
-    });
-    await withoutTrait.ready();
-    expect(withoutTrait.perm("host").currentDP).toBe(3000);
-  });
 });

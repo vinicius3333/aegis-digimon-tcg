@@ -41,7 +41,6 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "EndOfYourTurn",
-      optional: true,
       actions: [
         {
           kind: "Attack",
@@ -53,7 +52,6 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           attackPlayer: false,
-          mandatory: true,
         },
       ],
     },

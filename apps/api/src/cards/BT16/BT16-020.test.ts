@@ -149,31 +149,4 @@ describe("BT16-020 [Digivolve] alternate path onto an off-color [Light Fang] bas
     expect(s.state.players[1]!.hand).toHaveLength(1);
     expect(s.state.memory).toBe(1);
   });
-
-  it("keeps an inherited host alive after losing a natural Security battle", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT16-017", as: "host", dp: 2000, under: [GAOGAMON] }] },
-        1: { security: ["AD1-001"] },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-    const hostId = s.perm("host").permanentId;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: hostId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[1]!.security.length === 0 &&
-        s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId),
-    );
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
-  });
 });

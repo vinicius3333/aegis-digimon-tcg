@@ -91,14 +91,10 @@ export interface GrantStaticAction extends ActionBase {
   tokens?: string[];
   /** The source filter for "effects". */
   filter?: Filter;
-  /** For "effects" grants, omit inherited effects from the matched stack cards. */
-  excludeInherited?: boolean;
   /** Copy only the highest matching digivolution card, as required by <Succession>. */
   topmostOnly?: boolean;
   staticEffect?: { kind: string; [key: string]: unknown };
   duration?: EffectDurationRef;
-  /** Apply named granted effects to matching permanents that enter before the duration expires. */
-  includeLaterEntrants?: boolean;
   /**
    * The name alias is valid ONLY during DigiXros material-slot matching. It must not appear in
    * `effectiveNames()` or any ordinary name filter (KB Q3068, Q3105, Q3119). Implied by

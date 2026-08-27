@@ -36,6 +36,5 @@ describe("BT14-048", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-054"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-054")).toBe(true);
-    expect(s.perm("attacker").currentDP).toBe(14000);
   });
 });

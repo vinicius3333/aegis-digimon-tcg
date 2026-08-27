@@ -32,7 +32,6 @@ const compiled: CompiledCard = {
                 kind: "youHave",
                 filter: {
                   controller: "both",
-                  zone: "battleArea",
                   kind: ["Digimon"],
                   nameOrTrait: [
                     {

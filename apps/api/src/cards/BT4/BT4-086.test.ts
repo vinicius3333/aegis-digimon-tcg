@@ -7,12 +7,7 @@ import "./BT4-086.js";
 describe("BT4-086 Cerberusmon: Werewolf Mode", () => {
   it("may delete a Cerberusmon to gain 9 memory", async () => {
     const s = setupEngine(
-      {
-        0: {
-          hand: [{ card: "BT4-086", as: "source" }],
-          battleArea: [{ card: "BT4-083", as: "cerberusmon", under: ["BT4-081"] }],
-        },
-      },
+      { 0: { hand: [{ card: "BT4-086", as: "source" }], battleArea: [{ card: "BT4-083", as: "cerberusmon" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const player = s.state.players[0] as PlayerState;
@@ -57,7 +52,7 @@ describe("BT4-086 Cerberusmon: Werewolf Mode", () => {
       {
         0: {
           hand: [{ card: "BT4-086", as: "source" }],
-          battleArea: [{ card: "BT4-083", as: "cerberusmon", under: ["BT4-081"] }],
+          battleArea: [{ card: "BT4-083", as: "cerberusmon" }],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },

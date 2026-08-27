@@ -11,10 +11,10 @@ const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: {
             filter: {
-              isSelfRef: true,
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
             count: 1,
-            isSelf: true,
           },
           keyword: {
             keyword: "Blocker",
@@ -33,12 +33,22 @@ const compiled: CompiledCard = {
             raw: "by trashing 1 card in your hand",
           },
           optional: true,
-          keywords: [
-            {
-              keyword: "Retaliation",
-              raw: "＜Retaliation＞",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-          ],
+            count: 1,
+          },
+          keyword: {
+            keyword: "Retaliation",
+            raw: "＜Retaliation＞",
+          },
+          duration: "untilOpponentTurnEnd",
+          optional: true,
         },
       ],
     },

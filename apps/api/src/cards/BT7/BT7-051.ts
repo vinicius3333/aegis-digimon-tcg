@@ -5,36 +5,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          sourceFilter: {
-            controller: "mine",
-            kind: ["Digimon"],
-            digivolutionStackKind: ["Tamer"],
-          },
-          into: {
-            controller: "mine",
-            zone: "hand",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["RhinoKabuterimon"], match: "name" }],
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldDigivolve",
-              mode: "reduceCost",
-              amount: 2,
-              raw: "reduce the digivolution cost by 2",
-            },
-          ],
-          raw: "When one of your Digimon with a Tamer card in its digivolution cards digivolves into this card in your hand, reduce the memory cost by 2.",
-        },
-      ],
-    },
-    {
       trigger: "WhenAttacking",
       actions: [
         {
@@ -48,7 +18,6 @@ export const compiled: CompiledCard = {
           payCost: true,
           from: ["hand"],
           costOverride: 3,
-          optional: true,
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: { nameOrTrait: [{ tokens: ["Hybrid", "Insectoid"], match: "trait" }] },

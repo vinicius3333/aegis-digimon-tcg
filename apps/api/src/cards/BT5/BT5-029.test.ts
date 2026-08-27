@@ -49,16 +49,14 @@ describe("BT5-029 WereGarurumon: Sagittarius Mode", () => {
   });
 
   it("applies the inherited bonus to Omnimon on both turns and excludes unrelated names", async () => {
-    const omnimon = setupEngine({
-      0: { battleArea: [{ card: "BT5-086", as: "host", under: ["BT5-029", "BT5-031"] }] },
-    });
+    const omnimon = setupEngine({ 0: { battleArea: [{ card: "BT5-086", as: "host", under: ["BT5-029"] }] } });
     await omnimon.ready();
     expect(omnimon.perm("host").currentDP).toBe(omnimon.perm("host").baseDP + 1000);
     omnimon.state.turnSeat = 1;
     await omnimon.ready();
     expect(omnimon.perm("host").currentDP).toBe(omnimon.perm("host").baseDP + 1000);
 
-    const unrelated = setupEngine({ 0: { battleArea: [{ card: "BT1-043", as: "host", under: ["BT5-029"] }] } });
+    const unrelated = setupEngine({ 0: { battleArea: [{ card: "BT7-064", as: "host", under: ["BT5-029"] }] } });
     await unrelated.ready();
     expect(unrelated.perm("host").currentDP).toBe(unrelated.perm("host").baseDP);
   });

@@ -64,6 +64,7 @@ const compiled: CompiledCard = {
             controller: "opponent",
             kind: ["Digimon"],
           },
+          once: true,
           actions: [
             {
               kind: "Return",
@@ -87,7 +88,5 @@ const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
 };
-
-export { compiled };
 
 registerIrCard("BT8-029", compiled);

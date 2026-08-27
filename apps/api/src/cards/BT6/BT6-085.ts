@@ -53,7 +53,6 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  ruleText: ["You can include up to 50 copies of cards with this card's card number in your deck."],
 };
 
 registerIrCard("BT6-085", compiled);

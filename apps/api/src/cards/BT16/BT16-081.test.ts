@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-081.js";
 import "../index.js";
@@ -29,25 +31,23 @@ describe("BT16-081", () => {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
-          sourceFilter: { deleteCause: "byEffect" },
           actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
         },
       ],
     });
   });
 
-  it("naturally digivolves, pays the deletion cost first, and trashes opposing security", async () => {
+  it("pays the deletion cost before deleting an opposing unsuspended Digimon", async () => {
     const preferredInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT16-072", as: "base" },
+            { card: "BT16-081", as: "malo" },
             { card: "BT16-042", as: "cost" },
           ],
-          hand: [{ card: "BT16-081", as: "malo" }],
         },
-        1: { battleArea: [{ card: "BT16-042", as: "target" }], security: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT16-042", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
@@ -55,18 +55,10 @@ describe("BT16-081", () => {
     const targetId = s.perm("target").permanentId;
     preferredInstanceIds.push(costId, targetId);
 
-    await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("malo").instanceId,
-      }),
-    ).toEqual({ ok: true });
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("malo"));
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
-    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

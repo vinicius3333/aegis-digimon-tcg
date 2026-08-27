@@ -11,16 +11,14 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "ModifyDP",
+          kind: "Trash",
           target: {
             filter: {
-              controller: "opponent",
+              controllerDefault: "mine",
               kind: ["Digimon"],
             },
-            count: 1,
+            count: 2,
           },
-          amount: -4000,
-          duration: "forTheTurn",
           cost: {
             kind: "trash",
             target: {
@@ -32,6 +30,18 @@ const compiled: CompiledCard = {
             },
             raw: "＜Digi-Burst 2＞",
           },
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -4000,
+          duration: "forTheTurn",
         },
       ],
       keywords: [

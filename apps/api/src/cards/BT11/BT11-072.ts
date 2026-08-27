@@ -41,7 +41,6 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "PlayWithoutCost",
-          condition: { kind: "ifThisEffectActed", raw: "if you placed an Analogman" },
           target: {
             filter: { controller: "mine", nameOrTrait: [{ tokens: ["Machinedramon"], match: "name" }] },
             count: 1,

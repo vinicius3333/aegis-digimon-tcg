@@ -1,31 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-066.js";
 
 describe("BT7-066 AncientVolcanomon", () => {
-  it("records De-Digivolve 3 and an optional black level-4-or-lower Hybrid play", () => {
-    const card = runtimeCompiledCard("BT7-066");
-    expect(card).toMatchObject({
-      coverage: "full",
-      residual: [],
-      effects: [
-        { trigger: "WhenDigivolving", actions: [{ kind: "DeDigivolve", amount: 3, target: { count: 1 } }] },
-        {
-          trigger: "OnDeletion",
-          actions: [
-            {
-              kind: "PlayWithoutCost",
-              from: ["hand"],
-              optional: true,
-              target: { count: 1, filter: { colors: ["Black"], levelComparison: { op: "lte", value: 4 } } },
-            },
-          ],
-        },
-      ],
-    });
-  });
-
   it("de-digivolves an opposing Digimon by up to 3 cards", async () => {
     const s = setupEngine(
       {

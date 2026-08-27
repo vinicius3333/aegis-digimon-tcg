@@ -17,11 +17,11 @@ const compiled: CompiledCard = {
           rest: "deckTopOrBottom",
         },
         {
-          kind: "CostModifier",
-          mode: "reduce",
-          costType: "play",
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          mode: "reduceCost",
           amount: 1,
-          existingPermanent: true,
+          raw: "reduce the play costs of all of your opponent's Digimon in the battle area by 1 for the turn",
           scaling: {
             per: 1,
             filter: {
@@ -37,14 +37,11 @@ const compiled: CompiledCard = {
             unit: "cards",
           },
           target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              zone: "battleArea",
-            },
-            count: "all",
+            controller: "opponent",
+            kind: ["Digimon"],
+            zone: "battleArea",
           },
-          duration: "forTheTurn",
+          duration: "forTurn",
         },
         {
           kind: "Delete",
@@ -69,11 +66,11 @@ const compiled: CompiledCard = {
           rest: "deckTopOrBottom",
         },
         {
-          kind: "CostModifier",
-          mode: "reduce",
-          costType: "play",
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          mode: "reduceCost",
           amount: 1,
-          existingPermanent: true,
+          raw: "reduce the play costs of all of your opponent's Digimon in the battle area by 1 for the turn",
           scaling: {
             per: 1,
             filter: {
@@ -89,14 +86,11 @@ const compiled: CompiledCard = {
             unit: "cards",
           },
           target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-              zone: "battleArea",
-            },
-            count: "all",
+            controller: "opponent",
+            kind: ["Digimon"],
+            zone: "battleArea",
           },
-          duration: "forTheTurn",
+          duration: "forTurn",
         },
         {
           kind: "Delete",

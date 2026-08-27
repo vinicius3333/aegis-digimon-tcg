@@ -38,9 +38,7 @@ export const compiled: CompiledCard = {
               raw: "reduce the play cost by 2",
               condition: {
                 kind: "youHaveNone",
-                // The printed "you have no Digimon" is the battle-area default (§15-1-7;
-                // breeding is a separate area and must not block this reduction).
-                filter: { controllerDefault: "mine", zone: "battleArea", kind: ["Digimon"] },
+                filter: { controllerDefault: "mine", kind: ["Digimon"] },
                 raw: "you have no Digimon",
               },
             },

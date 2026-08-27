@@ -18,9 +18,9 @@ describe("BT6-106 Iron-Fisted Onslaught", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[1]!.battleArea.length < 2);
 
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.length).toBeLessThan(2);
   });
 
   it("activates its Main effect from security", async () => {

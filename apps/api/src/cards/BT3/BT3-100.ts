@@ -21,7 +21,6 @@ const compiled: CompiledCard = {
           },
           amount: 2,
           fromTop: false,
-          upTo: true,
         },
         {
           kind: "Suspend",

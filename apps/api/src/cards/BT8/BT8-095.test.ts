@@ -4,33 +4,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT1/BT1-072.js";
-import { compiled } from "./BT8-095.js";
+import "./BT8-095.js";
 
 describe("BT8-095 Fire Rocket", () => {
-  it("keeps the Armor Form waiver, multicolor target, and Blocker boundary in executable IR", () => {
-    expect(compiled).toMatchObject({
-      coverage: "full",
-      residual: [],
-      effects: [
-        {
-          trigger: "Static",
-          actions: [
-            {
-              kind: "WaiveColorRequirement",
-              target: { isSelf: true },
-              condition: {
-                kind: "youHave",
-                filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }] },
-              },
-            },
-          ],
-        },
-        { trigger: "Main", actions: [{ kind: "GainKeyword", target: { filter: { controller: "mine", kind: ["Digimon"], multicolor: true } } }] },
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], keywords: ["Blocker"] } } }] },
-      ],
-    });
-  });
-
   it("waives its red requirement and grants Security Attack +1 to only the chosen multicolor Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

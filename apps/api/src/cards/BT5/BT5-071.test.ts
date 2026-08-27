@@ -10,7 +10,7 @@ describe("BT5-071 Guilmon", () => {
   });
 
   it("gains 1 memory when deleted by an effect", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-071", as: "guilmon", under: ["BT5-006"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-071", as: "guilmon" }] } });
     await advance(s.engine).verb.deletePermanent([s.perm("guilmon").permanentId], "byEffect");
     await settle(() => s.state.memory === 1);
     expect(s.state.memory).toBe(1);

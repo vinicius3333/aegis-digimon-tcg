@@ -13,7 +13,6 @@ describe("BT3-054 Blossomon", () => {
           ],
           hand: [{ card: "BT3-054", as: "blossomon" }],
         },
-        1: { battleArea: [{ card: "BT1-019", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -31,6 +30,5 @@ describe("BT3-054 Blossomon", () => {
 
     expect(s.state.memory).toBe(3);
     expect(s.perm("cost").isSuspended || s.perm("base").isSuspended).toBe(true);
-    expect(s.perm("opponent").isSuspended).toBe(false);
   });
 });

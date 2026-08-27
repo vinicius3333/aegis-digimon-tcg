@@ -83,8 +83,6 @@ export interface DigivolveAction extends ActionBase {
   ignoreDigivolutionRequirements?: boolean;
   /** Ignore only the level requirement, preserving the action's explicit filters. */
   ignoreLevelRequirement?: boolean;
-  /** Allow a printed optional digivolution branch to activate and end cleanly with no target. */
-  allowNoTarget?: boolean;
   /** The card digivolved into must share a color with the chosen base. */
   colorsMatchDigivolvingSource?: boolean;
   /** Destination name must include the selected base permanent's name (EX4-072). */
@@ -136,8 +134,6 @@ export interface PlaceUnderAction extends ActionBase {
    * rather than loose cards from hand or trash.
    */
   targetIsPermanent?: boolean;
-  /** When relocating a permanent, attach only its top card and trash its existing sources/links. */
-  shedOwnCards?: boolean;
   /** Move every Digimon card from one selected permanent's stack under a selected host. */
   fromSelectedPermanentDigivolutionCards?: boolean;
   /**

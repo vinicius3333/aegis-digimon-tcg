@@ -21,7 +21,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDigivolutionCardDiscarded",
-          hostFilter: { controller: "opponent", kind: ["Digimon"] },
+          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
           actions: [
             {
               kind: "GainMemory",

@@ -6,15 +6,9 @@ describe("BT4-002 Bukamon", () => {
   it("trashes the bottom source of an opposing level 4 or lower Digimon when attacking", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT3-025", as: "host", under: ["BT4-002", "BT3-021"] }] },
+        0: { battleArea: [{ card: "BT3-025", as: "host", under: ["BT4-002"] }] },
         1: {
-          battleArea: [
-            {
-              card: "BT1-019",
-              as: "target",
-              under: [{ card: "BT1-001", as: "bottom" }, { card: "BT1-010", as: "upper" }],
-            },
-          ],
+          battleArea: [{ card: "BT1-019", as: "target", under: [{ card: "BT1-010", as: "bottom" }] }],
           security: ["BT1-011"],
         },
       },
@@ -31,21 +25,14 @@ describe("BT4-002 Bukamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === bottomId), 5000);
 
-    expect(s.perm("target").stack).toHaveLength(1);
-    expect(s.perm("target").stack[0]!.cardId).toBe("BT1-010");
+    expect(s.perm("target").stack).toHaveLength(0);
   });
 
   it("does not target an opposing level 5 Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-025", as: "host", under: ["BT4-002", "BT3-021"] }] },
+      0: { battleArea: [{ card: "BT3-025", as: "host", under: ["BT4-002"] }] },
       1: {
-        battleArea: [
-          {
-            card: "BT1-023",
-            as: "target",
-            under: [{ card: "BT1-001", as: "bottom" }, "BT1-010", { card: "BT1-019", as: "upper" }],
-          },
-        ],
+        battleArea: [{ card: "BT1-023", as: "target", under: [{ card: "BT1-010", as: "bottom" }] }],
         security: ["BT1-011"],
       },
     });

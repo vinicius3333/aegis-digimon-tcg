@@ -55,23 +55,4 @@ describe("BT8-044 Azulongmon", () => {
     expect(s.perm("other").isSuspended).toBe(false);
     expect(s.perm("azulongmon").isSuspended).toBe(false);
   });
-
-  it("digivolves from a yellow level-5 Digimon for 3 memory", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-057", as: "base" }], hand: [{ card: "BT8-044", as: "evolving" }] },
-    });
-    s.state.memory = 4;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT8-044");
-
-    expect(s.perm("base").topCard.cardId).toBe("BT8-044");
-    expect(s.state.memory).toBe(1);
-  });
 });

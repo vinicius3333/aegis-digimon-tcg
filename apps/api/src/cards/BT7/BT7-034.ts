@@ -11,6 +11,27 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          kind: "Trash",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+            },
+            count: 2,
+          },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                zone: "digivolutionCards",
+              },
+              count: 2,
+            },
+            raw: "＜Digi-Burst 2＞",
+          },
+        },
+        {
           kind: "GainKeyword",
           target: {
             filter: {
@@ -25,17 +46,6 @@ const compiled: CompiledCard = {
             raw: "＜Security Attack -2＞",
           },
           duration: "untilOpponentTurnEnd",
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                isSelfRef: true,
-                zone: "digivolutionCards",
-              },
-              count: 2,
-            },
-            raw: "＜Digi-Burst 2＞",
-          },
         },
       ],
       keywords: [

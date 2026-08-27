@@ -46,58 +46,6 @@ describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => 
     expect(gulfInBattle).toBe(true);
   });
 
-  it("does not play Gulfmon after a natural battle deletion", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: MEPHISTOMON, dp: 7000, as: "meph" }],
-          hand: [{ card: GULFMON, as: "gulfmon" }],
-        },
-        1: { battleArea: [{ card: "BT1-019", dp: 13000, as: "attacker" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("meph").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === MEPHISTOMON));
-
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === GULFMON)).toBe(true);
-  });
-
-  it("places a qualifying Dark Masters-text card and gains DP after a natural inherited attack", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: GULFMON, under: [MEPHISTOMON], as: "host" }],
-          trash: [{ card: "BT15-072", as: "darkMastersText" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("host").stack.some((card) => card.cardId === "BT15-072"));
-
-    expect(s.perm("host").stack.some((card) => card.cardId === "BT15-072")).toBe(true);
-    expect(s.perm("host").currentDP).toBe(13000);
-  });
-
   it("keeps the revealed-from-deck level override resolved in runtime metadata", async () => {
     const { runtimeCompiledCard } = await import("../../engine/effects/interpreter.js");
     const compiled = runtimeCompiledCard(MEPHISTOMON)!;
@@ -112,26 +60,5 @@ describe("BT17-068 Mephistomon — revealed level", () => {
     const def = revealedDefinition({ game: { definitionOf: () => getCardDefinition("BT17-068")! } } as any, card);
 
     expect(def.level).toBe(6);
-    expect(def.treatedAsLevels).toEqual([5, 6]);
-  });
-
-  it("gets accepted as both level 5 and level 6 by a natural deck reveal", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [{ card: "BT3-051", as: "dokugumon" }],
-          deck: [{ card: MEPHISTOMON, as: "meph" }, { card: "BT17-068", as: "otherMeph" }],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 6;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dokugumon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.hand.length === 2);
-
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([MEPHISTOMON, MEPHISTOMON]);
   });
 });

@@ -70,7 +70,6 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
-          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Suspend",
@@ -78,7 +77,6 @@ const compiled: CompiledCard = {
                 filter: {
                   controller: "opponent",
                   kind: ["Digimon", "Tamer"],
-                  playCostLteTriggerSource: true,
                 },
                 count: 1,
               },

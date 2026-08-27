@@ -1,26 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-069.js";
 
 describe("BT7-069 Eyesmon: Scatter Mode", () => {
-  it("records Draw 3 followed by hand Trash 2", () => {
-    expect(runtimeCompiledCard("BT7-069")).toMatchObject({
-      coverage: "full",
-      residual: [],
-      effects: [
-        {
-          trigger: "OnDeletion",
-          actions: [
-            { kind: "Draw", controller: "mine", amount: 3 },
-            { kind: "Trash", target: { count: 2, filter: { controller: "mine", zone: "hand" } } },
-          ],
-        },
-      ],
-    });
-  });
-
   it("draws 3 and then trashes 2 cards from hand when deleted", async () => {
     const s = setupEngine(
       {

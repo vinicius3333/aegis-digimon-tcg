@@ -56,9 +56,6 @@ export const compiled: CompiledCard = {
           filter: {
             kind: ["Digimon"],
             dpAtMost: 6000,
-            // Q2381 explicitly includes Digimon tokens, unlike the default token exemption
-            // used by generic RestrictPlay effects (Q3834).
-            allowTokens: true,
           },
           mode: "play",
           duration: "permanent",

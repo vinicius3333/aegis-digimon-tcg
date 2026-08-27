@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-029.js";
 import "./index.js";
 
@@ -57,7 +56,6 @@ describe("BT17-029", () => {
     const hostId = s.perm("host").permanentId;
     const securityId = s.inst("securityDigimon").instanceId;
     await s.ready();
-    expect(observe(s.engine).securityDp(1)).toBe(-3000);
 
     expect(
       s.engine.applyIntent(0, {

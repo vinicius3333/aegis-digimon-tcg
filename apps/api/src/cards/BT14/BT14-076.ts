@@ -52,7 +52,6 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
-          bindResultAs: "playedAgumon",
           target: {
             filter: {
               controller: "mine",
@@ -75,7 +74,6 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon"],
-              boundRef: "playedAgumon",
             },
             count: 1,
           },

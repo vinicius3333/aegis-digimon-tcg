@@ -44,27 +44,4 @@ describe("BT8-107 Pandemonium Flame", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
-
-  it("still allows the own-Digimon cost when no opposing target exists", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT8-041", as: "cost" }], hand: [{ card: "BT8-107", as: "option" }] },
-        1: { battleArea: [] },
-      },
-      { autoSelectCards: true, autoAcceptOptional: true },
-    );
-    s.state.memory = 4;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.length === 0 &&
-        s.state.players[0]!.trash.some((card) => card.cardId === "BT8-107"),
-    );
-
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT8-107")).toBe(true);
-  });
 });

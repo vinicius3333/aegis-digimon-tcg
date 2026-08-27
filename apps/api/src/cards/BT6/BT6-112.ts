@@ -44,7 +44,6 @@ const compiled: CompiledCard = {
               zone: "trash",
               controller: "mine",
               kind: ["Option"],
-              playCostOneOf: [7],
             },
             count: 1,
             upTo: true,

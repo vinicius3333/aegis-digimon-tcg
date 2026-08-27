@@ -8,7 +8,7 @@ describe("BT4-112 Hell's Gate", () => {
   it("deletes an opposing level 6 or higher Digimon", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT4-112", as: "option" }] },
+        0: { battleArea: ["BT4-076"], hand: [{ card: "BT4-112", as: "option" }] },
         1: { battleArea: [{ card: "BT3-019", as: "target" }] },
       },
       { autoSelectCards: true },
@@ -29,7 +29,7 @@ describe("BT4-112 Hell's Gate", () => {
 
   it("does not delete an opposing level 5 Digimon", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT4-112", as: "option" }] }, 1: { battleArea: [{ card: "BT3-015", as: "target" }] } },
+      { 0: { battleArea: ["BT4-076"], hand: [{ card: "BT4-112", as: "option" }] }, 1: { battleArea: [{ card: "BT4-045", as: "target" }] } },
       { autoSelectCards: true },
     );
     s.state.memory = 8;

@@ -4,9 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Q1803-Q1805: the two trashed sources share a level with each other, this
 // card may be one of them, and only effect-driven deletion or hand/deck return
-// can be prevented. The source anchor keeps this inherited replacement local
-// to the Digimon carrying Greymon X; the name condition then evaluates that
-// source's current name.
+// can be prevented.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -18,11 +16,10 @@ export const compiled: CompiledCard = {
           mode: "prevent",
           leaveCause: "byEffect",
           optional: true,
-          sourceFilter: { isSelfRef: true },
-          condition: {
-            kind: "selfHasNameContaining",
-            names: ["Greymon", "Omnimon"],
-            raw: "this Digimon has [Greymon] or [Omnimon] in its name",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Greymon", "Omnimon"], match: "name" }],
           },
           cost: {
             kind: "trash",

@@ -41,7 +41,6 @@ const compiled: CompiledCard = {
                   upTo: true,
                   from: ["battleArea", "trash"],
                 },
-                host: "self",
                 raw: "by placing up to 3 [Dark Masters] trait cards with different names from your battle area or trash under it",
                 trackCount: "placedDarkMasters",
               },
@@ -65,8 +64,7 @@ const compiled: CompiledCard = {
           kind: "ActivateEffect",
           target: {
             filter: {
-              controller: "mine",
-              zone: "digivolutionCards",
+              isSelfRef: true,
             },
             count: 1,
             isSelf: true,
@@ -74,7 +72,6 @@ const compiled: CompiledCard = {
           effectType: "OnPlay",
           count: 1,
           asEffectOf: "this Digimon",
-          lastPlacedOnly: true,
           cost: {
             kind: "place",
             target: {

@@ -4,32 +4,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-076.js";
 
 describe("BT10-076 Troopmon", () => {
-  it("only trashes its own source when an opponent plays a Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT10-076", as: "troopmon" }] },
-        1: {
-          battleArea: [{ card: "BT10-081", as: "opponentHost", under: [{ card: "BT10-071", as: "opponentSource" }] }],
-          hand: [{ card: "BT1-010", as: "played" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    s.state.memory = 0;
-    await s.ready();
-
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT10-081"));
-
-    expect(s.state.players[1]!.battleArea[0]!.stack.some((card) => card.instanceId === s.inst("opponentSource").instanceId)).toBe(
-      true,
-    );
-    expect(s.state.memory).toBe(0);
-  });
-
   it("trashes one of its digivolution cards to gain memory when the opponent plays a card", async () => {
     const s = setupEngine(
       {

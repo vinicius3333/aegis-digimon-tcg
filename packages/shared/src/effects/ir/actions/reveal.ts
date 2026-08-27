@@ -13,8 +13,6 @@ export interface HandRevealAddAction extends ActionBase {
 
 export interface RevealAddAction extends ActionBase {
   kind: "RevealAdd";
-  /** Whose deck is revealed; omitted means the source owner's deck. */
-  controller?: Controller;
   revealCount: number;
   /**
    * A "digivolve into 1 revealed card" branch that runs before the add dispositions. When
@@ -135,8 +133,7 @@ export interface SearchAction extends ActionBase {
   controller: Controller;
   filter: Filter;
   count: number | "all";
-  /** Add the selected cards to hand, or expose the full matching search set to a following action. */
-  to?: "hand" | "revealed";
+  to?: "hand";
   /** Play the selected cards instead of adding them to hand. */
   then?: {
     kind: "PlayWithoutCost";

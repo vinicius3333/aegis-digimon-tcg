@@ -25,7 +25,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          fromOwnDigivolutionStack: true,
+          from: ["digivolutionCards"],
           payCost: false,
           optional: true,
         },

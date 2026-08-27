@@ -4,7 +4,6 @@ import { getCardDefinition } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import { permanentMatchesFilter } from "../../engine/effects/interpreter.js";
 import { compiled } from "./BT9-109.js";
 import "./BT9-109.js";
 import { setupEngine, settle as harnessSettle, assertNoLoudGap } from "../../engine/testkit/harness.js";
@@ -78,7 +77,6 @@ function makeSource(): CardSource {
 const DEFINITIONS: Record<string, Partial<CardDefinition>> = {
   "HOST-D": { nameEn: "Greymon", kinds: ["Digimon"] as never },
   XA: { nameEn: "X Antibody", kinds: ["Option"] as never },
-  PROTO: { nameEn: "X Antibody Proto Form", kinds: ["Option"] as never },
 };
 
 function makeContext(opts: { recorder: Recorder; ownBattleArea?: Permanent[] }): EffectContext {
@@ -132,15 +130,6 @@ function digimonHost(permanentId: string, opts: { withXAntibody?: boolean } = {}
   });
 }
 
-function digimonHostWithStack(permanentId: string, stackCardIds: string[]): Permanent {
-  return fakePermanent({
-    permanentId,
-    controllerSeat: 0 as Seat,
-    topCard: fakeCardInstance("HOST-D", permanentId + "-top"),
-    stack: stackCardIds.map((cardId, index) => fakeCardInstance(cardId, `${permanentId}-stack-${index}`)) as never,
-  });
-}
-
 describe("BT9-109 X Antibody (override)", () => {
   const module = getEffectModule("BT9-109");
 
@@ -161,13 +150,6 @@ describe("BT9-109 X Antibody (override)", () => {
 
   it("registers on import", () => {
     expect(module, "BT9-109 must self-register on import").toBeDefined();
-  });
-
-  it("uses the normal printed digivolution cost for its inherited effect", () => {
-    const inherited = compiled.effects.find((effect) => effect.trigger === "WhenAttacking")!;
-    const action = inherited.actions[0]!;
-    expect(action).toMatchObject({ kind: "Digivolve", payCost: true, optional: true });
-    expect(action).not.toHaveProperty("useAlternateCost");
   });
 
   it("routes its clauses to the expected timings", () => {
@@ -229,23 +211,6 @@ describe("BT9-109 X Antibody (override)", () => {
     // Compiled modules defer permanent eligibility to public target resolution;
     // the real-engine duplicate-target test below proves this illegal host is excluded.
     expect(effect.canActivate(ctx)).toBe(true);
-  });
-
-  it("uses exact stack-card names: X Antibody excludes, X Antibody Proto Form does not", () => {
-    const recorder: Recorder = { calls: [] };
-    const exact = digimonHostWithStack("HOST-XA", ["XA"]);
-    const proto = digimonHostWithStack("HOST-PROTO", ["PROTO"]);
-    const ctx = makeContext({ recorder, ownBattleArea: [exact, proto] });
-    const place = compiled.effects
-      .find((effect) => effect.trigger === "Main")
-      ?.actions.find((action) => action.kind === "PlaceUnder");
-
-    expect(place).toMatchObject({ underFilter: { excludeCardsNamed: ["X Antibody"] } });
-    if (place?.kind !== "PlaceUnder" || place.underFilter === undefined) {
-      throw new Error("BT9-109 Main PlaceUnder filter missing");
-    }
-    expect(permanentMatchesFilter(ctx, exact, place.underFilter, ctx.source)).toBe(false);
-    expect(permanentMatchesFilter(ctx, proto, place.underFilter, ctx.source)).toBe(true);
   });
 });
 

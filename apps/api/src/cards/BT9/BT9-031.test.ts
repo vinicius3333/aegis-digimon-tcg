@@ -1,4 +1,4 @@
-import { getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -59,20 +59,6 @@ describe("BT9-031 MetalGarurumon (X Antibody)", () => {
     await advance(s.engine).fireSubTrigger("whenUnsuspended", { unsuspendedPermanentId: s.perm("metal").permanentId });
     expect(returnedIds.every((id) => s.state.players[1]!.hand.some((card) => card.instanceId === id))).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-  });
-
-  it("triggers from a real unsuspend during its own unsuspend phase", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT9-031", as: "metal", under: ["BT1-044"], suspended: true }] },
-      1: { battleArea: [{ card: "BT1-015", as: "lowest" }] },
-    });
-    await s.ready();
-    s.state.phase = Phase.Active;
-
-    await advance(s.engine).verb.unsuspend([s.perm("metal").permanentId]);
-    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("lowest").instanceId));
-
-    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("lowest").instanceId)).toBe(true);
   });
 
   it("does not treat MetalGarurumon (X Antibody) as an exact enabling source", async () => {

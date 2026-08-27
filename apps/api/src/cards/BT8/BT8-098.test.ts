@@ -3,26 +3,9 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { compiled } from "./BT8-098.js";
+import "./BT8-098.js";
 
 describe("BT8-098 Innocence Blizzard", () => {
-  it("keeps bottom-source trashing and activation-time target restriction in executable IR", () => {
-    expect(compiled).toMatchObject({
-      coverage: "full",
-      residual: [],
-      effects: [
-        {
-          trigger: "Main",
-          actions: [
-            { kind: "TrashDigivolution", amount: 1, fromTop: false, target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: "all" } },
-            { kind: "Restrict", restriction: "attackOrBlock", duration: "untilOpponentTurnEnd", target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" }, count: 3, upTo: true } },
-          ],
-        },
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
-      ],
-    });
-  });
-
   it("trashes each bottom source, then offers only the resulting source-less Digimon up to 3", async () => {
     const s = setupEngine({
       0: {
@@ -31,15 +14,15 @@ describe("BT8-098 Innocence Blizzard", () => {
       },
       1: {
         battleArea: [
-          { card: "BT8-023", as: "strippedOne", under: [{ card: "BT1-029", as: "bottomOne" }] },
+          { card: "BT8-023", as: "strippedOne", under: [{ card: "BT1-009", as: "bottomOne" }] },
           { card: "BT8-024", as: "alreadyBare" },
-          { card: "BT8-039", as: "strippedTwo", under: [{ card: "BT8-046", as: "bottomTwo" }] },
+          { card: "BT8-039", as: "strippedTwo", under: [{ card: "BT1-029", as: "bottomTwo" }] },
           {
             card: "BT8-042",
             as: "stillStacked",
             under: [
-              { card: "BT1-029", as: "bottomThree" },
-              { card: "BT8-023", as: "remainingSource" },
+              { card: "BT1-009", as: "bottomThree" },
+              { card: "BT1-029", as: "remainingSource" },
             ],
           },
           { card: "BT8-046", as: "unselectedBare" },
@@ -98,7 +81,7 @@ describe("BT8-098 Innocence Blizzard", () => {
           security: [{ card: "BT8-098", as: "securityOption", faceUp: true }],
         },
         1: {
-          battleArea: [{ card: "BT8-023", as: "target", under: ["BT1-029"] }],
+          battleArea: [{ card: "BT8-023", as: "target", under: ["BT1-009"] }],
         },
       },
       { autoSelectCards: true },

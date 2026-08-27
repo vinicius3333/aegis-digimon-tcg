@@ -7,6 +7,8 @@ const myotismonText = { nameOrTrait: [{ tokens: ["Myotismon"], match: "text" }] 
 const body = [{
   kind: "CostGatedBlock",
   cost: { kind: "trash", target: { filter: handDigimon, count: 1 }, storeAs: "trashedDigimonLevel" },
+  optional: true,
+  abortOnDecline: true,
   actions: [
     { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], levelLte: "trashedDigimonLevel" }, count: 1 } },
     { kind: "Draw", controller: "mine", amount: 2, condition: { kind: "lastTrashedMatchesFilter", filter: myotismonText } },

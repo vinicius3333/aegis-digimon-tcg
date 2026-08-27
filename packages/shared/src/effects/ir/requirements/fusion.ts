@@ -11,8 +11,6 @@ export interface DnaDigivolveRequirement {
     color?: "Red" | "Blue" | "Yellow" | "Green" | "White" | "Black" | "Purple";
     level?: number;
     names?: string[];
-    /** Exact required material card names for bracketed named DNA sources. */
-    namesExact?: string[];
     traits?: string[];
   }[];
 }

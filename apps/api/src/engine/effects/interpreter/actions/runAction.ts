@@ -173,20 +173,6 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   ) {
     return action.abortOnDecline === true;
   }
-  // Target-bearing source-trash and binding actions must not consume a Digi-Burst (or other
-  // activation) cost when their target pool is empty. Return/Delete already have equivalent
-  // preflights above; BT4-032 uses TrashDigivolution, BT4-033 uses SelectBind before the
-  // subsequent bounce, and BT4-068 gates De-Digivolve with Digi-Burst, so leaving these
-  // target-bearing verbs to pay first makes a no-target activation
-  // silently trash the source stack (CR §15-8-4-4-1).
-  if (
-    (action.kind === "TrashDigivolution" || action.kind === "SelectBind" || action.kind === "DeDigivolve") &&
-    action.cost !== undefined &&
-    action.allowCostWithoutTarget !== true &&
-    candidatePermanents(ctx, action.target).length === 0
-  ) {
-    return action.abortOnDecline === true;
-  }
   if (
     action.kind === "Unsuspend" &&
     action.cost !== undefined &&
@@ -302,10 +288,6 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // card makes the permission inert in continuous contexts (EX1-071, BT6 Options).
     action.kind !== "WaiveColorRequirement" &&
     action.optional &&
-    // RedirectAttack with chooser:"opponent" owns its optional decline at the combat
-    // primitive so the defending player, rather than the source controller, decides
-    // whether to switch targets (BT4-075 / Q1224-Q1227).
-    (action.kind !== "RedirectAttack" || action.chooser !== "opponent") &&
     actionCost?.optional !== true
   ) {
     if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
@@ -323,7 +305,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.op === "toHand" &&
       ctx.game.player(ctx.source.ownerSeat).security.length === 0
     ) {
-      return action.abortOnDecline === true;
+      return false;
     }
     // Do not offer an optional play when no legal loose card exists. Besides avoiding a
     // meaningless UI prompt, this is required for nested entry windows: Nokia played from

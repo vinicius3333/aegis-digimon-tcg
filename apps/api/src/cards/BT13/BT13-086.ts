@@ -12,7 +12,7 @@ export const compiled: CompiledCard = {
           event: "wouldBePlayed",
           sourceFilter: {
             controllerDefault: "mine",
-            nameOrTrait: [{ tokens: ["Gizmon: XT"], match: "nameExact" }],
+            nameOrTrait: [{ tokens: ["Gizmon: XT"], match: "name" }],
           },
           actions: [
             {
@@ -54,12 +54,13 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
-              nameOrTrait: [{ tokens: ["Akihiro Kurata"], match: "nameExact" }],
+              nameOrTrait: [{ tokens: ["Akihiro Kurata"], match: "name" }],
             },
             count: 1,
           },
           from: ["trash"],
           payCost: false,
+          optional: true,
         },
       ],
     },
@@ -91,7 +92,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["ProtoGizmon"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },

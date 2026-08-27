@@ -46,12 +46,8 @@ const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 {
-                  tokens: ["Phoenixmon"],
+                  tokens: ["Phoenixmon", "X Antibody"],
                   match: "name",
-                },
-                {
-                  tokens: ["X Antibody"],
-                  match: "trait",
                 },
               ],
             },
@@ -84,12 +80,8 @@ const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 {
-                  tokens: ["Phoenixmon"],
+                  tokens: ["Phoenixmon", "X Antibody"],
                   match: "name",
-                },
-                {
-                  tokens: ["X Antibody"],
-                  match: "trait",
                 },
               ],
             },

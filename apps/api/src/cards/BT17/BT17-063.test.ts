@@ -68,38 +68,6 @@ describe("BT17-063 Darcmon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(1);
   });
 
-  it("draws and trashes but does not chain without HippoGryphonmon underneath", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT17-061", as: "base" }],
-          hand: [
-            { card: "BT17-063", as: "darcmon" },
-            { card: "BT1-010", as: "discard" },
-            { card: "BT17-071", as: "murmukusmon" },
-          ],
-          deck: [{ card: "BT1-011", as: "drawn" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 3;
-    const drawnId = s.inst("drawn").instanceId;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("darcmon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT17-063");
-
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)).toBe(true);
-    expect(s.state.players[0]!.trash).toHaveLength(1);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT17-071")).toBe(true);
-  });
-
   it("grants inherited Retaliation to its evolved host", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT17-071", under: ["BT17-063"], as: "host" }] } });
     await s.ready();

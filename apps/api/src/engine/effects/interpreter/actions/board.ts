@@ -271,10 +271,6 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             ? ctx.game.opponentOf(ctx.source.ownerSeat)
             : ctx.source.ownerSeat;
         ctx.fx.grantPlayerKeyword(seat, kw, duration, keyword.amount);
-        // A player-wide grant is an activated effect even when no matching permanent is
-        // currently present; its ledger entry applies to qualifying permanents entering later.
-        // Preserve that result for a following "if you did" clause (BT9-102).
-        ctx.lastEffectActed = true;
         return false;
       }
       // A keyword backed by the continuous ledger is attached even while the recipient is
@@ -298,52 +294,6 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // this optional grant actually chose a recipient. Preserve that outcome explicitly;
       // resolvePermanentTargets already binds the same physical recipient for sameTarget.
       ctx.lastEffectActed = ids.length > 0;
-      if (action.includeLaterEntrants === true) {
-        const grantedInstanceIds = new Set<string>();
-        for (const id of ids) {
-          const top = ctx.game.permanentById(id)?.topCard;
-          if (top !== undefined) grantedInstanceIds.add(top.instanceId);
-        }
-        const expiresOnTurnEndOf =
-          action.duration === "forTheTurn" || action.duration === "untilYourTurnEnd"
-            ? ctx.source.ownerSeat
-            : action.duration === "untilOpponentTurnEnd" || action.duration === "endOfOpponentTurn"
-              ? ctx.game.opponentOf(ctx.source.ownerSeat)
-              : undefined;
-        ctx.fx.subscribeSubTrigger({
-          event: "onEnterFieldAnyone",
-          activationContext: ctx,
-          once: false,
-          ...(expiresOnTurnEndOf === undefined ? {} : { expiresOnTurnEndOf }),
-          description: `GainKeyword later entrant from ${ctx.source.cardId}`,
-          matches: (subCtx) => {
-            const id = subCtx.trigger.subjectPermanentId;
-            const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
-            return permanent !== undefined && permanentMatchesFilter(subCtx, permanent, action.target.filter, subCtx.source);
-          },
-          run: async (subCtx) => {
-            const id = subCtx.trigger.subjectPermanentId;
-            const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
-            const top = permanent?.topCard;
-            if (top === undefined || grantedInstanceIds.has(top.instanceId)) return;
-            const futureGrantCount = action.count ?? 1;
-            const grantProvenance = {
-              sourceSeat: subCtx.source.ownerSeat,
-              sourceKinds: [...subCtx.source.definition.kinds],
-              sourceCardId: subCtx.source.cardId,
-              sourceEffectText: subCtx.activeEffectText,
-            };
-            for (let i = 0; i < futureGrantCount; i++) {
-              subCtx.fx.grantKeyword(top.instanceId, kw, toDuration(action.duration), keyword.amount, grantProvenance);
-            }
-            grantedInstanceIds.add(top.instanceId);
-          },
-        });
-        // A successful cost-bearing grant is still an activated effect when the filtered board
-        // target is empty; its later-entrant watcher is the live recipient. This matters for the
-        // immediately following BT9-102 "you did" named-effect grant.
-        if (ids.length === 0) ctx.lastEffectActed = true;
-      }
       // ＜Piercing＞ has a dedicated pierce store; every other CONTINUOUS keyword
       // ability is recorded in the continuous-effect ledger (real server state the
       // combat / keyword-abilities subsystem reads). ACTION-type keywords (those that

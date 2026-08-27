@@ -7,7 +7,7 @@ import "./BT3-004.js";
 describe("BT3-004 Minomon", () => {
   it("gives its host +1000 DP when it attacks an opposing Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-045", as: "host", under: ["BT3-004"] }] },
+      0: { battleArea: [{ card: "BT3-019", as: "host", under: ["BT3-004"] }] },
       1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }] },
     });
     const originalDP = s.perm("host").currentDP;
@@ -26,7 +26,7 @@ describe("BT3-004 Minomon", () => {
 
   it("Q1047 does not grant +1000 DP when a declared player attack is blocked", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-045", as: "host", under: ["BT3-004"] }] },
+      0: { battleArea: [{ card: "BT3-019", as: "host", under: ["BT3-004"] }] },
       1: { battleArea: [{ card: "BT1-031", as: "blocker" }], security: ["BT1-010"] },
     });
     const originalDP = s.perm("host").currentDP;

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-055.js";
@@ -48,14 +49,16 @@ describe("BT17-055 Infermon", () => {
           hand: [{ card: "BT17-055", as: "infermon" }],
         },
         1: {
-          battleArea: [{ card: "BT4-035", under: ["BT17-025"], as: "restricted" }],
-          hand: [{ card: "BT4-035", as: "upgraded" }],
+          battleArea: [
+            { card: "BT4-035", under: ["BT17-025"], as: "stacked" },
+            { card: "BT17-025", as: "restricted" },
+          ],
         },
       },
       { autoSelectCards: true },
     );
     s.state.memory = 3;
-    const removedTopId = s.perm("restricted").topCard!.instanceId;
+    const removedTopId = s.perm("stacked").topCard!.instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -67,41 +70,27 @@ describe("BT17-055 Infermon", () => {
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === removedTopId));
 
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === removedTopId)).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers")).toBe(true);
-
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
-    expect(
-      s.engine.applyIntent(1, {
-        type: "digivolve",
-        permanentId: s.perm("restricted").permanentId,
-        instanceId: s.inst("upgraded").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("restricted").topCard?.cardId === "BT4-035");
-
-    expect(observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers")).toBe(true);
   });
 
   it("inherits de-digivolution when another Diaboromon is played", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT17-057", under: ["BT17-055"], as: "host" }],
-          hand: [{ card: "BT17-059", as: "playedDiaboromon" }],
+          battleArea: [
+            { card: "BT17-057", under: ["BT17-055"], as: "host" },
+            { card: "BT17-059", as: "playedDiaboromon" },
+          ],
         },
         1: { battleArea: [{ card: "BT4-035", under: ["BT17-025"], as: "target" }] },
       },
       { autoSelectCards: true },
     );
     const removedTopId = s.perm("target").topCard!.instanceId;
-    s.state.memory = 12;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "playCard",
-        instanceId: s.inst("playedDiaboromon").instanceId,
-      }),
-    ).toEqual({ ok: true });
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("playedDiaboromon").permanentId,
+    });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === removedTopId));
 
     expect(s.perm("target").topCard?.cardId).toBe("BT17-025");

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-077.js";
 
 describe("BT16-077", () => {
@@ -43,38 +42,5 @@ describe("BT16-077", () => {
       attackPlayer: true,
       withoutSuspending: false,
     });
-  });
-
-  it("DNA digivolves, plays a Free card, and completes the resulting player attack", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT16-068", as: "purpleMaterial" },
-            { card: "BT16-008", as: "redMaterial" },
-          ],
-          hand: [{ card: "BT16-077", as: "dinobeemon" }],
-          trash: [{ card: "BT16-008", as: "played" }],
-        },
-        1: { security: ["BT1-001"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    s.state.memory = 0;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "dnaDigivolve",
-        materialPermanentIds: [s.perm("purpleMaterial").permanentId, s.perm("redMaterial").permanentId],
-        instanceId: s.inst("dinobeemon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-077")).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-008")).toBe(true);
-    expect(s.state.players[1]!.security).toHaveLength(0);
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 });

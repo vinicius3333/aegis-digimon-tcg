@@ -1,28 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import compiled from "./BT1-038.js";
 
 describe("BT1-038 Monzaemon", () => {
-  it("matches the vanilla catalog contract and registers residual-free IR", () => {
-    expect(getCardDefinition("BT1-038")).toMatchObject({
-      cardId: "BT1-038",
-      nameEn: "Monzaemon",
-      colors: ["Blue"],
-      kinds: ["Digimon"],
-      level: 5,
-      playCost: 5,
-      dp: 6000,
-      evoCosts: [{ color: "Blue", level: 4, memoryCost: 2 }],
-      forms: ["Ultimate"],
-      attributes: ["Vaccine"],
-      types: ["Puppet"],
-    });
-    expect(compiled).toEqual({ effects: [], coverage: "full", residual: [] });
-    expect(getEffectModule("BT1-038")?.cardId).toBe("BT1-038");
-  });
-
   it("plays for 5 memory as a 6000 DP Digimon", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT1-038", as: "monzaemon" }] } });
     s.state.memory = 5;

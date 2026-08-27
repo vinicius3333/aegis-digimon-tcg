@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -42,7 +43,7 @@ describe("BT15-017", () => {
   it("deletes exactly one lowest-DP opposing Digimon when 3 security remain", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT15-017", as: "phoenixmon" }] },
+        0: { battleArea: [{ card: "BT15-017", as: "phoenixmon" }] },
         1: {
           battleArea: [
             { card: "BT1-009", as: "lowest", dp: 3000 },
@@ -53,12 +54,9 @@ describe("BT15-017", () => {
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 11;
     const lowestId = s.perm("lowest").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("phoenixmon").instanceId })).toEqual({
-      ok: true,
-    });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("phoenixmon"));
     await settle(() => !s.state.players[1]!.battleArea.some((card) => card.permanentId === lowestId));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);

@@ -7,7 +7,7 @@ describe("BT6-071 Kinkakumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT6-076", under: ["BT6-071"], as: "host" }],
+          battleArea: [{ card: "BT1-010", under: ["BT6-071"], as: "host" }],
           hand: [{ card: "BT1-011", as: "cost" }],
         },
         1: { battleArea: [{ card: "BT1-010", as: "target" }], security: ["BT1-010"] },

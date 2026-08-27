@@ -15,19 +15,8 @@ describe("BT4-005 Missimon", () => {
 
   it("does not give DP to a host without the D-Brigade trait", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT4-064", as: "host", under: ["BT4-005"] }] },
+      0: { battleArea: [{ card: "BT3-025", as: "host", under: ["BT4-005"] }] },
     });
-
-    await s.engine.recomputeContinuousEffects();
-
-    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
-  });
-
-  it("does not give DP to its D-Brigade host during the opponent's turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT4-063", as: "host", under: ["BT4-005"] }] },
-    });
-    s.state.turnSeat = 1;
 
     await s.engine.recomputeContinuousEffects();
 

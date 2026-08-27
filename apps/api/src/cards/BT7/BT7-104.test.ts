@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-104.js";
 
-describe("BT7-104 Metal Cannon", () => {
+describe("BT7-104 Black Memory Boost!", () => {
   it("identifies X-Antibody stacks by permanent and draws for the selected stack", async () => {
     const s = setupEngine({
       0: {

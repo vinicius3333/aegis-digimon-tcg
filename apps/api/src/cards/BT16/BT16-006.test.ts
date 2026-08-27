@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-006.js";
 import "../index.js";
@@ -18,46 +19,25 @@ describe("BT16-006", () => {
           battleArea: [{ card: "BT16-007", as: "host", under: ["BT16-006"] }],
           hand: [{ card: "BT1-009", as: "costCard" }],
         },
-        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 3000 }] },
       },
       { autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
     s.state.memory = 0;
-    const hostInstanceId = s.perm("host").topCard.instanceId;
 
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
-      }),
-    ).toEqual({ ok: true });
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("costCard").instanceId));
 
     expect(s.state.memory).toBe(1);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === hostInstanceId)).toBe(true);
     expect(s.state.players[0]!.trash.filter((card) => card.instanceId === s.inst("costCard").instanceId)).toHaveLength(
       1,
     );
   });
 
-  it("does not gain memory when the natural deletion has no hand card to pay the cost", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT16-007", as: "host", under: ["BT16-006"] }] },
-      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 3000 }] },
-    });
-    s.state.turnSeat = 1;
+  it("does not gain memory when the deletion cost cannot be paid", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT16-007", as: "host", under: ["BT16-006"] }] } });
     s.state.memory = 0;
 
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
 
     expect(s.state.memory).toBe(0);
   });

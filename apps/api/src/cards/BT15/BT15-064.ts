@@ -26,9 +26,6 @@ const compiled: CompiledCard = {
               },
               count: 1,
               to: "placeUnder",
-              underFilter: {
-                isSelfRef: true,
-              },
             },
             {
               filter: {
@@ -67,9 +64,6 @@ const compiled: CompiledCard = {
               },
               count: 1,
               to: "placeUnder",
-              underFilter: {
-                isSelfRef: true,
-              },
             },
             {
               filter: {

@@ -1,28 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-049.js";
 import "./index.js";
 
 describe("BT17-049 Antylamon", () => {
-  it("matches the catalog identity and alternate evolution route", () => {
-    expect(getCardDefinition("BT17-049")).toMatchObject({
-      cardId: "BT17-049",
-      colors: ["Green", "Purple"],
-      level: 5,
-      playCost: 8,
-      dp: 8000,
-      evoCosts: [
-        { color: "Green", level: 4, memoryCost: 4 },
-        { color: "Purple", level: 4, memoryCost: 4 },
-      ],
-    });
-    expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Turuiemon", "Wendigomon"], cost: 3, isAlternate: true },
-    ]);
-  });
-
   it("has Alliance and plays one level-3 green or yellow Digimon from trash when digivolving", () => {
     expect(compiled.effects.some((entry) => entry.keywords?.some((keyword) => keyword.keyword === "Alliance"))).toBe(
       true,

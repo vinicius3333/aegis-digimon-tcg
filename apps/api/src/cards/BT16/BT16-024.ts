@@ -23,7 +23,6 @@ const compiled: CompiledCard = {
           },
           count: "all",
           searchZone: "security",
-          to: "revealed",
           purpose: "digivolveAmongRevealed",
         },
         {
@@ -105,7 +104,6 @@ const compiled: CompiledCard = {
           },
           count: "all",
           searchZone: "security",
-          to: "revealed",
           purpose: "digivolveAmongRevealed",
         },
         {

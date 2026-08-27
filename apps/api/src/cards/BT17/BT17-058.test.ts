@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-058.js";
 import "./index.js";
 
@@ -110,8 +111,6 @@ describe("BT17-058 GroundLocomon", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ownMachineId),
     );
 
-    expect(s.perm("groundLocomon").topCard?.cardId).toBe("BT17-058");
-    expect(s.perm("groundLocomon").stack.some((card) => card.instanceId === ownMachineId)).toBe(false);
     expect(s.perm("otherHost").stack.some((card) => card.instanceId === otherMachineId)).toBe(true);
   });
 });

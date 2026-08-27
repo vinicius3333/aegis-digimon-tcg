@@ -16,7 +16,7 @@ describe("BT8-040 Betsumon", () => {
           battleArea: [{ card: "BT8-036", as: "base" }],
           hand: [
             { card: "BT8-040", as: "evolving" },
-            { card: "BT8-105", as: "colorCost" },
+            { card: "BT8-012", as: "colorCost" },
           ],
           deck: [
             { card: "BT1-009", as: "evolutionDraw" },
@@ -42,7 +42,7 @@ describe("BT8-040 Betsumon", () => {
         s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("effectDrawTwo").instanceId),
     );
 
-    expect(effectiveColors(s, s.perm("base"))).toEqual(expect.arrayContaining(["Yellow", "Black", "Red"]));
+    expect(effectiveColors(s, s.perm("base"))).toEqual(expect.arrayContaining(["Yellow", "Red", "Blue"]));
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
   });

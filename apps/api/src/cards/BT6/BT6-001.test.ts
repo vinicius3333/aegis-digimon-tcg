@@ -7,7 +7,7 @@ import "./BT6-001.js";
 describe("BT6-001 DemiMeramon", () => {
   it("gives its host +1000 DP for the turn when attacking a player", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-007", under: ["BT6-001"], as: "host" }] },
+      0: { battleArea: [{ card: "BT6-014", under: ["BT6-001"], as: "host" }] },
       1: { security: ["BT1-010"] },
     });
     const baseDP = s.perm("host").baseDP;
@@ -24,7 +24,7 @@ describe("BT6-001 DemiMeramon", () => {
 
   it("does not gain DP when its host attacks a Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-007", under: ["BT6-001"], as: "host", dp: 10_000 }] },
+      0: { battleArea: [{ card: "BT6-014", under: ["BT6-001"], as: "host", dp: 10_000 }] },
       1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true, dp: 1_000 }] },
     });
     const baseDP = s.perm("host").baseDP;
@@ -45,8 +45,8 @@ describe("BT6-001 DemiMeramon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT6-007", under: ["BT6-001"], as: "host" },
-          { card: "BT6-007", as: "otherAttacker" },
+          { card: "BT6-014", under: ["BT6-001"], as: "host" },
+          { card: "BT6-014", as: "otherAttacker" },
         ],
       },
       1: { security: ["BT1-010"] },
@@ -68,7 +68,7 @@ describe("BT6-001 DemiMeramon", () => {
   it("keeps the bonus when a player-directed attack is redirected by Blocker (Q1398)", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT6-007", under: ["BT6-001"], as: "host", dp: 10_000 }],
+        battleArea: [{ card: "BT6-014", under: ["BT6-001"], as: "host", dp: 10_000 }],
       },
       1: {
         battleArea: [{ card: "BT5-062", as: "blocker" }],

@@ -13,6 +13,11 @@ const target = {
 const mainActions = [
   { kind: "SelectBind", target },
   {
+    kind: "TrashDigivolution",
+    target: { filter: {}, count: 1, fromSelectionRef: "fullMoonTarget" },
+    amount: 99,
+  },
+  {
     kind: "Return",
     target: { filter: {}, count: 1, fromSelectionRef: "fullMoonTarget" },
     to: "deckBottom",

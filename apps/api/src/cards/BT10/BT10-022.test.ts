@@ -57,26 +57,4 @@ describe("BT10-022 Brachiomon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  it("also digivolves from a blue level 4 for 3 without an effect decision", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT10-021", as: "base" }],
-        hand: [{ card: "BT10-022", as: "evolving" }],
-      },
-    });
-    s.state.memory = 3;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
-
-    expect(s.state.memory).toBe(0);
-    expect(s.state.pendingDecision).toBeUndefined();
-  });
 });

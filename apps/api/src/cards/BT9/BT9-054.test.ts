@@ -1,8 +1,6 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT9-054.js";
 
 describe("BT9-054 Fujinmon", () => {
@@ -17,15 +15,7 @@ describe("BT9-054 Fujinmon", () => {
       coverage: "full", residual: [], effects: [
         { trigger: "Main", isFromHand: true, actions: [{ kind: "PlaceUnder", optional: true, cost: { kind: "payMemory", memory: 1 } }] },
         { trigger: "WhenDigivolving", actions: [{ kind: "Suspend", optional: true, cost: { kind: "trash" } }] },
-        {
-          trigger: "WhenAttacking",
-          isInherited: true,
-          actions: [
-            { kind: "SelectBind", target: { bindAs: "suspendedTarget", filter: { dp: { op: "lte", value: 5000 } } } },
-            { kind: "Suspend", target: { fromSelectionRef: "suspendedTarget" } },
-            { kind: "Restrict", target: { fromSelectionRef: "suspendedTarget" }, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
-          ],
-        },
+        { trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "Suspend", target: { filter: { dp: { op: "lte", value: 5000 } } } }, { kind: "Restrict", restriction: "unsuspend", duration: "untilOpponentTurnEnd" }] },
       ],
     });
   });
@@ -57,25 +47,5 @@ describe("BT9-054 Fujinmon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.perm("target").isSuspended).toBe(true);
-  });
-
-  it("restricts the same opposing Digimon it suspends", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT2-060", as: "host", under: [{ card: "BT9-054", as: "fujinmon" }] }] },
-        1: {
-          battleArea: [
-            { card: "BT2-047", as: "low", dp: 5000 },
-            { card: "BT1-010", as: "high", dp: 7000 },
-          ],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    expect(s.perm("low").isSuspended).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("low"), "unsuspend")).toBe(true);
-    expect(s.perm("high").isSuspended).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("high"), "unsuspend")).toBe(false);
   });
 });

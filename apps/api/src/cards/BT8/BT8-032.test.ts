@@ -29,7 +29,7 @@ describe("BT8-032 Imperialdramon: Fighter Mode", () => {
   it("unsuspends one of yours and suspends an opponent when both blue and green cards are in its sources", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT8-032", as: "attacker", under: ["BT1-029", "ST9-04", "ST9-05"] }] },
+        0: { battleArea: [{ card: "BT8-032", as: "attacker", under: ["BT1-029", "BT1-064"] }] },
         1: { battleArea: [{ card: "BT1-010", as: "target" }], security: ["BT1-011"] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },

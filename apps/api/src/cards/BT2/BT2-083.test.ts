@@ -31,7 +31,7 @@ describe("BT2-083 Millenniummon", () => {
 
   it("may play itself from trash after being deleted with digivolution cards", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT2-083", as: "millenniummon", under: ["BT2-060", "BT2-066"] }] } },
+      { 0: { battleArea: [{ card: "BT2-083", as: "millenniummon", under: ["BT2-066", "BT2-057"] }] } },
       { autoAcceptOptional: true },
     );
     const instanceId = s.perm("millenniummon").topCard!.instanceId;
@@ -40,7 +40,7 @@ describe("BT2-083 Millenniummon", () => {
     expect(replayed).toBeDefined();
     expect(replayed!.stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT2-060", "BT2-066"]),
+      expect.arrayContaining(["BT2-066", "BT2-057"]),
     );
   });
 

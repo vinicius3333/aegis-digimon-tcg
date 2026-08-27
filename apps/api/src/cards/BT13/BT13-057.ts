@@ -14,8 +14,6 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Unsuspend",
-          optional: true,
-          abortOnDecline: true,
           target: {
             filter: {
               isSelfRef: true,
@@ -44,7 +42,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
-          sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] },
           actions: [
             {
               kind: "Suspend",

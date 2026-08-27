@@ -9,7 +9,7 @@ describe("BT5-078 Jokermon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT5-078", as: "joker", under: ["BT5-074"] }],
+          battleArea: [{ card: "BT5-078", as: "joker" }],
           trash: [{ card: "BT10-073", as: "rookie" }],
           deck: ["BT10-073", "BT10-073", "BT10-073", "BT10-073"],
         },

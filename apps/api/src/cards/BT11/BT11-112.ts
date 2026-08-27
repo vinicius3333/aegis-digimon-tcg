@@ -46,11 +46,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [{ tokens: ["Veedramon"], match: "name" }],
           },
           actions: [
-            {
-              kind: "Suspend",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              abortOnDecline: true,
-            },
+            { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
             {
               kind: "ActivateEffect",
               target: {

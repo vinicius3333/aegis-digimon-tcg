@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Rule",
+      trigger: "Static",
       actions: [
         {
           kind: "GrantStatic",

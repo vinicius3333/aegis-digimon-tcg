@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-074.js";
 
@@ -88,23 +86,5 @@ describe("BT13-074 PrinceMamemon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("mamemon"), "Reboot")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("alphamon"), "Jamming")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("alphamon"), "Reboot")).toBe(true);
-  });
-
-  it("reveals and plays a qualifying Mamemon while trashing the rest", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT13-074", as: "prince" }],
-          deck: ["BT11-068", "BT1-009", "BT1-010"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("prince"));
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-068")).toBe(true);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
   });
 });

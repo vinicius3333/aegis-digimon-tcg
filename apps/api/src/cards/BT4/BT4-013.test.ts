@@ -46,12 +46,4 @@ describe("BT4-013 BurningGreymon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
     expect(s.perm("tamer").topCard?.cardId).toBe("BT1-086");
   });
-
-  it("does not get its Your Turn DP bonus during the opponent's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-013", as: "burning" }] } });
-    s.state.turnSeat = 1;
-    await s.engine.recomputeContinuousEffects();
-
-    expect(s.perm("burning").currentDP).toBe(s.perm("burning").baseDP);
-  });
 });

@@ -33,13 +33,7 @@ const compiled: CompiledCard = {
           cost: {
             kind: "return",
             target: {
-              filter: {
-                zone: "digivolutionCards",
-                controller: "mine",
-                kind: ["Digimon"],
-                levels: [6],
-                hostFilter: { isSelfRef: true },
-              },
+              filter: { zone: "digivolutionCards", controller: "mine", kind: ["Digimon"], levels: [6] },
               count: 1,
             },
             raw: "by returning one of its level 6 digivolution cards to your hand",

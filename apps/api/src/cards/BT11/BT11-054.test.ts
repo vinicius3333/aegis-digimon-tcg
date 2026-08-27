@@ -3,14 +3,13 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { universalNameAliasesFor } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./BT11-054.js";
 
 describe("BT11-054 Panjyamon", () => {
   it("maps the Leomon rule, dual-color Tamer play, and inherited Rush clauses", () => {
     expect(getCardDefinition("BT11-054")).toMatchObject({ cardId: "BT11-054", colors: ["Green"], level: 5, playCost: 7, dp: 7000, types: ["Beastkin"] });
     expect(compiled.effects).toHaveLength(3);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "Rule" });
+    expect(compiled.effects[0]).toMatchObject({ trigger: "Static" });
     expect(compiled.effects[1]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost" }] });
     expect(compiled.effects[2]).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn", isInherited: true });
   });
@@ -23,10 +22,6 @@ describe("BT11-054 Panjyamon", () => {
     expect(observe(s.engine).effectiveNames(s.perm("panjyamon"))).toEqual(
       expect.arrayContaining(["panjyamon", "leomon"]),
     );
-  });
-
-  it("exposes the alias to the universal loose-card name resolver", () => {
-    expect(universalNameAliasesFor("BT11-054")).toContain("Leomon");
   });
 
   it("plays a green or blue Tamer costing 4 or less when digivolving", async () => {

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-111.js";
 
 describe("BT5-111 Omnimon X Antibody", () => {
@@ -60,15 +59,6 @@ describe("BT5-111 Omnimon X Antibody", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
-  });
-
-  it("carries the battle-area-only gate on the registered shortcut requirement", () => {
-    expect(runtimeCompiledCard("BT5-111")?.digivolutionRequirement).toContainEqual({
-      names: ["Omnimon"],
-      cost: 3,
-      isAlternate: true,
-      battleAreaOnly: true,
-    });
   });
 
   it("deletes an opposing Digimon with DP at most its own when attacking", async () => {

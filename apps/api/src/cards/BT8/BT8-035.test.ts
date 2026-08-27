@@ -6,7 +6,7 @@ describe("BT8-035 Candlemon", () => {
   it("gains 1 memory when another purple Digimon is played", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-037", as: "host", under: ["BT8-035"] }],
+        battleArea: [{ card: "BT8-041", as: "host", under: ["BT8-035"] }],
         hand: [{ card: "BT8-073", as: "played" }],
       },
     });
@@ -21,7 +21,7 @@ describe("BT8-035 Candlemon", () => {
   it("gains memory only once after two purple Digimon are played in the turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-037", as: "host", under: ["BT8-035"] }],
+        battleArea: [{ card: "BT8-041", as: "host", under: ["BT8-035"] }],
         hand: [
           { card: "BT8-073", as: "first" },
           { card: "BT8-073", as: "second" },
@@ -42,7 +42,7 @@ describe("BT8-035 Candlemon", () => {
 
   it("does not gain memory when the opponent plays a purple Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT8-037", as: "host", under: ["BT8-035"] }] },
+      0: { battleArea: [{ card: "BT8-041", as: "host", under: ["BT8-035"] }] },
       1: { hand: [{ card: "BT8-073", as: "opponentPlay" }] },
     });
     s.state.turnSeat = 1;

@@ -34,13 +34,13 @@ describe("BT17-021", () => {
     });
   });
 
-  it("places BT17-024 Seasarmon from hand under itself and draws", async () => {
+  it("places a level 3 blue Digimon from hand under itself and draws", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [
             { card: "BT17-021", as: "labramon" },
-            { card: "BT17-024", as: "material" },
+            { card: "BT1-029", as: "material" },
           ],
           deck: [{ card: "BT1-011", as: "drawn" }],
         },

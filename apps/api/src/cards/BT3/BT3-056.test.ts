@@ -17,7 +17,7 @@ import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import { compiled } from "./BT3-056.js";
 
 /**
- * A3 — BT3-056 Ceresmon: interactive ＜Digisorption -3＞ with the [Your Turn][Once Per Turn]
+ * A3 — BT3-056 Tyranomon: interactive ＜Digisorption -3＞ with the [Your Turn][Once Per Turn]
  * opponent-redirect.
  *
  * source (documented behavior) + printed text + KB:

@@ -1,27 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { compiled } from "./BT17-001.js";
+import "./BT17-001.js";
 
 describe("BT17-001 Gigimon", () => {
-  it("exports the inherited paid deletion contract", () => {
-    expect(compiled.effects).toContainEqual(
-      expect.objectContaining({
-        trigger: "WhenAttacking",
-        isInherited: true,
-        actions: [
-          expect.objectContaining({
-            kind: "Delete",
-            cost: { kind: "payMemory", memory: 1 },
-            target: {
-              filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } },
-              count: 1,
-            },
-          }),
-        ],
-      }),
-    );
-  });
-
   it("pays 1 memory and deletes an opposing 3000 DP Digimon when its host attacks", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT17-007", under: ["BT17-001"], as: "host" }] },

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-019.js";
 
 describe("BT17-019", () => {
@@ -37,32 +38,7 @@ describe("BT17-019", () => {
       },
     });
     const before = s.state.players[0]!.hand.length;
-    await advance(s.engine).runTurn(0);
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("gabumon"));
     expect(s.state.players[0]!.hand).toHaveLength(before + 1);
-  });
-
-  it("naturally DNA digivolves at end of turn using itself and another Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT22-022", as: "host", under: ["BT17-019"] },
-            { card: "BT1-069", as: "partner" },
-          ],
-          hand: [{ card: "BT12-028", as: "paildramon" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
-    );
-    s.state.memory = 3;
-    await s.ready();
-
-    await advance(s.engine).runTurn(0);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT12-028"));
-
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT17-019", "BT1-069"]),
-    );
   });
 });

@@ -29,7 +29,7 @@ describe("BT15-010", () => {
       {
         0: {
           battleArea: [
-            { card: "BT15-010", as: "akatorimon", under: ["BT1-009"] },
+            { card: "BT15-010", as: "akatorimon" },
             { card: "BT1-009", as: "attacker", dp: 5000 },
           ],
         },
@@ -76,7 +76,7 @@ describe("BT15-010", () => {
       {
         0: {
           battleArea: [
-            { card: "BT15-010", as: "akatorimon", under: ["BT1-009"] },
+            { card: "BT15-010", as: "akatorimon" },
             { card: "BT1-009", as: "attacker", dp: 1000 },
           ],
         },

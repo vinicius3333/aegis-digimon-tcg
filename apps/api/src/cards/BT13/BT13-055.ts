@@ -16,14 +16,14 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Angoramon"], match: "nameExact" }],
+              nameOrTrait: [{ tokens: ["Angoramon"], match: "name" }],
             },
             count: 1,
             fromSelectionRef: "lamortHost",
           },
           into: {
             controllerDefault: "mine",
-            nameOrTrait: [{ tokens: ["Lamortmon"], match: "nameExact" }],
+            nameOrTrait: [{ tokens: ["Lamortmon"], match: "name" }],
           },
           from: ["hand"],
           payCost: true,
@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["SymbareAngoramon"], match: "nameExact" }],
+                nameOrTrait: [{ tokens: ["SymbareAngoramon"], match: "name" }],
               },
               count: 1,
               from: ["hand"],
@@ -47,7 +47,7 @@ export const compiled: CompiledCard = {
             underFilter: {
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Angoramon"], match: "nameExact" }],
+              nameOrTrait: [{ tokens: ["Angoramon"], match: "name" }],
             },
             bindHostAs: "lamortHost",
             raw: "by placing 1 [SymbareAngoramon] from your hand as 1 of your [Angoramon]'s bottom digivolution card",
@@ -60,7 +60,7 @@ export const compiled: CompiledCard = {
         filter: {
           controllerDefault: "mine",
           kind: ["Tamer"],
-          nameOrTrait: [{ tokens: ["Ruli Tsukiyono"], match: "nameExact" }],
+          nameOrTrait: [{ tokens: ["Ruli Tsukiyono"], match: "name" }],
         },
       },
     },
@@ -70,7 +70,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
-          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "SecurityManipulation",

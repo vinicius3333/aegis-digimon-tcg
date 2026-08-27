@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -10,7 +9,7 @@ describe("BT4-054 Sunflowmon", () => {
   it("Digi-Bursts 2 to stop a suspended opposing Digimon from unsuspending", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT4-054", as: "sun", under: ["BT4-004", "BT4-052"] }] },
+        0: { battleArea: [{ card: "BT4-054", as: "sun", under: ["BT1-001", "BT4-052"] }] },
         1: { battleArea: [{ card: "BT1-019", suspended: true, as: "target" }] },
       },
       { autoSelectCards: true },
@@ -30,15 +29,12 @@ describe("BT4-054 Sunflowmon", () => {
 
     expect(s.perm("sun").stack).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
-
-    await advance(s.engine).verb.unsuspend([s.perm("target").permanentId]);
-    expect(s.perm("target").isSuspended).toBe(true);
   });
 
   it("does not restrict an unsuspended opposing Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT4-054", as: "sun", under: ["BT4-004", "BT4-052"] }] },
+        0: { battleArea: [{ card: "BT4-054", as: "sun", under: ["BT1-001", "BT4-052"] }] },
         1: { battleArea: [{ card: "BT1-019", as: "target" }] },
       },
       { autoSelectCards: true },

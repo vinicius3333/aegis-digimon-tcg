@@ -2,21 +2,9 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT7-029.js";
 
 describe("BT7-029 MagnaGarurumon", () => {
-  it("shares one once-per-turn bounce identity and aborts when its optional source return is declined", () => {
-    const compiled = runtimeCompiledCard("BT7-029");
-    const bounceEffects = compiled?.effects.filter((effect) => effect.sharedUseKey === "bounce-hybrid");
-    expect(bounceEffects).toHaveLength(2);
-    expect(bounceEffects?.map((effect) => effect.trigger)).toEqual(["WhenDigivolving", "WhenAttacking"]);
-    for (const effect of bounceEffects ?? []) {
-      expect(effect.frequency).toBe("OncePerTurn");
-      expect(effect.actions[0]).toMatchObject({ kind: "Return", abortOnDecline: true });
-    }
-  });
-
   it("uses the same bounce effect when digivolving", async () => {
     const s = setupEngine(
       {

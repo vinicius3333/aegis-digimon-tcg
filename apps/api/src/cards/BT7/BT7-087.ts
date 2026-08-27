@@ -22,7 +22,7 @@ const compiled: CompiledCard = {
         {
           kind: "PlaceUnder",
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Hybrid"], match: "traitContains" }] },
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] },
             from: ["hand"],
             count: 5,
           },
@@ -38,11 +38,11 @@ const compiled: CompiledCard = {
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["MagnaGarurumon"], match: "nameExact" }],
+            nameOrTrait: [{ tokens: ["MagnaGarurumon"], match: "name" }],
+            upTo: true,
           },
           from: ["hand"],
           payCost: true,
-          optional: true,
           virtualBase: { level: 5, colors: ["Blue"] },
           condition: { kind: "namedCountAtLeast", countSource: "bt7KojiHybridCount", count: 5 },
         },

@@ -97,7 +97,6 @@ const compiled: CompiledCard = {
           event: "onDeletionOf",
           sourceFilter: {
             controller: "mine",
-            deleteCause: "byEffect",
             excludeSelf: true,
             kind: ["Digimon", "Tamer"],
           },

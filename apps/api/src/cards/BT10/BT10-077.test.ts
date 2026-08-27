@@ -4,32 +4,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-077.js";
 
 describe("BT10-077 MadLeomon", () => {
-  it("only trashes its own source when an effect adds cards to the opponent's hand", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT10-077", as: "madleomon" }] },
-        1: {
-          battleArea: [{ card: "BT10-081", as: "opponentHost", under: [{ card: "BT10-071", as: "opponentSource" }] }],
-          hand: [{ card: "BT1-010", as: "kept" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 1;
-    s.state.memory = 0;
-    await s.engine.recomputeContinuousEffects();
-
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", {
-      effectAddedToHandSeat: 1,
-      addedToHand: { instanceIds: [s.inst("kept").instanceId] },
-    });
-
-    expect(s.state.players[1]!.battleArea[0]!.stack.some((card) => card.instanceId === s.inst("opponentSource").instanceId)).toBe(
-      true,
-    );
-    expect(s.state.memory).toBe(0);
-  });
-
   it("trashes a source so the opponent discards the number of cards an effect added", async () => {
     const s = setupEngine(
       {

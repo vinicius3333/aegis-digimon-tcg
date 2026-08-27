@@ -115,10 +115,10 @@ function makeCtx(opts: { deletedIds: string[]; oppBattleArea: FakePerm[] }): Eff
 describe("BT11-097 Crimson Flare [Main]", () => {
   it("maps catalog facts and each printed effect to IR", () => {
     expect(getCardDefinition("BT11-097")).toMatchObject({ cardId: "BT11-097", colors: ["Red"], kinds: ["Option"], playCost: 5 });
-    const mainActions = compiled.effects?.find((entry) => entry.trigger === "Main")?.actions;
-    expect(mainActions).toMatchObject([{ kind: "Delete" }, { kind: "ActivateEffect", effectType: "OnDeletion" }]);
-    expect(mainActions?.[1]).not.toHaveProperty("optional");
-    expect(compiled.effects).toMatchObject([{ trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] }]);
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Main", actions: [{ kind: "Delete" }, { kind: "ActivateEffect", effectType: "OnDeletion" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+    ]);
   });
 
   it("activates a red Vaccine Digimon's On Deletion effect without deleting it", async () => {
@@ -133,7 +133,7 @@ describe("BT11-097 Crimson Flare [Main]", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
       },
-      { autoSelectCards: true, autoDeclineOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
 

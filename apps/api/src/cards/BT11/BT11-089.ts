@@ -36,7 +36,6 @@ export const compiled: CompiledCard = {
             kind: ["Digimon"],
             colors: ["Red"],
             nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }],
-            excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
             byEffect: true,
           },
           actions: [

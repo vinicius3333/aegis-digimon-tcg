@@ -25,7 +25,6 @@ describe("BT11-006 Tsunomon", () => {
             {
               kind: "SubTrigger",
               event: "whenTrashedFromHand",
-              requireByEffect: true,
               actions: [
                 {
                   kind: "ModifyDP",
@@ -77,24 +76,6 @@ describe("BT11-006 Tsunomon", () => {
     await advance(s.engine).verb.trash([s.inst("second").instanceId]);
 
     expect(s.perm("host").currentDP).toBe(before + 1000);
-  });
-
-  it("does not trigger when a rules path trashes a card in hand", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-009", as: "host", under: ["BT11-006"] }],
-        hand: [{ card: "BT1-010", as: "discard" }],
-      },
-    });
-    const before = s.perm("host").currentDP;
-
-    await advance(s.engine).fireSubTrigger("whenTrashedFromHand", {
-      handTrashedSeat: 0,
-      trashedFromHandCardId: "BT1-010",
-      trashedFromHandInstanceId: s.inst("discard").instanceId,
-    });
-
-    expect(s.perm("host").currentDP).toBe(before);
   });
 
   it("does not trigger outside its controller's turn", async () => {

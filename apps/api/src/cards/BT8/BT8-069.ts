@@ -5,7 +5,7 @@
 // inherited EndOfAttack effect belongs to Ouryumon and unsuspends an Alphamon host.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-export const compiled: CompiledCard = {
+const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
@@ -56,11 +56,6 @@ export const compiled: CompiledCard = {
           event: "onAddDigivolutionCards",
           sourceFilter: {
             controller: "mine",
-            kind: ["Digimon"],
-            byEffect: true,
-          },
-          triggerFilter: {
-            controllerDefault: "mine",
             kind: ["Digimon"],
           },
           actions: [

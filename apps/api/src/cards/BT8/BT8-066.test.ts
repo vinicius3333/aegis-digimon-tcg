@@ -1,29 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { compiled } from "./BT8-066.js";
+import "./BT8-066.js";
 import "./BT8-092.js";
 
 describe("BT8-066 Hisyaryumon", () => {
-  it("keeps the effect-driven X-Antibody digivolution requirements and cost reduction explicit", () => {
-    const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn")?.actions[0];
-    expect(watcher).toMatchObject({
-      kind: "SubTrigger",
-      event: "onAddDigivolutionCards",
-      sourceFilter: { isSelfRef: true, byEffect: true },
-      actions: [
-        {
-          kind: "Digivolve",
-          from: ["hand"],
-          payCost: true,
-          costDelta: -1,
-          ignoreReqs: false,
-          into: { filter: { nameOrTrait: [{ match: "trait", tokens: ["X-Antibody"] }] } },
-        },
-      ],
-    });
-  });
-
   it("gives Reboot to an X-Antibody host on the opponent's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT8-069", as: "host", under: ["BT8-066"], suspended: true }] },

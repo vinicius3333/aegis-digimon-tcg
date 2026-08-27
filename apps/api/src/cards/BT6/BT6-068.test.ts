@@ -13,10 +13,7 @@ describe("BT6-068 Impmon", () => {
             { card: "BT6-068", as: "source" },
             { card: "BT6-069", as: "discard" },
           ],
-          trash: [
-            { card: "BT6-017", as: "returned" },
-            { card: "BT6-076", as: "unmatched" },
-          ],
+          trash: [{ card: "BT6-017", as: "returned" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
@@ -29,7 +26,6 @@ describe("BT6-068 Impmon", () => {
     });
     await settle(() => player.hand.some((card) => card.instanceId === s.inst("returned").instanceId));
     expect(player.trash.map((card) => card.instanceId)).toContain(s.inst("discard").instanceId);
-    expect(player.trash.map((card) => card.instanceId)).toContain(s.inst("unmatched").instanceId);
   });
 
   it("returns nothing when the optional hand trash is declined", async () => {

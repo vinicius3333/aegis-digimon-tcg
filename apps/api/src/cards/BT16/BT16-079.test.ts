@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-079.js";
@@ -53,7 +54,7 @@ describe("BT16-079", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).runTurn(0);
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("cherubimonX"));
 
     expect(
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),

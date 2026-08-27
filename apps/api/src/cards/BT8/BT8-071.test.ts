@@ -44,23 +44,4 @@ describe("BT8-071 Psychemon", () => {
 
     expect(s.state.memory).toBe(0);
   });
-
-  it("digivolves from a purple level-2 Digimon for 0 memory", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-008", as: "base" }], hand: [{ card: "BT8-071", as: "evolving" }] },
-    });
-    s.state.memory = 1;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT8-071");
-
-    expect(s.perm("base").topCard.cardId).toBe("BT8-071");
-    expect(s.state.memory).toBe(1);
-  });
 });

@@ -133,30 +133,6 @@ describe("BT14-030", () => {
     assertNoLoudGap(s);
   });
 
-  it("also evolves legally from the alternate yellow level 5 requirement", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT14-037", as: "yellowBase" }],
-          hand: [{ card: "BT14-030", as: "marine" }],
-        },
-      },
-      { autoDeclineOptional: true },
-    );
-    s.state.memory = 5;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("yellowBase").permanentId,
-        instanceId: s.inst("marine").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("yellowBase").topCard.cardId === "BT14-030");
-    expect(s.perm("yellowBase").stack.map((card) => card.cardId)).toEqual(["BT14-037"]);
-    expect(s.state.memory).toBe(2);
-    assertNoLoudGap(s);
-  });
-
   it("Q2402 accepts Mother D-Reaper as the return cost but has no level for the follow-up", async () => {
     const s = setupEngine(
       {

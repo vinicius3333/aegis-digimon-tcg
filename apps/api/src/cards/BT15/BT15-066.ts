@@ -45,15 +45,11 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "RestrictDigivolveInto",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          into: {
+          kind: "Restrict",
+          on: "digivolveTarget",
+          filter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
             colors: ["White"],
           },
         },
@@ -96,8 +92,18 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
-      actions: [],
-      keywords: [{ keyword: "Reboot", raw: "＜Reboot＞" }],
+      actions: [
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+        },
+      ],
       isInherited: true,
     },
   ],

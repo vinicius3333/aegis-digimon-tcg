@@ -48,7 +48,6 @@ const compiled: CompiledCard = {
                 isSelf: true,
               },
               optional: true,
-              abortOnDecline: true,
             },
             {
               kind: "Draw",

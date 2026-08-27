@@ -2,15 +2,19 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT6-002 Q1399: the source-trash sentence is explanatory rule teardown, so the
-// return must use the canonical Return primitive without emitting a source-trash event.
+// Fixed: 1st Trash targets opponent Digimon (not mine). Digi-Burst 2 is optional.
+// "Return 1 of your opponent's Digimon (lv≤5) to hand and trash all its digivolution
+// cards": SelectBind captures the target, TrashDigivolution trashes all its digivolution
+// cards (amount:99 = all via Math.min), then Return bounces it to hand. Order is
+// TrashDigivolution before Return because the permanent must still exist on the field
+// for TrashDigivolution to act on it.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Return",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "opponent",
@@ -21,8 +25,8 @@ const compiled: CompiledCard = {
               },
             },
             count: 1,
+            bindAs: "returnTarget",
           },
-          to: "hand",
           cost: {
             kind: "trash",
             target: {
@@ -31,6 +35,24 @@ const compiled: CompiledCard = {
             },
             raw: "＜Digi-Burst 2＞",
           },
+        },
+        {
+          kind: "TrashDigivolution",
+          target: {
+            fromSelectionRef: "returnTarget",
+            filter: {},
+            count: 1,
+          },
+          amount: 99,
+        },
+        {
+          kind: "Return",
+          target: {
+            fromSelectionRef: "returnTarget",
+            filter: {},
+            count: 1,
+          },
+          to: "hand",
         },
       ],
       keywords: [

@@ -103,14 +103,15 @@ const compiled: CompiledCard = {
           sourceFilter: {
             controller: "opponent",
             kind: ["Digimon"],
+            deleteCause: "dpReachedZero",
           },
           actions: [
             {
               kind: "GainMemory",
               amount: 2,
               condition: {
-                kind: "triggerDeletedByDpZero",
-                raw: "the opponent's Digimon was deleted by having 0 DP",
+                kind: "triggerRemovalCause",
+                removalCause: "byRule",
               },
             },
           ],

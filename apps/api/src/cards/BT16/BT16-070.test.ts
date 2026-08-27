@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT16-070.js";
 import "../index.js";
@@ -26,47 +28,6 @@ describe("BT16-070", () => {
   });
 
   it("deletes the chosen own Digimon and a DP-eligible opponent live", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT1-009", as: "ally", dp: 3000 },
-            { card: "BT11-023", as: "source" },
-          ],
-          hand: [{ card: "BT16-070", as: "seth" }],
-        },
-        // "as much or less DP as it" is measured against the CHOSEN ally (3000), so a
-        // DP-eligible opponent has to be at or below that.
-        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
-    );
-    const allyId = s.perm("ally").permanentId;
-    preferred.push(s.perm("ally").topCard!.instanceId);
-    s.state.memory = 2;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("source").permanentId,
-        instanceId: s.inst("seth").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.perm("source").topCard?.cardId === "BT16-070" &&
-        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === allyId) &&
-        s.state.players[1]!.battleArea.length === 0,
-    );
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === allyId)).toBe(false);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(observe(s.engine).hasKeyword(s.perm("seth"), "Armor Purge")).toBe(true);
-  });
-
-  it("deletes the chosen own Digimon and an eligible opponent on a natural attack", async () => {
-    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -75,27 +36,17 @@ describe("BT16-070", () => {
             { card: "BT16-070", as: "seth", dp: 5000 },
           ],
         },
+        // "as much or less DP as it" is measured against the CHOSEN ally (3000), so a
+        // DP-eligible opponent has to be at or below that.
         1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
-    );
-    const allyId = s.perm("ally").permanentId;
-    preferred.push(s.perm("ally").topCard!.instanceId);
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("seth").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === allyId) &&
-        s.state.players[1]!.battleArea.length === 0,
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === allyId)).toBe(false);
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("seth"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(observe(s.engine).hasKeyword(s.perm("seth"), "Armor Purge")).toBe(true);
   });
 });

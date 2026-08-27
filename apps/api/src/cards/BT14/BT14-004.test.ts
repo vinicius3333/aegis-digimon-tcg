@@ -34,16 +34,6 @@ it("gains +2000 DP once when your effect suspends a Tamer", async () => {
     {
       subjectPermanentId: s.perm("tamer").permanentId,
       suspendedPermanentId: s.perm("tamer").permanentId,
-      effectSuspendSeat: 1,
-    },
-  );
-  expect(host.currentDP).toBe(before);
-
-  await (s.engine as unknown as { fireSubTrigger(event: string, payload: unknown): Promise<void> }).fireSubTrigger(
-    "whenEffectSuspends",
-    {
-      subjectPermanentId: s.perm("tamer").permanentId,
-      suspendedPermanentId: s.perm("tamer").permanentId,
       effectSuspendSeat: 0,
     },
   );

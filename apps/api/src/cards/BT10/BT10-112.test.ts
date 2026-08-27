@@ -1,40 +1,13 @@
-import { digivolutionRequirementsFor, Phase } from "@aegis/shared";
+import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT6/BT6-082.js";
 import "./BT10-016.js";
 import "./BT10-068.js";
-import { compiled } from "./BT10-112.js";
+import "./BT10-112.js";
 import "../BT8/BT8-038.js";
-import "../BT6/BT6-044.js";
 describe("BT10-112 Jesmon GX", () => {
-  it("registers the Royal Knight level-6 alternate digivolution path", () => {
-    const requirement = [{ level: 6, traits: ["Royal Knight"], cost: 5, isAlternate: true }];
-    expect(compiled.digivolutionRequirement).toEqual(requirement);
-    expect(digivolutionRequirementsFor("BT10-112")).toEqual(requirement);
-  });
-
-  it("uses the Royal Knight path from an off-color level-6 base", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT6-044", as: "base" }],
-        hand: [{ card: "BT10-112", as: "evolving" }],
-      },
-    });
-    s.state.memory = 5;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT10-112");
-    expect(s.state.memory).toBe(0);
-  });
-
   it("places a Royal Knight under itself, activates its When Digivolving effect, then gains Blitz", async () => {
     const s = setupEngine(
       {

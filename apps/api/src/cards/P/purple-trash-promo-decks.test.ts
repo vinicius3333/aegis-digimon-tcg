@@ -3,7 +3,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../ST10/ST10-15.js";
 import "../BT10/BT10-076.js";
-import "../BT2/BT2-075.js";
 import "./P-019.js";
 import "./P-027.js";
 import "./P-034.js";
@@ -76,7 +75,7 @@ describe("Purple trash promo decks", () => {
       {
         0: {
           battleArea: [
-            { card: "BT2-081", as: "wizardHost", under: ["P-077", "BT2-075"] },
+            { card: "BT2-081", as: "wizardHost", under: ["P-077"] },
             { card: "P-027", as: "metalGarurumon", under: ["P-046", "P-019", "P-034"] },
           ],
           hand: [

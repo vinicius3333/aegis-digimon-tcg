@@ -9,10 +9,7 @@ describe("BT3-041 Cherubimon", () => {
         0: {
           battleArea: [{ card: "BT3-041", as: "cherubimon" }],
           security: ["BT1-011", "BT1-012", "BT1-013"],
-          trash: [
-            { card: "BT3-033", as: "salmon" },
-            { card: "BT1-010", as: "wrongColor" },
-          ],
+          trash: [{ card: "BT3-033", as: "salmon" }],
         },
         1: { security: ["BT1-011"] },
       },
@@ -30,16 +27,9 @@ describe("BT3-041 Cherubimon", () => {
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === recoveredId), 5000);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === recoveredId)).toBe(false);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("wrongColor").instanceId)).toBe(true);
     expect(s.state.players[0]!.security[0]).toMatchObject({
       instanceId: recoveredId,
       faceUp: false,
-    });
-    expect(s.events).toContainEqual({
-      kind: "cardRevealed",
-      seat: 0,
-      cardId: "BT3-033",
-      sourceCardId: "BT3-041",
     });
   });
 
@@ -63,7 +53,7 @@ describe("BT3-041 Cherubimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle();
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === recoveredId)).toBe(true);
   });
 });

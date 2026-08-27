@@ -51,7 +51,7 @@ describe("BT5-021 Syakomon", () => {
 
   it("does not apply while Syakomon is only a digivolution source", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT5-023", as: "host", under: ["BT5-021"] }] },
+      0: { battleArea: [{ card: "BT1-072", as: "host", under: ["BT5-021"] }] },
     });
     s.state.turnSeat = 1;
     await s.ready();

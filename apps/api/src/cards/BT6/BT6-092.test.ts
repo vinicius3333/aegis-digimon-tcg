@@ -14,8 +14,8 @@ describe("BT6-092 Menoa Bellucci", () => {
           hand: [{ card: "BT6-085", as: "playedEosmon" }],
           deck: [
             { card: "BT6-083", as: "added" },
-            { card: "BT6-087", as: "secondEligible" },
             { card: "BT6-074", as: "bottomOne" },
+            { card: "BT6-076", as: "bottomTwo" },
           ],
         },
       },
@@ -31,10 +31,9 @@ describe("BT6-092 Menoa Bellucci", () => {
 
     expect(s.perm("menoa").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("added").instanceId);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("secondEligible").instanceId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
-      s.inst("secondEligible").instanceId,
       s.inst("bottomOne").instanceId,
+      s.inst("bottomTwo").instanceId,
     ]);
   });
 

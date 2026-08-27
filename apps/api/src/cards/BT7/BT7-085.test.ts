@@ -1,31 +1,12 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT12/BT12-017.js";
 import "./BT7-085.js";
 
 describe("BT7-085 Takuya Kanbara", () => {
-  it("keeps the EmperorGreymon evolution optional after placing five Hybrids", () => {
-    const action = runtimeCompiledCard("BT7-085")?.effects[1]?.actions[1];
-
-    expect(action).toMatchObject({
-      kind: "Digivolve",
-      optional: true,
-      payCost: true,
-      from: ["hand"],
-      into: { nameOrTrait: [{ tokens: ["EmperorGreymon"], match: "nameExact" }] },
-      virtualBase: { level: 5, colors: ["Red"] },
-      condition: { kind: "namedCountAtLeast", count: 5 },
-    });
-    expect(runtimeCompiledCard("BT7-085")?.effects[1]?.actions[0]).toMatchObject({
-      target: { filter: { nameOrTrait: [{ tokens: ["Hybrid"], match: "traitContains" }] } },
-    });
-    expect(action?.into).not.toHaveProperty("upTo");
-  });
-
   it("places exactly 5 Hybrid cards from trash and digivolves into EmperorGreymon", async () => {
     const s = setupEngine(
       {

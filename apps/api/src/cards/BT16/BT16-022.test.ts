@@ -1,5 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-022.js";
 import "../index.js";
 
@@ -13,10 +15,7 @@ describe("BT16-022", () => {
     expect(actions?.[0]).toMatchObject({
       kind: "TrashDigivolution",
       amount: 1,
-      target: expect.objectContaining({
-        count: 1,
-        filter: expect.objectContaining({ digivolutionCards: "hasAny" }),
-      }),
+      target: expect.objectContaining({ count: 1 }),
     });
     expect(actions?.[1]).toMatchObject({
       kind: "GainKeyword",
@@ -25,11 +24,11 @@ describe("BT16-022", () => {
     });
   });
 
-  it("naturally trashes one opposing source, then gives Security Attack -1 to a source-less opponent", async () => {
+  it("trashes one opposing source, then gives Security Attack -1 to a source-less opponent", async () => {
     const options = { autoSelectCards: true, preferInstanceIds: [] as string[] };
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-010", as: "host", under: ["BT16-022"] }] },
+        0: { battleArea: [{ card: "BT16-023", as: "host", under: ["BT16-022"] }] },
         1: {
           battleArea: [
             { card: "BT1-010", as: "stacked", under: ["BT1-009"] },
@@ -42,14 +41,7 @@ describe("BT16-022", () => {
     const stackedSourceId = s.perm("stacked").stack[0]!.instanceId;
     options.preferInstanceIds.push(s.perm("sourceLess").permanentId);
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("stacked").stack.length === 0);
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
 
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === stackedSourceId)).toBe(true);
     expect(s.perm("stacked").stack).toHaveLength(0);

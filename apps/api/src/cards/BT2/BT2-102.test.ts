@@ -10,7 +10,7 @@ describe("BT2-102 Terrors Cluster", () => {
       {
         0: { battleArea: ["BT2-042"], hand: [{ card: "BT2-102", as: "option" }] },
         1: {
-          battleArea: [{ card: "BT2-045", as: "target", suspended: true, under: [{ card: "BT2-043", as: "source" }] }],
+          battleArea: [{ card: "BT2-045", as: "target", suspended: true, under: [{ card: "BT2-001", as: "source" }] }],
           deck: ["BT2-043"],
         },
       },
@@ -79,7 +79,7 @@ describe("BT2-102 Terrors Cluster", () => {
       {
         0: { security: [{ card: "BT2-102", as: "securityOption", faceUp: true }] },
         1: {
-          battleArea: [{ card: "BT2-045", as: "target", suspended: true, under: [{ card: "BT2-043", as: "source" }] }],
+          battleArea: [{ card: "BT2-045", as: "target", suspended: true, under: [{ card: "BT2-001", as: "source" }] }],
           deck: ["BT2-043"],
         },
       },

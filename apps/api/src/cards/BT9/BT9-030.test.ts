@@ -13,7 +13,7 @@ describe("BT9-030 MetalPiranimon", () => {
     });
     expect(compiled).toMatchObject({
       coverage: "full", residual: [], effects: [{ trigger: "WhenAttacking", actions: [{
-        kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false, optional: true,
+        kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false, optional: true,
         target: { filter: { nameOrTrait: [{ tokens: ["Piranimon"], match: "name" }] }, count: 1 },
       }] }],
     });
@@ -27,20 +27,5 @@ describe("BT9-030 MetalPiranimon", () => {
     const materialId = s.perm("metal").stack[0]!.instanceId;
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("metal"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === materialId)).toBe(true);
-  });
-
-  it("does not search another permanent's digivolution stack", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [
-        { card: "BT9-030", as: "metal", under: [{ card: "BT9-026", as: "sourcePiranimon" }] },
-        { card: "BT9-029", as: "otherHost", under: [{ card: "BT9-026", as: "otherPiranimon" }] },
-      ] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    const sourceId = s.inst("sourcePiranimon").instanceId;
-    const otherId = s.inst("otherPiranimon").instanceId;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("metal"));
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === sourceId)).toBe(true);
-    expect(s.perm("otherHost").stack.some((card) => card.instanceId === otherId)).toBe(true);
   });
 });

@@ -35,25 +35,6 @@ describe("BT6-107 Glaive Memory Boost!", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === returnedId)).toBe(true);
   });
 
-  it("places itself even when no purple Digimon is available in trash", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: ["BT6-068"],
-          hand: [{ card: "BT6-107", as: "option" }],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    const optionId = s.inst("option").instanceId;
-    s.state.memory = 10;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId)).toBe(true);
-  });
-
   it("Delay trashes the placed Option and gains 2 memory on a later turn", async () => {
     const s = setupEngine(
       {

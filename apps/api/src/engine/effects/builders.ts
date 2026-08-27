@@ -227,9 +227,6 @@ export const whenBlocked = (opts: BuilderOptions): Effect =>
 /** start/end/your-turn windows (source rule implementation, rule implementation, ...). */
 export const turnTiming = (opts: BuilderOptions): Effect => build(opts, {});
 
-/** A [Hand][Counter] effect activates from the defending player's hand. */
-export const handCounter = (opts: BuilderOptions): Effect => build(opts, { baseGuard: inHandZone });
-
 /** "When Moving" effects trigger only for the permanent that actually moved. */
 export const whenMoving = (opts: BuilderOptions): Effect =>
   build(opts, {

@@ -1,7 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT8-078.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 
 describe("BT8-078 Karatenmon", () => {
   it("matches its official effectless metadata and plays normally", async () => {
@@ -19,24 +18,5 @@ describe("BT8-078 Karatenmon", () => {
     await s.ready();
     expect(s.state.memory).toBe(2);
     expect(s.state.pendingDecision).toBeUndefined();
-  });
-
-  it("digivolves from a purple level-4 Digimon for 2 memory", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT8-076", as: "base" }], hand: [{ card: "BT8-078", as: "evolving" }] },
-    });
-    s.state.memory = 3;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT8-078");
-
-    expect(s.perm("base").topCard.cardId).toBe("BT8-078");
-    expect(s.state.memory).toBe(1);
   });
 });

@@ -7,7 +7,7 @@ describe("BT8-070 BlackWarGreymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT8-067", under: ["BT8-064"], as: "base" }],
+          battleArea: [{ card: "BT10-065", under: ["BT1-021"], as: "base" }],
           hand: [{ card: "BT8-070", as: "evolving" }],
         },
         1: {
@@ -38,7 +38,7 @@ describe("BT8-070 BlackWarGreymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT8-067", under: ["BT8-064"], as: "base", suspended: true }],
+          battleArea: [{ card: "BT10-065", under: ["BT1-021"], as: "base", suspended: true }],
           hand: [{ card: "BT8-070", as: "evolving" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },

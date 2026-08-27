@@ -23,11 +23,6 @@ const compiled: CompiledCard = {
               count: 1,
               to: "digivolve",
               optional: true,
-              digivolveTarget: {
-                filter: { isSelfRef: true },
-                count: 1,
-                isSelf: true,
-              },
             },
           ],
           rest: "deckBottom",

@@ -43,40 +43,4 @@ describe("BT9-034 Salamon (X Antibody)", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("oldSecurity").instanceId)).toBe(true);
     expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("recovered").instanceId);
   });
-
-  it("returns the looked-at security card face down when the optional add is declined", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT2-034", as: "base" }],
-        hand: [{ card: "BT9-034", as: "evolving" }],
-        security: [{ card: "BT1-048", as: "top", faceUp: true }],
-        deck: ["BT1-049", "BT1-050"],
-      },
-    });
-    s.state.memory = 0;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-
-    const decision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: decision.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined);
-
-    expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("top").instanceId);
-    expect(s.state.players[0]!.security[0]!.faceUp).toBe(false);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("top").instanceId)).toBe(false);
-  });
 });

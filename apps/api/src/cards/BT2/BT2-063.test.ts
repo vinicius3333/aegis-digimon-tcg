@@ -24,9 +24,7 @@ describe("BT2-063 MetalGreymon", () => {
 
   it("grants Security Attack +1 to its host while that host has Reboot", async () => {
     const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT2-064", as: "host", under: ["BT2-055", "BT2-056", "BT2-063"] }],
-      },
+      0: { battleArea: [{ card: "BT2-064", as: "host", under: ["BT2-063", "BT2-055"] }] },
     });
     await s.engine.recomputeContinuousEffects();
 
@@ -36,7 +34,7 @@ describe("BT2-063 MetalGreymon", () => {
 
   it("does not grant Security Attack +1 when its host lacks Reboot", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT2-064", as: "host", under: ["BT2-056", "BT2-063"] }] },
+      0: { battleArea: [{ card: "BT2-064", as: "host", under: ["BT2-063"] }] },
     });
     await s.engine.recomputeContinuousEffects();
 
@@ -46,9 +44,7 @@ describe("BT2-063 MetalGreymon", () => {
 
   it("does not grant Security Attack +1 during the opponent's turn", async () => {
     const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT2-064", as: "host", under: ["BT2-055", "BT2-056", "BT2-063"] }],
-      },
+      0: { battleArea: [{ card: "BT2-064", as: "host", under: ["BT2-063", "BT2-055"] }] },
     });
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();

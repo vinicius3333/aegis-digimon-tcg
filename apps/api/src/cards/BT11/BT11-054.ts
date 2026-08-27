@@ -5,9 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
-      // This universal name alias is consumed by the loose-card resolver, which
-      // intentionally scans Rule effects rather than ordinary Static modifiers.
-      trigger: "Rule",
+      trigger: "Static",
       actions: [
         {
           kind: "GrantStatic",

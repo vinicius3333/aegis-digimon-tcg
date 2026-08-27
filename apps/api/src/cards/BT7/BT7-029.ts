@@ -16,7 +16,6 @@ const bounce = {
       from: ["digivolutionCards"],
       to: "hand",
       storeAs: "selectedHybridLevel",
-      abortOnDecline: true,
     },
     {
       kind: "Return",

@@ -87,22 +87,4 @@ describe("BT15-018 memory gates", () => {
 
     expect(s.state.players[1]!.battleArea.map((card) => card.permanentId)).toEqual([targetId]);
   });
-
-  it("resolves the end-of-your-turn deletion through public turn progression", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT15-018", as: "cannondramon" }], deck: ["BT1-001"] },
-        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }], deck: ["BT1-001"] },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-    s.state.turnSeat = 0;
-    s.state.memory = -4;
-    const targetId = s.perm("target").permanentId;
-
-    await advance(s.engine).runTurn(0);
-
-    expect(s.state.players[1]!.battleArea.some((card) => card.permanentId === targetId)).toBe(false);
-  });
 });

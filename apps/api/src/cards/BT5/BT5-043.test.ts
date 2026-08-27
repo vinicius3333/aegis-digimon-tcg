@@ -5,7 +5,7 @@ import "./BT5-043.js";
 describe("BT5-043 Jijimon", () => {
   it("recovers the top deck card when deleted", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT5-043", as: "jijimon", under: ["BT5-042"] }], deck: [{ card: "BT1-009", as: "top" }] },
+      0: { battleArea: [{ card: "BT5-043", as: "jijimon" }], deck: [{ card: "BT1-009", as: "top" }] },
     });
     const topId = s.inst("top").instanceId;
     await (s.engine as any).primitives.deletePermanent([s.perm("jijimon").permanentId], "byEffect");

@@ -47,7 +47,7 @@ export const compiled: CompiledCard = {
             },
             raw: "[RizeGreymon] or [X Antibody] is in this Digimon's digivolution cards",
           },
-          optional: false,
+          optional: true,
           scaling: {
             per: 1,
             filter: {

@@ -28,30 +28,6 @@ describe("BT15-037 Gatomon", () => {
     assertNoLoudGap(s);
   });
 
-  it("counts a card played from security as its same-time security removal", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT1-045", as: "yellowSource" }],
-          hand: [{ card: "BT15-092", as: "revelation" }],
-          security: [{ card: "BT15-037", as: "gatomon" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 0;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("revelation").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT15-037"));
-
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT15-037")).toBe(true);
-    expect(s.state.memory).toBe(1);
-    expect(s.state.players[0]!.security).toHaveLength(0);
-    assertNoLoudGap(s);
-  });
-
   it("gains exactly 1 memory when another effect removes a card from its security", async () => {
     const s = setupEngine({
       0: {

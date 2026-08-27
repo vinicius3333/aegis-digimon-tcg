@@ -30,7 +30,6 @@ const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
-            sameTarget: true,
           },
           duration: "forTheTurn",
           noDigivolutionCards: true,

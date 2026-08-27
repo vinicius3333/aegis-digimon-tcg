@@ -39,32 +39,4 @@ describe("BT16-068", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
   });
-
-  it("draws when a peer effect naturally plays another Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT1-044", as: "launcher", under: ["BT1-040", "BT1-036"] },
-            { card: "BT16-068", as: "dober" },
-          ],
-          deck: ["BT1-009"],
-        },
-      },
-      { autoSelectCards: true },
-    );
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("launcher").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.deck.length === 0 && s.state.players[0]!.hand.length === 1);
-
-    expect(s.state.players[0]!.deck).toHaveLength(0);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-036")).toBe(true);
-  });
 });

@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // Phase 13 (Plan 13-02): onDigivolutionCardDiscarded SubTrigger event now available.
 //
-export const compiled: CompiledCard = {
+const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OpponentsTurn",
@@ -27,7 +27,6 @@ export const compiled: CompiledCard = {
               amount: 1,
             },
           ],
-          requireByEffect: true,
           raw: "[Opponent's Turn] When THIS digivolution card is trashed by an effect, Draw 1.",
           sourceFilter: {
             isSelfRef: true,

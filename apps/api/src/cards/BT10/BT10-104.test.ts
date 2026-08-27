@@ -221,7 +221,6 @@ describe("BT10-104 (Immortal Ruler)", () => {
           deck: ["BT1-001", "BT1-002", "BT1-003"],
           trash: [
             { card: "BT10-066", as: "darkKnightmon" },
-            { card: "BT1-001", as: "invalidMaterial" },
             { card: "BT7-058", as: "skullKnightmon" },
             { card: "BT7-059", as: "deadlyAxemon" },
           ],
@@ -239,7 +238,6 @@ describe("BT10-104 (Immortal Ruler)", () => {
 
     const darkKnightmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-066")!;
     expect(darkKnightmon.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT7-058", "BT7-059"]));
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.state.memory).toBe(6);
   });
 

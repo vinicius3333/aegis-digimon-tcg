@@ -28,29 +28,4 @@ describe("BT7-017 Chaosdramon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.perm("base").stack.some((card) => card.instanceId === s.inst("cyborg").instanceId)).toBe(true);
   });
-
-  it("can place the optional Cyborg source even when no deletion target exists", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "AD1-002", as: "base" }],
-          hand: [
-            { card: "BT7-017", as: "evolving" },
-            { card: "BT1-021", as: "cyborg" },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 4;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("evolving").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").stack.some((card) => card.instanceId === s.inst("cyborg").instanceId));
-    expect(s.perm("base").stack.some((card) => card.instanceId === s.inst("cyborg").instanceId)).toBe(true);
-  });
 });

@@ -24,11 +24,11 @@ const compiled: CompiledCard = {
                   },
                   {
                     tokens: ["Susanoomon"],
-                    match: "nameExact",
+                    match: "name",
                   },
                   {
                     tokens: ["Takuya Kanbara"],
-                    match: "nameExact",
+                    match: "name",
                   },
                 ],
               },
@@ -51,7 +51,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Takuya Kanbara"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },

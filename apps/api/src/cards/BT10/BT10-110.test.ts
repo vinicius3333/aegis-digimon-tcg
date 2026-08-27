@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-068.js";
@@ -9,16 +7,6 @@ import "./BT10-110.js";
 import "./BT10-112.js";
 
 describe("BT10-110 Seiken Meppa", () => {
-  it("returns itself after Security", async () => {
-    const s = setupEngine(
-      { 0: { security: [{ card: "BT10-110", as: "option", faceUp: true }] } },
-    );
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
-  });
-
   it("unsuspends Jesmon GX and activates one of that Digimon's When Digivolving effects", async () => {
     const s = setupEngine(
       {

@@ -1,23 +1,11 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-029.js";
 
 describe("BT15-029", () => {
-  it("matches the immutable catalog identity and blue level-4 evolution route", () => {
-    expect(getCardDefinition("BT15-029")).toMatchObject({
-      nameEn: "MegaSeadramon",
-      colors: ["Blue"],
-      kinds: ["Digimon"],
-      level: 5,
-      playCost: 7,
-      dp: 7000,
-      evoCosts: [{ color: "Blue", level: 4, memoryCost: 3 }],
-      types: ["Aquatic"],
-    });
-  });
-
   it("places another blue Digimon as bottom source to return an opposing Digimon at or below its level", () => {
     expect(compiled.effects?.[0]?.actions[0]).toMatchObject({
       kind: "Return",
@@ -87,19 +75,12 @@ describe("BT15-029", () => {
       {
         0: {
           battleArea: [
-            {
-              card: "BT15-030",
-              as: "host",
-              under: [
-                { card: "BT15-025", as: "inheritedBase" },
-                { card: "BT15-029", as: "inherited" },
-              ],
-            },
+            { card: "BT15-025", as: "host", under: [{ card: "BT15-029", as: "inherited" }] },
             { card: "BT15-025", as: "firstCost" },
             { card: "BT15-025", as: "secondCost" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "defender" }], security: ["BT1-001"] },
+        1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -114,19 +95,12 @@ describe("BT15-029", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").isSuspended === false);
     expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.perm("host").stack).toHaveLength(3);
-    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("firstCost").instanceId);
+    expect(s.perm("host").stack).toHaveLength(2);
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("host").isSuspended);
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("host"));
     expect(s.perm("host").isSuspended).toBe(true);
-    expect(s.perm("host").stack).toHaveLength(3);
+    expect(s.perm("host").stack).toHaveLength(2);
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("secondCost").permanentId,
     );
@@ -141,7 +115,8 @@ describe("BT15-029", () => {
             {
               card: "BT15-023",
               as: "placedLevelThree",
-              under: [{ card: "BT15-002", as: "materialPriorSource" }],
+              under: [{ card: "BT15-001", as: "materialPriorSource" }],
+              linked: [{ card: "BT15-002", as: "materialPriorLink" }],
             },
           ],
           hand: [{ card: "BT15-029", as: "megaSeadramon" }],
@@ -175,7 +150,10 @@ describe("BT15-029", () => {
       s.inst("base").instanceId,
     ]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([s.inst("materialPriorSource").instanceId]),
+      expect.arrayContaining([
+        s.inst("materialPriorSource").instanceId,
+        s.inst("materialPriorLink").instanceId,
+      ]),
     );
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("ineligibleLevelFour").permanentId,

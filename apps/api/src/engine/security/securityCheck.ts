@@ -90,24 +90,16 @@ export interface SecurityCheckDeps {
    * Fire the SubTrigger bus (System B) for security events. Optional so the security unit
    * tests need no change; absent => no watcher runs.
    *   - `whenSecurityRemoved`: fires when a card is removed from a player's security.
-   *   - `whenCardTrashedFromSecurity`: fires after a checked card is actually moved to trash,
-   *     excluding security effects that relocate it elsewhere.
    *   - `whenCheckedFaceUpSecurity`: fires when the attacker checks a card that was already
    *     face-up in the security stack (BT20-055 CAP-H-03). Carries the attacker's permanent ID
    *     so a watcher knows which Digimon did the check.
    */
   fireSubTrigger?(
-    event:
-      | "whenSecurityRemoved"
-      | "whenCardTrashedFromSecurity"
-      | "whenCheckedFaceUpSecurity"
-      | "whenSecurityBattleEnded"
-      | "whenBattleWon",
+    event: "whenSecurityRemoved" | "whenCheckedFaceUpSecurity" | "whenSecurityBattleEnded" | "whenBattleWon",
     info: {
       attackerPermanentId: string;
       securityInstanceId: string;
       removedFromSecuritySeat?: Seat;
-      trashedFromSecurityInstanceIds?: string[];
       subjectPermanentId?: string;
     },
   ): Promise<void>;
@@ -312,15 +304,7 @@ export async function runSecurityCheck(
     // The checked card goes to trash unless an effect already relocated it
     // (e.g. a security Digimon that survived and was put into play, or a
     // [Security] effect that moved it elsewhere).
-    const trashedFromSecurity = trashIfStillLoose(state, defenderSeat, revealed);
-    if (trashedFromSecurity) {
-      await deps.fireSubTrigger?.("whenCardTrashedFromSecurity", {
-        attackerPermanentId: attacker.permanentId,
-        securityInstanceId: revealed.instanceId,
-        removedFromSecuritySeat: defenderSeat,
-        trashedFromSecurityInstanceIds: [revealed.instanceId],
-      });
-    }
+    trashIfStillLoose(state, defenderSeat, revealed);
 
     if (battlesAttacker) {
       await deps.fireSubTrigger?.("whenSecurityBattleEnded", {
@@ -383,16 +367,15 @@ async function battleSecurityDigimon(
 }
 
 /** Move `card` to the seat's trash if it is not already in another zone. */
-function trashIfStillLoose(state: GameState, seat: Seat, card: CardInstance): boolean {
+function trashIfStillLoose(state: GameState, seat: Seat, card: CardInstance): void {
   const player = state.players[seat];
-  if (player === undefined) return false;
+  if (player === undefined) return;
   const inHand = player.hand.some((c) => c.instanceId === card.instanceId);
   const inSecurity = player.security.some((c) => c.instanceId === card.instanceId);
   const onField = player.battleArea.some((p) => p.topCard?.instanceId === card.instanceId);
   const inTrash = player.trash.some((c) => c.instanceId === card.instanceId);
   const inDeck = player.deck.some((c) => c.instanceId === card.instanceId);
   const inDelay = player.delayZone?.some((c) => c.instanceId === card.instanceId) ?? false;
-  if (inHand || inSecurity || onField || inTrash || inDeck || inDelay) return false;
+  if (inHand || inSecurity || onField || inTrash || inDeck || inDelay) return;
   insertCard(player, Zone.Trash, card);
-  return true;
 }

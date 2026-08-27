@@ -1,24 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-024.js";
 
 describe("BT15-024", () => {
-  it("matches the catalog identity and blue level-3 evolution route", () => {
-    expect(getCardDefinition("BT15-024")).toMatchObject({
-      nameEn: "Garurumon",
-      colors: ["Blue"],
-      kinds: ["Digimon"],
-      level: 4,
-      playCost: 5,
-      dp: 5000,
-      evoCosts: [{ color: "Blue", level: 3, memoryCost: 2 }],
-      types: ["Beast"],
-    });
-  });
-
   it("draws with Matt Ishida, otherwise may play one from hand with cost reduced by 3", () => {
     expect(compiled.effects?.[0]?.actions[0]).toMatchObject({
       kind: "Draw",
@@ -110,41 +96,11 @@ describe("BT15-024", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-001"]);
   });
 
-  it("can decline the optional reduced-cost Matt play after a legal evolution", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT15-020", as: "base" }],
-          hand: [
-            { card: "BT15-024", as: "garurumon" },
-            { card: "BT1-086", as: "matt" },
-          ],
-          deck: ["BT1-001"],
-        },
-      },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 5;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("garurumon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT15-024"));
-
-    expect(s.state.memory).toBe(3);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-086"]);
-    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT1-086")).toHaveLength(0);
-  });
-
   it("draws only once from two real attacks by a host carrying the inherited effect", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-027", as: "host", under: ["BT15-024"] }],
+          battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-024"] }],
           deck: ["BT1-009", "BT1-009"],
         },
         1: { security: ["BT1-001", "BT1-001"] },

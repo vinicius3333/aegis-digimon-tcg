@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-024.js";
 import "../index.js";
 
@@ -12,7 +11,6 @@ describe("BT16-024", () => {
         searchZone: "security",
         purpose: "digivolveAmongRevealed",
         count: "all",
-        to: "revealed",
       });
       expect(effect.actions?.[1]).toMatchObject({
         kind: "Digivolve",
@@ -49,42 +47,13 @@ describe("BT16-024", () => {
         ],
       },
     });
-    await s.ready();
-    await advance(s.engine).runTurn(0);
     s.state.turnSeat = 1;
-    s.state.memory = -s.state.memory;
-    const turn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(1);
+    await s.engine.recomputeContinuousEffects();
 
     const continuous = (s.engine as unknown as { continuous: { hasKeyword: (id: string, keyword: string) => boolean } })
       .continuous;
     expect(continuous.hasKeyword(s.perm("source").permanentId, "Blocker")).toBe(false);
     expect(continuous.hasKeyword(s.perm("angel").permanentId, "Blocker")).toBe(true);
     expect(continuous.hasKeyword(s.perm("other").permanentId, "Blocker")).toBe(false);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await turn;
-  });
-
-  it("naturally searches the whole security stack, digivolves for the reduced cost, and shuffles the remainder", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [{ card: "BT16-024", as: "magna" }],
-          security: [{ card: "BT2-040", as: "ophanimon" }, { card: "BT1-001", as: "other" }],
-          deck: ["BT1-002"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    await s.ready();
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("magna").topCard?.cardId === "BT2-040");
-
-    expect(s.perm("magna").topCard?.cardId).toBe("BT2-040");
-    expect(s.perm("magna").stack.map(({ cardId }) => cardId)).toEqual(["BT16-024"]);
-    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
-    expect(s.state.memory).toBe(3);
   });
 });

@@ -20,14 +20,11 @@ describe("BT17-064 Pipismon", () => {
       kind: "SubTrigger",
       event: "whenAttacking",
       sourceFilter: { isSelfRef: true },
-      condition: {
-        kind: "attackTargetMatchesFilter",
-        filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasNone" },
-      },
+      condition: { kind: "targetHasNone", filter: { digivolutionCards: "hasAny" } },
       actions: [
         {
           kind: "Delete",
-          target: { sourceRef: "triggerDefender", filter: {}, count: 1 },
+          target: { filter: { controller: "opponent", digivolutionCards: "hasNone" }, isCombatTarget: true, count: 1 },
         },
       ],
     });
@@ -64,12 +61,7 @@ describe("BT17-064 Pipismon", () => {
   it("deletes a no-source combat target before battle", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT17-064", dp: 5000, as: "pipismon" }] },
-      1: {
-        battleArea: [
-          { card: "BT17-025", dp: 9000, suspended: true, as: "target" },
-          { card: "BT17-070", dp: 11000, suspended: true, as: "other" },
-        ],
-      },
+      1: { battleArea: [{ card: "BT17-025", dp: 9000, suspended: true, as: "target" }] },
     });
     const targetId = s.perm("target").permanentId;
     await s.ready();
@@ -82,8 +74,6 @@ describe("BT17-064 Pipismon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
-
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-070")).toBe(true);
   });
 
   it("does not trigger if the target had a source when the attack was declared", async () => {

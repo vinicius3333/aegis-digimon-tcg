@@ -33,7 +33,7 @@ export const compiled: CompiledCard = {
             sameTarget: true,
           },
           restriction: "unsuspend",
-          duration: "untilOpponentNextUnsuspendPhase",
+          duration: "untilOpponentTurnEnd",
         },
       ],
     },
@@ -61,7 +61,7 @@ export const compiled: CompiledCard = {
             sameTarget: true,
           },
           restriction: "unsuspend",
-          duration: "untilOpponentNextUnsuspendPhase",
+          duration: "untilOpponentTurnEnd",
         },
       ],
     },
@@ -120,10 +120,10 @@ export const compiled: CompiledCard = {
       cost: 4,
       materials: [
         {
-          namesExact: ["Slayerdramon"],
+          names: ["Slayerdramon"],
         },
         {
-          namesExact: ["Breakdramon"],
+          names: ["Breakdramon"],
         },
       ],
     },

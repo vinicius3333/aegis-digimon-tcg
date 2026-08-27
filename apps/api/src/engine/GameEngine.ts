@@ -551,10 +551,7 @@ export class GameEngine {
    * separate maps because this one relocates a whole PERMANENT via `relocatePermanent`, not loose
    * card instances via `placeUnder`).
    */
-  private readonly pendingSelfReducerRelocations = new Map<
-    string,
-    (string | { permanentId: string; shedOwnCards?: boolean })[]
-  >();
+  private readonly pendingSelfReducerRelocations = new Map<string, string[]>();
 
   /** The effect verbs (effect-primitives) bound to this match. */
   private readonly primitives: Primitives;
@@ -1287,15 +1284,13 @@ export class GameEngine {
    * `UntilOpponentTurnEnd` buff clears on the opponent's. The recompute that follows
    * re-applies the still-valid persistent effects from the post-sweep board.
    *
-   * `ownerTurnStart` carries no modifier expiry of its own. `ownerActivePhaseEnd`
-   * sweeps phase-scoped entries after the active-phase unsuspend, including the
-   * `UntilNextUntap` window used by "during the next unsuspend phase" effects.
+   * `ownerTurnStart` / `ownerActivePhaseEnd` carry no modifier expiry of their own
+   * (the active-phase unsuspend is handled separately); they only trigger a recompute
+   * so a new turn re-derives its `[Your Turn]` / `[Opponent's Turn]` persistent tier.
    */
   private async sweepDurations(boundary: TurnBoundary): Promise<void> {
     const seat = this.state.turnSeat;
-    const sweep = (
-      b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd" | "ownerActivePhase" | "nextUntap",
-    ): void => {
+    const sweep = (b: "ownerTurnEnd" | "opponentTurnEnd" | "eachTurnEnd"): void => {
       this.modifiers.sweep(this.state, b, seat);
       this.continuous.sweep(this.state, b, seat);
     };
@@ -1315,13 +1310,8 @@ export class GameEngine {
         this.securityDp.sweepTurnEnd(seat);
         break;
       case "ownerTurnStart":
-        break; // the recompute below refreshes the persistent tier for the new turn
       case "ownerActivePhaseEnd":
-        // Active-phase unsuspend runs before this boundary. A restriction with
-        // UntilNextUntap must therefore block that unsuspend, then expire here.
-        sweep("ownerActivePhase");
-        sweep("nextUntap");
-        break;
+        break; // no modifier expiry; the recompute below refreshes the persistent tier
     }
     // Re-derive the persistent tier from the post-sweep board.
     await this.recomputeContinuousEffects();
@@ -3293,9 +3283,6 @@ export class GameEngine {
       return;
     }
     const entryPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
-    if (entryPermanentId !== undefined) {
-      this.materializePlayerCustomEffects(this.access.permanentById(entryPermanentId));
-    }
     await this.withPendingSubTriggers(
       ["whenPlayed", "onEnterFieldAnyone"],
       { ...this.playedTrigger(entryPermanentId), entryCause: "play" },
@@ -3314,15 +3301,6 @@ export class GameEngine {
         }),
       },
     );
-  }
-
-  /** Materialize filtered player-scoped named grants before a new permanent's On Play window. */
-  private materializePlayerCustomEffects(permanent: Permanent | undefined): void {
-    const top = permanent?.topCard;
-    if (permanent === undefined || top === undefined) return;
-    for (const grant of this.continuous.playerCustomEffectsFor(permanent.permanentId, permanent.controllerSeat)) {
-      this.continuous.addCustomEffectGrant(top.instanceId, top.ownerSeat, grant.token, grant.duration);
-    }
   }
 
   /** The `whenPlayed` payload for a played permanent: its subject id plus its printed level/cost. */
@@ -3362,7 +3340,6 @@ export class GameEngine {
     const attackerPermanentId = this.combat?.currentAttackerId;
     const subjectPermanent = this.findInstance(instanceId)?.permanent;
     if (subjectPermanent !== undefined) subjectPermanent.enteredByEffect = true;
-    if (timing === EffectTiming.OnPlay) this.materializePlayerCustomEffects(subjectPermanent);
     // Effect-driven digivolutions are genuine digivolutions for "digivolved this turn"
     // conditions (BT1-007 Q871). As with the manual action seam, breeding-area evolutions
     // remain excluded unless card text explicitly references that area (Q870).
@@ -4145,7 +4122,7 @@ export class GameEngine {
     return this.state.players.some((p) => p?.lost === true) && !this.state.gameOver;
   }
 
-  /** A Digimon stack peeled by an effect until its new top is an invalid no-DP remnant (BT26-060 Q7082). */
+  /** A Digimon stack peeled by an effect until its new top has no Digimon DP (BT26-060 Q7082). */
   private anyInvalidNoDpStackTop(): boolean {
     return this.battleAreaPermanents().some((permanent) => permanent.invalidNoDpStackTop);
   }
@@ -4764,16 +4741,13 @@ export class GameEngine {
         const relocations = this.pendingSelfReducerRelocations.get(playedInstanceId);
         if (relocations !== undefined && relocations.length > 0) {
           this.pendingSelfReducerRelocations.delete(playedInstanceId);
-          for (const relocation of relocations) {
-            const sourcePermanentId = typeof relocation === "string" ? relocation : relocation.permanentId;
-            const opts = {
-              belowTop: true,
-              ...(typeof relocation !== "string" && relocation.shedOwnCards === true ? { shedOwnCards: true } : {}),
-            };
+          for (const sourcePermanentId of relocations) {
             if (this.primitives.relocatePermanentByEffect !== undefined) {
-              await this.primitives.relocatePermanentByEffect(permanentId, sourcePermanentId, opts);
+              await this.primitives.relocatePermanentByEffect(permanentId, sourcePermanentId, {
+                belowTop: true,
+              });
             } else {
-              this.primitives.relocatePermanent(permanentId, sourcePermanentId, opts);
+              this.primitives.relocatePermanent(permanentId, sourcePermanentId, { belowTop: true });
             }
           }
         }
@@ -5605,9 +5579,8 @@ export class GameEngine {
    * List `seat`'s currently-activatable [Counter] effects (§11-3-1), one entry per
    * (source instance, effect) pair. Mirrors `syncActivatableEffects` but scoped to
    * one (defending) seat and `EffectTiming.OnCounterTiming` rather than the turn
-   * player and `ACTIVATE_TIMING`. Both battle-area Counter effects and explicit
-   * `[Hand][Counter]` effects are eligible. Bound into `CombatController`'s
-   * `counterEligible` hook so `runCounterWindow` can skip the round trip when nothing is eligible.
+   * player and `ACTIVATE_TIMING`. Bound into `CombatController`'s `counterEligible`
+   * hook so `runCounterWindow` can skip the round trip when nothing is eligible.
    */
   private counterEligibleSources(seat: Seat): { instanceId: string; effectKey: string; description: string }[] {
     const player = this.state.players[seat];
@@ -5628,19 +5601,6 @@ export class GameEngine {
               description: effect.description,
             });
           }
-        }
-      }
-    }
-    for (const instance of player.hand) {
-      const source = this.cardSourceOf(instance);
-      for (const effect of effectsOf(EffectTiming.OnCounterTiming, source)) {
-        const ctx = this.buildEffectContext(source, {});
-        if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
-          entries.push({
-            instanceId: instance.instanceId,
-            effectKey: effect.effectKey,
-            description: effect.description,
-          });
         }
       }
     }

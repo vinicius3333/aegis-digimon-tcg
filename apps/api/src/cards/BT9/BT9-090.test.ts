@@ -12,17 +12,8 @@ describe("BT9-090 Maki Himekawa", () => {
     });
     expect(compiled).toMatchObject({
       coverage: "full", residual: [], effects: [
-        { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 3, add: [{ filter: { nameOrTrait: [{ tokens: ["Tapirmon"], match: "name" }] } }, { filter: { multicolor: true, colorCount: 2, colors: ["Black"] } }], rest: "deckBottom" }] },
-        {
-          trigger: "YourTurn",
-          actions: [{
-            kind: "Replacement",
-            event: "wouldDigivolve",
-            into: { multicolor: true, colorCount: 2, colors: ["Black"] },
-            cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
-            actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1 }],
-          }],
-        },
+        { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 3, add: [{ filter: { nameOrTrait: [{ tokens: ["Tapirmon"], match: "name" }] } }, { filter: { multicolor: true, colors: ["Black"] } }], rest: "deckBottom" }] },
+        { trigger: "YourTurn", actions: [{ kind: "Replacement", event: "wouldDigivolve", into: { multicolor: true, colors: ["Black"] }, actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1 }, { kind: "Suspend", optional: true }] }] },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
       ],
     });

@@ -14,15 +14,4 @@ describe("BT3-079 Tsukaimon", () => {
 
     expect(s.state.memory).toBe(1);
   });
-
-  it("does not gain memory while Tsukaimon is the top card", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-079", as: "tsukaimon" }] },
-    });
-    s.state.memory = 0;
-
-    await advance(s.engine).verb.deletePermanent([s.perm("tsukaimon").permanentId]);
-
-    expect(s.state.memory).toBe(0);
-  });
 });

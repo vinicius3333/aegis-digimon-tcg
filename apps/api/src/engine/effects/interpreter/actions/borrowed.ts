@@ -131,13 +131,11 @@ function collectForeignCandidates(
       if (card.faceUp) sources.push({ instanceId: card.instanceId, cardId: card.cardId });
   } else if (action.zone === "digivolutionCards") {
     // The activating Digimon's OWN digivolution stack (EX8-054: "in this Digimon's
-    // digivolution cards"). A flipped (face-down) stack card is excluded unless it is the
-    // card just placed by the preceding cost of a lastPlacedOnly activation (BT15-102).
+    // digivolution cards"). A flipped (face-down) stack card is excluded.
     const self = ctx.source.permanent();
     if (self !== undefined) {
       for (const card of self.stack)
-        if (card.faceUp || (action.lastPlacedOnly === true && (ctx.lastPlacedUnderInstanceIds ?? []).includes(card.instanceId)))
-          sources.push({ instanceId: card.instanceId, cardId: card.cardId });
+        if (card.faceUp) sources.push({ instanceId: card.instanceId, cardId: card.cardId });
     }
   } else {
     // battleArea: a battle-area permanent's TOP card the right seat controls (BT24-102:

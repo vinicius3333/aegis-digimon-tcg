@@ -2,8 +2,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT6-002 Q1399: the selected Omnimon's attached sources are trashed by rule
-// teardown during Return, not by a separate source-trash effect.
 const compiled: CompiledCard = {
   effects: [
     {

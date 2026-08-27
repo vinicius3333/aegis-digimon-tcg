@@ -48,17 +48,14 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: {
             filter: {
-              isSelfRef: true,
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Knightmon", "Bagramon"], match: "name" }],
             },
-            count: 1,
-            isSelf: true,
+            count: "all",
           },
           keyword: { keyword: "SecurityAttack", amount: 1 },
-          condition: {
-            kind: "selfHasNameContaining",
-            names: ["Knightmon", "Bagramon"],
-            raw: "this Digimon has [Knightmon] or [Bagramon] in its name",
-          },
+          duration: "untilOwnerTurnEnd",
         },
       ],
     },

@@ -10,15 +10,8 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.digivolutionRequirement).toEqual([
-      {
-        namesExact: ["ShineGreymon"],
-        cost: 0,
-        isAlternate: true,
-        burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
-      },
+      { names: ["ShineGreymon", "Marcus Damon"], cost: 0, isAlternate: true },
     ]);
-    expect(JSON.stringify(compiled)).not.toContain('"tokens":["Marcus Damon"],"match":"name"');
-    expect(JSON.stringify(compiled)).toContain('"tokens":["Marcus Damon"],"match":"nameExact"');
   });
 
   it("plays and binds Marcus for the temporary 12000 DP Digimon treatment", () => {
@@ -39,49 +32,6 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
         expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand"], payCost: false }),
       ]),
     );
-  });
-
-  it("does not accept a near-name Marcus Damon as the Burst Digivolve return cost", () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT13-018", as: "shine" },
-          { card: "AD1-021", as: "nearMarcus" },
-        ],
-        hand: [{ card: "BT13-020", as: "burst" }],
-      },
-    });
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("shine").permanentId,
-        instanceId: s.inst("burst").instanceId,
-        alternateRequirementIndex: 0,
-      }),
-    ).toMatchObject({ ok: false });
-    expect(s.state.players[0]!.battleArea).toContain(s.perm("nearMarcus"));
-  });
-
-  it("rejects a longer ShineGreymon name even when an exact Marcus Damon is payable", () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX4-074", as: "ruinMode" },
-          { card: "BT12-092", as: "marcus" },
-        ],
-        hand: [{ card: "BT13-020", as: "burst" }],
-      },
-    });
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("ruinMode").permanentId,
-        instanceId: s.inst("burst").instanceId,
-        alternateRequirementIndex: 0,
-      }),
-    ).toMatchObject({ ok: false });
-    expect(s.state.players[0]!.battleArea).toContain(s.perm("ruinMode"));
-    expect(s.state.players[0]!.battleArea).toContain(s.perm("marcus"));
   });
 
   it("declares the once-per-turn allied Tamer suspension security effect", () => {

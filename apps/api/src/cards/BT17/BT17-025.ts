@@ -35,6 +35,7 @@ const compiled: CompiledCard = {
               target: {
                 filter: { boundRef: "playedLevel3" },
                 count: 1,
+                isSelf: true,
               },
               to: "hand",
             },

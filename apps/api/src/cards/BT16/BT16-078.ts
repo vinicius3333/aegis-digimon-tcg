@@ -52,7 +52,6 @@ const compiled: CompiledCard = {
           sourceFilter: {
             excludeSelf: true,
             kind: ["Digimon"],
-            deleteCause: "byEffect",
           },
           actions: [
             {

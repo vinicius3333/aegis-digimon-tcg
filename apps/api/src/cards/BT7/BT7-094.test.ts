@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-094.js";
-describe("BT7-094 Giga Storm", () => {
+describe("BT7-094 Atomic Inferno", () => {
   it("deletes up to two opposing Digimon at 8000 DP or less", async () => {
     const s = setupEngine(
       {

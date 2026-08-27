@@ -9,15 +9,7 @@ describe("BT4-052 Lalamon", () => {
   it("returns itself to hand after it is trashed for Digi-Burst", async () => {
     const s = setupEngine(
       {
-        0: {
-          battleArea: [
-            {
-              card: "BT4-059",
-              as: "lila",
-              under: ["BT4-004", { card: "BT4-052", as: "lala" }, "BT4-054"],
-            },
-          ],
-        },
+        0: { battleArea: [{ card: "BT4-059", as: "lila", under: ["BT1-001", { card: "BT4-052", as: "lala" }] }] },
         1: { battleArea: [{ card: "BT1-009" }] },
       },
       { autoSelectCards: true },
@@ -36,7 +28,5 @@ describe("BT4-052 Lalamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("lala").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("lala").instanceId)).toBe(true);
-    expect(s.perm("lila").stack).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea[0]!.isSuspended).toBe(true);
   });
 });

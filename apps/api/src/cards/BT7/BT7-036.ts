@@ -60,7 +60,7 @@ const compiled: CompiledCard = {
                 },
                 {
                   tokens: ["Zoe Orimoto"],
-                  match: "nameExact",
+                  match: "name",
                 },
               ],
             },
