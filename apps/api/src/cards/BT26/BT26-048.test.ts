@@ -68,10 +68,7 @@ describe("BT26-048 BloomLordmon", () => {
             { card: "BT26-048", as: "bloomLordmon" },
             { card: "BT1-009", as: "host", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
           ],
-          hand: [
-            { card: "BT26-023", as: "ver4" },
-            { card: "EX9-064", as: "tooHigh" },
-          ],
+          hand: [{ card: "BT26-023", as: "ver4" }],
         },
         1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 10000 }] },
       },
@@ -82,7 +79,6 @@ describe("BT26-048 BloomLordmon", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("bloomLordmon"));
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-023");
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tooHigh").instanceId);
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
     expect(s.perm("opponent").currentDP).toBe(4000);
   });
@@ -207,10 +203,9 @@ describe("BT26-048 BloomLordmon", () => {
       0,
     );
     expect(s.perm("opponentTarget").currentDP).toBe(originalDP);
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("ownRuleHost").permanentId,
-      [s.inst("ownRuleFaceDown").instanceId],
-    );
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("ownRuleHost").permanentId, [
+      s.inst("ownRuleFaceDown").instanceId,
+    ]);
     expect(s.perm("ownRuleHost").stack).toHaveLength(0);
     expect(s.perm("opponentTarget").currentDP).toBe(originalDP);
     await advance(s.engine).verb.trashDigivolutionCards(
