@@ -20,10 +20,10 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT4-031–040 | Static audit delivered | `internal-docs/audits/BT4/BT4-031-040.md` | Yes |
 | BT4-041–050 | Static audit delivered | `internal-docs/audits/BT4/BT4-041-050.md` | Yes |
 | BT4-051–060 | Static audit delivered | `internal-docs/audits/BT4/BT4-051-060.md` | Yes |
-| BT4-061–070 | Luna in progress | `internal-docs/audits/BT4/BT4-061-070.md` | No |
+| BT4-061–070 | Static audit delivered | `internal-docs/audits/BT4/BT4-061-070.md` | Yes |
 | BT4-071–080 | Luna in progress | `internal-docs/audits/BT4/BT4-071-080.md` | No |
 | BT4-081–090 | Luna in progress | `internal-docs/audits/BT4/BT4-081-090.md` | No |
-| BT4-091–100 | Unassigned | `internal-docs/audits/BT4/BT4-091-100.md` | No |
+| BT4-091–100 | Luna in progress | `internal-docs/audits/BT4/BT4-091-100.md` | No |
 | BT4-101–110 | Unassigned | `internal-docs/audits/BT4/BT4-101-110.md` | No |
 | BT4-111–115 | Unassigned | `internal-docs/audits/BT4/BT4-111-115.md` | No |
 
@@ -103,18 +103,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-058 Orochimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Turn-bound Piercing grant with legal self-target evolution proof |
 | BT4-059 Lilamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst suspension, source return, and color-agnostic Tamer condition |
 | BT4-060 Lotosmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Both-player low-level play watcher with evolution/breeding negatives |
+| BT4-061 BanchoLeomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | On Deletion up-to-two suspension with three-target cap proof |
+| BT4-062 Nidhoggmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected arbitrary deck-bottom order with exact Digi-Burst and stack proof |
+| BT4-063 Commandramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | On Deletion reveal-play with optional refusal and cleanup proof |
+| BT4-064 Sunarizamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited Digi-Burst self-source return using exact event identity |
+| BT4-065 Gotsumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary through direct registration |
+| BT4-066 Golemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All-turn black-Digimon DP aura with self/peer/nonblack boundaries |
+| BT4-067 Sealsdramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Persistent Blocker and separate When Attacking memory loss proof |
+| BT4-068 Baboongamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Digi-Burst De-Digivolve with exact payment and no-target preflight |
+| BT4-069 Blimpmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary through direct registration |
+| BT4-070 Meteormon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Reboot registration and no-premature-unsuspend attack proof |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT4/`.
 
 ## Aggregate
 
 - Catalog cards: 115
-- Assigned: 90
-- Integrated card audits: 60
-- Corrected: 8
-- Provisional: 60
+- Assigned: 100
+- Integrated card audits: 70
+- Corrected: 10
+- Provisional: 70
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 25
+- Remaining unassigned: 15
 
 BT4 remains open.
