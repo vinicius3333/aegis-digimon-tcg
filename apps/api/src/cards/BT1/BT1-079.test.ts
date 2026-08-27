@@ -1,4 +1,6 @@
+import { EffectDuration } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-072.js";
 import "./BT1-079.js";
@@ -83,6 +85,32 @@ describe("BT1-079 Lillymon", () => {
 
     expect(s.perm("eligible").isSuspended).toBe(true);
     expect(s.perm("blocker").isSuspended).toBe(false);
+  });
+
+  it("excludes an opposing Digimon that gained Blocker from another effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-081", as: "attacker", under: ["BT1-079"] }] },
+        1: { battleArea: [{ card: "BT1-016", as: "grantedBlocker" }], security: ["BT1-010"] },
+      },
+      { autoSelectCards: true },
+    );
+    advance(s.engine).ledgers.continuous.addKeywordGrant(
+      s.perm("grantedBlocker").permanentId,
+      "Blocker",
+      EffectDuration.Permanent,
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("grantedBlocker").isSuspended).toBe(false);
   });
 
   it("does not target an opposing Tamer", async () => {
