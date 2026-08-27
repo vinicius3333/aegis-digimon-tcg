@@ -3033,6 +3033,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR/exclusive `registerIrCard`; exact waiver, dynamic Blocker/+3000 grants, bottom-security-to-hand then face-up self placement, and Lv.4-or-lower Titan hand/trash plays.
 - Proof: dynamic grants/enabler removal, non-Titan, zero-security/waiver boundary, Main movement/play, Security activation/fallback. No change; automation not run; diff check passed. No limitation.
 
+## BT26-101 — Cross Arts — 10/10
+
+- Catalog/KB: white cost-4 ADAMAS/TS Option with TS Use Requirement, named-Tamer bonus, modal deletion/unsuspend, and Security TS play confirmed. Q7182 keeps the “Then” modal available without the named Tamer.
+- Implementation: full IR/exclusive `registerIrCard`; conditional all-own-TS Blocker/+3000 through opponent turn, independent modal, `SelectBind` current-DP deletion limit, and cost-4 TS Digimon/Tamer Security play.
+- Proof: Use Req, hand/trash Security, trait/cost boundaries, named bonus with non-TS exclusion, DP deletion, unsuspend, and Q7182. Automation not run; diff check passed. No limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.

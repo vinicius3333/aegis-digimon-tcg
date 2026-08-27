@@ -103,6 +103,29 @@ describe("BT26-101 compiled fidelity", () => {
     ).toBe(true);
   });
 
+  it("does not play non-TS or over-cost cards from the Security effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT26-101", as: "option", faceUp: true }],
+          hand: [
+            { card: "BT26-009", as: "eligibleTs" },
+            { card: "BT1-009", as: "nonTs" },
+          ],
+          trash: [{ card: "BT26-011", as: "overCostTs" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-009")).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-011")).toBe(true);
+  });
+
   it("applies the named-Tamer bonus before using the chosen TS Digimon's DP to delete", async () => {
     const s = setupEngine(
       {
@@ -110,6 +133,7 @@ describe("BT26-101 compiled fidelity", () => {
           hand: [{ card: "BT26-101", as: "option" }],
           battleArea: [
             { card: "BT26-009", as: "tsDigimon" },
+            { card: "BT1-009", as: "nonTs" },
             { card: "BT25-086", as: "dan" },
           ],
         },
@@ -128,6 +152,8 @@ describe("BT26-101 compiled fidelity", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("tsDigimon"), "Blocker")).toBe(true);
     expect(s.perm("tsDigimon").currentDP).toBe(5000);
+    expect(observe(s.engine).hasKeyword(s.perm("nonTs"), "Blocker")).toBe(false);
+    expect(s.perm("nonTs").currentDP).toBe(3000);
   });
 
   it("can choose the unsuspend mode without the named Tamer (Q7182)", async () => {
