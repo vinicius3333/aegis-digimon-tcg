@@ -2523,3 +2523,33 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
 - Verification: focused BT5-066 — 2/2 passed. Targeted Oxfmt, Oxlint, and
   `git diff --check` pass. No typing-sensitive source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-067 — Infermon — 10/10
+
+- Catalog and ruling evidence: Black Lv.5 Ultimate Digimon,
+  Unknown/Unidentified, play cost 7, 6000 DP, and black Lv.4 evolution cost 3.
+  A battle-area Keramon may instead evolve into it for cost 4 while ignoring
+  requirements. Its inherited On Deletion effect may play one Diaboromon Token
+  without cost. Q1342 rejects the shortcut from breeding; Q1343 defines the
+  token; Q1344 permits the shortcut during an effect-driven evolution.
+- Implementation: `apps/api/src/cards/BT5/BT5-067.ts` carries the alternate
+  exact Keramon name requirement at cost 4 and an inherited optional count-1
+  `PlayToken` for Diaboromon. It declares full residual-free coverage and
+  registers exclusively through `registerIrCard`. Both shared Diaboromon token
+  aliases now faithfully define White, Lv.6, play cost 14, 3000 DP, Mega form,
+  Unknown attribute, and Unidentified type.
+- Behavioral proof: focused tests prove the cost-4 shortcut on a battle-area
+  Keramon, Q1342 rejection in breeding, and rejection for a non-Keramon Lv.3.
+  A legal Infermon source beneath BlackWarGreymon triggers from host deletion
+  and produces the exact face-up `TOKEN-Diaboromon` instance for the correct
+  owner/controller with every printed stat and trait. A refusal case proves the
+  inherited play is optional.
+- Defect corrected: the shared token registry previously omitted Mega form and
+  Unknown attribute and incorrectly stored Unknown alongside Unidentified as a
+  type. Both token aliases and the existing BT2-082 structural proof were
+  corrected.
+- Verification: focused BT5-067 — 5/5 passed; BT2-082 — 5/5 passed; shared
+  token-definition checks — 2/2 passed; filtered PlayToken primitive — 3/3
+  relevant tests passed. Shared package build/type compilation, targeted
+  Oxfmt, Oxlint, and `git diff --check` pass.
+- Remaining ambiguity: none identified.
