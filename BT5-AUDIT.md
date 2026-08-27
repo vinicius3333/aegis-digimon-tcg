@@ -3586,3 +3586,25 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   registration search, and `git diff --check` pass. No production or shared
   engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-108 — Earth Shaker — 10/10
+
+- Catalog and ruling evidence: Purple Option with use cost 6. Main deletes one
+  unsuspended opposing Lv.4 Digimon and one unsuspended opposing Lv.5 Digimon.
+  Security activates Main. Q1381/Q1382 confirm the two independent mandatory
+  target steps and resolution when a category is unavailable.
+- Implementation: `apps/api/src/cards/BT5/BT5-108.ts` uses separate count-one
+  Delete actions with opponent, unsuspended, exact-Lv.4 and exact-Lv.5 filters.
+  Security activates Main. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-108", compiled)` registration are preserved.
+- Behavioral proof: four focused tests prove exact ready Lv.4/Lv.5 deletion
+  while suspended copies, Lv.3, Lv.6, and an own Lv.4 survive; resolution with
+  only one category, resolution with neither category, and Security activation
+  of both steps.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for both suspension and level boundaries, controller scope, and zero-target
+  continuation.
+- Verification: focused BT5-108 — 4/4 passed; targeted unsuspended filter
+  mechanism — 1/1 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No production or shared engine source changed.
+- Remaining ambiguity: none identified.
