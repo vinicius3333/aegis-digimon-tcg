@@ -3018,3 +3018,30 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   Oxfmt, Oxlint, registration search, and `git diff --check` pass. No shared
   engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-086 — Omnimon — 10/10
+
+- Catalog and ruling evidence: White Lv.7 Mega Digimon, Vaccine/Royal Knight,
+  play cost 15 and 14000 DP, evolving for 4 from red or blue Lv.6. When
+  Digivolving it has Blitz and unsuspends itself. On all turns, if an opponent's
+  effect would delete it or return it to hand or deck, its controller may trash
+  one Lv.6 Digimon evolution source to prevent that departure. Q1356 defines
+  the Blitz/unsuspend sequence, Q1357 confirms a prevented departure is not a
+  deletion, and Q2858 covers the resulting attack behavior.
+- Implementation: `apps/api/src/cards/BT5/BT5-086.ts` represents Blitz as an
+  intrinsic When Digivolving keyword, independently unsuspends self, and uses
+  an optional `wouldLeavePlay` replacement limited to opponent effects with an
+  exact Lv.6 Digimon source cost. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-086", compiled)` registration are preserved.
+- Behavioral proof: five focused tests prove legal red-Lv.6 evolution,
+  self-unsuspension, Blitz, and an immediate real attack. They also prove
+  prevention of opponent-effect deletion, hand return, and deck return; exact
+  consumption of a Lv.6 source while a non-Lv.6 source remains; and optional
+  refusal allowing the complete stack to be deleted.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  across every departure destination, exact source identity/level, refusal,
+  and real post-evolution attack behavior.
+- Verification: focused BT5-086 — 5/5 passed; shared leave-prevention mechanism
+  — 18/18 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No production or shared engine source changed.
+- Remaining ambiguity: none identified.
