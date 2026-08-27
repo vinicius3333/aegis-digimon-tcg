@@ -327,4 +327,19 @@ describe("EX3-073 Imperialdramon: Fighter Mode", () => {
     const effects = module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source);
     expect(effects[0]!.canActivate(ctx)).toBe(false);
   });
+
+  it("[On Deletion] still plays the available species when only one is in trash", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource();
+    const wormmon = card("wormmon-only", WORMMON_ID, 0);
+    const ctx = makeCtx(recorder, source, { ownerTrash: [wormmon] });
+
+    const effects = module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source);
+    expect(effects[0]!.canActivate(ctx)).toBe(true);
+    await effects[0]!.resolve(ctx);
+
+    const playCalls = recorder.calls.filter((c) => c.verb === "playInstances");
+    expect(playCalls).toHaveLength(1);
+    expect((playCalls[0]!.args[1] as { payCost: boolean }).payCost).toBe(false);
+  });
 });
