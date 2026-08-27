@@ -3659,3 +3659,32 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   Oxfmt, Oxlint, registration search, and `git diff --check` pass. No production
   or shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-111 — Omnimon X Antibody — 10/10
+
+- Catalog and ruling evidence: White Lv.7 Mega Digimon,
+  Unknown/Royal Knight/X Antibody, play cost 15 and 15000 DP. It may evolve for
+  3 from a battle-area Digimon with Omnimon in its name. When Attacking it
+  deletes one opposing Digimon with DP at or below its own. On the opponent's
+  turn, when an opposing Digimon attacks, it may trash exactly two of this
+  Digimon's evolution cards to end the attack. Q1385–Q1390 and Q2277 establish
+  the battle-area shortcut, atomic cost, attack termination, and interactions.
+- Implementation: `apps/api/src/cards/BT5/BT5-111.ts` declares the alternate
+  Omnimon-name evolution requirement, relative-DP count-one Delete, and an
+  opponent-turn once-per-timing attack subtrigger with optional exact-two
+  self-source trash cost and EndAttack. Full residual-free coverage and
+  exclusive `registerIrCard("BT5-111", compiled)` registration are preserved.
+- Behavioral proof: seven focused tests prove the legal Omnimon shortcut at
+  cost 3, breeding-area and non-Omnimon rejection, exact 15000-DP inclusion and
+  15001 survival, and attack interruption before Security. A legal
+  Lv.5→Lv.6→Omnimon stack proves two chosen source identities enter trash while
+  the exact third remains; refusal and an insufficient one-source stack allow
+  the attack to complete.
+- Defect corrected: no executable behavior defect. Illegal stack and private
+  combat access were replaced with a legal stack and public observation; the
+  exact-two cost proof was corrected to wait for and assert one source remains.
+- Verification: focused BT5-111 — 7/7 passed; once-per-timing subtrigger subset
+  — 5/5; alternate digivolution actions subset — 5/5. Targeted Oxfmt, Oxlint,
+  registration search, and `git diff --check` pass. No production or shared
+  engine source changed.
+- Remaining ambiguity: none identified.
