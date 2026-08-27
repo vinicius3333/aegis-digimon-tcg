@@ -1531,3 +1531,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-079.
+
+## BT25-080 — SkullMammothmon — 10/10
+
+- Catalog evidence: purple level-4 Digimon; alternate level-3 TS evolution for 2; shared once-per-turn On Play/When Attacking hand-trash cost and Titan-trait trash recovery; effect-entry-only level-5 deletion; inherited all-turn once-per-turn hand-trash cost deletes a level-4 Digimon while hosted by a Titan.
+- Knowledge base: no unresolved card-specific gap; standard activation-cost, trash recovery, effect provenance, level targeting, inherited host trait, and shared once-per-turn rules apply.
+- Implementation: exact alternate evolution, shared-use timings, mandatory cost availability, Titan recovery, effect-entry provenance gate, level targets, and inherited host scope are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-080", compiled)`. The IR is exported for persisted comparison only.
+- Verification: focused — 8 passed; `git diff --check` — passed. No behavioral defect was found, so no test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-080
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-080.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-080.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-080.
