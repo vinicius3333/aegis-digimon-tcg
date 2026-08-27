@@ -22,10 +22,10 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT4-051–060 | Static audit delivered | `internal-docs/audits/BT4/BT4-051-060.md` | Yes |
 | BT4-061–070 | Static audit delivered | `internal-docs/audits/BT4/BT4-061-070.md` | Yes |
 | BT4-071–080 | Static audit delivered | `internal-docs/audits/BT4/BT4-071-080.md` | Yes |
-| BT4-081–090 | Luna in progress | `internal-docs/audits/BT4/BT4-081-090.md` | No |
+| BT4-081–090 | Static audit delivered | `internal-docs/audits/BT4/BT4-081-090.md` | Yes |
 | BT4-091–100 | Luna in progress | `internal-docs/audits/BT4/BT4-091-100.md` | No |
 | BT4-101–110 | Luna in progress | `internal-docs/audits/BT4/BT4-101-110.md` | No |
-| BT4-111–115 | Unassigned | `internal-docs/audits/BT4/BT4-111-115.md` | No |
+| BT4-111–115 | Luna in progress | `internal-docs/audits/BT4/BT4-111-115.md` | No |
 
 ## Score model
 
@@ -123,18 +123,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-078 Soundbirdmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional one-Option trash cost with refusal and two-card cap proof |
 | BT4-079 Labramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Ordered On Play draw then mandatory hand-trash proof |
 | BT4-080 Bakemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary through direct registration |
+| BT4-081 Devimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst level-3 deletion with exact payment and level-4 negative |
+| BT4-082 Dobermon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary on a legal purple stack |
+| BT4-083 Cerberusmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Stack-aware On Deletion draw-two then hand-trash proof |
+| BT4-084 NeoDevimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent-Tamer play/suspension watchers with batch-event boundary |
+| BT4-085 Phantomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary on a legal purple stack |
+| BT4-086 Cerberusmon: Werewolf Mode | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact-name optional deletion cost, Rush, and self/peer negatives |
+| BT4-087 Anubismon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Trash play and same-turn Rush persistence through evolution |
+| BT4-088 DanDevimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Once-per-turn security watcher and opponent-chosen hand trash |
+| BT4-089 Plutomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Draw-two then optional purple low-cost Option use boundary |
+| BT4-090 Chaosmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected optional self Attack with unsuspended-target and sickness proof |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT4/`.
 
 ## Aggregate
 
 - Catalog cards: 115
-- Assigned: 110
-- Integrated card audits: 80
-- Corrected: 11
-- Provisional: 80
+- Assigned: 115
+- Integrated card audits: 90
+- Corrected: 12
+- Provisional: 90
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 5
+- Remaining unassigned: 0
 
 BT4 remains open.
