@@ -71,7 +71,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // transition receipt rather than the pre-action selection. This keeps continuations
       // such as Samādhi Śānti's "that Digimon/Tamer can't unsuspend" attached to the card
       // this effect actually suspended, and to nothing when suspension did not occur.
-      ctx.lastResolvedPermanentIds = suspendedIds;
+      // `sameTarget` refers to the permanent selected by the preceding action, even when the
+      // requested transition was already true (EX9-038 Q4792). Keep the actual transition
+      // receipt in `lastSuspendedPermanentIds` for conditions/scaling that require it.
+      ctx.lastResolvedPermanentIds = ids;
       ctx.lastEffectActed = suspendedIds.length > 0;
       // Bind "the Digimon this effect suspended" so a later action can reference exactly the
       // permanents that were suspended (empty when 0 resolved — KB Q4791/Q4792 edge case).
