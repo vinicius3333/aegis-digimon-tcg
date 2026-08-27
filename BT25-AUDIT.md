@@ -711,3 +711,25 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-035.
+
+## BT25-036 — Craftmon — 10/10
+
+- Catalog evidence: Yellow level-4 Appmon, play cost 5, 5000 DP, `Sup.`/`Appmon`/`Tool`, `Design`; standard yellow level-3 evolution for 2; zero-cost App Fusion using two distinct names from Kabemon/Gomimon/Ecomon/Puzzlemon; Security plays this card without cost at the end of its security battle; On Play/When Digivolving adds the top friendly security card to hand, then performs Recovery +1.
+- Knowledge base: Q6302 permits the entry effect at zero security, skipping the unavailable move and still recovering. Q6303 enumerates every ordered pair of two distinct names in the four-name App Fusion pool and excludes duplicate-name pairs.
+- Implementation: the Security effect now installs a one-shot `whenSecurityBattleEnded` watcher, identifies security timing explicitly, and plays this exact card from trash only after battle resolution. Both entry sequences preserve independent Recovery after security movement, including Q6302. The App Fusion requirement uses the complete four-name pool with engine-enforced distinct names. Direct/shared IR are synchronized, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-036", compiled)`.
+- Defect corrected: Security previously executed PlayWithoutCost immediately with no end-of-battle timing and no trash source, allowing Craftmon to bypass the security battle lifecycle. It now waits for the dedicated battle-ended event and moves the battled instance from trash. Persisted equality coverage includes BT25-036.
+- Behavioral proof: the focused suite proves catalog/IR shape, real security battle ordering (including attacker deletion), deferred exact-instance play, ensuing On Play exchange, zero-security Q6302 recovery, When Digivolving behavior, every distinct-name App Fusion class, and duplicate-name rejection. The deferred-battle case fails against the prior immediate action.
+- Verification: focused suite — 7 passed; security mechanisms — 14 passed; interpreter mechanisms — 183 passed; App Fusion/card information — 25 passed; evolution conformance — 17 passed; BT25 persisted-IR sync — 11 passed; Oxlint/Oxfmt, shared-IR JSON parse, and `git diff --check` — passed. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-036 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-036
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-036.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-036.test.ts src/cards/BT25/BT25-catalog-sync.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-036.ts apps/api/src/cards/BT25/BT25-036.test.ts apps/api/src/cards/BT25/BT25-catalog-sync.test.ts
+node -e 'JSON.parse(require("fs").readFileSync("packages/shared/src/effects/effects.json", "utf8"))'
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-036.
