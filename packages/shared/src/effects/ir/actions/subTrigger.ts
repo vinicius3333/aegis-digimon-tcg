@@ -95,6 +95,8 @@ export interface SubTriggerAction extends ActionBase {
    * or Digimon with the [Puppet] trait is deleted"). Only a matching card fires the sub-effect.
    */
   sourceFilter?: Filter;
+  /** For digivolution watchers: filter the Digimon being digivolved into (not the source Digimon). */
+  digivolveIntoFilter?: Filter;
   /** Restrict the permanent hosting this watcher to a live board filter. */
   hostFilter?: Filter;
   /** Do not fire if the watcher host is in the same simultaneous deletion batch. */

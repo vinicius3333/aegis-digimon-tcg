@@ -787,6 +787,15 @@ export async function runSubTrigger(
     (event === "onAddDigivolutionCards" || SUBJECT_TRIGGER_FILTER_EVENTS.has(event))
       ? (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, action.triggerFilter!)
       : undefined;
+  // Digivolution watchers can constrain the card being digivolved into separately from the
+  // source Digimon (`sourceFilter`). The payload's subject is the resulting permanent, so use
+  // the same canonical matcher used by ordinary trigger subjects. This also honors
+  // `excludeSelf` (EX9-012/Q4754: its own evolution into Garurumon must not self-trigger).
+  const digivolveIntoGate =
+    action.digivolveIntoFilter !== undefined &&
+    (event === "whenOneOfYoursDigivolves" || event === "whenAnyDigivolves")
+      ? (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, action.digivolveIntoFilter!)
+      : undefined;
   const addedDigivolutionCardGate =
     event === "onAddDigivolutionCards" && action.addedDigivolutionCardFilter !== undefined
       ? (subCtx: EffectContext): boolean => {
@@ -942,6 +951,7 @@ export async function runSubTrigger(
     digivolutionBatchHostSourceFilterGate,
     effectSourceGate,
     triggerFilterGate,
+    digivolveIntoGate,
     addedDigivolutionCardGate,
     addedDigivolutionPositionGate,
     placedOwnTopAtStackBottomGate,
