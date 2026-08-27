@@ -23,7 +23,7 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT1-061–070 | Static audit complete | `internal-docs/audits/BT1/BT1-061-070.md` | Yes |
 | BT1-071–080 | Static audit complete | `internal-docs/audits/BT1/BT1-071-080.md` | Yes |
 | BT1-081–090 | Luna in progress | `internal-docs/audits/BT1/BT1-081-090.md` | No |
-| BT1-091–100 | Luna in progress | `internal-docs/audits/BT1/BT1-091-100.md` | No |
+| BT1-091–100 | Static audit complete | `internal-docs/audits/BT1/BT1-091-100.md` | Yes |
 | BT1-101–110 | Luna in progress | `internal-docs/audits/BT1/BT1-101-110.md` | No |
 | BT1-111–115 | Luna in progress | `internal-docs/audits/BT1/BT1-111-115.md` | No |
 
@@ -103,6 +103,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT1-078 Jagamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-078.ts), [test](apps/api/src/cards/BT1/BT1-078.test.ts) |
 | BT1-079 Lillymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-079.ts), [test](apps/api/src/cards/BT1/BT1-079.test.ts) |
 | BT1-080 Titamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-080.ts), [test](apps/api/src/cards/BT1/BT1-080.test.ts) |
+| BT1-091 Scrap Claw | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-091.ts), [test](apps/api/src/cards/BT1/BT1-091.test.ts) |
+| BT1-092 Nuclear Laser | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-092.ts), [test](apps/api/src/cards/BT1/BT1-092.test.ts) |
+| BT1-093 Great Tornado | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-093.ts), [test](apps/api/src/cards/BT1/BT1-093.test.ts) |
+| BT1-094 Oblivion Bird | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-094.ts), [test](apps/api/src/cards/BT1/BT1-094.test.ts) |
+| BT1-095 Brave Shield | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-095.ts), [test](apps/api/src/cards/BT1/BT1-095.test.ts) |
+| BT1-096 Mad Dog Fire | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-096.ts), [test](apps/api/src/cards/BT1/BT1-096.test.ts) |
+| BT1-097 Boring Storm | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-097.ts), [test](apps/api/src/cards/BT1/BT1-097.test.ts) |
+| BT1-098 V-Nova Blast | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-098.ts), [test](apps/api/src/cards/BT1/BT1-098.test.ts) |
+| BT1-099 Hearts Attack | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-099.ts), [test](apps/api/src/cards/BT1/BT1-099.test.ts) |
+| BT1-100 Grace Cross Freezer | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-100.ts), [test](apps/api/src/cards/BT1/BT1-100.test.ts) |
 
 Detailed clause traces and deferred commands for these rows are in the integrated range reports under `internal-docs/audits/BT1/`.
 
@@ -110,9 +120,9 @@ Detailed clause traces and deferred commands for these rows are in the integrate
 
 - Catalog cards: 115
 - Assigned: 115
-- Integrated card audits: 60
+- Integrated card audits: 70
 - Corrected: 2
-- Provisional: 60
+- Provisional: 70
 - Verified 10/10: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 0
