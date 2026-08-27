@@ -20,7 +20,10 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const fireDeferredSuspensionTriggers = async (): Promise<void> => {
         if (suspensionTriggersFired || deferredCostSuspensions.length === 0) return;
         suspensionTriggersFired = true;
-        await ctx.fx.fireSuspensionTriggers?.(deferredCostSuspensions, { byEffectSeat: ctx.source.ownerSeat });
+        await ctx.fx.fireSuspensionTriggers?.(deferredCostSuspensions, {
+          byEffectSeat: ctx.source.ownerSeat,
+          byEffectCardId: ctx.source.cardId,
+        });
       };
       if (action.drainTimingWindowDuringAttack && ctx.fx.isAttackResolving?.()) {
         await fireDeferredSuspensionTriggers();

@@ -3,7 +3,7 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { relocateByEffect } from "../costs.js";
 import { unsupported } from "../errors.js";
-import { matchNameOrTrait } from "../matching/definition.js";
+import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import { EffectDuration } from "@aegis/shared";
@@ -538,6 +538,8 @@ export async function runTrashDigivolution(
     byEffectCardId: ctx.source.cardId,
     ...(isDigiBurst ? { isDigiBurst: true } : {}),
   };
+  const stackCardMatches = (card: { cardId: string }): boolean =>
+    action.cardFilter === undefined || definitionMatches(action.cardFilter, ctx.game.definitionOf(card));
 
   // "acrossDigimon": pool all digivolution cards from every matching permanent and let
   // the controller pick `amount` from the combined pool (EX12-035 "any 4 digivolution
@@ -551,6 +553,7 @@ export async function runTrashDigivolution(
     const pool: { instanceId: string; permanentId: string }[] = [];
     for (const permanent of permanents) {
       for (const card of permanent.stack) {
+        if (!stackCardMatches(card)) continue;
         pool.push({ instanceId: card.instanceId, permanentId: permanent.permanentId });
       }
     }
@@ -562,19 +565,19 @@ export async function runTrashDigivolution(
       action.optional === true &&
       action.abortOnDecline === true &&
       typeof amount === "number" &&
-      pool.length < amount
+      pool.length < (action.upTo === true ? (action.minAmount ?? 1) : amount)
     ) {
       ctx.lastEffectActed = false;
       return false;
     }
     const take = amount === "all" ? pool.length : Math.min(amount, pool.length);
     let chosen: string[];
-    if (pool.length <= take) {
+    if (pool.length <= take && action.upTo !== true) {
       chosen = pool.map((c) => c.instanceId);
     } else {
       chosen = await ctx.ask.selectCards(ctx, {
         candidates: pool.map((c) => c.instanceId),
-        min: take,
+        min: action.upTo === true ? Math.min(action.minAmount ?? 1, pool.length) : take,
         max: take,
       });
     }
@@ -595,7 +598,7 @@ export async function runTrashDigivolution(
       if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
       ctx.namedCounts.set(action.trackCount, chosen.length);
     }
-    return amount === "all" ? chosen.length > 0 : chosen.length === amount;
+    return amount === "all" || action.upTo === true ? chosen.length > 0 : chosen.length === amount;
   }
 
   // Default: single-target path — resolve 1 permanent, trash `amount` from its stack.
@@ -614,7 +617,10 @@ export async function runTrashDigivolution(
   // Check the supply only after replacement chooses the actual host. Q2007 explicitly
   // permits SnowAgumon to choose a source-free Digimon and have Tactimon supply the
   // digivolution card instead; checking the original host would suppress that window.
-  if (minimum !== undefined && permanentIds.some((id) => (ctx.game.permanentById(id)?.stack.length ?? 0) < minimum)) {
+  if (
+    minimum !== undefined &&
+    permanentIds.some((id) => (ctx.game.permanentById(id)?.stack.filter(stackCardMatches).length ?? 0) < minimum)
+  ) {
     ctx.lastEffectActed = false;
     return false;
   }
@@ -627,7 +633,7 @@ export async function runTrashDigivolution(
     action.optional === true &&
     action.abortOnDecline === true &&
     typeof amount === "number" &&
-    permanentIds.some((pid) => (ctx.game.permanentById(pid)?.stack.length ?? 0) < amount)
+    permanentIds.some((pid) => (ctx.game.permanentById(pid)?.stack.filter(stackCardMatches).length ?? 0) < amount)
   ) {
     ctx.lastEffectActed = false;
     return false;
@@ -642,11 +648,11 @@ export async function runTrashDigivolution(
   for (const pid of permanentIds) {
     const permanent = ctx.game.permanentById(pid);
     if (permanent === undefined) continue;
-    const stack = permanent.stack;
+    const stack = permanent.stack.filter(stackCardMatches);
     const targetAmount =
       action.scaling?.unit === "targetColors" ? new Set(ctx.game.definitionOf(permanent.topCard).colors).size : amount;
     let take = targetAmount === "all" ? stack.length : Math.min(targetAmount, stack.length);
-    if (action.upTo === true && typeof targetAmount === "number" && take > 1) {
+    if (action.upTo === true && action.choose !== true && typeof targetAmount === "number" && take > 1) {
       // "up to" source trash still requires one card under CR 1-3-6, then lets the
       // controller decline each additional card. Asking one card at a time preserves
       // the printed bottom/top prefix; a free multi-card selection could skip a card.
@@ -663,9 +669,13 @@ export async function runTrashDigivolution(
       // from the whole stack rather than a deterministic top/bottom slice.
       const candidateIds = stack.map((card) => card.instanceId);
       ids =
-        candidateIds.length <= take
+        candidateIds.length <= take && action.upTo !== true
           ? candidateIds
-          : await ctx.ask.selectCards(ctx, { candidates: candidateIds, min: take, max: take });
+          : await ctx.ask.selectCards(ctx, {
+              candidates: candidateIds,
+              min: action.upTo === true ? Math.min(action.minAmount ?? 1, candidateIds.length) : take,
+              max: take,
+            });
     } else {
       ids = [];
       for (let i = 0; i < take; i++) {
@@ -686,7 +696,7 @@ export async function runTrashDigivolution(
     ctx.namedCounts ??= new Map();
     ctx.namedCounts.set(action.trackCount, totalTrashed);
   }
-  if (amount === "all") return totalTrashed > 0;
+  if (amount === "all" || action.upTo === true) return totalTrashed > 0;
   if (action.scaling?.unit === "targetColors") return totalTrashed > 0;
   return totalTrashed === amount * permanentIds.length;
 }

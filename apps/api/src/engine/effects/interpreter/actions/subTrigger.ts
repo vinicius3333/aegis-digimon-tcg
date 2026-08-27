@@ -5,7 +5,7 @@ import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
-import { DefinitionFacts, definitionMatches, matchNameOrTrait } from "../matching/definition.js";
+import { DefinitionFacts, definitionMatches, matchNameOrTrait, textHasKeyword } from "../matching/definition.js";
 import { matchingSubjectPermanentIds, subjectMatchesFilter, triggerAddedSecurityMatches } from "../matching/trigger.js";
 import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
@@ -762,6 +762,19 @@ export async function runSubTrigger(
           const def = subCtx.game.definitionOf({ cardId } as never);
           return definitionMatches(action.effectSourceFilter!, def as DefinitionFacts);
         };
+  // Some effect-driven events are caused specifically by a keyword ability (EX4-032/033/034:
+  // "when <Alliance> suspends ..."). The suspension seam carries the resolving effect's card
+  // identity as `byEffectCardId`; inspect its printed keyword text rather than the suspended
+  // subject, whose own abilities are unrelated to the event cause.
+  const bySourceKeywordGate =
+    action.bySourceKeyword === undefined
+      ? undefined
+      : (subCtx: EffectContext): boolean => {
+          const cardId = subCtx.trigger?.byEffectCardId;
+          if (cardId === undefined) return false;
+          const def = subCtx.game.definitionOf({ cardId } as never);
+          return textHasKeyword(def, action.bySourceKeyword!);
+        };
   // `triggerFilter` on an `onAddDigivolutionCards` watcher (LANE-F-15, BT20-080/BT21-080):
   // restricts WHICH permanent's digivolution-card additions fire this watcher. The event's
   // `subjectPermanentId` is the RECEIVER permanent (the Digimon whose stack grew). Gate on that
@@ -941,6 +954,7 @@ export async function runSubTrigger(
     digivolutionHostFilterGate,
     digivolutionBatchHostSourceFilterGate,
     effectSourceGate,
+    bySourceKeywordGate,
     triggerFilterGate,
     addedDigivolutionCardGate,
     addedDigivolutionPositionGate,

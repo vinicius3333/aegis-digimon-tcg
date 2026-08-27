@@ -55,7 +55,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           ? { ...action.target, count: action.target.count * scale }
           : action.target;
       const ids = await resolvePermanentTargets(ctx, target);
-      const suspendResult = ids.length > 0 ? await ctx.fx.suspend(ids, { byEffectSeat: ctx.source.ownerSeat }) : [];
+      const suspendResult =
+        ids.length > 0
+          ? await ctx.fx.suspend(ids, { byEffectSeat: ctx.source.ownerSeat, byEffectCardId: ctx.source.cardId })
+          : [];
       // The primitive owns transition legality (already suspended, restrictions). Effects
       // whose text says "suspend ... If you did" must key off the permanents that really
       // changed orientation, not merely the candidates selected by the player.
