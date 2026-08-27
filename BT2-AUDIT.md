@@ -18,11 +18,12 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT2-011–020 | Static audit complete | `internal-docs/audits/BT2/BT2-011-020.md` | Yes |
 | BT2-021–030 | Static audit complete | `internal-docs/audits/BT2/BT2-021-030.md` | Yes |
 | BT2-031–040 | Static audit complete | `internal-docs/audits/BT2/BT2-031-040.md` | Yes |
-| BT2-041–050 | Luna in progress | `internal-docs/audits/BT2/BT2-041-050.md` | No |
+| BT2-041–050 | Static audit complete | `internal-docs/audits/BT2/BT2-041-050.md` | Yes |
 | BT2-051–060 | Static audit complete | `internal-docs/audits/BT2/BT2-051-060.md` | Yes |
 | BT2-061–070 | Luna in progress | `internal-docs/audits/BT2/BT2-061-070.md` | No |
 | BT2-071–080 | Luna in progress | `internal-docs/audits/BT2/BT2-071-080.md` | No |
-| BT2-081–112 | Queued | Not assigned | No |
+| BT2-081–090 | Luna in progress | `internal-docs/audits/BT2/BT2-081-090.md` | No |
+| BT2-091–112 | Queued | Not assigned | No |
 
 ## Score model
 
@@ -80,6 +81,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT2-038 RizeGreymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-038.ts), [test](apps/api/src/cards/BT2/BT2-038.test.ts) |
 | BT2-039 Magnadramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-039.ts), [test](apps/api/src/cards/BT2/BT2-039.test.ts) |
 | BT2-040 Ophanimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-040.ts), [test](apps/api/src/cards/BT2/BT2-040.test.ts) |
+| BT2-041 ShineGreymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-041.ts), [test](apps/api/src/cards/BT2/BT2-041.test.ts) |
+| BT2-042 Argomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-042.ts), [test](apps/api/src/cards/BT2/BT2-042.test.ts) |
+| BT2-043 Agumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-043.ts), [test](apps/api/src/cards/BT2/BT2-043.test.ts) |
+| BT2-044 Tyrannomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-044.ts), [test](apps/api/src/cards/BT2/BT2-044.test.ts) |
+| BT2-045 Argomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-045.ts), [test](apps/api/src/cards/BT2/BT2-045.test.ts) |
+| BT2-046 MetalTyrannomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-046.ts), [test](apps/api/src/cards/BT2/BT2-046.test.ts) |
+| BT2-047 Argomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-047.ts), [test](apps/api/src/cards/BT2/BT2-047.test.ts) |
+| BT2-048 Cherrymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-048.ts), [test](apps/api/src/cards/BT2/BT2-048.test.ts) |
+| BT2-049 Puppetmon | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | Corrected and ambiguous; provisional 7/10 | [module](apps/api/src/cards/BT2/BT2-049.ts), [test](apps/api/src/cards/BT2/BT2-049.test.ts) |
+| BT2-050 Argomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-050.ts), [test](apps/api/src/cards/BT2/BT2-050.test.ts) |
 | BT2-051 RustTyrannomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-051.ts), [test](apps/api/src/cards/BT2/BT2-051.test.ts) |
 | BT2-052 Hagurumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-052.ts), [test](apps/api/src/cards/BT2/BT2-052.test.ts) |
 | BT2-053 Keramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-053.ts), [test](apps/api/src/cards/BT2/BT2-053.test.ts) |
@@ -96,12 +107,12 @@ Detailed clause traces and deferred commands are recorded in the integrated rang
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 80
-- Integrated card audits: 50
-- Corrected: 0
-- Provisional: 50
+- Assigned: 90
+- Integrated card audits: 60
+- Corrected: 1
+- Provisional: 60
 - Verified 10/10: 0
-- Blocked or ambiguous: 0
-- Remaining unassigned: 32
+- Blocked or ambiguous: 1
+- Remaining unassigned: 22
 
 BT2 remains open.
