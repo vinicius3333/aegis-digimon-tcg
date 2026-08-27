@@ -13,6 +13,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          triggerFilter: {
+            isSelfRef: true,
+          },
           sourceFilter: {
             controllerDefault: "mine",
           },
