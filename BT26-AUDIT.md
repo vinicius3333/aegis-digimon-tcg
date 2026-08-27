@@ -2500,3 +2500,35 @@ git diff --check
 ```
 
 No unresolved BT26-060 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-061 — Chiropmon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-061` (`Chiropmon`), a purple level-3 Digimon with play cost 3, 2000 DP, and alternate evolution from a level-2 `Glowing Dawn` Digimon for cost 0.
+- Printed behavior verified: On Play reveals the top three cards, adds one `Glowing Dawn` card and one purple `BEATBREAK` card, and returns the remainder to deck bottom; its inherited When Attacking Once Per Turn draws one, then trashes one hand card.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-061`; no Q&A, banlist restriction, or erratum is recorded. Reveal, bottom-deck ordering, inherited timing, and Draw/Trash sequencing rules were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-061.ts` has full compiled IR coverage and registers exclusively through `registerIrCard("BT26-061", compiled)`.
+- `RevealAdd` uses count 3, independent `Glowing Dawn` and purple-plus-`BEATBREAK` slots, and deck-bottom disposition. Shared reveal tracking prevents one instance from filling both slots.
+- The inherited When Attacking body has one Once Per Turn budget and performs Draw 1 followed by mandatory hand trash. Evolution, reveal visibility/selection, bottom ordering, inherited projection, and peers were inspected.
+
+### Behavioral proof
+
+- Existing `apps/api/src/cards/BT26/BT26-061.test.ts` covers the positive two-slot search and bottomed remainder; overlap without duplicate use; rejection of an off-color `BEATBREAK`; real zero-cost alternate evolution; and inherited attack Draw/Trash with the second activation blocked by Once Per Turn.
+- The existing proof is sufficient for every printed clause; no implementation or test change was required.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-061
+  PASS (no card-specific Q&A, errata, or restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the ledger-only commit
+```
+
+No unresolved BT26-061 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
