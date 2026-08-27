@@ -2973,6 +2973,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Correction: added `allowMultiColor: true` to the unrestricted TS Option action. Multicolor TS Options now qualify while the engine still requires every printed color; previously they were rejected categorically.
 - Proof: Q7143 boundaries, paid/reduced/floored Option costs, optional refusal, wrong trait, suspended source, Security, and new multicolor success/missing-color rejection. Full IR, exclusive `registerIrCard`; automation not run; diff check passed. No unresolved limitation.
 
+## BT26-091 — Yoshino Fujieda — 10/10
+
+- Catalog/KB: green cost-4 DATA SQUAD Tamer, start-main stack placement, suspension/stack-trash reaction, reduced evolution, and Security play confirmed. Q7144–Q7148 cover bottom face-down placement and cost reduction.
+- Implementation: full IR and exclusive `registerIrCard`; exact DATA SQUAD hand placement/Draw/+1, opponent suspension and effect-attributed self-stack-trash watchers, suspend cost, and Vegetation/Fairy/DATA SQUAD hand evolution reduced by 1.
+- Proof: all timings, refusal/negative controller, Q7148, Security, plus new real Vegetation and Fairy evolution branches. Automation not run; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.

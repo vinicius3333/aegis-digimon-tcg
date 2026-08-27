@@ -144,6 +144,54 @@ describe("BT26-091 compiled fidelity", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("reactively accepts the Vegetation trait branch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-091", as: "yoshino" },
+            { card: "BT26-036", as: "base" },
+          ],
+          hand: [{ card: "BT26-039", as: "vegetation" }],
+        },
+        1: { battleArea: [{ card: "BT5-022", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("opponent").permanentId]);
+    await settle(() => s.perm("base").topCard.cardId === "BT26-039");
+
+    expect(s.perm("yoshino").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("reactively accepts the Fairy trait branch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-091", as: "yoshino" },
+            { card: "BT26-036", as: "base" },
+          ],
+          hand: [{ card: "BT26-027", as: "fairy" }],
+        },
+        1: { battleArea: [{ card: "BT5-022", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("opponent").permanentId]);
+    await settle(() => s.perm("base").topCard.cardId === "BT26-027");
+
+    expect(s.perm("yoshino").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
+
   it("also reacts when an opponent's Tamer suspends", async () => {
     const s = setupEngine(
       {
