@@ -2505,3 +2505,21 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `git diff --check` pass. Typecheck was not rerun because the IR timing change
   uses established typed actions and the unrelated baseline remains known.
 - Remaining ambiguity: none identified.
+
+## BT5-066 — WaruMonzaemon — 10/10
+
+- Catalog evidence: Black Lv.5 Ultimate Digimon, Virus/Puppet, play cost 5,
+  6000 DP, and black Lv.4 evolution cost 2. It has no main, inherited,
+  Security, or alternate-evolution text, and its knowledge-base query exposes
+  no card-specific QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-066.ts` intentionally contains
+  `effects: []`, `coverage: "full"`, and `residual: []`, and registers
+  exclusively through `registerIrCard("BT5-066", compiled)`.
+- Behavioral and structural proof: focused coverage verifies WaruMonzaemon has
+  no continuous DP modification and verifies the empty, residual-free runtime
+  module remains registered.
+- Defect corrected: none. The vanilla implementation and focused tests were
+  already faithful, so no files changed.
+- Verification: focused BT5-066 — 2/2 passed. Targeted Oxfmt, Oxlint, and
+  `git diff --check` pass. No typing-sensitive source changed.
+- Remaining ambiguity: none identified.
