@@ -51,6 +51,95 @@ interface DeletionMove {
 /** The six zones that hold loose {@link CardInstance}s (battle area/breeding hold Permanents). */
 export type CardZone = Zone.Deck | Zone.Hand | Zone.Security | Zone.Trash | Zone.EggDeck | Zone.Delay;
 
+/**
+ * Told when a card lands in a loose zone, so per-viewer visibility can be updated at the
+ * moment of the move instead of by re-walking the whole state before every patch.
+ *
+ * Why a port rather than a direct call: this module is pure state mutation and must not
+ * know about rooms, clients or StateViews (the same reason `OverflowMemoryPort` and
+ * `EventPort` above are ports). `AegisRoom` installs the real implementation; every other
+ * caller — unit tests, setup code, the bot — leaves it unset and the notification is a no-op.
+ *
+ * Insert-only by design. A view that already knows a card keeps knowing it (`unlockInto` is
+ * add-only and `StateView` never forgets), and that memory is exactly what lets the encoder
+ * emit the DELETE when the card leaves. So removals need no notification; only arrivals do.
+ */
+export type VisibilityPort = (ownerSeat: Seat, zone: VisibilityZone, card: CardInstance) => void;
+
+/**
+ * Where a card can arrive, for visibility purposes. The loose zones plus the two places a
+ * Permanent holds cards — a battle-area or breeding permanent's top card, digivolution stack
+ * and linked cards are all public, so they are exposed to both seats.
+ */
+export type VisibilityZone = CardZone | Zone.BattleArea | Zone.Breeding;
+
+/**
+ * Per-match storage for the visibility port, hung off the PlayerState rather than kept in a
+ * module-level variable so concurrent matches (and parallel test files) never share it.
+ */
+const VISIBILITY_PORT = Symbol.for("aegis.visibilityPort");
+
+type PortHost = { [VISIBILITY_PORT]?: VisibilityPort };
+
+/** Cards of a permanent are public; both seats see them (see `exposeCardInZone`). */
+export function isPermanentZone(zone: VisibilityZone): boolean {
+  return zone === Zone.BattleArea || zone === Zone.Breeding;
+}
+
+/** Install the visibility port for one seat. Call once per player when the match is wired up. */
+export function installVisibilityPort(player: PlayerState, port: VisibilityPort): void {
+  (player as PortHost)[VISIBILITY_PORT] = port;
+}
+
+/** Notify the installed port, if any, that `card` just landed in `zone`. */
+function notifyCardEntered(player: PlayerState, zone: CardZone, card: CardInstance): void {
+  (player as PortHost)[VISIBILITY_PORT]?.(player.seat, zone, card);
+}
+
+/**
+ * Carry the port from a seat onto a permanent as it is attached to the state.
+ *
+ * A Permanent is built detached — `topCard` and `stack` are written before it is placed — so
+ * its cards cannot be exposed at the moment they are assigned; `StateView.add` rejects an
+ * instance that is not in the state tree yet. The attach points (`placePermanent`,
+ * `setBreeding`) are where the permanent joins the tree, so they both stamp the port onto it
+ * and announce every card it already holds. Later in-place edits then read the port back off
+ * the permanent, which is how the mutators below reach it without being handed a PlayerState.
+ */
+function adoptPermanent(player: PlayerState, permanent: Permanent): void {
+  const port = (player as PortHost)[VISIBILITY_PORT];
+  if (port === undefined) return;
+  (permanent as PortHost)[VISIBILITY_PORT] = port;
+  const zone = permanent.inBreeding ? Zone.Breeding : Zone.BattleArea;
+  if (permanent.topCard !== undefined) port(player.seat, zone, permanent.topCard);
+  for (const card of permanent.stack) port(player.seat, zone, card);
+  for (const card of permanent.linked) port(player.seat, zone, card);
+}
+
+/** Announce one card added to an already-attached permanent. */
+function notifyPermanentCard(permanent: Permanent, card: CardInstance): void {
+  const zone = permanent.inBreeding ? Zone.Breeding : Zone.BattleArea;
+  (permanent as PortHost)[VISIBILITY_PORT]?.(permanent.controllerSeat, zone, card);
+}
+
+/**
+ * The shuffled piles whose contents nobody may read, their owner included: a player knows only
+ * how many cards are in their deck and egg deck. Tagged HIDDEN_ZONE_VIEW_TAG in the schema,
+ * which no StateView ever unlocks, so the arrays are encoded for no one.
+ */
+export function isHiddenZone(zone: VisibilityZone): boolean {
+  return zone === Zone.Deck || zone === Zone.EggDeck;
+}
+
+/**
+ * The zones the owner may see but the opponent may not (PRIVATE_VIEW_TAG). Seeing the ZONE is
+ * not the same as seeing the cards: the owner reads their own hand, but a face-down security
+ * card keeps its identity withheld from them too — see `exposeCardInZone`.
+ */
+export function isOwnerPrivateZone(zone: VisibilityZone): boolean {
+  return zone === Zone.Hand || zone === Zone.Security;
+}
+
 /** Where a card lands in an ordered zone. `security[0]`/`deck[0]` are the "top". */
 export type ZonePosition = "top" | "bottom";
 
@@ -82,6 +171,7 @@ export function insertCard(
   const arr = zoneArrayOf(player, zone);
   if (position === "top") arr.unshift(instance);
   else arr.push(instance);
+  notifyCardEntered(player, zone, instance);
 }
 
 /** Remove the card at `index` from a loose zone; undefined when out of range. */
@@ -122,11 +212,83 @@ export function fillZone(player: PlayerState, zone: CardZone, instances: CardIns
   const arr = zoneArrayOf(player, zone);
   arr.splice(0, arr.length);
   for (const instance of instances) arr.push(instance);
+  // Notified after every push: `notifyCardEntered` leads to `StateView.add`, which rejects an
+  // instance that is not yet attached to the state tree.
+  for (const instance of instances) notifyCardEntered(player, zone, instance);
 }
 
 /** Add a permanent to a seat's battle area. */
 export function placePermanent(player: PlayerState, permanent: Permanent): void {
   player.battleArea.push(permanent);
+  adoptPermanent(player, permanent);
+}
+
+/**
+ * Put a permanent in (or clear) a seat's single breeding slot. The counterpart to
+ * `placePermanent` for the raising area, and the other point where a permanent joins the
+ * state tree — so it carries the same `adoptPermanent` announcement.
+ */
+export function setBreeding(player: PlayerState, permanent: Permanent | undefined): void {
+  player.breeding = permanent;
+  if (permanent !== undefined) adoptPermanent(player, permanent);
+}
+
+/**
+ * Replace a permanent's top card (a digivolve, or a promotion after the top is peeled off).
+ * The displaced card is the caller's to place — this only writes the field.
+ */
+export function setTopCard(permanent: Permanent, card: CardInstance): void {
+  permanent.topCard = card;
+  notifyPermanentCard(permanent, card);
+}
+
+/** Add a card to the digivolution stack directly beneath the top card. */
+export function pushOnStack(permanent: Permanent, card: CardInstance): void {
+  permanent.stack.push(card);
+  notifyPermanentCard(permanent, card);
+}
+
+/** Add a card to the BOTTOM of the digivolution stack. */
+export function unshiftOnStack(permanent: Permanent, card: CardInstance): void {
+  permanent.stack.unshift(card);
+  notifyPermanentCard(permanent, card);
+}
+
+/** Take the card directly beneath the top card off the stack; undefined when the stack is empty. */
+export function popFromStack(permanent: Permanent): CardInstance | undefined {
+  return permanent.stack.pop();
+}
+
+/** Remove the stack card at `index`; undefined when out of range. */
+export function removeFromStackAt(permanent: Permanent, index: number): CardInstance | undefined {
+  if (index < 0) return undefined;
+  return permanent.stack.splice(index, 1)[0];
+}
+
+/** Replace the whole digivolution stack, bottom-first. */
+export function replaceStack(permanent: Permanent, cards: readonly CardInstance[]): void {
+  permanent.stack.splice(0, permanent.stack.length, ...cards);
+  for (const card of cards) notifyPermanentCard(permanent, card);
+}
+
+/**
+ * Attach a linked card (＜Link＞) to a permanent. Defaults to "top" — the front of the list,
+ * which is where the ＜Link＞ primitive puts a newly linked card; scenario setup that lists
+ * linked cards in board order passes "bottom" to keep the written order.
+ */
+export function linkCard(permanent: Permanent, card: CardInstance, position: ZonePosition = "top"): void {
+  if (position === "top") permanent.linked.unshift(card);
+  else permanent.linked.push(card);
+  notifyPermanentCard(permanent, card);
+}
+
+/**
+ * Set (or clear) the Option card resolving between activation and resolution of its 1st [Main]
+ * effect — §9-1-4's "in no area" slot on PlayerState. Public: the card was revealed to be used.
+ */
+export function setResolvingOption(player: PlayerState, card: CardInstance | undefined): void {
+  player.resolvingOption = card;
+  if (card !== undefined) (player as PortHost)[VISIBILITY_PORT]?.(player.seat, Zone.BattleArea, card);
 }
 
 /** Remove the permanent at `index` from a seat's battle area; undefined when out of range. */

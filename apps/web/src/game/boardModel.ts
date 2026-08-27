@@ -332,10 +332,11 @@ export function buildInstanceIndex(state: GameState, viewerSeat: Seat): Map<stri
     player.battleArea.forEach(addPermanent);
     addPermanent(player.breeding);
     player.trash.forEach(add);
-    if (seat === viewerSeat) {
-      player.hand.forEach(add);
-      player.deck.forEach(add);
-    }
+    // Deck and egg deck are absent by design — the server never encodes them (see
+    // HIDDEN_ZONE_VIEW_TAG), so there is nothing to index. A deck card whose identity an
+    // effect legitimately reveals arrives in the decision payload instead, which
+    // `decisionVisibleCards` already prefers over this index.
+    if (seat === viewerSeat) player.hand.forEach(add);
   });
   return index;
 }

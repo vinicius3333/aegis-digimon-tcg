@@ -26,8 +26,14 @@ import {
   assemblyRequirementFor,
 } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
-import { buildStateView, refreshStateView as refreshStateViewInto, syncPublicCounts } from "./state/visibility.js";
-import { GameStateAccess, insertCard, takeTop } from "./state/access.js";
+import {
+  buildStateView,
+  exposeCardInZone,
+  refreshStateView as refreshStateViewInto,
+  syncPublicCounts,
+} from "./state/visibility.js";
+import { installVisibilityPort, type VisibilityZone, type VisibilityPort } from "./state/access.js";
+import { GameStateAccess, insertCard, setTopCard, takeTop } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
 import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
 import { canAttackerDeclare, hasSummoningSickness } from "./combat/legality.js";
@@ -3508,7 +3514,7 @@ export class GameEngine {
     const playTarget = new Permanent();
     playTarget.permanentId = `pending-play-${instance.instanceId}`;
     playTarget.controllerSeat = source.ownerSeat;
-    playTarget.topCard = instance;
+    setTopCard(playTarget, instance);
     playTarget.inBreeding = false;
     playTarget.baseDP = source.definition.dp ?? 0;
     playTarget.currentDP = playTarget.baseDP;
@@ -4934,6 +4940,10 @@ export class GameEngine {
     player.displayName = options.displayName;
     this.state.players[seat] = player;
     this.stagedDecks[seat] = options.deck;
+    // Seating replaces the PlayerState object, so the port has to be re-installed on the new
+    // one; installing it here (rather than at match start) also covers the cards `runSetup`
+    // deals, which arrive before any turn is played.
+    if (this.visibilityNotify !== undefined) installVisibilityPort(player, this.visibilityNotify);
   }
 
   /** Readiness belongs to the current occupant, not permanently to a seat. */
@@ -5108,6 +5118,38 @@ export class GameEngine {
     if (view === undefined) return;
     syncPublicCounts(this.state);
     refreshStateViewInto(view, this.state, seat);
+  }
+
+  /** Set once by the room; re-applied to each PlayerState as seats are filled. */
+  private visibilityNotify?: VisibilityPort;
+
+  /**
+   * Install the mutation seam's visibility port for both seats. `notify` is called once per
+   * card arrival in a loose zone; the room turns that into an `exposeCardInZone` per connected
+   * client. Idempotent — installing again simply replaces the callback.
+   *
+   * Without this the private zones are never exposed mid-match (the per-patch full walk that
+   * used to do it was removed: it re-queued a forced ADD for every field of every card on
+   * every patch, so each patch carried the whole state).
+   */
+  installVisibility(notify: VisibilityPort): void {
+    this.visibilityNotify = notify;
+    for (const player of this.state.players) installVisibilityPort(player, notify);
+  }
+
+  /**
+   * Apply one card arrival to one client's view. Thin pass-through to the visibility policy
+   * so the room stays free of StateView details, mirroring `refreshStateView` above.
+   */
+  exposeCardToView(
+    view: Client["view"],
+    viewerSeat: Seat,
+    ownerSeat: Seat,
+    zone: VisibilityZone,
+    card: CardInstance,
+  ): void {
+    if (view === undefined) return;
+    exposeCardInZone(view, viewerSeat, ownerSeat, zone, card);
   }
 
   /**

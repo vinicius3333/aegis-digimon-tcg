@@ -289,9 +289,8 @@ function buildCardSiteIndex(state: GameState): {
         sites.set(key(card.cardId), { zone: "hand", instanceId: card.instanceId });
       if (card?.instanceId) seats.set(card.instanceId, seat);
     }
-    for (const card of [...(player.deck ?? []), ...(player.eggDeck ?? [])]) {
-      if (card?.instanceId) seats.set(card.instanceId, seat);
-    }
+    // No deck/eggDeck entries: those zones are never sent to any client (HIDDEN_ZONE_VIEW_TAG),
+    // so a card only becomes locatable once it reaches a zone the viewer can see.
   });
   return {
     locate: (cardId, seat) => sites.get(`${seat}:${cardId}`),

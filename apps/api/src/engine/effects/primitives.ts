@@ -28,9 +28,18 @@ import {
   extractPermanentAt,
   findPermanentInState,
   insertCard,
+  linkCard,
   placePermanent as appendPermanent,
+  popFromStack,
+  pushOnStack,
+  removeFromStackAt,
+  replaceStack,
+  setBreeding,
+  setResolvingOption,
+  setTopCard,
   takeBottom,
   takeTop,
+  unshiftOnStack,
 } from "../state/access.js";
 import {
   matchingEvoCost,
@@ -834,7 +843,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         const idx = ownerPlayer.battleArea.findIndex((p) => p.permanentId === permanent.permanentId);
         if (idx >= 0) extractPermanentAt(ownerPlayer, idx);
         permanent.inBreeding = true;
-        ownerPlayer.breeding = permanent;
+        setBreeding(ownerPlayer, permanent);
       }
       created.push(permanent);
       if ((opts?.digiXrosMaterialInstanceIds?.length ?? 0) > 0) {
@@ -1145,8 +1154,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
-    permanent.stack.push(priorTop);
-    permanent.topCard = instance;
+    pushOnStack(permanent, priorTop);
+    setTopCard(permanent, instance);
     continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.kinds.includes(CardKind.Digimon) ? definition.dp : 0;
     permanent.baseDP = dp;
@@ -1290,7 +1299,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const permanent = new Permanent();
     permanent.permanentId = engine.nextPermanentId();
     permanent.controllerSeat = seat;
-    permanent.topCard = instance;
+    setTopCard(permanent, instance);
     permanent.stack = new ArraySchema<CardInstance>(...stackCards);
     permanent.linked = new ArraySchema<CardInstance>();
     const dp = definition.dp;
@@ -1366,8 +1375,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
-    permanent.stack.push(priorTop);
-    permanent.topCard = instance;
+    pushOnStack(permanent, priorTop);
+    setTopCard(permanent, instance);
     continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.dp;
     permanent.baseDP = dp;
@@ -1436,9 +1445,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const currentTopLevel = currentTopDefinition?.level;
       if (currentTopLevel !== undefined && currentTopLevel <= levelFloor) break;
       const oldTop = permanent.topCard;
-      const newTop = permanent.stack.pop();
+      const newTop = popFromStack(permanent);
       if (newTop === undefined) break;
-      permanent.topCard = newTop;
+      setTopCard(permanent, newTop);
       if (oldTop !== undefined) {
         oldTop.faceUp = false;
         insertCard(player(oldTop.ownerSeat), Zone.Trash, oldTop);
@@ -1476,10 +1485,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const armorPurge = async (permanentId: string): Promise<CardInstance | undefined> => {
     const permanent = access.permanentById(permanentId);
     if (permanent === undefined || permanent.topCard === undefined) return undefined;
-    const newTop = permanent.stack.pop();
+    const newTop = popFromStack(permanent);
     if (newTop === undefined) return undefined;
     const oldTop = permanent.topCard;
-    permanent.topCard = newTop;
+    setTopCard(permanent, newTop);
     newTop.faceUp = true;
     oldTop.faceUp = true;
     insertCard(player(oldTop.ownerSeat), Zone.Trash, oldTop);
@@ -1529,10 +1538,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (permanent === undefined || permanent.topCard === undefined) return false;
     if (permanent.stack.length === 0) return false;
     const oldTop = permanent.topCard;
-    const newTop = permanent.stack.pop();
+    const newTop = popFromStack(permanent);
     if (newTop === undefined) return false;
-    permanent.topCard = newTop;
-    permanent.stack.unshift(oldTop); // bottom of the digivolution cards
+    setTopCard(permanent, newTop);
+    unshiftOnStack(permanent, oldTop); // bottom of the digivolution cards
     const def = requireCardDefinition(newTop.cardId);
     permanent.baseDP = def.kinds.includes(CardKind.Digimon) ? def.dp : 0;
     ledger.recomputeDP(state, permanent.permanentId);
@@ -1573,8 +1582,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const instance = removeLooseInstance(state, instanceId);
       if (instance === undefined) continue;
       instance.faceUp = opts?.faceUp ?? true;
-      if (opts?.belowTop) permanent.stack.push(instance);
-      else permanent.stack.unshift(instance);
+      if (opts?.belowTop) pushOnStack(permanent, instance);
+      else unshiftOnStack(permanent, instance);
       placed.push(instance);
     }
     if (placed.length > 0) {
@@ -1604,7 +1613,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const card = takeTop(player(seat), Zone.Deck);
     if (card === undefined) return undefined;
     card.faceUp = false;
-    permanent.stack.unshift(card);
+    unshiftOnStack(permanent, card);
     engine.emit({ kind: "cardsMoved", instanceIds: [card.instanceId], from: Zone.Deck, to: Zone.BattleArea });
     await engine.fireSubTrigger?.("onAddDigivolutionCards", {
       subjectPermanentId: targetPermanentId,
@@ -1699,7 +1708,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       }
       if (owner.breeding?.permanentId === sourcePermanentId) {
         source = owner.breeding;
-        owner.breeding = undefined;
+        setBreeding(owner, undefined);
         break;
       }
     }
@@ -1728,8 +1737,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const toAttach: CardInstance[] = shed ? [source.topCard] : [source.topCard, ...source.stack, ...source.linked];
     for (const card of toAttach) {
       card.faceUp = opts?.faceUp ?? false;
-      if (belowTop) dest.stack.push(card);
-      else dest.stack.unshift(card);
+      if (belowTop) pushOnStack(dest, card);
+      else unshiftOnStack(dest, card);
     }
 
     engine.emit({
@@ -1797,7 +1806,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // return is a separate pre-existing gap (subTriggers are not recomputed).
         dropPermanentLedgers(permanentId);
         permanent.inBreeding = true;
-        owner.breeding = permanent;
+        setBreeding(owner, permanent);
         engine.emit({
           kind: "cardsMoved",
           instanceIds: permanent.topCard ? [permanent.topCard.instanceId] : [],
@@ -1811,7 +1820,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     for (const owner of state.players) {
       if (owner.breeding === undefined || owner.breeding.permanentId !== permanentId) continue;
       const permanent = owner.breeding;
-      owner.breeding = undefined;
+      setBreeding(owner, undefined);
       permanent.inBreeding = false;
       appendPermanent(owner, permanent);
       engine.emit({
@@ -1893,7 +1902,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       instance.faceUp = true;
       // CR 10-1-2-1: a new link card is plugged in at the BOTTOM of the existing ones,
       // mirroring the digivolution stack's own bottom-insert convention.
-      permanent.linked.unshift(instance);
+      linkCard(permanent, instance);
       linked.push(instance);
     }
     if (linked.length > 0) {
@@ -2098,7 +2107,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const owner = player(seat);
     const permanent = owner.breeding;
     if (permanent?.topCard === undefined || isRestricted(permanent.permanentId, "beTrashed")) return [];
-    owner.breeding = undefined;
+    setBreeding(owner, undefined);
     dropPermanentLedgers(permanent.permanentId);
     const moved = [permanent.topCard, ...permanent.stack, ...permanent.linked];
     for (const card of moved) {
@@ -2257,7 +2266,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     for (const entry of validated) {
       const host = access.permanentById(entry.hostPermanentId)!;
       const index = host.stack.findIndex((card) => card.instanceId === entry.card.instanceId);
-      host.stack.splice(index, 1);
+      removeFromStackAt(host, index);
       entry.card.faceUp = true;
       insertCard(player(entry.card.ownerSeat), Zone.Trash, entry.card);
     }
@@ -2456,7 +2465,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         hostOfLinkedInstance(state, usedInstanceId) !== undefined;
       resolvingCard = removeLooseInstance(state, usedInstanceId, true);
       if (resolvingCard === undefined) return [];
-      usedOwner.resolvingOption = resolvingCard;
+      setResolvingOption(usedOwner, resolvingCard);
       // This is the authoritative commit point: legality and payment passed, and the exact
       // physical Option has left its source zone for the no-area resolving slot. Callers use
       // this receipt for `ifThisEffectUsed`; a mere candidate selection is not a successful use.
@@ -2534,7 +2543,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // when its effect throws. This also keeps ordinary stack/link uses atomic.
     let moved: CardInstance[] = [];
     if (resolvingCard !== undefined && usedOwner?.resolvingOption === resolvingCard) {
-      usedOwner.resolvingOption = undefined;
+      setResolvingOption(usedOwner, undefined);
       insertCard(player(resolvingCard.ownerSeat), Zone.Trash, resolvingCard);
       moved = [resolvingCard];
       engine.emit({ kind: "cardsMoved", instanceIds: [resolvingCard.instanceId], from: "various", to: Zone.Trash });
@@ -3774,8 +3783,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           : completeStack.slice(0, -removableCount);
         const promoted = remaining.at(-1);
         if (promoted === undefined) continue;
-        permanent.stack.splice(0, permanent.stack.length, ...remaining.slice(0, -1));
-        permanent.topCard = promoted;
+        replaceStack(permanent, remaining.slice(0, -1));
+        setTopCard(permanent, promoted);
         promoted.faceUp = true;
         const promotedDefinition = requireCardDefinition(promoted.cardId);
         permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
@@ -3981,7 +3990,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           }
         }
         if (permanent === undefined || permanent.topCard === undefined) continue;
-        const promoted = permanent.stack.pop();
+        const promoted = popFromStack(permanent);
         const detached = permanent.topCard;
         if (promoted === undefined) {
           const battleOwner = owner;
@@ -3994,7 +4003,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             dropPermanentLedgers(permanent.permanentId);
           }
         } else {
-          permanent.topCard = promoted;
+          setTopCard(permanent, promoted);
           const promotedDefinition = requireCardDefinition(promoted.cardId);
           permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
           dropPermanentLedgers(permanent.permanentId);
@@ -5100,7 +5109,7 @@ function placePermanent(
   const permanent = new Permanent();
   permanent.permanentId = engine.nextPermanentId();
   permanent.controllerSeat = owner.seat;
-  permanent.topCard = instance;
+  setTopCard(permanent, instance);
   permanent.stack = new ArraySchema<CardInstance>();
   permanent.linked = new ArraySchema<CardInstance>();
   const dp = definition.kinds.includes(CardKind.Digimon) ? definition.dp : 0;
@@ -5168,7 +5177,7 @@ function removeLooseInstance(
     // it isn't in trash yet) trash lookup below.
     if (owner.resolvingOption?.instanceId === instanceId) {
       const card = owner.resolvingOption;
-      owner.resolvingOption = undefined;
+      setResolvingOption(owner, undefined);
       return card;
     }
     const fromHand = spliceById(owner.hand, instanceId);
@@ -5460,7 +5469,7 @@ function collectForReturn(
     }
     if (owner.breeding !== undefined && owner.breeding.topCard?.instanceId === instanceId) {
       const permanent = owner.breeding;
-      owner.breeding = undefined;
+      setBreeding(owner, undefined);
       onPermanentRemoved?.(permanent.permanentId);
       return [...permanent.stack, ...(permanent.topCard ? [permanent.topCard] : []), ...permanent.linked];
     }

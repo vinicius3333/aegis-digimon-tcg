@@ -1,5 +1,5 @@
 import { CardInstance, PlayerState, Zone, type GameState, type Seat } from "@aegis/shared";
-import { clearBattleArea, clearZone, fillZone, insertCard, takeTop } from "./state/access.js";
+import { clearBattleArea, clearZone, fillZone, insertCard, setBreeding, takeTop } from "./state/access.js";
 
 /**
  * Match setup: build each seat's zones from its decklist and run the official
@@ -125,7 +125,7 @@ export function loadDeckInto(player: PlayerState, seat: Seat, deck: Decklist): P
   clearZone(player, Zone.Security);
   clearZone(player, Zone.Trash);
   clearBattleArea(player);
-  player.breeding = undefined;
+  setBreeding(player, undefined);
   player.connected = true;
   player.hasMulliganed = false;
   player.lost = false;
