@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-072.js";
 import "./BT1-077.js";
@@ -18,6 +19,21 @@ describe("BT1-077 Okuwamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.memory === 1);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("does not gain memory when the deletion occurs during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-081", as: "attacker", under: ["BT1-077"] }] },
+      1: { battleArea: [{ card: "BT1-016", as: "defender", suspended: true }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+
+    expect(s.state.memory).toBe(0);
   });
 
   it("does not gain memory when both Digimon are deleted in a tied battle", async () => {
