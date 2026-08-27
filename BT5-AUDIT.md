@@ -3433,3 +3433,27 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   — 1/1 passed. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No production or shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-102 — Wisselen — 10/10
+
+- Catalog and ruling evidence: Black Option with use cost 6. Main prevents up
+  to two opposing Digimon from attacking or blocking until the end of the
+  opponent's next turn, then gains 2 memory if the controller has a Digimon
+  with Digi-Burst. Security prevents up to two opposing Digimon from attacking
+  for the turn and applies the same memory condition. The local knowledge base
+  contains no card-specific ruling or ambiguity.
+- Implementation: `apps/api/src/cards/BT5/BT5-102.ts` uses up-to-two opponent
+  Restrict actions with exact `attackOrBlock`/until-opponent-turn-end Main and
+  `attack`/for-the-turn Security scopes. Both branches gate +2 memory on an own
+  battle-area Digimon whose text contains Digi-Burst. Full residual-free
+  coverage and exclusive `registerIrCard("BT5-102", compiled)` registration are
+  preserved.
+- Behavioral proof: the existing three focused tests already prove Main
+  attack/block restriction on two targets with a third unaffected, exact +2
+  memory under the own Digi-Burst condition, and Security attack-only behavior
+  with blocking still legal and the same memory clause.
+- Defect corrected: none. Source and existing evidence were already complete,
+  so no card or test change was introduced.
+- Verification: focused BT5-102 — 3/3 passed; exclusive registration search and
+  `git diff --check` pass. No production, test, or shared engine source changed.
+- Remaining ambiguity: none identified.
