@@ -2324,3 +2324,32 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
   primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-059 — Keramon — 10/10
+
+- Catalog and ruling evidence: Black Lv.3 Rookie Digimon,
+  Unknown/Unidentified, play cost 3, 2000 DP, and black Lv.2 evolution cost 0.
+  On play it reveals exactly 5 cards, adds exactly 1 Unidentified-trait Digimon
+  and exactly 1 Arata Sanada card when available, then places every remainder
+  at deck bottom in any order. Q1335 confirms either available category may be
+  added independently when the other is absent; Q1336 confirms the two filter
+  categories.
+- Implementation: `apps/api/src/cards/BT5/BT5-059.ts` contains one `OnPlay`
+  `RevealAdd` with `revealCount: 5` and two independent count-1 add groups: a
+  Digimon-kind plus Unidentified-trait filter, and an exact Arata Sanada name
+  filter. `rest: "deckBottom"` handles every unselected revealed instance. It
+  declares full residual-free coverage and registers exclusively through
+  `registerIrCard("BT5-059", compiled)`.
+- Behavioral proof: the focused mixed-pool case reveals two eligible
+  Unidentified Digimon, two Arata Sanada cards, and one miss; preferred exact
+  instances enter hand, while the two unchosen matches and miss occupy the
+  final three deck positions in any order beneath a sixth unrevealed card that
+  stays on top. Two additional cases prove the Unidentified-only and
+  Arata-only Q1335 paths independently.
+- Defect corrected: none in the module. The audit strengthened the focused
+  proof for duplicate groups, exact count/identity, independent categories,
+  and true deck-bottom placement.
+- Verification: focused BT5-059 — 3/3 passed. Targeted Oxfmt, Oxlint, and
+  `git diff --check` pass. Typecheck was not rerun because no typing-sensitive
+  source changed; the last known unrelated baseline remains documented.
+- Remaining ambiguity: none identified.
