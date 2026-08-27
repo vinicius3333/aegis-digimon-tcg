@@ -22,9 +22,9 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT2-051–060 | Static audit complete | `internal-docs/audits/BT2/BT2-051-060.md` | Yes |
 | BT2-061–070 | Static audit complete | `internal-docs/audits/BT2/BT2-061-070.md` | Yes |
 | BT2-071–080 | Static audit complete | `internal-docs/audits/BT2/BT2-071-080.md` | Yes |
-| BT2-081–090 | Luna in progress | `internal-docs/audits/BT2/BT2-081-090.md` | No |
+| BT2-081–090 | Static audit complete | `internal-docs/audits/BT2/BT2-081-090.md` | Yes |
 | BT2-091–100 | Static audit complete | `internal-docs/audits/BT2/BT2-091-100.md` | Yes |
-| BT2-101–110 | Luna in progress | `internal-docs/audits/BT2/BT2-101-110.md` | No |
+| BT2-101–110 | Static audit complete | `internal-docs/audits/BT2/BT2-101-110.md` | Yes |
 | BT2-111–112 | Luna in progress | `internal-docs/audits/BT2/BT2-111-112.md` | No |
 
 ## Score model
@@ -123,6 +123,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT2-078 WereGarurumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-078.ts), [test](apps/api/src/cards/BT2/BT2-078.test.ts) |
 | BT2-079 VenomMyotismon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-079.ts), [test](apps/api/src/cards/BT2/BT2-079.test.ts) |
 | BT2-080 Piedmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-080.ts), [test](apps/api/src/cards/BT2/BT2-080.test.ts) |
+| BT2-081 MetalGarurumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-081.ts), [test](apps/api/src/cards/BT2/BT2-081.test.ts) |
+| BT2-082 Diaboromon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-082.ts), [test](apps/api/src/cards/BT2/BT2-082.test.ts) |
+| BT2-083 Millenniummon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-083.ts), [test](apps/api/src/cards/BT2/BT2-083.test.ts) |
+| BT2-084 Sora Takenouchi | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-084.ts), [test](apps/api/src/cards/BT2/BT2-084.test.ts) |
+| BT2-085 Joe Kido | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-085.ts), [test](apps/api/src/cards/BT2/BT2-085.test.ts) |
+| BT2-086 Rina Shinomiya | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-086.ts), [test](apps/api/src/cards/BT2/BT2-086.test.ts) |
+| BT2-087 Kari Kamiya | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-087.ts), [test](apps/api/src/cards/BT2/BT2-087.test.ts) |
+| BT2-088 Taiga | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-088.ts), [test](apps/api/src/cards/BT2/BT2-088.test.ts) |
+| BT2-089 Tai Kamiya | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-089.ts), [test](apps/api/src/cards/BT2/BT2-089.test.ts) |
+| BT2-090 Matt Ishida | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-090.ts), [test](apps/api/src/cards/BT2/BT2-090.test.ts) |
 | BT2-091 Volcanic Flare | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-091.ts), [test](apps/api/src/cards/BT2/BT2-091.test.ts) |
 | BT2-092 Radiation Blade | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-092.ts), [test](apps/api/src/cards/BT2/BT2-092.test.ts) |
 | BT2-093 Shield of the Just | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-093.ts), [test](apps/api/src/cards/BT2/BT2-093.test.ts) |
@@ -133,6 +143,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT2-098 EDEN's Javelin | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-098.ts), [test](apps/api/src/cards/BT2/BT2-098.test.ts) |
 | BT2-099 Glorious Burst | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-099.ts), [test](apps/api/src/cards/BT2/BT2-099.test.ts) |
 | BT2-100 Puppet Pummel | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-100.ts), [test](apps/api/src/cards/BT2/BT2-100.test.ts) |
+| BT2-101 Cherry Blast | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-101.ts), [test](apps/api/src/cards/BT2/BT2-101.test.ts) |
+| BT2-102 Terrors Cluster | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-102.ts), [test](apps/api/src/cards/BT2/BT2-102.test.ts) |
+| BT2-103 Spiral Sword | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-103.ts), [test](apps/api/src/cards/BT2/BT2-103.test.ts) |
+| BT2-104 Atomic Ray | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-104.ts), [test](apps/api/src/cards/BT2/BT2-104.test.ts) |
+| BT2-105 Spider Shooter | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-105.ts), [test](apps/api/src/cards/BT2/BT2-105.test.ts) |
+| BT2-106 Infinity Cannon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-106.ts), [test](apps/api/src/cards/BT2/BT2-106.test.ts) |
+| BT2-107 Darkness Claw | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-107.ts), [test](apps/api/src/cards/BT2/BT2-107.test.ts) |
+| BT2-108 Night Raid | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-108.ts), [test](apps/api/src/cards/BT2/BT2-108.test.ts) |
+| BT2-109 Heat Viper | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-109.ts), [test](apps/api/src/cards/BT2/BT2-109.test.ts) |
+| BT2-110 Trump Sword | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-110.ts), [test](apps/api/src/cards/BT2/BT2-110.test.ts) |
 
 Detailed clause traces and deferred commands are recorded in the integrated range reports under `internal-docs/audits/BT2/`.
 
@@ -140,9 +160,9 @@ Detailed clause traces and deferred commands are recorded in the integrated rang
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 90
+- Integrated card audits: 110
 - Corrected: 1
-- Provisional: 90
+- Provisional: 110
 - Verified 10/10: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 0
