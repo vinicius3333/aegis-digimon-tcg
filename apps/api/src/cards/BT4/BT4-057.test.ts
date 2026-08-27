@@ -3,8 +3,11 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT4-057.js";
 
 describe("BT4-057 GrapLeomon", () => {
-  it("gains 1 memory when attacking", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-057", as: "grap" }] }, 1: { security: ["BT1-001"] } });
+  it("gains 1 memory when attacking from a legal green stack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-057", as: "grap", under: ["BT4-004", "BT4-052", "BT4-054"] }] },
+      1: { security: ["BT1-001"] },
+    });
     s.state.memory = 0;
     expect(
       s.engine.applyIntent(0, {
