@@ -120,13 +120,14 @@ describe("EX11-073 ExMaquinamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.deck).toHaveLength(2);
-    const securityMove = s.events.findIndex(
-      (event) =>
-        (event as { kind?: string; from?: string }).kind === "cardsMoved" && (event as any).from === "security",
-    );
-    const deckMove = s.events.findIndex(
-      (event) => (event as { kind?: string; to?: string }).kind === "cardsMoved" && (event as any).to === "deck",
-    );
+    const securityMove = s.events.findIndex((event) => {
+      const move = event as { kind?: string; from?: string };
+      return move.kind === "cardsMoved" && move.from === "security";
+    });
+    const deckMove = s.events.findIndex((event) => {
+      const move = event as { kind?: string; to?: string };
+      return move.kind === "cardsMoved" && move.to === "deckBottom";
+    });
     expect(securityMove).toBeGreaterThanOrEqual(0);
     expect(deckMove).toBeGreaterThan(securityMove);
     assertNoLoudGap(s);
