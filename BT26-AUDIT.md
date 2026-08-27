@@ -2961,6 +2961,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR and exclusive `registerIrCard`; Start Main gains memory when the opponent has a Digimon; optional suspension reduces a qualifying Boss/TS Digimon's play cost by 2 with no own Digimon or 1 otherwise; Security plays free.
 - Proof: both reduction branches, Boss/TS routes, refusal, suspended source, Security, start-turn condition, plus new negative non-Boss/non-TS Digimon boundary. Automation not run; diff check passed. No unresolved limitation.
 
+## BT26-089 — Kyo Sawashiro — 10/10
+
+- Catalog/KB: yellow cost-3 `Glowing Dawn`/`BEATBREAK` Tamer confirmed. Q7137–Q7142 cover bottom face-down placement, visibility/order, face-up trash conversion, suspend-gated follow-up, and Security trigger ordering.
+- Implementation: full IR and exclusive `registerIrCard`; optional BEATBREAK hand placement then Draw 1/+1 memory, distinct normal/effect security-removal watchers, suspend-gated face-down top-deck placement, effect-only Security A. -1, and Security free play.
+- Proof: stack order, refusal, normal/effect distinction, suspended and opponent-security negatives, ordering, debuff, and Security play. No change needed; automation not run; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
