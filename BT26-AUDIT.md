@@ -2404,3 +2404,35 @@ git diff --check
 ```
 
 No unresolved BT26-057 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-058 — HiAndromon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-058` (`HiAndromon`), a black/yellow level-6 Digimon with play cost 12, 12000 DP, alternate evolution from a level-5 `CS` Digimon for cost 3, Reboot, and Blocker.
+- Printed behavior verified: shared When Digivolving/When Attacking Once Per Turn protection makes exactly one own `CS` Digimon unaffected by opposing Digimon effects through the opponent's turn; and its All Turns replacement may rotate HiAndromon's top stack card to the bottom to prevent an own `CS` Digimon from leaving play.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-058`; no Q&A, banlist restriction, or erratum is recorded. Effect immunity, leave-play replacement, stack rotation, Reboot, and Blocker rules were reviewed.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-058.ts` has full compiled IR coverage and registers exclusively through `registerIrCard("BT26-058", compiled)`.
+- Reboot and Blocker are projected statically. The two protection timings share one Once Per Turn identity and select exactly one own `CS` Digimon for opponent-Digimon-effect immunity through the proper duration.
+- The `wouldLeavePlay` replacement scopes the protected permanent to own `CS`, offers the prevention cost, and moves HiAndromon's top digivolution card to stack bottom. Restriction/replacement gates, self-protection, stack order, and peers were inspected.
+
+### Behavioral proof
+
+- Existing `apps/api/src/cards/BT26/BT26-058.test.ts` covers alternate evolution, keyword exposure, shared timing budget, protection duration, protecting another `CS` or HiAndromon itself, stack rotation order, and failure without a source card.
+- The focused fixture now also contains a non-`CS` Digimon and explicitly proves it is excluded from the protection target while only one eligible recipient gains immunity. The implementation required no correction.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-058
+  PASS (no card-specific Q&A, errata, or restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-058 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
