@@ -91582,7 +91582,8 @@
               "count": "all"
             },
             "restriction": "suspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           },
           {
             "kind": "Delete",
@@ -91600,7 +91601,8 @@
               "count": "all"
             },
             "restriction": "suspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           },
           {
             "kind": "Delete",
@@ -91625,12 +91627,23 @@
                 "amount": 4,
                 "scope": "acrossDigimon",
                 "optional": true
+              },
+              {
+                "kind": "DnaDigivolve",
+                "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
+                "into": {
+                  "controllerDefault": "mine",
+                  "zone": "hand",
+                  "nameOrTrait": [{ "tokens": ["GraceNovamon"], "match": "name" }]
+                },
+                "payCost": true,
+                "optional": true
               }
             ]
           },
           {
             "kind": "SubTrigger",
-            "event": "whenOneOfYoursDigivolves",
+            "event": "whenAnyDigivolves",
             "sourceFilter": { "controllerDefault": "any", "kind": ["Digimon"] },
             "actions": [
               {
@@ -91642,15 +91655,19 @@
                 "amount": 4,
                 "scope": "acrossDigimon",
                 "optional": true
+              },
+              {
+                "kind": "DnaDigivolve",
+                "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
+                "into": {
+                  "controllerDefault": "mine",
+                  "zone": "hand",
+                  "nameOrTrait": [{ "tokens": ["GraceNovamon"], "match": "name" }]
+                },
+                "payCost": true,
+                "optional": true
               }
             ]
-          },
-          {
-            "kind": "DnaDigivolve",
-            "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["GraceNovamon"], "match": "name" }] },
-            "payCost": true,
-            "optional": true
           }
         ],
         "frequency": "OncePerTurn"

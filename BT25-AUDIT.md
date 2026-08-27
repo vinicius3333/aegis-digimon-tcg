@@ -548,3 +548,25 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-027.
+
+## BT25-028 — Dianamon — 10/10
+
+- Catalog evidence: Blue/purple level-6 Digimon, play cost 12, 12000 DP, `Mega`/`Data`, `Shaman`/`Olympos XII`/`Iliad`/`TS`; standard blue or purple level-5 evolution for 4 plus alternate level-5 `TS` evolution for 3; self play cost -5 while the opponent has a level-6-or-higher Digimon; On Play/When Digivolving continuously prevent opposing Digimon with at most one digivolution card from suspending, then delete one opposing unsuspended Digimon; all-turn once-per-turn on any Digimon play/evolution optionally trashes any four opposing digivolution cards, then optionally DNA evolves two friendly Digimon into GraceNovamon from hand; inherited When Attacking once-per-turn suspension restriction.
+- Knowledge base: Q6292 includes Dianamon's own play/evolution in the all-turn trigger. Q6293 requires the Trash-then-DNA sequence to resolve within that pending effect before a separately pending entry effect. Q6294 makes the low-stack restriction affect qualifying later entrants, and Q6295 removes it dynamically once a Digimon reaches two sources. Q6489 confirms the resulting GraceNovamon can participate at a later counter timing.
+- Implementation: the verified pay-time reducer now recognizes this card at the exact opposing level-6 boundary. Both entry timings use live target-filter membership for the suspension lock and independently select the unsuspended deletion target. Both any-player play/evolution watchers contain the complete TrashDigivolution-then-DnaDigivolve sequence, use a hand-only controller-owned GraceNovamon destination, and share source-scoped once-per-turn usage. The alternate evolution and inherited restriction are complete. Direct/shared IR are synchronized, have full coverage/no residual clauses, and register exclusively through `registerIrCard("BT25-028", compiled)`.
+- Defects corrected: the self reducer was inert because BT25-028 was absent from the verified registry; the suspension lock captured only a resolution-time snapshot contrary to Q6294/Q6295; and the persisted shared IR used a friendly-only evolution event while placing DNA outside the event watchers. Registration, live-filter semantics, any-player timing, action nesting, and hand zone are now explicit and synchronized.
+- Behavioral proof: the focused suite proves both play-cost boundaries, continuous restriction for later entrants and 2+-source exclusion, expiration, self-play triggering, any-Digimon evolution triggering, exact four-source trash followed by live DNA from hand, cross-event once-per-turn scope, and inherited suspension prevention. The reducer, later-entrant, and event-chain cases fail against the prior implementation.
+- Verification: focused suite — 10 passed; subtrigger/primitives — 26 passed; continuous/subtrigger fire-site mechanisms — 93 passed; reducer registration — 2 passed; adjacent BT25-018/BT25-026 — 21 passed; targeted Oxfmt, shared-IR JSON parse, and `git diff --check` — passed. BT25-103 retains an unrelated existing multi-host trash-test failure. Workspace typecheck retains the already-recorded unrelated pre-existing errors and no BT25-028 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-028
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-028.ts
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-028.test.ts
+pnpm exec oxfmt --check apps/api/src/cards/BT25/BT25-028.ts apps/api/src/cards/BT25/BT25-028.test.ts apps/api/src/engine/effects/interpreter/registration/reducers.ts
+node -e 'JSON.parse(require("fs").readFileSync("packages/shared/src/effects/effects.json", "utf8"))'
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-028.
