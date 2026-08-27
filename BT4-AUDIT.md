@@ -16,9 +16,9 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | --- | --- | --- | --- |
 | BT4-001–010 | Luna in progress | `internal-docs/audits/BT4/BT4-001-010.md` | No |
 | BT4-011–020 | Static audit delivered | `internal-docs/audits/BT4/BT4-011-020.md` | Yes |
-| BT4-021–030 | Luna in progress | `internal-docs/audits/BT4/BT4-021-030.md` | No |
+| BT4-021–030 | Static audit delivered | `internal-docs/audits/BT4/BT4-021-030.md` | Yes |
 | BT4-031–040 | Luna in progress | `internal-docs/audits/BT4/BT4-031-040.md` | No |
-| BT4-041–050 | Unassigned | `internal-docs/audits/BT4/BT4-041-050.md` | No |
+| BT4-041–050 | Luna in progress | `internal-docs/audits/BT4/BT4-041-050.md` | No |
 | BT4-051–060 | Unassigned | `internal-docs/audits/BT4/BT4-051-060.md` | No |
 | BT4-061–070 | Unassigned | `internal-docs/audits/BT4/BT4-061-070.md` | No |
 | BT4-071–080 | Unassigned | `internal-docs/audits/BT4/BT4-071-080.md` | No |
@@ -53,18 +53,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-018 Spinomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Own-turn-only 3000-DP modifier and opposite-turn boundary proof |
 | BT4-019 VictoryGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Digi-Burst source cost and inclusive 8000-DP deletion boundary |
 | BT4-020 ShineGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Separate red/yellow Tamer suspension triggers and blue-Digimon negative proof |
+| BT4-021 Gaomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited self-source Digi-Burst return and non-Digi-Burst negative proof |
+| BT4-022 Sangomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and ordinary blue evolution evidence |
+| BT4-023 Strabimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent Hybrid/blue-Tamer reveal slots and partial-match ruling trace |
+| BT4-024 Tobiumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and ordinary blue evolution evidence |
+| BT4-025 Lobomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blue-Tamer alternate evolution and derived printed-cost proof |
+| BT4-026 GaoGamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Digi-Burst source cost on Draw 1 with allied-stack retention proof |
+| BT4-027 KendoGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blue-Tamer evolution plus bound level-3 source-trash-and-return sequence |
+| BT4-028 Piranimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited top-source trash and legal host-stack proof |
+| BT4-029 Gusokumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and ordinary blue evolution evidence |
+| BT4-030 Beowolfmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Jamming and live Hybrid-or-blue-Tamer cant-be-attacked condition proof |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT4/`.
 
 ## Aggregate
 
 - Catalog cards: 115
-- Assigned: 40
-- Integrated card audits: 10
-- Corrected: 2
-- Provisional: 10
+- Assigned: 50
+- Integrated card audits: 20
+- Corrected: 3
+- Provisional: 20
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 75
+- Remaining unassigned: 65
 
 BT4 remains open.
