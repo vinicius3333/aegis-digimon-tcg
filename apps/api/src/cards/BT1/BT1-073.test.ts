@@ -70,6 +70,21 @@ describe("BT1-073 Kabuterimon", () => {
     expect(s.perm("host").currentDP).toBe(5000);
   });
 
+  it("counts suspended opposing Digimon but not a suspended Tamer", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-075", as: "host", dp: 5000, under: ["BT1-073"] }] },
+      1: {
+        battleArea: [
+          { card: "BT1-016", suspended: true },
+          { card: "BT1-085", suspended: true },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(6000);
+  });
+
   it("gives no DP during the opponent's turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-075", as: "host", dp: 5000, under: ["BT1-073"] }] },
