@@ -99910,42 +99910,130 @@
         "actions": [
           {
             "kind": "WaiveColorRequirement",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "condition": {
               "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }] },
+              "filter": {
+                "controllerDefault": "mine",
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
+              },
               "raw": "you have a card w/[TS] trait"
             }
           }
         ]
       },
-      { "trigger": "Security", "actions": [{ "kind": "ActivateMain" }] },
+      {
+        "trigger": "Security",
+        "actions": [
+          {
+            "kind": "ActivateMain"
+          }
+        ]
+      },
       {
         "trigger": "Main",
         "actions": [
           {
             "kind": "Delete",
             "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ],
+                "superlative": "lowestDP"
+              },
               "count": "all"
             }
           },
           {
             "kind": "Trash",
-            "target": { "filter": { "zone": "battleArea", "controller": "opponent", "kind": ["Option"] }, "count": 1 },
-            "condition": { "kind": "ifThisEffectDidNotDelete", "raw": "if this effect didn't delete" }
+            "target": {
+              "filter": {
+                "zone": "battleArea",
+                "controller": "opponent",
+                "kind": [
+                  "Option"
+                ],
+                "placedInBattleAreaByEffect": true
+              },
+              "count": 1
+            },
+            "condition": {
+              "kind": "ifThisEffectDidNotDelete",
+              "raw": "if this effect didn't delete"
+            }
           },
           {
             "kind": "Link",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1
+            },
+            "recipient": {
+              "filter": {
+                "controller": "mine",
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
+            "allowBreedingRecipient": true,
             "payCost": false,
             "optional": true
+          }
+        ]
+      },
+      {
+        "trigger": "WhenAttacking",
+        "isLinked": true,
+        "frequency": "OncePerTurn",
+        "actions": [
+          {
+            "kind": "Delete",
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ],
+                "dp": {
+                  "op": "lte",
+                  "relativeToSource": true
+                }
+              },
+              "count": 1
+            }
           }
         ]
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "linkRequirement": [
+      {
+        "traits": [
+          "TS"
+        ],
+        "cost": 3
+      }
+    ]
   },
   "BT25-094": {
     "effects": [
@@ -99954,10 +100042,20 @@
         "actions": [
           {
             "kind": "WaiveColorRequirement",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "condition": {
               "kind": "youHaveNone",
-              "filter": { "controllerDefault": "mine" },
+              "filter": {
+                "zone": "security",
+                "controllerDefault": "mine",
+                "faceUp": true
+              },
               "raw": "you have no face-up security cards"
             }
           }
@@ -99971,24 +100069,71 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "colors": ["Red", "Blue"],
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Red",
+                  "Blue"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": "all"
             },
-            "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
+            "keyword": {
+              "keyword": "Alliance",
+              "raw": "＜Alliance＞"
+            },
             "duration": "permanent"
           },
           {
-            "kind": "Aura",
-            "target": { "filter": { "controllerDefault": "mine" }, "count": 1 },
-            "effect": { "kind": "keyword", "keyword": { "keyword": "Rush", "raw": "＜Rush＞" } },
-            "while": {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Red",
+                  "Blue"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
+              },
+              "count": "all"
+            },
+            "keyword": {
+              "keyword": "Rush",
+              "raw": "＜Rush＞"
+            },
+            "duration": "permanent",
+            "condition": {
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Apollomon", "Dianamon"], "match": "name" }]
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Apollomon",
+                      "Dianamon"
+                    ],
+                    "match": "name"
+                  }
+                ]
               },
               "raw": "you have [Apollomon] or [Dianamon]"
             }
@@ -99999,12 +100144,17 @@
       {
         "trigger": "Main",
         "actions": [
-          { "kind": "SecurityManipulation", "op": "toHand", "controller": "mine", "amount": 1, "toTop": false },
+          {
+            "kind": "SecurityManipulation",
+            "op": "toHand",
+            "controller": "mine",
+            "amount": 1,
+            "toTop": false
+          },
           {
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "controller": "mine",
-            "source": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "toTop": false,
             "faceUp": true
           },
@@ -100013,23 +100163,30 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "colors": ["Red", "Blue"],
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Red",
+                  "Blue"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": 1
             },
-            "from": ["hand"],
+            "from": [
+              "hand"
+            ],
             "payCost": true,
-            "optional": true
-          },
-          {
-            "kind": "Replacement",
-            "event": "wouldBePlayed",
-            "mode": "reduceCost",
-            "amount": 3,
-            "raw": "play 1 red or blue [TS] trait Digimon card from your hand with the cost reduced by 3",
-            "optional": true
+            "optional": true,
+            "reduceCostBy": 3
           }
         ]
       },
@@ -100041,14 +100198,32 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "colors": ["Red", "Blue"],
-                "levelComparison": { "op": "lte", "value": 4 },
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Red",
+                  "Blue"
+                ],
+                "levelComparison": {
+                  "op": "lte",
+                  "value": 4
+                },
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": 1
             },
-            "from": ["hand", "trash"],
+            "from": [
+              "hand",
+              "trash"
+            ],
             "payCost": false,
             "optional": true
           }
@@ -100066,10 +100241,20 @@
         "actions": [
           {
             "kind": "WaiveColorRequirement",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "target": {
+              "filter": {
+                "isSelfRef": true
+              },
+              "count": 1,
+              "isSelf": true
+            },
             "condition": {
               "kind": "youHaveNone",
-              "filter": { "controllerDefault": "mine" },
+              "filter": {
+                "zone": "security",
+                "controllerDefault": "mine",
+                "faceUp": true
+              },
               "raw": "you have no face-up security cards"
             }
           }
@@ -100083,9 +100268,21 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "colors": ["Red", "Green"],
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Red",
+                  "Green"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": "all"
             },
@@ -100093,14 +100290,46 @@
             "duration": "permanent"
           },
           {
-            "kind": "Aura",
-            "target": { "filter": { "controllerDefault": "mine" }, "count": 1 },
-            "effect": { "kind": "keyword", "keyword": { "keyword": "Rush", "raw": "＜Rush＞" } },
-            "while": {
+            "kind": "GainKeyword",
+            "target": {
+              "filter": {
+                "controller": "mine",
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Red",
+                  "Green"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
+              },
+              "count": "all"
+            },
+            "keyword": {
+              "keyword": "Rush",
+              "raw": "＜Rush＞"
+            },
+            "duration": "permanent",
+            "condition": {
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Marsmon", "Callismon"], "match": "name" }]
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Marsmon",
+                      "Callismon"
+                    ],
+                    "match": "name"
+                  }
+                ]
               },
               "raw": "you have [Marsmon] or [Callismon]"
             }
@@ -100111,12 +100340,17 @@
       {
         "trigger": "Main",
         "actions": [
-          { "kind": "SecurityManipulation", "op": "toHand", "controller": "mine", "amount": 1, "toTop": false },
+          {
+            "kind": "SecurityManipulation",
+            "op": "toHand",
+            "controller": "mine",
+            "amount": 1,
+            "toTop": false
+          },
           {
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "controller": "mine",
-            "source": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "toTop": false,
             "faceUp": true
           },
@@ -100125,23 +100359,30 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "colors": ["Red", "Green"],
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Red",
+                  "Green"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": 1
             },
-            "from": ["hand"],
+            "from": [
+              "hand"
+            ],
             "payCost": true,
-            "optional": true
-          },
-          {
-            "kind": "Replacement",
-            "event": "wouldBePlayed",
-            "mode": "reduceCost",
-            "amount": 3,
-            "raw": "play 1 red or green [TS] trait Digimon card from your hand with the cost reduced by 3",
-            "optional": true
+            "optional": true,
+            "reduceCostBy": 3
           }
         ]
       },
@@ -100153,14 +100394,32 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": ["Digimon"],
-                "colors": ["Red", "Green"],
-                "levelComparison": { "op": "lte", "value": 4 },
-                "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+                "kind": [
+                  "Digimon"
+                ],
+                "colors": [
+                  "Red",
+                  "Green"
+                ],
+                "levelComparison": {
+                  "op": "lte",
+                  "value": 4
+                },
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "TS"
+                    ],
+                    "match": "trait"
+                  }
+                ]
               },
               "count": 1
             },
-            "from": ["hand", "trash"],
+            "from": [
+              "hand",
+              "trash"
+            ],
             "payCost": false,
             "optional": true
           }
