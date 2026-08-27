@@ -1657,3 +1657,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-086.
+
+## BT25-087 — Thomas H. Norstein — 10/10
+
+- Catalog evidence: black Tamer; start-turn memory setter; all-turn opponent-hand-add watcher suspends this Tamer and may place the top two deck cards face down underneath it; once-per-turn DATA SQUAD evolution reduction paid by trashing a bottom face-down card under a friendly Tamer; Security plays this card free.
+- Knowledge base: Q6409–Q6413 define true-bottom insertion, fixed order, private visibility, face-up trashing, and top-first deck placement; Q6414 allows two physical copies to stack their reductions.
+- Implementation: memory boundary, opponent-seat event gate, self-suspension, top-first face-down placement, bottom-card payment, per-copy reduction, DATA SQUAD scope, and Security play are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-087", compiled)`.
+- Verification: focused — 5 passed; stack/subtrigger/hand-trash mechanisms — 56 passed; combined batch/mechanism gate — 263 passed; `git diff --check` — passed. No direct defect was found, so no implementation or test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-087
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-087.test.ts src/engine/effects/stack.test.ts src/engine/effects/subtriggers.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-087.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-087.
