@@ -1513,3 +1513,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-078.
+
+## BT25-079 — Hyemon — 10/10
+
+- Catalog evidence: purple level-3 Digimon; all-turn memory-gain lock applies to both players except Tamer effects; inherited Retaliation.
+- Knowledge base: Q6380 confirms both players are restricted except Tamer effects. Q6381 confirms the exception still applies when the Tamer is also treated as a Digimon.
+- Implementation: seat-wide permanent memory restriction with the exact Tamer-effect exception and inherited Retaliation are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-079", compiled)`. The IR is exported for reproducible persistence checks only.
+- Verification: focused — 4 passed; BT25 audit — 2 passed; restriction regressions — 4 passed; `git diff --check` — passed. No behavioral defect was found, so no test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-079
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-079.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-079.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-079.
