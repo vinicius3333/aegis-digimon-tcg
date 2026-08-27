@@ -970,3 +970,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-048.
+
+## BT25-049 — Armalizamon — 10/10
+
+- Catalog evidence: green level-4 Digimon; alternate level-3 Glowing Dawn evolution for 2; On Play/When Digivolving optionally suspends an opposing Digimon; controller-turn once-per-turn reduces a Glowing Dawn Option use cost by 3 by trashing a bottom face-down card under a friendly Tamer; inherited Piercing.
+- Knowledge base: no card-specific entries; general suspension, replacement/use-cost, under-Tamer cost, and Piercing rules apply.
+- Implementation: both entry timings, opponent target, optionality, exact once-per-turn Option reducer, atomic bottom-face-down cost, alternate evolution, and inherited keyword are complete. Direct/shared IR match, full/residual-free, with exclusive `registerIrCard("BT25-049", compiled)`.
+- Verification: focused — 3 passed; replacement/play mechanisms — 30 passed; manual runtime payment probe — passed; `git diff --check` — passed. No defect was found, so no implementation/test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-049
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-049.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-049.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-049.
