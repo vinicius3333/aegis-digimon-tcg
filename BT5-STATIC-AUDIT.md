@@ -16,9 +16,9 @@ The re-audit intentionally does not execute tests, typecheck, lint, formatting, 
 | --- | --- | --- | --- |
 | BT5-001–010 | Static audit delivered | `internal-docs/audits/BT5/BT5-001-010.md` | Yes |
 | BT5-011–020 | Luna in progress | `internal-docs/audits/BT5/BT5-011-020.md` | No |
-| BT5-021–030 | Luna in progress | `internal-docs/audits/BT5/BT5-021-030.md` | No |
+| BT5-021–030 | Static audit delivered | `internal-docs/audits/BT5/BT5-021-030.md` | Yes |
 | BT5-031–040 | Luna in progress | `internal-docs/audits/BT5/BT5-031-040.md` | No |
-| BT5-041–050 | Queued for Luna | `internal-docs/audits/BT5/BT5-041-050.md` | No |
+| BT5-041–050 | Luna in progress | `internal-docs/audits/BT5/BT5-041-050.md` | No |
 | BT5-051–060 | Queued for Luna | `internal-docs/audits/BT5/BT5-051-060.md` | No |
 | BT5-061–070 | Queued for Luna | `internal-docs/audits/BT5/BT5-061-070.md` | No |
 | BT5-071–080 | Queued for Luna | `internal-docs/audits/BT5/BT5-071-080.md` | No |
@@ -53,6 +53,16 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 | BT5-008 Gaossmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All-other-Gaossmon aura plus opponent-turn digivolution-reduction restriction |
 | BT5-009 Shoutmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent Shoutmon/Blitz reveal slots and inherited live-Blitz aura |
 | BT5-010 Greymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact Agumon source memory gate and inherited name-family aura exclusions |
+| BT5-021 Syakomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent-turn digivolution-reduction block with Digisorption and fixed-cost boundaries |
+| BT5-022 Bulucomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Once-per-turn opposing source-trash watcher with bounce and turn negatives |
+| BT5-023 Gesomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary legal evolution evidence |
+| BT5-024 Garurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Gabumon source memory gate and inherited Garurumon/Omnimon all-turn aura |
+| BT5-025 Paledramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Up-to-two bottom-source trash from one opposing host with optionality proof |
+| BT5-026 Coelamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blocker plus own When Attacking memory loss with redirect timing boundary |
+| BT5-027 MarineDevimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary legal evolution evidence |
+| BT5-028 CrysPaledramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All-opponent bottom-source trash and live sourceless Security Attack aura |
+| BT5-029 WereGarurumon: Sagittarius Mode | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Source-gated Jamming and inherited name-family DP aura on legal stacks |
+| BT5-030 Neptunemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent-turn initial-attack restriction with Blocker and later-redirection rulings |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT5/`.
 
@@ -60,9 +70,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 10
+- Integrated card audits: 20
 - Corrected: 0
-- Provisional: 10
+- Provisional: 20
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
