@@ -21,10 +21,10 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT4-041–050 | Static audit delivered | `internal-docs/audits/BT4/BT4-041-050.md` | Yes |
 | BT4-051–060 | Static audit delivered | `internal-docs/audits/BT4/BT4-051-060.md` | Yes |
 | BT4-061–070 | Static audit delivered | `internal-docs/audits/BT4/BT4-061-070.md` | Yes |
-| BT4-071–080 | Luna in progress | `internal-docs/audits/BT4/BT4-071-080.md` | No |
+| BT4-071–080 | Static audit delivered | `internal-docs/audits/BT4/BT4-071-080.md` | Yes |
 | BT4-081–090 | Luna in progress | `internal-docs/audits/BT4/BT4-081-090.md` | No |
 | BT4-091–100 | Luna in progress | `internal-docs/audits/BT4/BT4-091-100.md` | No |
-| BT4-101–110 | Unassigned | `internal-docs/audits/BT4/BT4-101-110.md` | No |
+| BT4-101–110 | Luna in progress | `internal-docs/audits/BT4/BT4-101-110.md` | No |
 | BT4-111–115 | Unassigned | `internal-docs/audits/BT4/BT4-111-115.md` | No |
 
 ## Score model
@@ -113,18 +113,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-068 Baboongamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Digi-Burst De-Digivolve with exact payment and no-target preflight |
 | BT4-069 Blimpmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary through direct registration |
 | BT4-070 Meteormon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Reboot registration and no-premature-unsuspend attack proof |
+| BT4-071 Tankdramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | D-Brigade deletion reveal-play and simultaneous-self-deletion boundary |
+| BT4-072 Gogmamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Cost-bound Digi-Burst DP grant and inherited all-turn aura proof |
+| BT4-073 BanchoGolemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blocker plus opponent-turn three-Digimon DP threshold proof |
+| BT4-074 Darkdramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | D-Brigade trash recovery, arbitrary deck-top order, and memory scaling |
+| BT4-075 Blastmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected defending-player optional redirect decision ownership |
+| BT4-076 Gabumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary through direct registration |
+| BT4-077 Ghostmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited Digi-Burst self-source return with exact event identity |
+| BT4-078 Soundbirdmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional one-Option trash cost with refusal and two-card cap proof |
+| BT4-079 Labramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Ordered On Play draw then mandatory hand-trash proof |
+| BT4-080 Bakemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary through direct registration |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT4/`.
 
 ## Aggregate
 
 - Catalog cards: 115
-- Assigned: 100
-- Integrated card audits: 70
-- Corrected: 10
-- Provisional: 70
+- Assigned: 110
+- Integrated card audits: 80
+- Corrected: 11
+- Provisional: 80
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 15
+- Remaining unassigned: 5
 
 BT4 remains open.
