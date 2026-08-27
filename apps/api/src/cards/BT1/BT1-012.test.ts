@@ -72,4 +72,40 @@ describe("BT1-012 Biyomon", () => {
 
     expect(s.perm("attacker").currentDP).toBe(5000);
   });
+
+  it("retains the inherited trigger when Biyomon is evolved onto a red level 2", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-001", as: "base" }],
+        hand: [{ card: "BT1-012", as: "biyomon" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
+      1: { battleArea: [{ card: "BT1-072", as: "blocker", dp: 1000 }], security: ["BT1-010"] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("biyomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("biyomon").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").currentDP === 4000);
+
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("base").instanceId);
+    expect(s.perm("base").currentDP).toBe(4000);
+  });
 });

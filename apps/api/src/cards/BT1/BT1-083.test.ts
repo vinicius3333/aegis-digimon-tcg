@@ -43,7 +43,9 @@ describe("BT1-083 GranKuwagamon", () => {
   });
 
   it("does not grant either printed effect while GranKuwagamon is a digivolution card", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-084", as: "host", under: ["BT1-083"] }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-057", as: "host", under: ["BT1-083"] }] },
+    });
     await s.ready();
 
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);

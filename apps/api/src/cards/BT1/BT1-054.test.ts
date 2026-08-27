@@ -90,4 +90,41 @@ describe("BT1-054 Liamon", () => {
 
     expect(s.perm("target").currentDP).toBe(5000);
   });
+
+  it("resolves its attack trigger from a newly evolved Liamon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-050", as: "base" }],
+          hand: [{ card: "BT1-054", as: "liamon" }],
+          deck: [{ card: "BT1-010", as: "evolutionDraw" }],
+        },
+        1: { battleArea: [{ card: "BT1-016", as: "target", dp: 5000 }], security: ["BT1-010"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("liamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("liamon").instanceId);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT1-050");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 3000);
+
+    expect(s.perm("target").currentDP).toBe(3000);
+  });
 });
