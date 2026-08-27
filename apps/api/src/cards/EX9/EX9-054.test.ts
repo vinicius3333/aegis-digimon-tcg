@@ -19,7 +19,7 @@ describe("EX9-054", () => {
     });
     expect(action?.target?.filter?.nameOrTrait).toContainEqual({ tokens: ["Negamon"], match: "text" });
   });
-  it("scales the optional deletion play limit by every two Negamon-text cards in trash or stacks", () =>
+  it("scales the optional deletion play limit by every two exact named Negamon cards in trash or stacks", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions[0]).toMatchObject({
       optional: true,
       from: ["hand"],
@@ -38,7 +38,8 @@ describe("EX9-054", () => {
               filter: {
                 zone: ["trash", "digivolutionCards"],
                 controller: "mine",
-                nameOrTrait: [{ tokens: ["Negamon"], match: "text" }],
+                kind: ["Digimon", "DigiEgg"],
+                nameOrTrait: [{ tokens: ["Negamon"], match: "nameExact" }],
               },
             },
           },
@@ -64,5 +65,43 @@ describe("EX9-054", () => {
 
     expect(player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-047")).toBe(true);
     expect(player.hand.some((card) => card.cardId === "EX9-047")).toBe(false);
+  });
+
+  it("raises the level maximum for exact named Negamon cards, including Digi-Eggs", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-054", as: "source" }],
+          hand: [{ card: "EX9-054", as: "candidate" }],
+          trash: ["EX9-005", "EX9-005"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const player = s.state.players[0]!;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await settle(() => player.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("candidate").instanceId));
+
+    expect(player.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(false);
+  });
+
+  it("does not raise the level maximum for cards that only mention Negamon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-054", as: "source" }],
+          hand: [{ card: "EX9-054", as: "candidate" }],
+          trash: ["EX9-047", "EX9-048"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const player = s.state.players[0]!;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(player.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
   });
 });
