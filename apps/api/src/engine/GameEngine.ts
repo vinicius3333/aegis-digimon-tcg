@@ -2185,13 +2185,24 @@ export class GameEngine {
         const context = this.buildSubTriggerContext(sub, payload);
         if (context !== undefined) contexts.set(sub.id, context);
       }
+      const armed = this.armedSubTriggers(subscriptions, payload, contexts).map((item) => {
+        // A triggered effect granted to the Digimon being deleted has to retain that
+        // Digimon's last live context (BT15-039). Other watchers have only met their
+        // trigger condition: they have not activated yet, so their source must still
+        // exist after the rule-process fixpoint (BT25-084/Q6399).
+        if (event === "onDeletionOf" && item.sub.sourcePermanentId === payload.deletedPermanentId) return item;
+        return {
+          ...item,
+          contextAtFireTime: () => this.buildSubTriggerContext(item.sub, payload),
+        };
+      });
       this.deferredRuleSubTriggers.push({
         event,
         payload: {
           turnSeat: this.state.turnSeat,
           ...payload,
         },
-        armed: this.armedSubTriggers(subscriptions, payload, contexts),
+        armed,
       });
       return;
     }

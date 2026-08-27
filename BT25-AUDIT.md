@@ -1603,3 +1603,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-083.
+
+## BT25-084 — Titamon — 10/10
+
+- Catalog evidence: purple level-6 Digimon with two alternate evolution routes; shared once-per-turn On Play/When Digivolving/When Attacking hand-trash payment deletes all highest-DP opposing Digimon and conditionally trashes security after effect-driven entry; first all-turn effect prevents leaving by trashing two cards; second all-turn effect watches this controller's hand and deletes one lowest-DP opposing Digimon.
+- Knowledge base: Q6397–Q6401 require complete indivisible payments, repeat the 0-DP rule check before the hand-trash watcher can activate, and fire that watcher once per trash action rather than once per card.
+- Defects corrected: both hand payments now explicitly select only the controller's hand, and the watcher explicitly gates on that controller's discarded hand. The rule-process deferral now retains a deleted subject's live context only for its own granted deletion watcher; unrelated watchers must still have a live source at activation, preserving BT15-039 while satisfying Q6399.
+- Verification: focused — 15 passed; BT15-039 regression — 3 passed; rule process — 8 passed; subtrigger/interpreter — 206 passed; combined gate — 243 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-084", compiled)` with full coverage and no residuals; the module IR is exported for persisted comparison.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-084
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-084.test.ts src/cards/BT15/BT15-039.test.ts src/engine/ruleProcess.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/interpreter.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-084.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-084.
