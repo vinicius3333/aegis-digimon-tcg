@@ -3634,3 +3634,28 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   Targeted Oxfmt, Oxlint, registration search, and `git diff --check` pass. No
   production or shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-110 — All Delete — 10/10
+
+- Catalog and ruling evidence: White Option with use cost 10. Main may return
+  one own Digimon with Omnimon in its name to its owner's hand to delete all
+  Digimon and Tamers in play, trashing the returned Digimon's evolution cards.
+  Security adds this card to its owner's hand. Q1384 confirms own Digimon and
+  Tamers are also deleted; Q5304 defines prevention interaction.
+- Implementation: `apps/api/src/cards/BT5/BT5-110.ts` uses an optional,
+  abort-on-decline Return of one own Omnimon-name Digimon to hand with
+  `trashSources`, followed by all-target Delete over both controllers' Digimon
+  and Tamers. Security uses AddToHandSelf. Full residual-free coverage and
+  exclusive `registerIrCard("BT5-110", compiled)` registration are preserved.
+- Behavioral proof: four focused tests use a legal Lv.5→Lv.6→Lv.7 Omnimon stack
+  to prove exact top-card return, all evolution sources trashed, and deletion of
+  every remaining own/opposing Digimon and Tamer. Refusal proves no return,
+  source trash, or deletion occurs; Security moves the exact Option instance to
+  hand.
+- Defect corrected: no executable behavior defect. The illegal evolution-stack
+  fixture was corrected and explicit optional-abort proof was added.
+- Verification: focused BT5-110 — 4/4 passed; targeted return-to-hand primitive
+  subset — 7/7; aborting ordered-tail interpreter mechanism — 1/1. Targeted
+  Oxfmt, Oxlint, registration search, and `git diff --check` pass. No production
+  or shared engine source changed.
+- Remaining ambiguity: none identified.
