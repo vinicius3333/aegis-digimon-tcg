@@ -15,8 +15,9 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "Attack",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           attackPlayer: false,
+          optional: true,
         },
       ],
     },
