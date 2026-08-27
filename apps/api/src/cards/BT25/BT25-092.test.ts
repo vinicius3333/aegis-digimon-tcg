@@ -106,4 +106,28 @@ describe("BT25-092 Asuna Shiroki", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === CARD_ID)).toBe(true);
     expect(s.state.memory).toBe(0);
   });
+
+  it("does not use an Option under a Tamer as the Main cost", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "asuna" },
+            { card: CARD_ID, as: "tamer", under: [{ card: "BT25-100", as: "underOption" }] },
+            { card: "BT24-009", as: "host" },
+          ],
+          hand: [{ card: "BT24-010", as: "evolution" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("underOption").instanceId, s.perm("host").permanentId, s.inst("evolution").instanceId);
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnDeclaration, s.perm("asuna"));
+    expect(s.perm("asuna").isSuspended).toBe(false);
+    expect(s.perm("host").topCard.cardId).toBe("BT24-009");
+    expect(s.perm("tamer").stack.map((c) => c.instanceId)).toContain(s.inst("underOption").instanceId);
+  });
 });

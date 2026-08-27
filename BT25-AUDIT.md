@@ -1747,3 +1747,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-091.
+
+## BT25-092 — Asuna Shiroki — 10/10
+
+- Catalog evidence: purple Tamer; start-main memory gain while the opponent has a Digimon; Main activation suspends this Tamer and trashes one Option from hand or a friendly Digimon's evolution cards to evolve a friendly Digimon into a Three Musketeers-text/TS Digimon from hand at cost -1; Security plays this card free.
+- Knowledge base: Q6434 makes both suspension and Option trash mandatory for activation, and Q6435 prevents combining multiple digivolving effects into one evolution.
+- Defect corrected: the trash-cost filter admitted Option cards under Tamers. The hosted branch now requires a friendly Digimon host while a separate OR branch preserves valid Options in hand; a focused regression proves a Tamer-hosted Option cannot pay.
+- Verification: focused — 6 passed; BT25-082/Tamer-suspension/digivolve-legality regressions — 14 passed; combined batch/mechanism gate — 236 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-092", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-092
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-092.test.ts src/cards/BT25/BT25-082.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-092.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-092.
