@@ -23,7 +23,25 @@ describe("BT3-112 Omnimon Alter-S", () => {
         },
         {
           trigger: "WhenAttacking",
-          actions: [{ kind: "Restrict", restriction: "cantBeBlocked", optional: true }],
+          actions: [
+            {
+              kind: "Restrict",
+              restriction: "cantBeBlocked",
+              optional: true,
+              cost: {
+                kind: "return",
+                target: {
+                  filter: {
+                    zone: "digivolutionCards",
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    levels: [6],
+                    hostFilter: { isSelfRef: true },
+                  },
+                },
+              },
+            },
+          ],
         },
       ],
     });
@@ -88,5 +106,32 @@ describe("BT3-112 Omnimon Alter-S", () => {
 
     expect(s.perm("alterS").stack).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("alterS"), "cantBeBlocked")).toBe(true);
+  });
+
+  it("does not pay with a level 6 card under another own Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT3-112", as: "attacker" },
+            { card: "BT3-112", as: "other", under: [{ card: "BT3-074", as: "otherLevelSix" }] },
+          ],
+        },
+        1: { security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.security.length === 0, 5000);
+
+    expect(observe(s.engine).isRestricted(s.perm("attacker"), "cantBeBlocked")).toBe(false);
+    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["BT3-074"]);
   });
 });
