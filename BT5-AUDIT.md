@@ -2632,3 +2632,25 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   4/4 passed. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No shared engine seam changed.
 - Remaining ambiguity: none identified.
+
+## BT5-071 — Guilmon — 10/10
+
+- Catalog and ruling evidence: Purple Lv.3 Rookie Digimon, Virus/Reptile, play
+  cost 3, 2000 DP, and purple Lv.2 evolution cost 0. Its On Deletion effect
+  gains 1 memory only if the card was deleted by an effect. Q1348 confirms that
+  deletion by the game rule after DP reaches 0 is not deletion by an effect.
+- Implementation: `apps/api/src/cards/BT5/BT5-071.ts` maps the On Deletion
+  trigger to GainMemory 1 behind the exact `triggerRemovalCause: "byEffect"`
+  condition. It declares full residual-free coverage and registers exclusively
+  through `registerIrCard("BT5-071", compiled)`.
+- Behavioral proof: focused coverage proves the positive effect-deletion path
+  and the Q1348 negative path using an explicit 0-DP fixture deleted with the
+  rule cause. Runtime registration is also asserted. The test now exercises the
+  named public deletion seam instead of reaching through a private `any` cast.
+- Defect corrected: no card behavior defect. The existing generic rule-deletion
+  fixture was clarified as the exact 0-DP ruling scenario, and both deletion
+  paths were moved to the supported test seam.
+- Verification: focused BT5-071 — 3/3 passed. Targeted Oxfmt, Oxlint,
+  registration search, and `git diff --check` pass. No source or shared engine
+  behavior changed.
+- Remaining ambiguity: none identified.
