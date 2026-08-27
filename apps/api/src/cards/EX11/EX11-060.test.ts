@@ -84,6 +84,28 @@ describe("EX11-060 Arisa Kinosaki", () => {
     assertNoLoudGap(s);
   });
 
+  it("does not play a level 5 Puppet from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-038", as: "level5Puppet" }],
+          battleArea: [
+            { card: "EX11-060", as: "arisa" },
+            { card: "EX11-019", as: "deletedPuppet" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX11-023", as: "ordinaryDeleter" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ordinaryDeleter"));
+    await settle(() => s.perm("arisa").isSuspended);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("level5Puppet").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-038")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
   it("may decline the suspend payment and receives neither reward", async () => {
     const s = setupEngine(
       {
