@@ -4,6 +4,29 @@ import "./BT1-078.js";
 import "../BT10/BT10-056.js";
 
 describe("BT1-078 Jagamon", () => {
+  it("evolves from a green level 4 and keeps the source beneath Jagamon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-074", as: "base" }],
+        hand: [{ card: "BT1-078", as: "jagamon" }],
+        deck: ["BT1-010"],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("jagamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("jagamon").instanceId);
+
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-074"]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("reveals 3 cards and may digivolve into a revealed level 6 green Digimon for free", async () => {
     const s = setupEngine(
       {
