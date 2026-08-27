@@ -2931,6 +2931,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR and exclusive `registerIrCard`; exact evolution/Assembly, Decode filter, security `leaveCount: 0` with tracked per-card deletion, Recovery +3, and opponent-wide Security A. -1 duration.
 - Proof: existing normal/alternate evolution, Assembly, zero-security recovery, per-card deletion, combat keywords, Execute/Decode and level boundary, and deletion debuff. No change needed; automation not run; diff check passed. No unresolved limitation.
 
+## BT26-084 — Copipemon — 10/10
+
+- Catalog/KB: white Lv.3 `Copy & Paste`/`Seven Code`, Appmon evolution/Link, Detach, linked reveal, reduced Seven Code play/use, and linked trash-link effect confirmed. Q7125–Q7128 cover Link eligibility, reveal-return timing, Option lifecycle, and simultaneous triggers.
+- Implementation: full IR and exclusive `registerIrCard`; source-scoped linked Once Per Turn reveal of three, optional reduced-by-3 Seven Code play/use, top/bottom remainder, and optional free link from trash of a non-white Lv.4-or-lower System/Seven Code card carrying Link.
+- Proof: metadata, evolution/link, eligible boundaries, Digimon/Option branches, reduction, remainder, turn/frequency, Detach, Q7127/Q7128, plus new trash-link refusal. Automation not run; diff check passed. No unresolved static limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
