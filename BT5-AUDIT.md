@@ -2090,3 +2090,29 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-051 — MoriShellmon — 10/10
+
+- Catalog evidence: Green Lv.4 Champion Digimon, Data/Mollusk, play cost 6,
+  7000 DP, and green Lv.3 evolution cost 2. It has no main, inherited,
+  Security, or alternate-evolution text, and its knowledge-base query exposes
+  no QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-051.ts` intentionally contains
+  `effects: []`, `coverage: "full"`, and `residual: []`, and registers
+  exclusively through `registerIrCard("BT5-051", compiled)`. This exactly
+  represents the vanilla card without a legacy registration seam.
+- Behavioral and structural proof: the focused tests verify its committed
+  7000 base/current DP remains unchanged after continuous-effect recomputation
+  and that the empty, residual-free runtime module is registered. Shared card
+  data and digivolution tests independently validate its printed identity and
+  legal green Lv.3 evolution requirement.
+- Defect corrected: none. The module and existing focused tests were already
+  faithful, so no source or test changes were made.
+- Verification: focused BT5-051 — 2/2 passed; shared card-data and
+  digivolution suites — 49/49 passed; complete BT5 suite — 121 files and 369
+  tests passed. Exact-file Oxfmt, Oxlint, and `git diff --check` pass. Workspace
+  typecheck retains only the known unrelated baseline errors in
+  `EX6-010.test.ts`, `interpreter/actions/removal.ts`,
+  `interpreter/actions/runAction.ts`, `interpreter/targeting/loose.ts`, and
+  primitive capability typing.
+- Remaining ambiguity: none identified.
