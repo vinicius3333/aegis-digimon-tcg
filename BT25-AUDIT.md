@@ -1009,3 +1009,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-050.
+
+## BT25-051 — Grizzlymon — 10/10
+
+- Catalog evidence: green/black level-4 Digimon; alternate level-3 TS evolution for 2; Blocker; On Play/When Digivolving gives one friendly qualifying Beast/Animal/Sovereign or Shaman/TS Digimon, excluding Sea Animal, +3000 DP through the opponent's turn; inherited all-turn once-per-turn Draw 1 after this Digimon wins a battle.
+- Knowledge base: no card-specific entries; standard alternate-evolution, Blocker, targeting, duration, inherited-effect, and battle-win rules apply.
+- Implementation: both entry timings share the exact inclusive/exclusive trait filter and friendly target; duration, alternate evolution, keyword, and inherited self-bound battle-win watcher are complete. Direct/shared IR match, coverage is full/residual-free, and registration is exclusively `registerIrCard("BT25-051", compiled)`.
+- Verification: focused — 1 passed; battle-win regressions — 33 passed; shared evolution requirements — 93 passed; `git diff --check` — passed. No defect was found, so no implementation or behavioral-test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-051
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-051.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-051.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-051.
