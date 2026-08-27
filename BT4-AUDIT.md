@@ -18,10 +18,10 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT4-011–020 | Static audit delivered | `internal-docs/audits/BT4/BT4-011-020.md` | Yes |
 | BT4-021–030 | Static audit delivered | `internal-docs/audits/BT4/BT4-021-030.md` | Yes |
 | BT4-031–040 | Static audit delivered | `internal-docs/audits/BT4/BT4-031-040.md` | Yes |
-| BT4-041–050 | Luna in progress | `internal-docs/audits/BT4/BT4-041-050.md` | No |
+| BT4-041–050 | Static audit delivered | `internal-docs/audits/BT4/BT4-041-050.md` | Yes |
 | BT4-051–060 | Luna in progress | `internal-docs/audits/BT4/BT4-051-060.md` | No |
 | BT4-061–070 | Luna in progress | `internal-docs/audits/BT4/BT4-061-070.md` | No |
-| BT4-071–080 | Unassigned | `internal-docs/audits/BT4/BT4-071-080.md` | No |
+| BT4-071–080 | Luna in progress | `internal-docs/audits/BT4/BT4-071-080.md` | No |
 | BT4-081–090 | Unassigned | `internal-docs/audits/BT4/BT4-081-090.md` | No |
 | BT4-091–100 | Unassigned | `internal-docs/audits/BT4/BT4-091-100.md` | No |
 | BT4-101–110 | Unassigned | `internal-docs/audits/BT4/BT4-101-110.md` | No |
@@ -83,18 +83,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-038 BushiAgumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Rush registration and same-turn attack eligibility proof |
 | BT4-039 Growlmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Three-security inherited DP threshold and opponent-turn negative |
 | BT4-040 Diatrymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and legal yellow evolution proof |
+| BT4-041 Meicoomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Errata-corrected identity and three-security On Play DP boundary |
+| BT4-042 Piddomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Persistent Blocker plus separate When Attacking memory loss proof |
+| BT4-043 Crowmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and ordinary yellow evolution evidence |
+| BT4-044 HippoGryphonmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Three-security When Attacking DP reduction and four-card negative |
+| BT4-045 Maycrackmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent-turn Security-Digimon aura with live threshold and stack proof |
+| BT4-046 WarGrowlmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Digi-Burst source cost on DP reduction with allied-stack retention |
+| BT4-047 Rasielmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Recovery +2, end-of-opponent-turn trash, and multiple-copy proof |
+| BT4-048 WarGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected empty-security abort for optional compound attack effect |
+| BT4-049 Varodurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Digi-Burst source cost on all-opponent DP reduction |
+| BT4-050 Liollmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and ordinary green evolution evidence |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT4/`.
 
 ## Aggregate
 
 - Catalog cards: 115
-- Assigned: 70
-- Integrated card audits: 40
-- Corrected: 5
-- Provisional: 40
+- Assigned: 80
+- Integrated card audits: 50
+- Corrected: 8
+- Provisional: 50
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 45
+- Remaining unassigned: 35
 
 BT4 remains open.
