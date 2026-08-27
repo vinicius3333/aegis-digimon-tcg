@@ -988,3 +988,22 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-049.
+
+## BT25-050 — Kiwimon — 10/10
+
+- Catalog evidence: green level-4 Digimon, play cost 4, 4000 DP; alternate level-3 TS evolution for 2; On Play/When Digivolving may suspend either player's Digimon, then if at least two Digimon are suspended, one opposing Digimon obligatorily can't unsuspend until their turn ends; inherited controller-turn +1000 DP to all friendly Digimon.
+- Knowledge base: Q6322 confirms the optional suspension may target either player's Digimon.
+- Implementation: both timing sequences preserve optional any-controller suspension, threshold count 2, mandatory opponent-only restriction after the threshold, exact duration, alternate evolution, and inherited friendly-only owner-turn boost. Full coverage/no residuals and exclusive `registerIrCard("BT25-050", compiled)` remain.
+- Defect corrected: the conditional restriction was incorrectly optional, allowing refusal after its condition was met. Focused live selection proves the second choice is required while the threshold-unmet path remains inert.
+- Verification: focused — 4 passed; BT25 audit — 2 passed; targeted Oxfmt and `git diff --check` — passed. Workspace typecheck retains unrelated pre-existing errors and no BT25-050 error.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-050
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-050.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-050.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-050.
