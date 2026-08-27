@@ -1495,3 +1495,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-077.
+
+## BT25-078 — Gazimon — 10/10
+
+- Catalog evidence: purple level-3 Digimon with two zero-cost alternate evolutions; When Moving/On Play reveals three and either adds one card with Three Musketeers in its text or places one Three Musketeers-trait card under this Digimon, then bottoms the remainder; inherited Retaliation.
+- Knowledge base: no card-specific entries; standard reveal alternative-disposition, hosted placement, evolution, remainder, and inherited-keyword rules apply.
+- Implementation: both timings, exact reveal count, text/trait alternatives, placement host, deck-bottom remainder, evolution requirements, and inherited Retaliation are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-078", compiled)`.
+- Verification: focused — 6 passed; BT25 audit — 2 passed; RevealAdd mechanisms — 9 passed; `git diff --check` — passed. No direct defect was found, so no implementation or test change was made; persisted synchronization follows separately.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-078
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-078.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-078.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-078.
