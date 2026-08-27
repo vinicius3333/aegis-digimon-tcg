@@ -1,6 +1,6 @@
 # BT1 Card Implementation Audit
 
-Status: in progress
+Status: static pass complete; execution gates deferred
 
 Catalog snapshot: `ef2e5b367c616299806c87d6b078ce6fc2822b78`
 
@@ -15,17 +15,17 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT1-001–010 | Static audit complete | `internal-docs/audits/BT1/BT1-001-010.md` | Yes |
-| BT1-011–020 | Static audit complete; coordinator corrections queued | `internal-docs/audits/BT1/BT1-011-020.md` | No |
+| BT1-011–020 | Static audit complete | `internal-docs/audits/BT1/BT1-011-020.md` | Yes |
 | BT1-021–030 | Static audit complete | `internal-docs/audits/BT1/BT1-021-030.md` | Yes |
 | BT1-031–040 | Static audit complete | `internal-docs/audits/BT1/BT1-031-040.md` | Yes |
 | BT1-041–050 | Static audit complete | `internal-docs/audits/BT1/BT1-041-050.md` | Yes |
-| BT1-051–060 | Static audit complete; coordinator correction pending | `internal-docs/audits/BT1/BT1-051-060.md` | No |
+| BT1-051–060 | Static audit complete | `internal-docs/audits/BT1/BT1-051-060.md` | Yes |
 | BT1-061–070 | Static audit complete | `internal-docs/audits/BT1/BT1-061-070.md` | Yes |
 | BT1-071–080 | Static audit complete | `internal-docs/audits/BT1/BT1-071-080.md` | Yes |
-| BT1-081–090 | Luna in progress | `internal-docs/audits/BT1/BT1-081-090.md` | No |
+| BT1-081–090 | Static audit complete | `internal-docs/audits/BT1/BT1-081-090.md` | Yes |
 | BT1-091–100 | Static audit complete | `internal-docs/audits/BT1/BT1-091-100.md` | Yes |
 | BT1-101–110 | Static audit complete | `internal-docs/audits/BT1/BT1-101-110.md` | Yes |
-| BT1-111–115 | Luna in progress | `internal-docs/audits/BT1/BT1-111-115.md` | No |
+| BT1-111–115 | Static audit complete | `internal-docs/audits/BT1/BT1-111-115.md` | Yes |
 
 ## Score model
 
@@ -53,6 +53,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT1-008 Frimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Corrected; provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-008.ts), [test](apps/api/src/cards/BT1/BT1-008.test.ts) |
 | BT1-009 Monodramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-009.ts), [test](apps/api/src/cards/BT1/BT1-009.test.ts) |
 | BT1-010 Agumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-010.ts), [test](apps/api/src/cards/BT1/BT1-010.test.ts) |
+| BT1-011 Agumon Expert | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-011.ts), [test](apps/api/src/cards/BT1/BT1-011.test.ts) |
+| BT1-012 Biyomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-012.ts), [test](apps/api/src/cards/BT1/BT1-012.test.ts) |
+| BT1-013 Muchomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-013.ts), [test](apps/api/src/cards/BT1/BT1-013.test.ts) |
+| BT1-014 Kokatorimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-014.ts), [test](apps/api/src/cards/BT1/BT1-014.test.ts) |
+| BT1-015 Greymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-015.ts), [test](apps/api/src/cards/BT1/BT1-015.test.ts) |
+| BT1-016 Tyrannomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-016.ts), [test](apps/api/src/cards/BT1/BT1-016.test.ts) |
+| BT1-017 Birdramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-017.ts), [test](apps/api/src/cards/BT1/BT1-017.test.ts) |
+| BT1-018 Flarerizamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-018.ts), [test](apps/api/src/cards/BT1/BT1-018.test.ts) |
+| BT1-019 DarkTyrannomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-019.ts), [test](apps/api/src/cards/BT1/BT1-019.test.ts) |
+| BT1-020 Groundramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-020.ts), [test](apps/api/src/cards/BT1/BT1-020.test.ts) |
 | BT1-021 MetalGreymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-021.ts), [test](apps/api/src/cards/BT1/BT1-021.test.ts) |
 | BT1-022 Garudamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-022.ts), [test](apps/api/src/cards/BT1/BT1-022.test.ts) |
 | BT1-023 SkullGreymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-023.ts), [test](apps/api/src/cards/BT1/BT1-023.test.ts) |
@@ -83,6 +93,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT1-048 Patamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-048.ts), [test](apps/api/src/cards/BT1/BT1-048.test.ts) |
 | BT1-049 Labramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-049.ts), [test](apps/api/src/cards/BT1/BT1-049.test.ts) |
 | BT1-050 Liollmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-050.ts), [test](apps/api/src/cards/BT1/BT1-050.test.ts) |
+| BT1-051 Reppamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-051.ts), [test](apps/api/src/cards/BT1/BT1-051.test.ts) |
+| BT1-052 Seasarmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-052.ts), [test](apps/api/src/cards/BT1/BT1-052.test.ts) |
+| BT1-053 Darcmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-053.ts), [test](apps/api/src/cards/BT1/BT1-053.test.ts) |
+| BT1-054 Liamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-054.ts), [test](apps/api/src/cards/BT1/BT1-054.test.ts) |
+| BT1-055 Angemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-055.ts), [test](apps/api/src/cards/BT1/BT1-055.test.ts) |
+| BT1-056 Petermon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Corrected; provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-056.ts), [test](apps/api/src/cards/BT1/BT1-056.test.ts) |
+| BT1-057 Sirenmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-057.ts), [test](apps/api/src/cards/BT1/BT1-057.test.ts) |
+| BT1-058 Chirinmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-058.ts), [test](apps/api/src/cards/BT1/BT1-058.test.ts) |
+| BT1-059 Piximon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-059.ts), [test](apps/api/src/cards/BT1/BT1-059.test.ts) |
+| BT1-060 MagnaAngemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-060.ts), [test](apps/api/src/cards/BT1/BT1-060.test.ts) |
 | BT1-061 Mistymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-061.ts), [test](apps/api/src/cards/BT1/BT1-061.test.ts) |
 | BT1-062 SlashAngemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-062.ts), [test](apps/api/src/cards/BT1/BT1-062.test.ts) |
 | BT1-063 Seraphimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-063.ts), [test](apps/api/src/cards/BT1/BT1-063.test.ts) |
@@ -103,6 +123,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT1-078 Jagamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-078.ts), [test](apps/api/src/cards/BT1/BT1-078.test.ts) |
 | BT1-079 Lillymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-079.ts), [test](apps/api/src/cards/BT1/BT1-079.test.ts) |
 | BT1-080 Titamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-080.ts), [test](apps/api/src/cards/BT1/BT1-080.test.ts) |
+| BT1-081 HerculesKabuterimon | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | Ambiguous; provisional 7/10 | [module](apps/api/src/cards/BT1/BT1-081.ts), [test](apps/api/src/cards/BT1/BT1-081.test.ts) |
+| BT1-082 Rosemon | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | Ambiguous; provisional 7/10 | [module](apps/api/src/cards/BT1/BT1-082.ts), [test](apps/api/src/cards/BT1/BT1-082.test.ts) |
+| BT1-083 GranKuwagamon | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | Ambiguous; provisional 7/10 | [module](apps/api/src/cards/BT1/BT1-083.ts), [test](apps/api/src/cards/BT1/BT1-083.test.ts) |
+| BT1-084 Omnimon | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | Ambiguous; provisional 7/10 | [module](apps/api/src/cards/BT1/BT1-084.ts), [test](apps/api/src/cards/BT1/BT1-084.test.ts) |
+| BT1-085 Tai Kamiya | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-085.ts), [test](apps/api/src/cards/BT1/BT1-085.test.ts) |
+| BT1-086 Matt Ishida | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-086.ts), [test](apps/api/src/cards/BT1/BT1-086.test.ts) |
+| BT1-087 T.K. Takaishi | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-087.ts), [test](apps/api/src/cards/BT1/BT1-087.test.ts) |
+| BT1-088 Izzy Izumi | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-088.ts), [test](apps/api/src/cards/BT1/BT1-088.test.ts) |
+| BT1-089 Mimi Tachikawa | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | Ambiguous; provisional 7/10 | [module](apps/api/src/cards/BT1/BT1-089.ts), [test](apps/api/src/cards/BT1/BT1-089.test.ts) |
+| BT1-090 Gravity Crush | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-090.ts), [test](apps/api/src/cards/BT1/BT1-090.test.ts) |
 | BT1-091 Scrap Claw | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-091.ts), [test](apps/api/src/cards/BT1/BT1-091.test.ts) |
 | BT1-092 Nuclear Laser | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-092.ts), [test](apps/api/src/cards/BT1/BT1-092.test.ts) |
 | BT1-093 Great Tornado | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-093.ts), [test](apps/api/src/cards/BT1/BT1-093.test.ts) |
@@ -123,6 +153,11 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT1-108 Horn Buster | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-108.ts), [test](apps/api/src/cards/BT1/BT1-108.test.ts) |
 | BT1-109 Smashed Potatoes | 2/2 | 2/2 | 2/2 | 1/2 | 0/2 | Ambiguous; provisional 7/10 | [module](apps/api/src/cards/BT1/BT1-109.ts), [test](apps/api/src/cards/BT1/BT1-109.test.ts) |
 | BT1-110 Flower Cannon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-110.ts), [test](apps/api/src/cards/BT1/BT1-110.test.ts) |
+| BT1-111 Giga Blaster | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | Ambiguous; provisional 7/10 | [module](apps/api/src/cards/BT1/BT1-111.ts), [test](apps/api/src/cards/BT1/BT1-111.test.ts) |
+| BT1-112 Dimension Scissor | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-112.ts), [test](apps/api/src/cards/BT1/BT1-112.test.ts) |
+| BT1-113 Forbidden Temptation | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-113.ts), [test](apps/api/src/cards/BT1/BT1-113.test.ts) |
+| BT1-114 MetalGreymon | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | Ambiguous; provisional 7/10 | [module](apps/api/src/cards/BT1/BT1-114.ts), [test](apps/api/src/cards/BT1/BT1-114.test.ts) |
+| BT1-115 Veedramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-115.ts), [test](apps/api/src/cards/BT1/BT1-115.test.ts) |
 
 Detailed clause traces and deferred commands for these rows are in the integrated range reports under `internal-docs/audits/BT1/`.
 
@@ -130,11 +165,11 @@ Detailed clause traces and deferred commands for these rows are in the integrate
 
 - Catalog cards: 115
 - Assigned: 115
-- Integrated card audits: 80
-- Corrected: 2
-- Provisional: 80
+- Integrated card audits: 115
+- Corrected: 3
+- Provisional: 115
 - Verified 10/10: 0
-- Blocked or ambiguous: 2
+- Blocked or ambiguous: 9
 - Remaining unassigned: 0
 
 BT1 remains open.
