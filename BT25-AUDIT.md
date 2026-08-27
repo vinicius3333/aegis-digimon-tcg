@@ -1783,3 +1783,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-093.
+
+## BT25-094 — Cosmic Area — 10/10
+
+- Catalog evidence: blue/purple Option with conditional color waiver; face-up Security all-turn effects support TS Digimon; Main manipulates security and plays a TS Digimon with reduction; Security may play an eligible low-level blue/purple TS Digimon from hand or trash free.
+- Knowledge base: Q6444–Q6449 cover color requirement, face-up Security interactions, Security timing, TS target bounds, and the card's remaining placement/play clauses.
+- Defect corrected: the Security play was encoded as mandatory even though the printed effect says “you may play.” It is now optional, with a focused decline regression that leaves the eligible card in trash.
+- Verification: focused — 7 passed; mechanism suite — 116 passed with two unrelated known failures outside this card; combined interpreter/Link/play gate — 216 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-094", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-094
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-094.test.ts src/engine/effects/interpreter/actions/play.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-094.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-094.
