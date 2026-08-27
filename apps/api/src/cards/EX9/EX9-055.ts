@@ -34,10 +34,11 @@ export const compiled: CompiledCard = {
             filter: {
               zone: ["trash", "digivolutionCards"],
               controller: "mine",
+              kind: ["Digimon", "DigiEgg"],
               nameOrTrait: [
                 {
                   tokens: ["Negamon"],
-                  match: "text",
+                  match: "nameExact",
                 },
               ],
             },
@@ -73,10 +74,11 @@ export const compiled: CompiledCard = {
             filter: {
               zone: ["trash", "digivolutionCards"],
               controller: "mine",
+              kind: ["Digimon", "DigiEgg"],
               nameOrTrait: [
                 {
                   tokens: ["Negamon"],
-                  match: "text",
+                  match: "nameExact",
                 },
               ],
             },
