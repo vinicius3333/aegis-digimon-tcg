@@ -20,7 +20,7 @@ const trashDrawGain = [
     optional: true,
     abortOnDecline: true,
   },
-  { kind: "GainMemory" as const, amount: 1 },
+  { kind: "GainMemory" as const, amount: 1, condition: { kind: "ifThisEffectActed" as const } },
 ];
 
 const revealForTriggeredDigimon = {
