@@ -14,10 +14,11 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT2-001–010 | Luna in progress | `internal-docs/audits/BT2/BT2-001-010.md` | No |
+| BT2-001–010 | Static audit complete | `internal-docs/audits/BT2/BT2-001-010.md` | Yes |
 | BT2-011–020 | Luna in progress | `internal-docs/audits/BT2/BT2-011-020.md` | No |
 | BT2-021–030 | Luna in progress | `internal-docs/audits/BT2/BT2-021-030.md` | No |
-| BT2-031–112 | Queued | Not assigned | No |
+| BT2-031–040 | Luna in progress | `internal-docs/audits/BT2/BT2-031-040.md` | No |
+| BT2-041–112 | Queued | Not assigned | No |
 
 ## Score model
 
@@ -35,18 +36,28 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT2-001 Gigimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-001.ts), [test](apps/api/src/cards/BT2/BT2-001.test.ts) |
+| BT2-002 DemiVeemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-002.ts), [test](apps/api/src/cards/BT2/BT2-002.test.ts) |
+| BT2-003 Nyaromon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-003.ts), [test](apps/api/src/cards/BT2/BT2-003.test.ts) |
+| BT2-004 Argomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-004.ts), [test](apps/api/src/cards/BT2/BT2-004.test.ts) |
+| BT2-005 Kapurimon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-005.ts), [test](apps/api/src/cards/BT2/BT2-005.test.ts) |
+| BT2-006 Tsumemon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-006.ts), [test](apps/api/src/cards/BT2/BT2-006.test.ts) |
+| BT2-007 Pagumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-007.ts), [test](apps/api/src/cards/BT2/BT2-007.test.ts) |
+| BT2-008 Yaamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-008.ts), [test](apps/api/src/cards/BT2/BT2-008.test.ts) |
+| BT2-009 Guilmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-009.ts), [test](apps/api/src/cards/BT2/BT2-009.test.ts) |
+| BT2-010 Biyomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT2/BT2-010.ts), [test](apps/api/src/cards/BT2/BT2-010.test.ts) |
 
-Detailed clause traces and deferred commands will be integrated from the range reports under `internal-docs/audits/BT2/`.
+Detailed clause traces and deferred commands are recorded in the integrated range reports under `internal-docs/audits/BT2/`.
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 30
-- Integrated card audits: 0
+- Assigned: 40
+- Integrated card audits: 10
 - Corrected: 0
-- Provisional: 0
+- Provisional: 10
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 82
+- Remaining unassigned: 72
 
 BT2 remains open.
