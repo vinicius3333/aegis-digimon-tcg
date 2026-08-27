@@ -51,6 +51,22 @@ describe("BT1-072 Woodmon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("can attack with less than 2 memory before its loss resolves (Q923)", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-072", as: "attacker" }] }, 1: { security: ["BT1-001"] } });
+    s.state.memory = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.memory).toBe(-1);
+  });
+
   it("does not grant Blocker while Woodmon is a digivolution card", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-081", as: "host", under: ["BT1-072"] }] } });
     await s.ready();
