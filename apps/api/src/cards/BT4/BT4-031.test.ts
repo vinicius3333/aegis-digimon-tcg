@@ -48,4 +48,35 @@ describe("BT4-031 MarinChimairamon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === costId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
   });
+
+  it("may decline returning the cost and opposing Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT4-031", as: "source" }],
+          battleArea: [{ card: "BT4-026", as: "cost", under: ["BT4-024"] }],
+        },
+        1: { battleArea: [{ card: "BT4-025", as: "target" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    const costId = s.perm("cost").permanentId;
+    const targetId = s.perm("target").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "confirm");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === costId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
+  });
 });

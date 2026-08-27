@@ -54,5 +54,7 @@ describe("BT4-033 ZeedGarurumon", () => {
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
     expect(s.perm("target").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+    expect(s.perm("base").stack).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });

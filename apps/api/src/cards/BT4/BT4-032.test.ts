@@ -61,4 +61,33 @@ describe("BT4-032 MachGaogamon", () => {
 
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
+
+  it("does not pay Digi-Burst when no level 4-or-lower target exists", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT4-032", as: "mach", under: ["BT1-001", "BT4-021"] }] },
+        1: { battleArea: [{ card: "BT3-015", as: "target", under: ["BT1-001"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    const mach = s.perm("mach");
+    const eventsBefore = s.events.length;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(mach.topCard!)).find((effect) =>
+      effect.effectKey.startsWith("BT4-032/"),
+    )!.effectKey;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: mach.topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.slice(eventsBefore).some((event) => event.kind === "effectActivated"), 5000);
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT3-015")).toBe(true);
+    expect(mach.stack).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
 });
