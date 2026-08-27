@@ -13,7 +13,7 @@ describe("EX6-057 Lilithmon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "onDeletionOf",
-      sourceFilter: { controller: "opponent", kind: ["Digimon"], excludeSelf: true },
+      sourceFilter: { controller: "any", kind: ["Digimon"], excludeSelf: true },
       actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
     }));
 });
