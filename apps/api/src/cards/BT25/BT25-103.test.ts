@@ -141,13 +141,17 @@ describe("BT25-103 GraceNovamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-103", under: ["BT24-009", "BT24-010"], as: "grace" }],
+          battleArea: [
+            { card: "BT25-103", under: ["BT24-009", "BT24-010"], as: "grace" },
+            { card: "BT1-013", under: ["BT1-009", "BT1-010", "BT1-019"], as: "unrelatedOwnStack" },
+          ],
         },
         1: {
           security: ["AD1-001"],
           battleArea: [
-            { card: "BT24-014", under: ["AD1-001", "AD1-002", "AD1-003"], as: "firstHost" },
-            { card: "BT24-015", under: ["BT1-009", "BT1-019", "BT1-051"], as: "secondHost" },
+            { card: "BT1-014", as: "returnTarget" },
+            { card: "BT1-020", under: ["AD1-001", "AD1-002", "AD1-003"], as: "firstHost" },
+            { card: "BT1-024", under: ["BT1-009", "BT1-019", "BT1-051"], as: "secondHost" },
           ],
         },
       },
