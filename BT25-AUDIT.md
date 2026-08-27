@@ -1801,3 +1801,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-094.
+
+## BT25-095 — Paradise Colosseum — 10/10
+
+- Catalog evidence: red/green Option with conditional color waiver; face-up Security all-turn buffs friendly red/green TS Digimon and conditionally grants Rush; Main moves bottom security to hand, places this card face up at security bottom, and may play a TS card with cost reduction; Security may play an eligible low-level red/green TS Digimon from hand or trash free.
+- Knowledge base: Q6450–Q6455 cover color requirement, face-up Security state, Marsmon/Callismon condition, bottom-security sequencing, and Security target legality.
+- Defect corrected: the Security play was encoded as mandatory despite “you may play.” It is now optional, with a real decision regression proving refusal preserves the candidate and creates no permanent.
+- Verification: focused — 7 passed; play/interpreter mechanisms — 185 passed; combined interpreter/Link/play gate — 216 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-095", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-095
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-095.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/interpreter/actions/play.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-095.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-095.

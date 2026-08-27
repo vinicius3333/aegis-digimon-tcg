@@ -128,4 +128,30 @@ describe("BT25-095 Paradise Colosseum", () => {
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("tooHigh").instanceId);
     expect(s.state.memory).toBe(0);
   });
+
+  it("allows declining the optional Security play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-095", faceUp: true, as: "colosseum" }],
+          trash: [{ card: "BT25-011", as: "eligible" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+    const resolving = advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("colosseum"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+    expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("eligible").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
 });
