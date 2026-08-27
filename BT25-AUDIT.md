@@ -1585,3 +1585,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-082.
+
+## BT25-083 — LadyDevimon — 10/10
+
+- Catalog evidence: purple Digimon whose placement cost accepts one Three Musketeers-trait card from hand or trash as any friendly Digimon's bottom evolution card; remaining When Digivolving/When Attacking Option-use and Three Musketeers interactions follow the printed clauses.
+- Knowledge base: Q6390 and Q6393–Q6396 cover Three Musketeers text, simultaneous effects, trash/use sequencing, and Option zone lifecycle.
+- Defect corrected: both placement costs required a Digimon card, excluding valid Three Musketeers Options, and did not explicitly encode the “any friendly Digimon” bottom-stack destination. Card-kind restriction was removed and the destination host/position are now exact.
+- Verification: focused — 7 passed; BT25 collection/catalog — 63 passed; peers — 10 passed; interpreter — 183 passed; Option lifecycle — 35 passed; `git diff --check` — passed. Registration is exclusively `registerIrCard("BT25-083", compiled)` with full coverage and no residuals.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-083
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-083.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-083.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-083.

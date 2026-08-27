@@ -15,7 +15,6 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                kind: ["Digimon"],
                 nameOrTrait: [
                   {
                     tokens: ["Three Musketeers"],
@@ -25,6 +24,12 @@ export const compiled: CompiledCard = {
               },
               count: 1,
               from: ["hand", "trash"],
+            },
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: {
+              filter: { controller: "mine", kind: ["Digimon"] },
+              count: 1,
             },
             raw: "By placing 1 [Three Musketeers] trait card from your hand or trash as any of your Digimon's bottom digivolution cards",
           },
@@ -46,7 +51,6 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                kind: ["Digimon"],
                 nameOrTrait: [
                   {
                     tokens: ["Three Musketeers"],
@@ -56,6 +60,12 @@ export const compiled: CompiledCard = {
               },
               count: 1,
               from: ["hand", "trash"],
+            },
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: {
+              filter: { controller: "mine", kind: ["Digimon"] },
+              count: 1,
             },
             raw: "By placing 1 [Three Musketeers] trait card from your hand or trash as any of your Digimon's bottom digivolution cards",
           },
