@@ -176,6 +176,8 @@ export interface TriggerInfo {
   /** Whether the pay-time declaration is using the card as an Option rather than playing a permanent. */
   wouldBePlayedAsOption?: boolean;
   attackerPermanentId?: string;
+  /** Attacker's effective DP immediately after declaration/suspension, before [When Attacking] effects. */
+  attackerDPAtDeclaration?: number;
   /** Stable identity for this attack across all reactive attack sub-trigger fires. */
   attackSequence?: number;
   /** Named attack procedure that caused the current attack watcher, when applicable. */

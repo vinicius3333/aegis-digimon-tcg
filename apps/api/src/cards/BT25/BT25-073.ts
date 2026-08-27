@@ -16,7 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    Option use, both restricted to TS cards with cost 5 or less.
 // 3. The inherited Replacement cost targets "its link cards" — the linked zone of the
 //    Digimon that would leave play (self-ref Digimon's linked cards).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -34,7 +34,7 @@ const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
-          labels: ["Play a TS Digimon", "Use a TS Option"],
+          labels: ["Play a TS Digimon or Tamer", "Use a TS Option"],
           options: [
             [
               {
@@ -42,7 +42,7 @@ const compiled: CompiledCard = {
                 target: {
                   filter: {
                     controller: "mine",
-                    kind: ["Digimon"],
+                    kind: ["Digimon", "Tamer"],
                     nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
                     playCostLte: 5,
                   },
@@ -89,7 +89,7 @@ const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
-          labels: ["Play a TS Digimon", "Use a TS Option"],
+          labels: ["Play a TS Digimon or Tamer", "Use a TS Option"],
           options: [
             [
               {
@@ -97,7 +97,7 @@ const compiled: CompiledCard = {
                 target: {
                   filter: {
                     controller: "mine",
-                    kind: ["Digimon"],
+                    kind: ["Digimon", "Tamer"],
                     nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
                     playCostLte: 5,
                   },

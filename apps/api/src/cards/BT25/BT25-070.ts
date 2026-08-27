@@ -23,6 +23,18 @@ export const compiled: CompiledCard = {
               hostFilter: { isSelfRef: true },
             },
             count: 1,
+            // The printed source is "your trash or this Digimon's digivolution cards".
+            // Keep the host-qualified branch for the stack half and add a trash-capable
+            // equivalent branch; source:thisDigimon narrows only hosted candidates.
+            orFilters: [
+              {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Social", "Tool", "Game"], match: "trait" }],
+                hasLinkRequirement: true,
+              },
+            ],
+            source: "thisDigimon",
           },
           from: ["trash", "digivolutionCards"],
           costDelta: -1,

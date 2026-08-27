@@ -32,12 +32,11 @@ export const compiled: CompiledCard = {
           op: "addTopOrBottom",
           controller: "mine",
           amount: 1,
-          source: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Angel", "Archangel", "Three Great Angels", "Iliad"], match: "trait" }],
-            },
+          source: "hand",
+          filter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Angel", "Archangel", "Three Great Angels", "Iliad"], match: "trait" }],
             orFilters: [
               {
                 controllerDefault: "mine",
@@ -45,7 +44,6 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
               },
             ],
-            count: 1,
           },
           optional: true,
         },
@@ -66,12 +64,11 @@ export const compiled: CompiledCard = {
           op: "addTopOrBottom",
           controller: "mine",
           amount: 1,
-          source: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Angel", "Archangel", "Three Great Angels", "Iliad"], match: "trait" }],
-            },
+          source: "hand",
+          filter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Angel", "Archangel", "Three Great Angels", "Iliad"], match: "trait" }],
             orFilters: [
               {
                 controllerDefault: "mine",
@@ -79,7 +76,6 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
               },
             ],
-            count: 1,
           },
           optional: true,
         },

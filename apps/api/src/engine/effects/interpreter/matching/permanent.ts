@@ -159,8 +159,11 @@ export function permanentMatchesFilter(
   // the battle area. Cost-modifier predicates receive both kinds of permanent directly,
   // so relying on the caller's candidate scan would let battle-area-only reducers apply
   // in breeding (BT2-088 Q1038).
-  if (filter.zone === "battleArea" && permanent.inBreeding) return false;
-  if (filter.zone === "breeding" && !permanent.inBreeding) return false;
+  if (filter.zone !== undefined) {
+    const zones = Array.isArray(filter.zone) ? filter.zone : [filter.zone];
+    const fieldZones = zones.filter((zone) => zone === "battleArea" || zone === "breeding");
+    if (fieldZones.length > 0 && !fieldZones.includes(permanent.inBreeding ? "breeding" : "battleArea")) return false;
+  }
   if (filter.excludeLeavingSubject === true && ctx.trigger.deletedPermanentId === permanent.permanentId) return false;
   const stackKeywords = (filter as Filter & { stackKeywords?: string[] }).stackKeywords;
   if (stackKeywords !== undefined) {

@@ -18,8 +18,9 @@ export const compiled: CompiledCard = {
               mode: "reduceCost",
               amount: 5,
               condition: {
-                kind: "permanentCount",
-                seat: "mine",
+                // The printed clause says "if there is a Digimon", without a
+                // controller qualifier: count both players' battle areas.
+                kind: "totalDigimonCount",
                 op: "gte",
                 value: 1,
                 filter: { kind: ["Digimon"], dp: { op: "gte", value: 13000 } },
@@ -42,6 +43,7 @@ export const compiled: CompiledCard = {
           kind: "Battle",
           attacker: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          optional: true,
         },
       ],
     })),

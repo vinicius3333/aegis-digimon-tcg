@@ -4,10 +4,28 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT25-093.js";
 
 const CARD_ID = "BT25-093";
 
 describe("BT25-093 Ignition Flare", () => {
+  it("maps the printed TS use requirement, placed-Option ruling, and Link requirement", () => {
+    expect(compiled.linkRequirement).toEqual([{ traits: ["TS"], cost: 3 }]);
+    const trash = compiled.effects
+      ?.find((effect) => effect.trigger === "Main")
+      ?.actions.find((action) => action.kind === "Trash");
+    expect(trash).toMatchObject({
+      target: {
+        filter: {
+          zone: "battleArea",
+          controller: "opponent",
+          kind: ["Option"],
+          placedInBattleAreaByEffect: true,
+        },
+      },
+    });
+  });
+
   it("cannot be used without the printed color requirement or an effective TS permanent", async () => {
     const s = setupEngine({ 0: { hand: [{ card: CARD_ID, as: "flare" }] } });
     s.state.memory = 5;

@@ -45,6 +45,10 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 [Flame] or [TS] trait card from your hand",
           },
+          // Q6258 permits activating this effect with no eligible opposing Digimon. The hand
+          // cost is still mandatory, so bypass the generic target preflight and let Delete bind
+          // a zero result before the conditional Draw 2.
+          allowCostWithoutTarget: true,
         },
         {
           kind: "Draw",

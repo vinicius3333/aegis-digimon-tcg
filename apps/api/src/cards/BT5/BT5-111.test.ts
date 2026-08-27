@@ -106,7 +106,7 @@ describe("BT5-111 Omnimon X Antibody", () => {
           ],
           security: [{ card: "BT1-009", as: "security" }],
         },
-        1: { battleArea: [{ card: "BT5-082", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredSourceIds },
     );
@@ -168,7 +168,7 @@ describe("BT5-111 Omnimon X Antibody", () => {
           battleArea: [{ card: "BT5-111", as: "omni", under: ["BT5-086"] }],
           security: [{ card: "BT1-009", as: "security" }],
         },
-        1: { battleArea: [{ card: "BT5-082", as: "attacker" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

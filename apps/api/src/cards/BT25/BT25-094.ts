@@ -156,7 +156,7 @@ export const compiled: CompiledCard = {
           },
           from: ["hand", "trash"],
           payCost: false,
-          optional: false,
+          optional: true,
         },
       ],
       isSecurity: true,

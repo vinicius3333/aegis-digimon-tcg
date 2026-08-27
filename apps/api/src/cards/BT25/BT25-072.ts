@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Keep the catalog-derived IR as the source of truth for the ordinary timing clauses;
 // the registered wrapper below adds Shutmon's linked-card face, which the IR cannot express.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -34,7 +34,18 @@ const compiled: CompiledCard = {
                 },
               ],
             },
+            // The host-qualified branch is only for this Digimon's stack. The
+            // alternate branch keeps the same trait/Link gates for cards in trash.
+            orFilters: [
+              {
+                controller: "mine",
+                kind: ["Digimon"],
+                hasLinkRequirement: true,
+                nameOrTrait: [{ tokens: ["Social", "Tool", "Game"], match: "trait" }],
+              },
+            ],
             count: 1,
+            source: "thisDigimon",
           },
           from: ["trash", "digivolutionCards"],
           costDelta: -2,
@@ -64,7 +75,16 @@ const compiled: CompiledCard = {
                 },
               ],
             },
+            orFilters: [
+              {
+                controller: "mine",
+                kind: ["Digimon"],
+                hasLinkRequirement: true,
+                nameOrTrait: [{ tokens: ["Social", "Tool", "Game"], match: "trait" }],
+              },
+            ],
             count: 1,
+            source: "thisDigimon",
           },
           from: ["trash", "digivolutionCards"],
           costDelta: -2,
@@ -94,7 +114,16 @@ const compiled: CompiledCard = {
                 },
               ],
             },
+            orFilters: [
+              {
+                controller: "mine",
+                kind: ["Digimon"],
+                hasLinkRequirement: true,
+                nameOrTrait: [{ tokens: ["Social", "Tool", "Game"], match: "trait" }],
+              },
+            ],
             count: 1,
+            source: "thisDigimon",
           },
           from: ["trash", "digivolutionCards"],
           costDelta: -2,
@@ -158,7 +187,7 @@ const compiled: CompiledCard = {
       cost: 0,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
 
 registerIrCard("BT25-072", compiled);
-export { compiled };

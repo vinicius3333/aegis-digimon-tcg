@@ -1,4 +1,4 @@
-import type { CardDefinition, Permanent, Seat } from "@aegis/shared";
+import { CardKind, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import type { EffectContext, RemovalCause, ReplacementEventName, SubTriggerEventName } from "./EffectContext.js";
 
 /**
@@ -507,7 +507,20 @@ export class SubTriggerRegistry {
       if (sub.matches !== undefined && !sub.matches(ctx)) continue;
       this.markFired(sub, windowToken, turnLedger);
       announce?.(sub, ctx);
-      await sub.run(ctx);
+      // A linked card's triggered watcher remains an effect of its host Digimon,
+      // including when the physical linked card is an Option (BT25-100/101, KB Q6471/Q6476).
+      if (sub.isLinkedSource === true) {
+        const sourceKinds = [CardKind.Digimon];
+        ctx.effectSourceKinds = sourceKinds;
+        ctx.fx.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds);
+        try {
+          await sub.run(ctx);
+        } finally {
+          ctx.fx.leaveEffectResolution?.();
+        }
+      } else {
+        await sub.run(ctx);
+      }
       if (sub.oncePerTurnKey !== undefined && ctx.oncePerTurnActivationDeclined === true) {
         turnLedger?.unmarkFired?.(sub.oncePerTurnKey);
         ctx.oncePerTurnActivationDeclined = false;

@@ -1,8 +1,34 @@
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_016 } from "./BT25-016.js";
 import "../index.js";
 
 describe("BT25-016 GrapLeomon", () => {
+  it("matches the catalog and alternate TS evolution requirement", () => {
+    expect(getCardDefinition("BT25-016")).toMatchObject({
+      cardId: "BT25-016",
+      nameEn: "GrapLeomon",
+      colors: ["Red", "Green"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Vaccine"],
+      types: ["Beastkin", "Iliad", "TS"],
+      rarity: "R",
+      dualEffect: "GrapLeomon",
+    });
+    expect(digivolutionRequirementsFor("BT25-016")).toContainEqual({
+      level: 4,
+      traits: ["TS"],
+      cost: 3,
+      isAlternate: true,
+    });
+  });
+
   it("boosts one own Digimon and then offers an attack on play and digivolving", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const effect = BT25_016.effects?.find((entry) => entry.trigger === trigger);
@@ -47,5 +73,209 @@ describe("BT25-016 GrapLeomon", () => {
         }),
       ]),
     );
+  });
+
+  it("applies inherited Security Attack +1 from a realistic evolution stack", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "host", under: ["BT25-016"] }] } });
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
+  });
+
+  it("boosts one own Digimon, then independently attacks another on play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-011", as: "boost" },
+            { card: "BT1-010", as: "attacker" },
+          ],
+          hand: [{ card: "BT25-016", as: "source" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const boostDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: boostDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("boost").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const attackDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("attacker").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const forcedAttackTarget = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: forcedAttackTarget.decisionId,
+        response: { kind: "selectCards", instanceIds: ["player"] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("boost").currentDP).toBe(8000);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.perm("attacker").currentDP).toBe(2000);
+  });
+
+  it("applies the same two entry clauses after a legal alternate TS digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-011", as: "base" },
+            { card: "BT1-010", as: "boost" },
+            { card: "BT1-010", as: "attacker" },
+          ],
+          hand: [{ card: "BT25-016", as: "source" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const boostDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: boostDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("boost").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const attackDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("attacker").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const forcedAttackTarget = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: forcedAttackTarget.decisionId,
+        response: { kind: "selectCards", instanceIds: ["player"] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("base").topCard?.cardId).toBe("BT25-016");
+    expect(s.perm("boost").currentDP).toBe(5000);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+  });
+
+  it("free-digivolves into Marsmon when an opponent's 13000 DP Digimon attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-016", as: "source" }],
+          hand: [{ card: "BT25-020", as: "marsmon" }],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-020");
+    expect(s.perm("source").topCard?.cardId).toBe("BT25-020");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT25-020");
+  });
+
+  it("does not use a 12000 DP attack that only becomes 13000 after When Attacking", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-016", as: "source" }],
+          hand: [{ card: "BT25-020", as: "marsmon" }],
+          security: ["BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT15-075", as: "attacker", dp: 12000 }],
+          hand: [{ card: "BT1-010", as: "whenAttackingCost" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("source").topCard?.cardId).toBe("BT25-016");
+  });
+
+  it("triggers at exactly 13000 after suspension grants an inherited +1000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-016", as: "source" }],
+          hand: [{ card: "BT25-020", as: "marsmon" }],
+          security: ["BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "attacker", dp: 12000, under: ["BT16-042"] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.perm("attacker").currentDP).toBe(12000);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
+    await settle(() => s.perm("source").topCard?.cardId === "BT25-020");
+    expect(s.perm("source").topCard?.cardId).toBe("BT25-020");
   });
 });

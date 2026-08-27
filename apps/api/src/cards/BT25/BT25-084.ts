@@ -28,7 +28,7 @@ const sharedActions = (gateSecurityByEffect: boolean) => {
   const actions: NonNullable<CompiledCard["effects"][number]["actions"]> = [
     {
       kind: "Trash",
-      target: { filter: { zone: "hand" }, count: 1 },
+      target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
       optional: true,
       abortOnDecline: true,
     },
@@ -55,7 +55,7 @@ const sharedActions = (gateSecurityByEffect: boolean) => {
 
 const SHARED_USE_KEY = "shared-op-wd-wa";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "AllTurns",
@@ -69,7 +69,7 @@ const compiled: CompiledCard = {
           // "by trashing 2 cards in your hand, it doesn't leave" — the prevention's cost.
           cost: {
             kind: "trash",
-            target: { filter: { zone: "hand" }, count: 2 },
+            target: { filter: { controller: "mine", zone: "hand" }, count: 2 },
             raw: "by trashing 2 cards in your hand",
           },
           raw: "[All Turns] [Once Per Turn] When this Digimon would leave the battle area, by trashing 2 cards in your hand, it doesn't leave.",
@@ -104,6 +104,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenHandTrashed",
+          fireCondition: { kind: "triggerHandTrashedSeat", seat: "mine" },
           actions: [
             {
               kind: "Delete",

@@ -33,7 +33,7 @@ describe("BT5-088 Sora Takenouchi & Joe Kido", () => {
         0: {
           battleArea: [
             { card: "BT5-088", as: "tamer" },
-            { card: "BT5-032", as: "blue" },
+            { card: "BT1-027", as: "blue" },
           ],
         },
         1: {
@@ -76,7 +76,7 @@ describe("BT5-088 Sora Takenouchi & Joe Kido", () => {
         0: {
           battleArea: [
             { card: "BT5-088", as: "tamer" },
-            { card: "BT5-032", as: "blue" },
+            { card: "BT1-027", as: "blue" },
           ],
         },
         1: { battleArea: [{ card: "BT4-073", as: "target", under: [{ card: "BT1-009", as: "onlySource" }] }] },
@@ -102,7 +102,7 @@ describe("BT5-088 Sora Takenouchi & Joe Kido", () => {
         0: {
           battleArea: [
             { card: "BT5-088", as: "tamer" },
-            { card: "BT5-032", as: "blue" },
+            { card: "BT1-027", as: "blue" },
           ],
         },
         1: {

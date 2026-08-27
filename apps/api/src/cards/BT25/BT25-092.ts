@@ -29,7 +29,16 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           cost: {
             kind: "trash",
-            target: { filter: { controller: "mine", kind: ["Option"] }, from: ["hand", "digivolutionCards"], count: 1 },
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Option"],
+                hostFilter: { controller: "mine", kind: ["Digimon"] },
+              },
+              orFilters: [{ controller: "mine", kind: ["Option"], zone: "hand" }],
+              from: ["hand", "digivolutionCards"],
+              count: 1,
+            },
           },
           abortOnDecline: true,
         },

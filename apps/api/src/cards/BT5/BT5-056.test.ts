@@ -69,7 +69,6 @@ describe("BT5-056 Rafflesimon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    const raffleBefore = s.perm("raffle").currentDP;
     const terrierSource = (s.engine as any).cardSourceOf(s.perm("terrier").topCard!);
     const terrierEffectKey = effectsOf(EffectTiming.OnDeclaration, terrierSource).find((effect) =>
       effect.effectKey.startsWith("BT5-046/"),
@@ -88,6 +87,7 @@ describe("BT5-056 Rafflesimon", () => {
         s.state.pendingDecision === undefined,
     );
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "block")).toBe(true);
+    const raffleAfterTerrierBurst = s.perm("raffle").currentDP;
 
     const restrictionDecisions = () =>
       s.decisions.filter(
@@ -108,7 +108,7 @@ describe("BT5-056 Rafflesimon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("raffle").stack.length === 0 && s.state.pendingDecision === undefined);
 
-    expect(s.perm("raffle").currentDP).toBe(raffleBefore + 2000);
+    expect(s.perm("raffle").currentDP).toBe(raffleAfterTerrierBurst + 2000);
     expect(restrictionDecisions()).toHaveLength(restrictionCount);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "attack")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "block")).toBe(true);

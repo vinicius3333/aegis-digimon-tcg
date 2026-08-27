@@ -57,9 +57,12 @@ describe("BT5-015 MetalGreymon: Alterous Mode", () => {
     }
 
     for (const card of ["BT7-064", "BT4-013", "BT9-078"]) {
+      const baseline = setupEngine({ 0: { battleArea: [{ card, as: "host" }] } });
+      await baseline.ready();
+      const baselineDP = baseline.perm("host").currentDP;
       const s = setupEngine({ 0: { battleArea: [{ card, as: "host", under: ["BT5-015"] }] } });
       await s.ready();
-      expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+      expect(s.perm("host").currentDP).toBe(baselineDP);
     }
 
     const opponentTurn = setupEngine({ 0: { battleArea: [{ card: "BT5-016", as: "host", under: ["BT5-015"] }] } });

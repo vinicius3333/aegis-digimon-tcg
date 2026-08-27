@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT25-101.js";
 import "../index.js";
 
 const CARD_ID = "BT25-101";
@@ -11,6 +12,20 @@ function primitives(s: ReturnType<typeof setupEngine>): Primitives {
 }
 
 describe("BT25-101 Divine Arms Version Ω", () => {
+  it("keeps linked Security Attack +1 and Reboot persistent while linked", () => {
+    const linked = compiled.effects.filter((effect) => effect.isLinked === true);
+    const keywordActions = linked
+      .flatMap((effect) => effect.actions ?? [])
+      .filter((action) => action.kind === "GainKeyword");
+
+    expect(keywordActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "permanent" }),
+        expect.objectContaining({ keyword: { keyword: "Reboot" }, duration: "permanent" }),
+      ]),
+    );
+  });
+
   it("pays the TS cost, draws 2, and links only a Link-capable TS trash card", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -88,6 +103,7 @@ describe("BT25-101 Divine Arms Version Ω", () => {
       } as never),
     ).toEqual({ ok: true });
     await settle(() => s.perm("breedingHost").linked.some((card) => card.instanceId === optionId));
+    expect(s.perm("breedingHost").linked.map((card) => card.instanceId)).toContain(optionId);
     expect(s.state.players[0]!.breeding?.permanentId).toBe(s.perm("breedingHost").permanentId);
   });
 

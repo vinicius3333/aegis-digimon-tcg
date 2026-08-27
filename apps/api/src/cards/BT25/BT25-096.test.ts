@@ -1,8 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT25-096.js";
 
 describe("BT25-096 Mirage Beast Knight", () => {
+  it("binds both required materials and 'that Digimon' evolution to one Gaomon", () => {
+    const block = compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0];
+    expect(block).toMatchObject({
+      kind: "CostGatedBlock",
+      cost: {
+        kind: "compound",
+        costs: [
+          { kind: "place", bindHostAs: "gaomonHost" },
+          { kind: "place", host: { filter: { boundRef: "gaomonHost" } } },
+        ],
+      },
+      actions: [{ kind: "Digivolve", target: { fromSelectionRef: "gaomonHost" } }],
+    });
+  });
+
   it("pays the bottom face-down Tamer card to reduce the use cost from 5 to 3", async () => {
     const s = setupEngine(
       {

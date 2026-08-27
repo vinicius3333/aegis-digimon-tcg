@@ -2,9 +2,17 @@ import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT25-088.js";
 import "../index.js";
 
 describe("BT25-088 Kyo Sawashiro", () => {
+  it("keeps the Glowing Dawn play reduction in the Your Turn window", () => {
+    const reduction = compiled.effects.find((effect) =>
+      effect.actions?.some((action) => action.kind === "Replacement" && action.event === "wouldBePlayed"),
+    );
+    expect(reduction?.trigger).toBe("YourTurn");
+  });
+
   it("sets memory to 3 only at 2 or less on its controller's turn", async () => {
     const low = setupEngine({ 0: { battleArea: [{ card: "BT25-088", as: "kyo" }] } });
     low.state.memory = 2;

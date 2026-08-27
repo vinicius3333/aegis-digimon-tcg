@@ -16,6 +16,7 @@ import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../
 import { createCardSource, type CardStateLookup } from "../../engine/cards/CardSource.js";
 import { createGameAccess, createEffectContext } from "../../engine/effects/context.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 // The REAL authored IR (the hand-override exports it so the A3 asserts against the on-disk source).
 import { compiled as BT25_004 } from "./BT25-004.js";
 // Boot side-effect: self-register every compiled-IR card module.
@@ -171,7 +172,7 @@ async function runLinkWithGrant(opts: {
     undefined,
     undefined,
     undefined,
-    (id, traits) => continuous.linkCostReductionGrant(id, traits),
+    (id, traits) => continuous.linkCostReductionGrant(id, traits, (key) => usedReductions.has(key)),
   );
 
   const src = createCardSource(recipient.topCard!, stateLookup);
@@ -291,5 +292,31 @@ describe("BT25-004 Tapmon — cross-actor WhenWouldLink link-cost reduction (doc
     const reverted = await runLinkWithGrant({ installGrant: true, compiledForInstall: withoutGrant(BT25_004) });
     // With the grant action neutered, no recipient reduction is installed => full cost paid.
     expect(reverted.memoryPaid).toBe(1);
+  });
+
+  it("works from a legal evolution stack through the live engine", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host", under: ["BT25-004"] }],
+          hand: [{ card: "BT21-009", as: "link" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const result = s.engine.applyIntent(0, {
+      type: "linkCard",
+      instanceId: s.inst("link").instanceId,
+      targetPermanentId: s.perm("host").permanentId,
+    });
+    expect(result).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+
+    // BT21-009 costs 1 to link; the inherited Tapmon grant reduces this legal stack's link to 0.
+    expect(s.state.memory).toBe(10);
+    expect(s.perm("host").stack.map((stackCard) => stackCard.cardId)).toEqual(["BT25-004"]);
   });
 });

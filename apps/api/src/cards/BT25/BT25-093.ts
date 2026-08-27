@@ -61,6 +61,7 @@ export const compiled: CompiledCard = {
               zone: "battleArea",
               controller: "opponent",
               kind: ["Option"],
+              placedInBattleAreaByEffect: true,
             },
             count: 1,
           },
@@ -114,6 +115,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["TS"], cost: 3 }],
 };
 
 registerIrCard("BT25-093", compiled);

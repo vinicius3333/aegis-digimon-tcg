@@ -19,7 +19,12 @@ export const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           condition: {
             kind: "youHave",
-            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] },
+            filter: {
+              controllerDefault: "mine",
+              zone: "battleArea",
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+            },
             raw: "you have a card w/[Appmon] trait",
           },
         },
@@ -53,6 +58,7 @@ export const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
+              controller: "mine",
               nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
             },
             count: 1,

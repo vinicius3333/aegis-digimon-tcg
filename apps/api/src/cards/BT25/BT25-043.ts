@@ -42,6 +42,7 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
+          condition: { kind: "ifThisEffectActed" },
         },
       ],
       frequency: "OncePerTurn",
@@ -71,6 +72,7 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
+          condition: { kind: "ifThisEffectActed" },
         },
       ],
       frequency: "OncePerTurn",
@@ -97,9 +99,9 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
+                zone: "security",
               },
               count: 1,
-              zone: "security",
             },
             raw: "by trashing your top security card",
           },
