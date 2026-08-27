@@ -145,6 +145,11 @@ export interface ReducePlayCostAction extends ActionBase {
         filter: Filter;
       }
     | {
+        /** Pay an ordinary IR cost to earn the fixed reduction (BT26-098). */
+        kind: "payCost";
+        cost: Cost;
+      }
+    | {
         /** "By deleting 1 of your play-cost-≤11 [Negamon] Digimon" (BT25-076). */
         kind: "sacrificePermanent";
         target: Target;
