@@ -24,7 +24,7 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT1-071–080 | Static audit complete | `internal-docs/audits/BT1/BT1-071-080.md` | Yes |
 | BT1-081–090 | Luna in progress | `internal-docs/audits/BT1/BT1-081-090.md` | No |
 | BT1-091–100 | Static audit complete | `internal-docs/audits/BT1/BT1-091-100.md` | Yes |
-| BT1-101–110 | Luna in progress | `internal-docs/audits/BT1/BT1-101-110.md` | No |
+| BT1-101–110 | Static audit complete | `internal-docs/audits/BT1/BT1-101-110.md` | Yes |
 | BT1-111–115 | Luna in progress | `internal-docs/audits/BT1/BT1-111-115.md` | No |
 
 ## Score model
@@ -113,6 +113,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT1-098 V-Nova Blast | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-098.ts), [test](apps/api/src/cards/BT1/BT1-098.test.ts) |
 | BT1-099 Hearts Attack | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-099.ts), [test](apps/api/src/cards/BT1/BT1-099.test.ts) |
 | BT1-100 Grace Cross Freezer | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-100.ts), [test](apps/api/src/cards/BT1/BT1-100.test.ts) |
+| BT1-101 Howling Crusher | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-101.ts), [test](apps/api/src/cards/BT1/BT1-101.test.ts) |
+| BT1-102 Blade of the True | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-102.ts), [test](apps/api/src/cards/BT1/BT1-102.test.ts) |
+| BT1-103 Testament | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-103.ts), [test](apps/api/src/cards/BT1/BT1-103.test.ts) |
+| BT1-104 Golden Ripper | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-104.ts), [test](apps/api/src/cards/BT1/BT1-104.test.ts) |
+| BT1-105 Blast Fire | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-105.ts), [test](apps/api/src/cards/BT1/BT1-105.test.ts) |
+| BT1-106 Symphony No.1 &lt;Polyphony&gt; | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-106.ts), [test](apps/api/src/cards/BT1/BT1-106.test.ts) |
+| BT1-107 Holy Wave | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-107.ts), [test](apps/api/src/cards/BT1/BT1-107.test.ts) |
+| BT1-108 Horn Buster | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-108.ts), [test](apps/api/src/cards/BT1/BT1-108.test.ts) |
+| BT1-109 Smashed Potatoes | 2/2 | 2/2 | 2/2 | 1/2 | 0/2 | Ambiguous; provisional 7/10 | [module](apps/api/src/cards/BT1/BT1-109.ts), [test](apps/api/src/cards/BT1/BT1-109.test.ts) |
+| BT1-110 Flower Cannon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-110.ts), [test](apps/api/src/cards/BT1/BT1-110.test.ts) |
 
 Detailed clause traces and deferred commands for these rows are in the integrated range reports under `internal-docs/audits/BT1/`.
 
@@ -120,11 +130,11 @@ Detailed clause traces and deferred commands for these rows are in the integrate
 
 - Catalog cards: 115
 - Assigned: 115
-- Integrated card audits: 70
+- Integrated card audits: 80
 - Corrected: 2
-- Provisional: 70
+- Provisional: 80
 - Verified 10/10: 0
-- Blocked or ambiguous: 1
+- Blocked or ambiguous: 2
 - Remaining unassigned: 0
 
 BT1 remains open.
