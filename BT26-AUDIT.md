@@ -2436,3 +2436,35 @@ git diff --check
 ```
 
 No unresolved BT26-058 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-059 — Plutomon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-059` (`Plutomon`), a black/purple level-6 Digimon with play cost 13, 13000 DP, and alternate evolution from a level-5 `TS` Digimon for cost 4.
+- Printed behavior verified: a strict smaller-hand condition reduces its hand play cost by 6; shared On Play/When Digivolving/When Attacking Once Per Turn may trash one hand card and, during the controller's turn, play a non-Plutomon `Titan` Digimon from trash with play cost reduced by 7; and All Turns reacts to either player trashing hand cards by deleting all opposing Digimon tied for lowest level.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-059`; Q7074–Q7078 confirm comparison timing, no reduction outside hand, opponent-turn activation without the turn-gated play, reduction stacking, and either player's hand-trash trigger. No erratum or restriction applies.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-059.ts` has `coverage: "full"`, `residual: []`, and registers exclusively through `registerIrCard("BT26-059", compiled)`.
+- Its self-bound `wouldBePlayed` replacement uses the strict hand comparison and reduction 6. Three timing windows share one Once Per Turn optional hand-trash cost, then a controller-turn-gated trash play filtered to a non-Plutomon `Titan` with reduction 7.
+- The All Turns watcher accepts hand trash from either seat and deletes all opposing lowest-level Digimon. Announcement timing, reducers, cost gating, event seat matching, superlatives, and peers were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-059.test.ts` now covers On Play and When Digivolving bodies; mixed trash filtering for valid Titan, Plutomon, and non-Titan candidates; strict hand comparison; real alternate evolution and invalid rejection; opponent-turn behavior; optional refusal; Q7077 reduction stacking; Q7078 hand-trash ownership; and the shared Once Per Turn budget.
+- The added refusal proof preserves hand/trash/battle-area state, while the mixed pool and alternate-evolution cases close concrete filter and evolution proof gaps. The implementation required no correction.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-059
+  PASS (Q7074-Q7078; no errata/restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-059 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.

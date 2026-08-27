@@ -65,6 +65,50 @@ describe("BT26-059 Plutomon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("fires the same trash-and-play body when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-059", as: "plutomon" }],
+          hand: [{ card: "BT1-001", as: "cost" }],
+          trash: [{ card: "BT26-021", as: "titan" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("plutomon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+  });
+
+  it("selects only Titan trait Digimon from a mixed trash pool and excludes Plutomon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-059", as: "plutomon" }],
+          hand: [{ card: "BT1-001", as: "cost" }],
+          trash: [
+            { card: "BT26-021", as: "validTitan" },
+            { card: "BT26-059", as: "excludedPlutomon" },
+            { card: "BT26-060", as: "wrongTrait" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT26-059", "BT26-060"]),
+    );
+  });
+
   it("reduces its play cost by 6 only when its hand is strictly smaller at announcement", async () => {
     const reduced = setupEngine({
       0: { hand: [{ card: "BT26-059", as: "plutomon" }] },
@@ -93,6 +137,49 @@ describe("BT26-059 Plutomon", () => {
     expect(tied.state.memory).toBe(-6);
   });
 
+  it("uses the alternate TS evolution requirement from a level-5 TS Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-071", as: "tsBase" }],
+        hand: [{ card: "BT26-059", as: "plutomon" }],
+        deck: ["BT1-001"],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("plutomon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tsBase").topCard.cardId === "BT26-059");
+
+    expect(s.perm("tsBase").topCard.cardId).toBe("BT26-059");
+    expect(s.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-055", as: "nonTsBase" }],
+        hand: [{ card: "BT26-059", as: "plutomon" }],
+      },
+    });
+    invalid.state.memory = 4;
+    await invalid.ready();
+
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("nonTsBase").permanentId,
+        instanceId: invalid.inst("plutomon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
   it("may pay the hand-trash activation outside its turn, triggering deletion without playing a Titan", async () => {
     const s = setupEngine(
       {
@@ -115,6 +202,26 @@ describe("BT26-059 Plutomon", () => {
     );
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-021");
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("may decline the optional hand-trash activation without paying or playing", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-059", as: "plutomon" }],
+          hand: [{ card: "BT1-001", as: "cost" }],
+          trash: [{ card: "BT26-021", as: "titan" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("titan").instanceId]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-021");
   });
 
   it("Q7077: stacks its -7 reduction with GranKuwagamon's -4 play reduction", async () => {
