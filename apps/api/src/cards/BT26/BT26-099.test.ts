@@ -22,7 +22,12 @@ describe("BT26-099 compiled fidelity", () => {
       actions: [{ kind: "ActivateMain" }],
     });
     expect(card.effects.find((effect) => effect.trigger === "Static")).toMatchObject({
-      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave" } }],
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          condition: { kind: "youHave", filter: { kind: ["Digimon", "Tamer"] } },
+        },
+      ],
     });
     expect(card?.effects?.find((effect) => effect.trigger === "Main")?.actions).toMatchObject([
       {
@@ -56,6 +61,18 @@ describe("BT26-099 compiled fidelity", () => {
       withoutDm.engine.applyIntent(0, { type: "playCard", instanceId: withoutDm.inst("manual").instanceId }),
     ).toEqual({ ok: false, reason: "color-requirement-unmet" });
 
+    const withDmOption = setupEngine({
+      0: {
+        battleArea: [{ card: "P-205", as: "dmOption" }],
+        hand: [{ card: "BT26-099", as: "manual" }],
+      },
+    });
+    withDmOption.state.memory = 3;
+    await withDmOption.ready();
+    expect(
+      withDmOption.engine.applyIntent(0, { type: "playCard", instanceId: withDmOption.inst("manual").instanceId }),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
+
     const withDm = setupEngine(
       {
         0: {
@@ -81,7 +98,7 @@ describe("BT26-099 compiled fidelity", () => {
           battleArea: [{ card: "BT26-036", as: "greenSource" }],
           hand: [{ card: "BT26-099", as: "manual" }],
           deck: [
-            { card: "BT26-077", as: "dm" },
+            { card: "P-205", as: "dmOption" },
             { card: "BT1-009", as: "rest" },
             { card: "BT1-010", as: "rest2" },
           ],
@@ -101,7 +118,7 @@ describe("BT26-099 compiled fidelity", () => {
         s.state.players[0]!.deck.length === 2,
     );
 
-    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("dm").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("dmOption").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("rest").instanceId, s.inst("rest2").instanceId]),
     );
@@ -189,7 +206,33 @@ describe("BT26-099 compiled fidelity", () => {
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT26-077")).toBe(true);
   });
 
-  it("cannot evolve into a level 7 DM card after activating Delay", async () => {
+  it("cannot activate Delay during the same turn this Option entered the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-099", as: "manual" },
+            { card: "EX9-064", as: "host", under: [{ card: "BT1-009", as: "faceDown", faceUp: false }] },
+          ],
+          hand: [{ card: "BT26-077", as: "reapermon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("manual").enterFieldTurnCount = s.state.turnCount;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("faceDown").instanceId],
+    });
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-099")).toBe(true);
+    expect(s.perm("host").topCard.cardId).toBe("EX9-064");
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT26-077")).toBe(true);
+  });
+
+  it("does not activate Delay when the only DM card exceeds the level-six limit", async () => {
     const s = setupEngine(
       {
         0: {
@@ -210,8 +253,33 @@ describe("BT26-099 compiled fidelity", () => {
       addedDigivolutionCardInstanceIds: [s.inst("faceDown").instanceId],
     });
 
-    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-099")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-099")).toBe(true);
     expect(s.perm("host").topCard.cardId).toBe("EX9-064");
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX9-021")).toBe(true);
+  });
+
+  it("does not trigger when a face-down card is placed under a Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-099", as: "manual" },
+            { card: "BT26-096", as: "tamer", under: [{ card: "BT1-009", as: "faceDown", faceUp: false }] },
+          ],
+          hand: [{ card: "BT26-077", as: "reapermon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("manual").enterFieldTurnCount = s.state.turnCount - 1;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("tamer").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("faceDown").instanceId],
+    });
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-099")).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT26-077")).toBe(true);
   });
 });

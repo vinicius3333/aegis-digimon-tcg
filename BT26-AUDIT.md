@@ -3021,6 +3021,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR/exclusive `registerIrCard`; optional cost modifier trashes one bottom face-down card for -2, Main places both exact trash materials under one Lalamon then offers free Rosemon evolution, and Security offers Lalamon/Yoshino before adding self to hand.
 - Proof: reducer/refusal, both Security branches/fallback, positive evolution, and Q7173 partial failure. No change; automation not run; diff check passed. No unresolved static limitation.
 
+## BT26-099 — Training Manual — 10/10
+
+- Catalog/rules: green cost-3 DM Option, DM Use Requirement, mandatory reveal/add, battlefield placement, face-down-stack Delay, free Lv.6-or-lower DM evolution, and Security Main confirmed. CR §16-42/§16-17 govern Use Req/Delay; no card-specific KB entry.
+- Correction: restricted the Use Requirement waiver to DM Digimon/Tamers. The previous broad permanent filter wrongly allowed a DM Option; the reveal filter remains broad enough to add any DM card.
+- Proof: valid/invalid Use Req including DM Option, DM Option reveal, mandatory add, Security Main, Delay success and same-turn/face-up/non-Digimon/level-7 refusals. Full IR/exclusive `registerIrCard`; automation not run; diff check passed. No limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
