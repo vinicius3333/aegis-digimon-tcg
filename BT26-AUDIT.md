@@ -2115,3 +2115,36 @@ git diff --check
 ```
 
 No unresolved BT26-048 ambiguity or unsupported printed clause remains. Only the direct IR module, its colocated focused test, and this ledger section changed; the shared engine remains unchanged. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-049 — Rosemon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-049` (`Rosemon`), a green level-6 Mega/Data Digimon with play cost 12, 12000 DP, and `Fairy`/`DATA SQUAD` traits. Its normal evolution requirement is green Lv.5 for cost 4. Its alternate requirements are `[Digivolve] [Lilamon]: Cost 3` and `[Digivolve] Lv.5 w/[DATA SQUAD] trait: Cost 3`.
+- Printed behavior verified: When Digivolving/When Attacking Once Per Turn suspends two opposing Digimon or Tamers; and All Turns Once Per Turn, when an opposing Digimon/Tamer suspends or effects trash cards from under an own Tamer, may play or use a cost-3-or-lower `DATA SQUAD` card from hand without paying, increasing the ceiling by 1 for every suspended Digimon or Tamer.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-049 --json`; result has no Q&A, banlist entry, or erratum.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-049.ts` has `coverage: "full"`, `residual: []`, and registers exclusively through `registerIrCard("BT26-049", compiled)`.
+- The exact alternate requirements are encoded. When Digivolving and When Attacking each suspend exactly two opponent Digimon/Tamers and share one Once Per Turn key.
+- The All Turns watcher has opponent-suspension and effect-attributed own-Tamer-stack-trash routes under one Once Per Turn budget. Both resolve the same optional hand modal for a `DATA SQUAD` Digimon/Tamer play or Option use, with a dynamic base-3 ceiling raised for suspended Digimon/Tamers across both players.
+- Suspension batching, effect attribution, dynamic cost ceilings, modal play/use, optional handling, Once Per Turn accounting, and relevant peers were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-049.test.ts` now contains 7 focused cases covering alternate metadata/IR shape; raised and boundary ceilings; optional refusal without consuming the budget; shared All Turns timing budget; a positive `DATA SQUAD` Digimon play after effect-driven trash under an own Tamer; and the shared When Digivolving/When Attacking suspend budget.
+- The added positive Tamer-trash case uses the real trash primitive with effect attribution, observes the stacked card in trash, and confirms the eligible cost-5 Digimon is played under the two-suspended-permanent ceiling. The implementation required no correction.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-049 --json
+  PASS (qa: []; banlist: null; errata: null)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-049 ambiguity or unsupported printed clause remains. Only its colocated focused test and this ledger section changed; the card implementation and shared engine remain unchanged. The audit remains unpushed and the collection is not marked complete.
