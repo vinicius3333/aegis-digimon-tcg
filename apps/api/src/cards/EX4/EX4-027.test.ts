@@ -29,4 +29,8 @@ describe("EX4-027 GoldVeedramon", () => {
       },
     });
   });
+
+  it("requires the exact Veemon name for its alternate evolution", () => {
+    expect(compiled.digivolutionRequirement).toMatchObject([{ namesExact: ["Veemon"], cost: 2 }]);
+  });
 });

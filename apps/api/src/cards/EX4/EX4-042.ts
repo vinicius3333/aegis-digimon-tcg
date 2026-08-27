@@ -28,7 +28,6 @@ export const compiled: CompiledCard = {
           kind: "GrantStatic",
           target: {
             filter: {
-              controllerDefault: "mine",
               kind: ["Digimon"],
               nameOrTrait: [
                 {

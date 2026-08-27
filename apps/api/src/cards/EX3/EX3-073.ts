@@ -48,7 +48,7 @@ const compiled: CompiledCard = {
     {
       trigger: "OnDeletion",
       condition: {
-        kind: "allOf",
+        kind: "anyOf",
         conditions: [
           { kind: "selfHasMinTrash", count: 1, filter: { nameOrTrait: [{ tokens: ["Wormmon"], match: "nameExact" }] } },
           { kind: "selfHasMinTrash", count: 1, filter: { nameOrTrait: [{ tokens: ["Veemon"], match: "nameExact" }] } },

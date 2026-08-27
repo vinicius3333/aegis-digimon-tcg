@@ -25,7 +25,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onDeletionOf",
           sourceFilter: {
-            controllerDefault: "mine",
+            controller: "opponent",
             kind: ["Digimon"],
             dp: {
               op: "gte",

@@ -15,6 +15,7 @@ export const compiled: CompiledCard = {
               filter: {
                 controllerDefault: "mine",
                 multicolor: true,
+                colorCount: 2,
                 colors: ["Green"],
               },
               count: 1,
@@ -45,6 +46,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
+          bySourceKeyword: "Alliance",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
@@ -53,16 +55,15 @@ export const compiled: CompiledCard = {
             {
               kind: "Digivolve",
               target: {
-                filter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                },
+                filter: { isSelfRef: true },
                 count: 1,
+                isSelf: true,
               },
               into: {
                 filter: {
                   controllerDefault: "mine",
                   multicolor: true,
+                  colorCount: 2,
                   colors: ["Green"],
                 },
                 count: 1,

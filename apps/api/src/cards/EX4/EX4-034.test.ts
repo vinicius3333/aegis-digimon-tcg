@@ -7,7 +7,7 @@ describe("EX4-034 Lopmon", () => {
       kind: "RevealAdd",
       revealCount: 4,
       add: [
-        { filter: { multicolor: true, colors: ["Green"] } },
+        { filter: { multicolor: true, colorCount: 2, colors: ["Green"] } },
         { filter: { kind: ["Tamer"], nameOrTrait: [{ match: "name", tokens: ["Shu-Chong Wong"] }] } },
       ],
       rest: "deckBottom",
@@ -20,7 +20,8 @@ describe("EX4-034 Lopmon", () => {
       actions: [
         {
           kind: "SubTrigger",
-          event: "onSuspend",
+          event: "whenEffectSuspends",
+          bySourceKeyword: "Alliance",
           actions: [{ kind: "Digivolve", costDelta: -2, from: ["hand"], optional: true }],
         },
       ],

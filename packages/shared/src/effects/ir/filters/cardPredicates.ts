@@ -29,6 +29,8 @@ export interface CardPredicates {
   /** Any printed trait contains any token (case-insensitive). */
   traitContains?: string[];
   colors?: ("Red" | "Blue" | "Yellow" | "Green" | "White" | "Black" | "Purple")[];
+  /** Every listed color must be present (conjunctive counterpart to the OR-matched `colors`). */
+  colorsAll?: ("Red" | "Blue" | "Yellow" | "Green" | "White" | "Black" | "Purple")[];
   /**
    * "non-X" predicate, applied after `colors`. A 3+ color card carrying X is still excluded,
    * which is why this is not expressed by listing the other six colors (P-155, BT14-097, EX4-070).

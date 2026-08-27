@@ -191,6 +191,8 @@ export interface PlaceUnderAction extends ActionBase {
 export interface TrashDigivolutionAction extends ActionBase {
   kind: "TrashDigivolution";
   target: Target;
+  /** Restrict which cards in each selected digivolution stack may be trashed. */
+  cardFilter?: Filter;
   /** Default 1. */
   amount?: number | "all";
   /** Lower bound for an "up to `amount`" trash; the payment fails below it. */

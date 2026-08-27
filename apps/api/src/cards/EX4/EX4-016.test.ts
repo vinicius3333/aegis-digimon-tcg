@@ -12,7 +12,7 @@ describe("EX4-016 Greymon", () => {
       revealCount: 3,
       add: [
         { count: 1, to: "hand", filter: { nameOrTrait: [{ match: "name", tokens: ["Kiriha Aonuma"] }] } },
-        { count: 1, to: "hand", filter: { colors: ["Blue", "Black"] } },
+        { count: 1, to: "hand", filter: { colors: ["Blue", "Black"], hasDigiXrosRequirements: true } },
       ],
       rest: "trash",
     });
@@ -40,5 +40,21 @@ describe("EX4-016 Greymon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT10-088")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT10-024")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);
+  });
+
+  it("does not select a blue card without DigiXros requirements", async () => {
+    const s = setupEngine(
+      { 0: { deck: ["BT10-088", "BT10-024", "BT10-019"], battleArea: [{ card: "EX4-016", as: "greymon" }] } },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("greymon"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT10-088"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT10-088", "BT10-024"]),
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT10-019")).toBe(true);
   });
 });

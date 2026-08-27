@@ -14,5 +14,7 @@ describe("EX4-042 DarkMaildramon", () => {
       kind: "GrantStatic",
       target: { count: "all", filter: { nameOrTrait: [{ match: "name", tokens: ["Knightmon", "Knightsmon"] }] } },
     });
+    const secondTarget = (actions?.[1] as { target?: { filter?: unknown } } | undefined)?.target;
+    expect(secondTarget?.filter).not.toHaveProperty("controllerDefault");
   });
 });

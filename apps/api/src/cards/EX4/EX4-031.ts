@@ -2,9 +2,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// DigivolutionRequirement has no colorCount field; multicolor:true + colors:['Green'] encodes
-// "multicolored including green" (at least 2 colors). The exact 2-color constraint needs
-// colorCount:2 — see LANE_A.md CAP-A2.
+// The printed "2-color w/green" gate is carried as multicolor:true + colors:['Green'] plus
+// colorCount:2, consumed by the shared requirement matcher as an exact color cardinality gate.
 // text in the printed effectText is the rules reminder for Alliance, not a separate effect).
 export const compiled: CompiledCard = {
   effects: [
@@ -79,6 +78,7 @@ export const compiled: CompiledCard = {
     {
       level: 5,
       multicolor: true,
+      colorCount: 2,
       colors: ["Green"],
       cost: 3,
       isAlternate: true,

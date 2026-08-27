@@ -22,6 +22,7 @@ const compiled: CompiledCard = {
           underFilter: {
             controller: "mine",
             kind: ["Digimon"],
+            excludeSelf: true,
           },
           optional: true,
         },

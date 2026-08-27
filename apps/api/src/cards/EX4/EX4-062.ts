@@ -33,7 +33,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "DigiXrosMaterialZoneExpansion",
-          zones: ["tamerCards", "trash"],
+          zones: ["underTamers", "trash"],
           duration: "permanent",
           cost: {
             kind: "suspend",

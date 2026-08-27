@@ -20,14 +20,7 @@ export const compiled: CompiledCard = {
               op: "placeAsSecurity",
               from: ["hand"],
               controller: "mine",
-              source: {
-                filter: {
-                  controller: "mine",
-                  zone: "hand",
-                  level: "same",
-                },
-                count: 1,
-              },
+              source: "revealed",
               toTop: true,
               cost: {
                 kind: "reveal",

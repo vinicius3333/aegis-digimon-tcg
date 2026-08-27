@@ -45,10 +45,20 @@ const module: EffectModule = {
             return ctx.source.cardId === cardId;
           },
           canActivate: (ctx) => {
-            return motherDReaperWith7PlusStack(ctx.game, ctx.source.ownerSeat).length > 0;
+            return motherDReaperWith7PlusStack(ctx.game, ctx.source.ownerSeat).some((motherId) => {
+              const mother = ctx.game.permanentById(motherId);
+              if (mother === undefined) return false;
+              return mother.stack.filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) ?? true).length >= 7;
+            });
           },
           resolve: async (ctx) => {
-            const motherIds = motherDReaperWith7PlusStack(ctx.game, ctx.source.ownerSeat);
+            const motherIds = motherDReaperWith7PlusStack(ctx.game, ctx.source.ownerSeat).filter((motherId) => {
+              const mother = ctx.game.permanentById(motherId);
+              return (
+                mother !== undefined &&
+                mother.stack.filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) ?? true).length >= 7
+              );
+            });
             if (motherIds.length === 0) return;
 
             const wantToPay = await ctx.ask.optional(
@@ -69,7 +79,13 @@ const module: EffectModule = {
 
             // The printed cost is 7 OR MORE, so expose every legal contiguous amount to
             // the decision protocol instead of silently fixing the payment at 7.
-            const legalCounts = Array.from({ length: motherPerm.stack.length - 6 }, (_, index) => index + 7);
+            const legalCounts = Array.from({ length: motherPerm.stack.length - 6 }, (_, index) => index + 7).filter(
+              (count) =>
+                motherPerm.stack
+                  .slice(0, count)
+                  .filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) ?? true).length >= 7,
+            );
+            if (legalCounts.length === 0) return;
             const countChoice =
               legalCounts.length === 1
                 ? 0
@@ -80,17 +96,17 @@ const module: EffectModule = {
             const trashCount = legalCounts[countChoice] ?? 7;
             const toTrash: string[] = [];
             for (let i = 0; i < trashCount; i++) {
-              const idx = motherPerm.stack.length - 1 - i;
-              if (idx >= 0 && motherPerm.stack[idx] !== undefined) {
-                toTrash.push(motherPerm.stack[idx]!.instanceId);
+              if (motherPerm.stack[i] !== undefined) {
+                toTrash.push(motherPerm.stack[i]!.instanceId);
               }
             }
 
             if (toTrash.length < 7) return;
 
-            await ctx.fx.trashDigivolutionCards(chosenMother[0]!, toTrash, {
+            const trashed = await ctx.fx.trashDigivolutionCards(chosenMother[0]!, toTrash, {
               byEffectSeat: ctx.source.ownerSeat,
             });
+            if (trashed.length < 7) return;
 
             // Set play cost to 0. The consumer
             // (GameEngine.fireBeforePayCost) floors the delta at 0 and computes cost = max(0,

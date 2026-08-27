@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./EX4-050.js";
 
 describe("EX4-050 ShadowSeraphimon", () => {
+  it("requires the exact Seraphimon name for its alternate evolution", () => {
+    expect(compiled.digivolutionRequirement).toMatchObject([{ namesExact: ["Seraphimon"], cost: 1 }]);
+  });
+
   it("De-Digivolves an opposing Digimon when security is removed during the opponent's turn", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",

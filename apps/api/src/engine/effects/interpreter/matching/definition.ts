@@ -107,6 +107,10 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
     const wanted = filter.colors.map((c) => COLOR_MAP[c]);
     if (!wanted.some((c) => def.colors.includes(c))) return false;
   }
+  if (filter.colorsAll && filter.colorsAll.length > 0) {
+    const wanted = filter.colorsAll.map((c) => COLOR_MAP[c]);
+    if (!wanted.every((c) => def.colors.includes(c))) return false;
+  }
   // Color EXCLUSION ("non-red Option", "non-white Digimon"): reject when the card carries ANY of
   if (filter.excludeColors && filter.excludeColors.length > 0) {
     const banned = filter.excludeColors.map((c) => COLOR_MAP[c]);
@@ -115,6 +119,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Multicolored: two or more colors. With `colors` also set, the card must be
   // multicolored AND include one of those colors (handled by the `colors` check above).
   if (filter.multicolor && def.colors.length < 2) return false;
+  if (filter.colorCount !== undefined && def.colors.length !== filter.colorCount) return false;
   if (filter.singleColor === true && def.colors.length !== 1) return false;
   if (filter.levels && filter.levels.length > 0) {
     if (def.level === undefined || !filter.levels.includes(def.level)) return false;

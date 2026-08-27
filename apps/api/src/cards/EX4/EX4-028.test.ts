@@ -33,4 +33,8 @@ describe("EX4-028 Doumon", () => {
       ],
     });
   });
+
+  it("requires the exact Kyubimon name for its alternate evolution", () => {
+    expect(compiled.digivolutionRequirement).toMatchObject([{ namesExact: ["Kyubimon"], cost: 3 }]);
+  });
 });

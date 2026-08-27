@@ -11,7 +11,13 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            filter: { controller: "mine", kind: ["Digimon"], multicolor: true, colors: ["Green", "Black"] },
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              multicolor: true,
+              colorCount: 2,
+              colorsAll: ["Green", "Black"],
+            },
             count: 2,
           },
           keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
@@ -20,7 +26,13 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            filter: { controller: "mine", kind: ["Digimon"], multicolor: true, colors: ["Green", "Black"] },
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              multicolor: true,
+              colorCount: 2,
+              colorsAll: ["Green", "Black"],
+            },
             count: 2,
           },
           keyword: { keyword: "Reboot", raw: "＜Reboot＞" },
@@ -47,7 +59,7 @@ export const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
-    { level: 5, multicolor: true, colors: ["Green"], cost: 4, isAlternate: true },
+    { level: 5, multicolor: true, colorCount: 2, colors: ["Green"], cost: 4, isAlternate: true },
     { level: 5, names: ["Rapidmon"], cost: 4, isAlternate: true },
   ],
 };

@@ -11,7 +11,7 @@ import {
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
-import "./EX4-049.js";
+import { compiled } from "./EX4-049.js";
 
 function instance(cardId: string, ownerSeat: Seat): CardInstance {
   return { cardId, instanceId: `${cardId}-${ownerSeat}`, ownerSeat, faceUp: true } as CardInstance;
@@ -33,6 +33,10 @@ function definition(cardId: string, playCost: number): CardDefinition {
 }
 
 describe("EX4-049 CresGarurumon", () => {
+  it("requires the exact WereGarurumon name for its alternate evolution", () => {
+    expect(compiled.digivolutionRequirement).toMatchObject([{ namesExact: ["WereGarurumon"], cost: 3 }]);
+  });
+
   it("returns distinct selected opposing Digimon with combined play cost up to six to deck bottom", async () => {
     const selfCard = instance("EX4-049", 0);
     const self = {

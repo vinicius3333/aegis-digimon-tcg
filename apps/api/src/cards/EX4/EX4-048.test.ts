@@ -10,7 +10,7 @@ describe("EX4-048 Gaiomon", () => {
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0]).toMatchObject({
       kind: "Delete",
-      target: { filter: { costComparison: { op: "gte", value: 13 } } },
+      target: { filter: { playCostGte: 13 } },
     });
   });
   it("trashes security when no Digimon was deleted and can free-digivolve with a Tamer", () => {
@@ -26,6 +26,7 @@ describe("EX4-048 Gaiomon", () => {
       payCost: false,
       ignoreRequirements: true,
       condition: { kind: "youHave" },
+      into: { playCostGte: 13 },
     });
   });
 });

@@ -20,7 +20,8 @@ describe("EX4-040 SkullKnightmon", () => {
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")).toMatchObject({
       isInherited: true,
-      actions: [{ kind: "Unsuspend" }],
+      actions: [],
+      keywords: [{ keyword: "Reboot" }],
     });
   });
 });

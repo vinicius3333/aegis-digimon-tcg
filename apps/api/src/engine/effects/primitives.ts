@@ -393,18 +393,67 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     duration,
   ) => continuous.restrictSecurityAddsFromEffect(blockedEffectSeat, granterSeat, duration);
 
-  // DigiXros material zone expansion ledger (BT19-079/BT19-087).
-  // The play-card / DigiXros material-picking path reads expanded zones here.
-  const digiXrosZoneExpansions = new Map<Seat, { zones: ZoneRef[]; expiresAtTurnEndOf?: Seat }>();
-  const digiXrosExpandedZones: Primitives["digiXrosExpandedZones"] = (seat) => {
-    const entry = digiXrosZoneExpansions.get(seat);
-    return entry?.zones ?? [];
+  // DigiXros material zone expansion ledger (EX4-062 / BT19-079 / BT19-087).
+  // Keep every active grant instead of replacing the previous one: separate Tamers'
+  // permissions are additive, and the play-card path consumes their union. The
+  // activation turn snapshot lets the read side expire finite grants even when no
+  // explicit turn-sweep callback is available on the optional primitives port.
+  const digiXrosZoneExpansions = new Map<
+    Seat,
+    Array<{
+      zones: ZoneRef[];
+      duration: EffectDuration;
+      activationTurnCount: number;
+      activationTurnSeat: Seat;
+    }>
+  >();
+  const digiXrosExpansionIsActive = (
+    entry: {
+      duration: EffectDuration;
+      activationTurnCount: number;
+      activationTurnSeat: Seat;
+    },
+    seat: Seat,
+  ): boolean => {
+    if (entry.duration === EffectDuration.Permanent) return true;
+    const currentTurn = state.turnCount;
+    const currentTurnSeat = state.turnSeat;
+    if (entry.duration === EffectDuration.UntilEachTurnEnd) {
+      return currentTurn <= entry.activationTurnCount;
+    }
+    if (entry.duration === EffectDuration.UntilOwnerTurnEnd) {
+      const ownerTurn = entry.activationTurnSeat === seat;
+      const targetTurnCount = ownerTurn ? entry.activationTurnCount : entry.activationTurnCount + 1;
+      return currentTurn <= targetTurnCount;
+    }
+    if (entry.duration === EffectDuration.UntilOpponentTurnEnd) {
+      const opponentTurn = entry.activationTurnSeat !== seat;
+      const targetTurnCount = opponentTurn ? entry.activationTurnCount : entry.activationTurnCount + 1;
+      return currentTurn <= targetTurnCount;
+    }
+    // DigiXros expanders are normally turn-scoped/permanent. Treat an unsupported
+    // finite marker conservatively as active for the activation turn only rather
+    // than leaking it across a turn boundary.
+    return currentTurn === entry.activationTurnCount || currentTurnSeat === entry.activationTurnSeat;
   };
-  const expandDigiXrosZones: Primitives["expandDigiXrosZones"] = (seat, zones, _duration) => {
-    // Record the zone expansion. Duration-based expiry is a future concern
-    // (the DigiXros material-picking path in the play-card subsystem will
-    // consult this ledger and handle the time-boundary cleanup).
-    digiXrosZoneExpansions.set(seat, { zones });
+  const digiXrosExpandedZones: Primitives["digiXrosExpandedZones"] = (seat) => {
+    const entries = digiXrosZoneExpansions.get(seat) ?? [];
+    const active = entries.filter((entry) => digiXrosExpansionIsActive(entry, seat));
+    if (active.length !== entries.length) {
+      if (active.length === 0) digiXrosZoneExpansions.delete(seat);
+      else digiXrosZoneExpansions.set(seat, active);
+    }
+    return [...new Set(active.flatMap((entry) => entry.zones))];
+  };
+  const expandDigiXrosZones: Primitives["expandDigiXrosZones"] = (seat, zones, duration) => {
+    const entries = digiXrosZoneExpansions.get(seat) ?? [];
+    entries.push({
+      zones: [...new Set(zones)],
+      duration,
+      activationTurnCount: state.turnCount,
+      activationTurnSeat: state.turnSeat,
+    });
+    digiXrosZoneExpansions.set(seat, entries);
   };
 
   // Engine-backed: re-activate one of a permanent's own [On Play] effects (EX3-065). Needs the
@@ -3240,7 +3289,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   async function fireSuspensionTriggers(
     permanentIds: string[],
-    opts?: { byEffectSeat?: Seat; suppressWhenEffectSuspends?: boolean },
+    opts?: { byEffectSeat?: Seat; byEffectCardId?: string; suppressWhenEffectSuspends?: boolean },
   ): Promise<void> {
     const firstPermanentId = permanentIds[0];
     if (firstPermanentId === undefined) return;
@@ -3249,6 +3298,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       ...(permanentIds.length > 1 ? { subjectPermanentIds: permanentIds } : {}),
       suspendedPermanentId: firstPermanentId,
       ...(opts?.byEffectSeat !== undefined ? { effectSuspendSeat: opts.byEffectSeat } : {}),
+      ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
     };
     // One action that suspends multiple permanents creates one simultaneous timing, not one
     // timing per card (BT2-041 Q1015 / BT4-084 Q1230). Carry every subject so filtered watchers
@@ -3262,13 +3312,19 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.fireSubTrigger?.("whenEffectSuspends", {
         ...simultaneousTrigger,
         ...(opts?.byEffectSeat !== undefined ? { effectSuspendSeat: opts.byEffectSeat } : {}),
+        ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
       });
     }
   }
 
   async function suspend(
     permanentIds: string[],
-    opts?: { byEffectSeat?: Seat; deferTriggers?: boolean; suppressWhenEffectSuspends?: boolean },
+    opts?: {
+      byEffectSeat?: Seat;
+      byEffectCardId?: string;
+      deferTriggers?: boolean;
+      suppressWhenEffectSuspends?: boolean;
+    },
   ): Promise<string[]> {
     const suspendedPermanentIds: string[] = [];
     for (const permanentId of permanentIds) {

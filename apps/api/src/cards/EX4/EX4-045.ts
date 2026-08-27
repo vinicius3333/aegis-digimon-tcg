@@ -6,6 +6,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Text: "[When Digivolving] 1 of your other Digimon may digivolve into a level 6 or lower
 //   Digimon card with [Garurumon] in its name in your hand for the digivolution cost.
 //   When that Digimon would digivolve by this effect, reduce the digivolution cost by 2."
+// Inherited: When an opponent's Digimon attacks, you may suspend this Digimon to force the
+//   opponent to attack it instead.
 // No KB entries.
 // Fixes:
 //   - Digivolve action: target is another Digimon (excludeSelf), hand-only source (already there)
@@ -47,6 +49,29 @@ export const compiled: CompiledCard = {
           optional: true,
         },
       ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "RedirectAttack",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                optional: true,
+                raw: "suspend this Digimon",
+              },
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
     },
   ],
   coverage: "full",

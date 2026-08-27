@@ -960,9 +960,17 @@ export interface Primitives {
   /** Returns the permanent IDs that actually transitioned to suspended. */
   suspend(
     permanentIds: string[],
-    opts?: { byEffectSeat?: Seat; deferTriggers?: boolean; suppressWhenEffectSuspends?: boolean },
+    opts?: {
+      byEffectSeat?: Seat;
+      byEffectCardId?: string;
+      deferTriggers?: boolean;
+      suppressWhenEffectSuspends?: boolean;
+    },
   ): Promise<string[]>;
-  fireSuspensionTriggers?(permanentIds: string[], opts?: { byEffectSeat?: Seat }): Promise<void>;
+  fireSuspensionTriggers?(
+    permanentIds: string[],
+    opts?: { byEffectSeat?: Seat; byEffectCardId?: string },
+  ): Promise<void>;
   unsuspend(permanentIds: string[]): Promise<void>;
   /**
    * Return cards to their owners' hands. Async because a permanent bounce consults the

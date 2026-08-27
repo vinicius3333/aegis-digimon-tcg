@@ -269,15 +269,19 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       const selected: string[] = [];
       let spent = 0;
       for (const candidate of byCost) {
-        // upTo: the controller may decline individual picks
+        // "up to" still requires the declared minimum. EX4-073's Q3519 makes the first
+        // legal deletion mandatory after the effect has been activated; only subsequent
+        // candidates may be declined.
         if (action.upTo && spent + candidate.cost > effectiveBudget) continue;
         if (spent + candidate.cost > effectiveBudget) break; // cannot afford this one
-        const yes = action.upTo
-          ? await ctx.ask.optional(
-              ctx,
-              `Delete ${candidate.permanentId} (cost ${candidate.cost}, spent ${spent}/${effectiveBudget})?`,
-            )
-          : true;
+        const mustMeetMinimum = action.minimum !== undefined && selected.length < action.minimum;
+        const yes =
+          action.upTo && !mustMeetMinimum
+            ? await ctx.ask.optional(
+                ctx,
+                `Delete ${candidate.permanentId} (cost ${candidate.cost}, spent ${spent}/${effectiveBudget})?`,
+              )
+            : true;
         if (yes) {
           selected.push(candidate.permanentId);
           spent += candidate.cost;
