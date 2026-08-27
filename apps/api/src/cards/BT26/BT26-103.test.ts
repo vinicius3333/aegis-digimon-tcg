@@ -42,8 +42,8 @@ describe("BT26-103 compiled fidelity", () => {
       trigger: "AllTurns",
       frequency: "OncePerTurn",
       actions: [
-        { kind: "SubTrigger", event: "whenSecurityRemoved" },
-        { kind: "SubTrigger", event: "whenEffectRemovesFromSecurity" },
+        { kind: "SubTrigger", event: "whenSecurityRemoved", sourceFilter: { controller: "any" } },
+        { kind: "SubTrigger", event: "whenEffectRemovesFromSecurity", sourceFilter: { controller: "any" } },
       ],
     });
   });
@@ -188,5 +188,20 @@ describe("BT26-103 compiled fidelity", () => {
 
     expect(s.perm("first").currentDP).toBe(1000);
     expect(s.perm("second").currentDP).toBe(16000);
+  });
+
+  it("reacts when the opponent's security stack is removed", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-103", as: "wrathMode" }] },
+      1: {
+        security: ["BT1-001"],
+        battleArea: [{ card: "BT1-009", as: "opponent", dp: 16000 }],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(1, 1);
+
+    expect(s.perm("opponent").currentDP).toBe(1000);
   });
 });

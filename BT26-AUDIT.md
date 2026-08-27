@@ -3045,6 +3045,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Correction: restricted the Seven Code Use Requirement waiver to Digimon/Tamers under CR §16-42-3; the broad filter wrongly admitted Seven Code Options.
 - Proof: waiver boundaries including Option rejection, Security, mixed battle/link/trash sources, nonmatching preservation, stacked cleanup, five-card atomic failure, ordering, evolution refusal, and corrected stack assertion. Full IR/exclusive `registerIrCard`; automation not run; diff check passed. No limitation.
 
+## BT26-103 — Jupitermon: Wrath Mode — 10/10
+
+- Catalog/KB: yellow/red/black Lv.7 Olympos XII/Iliad/TS, alternate Lv.6 Olympos evolution, Piercing/Reboot/Blocker/Succession, shared recovery, and security-removal penalty confirmed. Q7187–Q7189 cover Counter, zero-security recovery, and Security timing.
+- Correction: both unqualified security-removal watchers now use `sourceFilter: { controller: "any" }`; the default mine-only scope wrongly ignored opponent-security removals.
+- Proof: recovery/zero security, Counter/shared lock, Succession topmost behavior, security-removal Once Per Turn, plus opponent-security regression. Full IR/exclusive `registerIrCard`; automation not run; diff check passed. No limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
