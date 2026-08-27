@@ -3409,3 +3409,27 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   mechanism — 7/7 passed. Targeted Oxfmt, Oxlint, registration search, and
   `git diff --check` pass. No production or shared engine source changed.
 - Remaining ambiguity: none identified.
+
+## BT5-101 — You Can't Actually Fly? — 10/10
+
+- Catalog and ruling evidence: Green Option with use cost 5. Main suspends one
+  opposing Digimon, then trashes the opponent's top security card if they have
+  a Lv.7 Digimon in play. Security adds this card to its owner's hand. Q1375
+  confirms attempting the security trash against an empty stack does not cause
+  a game win.
+- Implementation: `apps/api/src/cards/BT5/BT5-101.ts` suspends exactly one
+  opposing Digimon, conditionally performs opponent SecurityManipulation
+  `trashTop` 1 under an opposing Lv.7 predicate, and uses AddToHandSelf for
+  Security. Full residual-free coverage and exclusive
+  `registerIrCard("BT5-101", compiled)` registration are preserved.
+- Behavioral proof: five focused tests prove one-target opponent suspension
+  while a second opposing and an own Digimon remain ready, the exact Lv.7
+  positive and negative branches, top-security identity, empty-security Q1375
+  behavior with no game over, and Security self-to-hand routing.
+- Defect corrected: no executable behavior defect. Focused proof was expanded
+  for selection cardinality, controller scope, level condition, exact security
+  identity, and the empty-stack ruling.
+- Verification: focused BT5-101 — 5/5 passed; targeted empty-security win check
+  — 1/1 passed. Targeted Oxfmt, Oxlint, registration search, and
+  `git diff --check` pass. No production or shared engine source changed.
+- Remaining ambiguity: none identified.
