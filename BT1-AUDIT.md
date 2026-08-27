@@ -14,10 +14,13 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT1-001–010 | Luna dispatched | `internal-docs/audits/BT1/BT1-001-010.md` | No |
-| BT1-011–020 | Luna dispatched | `internal-docs/audits/BT1/BT1-011-020.md` | No |
-| BT1-021–030 | Luna dispatched | `internal-docs/audits/BT1/BT1-021-030.md` | No |
-| BT1-031–115 | Queued | Not assigned | No |
+| BT1-001–010 | Static audit complete; coordinator corrections queued | `internal-docs/audits/BT1/BT1-001-010.md` | No |
+| BT1-011–020 | Static audit complete; coordinator corrections queued | `internal-docs/audits/BT1/BT1-011-020.md` | No |
+| BT1-021–030 | Static audit complete | `internal-docs/audits/BT1/BT1-021-030.md` | Yes |
+| BT1-031–040 | Luna in progress | `internal-docs/audits/BT1/BT1-031-040.md` | No |
+| BT1-041–050 | Luna in progress | `internal-docs/audits/BT1/BT1-041-050.md` | No |
+| BT1-051–060 | Luna in progress | `internal-docs/audits/BT1/BT1-051-060.md` | No |
+| BT1-061–115 | Queued | Not assigned | No |
 
 ## Score model
 
@@ -33,17 +36,30 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 
 ## Card ledger
 
-Card rows are added after the coordinator reviews and integrates each Luna range report. Each row will include the card ID and name, all five component scores, final status, direct evidence paths, exact deferred commands, and unresolved limitations.
+| Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT1-021 MetalGreymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-021.ts), [test](apps/api/src/cards/BT1/BT1-021.test.ts) |
+| BT1-022 Garudamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-022.ts), [test](apps/api/src/cards/BT1/BT1-022.test.ts) |
+| BT1-023 SkullGreymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-023.ts), [test](apps/api/src/cards/BT1/BT1-023.test.ts) |
+| BT1-024 MetalTyrannomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-024.ts), [test](apps/api/src/cards/BT1/BT1-024.test.ts) |
+| BT1-025 WarGreymon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-025.ts), [test](apps/api/src/cards/BT1/BT1-025.test.ts) |
+| BT1-026 Breakdramon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-026.ts), [test](apps/api/src/cards/BT1/BT1-026.test.ts) |
+| BT1-027 Armadillomon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-027.ts), [test](apps/api/src/cards/BT1/BT1-027.test.ts) |
+| BT1-028 Elecmon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-028.ts), [test](apps/api/src/cards/BT1/BT1-028.test.ts) |
+| BT1-029 Gabumon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-029.ts), [test](apps/api/src/cards/BT1/BT1-029.test.ts) |
+| BT1-030 Gomamon | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | Provisional 8/10 | [module](apps/api/src/cards/BT1/BT1-030.ts), [test](apps/api/src/cards/BT1/BT1-030.test.ts) |
+
+Detailed clause traces and deferred commands for these rows are in `internal-docs/audits/BT1/BT1-021-030.md`.
 
 ## Aggregate
 
 - Catalog cards: 115
-- Assigned: 30
-- Integrated card audits: 0
+- Assigned: 60
+- Integrated card audits: 10
 - Corrected: 0
-- Provisional: 0
+- Provisional: 10
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 85
+- Remaining unassigned: 55
 
 BT1 remains open.
