@@ -7,8 +7,8 @@ describe("BT2-053 Keramon", () => {
   it("Q1023 draws when another Digimon with the evolved host's name is played", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-054", as: "host", under: ["BT2-053"] }],
-        hand: [{ card: "BT2-054", as: "sameName" }],
+        battleArea: [{ card: "BT2-060", as: "host", under: ["BT2-005", "BT2-053", "BT2-056"] }],
+        hand: [{ card: "BT2-060", as: "sameName" }],
         deck: [{ card: "BT1-010", as: "drawn" }],
       },
     });
@@ -25,7 +25,7 @@ describe("BT2-053 Keramon", () => {
   it("Q1023 does not compare the played name to Keramon when the host has another name", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-054", as: "host", under: ["BT2-053"] }],
+        battleArea: [{ card: "BT2-060", as: "host", under: ["BT2-005", "BT2-053", "BT2-056"] }],
         hand: [{ card: "BT2-053", as: "keramon" }],
         deck: [{ card: "BT1-010", as: "topDeck" }],
       },
@@ -44,7 +44,7 @@ describe("BT2-053 Keramon", () => {
   it("Q2814 triggers only once when 2 same-named Digimon are played simultaneously", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-082", as: "diaboromon", under: ["BT2-053"] }],
+        battleArea: [{ card: "BT2-082", as: "diaboromon", under: ["BT2-005", "BT2-053", "BT2-056", "BT2-060"] }],
         deck: [
           { card: "BT1-010", as: "firstDraw" },
           { card: "BT1-011", as: "secondDraw" },
@@ -65,8 +65,8 @@ describe("BT2-053 Keramon", () => {
   it("does not trigger during the opponent's turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT2-054", as: "host", under: ["BT2-053"] }],
-        hand: [{ card: "BT2-054", as: "sameName" }],
+        battleArea: [{ card: "BT2-060", as: "host", under: ["BT2-005", "BT2-053", "BT2-056"] }],
+        hand: [{ card: "BT2-060", as: "sameName" }],
         deck: [{ card: "BT1-010", as: "topDeck" }],
       },
     });
