@@ -1915,3 +1915,38 @@ git diff --check
 ```
 
 No unresolved BT26-042 ambiguity or unsupported printed clause remains. Only the colocated focused test and this appended audit section were changed; the card implementation and shared engine required no correction. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-042; the collection is not marked complete.
+
+## BT26-043 — Piximon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-043` (`Piximon`), a green level-5 Ultimate/Data Digimon with play cost 6, 6000 DP, and `Fairy`/`DM`/`Ver.4` traits. Its normal evolution requirement is green Lv.4 for cost 3, and its alternate requirement is `[Digivolve] Lv.4 w/[DM] trait: Cost 3`. The printed keyword is `＜Blocker＞`. The main text is `[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. Then, by placing your deck's top card face down as this Digimon's bottom digivolution card, for each of this Digimon's face-down digivolution cards, 1 of your opponent's Digimon or Tamers can't unsuspend until their turn ends.` The inherited text is `[All Turns] [Once Per Turn] When any of your Digimon are played, you may suspend 1 of your opponent's Digimon.` It has no Security text.
+- Knowledge-base command: `node tools/kb/query.mjs card BT26-043`; it returns Q7034 only. Q7034 confirms that the `can't unsuspend` target may be a card that was not suspended by Piximon's preceding action; no banlist restriction or erratum applies.
+- Comprehensive Rules evidence: §§2-3-5-1–3 and 8-1-1–3 define normal/alternate evolution requirements, payment, stack transition, and evolution draw; §§4-7-3–10 define stack ordering and face-down information; §§4-13-1-1–2 define unsuspended/suspended orientation; §§15-7-1–5 define optional processing; §§15-8-3-1–9 define triggered-effect timing and state references; §§15-14-1-1–5 define Once Per Turn identity/reset; §§15-16-2-1, 15-16-3-1, 15-16-9-1, and 15-16-5-1 define On Play, When Digivolving, All Turns, and When Attacking timings; and §16-5 defines Blocker. No unresolved card-specific ambiguity remains.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-043.ts` is compiled IR with `coverage: "full"` and `residual: []`. It registers executable behavior exactly once through `registerIrCard("BT26-043", compiled)`; no `registerCard` registration exists.
+- The alternate evolution requirement is exact (`level: 4`, `traits: ["DM"]`, `cost: 3`, `isAlternate: true`), while the catalog supplies the normal green Lv.4/cost-3 route. Shared digivolution legality validates both routes, pays the selected cost, preserves the stack, and fires When Digivolving after the transition.
+- The shared On Play/When Digivolving sequence mandates exactly one opponent Digimon or Tamer suspension, places the own deck top face down at the bottom of Piximon's stack, then scales an independent opponent Digimon/Tamer `unsuspend` restriction by Piximon's live face-down stack count through the opponent's turn end. The separate target object preserves Q7034.
+- The inherited effect is an All Turns, Once Per Turn `whenPlayed` SubTrigger scoped to own Digimon plays; its optional action suspends exactly one opponent Digimon. Shared SubTrigger identity, optional decision handling, target resolution, face-down stack counting, restriction enforcement, and turn-duration cleanup were inspected. Relevant peers: BT26-040, BT26-041, BT26-042, BT26-044, BT26-045, and BT26-077 for DM evolution, mixed Digimon/Tamer targeting, face-down scaling, inherited play watchers, and Blocker/stack behavior.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-043.test.ts` has 6 passing tests. It proves the exact alternate metadata and full IR shape; public On Play suspension, deck-top face-down placement, and scaled lock; a real normal green Lv.4/cost-3 evolution including the new face-down stack card; independent Q7034 target selection including a Tamer; a real inherited suspension from another Digimon play; and refusal of that optional inherited action.
+- The scaled case selects a different target from the one suspended and confirms the suspended target is not locked while each independently chosen Digimon/Tamer is locked. The real evolution fixture retains a second deck card after the mandatory evolution draw, proving the printed placement and restriction path rather than only metadata.
+
+### Verification
+
+```text
+node tools/kb/query.mjs card BT26-043
+  PASS (Q7034; banlist: null; errata: null)
+pnpm --filter @aegis/api exec vitest run --pool=forks --poolOptions.forks.singleFork=true src/cards/BT26/BT26-043.test.ts
+  PASS (1 file, 6 tests)
+pnpm --filter @aegis/api exec vitest run --pool=forks --poolOptions.forks.singleFork=true src/cards/BT26/BT26-038.test.ts src/cards/BT26/BT26-039.test.ts src/cards/BT26/BT26-040.test.ts src/cards/BT26/BT26-041.test.ts src/cards/BT26/BT26-042.test.ts src/cards/BT26/BT26-043.test.ts src/cards/BT26/BT26-044.test.ts src/cards/BT26/BT26-045.test.ts src/engine/effects/interpreter.test.ts src/engine/effects/primitives.test.ts src/engine/effects/subtriggers.test.ts src/engine/effects/restrictionEnforcement.test.ts src/engine/actions/digivolve.test.ts src/engine/effects/digivolveCandidateLegality.test.ts
+  PASS (14 files, 464 tests)
+typecheck, Oxlint/Oxfmt, and git diff --check
+  Not rerun after the focused/regression gates per coordinator instruction to stop additional commands; no implementation/shared-engine files changed.
+```
+
+No unresolved BT26-043 ambiguity or unsupported printed clause remains. Only `apps/api/src/cards/BT26/BT26-043.test.ts` and this appended audit section were changed; the implementation and shared engine required no correction. Changes are intentionally uncommitted and unpushed, and this audit is limited to BT26-043; the collection is not marked complete.
