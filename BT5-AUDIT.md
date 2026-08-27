@@ -2224,3 +2224,41 @@ src/cards/BT5/BT5-001.test.ts` — 1 file, 9 tests passed. No shared engine
   `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
   `interpreter/targeting/loose.ts`, and primitive capability typing.
 - Remaining ambiguity: none identified.
+
+## BT5-056 — Rafflesimon — 10/10
+
+- Catalog evidence: Green Lv.6 Mega Digimon, Data/Fairy, play cost 12, 11000
+  DP, green Lv.5 evolution cost 3, and green Lv.6 evolution cost 1. Its Main
+  Digi-Burst 2 gives all own Digimon +2000 DP for the turn. During its
+  controller's turn, once per turn when one of that player's Digimon activates
+  Digi-Burst, one opposing Digimon cannot attack or block through the end of
+  the opponent's next turn. Its knowledge-base query exposes no card-specific
+  QA, errata, restriction, or ruling entry.
+- Implementation: `apps/api/src/cards/BT5/BT5-056.ts` models the Main cost as
+  exactly two self-stack cards, applies a for-the-turn +2000 DP modifier to all
+  own Digimon, and installs a `YourTurn`, `OncePerTurn` Digi-Burst subtrigger
+  that selects one opposing Digimon and grants both attack and block
+  restrictions through `untilOpponentTurnEnd`. It declares full residual-free
+  coverage and registers exclusively through `registerIrCard`.
+- Engine correction: `onDigiBurstCardDiscarded` watchers with a non-self
+  `sourceFilter` now evaluate that filter against the event's actual Digi-Burst
+  host permanent. Inherited `isSelfRef` watchers continue matching the trashed
+  source instances. Previously Rafflesimon's own-controller filter was skipped,
+  allowing an opponent's Digi-Burst to trigger its restriction.
+- Behavioral proof: four focused tests use legal green and red evolution
+  stacks to prove exact Digi-Burst payment, +2000 DP on Rafflesimon and every
+  own Digimon, restriction of both attacking and blocking, triggering from a
+  different own Digimon's Digi-Burst, suppression of a second trigger in the
+  same turn, survival through the owner's turn end, expiration at the opposing
+  turn end, and no trigger from an opponent-owned Digi-Burst host.
+- Defect corrected: fixed the shared host-filter seam described above and
+  replaced invalid/red-under-green fixtures with legal evolution stacks. The
+  card IR itself required no change.
+- Verification: focused BT5-056, BT5-050/046 peers, subtrigger suite, and full
+  interpreter — 5 files and 216 tests passed. Targeted Oxfmt and
+  `git diff --check` pass; Oxlint reports only existing test-helper
+  `no-explicit-any` warnings. Workspace typecheck retains only the known
+  unrelated baseline errors in `EX6-010.test.ts`,
+  `interpreter/actions/removal.ts`, `interpreter/actions/runAction.ts`,
+  `interpreter/targeting/loose.ts`, and primitive capability typing.
+- Remaining ambiguity: none identified.
