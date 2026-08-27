@@ -2628,3 +2628,35 @@ git diff --check
 ```
 
 No unresolved BT26-064 ambiguity or unsupported printed clause remains. No card, engine, or test file changed; only this audit section was appended. The audit remains unpushed and the collection is not marked complete.
+
+## BT26-065 — Falcomon — 10/10
+
+### Contract evidence
+
+- Catalog source: `packages/shared/src/cards/data/cards.json` entry `BT26-065` (`Falcomon`), a purple level-3 Digimon with play cost 3, 1000 DP, alternate evolution from a level-2 `DATA SQUAD` Digimon for cost 0, and inherited When Attacking Once Per Turn Draw 1 then trash one hand card.
+- Printed On Play reveals the top three, adds one exact `Keenan Crier` or `DATA SQUAD` card, adds one purple card with `Ravemon` in its name or `Avian`/`Bird` trait, and returns the remainder to deck bottom.
+- KB Q7088 confirms the purple restriction applies to all alternatives in the second slot. Analogous reveal rulings confirm maximum eligible selection and remainder disposition. No erratum or restriction applies.
+
+### Implementation mapping
+
+- `apps/api/src/cards/BT26/BT26-065.ts` has `coverage: "full"`, `residual: []`, and exclusive `registerIrCard("BT26-065", compiled)` registration.
+- The first reveal slot now uses exact-name matching for `Keenan Crier`, alongside the separate `DATA SQUAD` trait alternative. The prior substring matcher incorrectly allowed composite names containing Keenan Crier.
+- The second slot correctly applies purple to the `Ravemon`/`Avian`/`Bird` union. Reveal exclusivity/bottom disposition, inherited Draw/Trash, evolution, and peers were inspected.
+
+### Behavioral proof
+
+- `apps/api/src/cards/BT26/BT26-065.test.ts` covers positive dual-slot selection, Q7088 purple filtering, duplicate-slot prevention, alternate evolution, inherited Once Per Turn behavior, and the newly added exact-name regression.
+- The new case proves a composite name containing `Keenan Crier` is not accepted unless it independently has `DATA SQUAD`. The implementation and structural expectation were corrected together.
+
+### Verification
+
+```text
+Knowledge-base card query
+  PASS (Q7088; no errata/restriction)
+Automated tests, typecheck, lint, and format
+  NOT RUN by user instruction
+git diff --check
+  PASS before the card-specific commit
+```
+
+No unresolved BT26-065 ambiguity or unsupported printed clause remains. Only the direct IR module, its colocated focused test, and this ledger section changed; the shared engine remains unchanged. The audit remains unpushed and the collection is not marked complete.
