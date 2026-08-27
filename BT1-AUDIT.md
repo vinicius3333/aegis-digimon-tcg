@@ -25,7 +25,7 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT1-081–090 | Luna in progress | `internal-docs/audits/BT1/BT1-081-090.md` | No |
 | BT1-091–100 | Luna in progress | `internal-docs/audits/BT1/BT1-091-100.md` | No |
 | BT1-101–110 | Luna in progress | `internal-docs/audits/BT1/BT1-101-110.md` | No |
-| BT1-111–115 | Queued | Not assigned | No |
+| BT1-111–115 | Luna in progress | `internal-docs/audits/BT1/BT1-111-115.md` | No |
 
 ## Score model
 
@@ -109,12 +109,12 @@ Detailed clause traces and deferred commands for these rows are in the integrate
 ## Aggregate
 
 - Catalog cards: 115
-- Assigned: 110
+- Assigned: 115
 - Integrated card audits: 60
 - Corrected: 2
 - Provisional: 60
 - Verified 10/10: 0
 - Blocked or ambiguous: 1
-- Remaining unassigned: 5
+- Remaining unassigned: 0
 
 BT1 remains open.
