@@ -1567,3 +1567,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-081.
+
+## BT25-082 — DeputyMon — 10/10
+
+- Catalog evidence: purple/black level-4 Digimon with two alternate level-3 evolution routes for 2; On Play/When Digivolving may play a qualifying Tamer free when at most one friendly Tamer exists; all-turn may evolve into a Three Musketeers Digimon for cost 4 ignoring requirements; inherited once-per-turn When Attacking places a card and draws.
+- Knowledge base: Q6387–Q6392 cover breeding-area limits, base-granted evolution, requirement ignoring, and inherited behavior.
+- Implementation: evolution routes, executable Tamer-count ceiling, free play, requirement-ignoring Three Musketeers evolution, inherited self-attack placement/draw, and once-per-turn scope are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-082", compiled)`.
+- Verification: focused/adjacent — 19 passed; mechanism/interpreter/base-grant — 242 passed; `git diff --check` — passed. No defect was found, so no implementation or test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-082
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-082.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-082.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-082.
