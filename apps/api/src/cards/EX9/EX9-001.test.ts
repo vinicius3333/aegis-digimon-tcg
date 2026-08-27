@@ -7,7 +7,16 @@ describe("EX9-001", () => {
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
-      actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 1, optional: true }],
+      actions: [
+        {
+          kind: "Digivolve",
+          from: ["hand"],
+          payCost: true,
+          reduceCost: 1,
+          optional: true,
+          target: { filter: { digivolutionCards: "hasFaceDown" } },
+        },
+      ],
     }));
 
   it("behaviorally digivolves the attacking Digimon into a Ver.1 from hand for the reduced cost", async () => {
@@ -33,6 +42,7 @@ describe("EX9-001", () => {
 
     await settle(() => s.perm("attacker").topCard?.cardId === "EX9-053");
     expect(s.perm("attacker").topCard?.cardId).toBe("EX9-053");
+    expect(s.state.memory).toBe(0);
   });
 
   it("digivolves when the reduced cost crosses memory to the opponent's side", async () => {
@@ -56,5 +66,32 @@ describe("EX9-001", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").topCard?.cardId === "EX9-053");
     expect(s.perm("attacker").topCard?.cardId).toBe("EX9-053");
+    expect(s.state.memory).toBe(-1);
+  });
+
+  it("does not activate without a face-down digivolution card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-050", as: "attacker", under: ["EX9-001", "BT1-009"] }],
+          hand: ["EX9-053"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 20);
+
+    expect(s.perm("attacker").topCard?.cardId).toBe("EX9-050");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX9-053")).toBe(true);
+    expect(s.state.memory).toBe(5);
   });
 });
