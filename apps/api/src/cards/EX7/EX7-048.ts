@@ -35,7 +35,7 @@ export const compiled: CompiledCard = {
                 ],
               },
               count: 1,
-              to: "play",
+              to: "useOption",
               payCost: false,
               optional: true,
             },
@@ -63,7 +63,7 @@ export const compiled: CompiledCard = {
                 ],
               },
               count: 1,
-              to: "play",
+              to: "useOption",
               payCost: false,
               optional: true,
             },
@@ -78,6 +78,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
           mode: "prevent",
           sourceFilter: {
             controller: "mine",
@@ -96,6 +97,9 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "digivolutionCards",
                 kind: ["Option"],
+                hostFilter: {
+                  isSelfRef: true,
+                },
               },
               count: 1,
             },

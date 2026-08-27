@@ -14,7 +14,10 @@ describe("EX7-059", () => {
   it("uses a Three Musketeers Option when attacking by trashing an Option from its digivolution cards", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions[0]).toMatchObject({
       kind: "UseOptionWithoutCost",
-      cost: { kind: "trash", target: { count: 1, filter: { zone: "digivolutionCards" } } },
+      cost: {
+        kind: "trash",
+        target: { count: 1, filter: { isSelfRef: true, zone: "digivolutionCards" } },
+      },
       optional: true,
     }));
 });

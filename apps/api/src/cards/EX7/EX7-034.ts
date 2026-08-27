@@ -37,9 +37,11 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           restriction: "beAffected",
+          fromSourceKind: ["Digimon"],
+          byOpponentEffectsOnly: true,
           duration: "untilOpponentTurnEnd",
           condition: {
-            kind: "ifThisEffectActed",
+            kind: "lastSuspendedIsMine",
             raw: "if this effect suspends your Digimon",
           },
         },
@@ -56,6 +58,14 @@ export const compiled: CompiledCard = {
             },
             count: 1,
             isSelf: true,
+          },
+          condition: {
+            kind: "attackTargetMatchesFilter",
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            raw: "when this Digimon attacks your opponent's Digimon",
           },
         },
       ],

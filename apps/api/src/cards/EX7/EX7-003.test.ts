@@ -8,7 +8,7 @@ describe("EX7-003 Kyaromon", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "YourTurn",
       isInherited: true,
-      actions: [{ kind: "ModifySecurityDP", amount: -2000, duration: "permanent" }],
+      actions: [{ kind: "ModifySecurityDP", amount: -2000, controller: "opponent", duration: "permanent" }],
     }));
 
   it("applies -2000 only to the opposing security Digimon, not an opposing battle-area Digimon", async () => {

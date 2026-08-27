@@ -10,8 +10,10 @@ describe("EX7-014 Metallicdramon", () => {
   });
   it("restricts small opposing Digimon and replaces other-than-effect departure", () => {
     expect(compiled.effects?.find((e) => e.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({
-      kind: "Restrict",
-      restriction: "playOrMove",
+      kind: "RestrictPlay",
+      seat: "opponent",
+      filter: { kind: ["Digimon"], dpAtMost: 6000 },
+      mode: "playOrMove",
       duration: "untilOpponentTurnEnd",
     });
     expect(compiled.effects?.find((e) => e.trigger === "AllTurns")?.actions[0]).toMatchObject({

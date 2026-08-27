@@ -11,7 +11,18 @@ describe("EX7-054", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions).toHaveLength(2);
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks", actions: [{ kind: "EndAttack" }] }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "EndAttack",
+              cost: { kind: "deleteOwn", target: { filter: { excludeSelf: true }, count: 1 } },
+            },
+          ],
+        },
+      ],
     });
   });
 });

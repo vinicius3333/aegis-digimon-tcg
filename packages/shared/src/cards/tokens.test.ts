@@ -46,3 +46,20 @@ describe("LM-018 Gyuukimon Token", () => {
     });
   });
 });
+
+describe("EX7-058 Volée & Zerdrücken Token", () => {
+  it("preserves the printed identity, level, DP, color, and keywords", () => {
+    const cardId = resolveTokenCardId("Volée & Zerdrücken");
+    expect(cardId).toBe("TOKEN-Volée-&-Zerdrücken");
+    expect(tokenDefinitions.find(({ cardId: id }) => id === cardId)).toMatchObject({
+      nameEn: "Volée & Zerdrücken",
+      kinds: ["Digimon"],
+      colors: ["Purple"],
+      level: 4,
+      dp: 5000,
+      playCost: -1,
+      effectText: "＜Blocker＞ ＜Retaliation＞",
+      isToken: true,
+    });
+  });
+});

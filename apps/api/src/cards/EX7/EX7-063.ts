@@ -39,7 +39,7 @@ export const compiled: CompiledCard = {
                 match: "trait",
               },
             ],
-            includeToken: true,
+            allowTokens: true,
           },
           actions: [
             {

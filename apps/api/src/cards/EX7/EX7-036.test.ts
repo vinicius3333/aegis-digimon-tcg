@@ -15,11 +15,11 @@ describe("EX7-036", () => {
   it("bottom-decks one suspended opposing Digimon after suspending a Digimon on digivolving and attacking", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([
       { kind: "Suspend" },
-      { kind: "Return", to: "deckBottom", condition: { kind: "ifThisEffectActed" } },
+      { kind: "Return", to: "deckBottom", condition: { kind: "lastSuspendedIsMine" } },
     ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions).toMatchObject([
       { kind: "Suspend" },
-      { kind: "Return", to: "deckBottom" },
+      { kind: "Return", to: "deckBottom", condition: { kind: "lastSuspendedIsMine" } },
     ]);
   });
   it("has Bird Dragon as a rule trait", () =>

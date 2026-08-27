@@ -7,7 +7,7 @@ describe("EX7-042", () => {
       kind: "Draw",
       amount: 2,
       optional: true,
-      cost: { kind: "trash" },
+      cost: { kind: "trash", target: { filter: { zone: "hand" } } },
     }));
   it("plays Hina Kurihara when digivolving with one or fewer Tamers and inherits +2000 DP", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[0]).toMatchObject({

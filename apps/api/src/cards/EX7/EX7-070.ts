@@ -13,11 +13,9 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onDigivolutionCardDiscarded",
           sourceFilter: {
-            controller: "mine",
-            kind: ["Option"],
-            nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }],
+            isSelfRef: true,
           },
-          triggerFilter: { isSelfRef: true },
+          requireByEffect: true,
           actions: [{ kind: "DeDigivolve", target: anyOpponentDigimon, amount: 1, stopAtLevel: 3 }],
           raw: "When an effect trashes this digivolution card, De-Digivolve 1 an opponent Digimon",
         },
