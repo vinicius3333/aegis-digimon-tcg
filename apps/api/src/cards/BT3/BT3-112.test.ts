@@ -11,6 +11,10 @@ describe("BT3-112 Omnimon Alter-S", () => {
       nameEn: "Omnimon Alter-S",
       colors: ["White"],
       level: 7,
+      evoCosts: expect.arrayContaining([
+        { color: "Red", level: 6, memoryCost: 6 },
+        { color: "Black", level: 6, memoryCost: 6 },
+      ]),
       effectText: expect.stringContaining("De-Digivolve 1"),
     });
     expect(getCompiledCard("BT3-112")).toMatchObject({
@@ -56,8 +60,8 @@ describe("BT3-112 Omnimon Alter-S", () => {
         },
         1: {
           battleArea: [
-            { card: "BT2-020", as: "deleted", under: ["BT1-019"] },
-            { card: "BT2-083", as: "survivor", under: ["BT2-020"] },
+            { card: "BT12-057", as: "deleted", under: ["BT17-050"] },
+            { card: "BT12-057", as: "survivor", under: ["BT3-057"] },
           ],
         },
       },
@@ -75,7 +79,8 @@ describe("BT3-112 Omnimon Alter-S", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === deletedId), 5000);
 
-    expect(s.perm("survivor").topCard.cardId).toBe("BT2-020");
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === deletedId)).toBe(false);
+    expect(s.perm("survivor").topCard.cardId).toBe("BT3-057");
   });
 
   it("may return a level 6 source to hand to become unblockable for the turn", async () => {
