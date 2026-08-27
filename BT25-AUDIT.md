@@ -1243,3 +1243,21 @@ git diff --check
 ```
 
 No ambiguity or unsupported behavior remains for BT25-063.
+
+## BT25-064 — ToyAgumon — 10/10
+
+- Catalog evidence: black level-3 Digimon; alternate level-2 TS evolution for 0; On Play reveals three, adds one Option and one distinct TS card, then bottoms the remainder; inherited Reboot.
+- Knowledge base: no card-specific entries; standard reveal distinct-selection, deck-bottom remainder, evolution, and inherited-keyword rules apply.
+- Implementation: exact reveal slots, Option and TS filters with distinct consumption, remainder handling, alternate evolution, and inherited Reboot are complete. Coverage is full/residual-free and registration is exclusively `registerIrCard("BT25-064", compiled)`.
+- Verification: focused — 4 passed; interpreter — 183 passed; BT25 audit — 2 passed; `git diff --check` — passed. No defect was found, so no implementation or test change was made.
+
+### Reproduce
+
+```bash
+node tools/kb/query.mjs card BT25-064
+pnpm --filter @aegis/api exec vitest run src/cards/BT25/BT25-064.test.ts
+rg -n 'register(Card|IrCard)\(' apps/api/src/cards/BT25/BT25-064.ts
+git diff --check
+```
+
+No ambiguity or unsupported behavior remains for BT25-064.
