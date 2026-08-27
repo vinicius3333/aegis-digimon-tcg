@@ -17,9 +17,10 @@ describe("EX11-059 Reina Oumi", () => {
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     for (const trigger of ["StartOfYourMainPhase", "OnPlay"]) {
-      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[1]).toEqual({
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[1]).toMatchObject({
         kind: "GainMemory",
         amount: 1,
+        condition: { kind: "ifThisEffectActed" },
       });
     }
   });
@@ -33,6 +34,20 @@ describe("EX11-059 Reina Oumi", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("reina"));
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-030")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("does not gain memory when the required NSo discard is declined", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX11-059", as: "reina" }], hand: ["BT1-001"], deck: ["BT1-002"] } },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 0;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("reina"));
+    await settle(() => false, 30);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
     assertNoLoudGap(s);
   });
 

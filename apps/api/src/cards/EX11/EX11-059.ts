@@ -45,6 +45,7 @@ export const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
+          condition: { kind: "ifThisEffectActed" },
         },
       ],
     },
@@ -78,6 +79,7 @@ export const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
+          condition: { kind: "ifThisEffectActed" },
         },
       ],
     },

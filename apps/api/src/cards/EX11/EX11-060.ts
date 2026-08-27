@@ -71,7 +71,7 @@ export const compiled: CompiledCard = {
                       match: "trait",
                     },
                   ],
-                  level: {
+                  levelComparison: {
                     op: "lte",
                     value: 4,
                   },

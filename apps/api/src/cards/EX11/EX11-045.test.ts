@@ -84,4 +84,33 @@ describe("EX11-045 Metatromon", () => {
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
+
+  it("deletes the lowest-cost opponent Digimon when an effect adds to this stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-040", as: "source", under: ["EX11-045", "BT1-009"] }],
+        },
+        1: {
+          battleArea: [
+            { card: "AD1-001", as: "low" },
+            { card: "BT1-019", as: "high" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const lowId = s.perm("low").permanentId;
+    const highId = s.perm("high").permanentId;
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("source").permanentId,
+      addedDigivolutionCardInstanceIds: [
+        s.perm("source").stack.find(({ cardId: sourceCardId }) => sourceCardId === "EX11-045")!.instanceId,
+      ],
+    });
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([highId]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(lowId);
+    assertNoLoudGap(s);
+  });
 });

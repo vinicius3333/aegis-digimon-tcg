@@ -113,7 +113,7 @@ describe("EX11-019 Shoemon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("top"), "Barrier")).toBe(false);
   });
 
-  it("uses inherited Barrier to spend top security and prevent effect deletion", async () => {
+  it("uses inherited Barrier to spend top security and prevent battle deletion", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-032", as: "host", suspended: true, under: [cardId] }],
@@ -122,7 +122,7 @@ describe("EX11-019 Shoemon", () => {
     });
     await s.ready();
     const hostId = s.perm("host").permanentId;
-    const deletion = advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+    const deletion = advance(s.engine).verb.deletePermanent([hostId], "byBattle");
     await settle(() => s.events.some(({ kind }) => kind === "barrierPrompt"));
     expect(s.engine.applyIntent(0, { type: "respondBarrier", permanentId: hostId, accept: true })).toEqual({
       ok: true,

@@ -36,6 +36,7 @@ const compiled: CompiledCard = {
           },
           into: { isSelfRef: true },
           costOverride: 3,
+          payCost: true,
           ignoreRequirements: true,
           condition: {
             kind: "youHave",

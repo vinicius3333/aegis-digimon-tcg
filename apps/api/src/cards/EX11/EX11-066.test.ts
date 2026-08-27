@@ -64,6 +64,19 @@ describe("EX11-066 Xeno", () => {
     assertNoLoudGap(s);
   });
 
+  it("does not gain memory when the Vemmon discard cost is declined", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX11-066", as: "xeno" }], hand: ["P-244"], deck: ["BT1-001"] } },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 0;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("xeno"));
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
   it("asks before suspending for the [All Turns] clause and skips it when declined", async () => {
     const s = setupEngine(
       {

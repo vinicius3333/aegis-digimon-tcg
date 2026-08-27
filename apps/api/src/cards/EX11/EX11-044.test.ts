@@ -22,7 +22,7 @@ describe("EX11-044 Pyramidimon", () => {
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([]);
-    expect(digivolutionRequirementsFor(cardId)).toBeUndefined();
+    expect(digivolutionRequirementsFor(cardId)).toEqual([]);
     expect(compiled.effects.filter(({ trigger }) => trigger === "Static").flatMap(({ keywords }) => keywords)).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ keyword: "Reboot" }),
