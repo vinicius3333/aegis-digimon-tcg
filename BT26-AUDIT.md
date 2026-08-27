@@ -2925,6 +2925,12 @@ No unresolved BT26-072 limitation remains. Only its focused test and ledger chan
 - Implementation: full IR and exclusive `registerIrCard`; both modal timings offer self-delete or exactly two bottom face-down Tamer cards before highest-DP deletion; On Deletion enforces discard then optional face-up bottom-security placement.
 - Proof: existing evolution, both costs, insufficient/refusal, Security, end-turn, threshold, and trait cases plus new End of Attack execution and security-placement refusal. Automation not run; diff check passed. No unresolved limitation.
 
+## BT26-083 — Junomon: Hysteric Mode — 10/10
+
+- Catalog/KB: purple/yellow Lv.7, alternate Lv.6 TS evolution, Assembly -4 Junomon, Rush/Piercing/Execute, Decode, security wipe/delete/recovery, and deletion debuff confirmed. Q7124 permits Recovery +3 with zero security to trash.
+- Implementation: full IR and exclusive `registerIrCard`; exact evolution/Assembly, Decode filter, security `leaveCount: 0` with tracked per-card deletion, Recovery +3, and opponent-wide Security A. -1 duration.
+- Proof: existing normal/alternate evolution, Assembly, zero-security recovery, per-card deletion, combat keywords, Execute/Decode and level boundary, and deletion debuff. No change needed; automation not run; diff check passed. No unresolved limitation.
+
 ## BT26-075 — ScourgeChiropmon — 10/10
 
 - Catalog/KB: purple/yellow dual Lv.5 Digimon/Option, alternate Lv.4 `Glowing Dawn` evolution for cost 3, `Execute`, `Ascension`, Security/On Deletion trash play, and Option `Despair Blast` confirmed. Q7100–Q7103 cover deletion/Ascension ordering, Security-before-battle, dual-face Security classification, and Option-only Security locks.
