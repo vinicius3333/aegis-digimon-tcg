@@ -1,8 +1,9 @@
 import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 const cardId = "EX11-032";
@@ -21,7 +22,7 @@ describe("EX11-032 GrandGalemon", () => {
     const compiled = runtimeCompiledCard(cardId)!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digivolutionRequirement).toEqual([]);
-    expect(digivolutionRequirementsFor(cardId)).toBeUndefined();
+    expect(digivolutionRequirementsFor(cardId)).toEqual([]);
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({
         trigger: "Main",
@@ -75,6 +76,39 @@ describe("EX11-032 GrandGalemon", () => {
     expect([s.perm("source"), s.perm("opponent")].filter(({ isSuspended }) => isSuspended)).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT16-007")).toBe(true);
     expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain("BT1-009");
+    assertNoLoudGap(s);
+  });
+
+  it("uses the hand Main route by placing Galemon under a Pteromon, then digivolving for 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX11-026", as: "pteromon" },
+          { card: "EX11-062", as: "shoto" },
+        ],
+        hand: [{ card: cardId, as: "grand" }],
+        trash: [{ card: "EX11-028", as: "galemon" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 3;
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.inst("grand"));
+    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+      entry.effectKey.startsWith(`${cardId}/`),
+    );
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: source.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("pteromon").topCard.cardId === cardId);
+    expect(s.perm("pteromon").stack.map(({ cardId: id }) => id)).toEqual(["EX11-028", "EX11-026"]);
+    expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
 
