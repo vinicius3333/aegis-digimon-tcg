@@ -24,7 +24,7 @@ The initial pass intentionally does not execute tests, typecheck, lint, formatti
 | BT4-071–080 | Static audit delivered | `internal-docs/audits/BT4/BT4-071-080.md` | Yes |
 | BT4-081–090 | Static audit delivered | `internal-docs/audits/BT4/BT4-081-090.md` | Yes |
 | BT4-091–100 | Static audit delivered | `internal-docs/audits/BT4/BT4-091-100.md` | Yes |
-| BT4-101–110 | Luna in progress | `internal-docs/audits/BT4/BT4-101-110.md` | No |
+| BT4-101–110 | Static audit delivered | `internal-docs/audits/BT4/BT4-101-110.md` | Yes |
 | BT4-111–115 | Luna in progress | `internal-docs/audits/BT4/BT4-111-115.md` | No |
 
 ## Score model
@@ -143,6 +143,16 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-098 Atomic Inferno | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bound Hybrid bonuses, actual-block memory, and Security aura entrants |
 | BT4-099 Heir of Dragons | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Draw-two plus qualified Greymon/Dramon deletion and exclusions |
 | BT4-100 Trident Revolver | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Low-DP deletion then optional Tamer play including no-target ruling |
+| BT4-101 I'll Drag You In to the Depths! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Attack-time aura with sourceless-target deletion and stacked-target negative proof |
+| BT4-102 Aqua Viper | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bound source-trash-before-return sequence with source-trigger and token ruling trace |
+| BT4-103 Full Moon Blaster | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Resolution-time hand-size branch with bound source trash and Security activation |
+| BT4-104 Blinding Ray | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Ordered security trash then memory gain including empty-security ruling boundary |
+| BT4-105 Tactical Retreat! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Explicit source trash plus token and Digi-Egg alternate-destination handling |
+| BT4-106 Purge Shine | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All-opponent temporary DP reduction and Security Main activation |
+| BT4-107 Pollen Spray | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst text reveal matching with named added-card suspension scaling |
+| BT4-108 Cyclonic Kick | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected own-unsuspend then opponent-suspend order with independent-half proof |
+| BT4-109 Final Zubagon Punch | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bound DP threshold and three-keyword duration through the opponent's next turn |
+| BT4-110 Dark Roar | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Dynamic D-Brigade target-ceiling scaling with positive and negative cost boundaries |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT4/`.
 
@@ -150,9 +160,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 115
 - Assigned: 115
-- Integrated card audits: 100
-- Corrected: 13
-- Provisional: 100
+- Integrated card audits: 110
+- Corrected: 16
+- Provisional: 110
 - Verified 10/10: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
