@@ -5,6 +5,7 @@ import "../index.js";
 
 describe("BT16-011", () => {
   it("returns a red Digimon from trash and conditionally deletes an opposing Digimon at or below this DP", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Garudamon"], cost: 0, isAlternate: true }]);
     expect(compiled.effects?.[0]?.actions[0]).toMatchObject({ kind: "Return", to: "hand", optional: true });
     expect(compiled.effects?.[0]?.actions[1]).toMatchObject({
       kind: "Delete",
@@ -70,7 +71,7 @@ describe("BT16-011", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === aboveLimitId)).toBe(true);
   });
 
-  it("allows declining the optional return while still resolving the mandatory conditional deletion", async () => {
+  it("allows declining the optional return on a natural play", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT16-011", as: "host" }], trash: [{ card: "BT1-009", as: "redCard" }] },
@@ -84,7 +85,7 @@ describe("BT16-011", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-011"));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("redCard").instanceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("uses the X Antibody trait in a natural red evolution and keeps deletion mandatory", async () => {
