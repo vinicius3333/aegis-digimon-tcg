@@ -29,7 +29,7 @@ collection-complete claim is valid.
 | BT17-011–020 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-011-020.md` | Yes |
 | BT17-021–030 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-021-030.md` | Yes |
 | BT17-031–040 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-031-040.md` | Yes |
-| BT17-041–050 | Luna assigned | `internal-docs/audits/BT17/BT17-041-050.md` | No |
+| BT17-041–050 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-041-050.md` | Yes |
 | BT17-051–060 | Luna assigned | `internal-docs/audits/BT17/BT17-051-060.md` | No |
 | BT17-061–070 | Luna assigned | `internal-docs/audits/BT17/BT17-061-070.md` | No |
 | BT17-071–080 | Luna assigned | `internal-docs/audits/BT17/BT17-071-080.md` | No |
@@ -105,14 +105,24 @@ feasible natural originating event.
 | BT17-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected consumable Option OR filters, uncapped Plug-In and yellow cost-5 branches; legal and color-illegal natural uses cover the boundary (`349b9204b`). |
 | BT17-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural opponent Option return proves the leave-play replacement, Tamer cost, and persistence on a legal evolution stack (`f4736e59c`). |
 | BT17-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production turns prove both exact-three end-turn branches and attack tail; a real opponent attack proves inherited security-removal -8000 DP (`c5042eb3f`). |
+| BT17-041 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry and attack flows prove free Tamer play, per-Tamer DP loss, and suspended-Tamer Security Attack scaling (`b54492bfb`). |
+| BT17-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal selects Argomon and Rhythm independently, bottoms the remainder, and a deletion flow proves inherited memory (`9f2ea540a`). |
+| BT17-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | BT17-049 naturally effect-plays Terriermon to trigger the watcher; a real suspended host proves the inherited +1000 DP aura (`a8fef5d1e`). |
+| BT17-044 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural Eosmon play drives the inherited legal evolution on a Morphomon stack while preserving printed requirements (`bc87bcba7`). |
+| BT17-045 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Argomon evolution proves the no-Rhythm conditional free play and inherited deletion memory (`44b36d999`). |
+| BT17-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Battle deletion naturally plays Terriermon from trash and a legal host attack proves inherited suspended +1000 DP (`233635ac8`). |
+| BT17-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security play/suspension and a real inherited battle deletion prove the once-per-turn unsuspend (`c2e578a63`). |
+| BT17-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the inert Tamer reducer and missing Argomon requirement; natural reduced evolution, deletion count, free play, and Rhythm unsuspend cover the shared path (`19f31685f`). |
+| BT17-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate evolution/free Terriermon play and an inherited attack delete-and-replay flow prove Alliance-family stack behavior (`97fb0d676`). |
+| BT17-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public hand activation proves four-memory payment, placement, linked host attack, and inherited +3000 DP on a legal host (`b9485a9a8`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 40
-- Corrected: 10
-- Provisional: 40
+- Integrated card audits: 50
+- Corrected: 11
+- Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 22
