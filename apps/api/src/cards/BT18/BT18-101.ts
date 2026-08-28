@@ -26,10 +26,10 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          from: ["trash"],
           breeding: true,
+          requiresEmpty: "breedingArea",
           payCost: false,
-          optional: true,
-          abortOnDecline: true,
         },
         {
           kind: "Delete",
@@ -39,6 +39,10 @@ export const compiled: CompiledCard = {
               kind: ["Digimon", "Tamer"],
             },
             count: 1,
+          },
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "by playing 1 [Lucemon: Larva] from your trash to your empty breeding area without paying the cost",
           },
         },
       ],
