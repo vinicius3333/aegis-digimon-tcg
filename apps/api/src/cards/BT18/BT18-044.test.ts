@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-044.js";
 
@@ -32,20 +30,21 @@ describe("BT18-044 FunBeemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("may decline without changing hand or security", async () => {
+  it("does nothing when the mandatory Royal Base placement cost has no eligible card", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-044", as: "funbeemon" }],
-          hand: [{ card: "BT18-046", as: "royalBase" }],
+          hand: [{ card: "BT18-044", as: "funbeemon" }],
           security: [{ card: "BT1-001", as: "topSecurity" }],
         },
       },
-      { autoDeclineOptional: true },
+      { autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("funbeemon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("funbeemon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("funbeemon").topCard?.cardId === "BT18-044");
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("royalBase").instanceId]);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([

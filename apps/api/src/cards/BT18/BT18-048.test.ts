@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-048.js";
@@ -18,23 +17,22 @@ describe("BT18-048 Kazemon", () => {
       },
     ]);
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT18-090", as: "zoe" }], hand: [{ card: "BT18-048", as: "kazemon" }] },
+      0: { battleArea: [{ card: "BT18-045", as: "base" }], hand: [{ card: "BT18-048", as: "kazemon" }] },
       1: { battleArea: [{ card: "BT1-030", as: "opponentTarget" }] },
     });
     s.state.memory = 10;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("zoe").permanentId,
+        permanentId: s.perm("base").permanentId,
         instanceId: s.inst("kazemon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("zoe").topCard?.cardId === "BT18-048");
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("zoe"));
+    await settle(() => s.perm("base").topCard?.cardId === "BT18-048");
 
-    expect(s.perm("zoe").topCard?.cardId).toBe("BT18-048");
+    expect(s.perm("base").topCard?.cardId).toBe("BT18-048");
     expect(s.perm("opponentTarget").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(8);
+    expect(s.state.memory).toBe(7);
     assertNoLoudGap(s);
   });
 
