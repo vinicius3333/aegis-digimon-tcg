@@ -328,7 +328,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/add-xros-heart`,
                 description:
                   "Place a Xros Heart Digimon under this Digimon; Sparrowmon grants team protection and Blocker.",
-                optional: true,
                 resolve: async (ctx) => {
                   const self = source.permanent();
                   if (!self) return;
