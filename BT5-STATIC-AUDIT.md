@@ -21,10 +21,10 @@ The re-audit intentionally does not execute tests, typecheck, lint, formatting, 
 | BT5-041–050 | Static audit delivered | `internal-docs/audits/BT5/BT5-041-050.md` | Yes |
 | BT5-051–060 | Luna in progress | `internal-docs/audits/BT5/BT5-051-060.md` | No |
 | BT5-061–070 | Static audit delivered | `internal-docs/audits/BT5/BT5-061-070.md` | Yes |
-| BT5-071–080 | Luna in progress | `internal-docs/audits/BT5/BT5-071-080.md` | No |
+| BT5-071–080 | Static audit delivered | `internal-docs/audits/BT5/BT5-071-080.md` | Yes |
 | BT5-081–090 | Luna in progress | `internal-docs/audits/BT5/BT5-081-090.md` | No |
 | BT5-091–100 | Queued for Luna | `internal-docs/audits/BT5/BT5-091-100.md` | No |
-| BT5-101–110 | Queued for Luna | `internal-docs/audits/BT5/BT5-101-110.md` | No |
+| BT5-101–110 | Luna in progress | `internal-docs/audits/BT5/BT5-101-110.md` | No |
 | BT5-111–112 | Queued for Luna | `internal-docs/audits/BT5/BT5-111-112.md` | No |
 
 ## Score model
@@ -103,6 +103,16 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 | BT5-068 BlackMachGaogamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Reboot plus inherited owner-turn DP aura gated by live Reboot |
 | BT5-069 BlackWarGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Static Security Attack +1 and Reboot keyword registration |
 | BT5-070 MetalGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional Digi-Burst 2, mandatory eligible deletion, and no-deletion security branch |
+| BT5-071 Guilmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Effect-deletion memory gain with an explicit 0-DP rule-deletion negative |
+| BT5-072 Fake Agumon Expert | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Printed On Deletion text filter, level/name exclusions, and mixed-trash ownership boundaries |
+| BT5-073 Pillomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary legal evolution evidence |
+| BT5-074 Troopmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional exact-name alternate-printing free play from own hand |
+| BT5-075 Musyamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Static Jamming registration on a legal purple evolution stack |
+| BT5-076 BlackGrowlmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited owner-turn once-per-turn other-deletion Security Attack grant |
+| BT5-077 Vajramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary legal evolution evidence |
+| BT5-078 Jokermon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional own-trash purple level-3 free play with per-play On Play suppression |
+| BT5-079 BlackWarGrowlmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst 3 free play plus inherited once-per-turn delete-to-unsuspend cost |
+| BT5-080 Zanbamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Static Retaliation registration and losing-battle deletion proof |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT5/`.
 
@@ -110,9 +120,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 60
+- Integrated card audits: 70
 - Corrected: 1
-- Provisional: 60
+- Provisional: 70
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
