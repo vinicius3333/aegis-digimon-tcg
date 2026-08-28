@@ -1,6 +1,6 @@
 # BT7 Static Card Implementation Re-audit
 
-Status: static card-by-card pass in progress; execution gates deferred
+Status: static card-by-card pass fully integrated; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -32,7 +32,7 @@ claim is valid.
 | BT7-061–070 | Static audit delivered | `internal-docs/audits/BT7/BT7-061-070.md` | Yes |
 | BT7-071–080 | Static audit delivered | `internal-docs/audits/BT7/BT7-071-080.md` | Yes |
 | BT7-081–090 | Static audit delivered | `internal-docs/audits/BT7/BT7-081-090.md` | Yes |
-| BT7-091–100 | Luna in progress | `internal-docs/audits/BT7/BT7-091-100.md` | No |
+| BT7-091–100 | Static audit delivered | `internal-docs/audits/BT7/BT7-091-100.md` | Yes |
 | BT7-101–110 | Static audit delivered | `internal-docs/audits/BT7/BT7-101-110.md` | Yes |
 | BT7-111–112 | Static audit delivered | `internal-docs/audits/BT7/BT7-111-112.md` | Yes |
 
@@ -150,6 +150,16 @@ other component and is never rounded up.
 | BT7-088 Zoe Orimoto | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected trait-substring security search, conditional recovery, shuffle, and Security Digimon DP bonus |
 | BT7-089 J.P. Shibayama | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Self-scoped green Tamer evolution reducer and inherited all-turns Piercing boundary |
 | BT7-090 Kota Domoto | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected X-Antibody trait-substring reveal with start-turn memory and Security self-play |
+| BT7-091 Koichi Kimura | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | On Play draw-then-trash sequence, inherited deletion memory, and Security self-play |
+| BT7-092 Flame Memory Boost! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Security Attack grant, Option field placement, delayed memory gain, and same-turn gate |
+| BT7-093 Firedrake Strike | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Hybrid trait-substring bind and exact Takuya Security free-play target |
+| BT7-094 Giga Storm | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Up-to-two opponent 8000-DP deletions with Security Main delegation |
+| BT7-095 Blue Hawaii Death | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected same-target DP gain and source-less unsuspended-Digimon attack permission |
+| BT7-096 Starlight Velocity | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected one-stack binding, Tamer-or-Hybrid union, trait mode, and exact Koji Security target |
+| BT7-097 Tidal Wave | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected one-stack up-to-two free plays and Security ActivateMain delegation |
+| BT7-098 Ultra Turbulence | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | One opponent Digimon and all opponent Security Digimon -3000 DP for the turn |
+| BT7-099 Electric Rush | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent own-Digimon DP gain and exact-three-security unsuspend branch |
+| BT7-100 Qualialise Blast | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected zero-security hand cost and exact Rasenmon Security Attack target |
 | BT7-101 Thunder Laser | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Hybrid-or-Ten-Warriors in-play gate, opponent suspension, and Security hand return |
 | BT7-102 Dino Memory Boost! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Main suspension, Option battle-area placement, delayed memory gain, and same-turn gate |
 | BT7-103 Mugen | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected same-target unsuspend restriction after suspension through opponent next turn |
@@ -167,11 +177,13 @@ other component and is never rounded up.
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 102
-- Corrected: 32
-- Provisional: 102
+- Integrated card audits: 112
+- Corrected: 37
+- Provisional: 112
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 0
 
-BT7 static re-audit remains open.
+BT7 has complete static catalog coverage, but the collection remains open
+because execution gates are deferred and BT7-063 retains one recorded ruling
+ambiguity.
