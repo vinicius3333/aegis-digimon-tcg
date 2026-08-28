@@ -2,6 +2,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+// Explicit source trash must run before Return while the bound permanent still exists;
+// automatic attachment cleanup during Return does not publish a source-trash effect event.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -25,6 +27,16 @@ const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+        },
+        {
+          kind: "TrashDigivolution",
+          target: {
+            fromSelectionRef: "omnimonSelected",
+            filter: {},
+            count: 1,
+          },
+          amount: 99,
+          raw: "Trash all of the digivolution cards of the Digimon you returned with this effect.",
         },
         {
           kind: "Return",

@@ -10,6 +10,22 @@ describe("BT5-110 All Delete", () => {
     expect(runtimeCompiledCard("BT5-110")).toMatchObject({ coverage: "full", residual: [] });
   });
 
+  it("explicitly trashes the bound Omnimon sources before returning it", () => {
+    expect(runtimeCompiledCard("BT5-110")?.effects[0]?.actions).toMatchObject([
+      expect.objectContaining({ kind: "SelectBind" }),
+      expect.objectContaining({
+        kind: "TrashDigivolution",
+        target: expect.objectContaining({ fromSelectionRef: "omnimonSelected" }),
+        amount: 99,
+      }),
+      expect.objectContaining({
+        kind: "Return",
+        target: expect.objectContaining({ fromSelectionRef: "omnimonSelected" }),
+      }),
+      expect.objectContaining({ kind: "Delete" }),
+    ]);
+  });
+
   it("returns an Omnimon, trashes its sources, and deletes every remaining Digimon and Tamer", async () => {
     const s = setupEngine(
       {
