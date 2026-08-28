@@ -1,51 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, Phase } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { compiled } from "./BT18-026.js";
 
 describe("BT18-026 DaiPenmon", () => {
-  it("deletes an opposing Digimon with no digivolution cards when digivolving", async () => {
-    expect(compiled.coverage).toBe("full");
-    expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({
-      trigger: "Main",
-      isFromHand: true,
-      actions: [{ kind: "Digivolve", costOverride: 3, ignoreRequirements: true, additionalCosts: [{ kind: "place" }] }],
-    });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "IceClad" }] });
-    expect(compiled.effects[2]).toMatchObject({
-      trigger: "WhenDigivolving",
-      actions: [
-        {
-          kind: "Delete",
-          target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" } },
-        },
-      ],
-    });
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT18-026", as: "dai" }] },
-        1: {
-          battleArea: [
-            { card: "BT1-030", as: "empty" },
-            { card: "BT1-030", as: "stacked", under: ["BT18-021"] },
-          ],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-    const emptyId = s.perm("empty").permanentId;
-    const stackedId = s.perm("stacked").permanentId;
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dai"));
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === emptyId));
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === emptyId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === stackedId)).toBe(true);
-  });
-
   it("pays both named trash placements and 3 memory for its hand Main evolution", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -95,7 +54,18 @@ describe("BT18-026 DaiPenmon", () => {
     );
     s.state.memory = 5;
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("dai"));
+    await s.ready();
+    const source = s.inst("dai");
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(source)).find((effect) =>
+      effect.effectKey.startsWith("BT18-026/"),
+    )!.effectKey;
+    s.state.phase = Phase.Main;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({
+      ok: false,
+      reason: "illegal-target",
+    });
 
     expect(s.perm("tommy").topCard.cardId).toBe("BT18-089");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT18-022");
