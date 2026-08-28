@@ -25,10 +25,10 @@ claim is valid.
 | --- | --- | --- | --- |
 | BT6-001–010 | Static audit delivered | `internal-docs/audits/BT6/BT6-001-010.md` | Yes |
 | BT6-011–020 | Luna in progress | `internal-docs/audits/BT6/BT6-011-020.md` | No |
-| BT6-021–030 | Luna in progress | `internal-docs/audits/BT6/BT6-021-030.md` | No |
+| BT6-021–030 | Static audit delivered | `internal-docs/audits/BT6/BT6-021-030.md` | Yes |
 | BT6-031–040 | Luna in progress | `internal-docs/audits/BT6/BT6-031-040.md` | No |
 | BT6-041–050 | Queued | `internal-docs/audits/BT6/BT6-041-050.md` | No |
-| BT6-051–060 | Queued | `internal-docs/audits/BT6/BT6-051-060.md` | No |
+| BT6-051–060 | Luna in progress | `internal-docs/audits/BT6/BT6-051-060.md` | No |
 | BT6-061–070 | Queued | `internal-docs/audits/BT6/BT6-061-070.md` | No |
 | BT6-071–080 | Queued | `internal-docs/audits/BT6/BT6-071-080.md` | No |
 | BT6-081–090 | Queued | `internal-docs/audits/BT6/BT6-081-090.md` | No |
@@ -70,14 +70,24 @@ other component and is never rounded up.
 | BT6-008 Shoutmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live Blitz-keyword attack gate, ordinary-attack ruling, and corrected legal evolution stack |
 | BT6-009 Huckmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional zero-to-two name-family reveal selection, duplicates, exclusions, and bottom ordering |
 | BT6-010 Flamemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live Hybrid-or-Ten-Warriors trait aura, Piercing behavior, and legal inherited stack |
+| BT6-021 ModokiBetamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent memory-gain restriction with Tamer exception, source-kind boundary, and seat scope |
+| BT6-022 Strabimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live Hybrid-or-Ten-Warriors host gate with inherited once-per-turn attack timing |
+| BT6-023 Octomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary blue evolution evidence |
+| BT6-024 Mojyamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live source-less-board Jamming aura plus exact bottom-source inherited removal |
+| BT6-025 Panjyamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited once-per-turn attack memory gain anchored to a legal host stack |
+| BT6-026 Dragomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inclusive level-four source-less opponent return with canonical stack teardown |
+| BT6-027 Majiramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Top-source removal and source-less-board inherited reattack with once-per-turn boundary |
+| BT6-028 Pukumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst 2 cost and all-own-Digimon cant-be-blocked restriction through combat legality |
+| BT6-029 Azulongmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All-opponent bottom-source trash with post-trash memory and live Security Attack scaling |
+| BT6-030 Gabumon - Bond of Friendship | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected bound deck-bottom Return with Q1399 rules teardown and watcher negative |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 10
-- Corrected: 2
-- Provisional: 10
+- Integrated card audits: 20
+- Corrected: 3
+- Provisional: 20
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
