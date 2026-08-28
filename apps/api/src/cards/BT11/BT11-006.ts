@@ -10,6 +10,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenTrashedFromHand",
+          requireByEffect: true,
           actions: [
             {
               kind: "ModifyDP",
