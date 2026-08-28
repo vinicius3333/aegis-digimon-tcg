@@ -41,6 +41,7 @@ describe("BT18-072 AncientBeetlemon", () => {
               kind: "Replacement",
               event: "wouldLeavePlay",
               sourceFilter: { isSelfRef: true },
+              actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], fromOwnDigivolutionStack: true }],
             },
           ],
         },
@@ -187,6 +188,37 @@ describe("BT18-072 AncientBeetlemon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === ancientId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-063")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("does not play an eligible card from another own Digimon's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-072", as: "ancient", dp: 5000, suspended: true },
+            { card: "BT18-067", as: "otherHost", under: ["BT18-063"] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const ancientId = s.perm("ancient").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: ancientId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT18-072"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-063")).toBe(false);
+    expect(s.perm("otherHost").stack.map(({ cardId }) => cardId)).toEqual(["BT18-063"]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-067")).toBe(true);
     assertNoLoudGap(s);
   });
 });
