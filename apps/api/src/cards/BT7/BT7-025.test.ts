@@ -1,8 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard, wouldDigivolveSelfReducersFor } from "../../engine/effects/interpreter.js";
 import "./BT7-025.js";
 
 describe("BT7-025 Beowolfmon", () => {
+  it("publishes its hand-resident self-reducer for a Tamer-source digivolution", () => {
+    expect(runtimeCompiledCard("BT7-025")).toMatchObject({ coverage: "full", residual: [] });
+    expect(wouldDigivolveSelfReducersFor("BT7-025")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          amount: 2,
+          sourceFilter: { controller: "mine", kind: ["Digimon"], digivolutionStackKind: ["Tamer"] },
+        }),
+      ]),
+    );
+  });
+
   it("reduces only its own digivolution cost when the base has a Tamer source", async () => {
     const s = setupEngine({
       0: {
@@ -10,7 +23,7 @@ describe("BT7-025 Beowolfmon", () => {
         hand: [{ card: "BT7-025", as: "beowolfInHand" }],
       },
     });
-    s.state.memory = 5;
+    s.state.memory = 4;
 
     expect(
       s.engine.applyIntent(0, {
@@ -21,7 +34,7 @@ describe("BT7-025 Beowolfmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("beowolfInHand").instanceId);
 
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(1);
   });
 
   it("returns a Hybrid source as its attack cost, trashes the target's sources, and returns it to hand", async () => {
