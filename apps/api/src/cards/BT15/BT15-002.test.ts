@@ -29,7 +29,7 @@ describe("BT15-002", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "watcher", under: ["BT15-002"] }],
+          battleArea: [{ card: "BT15-021", as: "watcher", under: ["BT15-002"] }],
           hand: [{ card: "BT15-026", as: "drawSource" }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
@@ -52,7 +52,7 @@ describe("BT15-002", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "watcher", under: ["BT15-002"] }],
+          battleArea: [{ card: "BT15-021", as: "watcher", under: ["BT15-002"] }],
           hand: [{ card: "BT15-026", as: "drawSource" }],
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
@@ -79,8 +79,8 @@ describe("BT15-002", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-009", as: "watcher", under: ["BT15-002"] },
-          { card: "BT1-009", as: "drawSource", under: ["BT15-005"], suspended: true },
+          { card: "BT15-021", as: "watcher", under: ["BT15-002"] },
+          { card: "BT13-061", as: "drawSource", under: ["BT15-005"], suspended: true },
         ],
         deck: [{ card: "BT1-001", as: "drawn" }],
       },
