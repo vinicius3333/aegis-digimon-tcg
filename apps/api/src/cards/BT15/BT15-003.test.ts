@@ -30,7 +30,7 @@ describe("BT15-003", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT15-003"] }],
+          battleArea: [{ card: "BT14-033", as: "attacker", under: ["BT15-003"] }],
           security: [
             { card: "BT1-002", as: "top" },
             { card: "BT1-001", as: "bottom" },
@@ -78,7 +78,7 @@ describe("BT15-003", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT15-003"] }],
+          battleArea: [{ card: "BT14-033", as: "attacker", under: ["BT15-003"] }],
           security: [
             { card: "BT1-002", as: "top" },
             { card: "BT1-001", as: "bottom" },
@@ -106,7 +106,7 @@ describe("BT15-003", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT15-003"] }],
+          battleArea: [{ card: "BT14-033", as: "attacker", under: ["BT15-003"] }],
           security: [{ card: "BT1-001", as: "security" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
