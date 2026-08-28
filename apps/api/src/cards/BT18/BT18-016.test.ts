@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-016.js";
@@ -19,7 +17,6 @@ describe("BT18-016 Volcanomon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT18-016", as: "volcanomon" }] } });
     s.state.memory = 0;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("volcanomon"));
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
