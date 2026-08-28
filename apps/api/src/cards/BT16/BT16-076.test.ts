@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-076.js";
 
 describe("BT16-076", () => {
@@ -41,5 +42,68 @@ describe("BT16-076", () => {
         },
       ],
     });
+  });
+
+  it("deletes a 6000-DP opponent after a legal alternate evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-074", as: "base" }],
+          hand: [{ card: "BT16-076", as: "soloogar" }, "BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 6000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("soloogar").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("base").topCard?.cardId === "BT16-076" && s.state.players[1]!.battleArea.length === 0,
+    );
+
+    expect(s.perm("base").topCard?.cardId).toBe("BT16-076");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("uses the fallback SoC play when no opposing Digimon is at or below 6000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-074", as: "base" }],
+          hand: [{ card: "BT16-076", as: "soloogar" }, "BT1-009", "BT1-009"],
+          trash: [{ card: "BT14-074", as: "fallback" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 6001 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("soloogar").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard?.cardId === "BT16-076" &&
+        s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT14-074").length === 1,
+    );
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]?.currentDP).toBe(6001);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT14-074")).toHaveLength(1);
   });
 });
