@@ -168,6 +168,28 @@ describe("BT13-040 Magnamon", () => {
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
   });
 
+  it("does not offer or play ExVeemon from hand or this stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-040", as: "magna", under: [{ card: "BT12-022", as: "stack-exveemon" }] }],
+          hand: [{ card: "BT12-022", as: "hand-exveemon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("magna").permanentId]);
+
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("hand-exveemon").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-022")).toBe(false);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+  });
+
   it("may decline the Veemon play after drawing and Magnamon still leaves", async () => {
     const s = setupEngine(
       {
