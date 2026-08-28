@@ -23,7 +23,7 @@ provisional and capped at 8/10.
 | --- | --- | --- | --- |
 | BT18-001–010 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-001-010.md` | Yes |
 | BT18-011–020 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-011-020.md` | Yes |
-| BT18-021–030 | Luna assigned | `internal-docs/audits/BT18/BT18-021-030.md` | No |
+| BT18-021–030 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-021-030.md` | Yes |
 | BT18-031–040 | Luna assigned | `internal-docs/audits/BT18/BT18-031-040.md` | No |
 | BT18-041–050 | Luna assigned | `internal-docs/audits/BT18/BT18-041-050.md` | No |
 | BT18-051–060 | Luna assigned | `internal-docs/audits/BT18/BT18-051-060.md` | No |
@@ -65,14 +65,24 @@ applicable non-gate component rather than being rounded up.
 | BT18-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural legal Takuya evolution and repeated attacks prove color scaling, optional attack, requirement boundary, unsuspend, and once-per-turn bonus (`059adc110`). |
 | BT18-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, public DNA, decline, DigiXros distinct slots, and complete/incomplete losing-battle recovery prove the preserved hand-authored DNA requirement (`613ebe053`). |
 | BT18-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural blue evolution and live observation prove the self-bound Aquatic Rule trait and stack preservation (`af6e46ff3`). |
+| BT18-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution and inherited replacement cases prove multicolor reduction, self/Tamer/breeding boundaries, and monocolor rejection (`6e648b09c`). |
+| BT18-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Tommy evolution, attack evolution, and opponent battle deletion prove bottom-stack trash, cost reduction, and own-stack Tamer play (`5e695968e`, `1a358b3fc`). |
+| BT18-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play/When Digivolving reveal, place-under, alternate evolution, and inherited attack return prove both categories and stack behavior (`080d3a7fe`). |
+| BT18-024 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public play and legal Lanamon evolutions prove no-stack placement, stack-enabled return, inherited return, and named cost (`ed0ec92d1`, `a2fc34f5d`, `07bd253a4`). |
+| BT18-025 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution proves the stackless restriction, duration and stacked negative; legal alternate costs and both Jamming projections are covered (`67dfc6103`). |
+| BT18-026 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public hand activation proves atomic named costs and refusal; legal Hybrid evolution proves stackless deletion, Ice Clad, trait, and inherited DP (`f8dcd4b56`, `461023cfd`). |
+| BT18-027 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attacks prove both legal own-stack play alternatives and zero-memory payment (`151421ed1`). |
+| BT18-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution proves every bottom-stack trash, the stackless restriction/duration, DigiXros, leave replacement, and trait grant (`eb5819b44`). |
+| BT18-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution and leave flows prove the scaled level return, DigiXros, source return, and stack play branches (`425db2b1c`). |
+| BT18-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/reveal and opponent effect deletion prove dual-category selection and the inherited security replacement boundary (`be5fbd84c`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 20
+- Integrated card audits: 30
 - Corrected: 1
-- Provisional: 20
+- Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 4 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps)
 - Remaining unassigned: 22
