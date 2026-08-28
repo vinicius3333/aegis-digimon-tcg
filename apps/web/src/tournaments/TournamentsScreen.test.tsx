@@ -253,7 +253,7 @@ describe("tournament creation form", () => {
 });
 
 describe("app navigation", () => {
-  it("reaches the tournaments area from the client shell", async () => {
+  it("keeps the tournaments area hidden in the client shell", async () => {
     mockApi({
       "GET /tournaments": { body: [] },
       "GET /auth/me": { body: { id: "acc-1", displayName: "Tamer", avatarUrl: null, isAdmin: true } },
@@ -275,7 +275,8 @@ describe("app navigation", () => {
         />
       </I18nProvider>,
     );
-    expect(await screen.findByRole("heading", { name: "Tournaments", level: 1 }, { timeout: 10_000 })).toBeTruthy();
-    expect(await screen.findByRole("button", { name: "Create tournament" })).toBeTruthy();
+    await waitFor(() => expect(document.getElementById("aegis-main")).toBeTruthy());
+    expect(screen.queryByRole("heading", { name: "Tournaments", level: 1 })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Create tournament" })).toBeNull();
   }, 20_000);
 });

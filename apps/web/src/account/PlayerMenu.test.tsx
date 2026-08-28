@@ -65,8 +65,7 @@ describe("the player menu", () => {
 
   it("carries the sections that no longer fit the bottom nav", () => {
     const props = renderMenu();
-    fireEvent.click(screen.getByRole("button", { name: "Tournaments" }));
-    expect(props.onNav).toHaveBeenCalledWith("tournaments");
+    expect(screen.queryByRole("button", { name: "Tournaments" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     expect(props.onNav).toHaveBeenCalledWith("settings");
