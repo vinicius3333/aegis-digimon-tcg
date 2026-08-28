@@ -33,7 +33,7 @@ collection-complete claim is valid.
 | BT17-051–060 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-051-060.md` | Yes |
 | BT17-061–070 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-061-070.md` | Yes |
 | BT17-071–080 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-071-080.md` | Yes |
-| BT17-081–090 | Luna assigned | `internal-docs/audits/BT17/BT17-081-090.md` | No |
+| BT17-081–090 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-081-090.md` | Yes |
 | BT17-091–100 | Luna assigned | `internal-docs/audits/BT17/BT17-091-100.md` | No |
 | BT17-101–102 | Luna assigned | `internal-docs/audits/BT17/BT17-101-102.md` | No |
 
@@ -145,14 +145,24 @@ feasible natural originating event.
 | BT17-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural normal play and legal WarGreymon/MetalGarurumon DNA prove unconditional deletion and the same-level return branch (`cf13ff397`). |
 | BT17-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security, full-turn memory-event, and legal inherited-host cases replace manual timing evidence (`94efe3124`). |
 | BT17-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security, start-main, end-turn placement/evolution, and decline flows prove all branches (`261b934a3`). |
+| BT17-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected both play and digivolution watchers with independent Greymon/Garurumon provenance gates; natural play/evolution cases prove each branch and their combined memory result (`3d5f6b09f`). |
+| BT17-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the suspension cost to this exact Minami; natural play, start-main, and response-window flows prove the self-bound cost and memory threshold (`652c5454b`). |
+| BT17-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Removed the unsupported Main action and added Digimon-effect provenance; a natural draw source and production turn runner prove the inherited watcher and start-turn threshold (`794fd67fd`, `14358650c`). |
+| BT17-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected recovery to the battle-deleted subject's own stack; natural battle deletion and alternate-stack negatives prove stable host binding (`a01764c99`). |
+| BT17-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Bound all materials and grants to one selected Renamon and gated the optional Sakuyamon evolution behind the shared cost; natural activation proves the complete sequence (`8df645212`). |
+| BT17-086 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Restricted inherited Leon recovery to the hosting Digimon's own stack; natural evolution and leave-play flows prove stack locality (`e3a875c64`). |
+| BT17-087 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Bound every temporary grant to one selected Marcus while retaining Tamer/Digimon dual-kind behavior; natural play and attack paths prove the binding (`237c58a83`). |
+| BT17-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Restricted the suspension cost to this exact Willis; natural play, start-main, and Terriermon-triggered evolution prove the independent legal evolution target (`f3c2bb542`). |
+| BT17-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A real effect-driven suspension proves Rhythm's optional self-suspension, memory, Argomon draw, and combat-driven negative without production changes (`2232d5664`). |
+| BT17-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added effect-driven own-Digimon provenance and corrected the suspended end-of-opponent-turn condition; natural Mind Link and legal trash evolution prove both watchers (`9ac1c059a`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 80
-- Corrected: 17
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 26
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
