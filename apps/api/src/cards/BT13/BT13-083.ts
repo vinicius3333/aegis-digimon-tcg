@@ -18,7 +18,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Gizmon: AT"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -96,7 +96,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Gizmon: XT"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -118,6 +118,8 @@ export const compiled: CompiledCard = {
                 ],
               },
               count: 2,
+              orderReturnedCards: true,
+              to: "deckBottom",
             },
             raw: "By returning 2 cards with [Gizmon] in their names from your trash to the bottom of the deck in any order",
           },

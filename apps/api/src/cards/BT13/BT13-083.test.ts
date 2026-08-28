@@ -10,7 +10,7 @@ describe("BT13-083 Gizmon: AT", () => {
       actions?: unknown[];
     };
     expect(replacement).toMatchObject({
-      sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ match: "name", tokens: ["Gizmon: AT"] }] },
+      sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ match: "nameExact", tokens: ["Gizmon: AT"] }] },
     });
     expect(replacement.actions?.[0]).toMatchObject({
       kind: "Replacement",
@@ -40,12 +40,14 @@ describe("BT13-083 Gizmon: AT", () => {
       kind: "PlayWithoutCost",
       optional: true,
       from: ["trash"],
-      target: { filter: { nameOrTrait: [{ match: "name", tokens: ["Gizmon: XT"] }] }, count: 1 },
+      target: { filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Gizmon: XT"] }] }, count: 1 },
       cost: {
         kind: "return",
         target: {
           filter: { zone: "trash", controller: "mine", nameOrTrait: [{ match: "name", tokens: ["Gizmon"] }] },
           count: 2,
+          orderReturnedCards: true,
+          to: "deckBottom",
         },
       },
     });
@@ -68,5 +70,28 @@ describe("BT13-083 Gizmon: AT", () => {
       expect.arrayContaining(["BT1-003", "BT1-004"]),
     );
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+  });
+
+  it("returns exactly two Gizmon cards in any chosen order before playing Gizmon: XT on deletion", async () => {
+    const preferred = [] as string[];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-083", as: "gizmon" }],
+          trash: [
+            { card: "BT13-080", as: "firstGizmon" },
+            { card: "BT13-080", as: "secondGizmon" },
+            { card: "BT13-086", as: "xt" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("firstGizmon").instanceId, s.inst("secondGizmon").instanceId);
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("gizmon").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-086"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-086")).toBe(true);
+    expect(s.state.players[0]!.deck.slice(-2).map((card) => card.cardId)).toEqual(["BT13-080", "BT13-080"]);
   });
 });
