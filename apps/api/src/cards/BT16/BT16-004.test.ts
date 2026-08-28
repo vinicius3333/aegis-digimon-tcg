@@ -64,11 +64,21 @@ describe("BT16-004", () => {
     expect(s.state.memory).toBe(memoryBeforeSecondBattle);
   });
 
-  it("does not gain memory from a one-color host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT16-006", as: "host", under: ["BT16-004"] }] } });
+  it("does not gain memory when a one-color host deletes in battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", as: "host", under: ["BT16-004"] }] },
+      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 1000 }] },
+    });
     s.state.memory = 0;
 
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { attackerPermanentId: s.perm("host").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.memory).toBe(0);
   });
