@@ -1216,6 +1216,26 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       count: 2,
     },
   ],
+  // BT19-063: [DigiXros -2] [SkullKnightmon] x [DeadlyAxemon]. The generated aggregate retained
+  // only the first named slot, so the server could not accept the complete printed recipe.
+  "BT19-063": [{ materials: [{ names: ["SkullKnightmon"] }, { names: ["DeadlyAxemon"] }], count: 2 }],
+  // BT19-065: [DigiXros -1] 5 Lv.5-or-lower [Cyborg]/[Composite] Digimon cards with different
+  // card numbers. The generated parser retained unrelated header tokens as traits and dropped
+  // the five-card cap, while also encoding 1 as the requirement's material-count field.
+  "BT19-065": [
+    {
+      materials: [
+        {
+          kind: ["Digimon"],
+          levelComparison: { op: "lte", value: 5 },
+          nameOrTrait: [{ tokens: ["Cyborg", "Composite"], match: "trait" }],
+          differentCardNumbers: true,
+        },
+      ],
+      count: 1,
+      maxMaterials: 5,
+    },
+  ],
   // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
   "ST19-10": [
     {
@@ -1369,6 +1389,22 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
     {
       materials: [{ names: ["MetalGreymon"], colors: ["Blue"] }, { names: ["DarkKnightmon"] }],
       count: 2,
+    },
+  ],
+  // BT19-070: [DigiXros -1] 3 Lv.4 [Composite] Digimon cards with different card numbers. The
+  // generated parser omitted the level/different-number predicates and the three-card cap.
+  "BT19-070": [
+    {
+      materials: [
+        {
+          kind: ["Digimon"],
+          levelComparison: { op: "eq", value: 4 },
+          nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
+          differentCardNumbers: true,
+        },
+      ],
+      count: 1,
+      maxMaterials: 3,
     },
   ],
 };
