@@ -20,6 +20,10 @@ describe("BT13-109 BT13-109", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects.length).toBeGreaterThan(0);
+    expect(compiled.effects[0]?.actions[1]).toMatchObject({
+      kind: "Digivolve",
+      into: { nameOrTrait: [{ tokens: ["Belphemon: Sleep Mode"], match: "nameExact" }] },
+    });
   });
 
   it("bounds the security deletion by the level of the trashed hand card", () => {

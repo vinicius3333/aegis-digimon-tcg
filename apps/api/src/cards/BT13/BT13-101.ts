@@ -41,7 +41,7 @@ export const compiled: CompiledCard = {
             controllerDefault: "mine",
             kind: ["Digimon"],
             multicolor: true,
-            colors: ["Yellow", "Black"],
+            colorsAll: ["Yellow", "Black"],
           },
           actions: [
             {

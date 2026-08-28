@@ -160,7 +160,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     return cost.target.upTo === true ? true : required > 0 && candidates.length >= required;
   }
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "digivolutionCards") {
-    const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
+    const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]).filter((candidate) => {
+      if (cost.target?.topCardOnly !== true) return true;
+      const host = candidate.hostPermanentId === undefined ? undefined : ctx.game.permanentById(candidate.hostPermanentId);
+      return host?.stack.at(-1)?.instanceId === candidate.instanceId;
+    });
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return required > 0 && candidates.length >= required;
   }
@@ -1148,6 +1152,12 @@ export async function payCost(
       // returnToDeck can remove the selected stack cards from their hosts.
       if (cost.target.filter.zone === "digivolutionCards") {
         let candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
+        if (cost.target.topCardOnly === true) {
+          candidates = candidates.filter((candidate) => {
+            const host = candidate.hostPermanentId === undefined ? undefined : ctx.game.permanentById(candidate.hostPermanentId);
+            return host?.stack.at(-1)?.instanceId === candidate.instanceId;
+          });
+        }
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
         if (cost.target.filter.sameHost === true) {

@@ -19,7 +19,10 @@ describe("BT13-104 Final Shining Burst", () => {
       from: ["hand"],
       payCost: false,
       optional: true,
-      target: { filter: { controller: "mine", nameOrTrait: [{ match: "name", tokens: ["Marcus Damon"] }] }, count: 1 },
+      target: {
+        filter: { controller: "mine", nameOrTrait: [{ match: "nameExact", tokens: ["Marcus Damon"] }] },
+        count: 1,
+      },
     });
   });
 
@@ -78,5 +81,31 @@ describe("BT13-104 Final Shining Burst", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-095"));
     expect(s.perm("target").currentDP).toBe(1000);
+  });
+
+  it("does not treat the near-name Marcus Damon & Agumon as the bracketed Marcus Damon target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-012", as: "redDigimon" },
+            { card: "BT13-036", as: "yellowDigimon" },
+          ],
+          hand: [
+            { card: "BT13-104", as: "option" },
+            { card: "AD1-021", as: "nearMarcus" },
+            { card: "BT13-095", as: "exactMarcus" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT13-111", as: "target", dp: 16000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-095"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nearMarcus").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "AD1-021")).toBe(false);
   });
 });

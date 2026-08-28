@@ -11,24 +11,24 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          bindAs: "chosenDigimon",
+        },
+        {
           kind: "Return",
           target: {
             filter: {
               controller: "opponent",
               suspended: true,
               kind: ["Digimon"],
-              dp: {
-                lte: {
-                  kind: "dpOfChosen",
-                  chosenBy: {
-                    filter: {
-                      controller: "mine",
-                      kind: ["Digimon"],
-                    },
-                    count: 1,
-                  },
-                },
-              },
+              relativeTo: { attr: "dp", op: "lte", selectionRef: "chosenDigimon" },
             },
             count: 1,
           },
@@ -52,7 +52,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Leopardmon: Leopard Mode"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },

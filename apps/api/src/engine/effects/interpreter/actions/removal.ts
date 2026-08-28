@@ -456,6 +456,12 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         // still the best available proof of the number acted on in that contract.
         const moved = movedResult ?? [];
         const movedCount = movedResult === undefined ? chosen.length : moved.length;
+        // An opponent-directed optional hand trash is the printed "opponent may trash"
+        // choice (BT13-102). Preserve the opponent's decline for a following conditional
+        // reward even when the up-to selection is answered with zero cards.
+        if (action.chooser === "opponent" && action.optional === true) {
+          ctx.lastOpponentDeclined = chosen.length === 0 || movedCount === 0;
+        }
         ctx.lastTrashedCards = moved.map((card) => ({
           instanceId: card.instanceId,
           cardId: card.cardId,

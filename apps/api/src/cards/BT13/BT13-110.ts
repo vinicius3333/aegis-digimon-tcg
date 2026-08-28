@@ -31,7 +31,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["King Drasil_7D6"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },

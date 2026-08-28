@@ -35,7 +35,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Belphemon: Sleep Mode"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
