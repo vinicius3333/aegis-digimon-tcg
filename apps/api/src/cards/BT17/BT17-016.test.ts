@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-016.js";
 
@@ -41,23 +39,48 @@ describe("BT17-016", () => {
     });
   });
 
-  it("deletes an opposing 8000 DP Digimon when the effect is fired", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT17-016", as: "gallant" }] },
-      1: { battleArea: [{ card: "BT1-015", as: "target" }] },
-    });
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gallant"));
+  it("deletes an opposing 8000 DP Digimon through a natural evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-013", as: "base" }],
+          hand: [{ card: "BT17-016", as: "gallant" }],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
     expect(
-      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
-    ).toBe(false);
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gallant").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT17-016");
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("gains DP and Blocker when no opposing Digimon is within range", async () => {
+  it("gains DP and Blocker after a natural attack finds no opposing Digimon within range", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT17-016", as: "gallant" }] },
       1: { battleArea: [{ card: "BT1-059", as: "target" }] },
     });
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gallant"));
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gallant").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("gallant"), "Blocker"));
+
     expect(s.perm("gallant").currentDP).toBe(14000);
     expect(observe(s.engine).hasKeyword(s.perm("gallant"), "Blocker")).toBe(true);
   });

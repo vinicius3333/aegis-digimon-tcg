@@ -32,8 +32,7 @@ const compiled: CompiledCard = {
           },
           payCost: true,
           costOverride: 3,
-          asLevel: 4,
-          asColors: ["Red"],
+          virtualBase: { level: 4, colors: ["Red"] },
           cost: {
             kind: "place",
             target: {
