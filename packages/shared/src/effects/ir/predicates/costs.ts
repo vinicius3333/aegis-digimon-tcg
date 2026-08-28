@@ -1,7 +1,7 @@
 // Costs paid to perform an action.
 
 import type { Filter, Target } from "../filters/filter.js";
-import type { Controller } from "../filters/zones.js";
+import type { Controller, ZoneRef } from "../filters/zones.js";
 
 /**
  * A cost paid as part of an action ("by trashing 1 card", "by suspending this Tamer"). Modeled
@@ -32,8 +32,15 @@ export interface Cost {
     | "attack" // perform the source Digimon's attack (AD1-020)
     | "digivolveSelf" // digivolve the source into the effect card (BT17-073)
     | "playFromDigivolutionCards" // play a card from a selected Digimon's stack (BT19-102)
+    | "digivolve" // digivolve a live Digimon as an activation cost
     | "raw";
   target?: Target;
+  /** Destination card filter for a nested digivolution cost. */
+  into?: Filter;
+  /** Source zones for a nested digivolution cost; defaults to hand/trash. */
+  from?: ZoneRef[];
+  /** Positive reduction amount applied to the nested digivolution's printed cost. */
+  costReduction?: number;
   /** Distinct targets for a compound named unsuspend cost. */
   targets?: Target[];
   /** The nested costs a `compound` cost pays. */
