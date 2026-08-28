@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT14-068.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT14-068", () => {
@@ -94,6 +95,10 @@ describe("BT14-068", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("host").permanentId)).toBe(
       true,
     );
+
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
   });
 
   it("naturally reveals at end of turn and plays D-Brigade plus DigiPolice cards within the total budget", async () => {
