@@ -13,6 +13,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenTrashedFromHand",
+          fireCondition: {
+            kind: "triggerByYourEffect",
+            raw: "when one of your effects trashes a card in your hand",
+          },
           actions: [
             {
               kind: "GainMemory",
@@ -29,6 +33,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenTrashedFromHand",
+          fireCondition: {
+            kind: "triggerByYourEffect",
+            raw: "when one of your effects trashes a card in your hand",
+          },
           actions: [
             {
               kind: "GainMemory",
