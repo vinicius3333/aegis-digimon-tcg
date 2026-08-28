@@ -34,7 +34,7 @@ claim is valid.
 | BT11-061–070 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-061-070.md` | Yes |
 | BT11-071–080 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-071-080.md` | Yes |
 | BT11-081–090 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-081-090.md` | Yes |
-| BT11-091–100 | Luna in progress | `internal-docs/audits/BT11/BT11-091-100.md` | No |
+| BT11-091–100 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-091-100.md` | Yes |
 | BT11-101–110 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-101-110.md` | Yes |
 | BT11-111–112 | Luna in progress | `internal-docs/audits/BT11/BT11-111-112.md` | No |
 
@@ -152,6 +152,16 @@ other component and is never rounded up.
 | BT11-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed whole-permanent placement semantics |
 | BT11-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected Sea Animal exclusion; strengthened effect-play negative |
 | BT11-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-091 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed Taiga reducer and opponent-turn negative |
+| BT11-092 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed mandatory draw and player-attack redirect |
+| BT11-093 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed same-level Option immunity and duration |
+| BT11-094 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed opposite-name counterpart play |
+| BT11-095 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed under-Tamer DigiXros material scope |
+| BT11-096 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed lowest-DP deletion and cost reducer |
+| BT11-097 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected mandatory borrowed On Deletion activation |
+| BT11-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed mandatory return after optional stack play |
+| BT11-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed sequential stack trash and return |
+| BT11-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed opponent-turn DP duration |
 | BT11-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed same-target duration semantics |
 | BT11-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed Insect substring and mandatory target count |
 | BT11-103 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed suspension-triggered aura payload |
@@ -167,9 +177,9 @@ other component and is never rounded up.
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 100
-- Corrected: 19
-- Provisional: 100
+- Integrated card audits: 110
+- Corrected: 20
+- Provisional: 110
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
