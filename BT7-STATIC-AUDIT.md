@@ -34,7 +34,7 @@ claim is valid.
 | BT7-081–090 | Static audit delivered | `internal-docs/audits/BT7/BT7-081-090.md` | Yes |
 | BT7-091–100 | Luna in progress | `internal-docs/audits/BT7/BT7-091-100.md` | No |
 | BT7-101–110 | Static audit delivered | `internal-docs/audits/BT7/BT7-101-110.md` | Yes |
-| BT7-111–112 | Luna in progress | `internal-docs/audits/BT7/BT7-111-112.md` | No |
+| BT7-111–112 | Static audit delivered | `internal-docs/audits/BT7/BT7-111-112.md` | Yes |
 
 ## Score model
 
@@ -150,14 +150,16 @@ other component and is never rounded up.
 | BT7-108 Schwarz Lehrsatz | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Additive Hybrid-Digimon plus Tamer scaling for opponent level-five-or-lower deletions |
 | BT7-109 Dead or Alive | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Purple level-five trash play versus optional ten-trash Lucemon alternative |
 | BT7-110 Evolution Ancient | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Hybrid-based color waiver and same-color Ten-Warriors evolution with only level ignored |
+| BT7-111 Lucemon: Chaos Mode | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact Lucemon hand evolution gate, trash-scaled play reduction, and split delete target |
+| BT7-112 Susanoomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Added complete hand-only Tamer-base evolution with exact-ten Tamer-or-Hybrid placement payment |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 90
-- Corrected: 27
-- Provisional: 90
+- Integrated card audits: 92
+- Corrected: 29
+- Provisional: 92
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
