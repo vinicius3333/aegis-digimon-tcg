@@ -30,10 +30,10 @@ claim is valid.
 | BT6-041–050 | Static audit delivered | `internal-docs/audits/BT6/BT6-041-050.md` | Yes |
 | BT6-051–060 | Static audit delivered | `internal-docs/audits/BT6/BT6-051-060.md` | Yes |
 | BT6-061–070 | Static audit delivered | `internal-docs/audits/BT6/BT6-061-070.md` | Yes |
-| BT6-071–080 | Luna in progress | `internal-docs/audits/BT6/BT6-071-080.md` | No |
+| BT6-071–080 | Static audit delivered | `internal-docs/audits/BT6/BT6-071-080.md` | Yes |
 | BT6-081–090 | Luna in progress | `internal-docs/audits/BT6/BT6-081-090.md` | No |
 | BT6-091–100 | Luna in progress | `internal-docs/audits/BT6/BT6-091-100.md` | No |
-| BT6-101–110 | Queued | `internal-docs/audits/BT6/BT6-101-110.md` | No |
+| BT6-101–110 | Luna in progress | `internal-docs/audits/BT6/BT6-101-110.md` | No |
 | BT6-111–112 | Queued | `internal-docs/audits/BT6/BT6-111-112.md` | No |
 
 ## Score model
@@ -130,14 +130,24 @@ other component and is never rounded up.
 | BT6-068 Impmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional hand trash with strict if-you-do trait-qualified trash return |
 | BT6-069 Goblimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Effect-controller hand-trash watcher and once-per-turn inherited DP gain on a legal stack |
 | BT6-070 Elecmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact opposing level-3 On Deletion target with level-4 negative |
+| BT6-071 Kinkakumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional hand-trash cost, exact opposing level-3 deletion, and legal inherited stack |
+| BT6-072 Ogremon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional hand-trash cost and inclusive opposing level-4 deletion with empty-hand negative |
+| BT6-073 Ginkakumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Own-effect hand-trash provenance, legal inherited stack, and once-per-turn memory boundary |
+| BT6-074 Boogiemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary purple evolution evidence |
+| BT6-075 Ginkakumon Promote | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Rush, optional exact-name dual trash placement, order, and two-card bonus |
+| BT6-076 Feresmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary purple evolution evidence |
+| BT6-077 Rebellimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected one-cost self-only combined Blocker/Retaliation grant and black color treatment |
+| BT6-078 SkullGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected own-effect hand-trash provenance plus bottom-stack placement and inherited Retaliation |
+| BT6-079 Murmukusmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Retaliation and exact Ornismon free play at the post-deletion nine-to-ten trash boundary |
+| BT6-080 Ornismon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Security Attack +1 and inclusive opposing level-5 On Play deletion boundary |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 70
-- Corrected: 8
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 10
+- Provisional: 80
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
