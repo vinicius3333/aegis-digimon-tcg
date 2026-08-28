@@ -26,7 +26,7 @@ describe("BT18-074 AncientWisemon", () => {
             {
               kind: "RevealAdd",
               revealCount: 3,
-              add: [{ count: 1, to: "play", filter: { colors: ["Black"], playCostLte: 7 } }],
+              add: [{ count: 1, to: "play", filter: { colors: ["Black"], kind: ["Digimon", "Tamer"], playCostLte: 7 } }],
               rest: "trash",
               optional: true,
             },
@@ -91,6 +91,30 @@ describe("BT18-074 AncientWisemon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-093")).toBe(true);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT18-064", "BT1-028"]));
     expect(s.state.players[0]!.deck).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("trashes a revealed black Option instead of trying to play it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-074", as: "ancient" }],
+          deck: ["BT11-105", "BT1-028", "BT1-028"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT11-105"));
+
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT11-105", "BT1-028", "BT1-028"]),
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard?.cardId).toBe("BT18-074");
     assertNoLoudGap(s);
   });
 
