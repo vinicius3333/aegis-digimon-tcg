@@ -62,6 +62,28 @@ describe("BT13-020 ShineGreymon: Burst Mode", () => {
     expect(s.state.players[0]!.battleArea).toContain(s.perm("nearMarcus"));
   });
 
+  it("rejects a longer ShineGreymon name even when an exact Marcus Damon is payable", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX4-074", as: "ruinMode" },
+          { card: "BT12-092", as: "marcus" },
+        ],
+        hand: [{ card: "BT13-020", as: "burst" }],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("ruinMode").permanentId,
+        instanceId: s.inst("burst").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("ruinMode"));
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("marcus"));
+  });
+
   it("declares the once-per-turn allied Tamer suspension security effect", () => {
     expect(compiled.effects).toEqual(
       expect.arrayContaining([
