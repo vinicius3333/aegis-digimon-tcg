@@ -3,6 +3,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-099.js";
 import "../BT10/BT10-069.js";
+import "../BT13/BT13-031.js";
 import "../BT15/BT15-097.js";
 import "./index.js";
 
@@ -148,6 +149,46 @@ describe("BT17-099 Awakening of the Sun", () => {
     expect(s.perm("rize").topCard?.cardId).toBe("BT17-039");
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shine").instanceId)).toBe(false);
+  });
+
+  it("naturally arms Delay when an opponent effect returns an owned Tamer to hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-099", as: "option" },
+            { card: "BT17-037", as: "rize" },
+            { card: "BT17-087", as: "marcus" },
+          ],
+          hand: [{ card: "BT17-039", as: "shine" }],
+        },
+        1: {
+          battleArea: [{ card: "BT13-029", as: "machGaogamon" }],
+          hand: [{ card: "BT13-031", as: "mirageGaogamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnCount += 1;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("machGaogamon").permanentId,
+        instanceId: s.inst("mirageGaogamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("marcus").instanceId) &&
+        observe(s.engine).hasKeyword(s.perm("option"), "Delay"),
+    );
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("marcus").instanceId)).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("option"), "Delay")).toBe(true);
   });
 
   it("naturally plays Marcus Damon from Security, then places itself in the battle area", async () => {
