@@ -35,7 +35,7 @@ export const compiled: CompiledCard = {
               scaling: { per: 1, filter: { controller: "mine", excludeSelf: true, kind: ["Tamer"] }, unit: "cards" },
             },
           },
-          underFilter: { controllerDefault: "mine", kind: ["Tamer"] },
+          underFilter: { isSelfRef: true },
           optional: true,
         },
       ],
