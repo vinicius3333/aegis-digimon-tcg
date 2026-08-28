@@ -1,6 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-080.js";
 
@@ -63,5 +64,12 @@ describe("BT13-080 ProtoGizmon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"));
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+  });
+
+  it("keeps its permanent no-digivolution restriction active", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-080", as: "proto" }] } });
+    await s.ready();
+
+    expect(observe(s.engine).isRestricted(s.perm("proto"), "digivolve")).toBe(true);
   });
 });
