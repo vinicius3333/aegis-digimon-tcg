@@ -24,6 +24,10 @@ const STATIC_NAME_ALIASES_BY_CARD_ID: Record<string, string[]> = {
 
 /** Names granted by printed "this card is also treated as [X]" text. */
 function parsedStaticNameAliases(def: CardDefinition): string[] {
+  // BT15-060's Omnimon alias is explicitly limited to the card while it is revealed
+  // from a deck. It is supplied by the reveal-context definition projection instead
+  // of the universal static-name list.
+  if (def.cardId === "BT15-060") return [];
   const text = def.effectText ?? "";
   const aliases: string[] = [];
   const aliasPhrases = [

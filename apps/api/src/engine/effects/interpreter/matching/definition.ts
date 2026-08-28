@@ -14,6 +14,8 @@ export interface DefinitionFacts {
   level?: number;
   /** Additional levels a card is treated as having in a temporary zone context. */
   treatedAsLevels?: number[];
+  /** Additional names a card is treated as having in a temporary zone context. */
+  nameAliases?: string[];
   nameEn: string;
   types?: string[];
   forms?: string[];
@@ -306,6 +308,7 @@ export function matchNameOrTrait(
   const names = [
     normalizeName(def.nameEn ?? ""),
     ...(def.cardId ? effectiveStaticNames(def as CardDefinition).map(normalizeName) : []),
+    ...(def.nameAliases ?? []).map(normalizeName),
   ];
   const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
   const traits = staticTraitsOf(def as CardDefinition).map(normalizeTrait);
