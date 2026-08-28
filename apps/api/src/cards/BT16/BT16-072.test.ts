@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT16-072.js";
@@ -55,5 +56,31 @@ describe("BT16-072", () => {
     ).toHaveLength(2);
     expect(s.state.players[0]!.deck).toHaveLength(4);
     expect(observe(s.engine).hasKeyword(s.perm("arukenimon"), "Blocker")).toBe(true);
+  });
+
+  it("allows only one same-name Myotismon-text Tamer across simultaneous deletions", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-072", as: "first" },
+            { card: "BT16-072", as: "second" },
+          ],
+          trash: ["BT8-093", "BT8-093"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent(
+      [s.perm("first").permanentId, s.perm("second").permanentId],
+      "byEffect",
+    );
+    await settle(
+      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT8-093").length === 1,
+    );
+
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT8-093")).toHaveLength(1);
   });
 });
