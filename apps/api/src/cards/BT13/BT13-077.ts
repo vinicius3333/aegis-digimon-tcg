@@ -55,9 +55,10 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "EndOfOpponentsTurn",
+      optional: true,
       actions: [
         {
-          kind: "RedirectAttack",
+          kind: "Attack",
           target: {
             filter: {
               controller: "opponent",
@@ -65,6 +66,8 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          mandatory: true,
+          attackPlayer: true,
         },
       ],
     },
