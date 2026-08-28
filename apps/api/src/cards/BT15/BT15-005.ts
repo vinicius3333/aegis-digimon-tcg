@@ -14,7 +14,6 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenUnsuspended",
           sourceFilter: {
-            controllerDefault: "mine",
             kind: ["Digimon"],
           },
           actions: [
