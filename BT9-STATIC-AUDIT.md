@@ -28,12 +28,12 @@ claim is valid.
 | BT9-001–010 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-001-010.md` | Yes |
 | BT9-011–020 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-011-020.md` | Yes |
 | BT9-021–030 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-021-030.md` | Yes |
-| BT9-031–040 | Luna in progress | `internal-docs/audits/BT9/BT9-031-040.md` | No |
-| BT9-041–050 | Luna in progress | `internal-docs/audits/BT9/BT9-041-050.md` | No |
-| BT9-051–060 | Luna in progress | `internal-docs/audits/BT9/BT9-051-060.md` | No |
-| BT9-061–070 | Queued | `internal-docs/audits/BT9/BT9-061-070.md` | No |
-| BT9-071–080 | Queued | `internal-docs/audits/BT9/BT9-071-080.md` | No |
-| BT9-081–090 | Queued | `internal-docs/audits/BT9/BT9-081-090.md` | No |
+| BT9-031–040 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-031-040.md` | Yes |
+| BT9-041–050 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-041-050.md` | Yes |
+| BT9-051–060 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-051-060.md` | Yes |
+| BT9-061–070 | Luna in progress | `internal-docs/audits/BT9/BT9-061-070.md` | No |
+| BT9-071–080 | Luna in progress | `internal-docs/audits/BT9/BT9-071-080.md` | No |
+| BT9-081–090 | Luna in progress | `internal-docs/audits/BT9/BT9-081-090.md` | No |
 | BT9-091–100 | Queued | `internal-docs/audits/BT9/BT9-091-100.md` | No |
 | BT9-101–110 | Queued | `internal-docs/audits/BT9/BT9-101-110.md` | No |
 | BT9-111–112 | Queued | `internal-docs/audits/BT9/BT9-111-112.md` | No |
@@ -92,16 +92,46 @@ other component and is never rounded up.
 | BT9-028 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-021-030.md` |
 | BT9-029 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-021-030.md` |
 | BT9-030 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-021-030.md` |
+| BT9-031 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-031-040.md` |
+| BT9-032 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-031-040.md` |
+| BT9-033 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-031-040.md` |
+| BT9-034 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-031-040.md` |
+| BT9-035 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-031-040.md` |
+| BT9-036 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-031-040.md` |
+| BT9-037 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-031-040.md` |
+| BT9-038 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-031-040.md` |
+| BT9-039 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-031-040.md` |
+| BT9-040 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-031-040.md` |
+| BT9-041 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-041-050.md` |
+| BT9-042 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-041-050.md` |
+| BT9-043 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-041-050.md` |
+| BT9-044 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-041-050.md` |
+| BT9-045 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-041-050.md` |
+| BT9-046 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-041-050.md` |
+| BT9-047 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-041-050.md` |
+| BT9-048 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-041-050.md` |
+| BT9-049 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-041-050.md` |
+| BT9-050 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-041-050.md` |
+| BT9-051 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-051-060.md` |
+| BT9-052 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-051-060.md` |
+| BT9-053 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-051-060.md` |
+| BT9-054 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-051-060.md` |
+| BT9-055 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-051-060.md` |
+| BT9-056 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-051-060.md` |
+| BT9-057 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-051-060.md` |
+| BT9-058 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-051-060.md` |
+| BT9-059 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-051-060.md` |
+| BT9-060 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-051-060.md` |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 60
-- Integrated card audits: 30
-- Corrected: 2
-- Provisional: 30
+- Assigned: 90
+- Integrated card audits: 60
+- Corrected: 9
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 52
+- Remaining unassigned: 22
 
 BT9 static re-audit remains open.
