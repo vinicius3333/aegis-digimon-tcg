@@ -122,7 +122,6 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       names: ["Soloogarmon"],
-      traits: ["SEEKERS"],
       cost: 3,
       isAlternate: true,
     },
