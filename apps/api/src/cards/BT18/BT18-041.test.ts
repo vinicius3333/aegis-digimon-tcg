@@ -2,9 +2,46 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT18-041.js";
+import { compiled } from "./BT18-041.js";
 
 describe("BT18-041 MetalEtemon", () => {
+  it("preserves the four DNA combinations documented by Q2965 and accepts a natural blue-green pair", async () => {
+    expect(compiled.dnaDigivolveRequirement).toEqual([
+      { cost: 0, materials: [{ color: "Blue", level: 5 }, { color: "Green", level: 5 }] },
+      { cost: 0, materials: [{ color: "Blue", level: 5 }, { color: "Black", level: 5 }] },
+      { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Green", level: 5 }] },
+      { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Black", level: 5 }] },
+    ]);
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-040", as: "blueLevel5" },
+            { card: "BT1-078", as: "greenLevel5" },
+          ],
+          hand: [{ card: "BT18-041", as: "metal" }],
+        },
+        1: { battleArea: [{ card: "BT1-060", as: "target", under: ["BT1-030"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("blueLevel5").permanentId, s.perm("greenLevel5").permanentId],
+        instanceId: s.inst("metal").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+
+    expect(s.state.players[0]!.battleArea[0]!.topCard?.cardId).toBe("BT18-041");
+    expect(s.state.memory).toBe(0);
+    assertNoLoudGap(s);
+  });
+
   it("reduces an opponent's Security Attack by 2 and De-Digivolves exactly 1", async () => {
     const s = setupEngine(
       {
