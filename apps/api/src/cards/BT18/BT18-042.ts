@@ -43,8 +43,6 @@ const compiled: CompiledCard = {
             position: "bottom",
             storeAs: "placedSecurityCardLevel",
           },
-          optional: true,
-          abortOnDecline: true,
           raw: "By placing 1 Digimon card from this Digimon's digivolution cards as your bottom security card, delete all opponent Digimon with the same level as the placed card.",
         },
       ],
