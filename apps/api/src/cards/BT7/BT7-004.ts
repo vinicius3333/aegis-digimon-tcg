@@ -6,7 +6,6 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",
-      attackScope: "ally",
       actions: [{ kind: "RevealAdd", revealCount: 1, add: [], rest: "deckTopOrBottom" }],
       isInherited: true,
     },

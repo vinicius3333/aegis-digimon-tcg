@@ -6,7 +6,9 @@ import "./BT7-002.js";
 describe("BT7-002 Bukamon", () => {
   it("gains 1 memory when a Digimon is played from digivolution cards", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-030", under: [{ card: "BT1-010", as: "played" }, "BT7-002"], as: "host" }] },
+      0: {
+        battleArea: [{ card: "BT4-026", under: ["BT7-002", { card: "BT6-019", as: "played" }], as: "host" }],
+      },
     });
     s.state.memory = 0;
     await s.ready();
@@ -21,7 +23,7 @@ describe("BT7-002 Bukamon", () => {
   it("does not trigger for an effect-driven Digimon play from hand", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT6-030", under: ["BT7-002"], as: "host" }],
+        battleArea: [{ card: "BT4-026", under: ["BT7-002", "BT6-019"], as: "host" }],
         hand: [{ card: "BT1-010", as: "played" }],
       },
     });
@@ -39,11 +41,12 @@ describe("BT7-002 Bukamon", () => {
       0: {
         battleArea: [
           {
-            card: "BT6-030",
+            card: "BT6-028",
             under: [
-              { card: "BT1-010", as: "firstPlayed" },
-              { card: "BT1-011", as: "secondPlayed" },
               "BT7-002",
+              { card: "BT6-019", as: "firstPlayed" },
+              { card: "BT4-026", as: "secondPlayed" },
+              "BT6-025",
             ],
             as: "host",
           },
@@ -62,7 +65,9 @@ describe("BT7-002 Bukamon", () => {
 
   it("does not trigger from a Digimon played from sources during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-030", under: [{ card: "BT1-010", as: "played" }, "BT7-002"], as: "host" }] },
+      0: {
+        battleArea: [{ card: "BT4-026", under: ["BT7-002", { card: "BT6-019", as: "played" }], as: "host" }],
+      },
     });
     s.state.memory = 0;
     s.state.turnSeat = 1;
