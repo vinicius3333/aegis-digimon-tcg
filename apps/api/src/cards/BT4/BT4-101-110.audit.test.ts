@@ -53,7 +53,7 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
     });
   });
 
-  it("preserves BT4-102's own return before bound source trash and optional level returns", () => {
+  it("preserves BT4-102's own return before Q1399 rule-teardown opponent returns", () => {
     expect(effect("BT4-102", "Main").actions).toEqual([
       {
         kind: "Return",
@@ -62,7 +62,7 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
         raw: "by returning 1 of your Digimon to its owner's hand",
       },
       {
-        kind: "SelectBind",
+        kind: "Return",
         target: {
           filter: {
             controller: "opponent",
@@ -71,17 +71,7 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
           },
           count: 2,
           upTo: true,
-          bindAs: "aquaViperTargets",
         },
-      },
-      {
-        kind: "TrashDigivolution",
-        target: { filter: {}, count: 2, fromSelectionRef: "aquaViperTargets" },
-        amount: 99,
-      },
-      {
-        kind: "Return",
-        target: { filter: {}, count: 2, fromSelectionRef: "aquaViperTargets" },
         to: "hand",
       },
     ]);
@@ -91,14 +81,9 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
     });
   });
 
-  it("preserves BT4-103's bound target, source trash, and resolution-time hand branches", () => {
+  it("preserves BT4-103's bound target and resolution-time Q1399 return branches", () => {
     const main = effect("BT4-103", "Main");
-    expect(main.actions.map((action: Node) => action.kind)).toEqual([
-      "SelectBind",
-      "TrashDigivolution",
-      "Return",
-      "Return",
-    ]);
+    expect(main.actions.map((action: Node) => action.kind)).toEqual(["SelectBind", "Return", "Return"]);
     expect(main.actions[0]).toMatchObject({
       target: {
         filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
@@ -108,14 +93,10 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
     });
     expect(main.actions[1]).toMatchObject({
       target: { fromSelectionRef: "fullMoonTarget", count: 1 },
-      amount: 99,
-    });
-    expect(main.actions[2]).toMatchObject({
-      target: { fromSelectionRef: "fullMoonTarget", count: 1 },
       to: "deckBottom",
       condition: { kind: "zoneCount", seat: "opponent", zone: "hand", op: "gte", value: 8 },
     });
-    expect(main.actions[3]).toMatchObject({
+    expect(main.actions[2]).toMatchObject({
       target: { fromSelectionRef: "fullMoonTarget", count: 1 },
       to: "hand",
       condition: { kind: "zoneCount", seat: "opponent", zone: "hand", op: "lt", value: 8 },
@@ -131,18 +112,13 @@ describe("BT4-101 through BT4-110 direct IR audit evidence", () => {
     expect(card("BT4-104").effects).toHaveLength(1);
   });
 
-  it("preserves BT4-105's whole-stack trash before face-down top-security placement", () => {
+  it("preserves BT4-105's face-down placement with canonical stack teardown", () => {
     expect(effect("BT4-105", "Main").actions).toEqual([
-      {
-        kind: "TrashDigivolution",
-        target: { filter: { controller: "mine", kind: ["Digimon"], allowTokens: true }, count: 1 },
-        amount: 99,
-      },
       {
         kind: "SecurityManipulation",
         op: "placeAsSecurity",
         controller: "mine",
-        source: { filter: {}, count: 1, sameTarget: true },
+        source: { filter: { controller: "mine", kind: ["Digimon"], allowTokens: true }, count: 1 },
         toTop: true,
       },
     ]);

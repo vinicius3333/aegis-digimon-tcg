@@ -1,7 +1,5 @@
-// The source-trash clause is explicit card effect processing, not merely the automatic
-// trashing of stacked cards when a Digimon leaves play. Bind the opponent targets so
-// TrashDigivolution fires the real source-trash primitive before the return (as in ST8-12
-// and BT6-030), preserving source-trigger behavior while keeping the return destinations.
+// BT6-002 Q1399: attachment trash during a return is rule teardown, not source
+// trash by effect. Canonical Return handles the whole selected stack accordingly.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -24,7 +22,7 @@ const compiled: CompiledCard = {
           raw: "by returning 1 of your Digimon to its owner's hand",
         },
         {
-          kind: "SelectBind",
+          kind: "Return",
           target: {
             filter: {
               controller: "opponent",
@@ -33,17 +31,7 @@ const compiled: CompiledCard = {
             },
             count: 2,
             upTo: true,
-            bindAs: "aquaViperTargets",
           },
-        },
-        {
-          kind: "TrashDigivolution",
-          target: { filter: {}, count: 2, fromSelectionRef: "aquaViperTargets" },
-          amount: 99,
-        },
-        {
-          kind: "Return",
-          target: { filter: {}, count: 2, fromSelectionRef: "aquaViperTargets" },
           to: "hand",
         },
       ],

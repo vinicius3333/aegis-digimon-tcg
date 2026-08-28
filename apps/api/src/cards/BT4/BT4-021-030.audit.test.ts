@@ -112,16 +112,10 @@ describe("BT4-021 through BT4-030 IR coverage", () => {
           trigger: "WhenAttacking",
           actions: [
             {
-              kind: "SelectBind",
+              kind: "Return",
               target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 },
-              bindAs: "returnTarget",
+              to: "hand",
             },
-            {
-              kind: "TrashDigivolution",
-              target: { fromSelectionRef: "returnTarget", filter: {}, count: 1 },
-              amount: 99,
-            },
-            { kind: "Return", target: { fromSelectionRef: "returnTarget", filter: {}, count: 1 }, to: "hand" },
           ],
         }),
       ]),

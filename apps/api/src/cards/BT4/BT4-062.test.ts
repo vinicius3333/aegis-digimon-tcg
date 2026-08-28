@@ -1,8 +1,16 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT4-062.js";
 describe("BT4-062 Nidhoggmon", () => {
+  it("uses canonical Return as the only post-suspension action for Q1399 teardown", () => {
+    const whenDigivolving = runtimeCompiledCard("BT4-062")!.effects.find(
+      (effect) => effect.trigger === "WhenDigivolving",
+    )!;
+    expect(whenDigivolving.actions.map((action) => action.kind)).toEqual(["Suspend", "Return"]);
+  });
+
   it("Digi-Bursts 4 to bottom-deck all suspended opposing Digimon", async () => {
     const s = setupEngine(
       {

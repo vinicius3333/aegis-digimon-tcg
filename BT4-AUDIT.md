@@ -69,13 +69,13 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-024 Tobiumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and ordinary blue evolution evidence |
 | BT4-025 Lobomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blue-Tamer alternate evolution and derived printed-cost proof |
 | BT4-026 GaoGamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Digi-Burst source cost on Draw 1 with allied-stack retention proof |
-| BT4-027 KendoGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blue-Tamer evolution plus bound level-3 source-trash-and-return sequence |
+| BT4-027 KendoGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blue-Tamer evolution plus corrected Q1399 canonical level-3 return teardown |
 | BT4-028 Piranimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited top-source trash and legal host-stack proof |
 | BT4-029 Gusokumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and ordinary blue evolution evidence |
 | BT4-030 Beowolfmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Jamming and live Hybrid-or-blue-Tamer cant-be-attacked condition proof |
 | BT4-031 MarinChimairamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional own-cost return and source-free opponent target boundaries |
-| BT4-032 MachGaogamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected shared no-target Digi-Burst preflight and Tamer aura proof |
-| BT4-033 ZeedGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected shared no-target preflight for bound source-trash-and-return |
+| BT4-032 MachGaogamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected cost-bearing Q1399 Return, no-target Digi-Burst preflight, and Tamer aura proof |
+| BT4-033 ZeedGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected cost-bearing Q1399 Return with no-target Digi-Burst preflight |
 | BT4-034 Regalecusmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bottom-source trash with conditional draw/memory and no-source negative |
 | BT4-035 MirageGaogamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent-hand memory scaling and turn-bound unblockable proof |
 | BT4-036 Falcomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary and legal yellow evolution evidence |
@@ -104,7 +104,7 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-059 Lilamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst suspension, source return, and color-agnostic Tamer condition |
 | BT4-060 Lotosmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Both-player low-level play watcher with evolution/breeding negatives |
 | BT4-061 BanchoLeomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | On Deletion up-to-two suspension with three-target cap proof |
-| BT4-062 Nidhoggmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected arbitrary deck-bottom order with exact Digi-Burst and stack proof |
+| BT4-062 Nidhoggmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected arbitrary deck-bottom order with canonical Q1399 stack teardown |
 | BT4-063 Commandramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | On Deletion reveal-play with optional refusal and cleanup proof |
 | BT4-064 Sunarizamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited Digi-Burst self-source return using exact event identity |
 | BT4-065 Gotsumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla no-effect boundary through direct registration |
@@ -144,10 +144,10 @@ A provisional static audit can earn at most 8/10 because component 5 requires ex
 | BT4-099 Heir of Dragons | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Draw-two plus qualified Greymon/Dramon deletion and exclusions |
 | BT4-100 Trident Revolver | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Low-DP deletion then optional Tamer play including no-target ruling |
 | BT4-101 I'll Drag You In to the Depths! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Attack-time aura with sourceless-target deletion and stacked-target negative proof |
-| BT4-102 Aqua Viper | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bound source-trash-before-return sequence with source-trigger and token ruling trace |
-| BT4-103 Full Moon Blaster | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Resolution-time hand-size branch with bound source trash and Security activation |
+| BT4-102 Aqua Viper | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Q1399 canonical opponent returns plus token-capable own return ruling trace |
+| BT4-103 Full Moon Blaster | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Resolution-time hand-size branches with bound Q1399 teardown and Security activation |
 | BT4-104 Blinding Ray | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Ordered security trash then memory gain including empty-security ruling boundary |
-| BT4-105 Tactical Retreat! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Explicit source trash plus token and Digi-Egg alternate-destination handling |
+| BT4-105 Tactical Retreat! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Canonical placement teardown plus token and Digi-Egg alternate-destination handling |
 | BT4-106 Purge Shine | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All-opponent temporary DP reduction and Security Main activation |
 | BT4-107 Pollen Spray | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst text reveal matching with named added-card suspension scaling |
 | BT4-108 Cyclonic Kick | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected own-unsuspend then opponent-suspend order with independent-half proof |
@@ -166,7 +166,7 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 - Catalog cards: 115
 - Assigned: 115
 - Integrated card audits: 115
-- Corrected: 17
+- Corrected: 21
 - Provisional: 115
 - Verified 10/10: 0
 - Blocked or ambiguous: 0

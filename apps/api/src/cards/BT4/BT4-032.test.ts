@@ -1,10 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT4-032.js";
 
 describe("BT4-032 MachGaogamon", () => {
+  it("uses one cost-bearing Return so Q1399 teardown cannot fire source-trash watchers", () => {
+    const main = runtimeCompiledCard("BT4-032")!.effects.find((effect) => effect.trigger === "Main")!;
+    expect(main.actions).toMatchObject([
+      {
+        kind: "Return",
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        to: "hand",
+        cost: { kind: "trash", target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 } },
+      },
+    ]);
+  });
+
   it("Digi-Bursts 2 to return a level 4 Digimon after trashing all of its sources", async () => {
     const s = setupEngine(
       {

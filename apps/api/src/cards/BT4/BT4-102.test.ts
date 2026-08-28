@@ -41,7 +41,7 @@ describe("BT4-102 Aqua Viper", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === id)).toBe(true);
   });
 
-  it("uses explicit source-trash processing so opponent inherited triggers resolve", async () => {
+  it("does not fire source-trash inherited effects during return teardown (Q1399)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -49,7 +49,7 @@ describe("BT4-102 Aqua Viper", () => {
             { card: "BT4-023", as: "mine" },
             { card: "BT6-025", as: "watcher", under: ["BT6-002"] },
           ],
-          deck: [{ card: "BT1-010", as: "drawn" }],
+          deck: [{ card: "BT1-010", as: "notDrawn" }],
           hand: [{ card: "BT4-102", as: "option" }],
         },
         1: {
@@ -58,12 +58,14 @@ describe("BT4-102 Aqua Viper", () => {
       },
       { autoSelectCards: true },
     );
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("watcher"));
     s.state.memory = 5;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(false);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("notDrawn").instanceId);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
   });
 });
