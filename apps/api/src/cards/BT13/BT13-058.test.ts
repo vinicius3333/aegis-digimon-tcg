@@ -38,6 +38,9 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
         { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" } },
       ],
     });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Leopardmon"], cost: 1, isAlternate: true },
+    ]);
   });
 
   it("loads the compiled Leopardmon: Leopard Mode implementation", async () => {
