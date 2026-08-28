@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-085.js";
@@ -54,12 +53,19 @@ describe("BT13-085 Crowmon", () => {
           battleArea: [{ card: "BT13-085", as: "crow" }, { card: "BT13-100", as: "tamer" }],
           trash: [{ card: "BT13-089", as: "ravemon" }],
         },
+        1: { security: ["BT1-001"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 4;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("crow"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("crow").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("crow").topCard?.cardId === "BT13-089");
     expect(s.perm("crow").topCard?.cardId).toBe("BT13-089");
   });
