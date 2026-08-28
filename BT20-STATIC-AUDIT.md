@@ -26,7 +26,7 @@ provisional and capped at 8/10.
 | BT20-021–030 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-021-030.md` | Yes |
 | BT20-031–040 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-031-040.md` | Yes |
 | BT20-041–050 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-041-050.md` | Yes |
-| BT20-051–060 | Luna assigned | `internal-docs/audits/BT20/BT20-051-060.md` | No |
+| BT20-051–060 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-051-060.md` | Yes |
 | BT20-061–070 | Luna assigned | `internal-docs/audits/BT20/BT20-061-070.md` | No |
 | BT20-071–080 | Luna assigned | `internal-docs/audits/BT20/BT20-071-080.md` | No |
 | BT20-081–090 | Luna assigned | `internal-docs/audits/BT20/BT20-081-090.md` | No |
@@ -95,16 +95,26 @@ applicable non-gate component rather than being rounded up.
 | BT20-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal/evolution paths prove both selectors, alternate evolution, and opponent-turn inherited DP (`da5e3f48a`). |
 | BT20-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution and an opponent attack prove exact targeting and the player-attack restriction (`da5e3f48a`). |
 | BT20-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution proves next-face-down security handling, but End of Attack is manually fired (`da5e3f48a`). |
+| BT20-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution paths prove both alternate routes, Tamer-count boundaries, decline, and inherited turn scope (`4eedb125b`). |
+| BT20-052 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural face-up security checks and inherited scope are covered, but Security entry timing is manually fired (`4eedb125b`). |
+| BT20-053 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected both entry branches to bind immunity to the DP-selected Digimon; the during-attack entry origin remains manually fired (`d6dbed6a9`). |
+| BT20-054 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected replacement candidates to Bulbmon's own stack; the opponent-origin leave path remains direct (`ce96ba68e`). |
+| BT20-055 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry effects and face-up checks are covered, but Security entry timing is manually fired (`4eedb125b`). |
+| BT20-056 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Recovery and turn gates are natural; attack evolution, security removal, and leave prevention use manual helpers (`4eedb125b`). |
+| BT20-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution paths prove reduction boundaries, both free-evolution sources, decline, and keywords (`4eedb125b`). |
+| BT20-058 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected replacement candidates to Raidenmon's own stack; the leave replacement still originates from a direct delete (`5a9cf609f`). |
+| BT20-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution proves De-Digivolve, stack-gated immunity, resident turn scope, and inherited Jesmon GX boundaries (`4eedb125b`). |
+| BT20-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/evolution/Blast DNA prove entry ordering, while either-stack security removal remains manually fired (`4eedb125b`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 100
-- Integrated card audits: 50
-- Corrected: 6
-- Provisional: 50
+- Integrated card audits: 60
+- Corrected: 9
+- Provisional: 60
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 29 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037`, `BT20-041`–`BT20-044`, `BT20-047`, and `BT20-050` source/stack-proof gaps)
+- Blocked or ambiguous: 36 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037`, `BT20-041`–`BT20-044`, `BT20-047`, `BT20-050`, `BT20-052`–`BT20-056`, `BT20-058`, and `BT20-060` source/stack-proof gaps)
 - Remaining unassigned: 2
 
 BT20 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
