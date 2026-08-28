@@ -27,7 +27,7 @@ provisional and capped at 8/10.
 | BT20-031–040 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-031-040.md` | Yes |
 | BT20-041–050 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-041-050.md` | Yes |
 | BT20-051–060 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-051-060.md` | Yes |
-| BT20-061–070 | Luna assigned | `internal-docs/audits/BT20/BT20-061-070.md` | No |
+| BT20-061–070 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-061-070.md` | Yes |
 | BT20-071–080 | Luna assigned | `internal-docs/audits/BT20/BT20-071-080.md` | No |
 | BT20-081–090 | Luna assigned | `internal-docs/audits/BT20/BT20-081-090.md` | No |
 | BT20-091–100 | Luna assigned | `internal-docs/audits/BT20/BT20-091-100.md` | No |
@@ -105,14 +105,24 @@ applicable non-gate component rather than being rounded up.
 | BT20-058 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected replacement candidates to Raidenmon's own stack; the leave replacement still originates from a direct delete (`5a9cf609f`). |
 | BT20-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution proves De-Digivolve, stack-gated immunity, resident turn scope, and inherited Jesmon GX boundaries (`4eedb125b`). |
 | BT20-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/evolution/Blast DNA prove entry ordering, while either-stack security removal remains manually fired (`4eedb125b`). |
+| BT20-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate evolution and reveal flow prove both selectors; a legal host proves inherited turn-scoped DP (`ff6ff22b1`). |
+| BT20-062 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural combat proves Retaliation and both paid inherited-deletion branches with exact level boundaries (`ff6ff22b1`). |
+| BT20-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves both reveal selectors; natural combat distinguishes inherited memory gain from standalone (`ff6ff22b1`). |
+| BT20-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate evolutions and reveal flow prove both selectors; a legal host proves inherited turn-scoped DP (`ff6ff22b1`). |
+| BT20-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and combat prove the paid granted On Deletion memory effect and unavailable-cost boundary (`ff6ff22b1`). |
+| BT20-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution prove level-3 deletion, turn-gated paid DNA, legal material stacks, and inherited Retaliation (`ff6ff22b1`). |
+| BT20-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry paths prove Retaliation grants; natural combat proves inherited paid deletion and level boundary (`ff6ff22b1`). |
+| BT20-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution proves the 0/1/2-Tamer and decline boundaries; natural combat proves inherited memory (`ff6ff22b1`). |
+| BT20-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution prove Trash-then-grant processing and empty-hand continuation; a legal host proves inherited DP (`ff6ff22b1`). |
+| BT20-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate routes and entry paths prove paid recovery and decline; a legal host proves inherited turn-scoped DP (`ff6ff22b1`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 60
+- Integrated card audits: 70
 - Corrected: 9
-- Provisional: 60
+- Provisional: 70
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 36 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037`, `BT20-041`–`BT20-044`, `BT20-047`, `BT20-050`, `BT20-052`–`BT20-056`, `BT20-058`, and `BT20-060` source/stack-proof gaps)
 - Remaining unassigned: 0
