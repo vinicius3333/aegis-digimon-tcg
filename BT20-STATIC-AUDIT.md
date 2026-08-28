@@ -28,7 +28,7 @@ provisional and capped at 8/10.
 | BT20-041–050 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-041-050.md` | Yes |
 | BT20-051–060 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-051-060.md` | Yes |
 | BT20-061–070 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-061-070.md` | Yes |
-| BT20-071–080 | Luna assigned | `internal-docs/audits/BT20/BT20-071-080.md` | No |
+| BT20-071–080 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-071-080.md` | Yes |
 | BT20-081–090 | Luna assigned | `internal-docs/audits/BT20/BT20-081-090.md` | No |
 | BT20-091–100 | Luna assigned | `internal-docs/audits/BT20/BT20-091-100.md` | No |
 | BT20-101–102 | Luna assigned | `internal-docs/audits/BT20/BT20-101-102.md` | No |
@@ -115,16 +115,26 @@ applicable non-gate component rather than being rounded up.
 | BT20-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution proves the 0/1/2-Tamer and decline boundaries; natural combat proves inherited memory (`ff6ff22b1`). |
 | BT20-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution prove Trash-then-grant processing and empty-hand continuation; a legal host proves inherited DP (`ff6ff22b1`). |
 | BT20-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate routes and entry paths prove paid recovery and decline; a legal host proves inherited turn-scoped DP (`ff6ff22b1`). |
+| BT20-071 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected the optional hand-trash gate for Raid/DP; the Tamer placement watcher still uses a direct placement verb (`fdf25ed1d`). |
+| BT20-072 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Execute and replay boundaries are covered, but both deletion origins use a direct deletion verb (`ba25e0fc5`). |
+| BT20-073 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/evolution prove the paid deletion branches; inherited De-Digivolve starts from direct host deletion (`ba25e0fc5`). |
+| BT20-074 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected deck-return replacement binding after DNA; the distinctive watcher still starts from direct return verbs (`465cf72bb`). |
+| BT20-075 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution prove Trash-then-grant continuation and exact inherited trait/hand-size boundaries (`ba25e0fc5`). |
+| BT20-076 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution/Blast DNA prove deletion boundaries, exact materials, Fighter Mode sources, and invalid routes (`ba25e0fc5`). |
+| BT20-077 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry paths prove tracked hand trash, scaled free play, both trait arms, and continuous keyword/DP scope (`ba25e0fc5`). |
+| BT20-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural battle proves one On Deletion target, but the effect-Digivolution watcher remains structural and one boundary is manually timed (`ba25e0fc5`). |
+| BT20-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and losing battle prove lowest-level deletion and both Ghost replay origins (`38c801cfe`). |
+| BT20-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected the name-only Soloogarmon route; natural evolution and legal inherited security proof leave Tamer reactivation structural (`7fc681d01`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 70
-- Corrected: 9
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 12
+- Provisional: 80
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 36 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037`, `BT20-041`–`BT20-044`, `BT20-047`, `BT20-050`, `BT20-052`–`BT20-056`, `BT20-058`, and `BT20-060` source/stack-proof gaps)
+- Blocked or ambiguous: 42 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037`, `BT20-041`–`BT20-044`, `BT20-047`, `BT20-050`, `BT20-052`–`BT20-056`, `BT20-058`, `BT20-060`, `BT20-071`–`BT20-074`, `BT20-078`, and `BT20-080` source/stack-proof gaps)
 - Remaining unassigned: 0
 
 BT20 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
