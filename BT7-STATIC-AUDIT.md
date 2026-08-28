@@ -33,7 +33,7 @@ claim is valid.
 | BT7-071–080 | Static audit delivered | `internal-docs/audits/BT7/BT7-071-080.md` | Yes |
 | BT7-081–090 | Luna in progress | `internal-docs/audits/BT7/BT7-081-090.md` | No |
 | BT7-091–100 | Queued | `internal-docs/audits/BT7/BT7-091-100.md` | No |
-| BT7-101–110 | Luna in progress | `internal-docs/audits/BT7/BT7-101-110.md` | No |
+| BT7-101–110 | Static audit delivered | `internal-docs/audits/BT7/BT7-101-110.md` | Yes |
 | BT7-111–112 | Queued | `internal-docs/audits/BT7/BT7-111-112.md` | No |
 
 ## Score model
@@ -130,14 +130,24 @@ other component and is never rounded up.
 | BT7-078 AncientSphinxmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Dynamic last-deleted-level target bound and bounded purple Hybrid On Deletion play |
 | BT7-079 Cherubimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected mandatory Then deletion after optional Tamer play plus per-Tamer On Deletion free plays |
 | BT7-080 Neemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited-effect Tamer On Play boundary and Tamer-stack deletion watcher with once-per-turn play |
+| BT7-101 Thunder Laser | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Hybrid-or-Ten-Warriors in-play gate, opponent suspension, and Security hand return |
+| BT7-102 Dino Memory Boost! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Main suspension, Option battle-area placement, delayed memory gain, and same-turn gate |
+| BT7-103 Mugen | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected same-target unsuspend restriction after suspension through opponent next turn |
+| BT7-104 Metal Cannon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bound X-Antibody Digimon selection and draw scaling from that exact stack |
+| BT7-105 Pride Memory Boost! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional low-cost black reveal play, trash remainder, field placement, and Delay boundaries |
+| BT7-106 Brave Metal | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Normal play-cost deletion versus optional loaded X-Antibody-stack non-X target mode |
+| BT7-107 Calling From the Darkness | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Own-Digimon deletion, up-to-two purple-trash returns, pending-effect boundary, and restriction metadata |
+| BT7-108 Schwarz Lehrsatz | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Additive Hybrid-Digimon plus Tamer scaling for opponent level-five-or-lower deletions |
+| BT7-109 Dead or Alive | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Purple level-five trash play versus optional ten-trash Lucemon alternative |
+| BT7-110 Evolution Ancient | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Hybrid-based color waiver and same-color Ten-Warriors evolution with only level ignored |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 100
-- Integrated card audits: 70
-- Corrected: 18
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 19
+- Provisional: 80
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 12
