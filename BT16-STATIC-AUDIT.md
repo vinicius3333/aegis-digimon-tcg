@@ -29,7 +29,7 @@ collection-complete claim is valid.
 | BT16-011–020 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-011-020.md` | Yes |
 | BT16-021–030 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-021-030.md` | Yes |
 | BT16-031–040 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-031-040.md` | Yes |
-| BT16-041–050 | Coordinator accepted; awaiting BT16-031–040 | `internal-docs/audits/BT16/BT16-041-050.md` | No |
+| BT16-041–050 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-041-050.md` | Yes |
 | BT16-051–060 | Luna assigned | `internal-docs/audits/BT16/BT16-051-060.md` | No |
 | BT16-061–070 | Coordinator accepted; awaiting earlier ranges | `internal-docs/audits/BT16/BT16-061-070.md` | No |
 | BT16-071–080 | Coordinator accepted; awaiting earlier ranges | `internal-docs/audits/BT16/BT16-071-080.md` | No |
@@ -110,14 +110,24 @@ feasible natural originating event.
 | BT16-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Zero-cost Terriermon evolution, matching/nonmatching evolution-cost replacement, and positive/negative inherited Piercing hosts have natural proof (`bb59f6bee`). |
 | BT16-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2632–Q2633 category overlap, no duplicate take, exact remainder, Bibimon evolution, and live inherited top-card text gates are covered (`5087d1210`). |
 | BT16-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2634 requirement enforcement, both natural trash-evolution timings, Minomon route, and inherited attack suspension/reset are covered (`f8940de55`). |
+| BT16-041 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate Wormmon evolution, Retaliation, play/evolution suspension, and inherited once-per-turn attack suspension match the direct IR (`022ae9689`). |
+| BT16-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Rule trait, natural play/evolution +3000 DP scope and duration, and suspension-gated inherited +1000 DP are covered (`a10f72102`). |
+| BT16-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2635 exact-three overlap, both natural play branches, Pulsemon evolution, and positive/negative inherited top-card text cases are proved (`1bcc82712`). |
+| BT16-044 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2636 exact-three overlap, bound suspension restriction, natural evolution, and inherited security-trash/unsuspend behavior match the IR (`661c5c4dd`). |
+| BT16-045 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the printed mandatory +3000 DP follow-up after optional suspension; natural play/evolution decline and inherited attack redirection are covered (`3dc01dc32`). |
+| BT16-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the suspension watcher to this Digimon; Q2638 target union, delayed restriction, Tamer deletion, natural attack bonus, and unrelated-source negative are covered (`69776d073`). |
+| BT16-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the battle-deletion watcher to this Digimon; Q2639 exact-three branches, evolution suspension/restriction, and another-attacker negative are proved (`e3cab077c`). |
+| BT16-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2640 suspended immunity, natural end-turn DP boundary/bottom-deck, reduced-cost play, and alternate Insectoid route match the direct module (`50ac370d6`). |
+| BT16-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2641 post-evolution identity, shared play/evolution frequency, qualifier negatives, Upamon route, and inherited DP are naturally covered (`283b43cb0`). |
+| BT16-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | D-Brigade/DigiPolice OR matching, source/opponent/nontrait exclusions, and inherited aura have catalog-backed stack proof (`87cb4de6f`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 40
-- Corrected: 7
-- Provisional: 40
+- Integrated card audits: 50
+- Corrected: 10
+- Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
