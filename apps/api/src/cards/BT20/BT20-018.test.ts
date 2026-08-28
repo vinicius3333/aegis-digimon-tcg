@@ -38,6 +38,7 @@ describe("BT20-018 Ouryumon", () => {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "any" },
           actions: [{ kind: "Delete", target: { filter: { superlative: "lowestDP" } } }],
         },
       ],
