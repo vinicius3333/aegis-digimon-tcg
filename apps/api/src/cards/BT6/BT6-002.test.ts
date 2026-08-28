@@ -8,7 +8,7 @@ describe("BT6-002 Kyaromon", () => {
   it("draws once when an opponent's digivolution card is trashed on your turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT6-025", under: ["BT6-002"], as: "host" }],
+        battleArea: [{ card: "BT6-019", under: ["BT6-002"], as: "host" }],
         deck: [{ card: "BT1-010", as: "drawn" }],
       },
       1: { battleArea: [{ card: "BT2-047", under: [{ card: "BT1-011", as: "source" }], as: "target" }] },
@@ -23,7 +23,7 @@ describe("BT6-002 Kyaromon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT6-025", under: ["BT6-002"], as: "host" },
+          { card: "BT6-019", under: ["BT6-002"], as: "host" },
           { card: "BT2-047", under: [{ card: "BT1-011", as: "ownSource" }], as: "ownTarget" },
         ],
         deck: [
@@ -66,7 +66,7 @@ describe("BT6-002 Kyaromon", () => {
   it("does not draw when a bounce discards the opponent stack by rule (Q1399)", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT6-025", under: ["BT6-002"], as: "host" }],
+        battleArea: [{ card: "BT6-019", under: ["BT6-002"], as: "host" }],
         deck: [{ card: "BT1-010", as: "notDrawn" }],
       },
       1: {

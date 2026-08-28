@@ -9,7 +9,7 @@ describe("BT6-008 Shoutmon", () => {
   it("draws when its Blitz host attacks", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT9-068", under: ["BT6-008", "BT1-010"], as: "host" }],
+        battleArea: [{ card: "BT9-068", under: ["BT6-008", "BT6-011", "BT5-014"], as: "host" }],
         deck: [{ card: "BT1-011", as: "drawn" }],
       },
       1: { security: ["BT1-012"] },
