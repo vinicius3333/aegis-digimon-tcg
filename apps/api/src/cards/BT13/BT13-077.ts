@@ -65,6 +65,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
+          optional: true,
         },
       ],
     },

@@ -31,7 +31,11 @@ describe("BT13-077 Craniamon", () => {
   it("redirects an opponent's end-of-turn attack after choosing a Digimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfOpponentsTurn")).toMatchObject({
       actions: [
-        { kind: "RedirectAttack", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+        {
+          kind: "RedirectAttack",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          optional: true,
+        },
       ],
     });
   });
