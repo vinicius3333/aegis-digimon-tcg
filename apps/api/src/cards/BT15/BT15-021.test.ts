@@ -93,14 +93,14 @@ describe("BT15-021", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-009", as: "host", under: ["BT15-001", "BT15-021"] },
+            { card: "BT15-023", as: "host", under: ["BT15-002", "BT15-021"] },
           ],
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "equal", under: ["BT15-001", "BT15-002"] },
-            { card: "BT1-009", as: "fewer", under: ["BT15-001"] },
-            { card: "BT1-009", as: "more", under: ["BT15-001", "BT15-002", "BT15-003"] },
+            { card: "BT15-023", as: "equal", under: ["BT15-002", "BT15-019"] },
+            { card: "BT15-021", as: "fewer", under: ["BT15-002"] },
+            { card: "BT15-027", as: "more", under: ["BT15-002", "BT15-019", "BT15-023"] },
           ],
           hand: [{ card: "BT1-009", as: "addedSource" }],
           security: ["BT1-001", "BT1-001"],

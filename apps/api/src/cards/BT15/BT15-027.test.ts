@@ -179,7 +179,9 @@ describe("BT15-027", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }], security: ["BT1-001"] },
       1: {
-        battleArea: [{ card: "BT15-025", as: "host", under: ["BT15-027"], dp: 6000 }],
+        battleArea: [
+          { card: "BT15-031", as: "host", under: ["BT15-025", "BT15-027"], dp: 11000 },
+        ],
         security: ["BT1-001"],
       },
     });

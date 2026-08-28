@@ -110,7 +110,7 @@ describe("BT15-022", () => {
 
   it("does not protect its inherited host in battle against an opposing Digimon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-022"] }] },
+      0: { battleArea: [{ card: "BT15-023", as: "host", under: ["BT15-022"] }] },
       1: { battleArea: [{ card: "BT1-081", as: "defender", suspended: true }] },
     });
     await s.ready();

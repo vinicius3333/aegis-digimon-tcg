@@ -33,8 +33,8 @@ describe("BT15-028", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT15-028", as: "divermon" }],
           hand: [
+            { card: "BT15-028", as: "divermon" },
             { card: "BT2-090", as: "purpleMatt" },
             { card: "BT1-086", as: "blueMatt" },
           ],
