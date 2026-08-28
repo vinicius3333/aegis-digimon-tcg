@@ -28,6 +28,8 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
           kind: "PlayWithoutCost",
           breeding: true,
           payCost: false,
+          optional: true,
+          abortOnDecline: true,
           requiresEmpty: "breedingArea",
           from: ["trash"],
           target: {
@@ -71,6 +73,35 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("larva").instanceId)).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.memory).toBe(4);
+  });
+
+  it("may decline the processing condition without moving Larva or deleting the target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-082", as: "chaosMode" }],
+          hand: [{ card: "BT18-101", as: "satanMode" }],
+          trash: [{ card: "BT18-086", as: "larva" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("chaosMode").permanentId,
+        instanceId: s.inst("satanMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("satanMode").topCard?.cardId === "BT18-101");
+    await settle();
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("larva").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("target").permanentId]);
   });
 
   it("does not delete when the natural digivolution cannot play Larva into an occupied breeding area", async () => {

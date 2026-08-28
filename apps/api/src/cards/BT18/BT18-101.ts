@@ -30,6 +30,8 @@ export const compiled: CompiledCard = {
           breeding: true,
           requiresEmpty: "breedingArea",
           payCost: false,
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Delete",
