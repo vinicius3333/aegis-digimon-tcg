@@ -12,7 +12,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
       {
         cost: 0,
         isAlternate: true,
-        names: ["MirageGaogamon"],
+        namesExact: ["MirageGaogamon"],
         burstDigivolve: { returnTamerNamesExact: ["Thomas H. Norstein"] },
       },
     ]);
@@ -97,6 +97,26 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
       }),
     ).toMatchObject({ ok: false });
     expect(s.state.players[1]!.battleArea).toContain(s.perm("opponent-thomas"));
+  });
+
+  it("rejects the longer MirageGaogamon: Burst Mode as a Burst base even with payable Thomas", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT13-033", as: "long-base" }],
+        hand: [{ card: "BT13-033", as: "burst" }, { card: "BT13-097", as: "thomas" }],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("long-base").permanentId,
+        instanceId: s.inst("burst").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("long-base").topCard.cardId).toBe("BT13-033");
+    expect(s.state.players[0]!.hand).toContain(s.inst("burst"));
+    expect(s.state.players[0]!.hand).toContain(s.inst("thomas"));
   });
 
   it("returns an opposing Digimon, then gains memory from the resulting hand size", async () => {
