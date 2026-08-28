@@ -39,7 +39,12 @@ describe("BT13-090 LordKnightmon", () => {
       scaling: {
         per: 1,
         unit: "cards",
-        filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["Royal Knight"] }] },
+        filter: {
+          controller: "mine",
+          zone: "battleArea",
+          kind: ["Digimon"],
+          nameOrTrait: [{ match: "trait", tokens: ["Royal Knight"] }],
+        },
       },
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "OpponentsTurn")).toMatchObject({
@@ -71,7 +76,7 @@ describe("BT13-090 LordKnightmon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-075")).toBe(true);
   });
 
-  it("gains one memory for each own Royal Knight on a natural opponent attack", async () => {
+  it("counts the source and two own Royal Knights on a natural opponent attack", async () => {
     const s = setupEngine(
       {
         0: {
@@ -80,6 +85,41 @@ describe("BT13-090 LordKnightmon", () => {
             { card: "BT13-075", as: "royalOne" },
             { card: "BT13-087", as: "royalTwo" },
           ],
+        },
+        1: { battleArea: [{ card: "BT13-081", as: "attackerOne" }, { card: "BT13-082", as: "attackerTwo" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerOne").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 3);
+    expect(s.state.memory).toBe(3);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attackerTwo").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attackerTwo").isSuspended);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not count a Royal Knight that exists only in breeding", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-090", as: "lord" }],
+          breeding: { card: "BT13-087", as: "breedingRoyal" },
         },
         1: { battleArea: [{ card: "BT13-081", as: "attacker" }] },
       },
@@ -95,7 +135,7 @@ describe("BT13-090 LordKnightmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.memory === 2);
-    expect(s.state.memory).toBe(2);
+    await settle(() => s.state.memory === 1);
+    expect(s.state.memory).toBe(1);
   });
 });
