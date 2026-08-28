@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
@@ -51,6 +51,7 @@ const compiled: CompiledCard = {
             ],
           },
           from: ["trash"],
+          payCost: true,
           optional: true,
         },
       ],
@@ -61,6 +62,7 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
           sourceFilter: {
             isSelfRef: true,
           },
@@ -76,6 +78,7 @@ const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["digivolutionCards"],
+              fromOwnDigivolutionStack: true,
               payCost: false,
               optional: true,
             },
