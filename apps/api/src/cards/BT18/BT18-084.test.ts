@@ -12,6 +12,9 @@ describe("BT18-084 AncientSphinxmon", () => {
         { kind: "Delete", target: { filter: { controller: "opponent", unsuspended: true, kind: ["Digimon"] } } },
       ],
     });
+    expect(compiled.digiXrosRequirement).toEqual([
+      { materials: [{ names: ["Loweemon", "Duskmon"] }, { names: ["KaiserLeomon", "Velgrmon"] }], count: 2 },
+    ]);
     expect(compiled.effects[2]).toMatchObject({
       trigger: "AllTurns",
       actions: [
@@ -58,5 +61,47 @@ describe("BT18-084 AncientSphinxmon", () => {
     });
     await settle(() => !s.state.players[1]!.battleArea.some((perm) => perm.permanentId === liveId));
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === suspendedId)).toBe(true);
+  });
+
+  it("naturally DigiXroses with the Duskmon and Velgrmon alternatives", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT18-084", as: "ancient" },
+          { card: "BT18-078", as: "duskmon" },
+          { card: "BT18-079", as: "velgrmon" },
+        ],
+      },
+    });
+    s.state.memory = 8;
+
+    expect(s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("ancient").instanceId,
+      digiXros: { materialInstanceIds: [s.inst("duskmon").instanceId, s.inst("velgrmon").instanceId] },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT18-084"));
+
+    expect(s.perm("ancient").stack.map((card) => card.cardId).sort()).toEqual(["BT18-078", "BT18-079"]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects two materials from the same DigiXros slot", () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT18-084", as: "ancient" },
+          { card: "BT18-078", as: "duskmonA" },
+          { card: "BT18-078", as: "duskmonB" },
+        ],
+      },
+    });
+    s.state.memory = 20;
+
+    expect(s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("ancient").instanceId,
+      digiXros: { materialInstanceIds: [s.inst("duskmonA").instanceId, s.inst("duskmonB").instanceId] },
+    })).toEqual({ ok: false, reason: "invalid-material" });
   });
 });
