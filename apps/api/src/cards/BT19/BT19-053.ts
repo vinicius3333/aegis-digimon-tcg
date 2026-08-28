@@ -11,7 +11,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    (text: "other than in battle", KB Q3108 confirms placement covers all affected
 //    Digimon at once so source is matched Digimon, not a separate source).
 // 3. AllTurns Replacement: source filter in SecurityManipulation now uses the sourceFilter
-//    Digimon (the leaving Royal Base Digimon) not a generic Digimon filter.
+//    Digimon (the leaving Royal Base Digimon) not a generic Digimon filter, and preserves all
+//    matching members of a simultaneous leave event (KB Q3108).
 // 4. AllTurns Replacement: SecurityManipulation adds faceUp:true (text: "face-up").
 // 5. AllTurns: KB Q3108 says all affected Digimon can be placed; count:"all" on source.
 const compiled: CompiledCard = {
@@ -88,6 +89,9 @@ const compiled: CompiledCard = {
               source: {
                 filter: {
                   useTriggerSource: true,
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
                 },
                 count: "all",
               },
