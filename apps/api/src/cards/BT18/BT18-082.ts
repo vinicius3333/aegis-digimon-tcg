@@ -17,9 +17,9 @@ const compiled: CompiledCard = {
               controller: "opponent",
             },
             count: 1,
+            upTo: true,
+            chooser: "opponent",
           },
-          optional: true,
-          controller: "opponent",
         },
         {
           kind: "SecurityManipulation",
@@ -54,9 +54,9 @@ const compiled: CompiledCard = {
               controller: "opponent",
             },
             count: 1,
+            upTo: true,
+            chooser: "opponent",
           },
-          optional: true,
-          controller: "opponent",
         },
         {
           kind: "SecurityManipulation",
@@ -115,7 +115,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Lucemon"],
+      namesExact: ["Lucemon"],
       cost: 6,
       isAlternate: true,
     },
