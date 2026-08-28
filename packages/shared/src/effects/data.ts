@@ -177,6 +177,14 @@ export function getCompiledCard(cardId: string): CompiledCard | undefined {
  * one source of truth.
  */
 export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolveRequirement[]> = {
+  // BT13-059's bracketed DNA sources are exact card names. The generated record's substring
+  // names gate would incorrectly admit name extensions as DNA materials.
+  "BT13-059": [
+    {
+      cost: 4,
+      materials: [{ namesExact: ["Slayerdramon"] }, { namesExact: ["Breakdramon"] }],
+    },
+  ],
   // EX5-073 prints a name-specific zero-cost DNA route. The generated effect record has
   // no structured requirement, which would otherwise allow the ordinary-evolution fallback.
   "EX5-073": [
@@ -965,6 +973,14 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
       isAlternate: true,
       names: ["MirageGaogamon"],
       burstDigivolve: { returnTamerNamesExact: ["Thomas H. Norstein"] },
+    },
+  ],
+  "BT13-060": [
+    {
+      cost: 0,
+      isAlternate: true,
+      namesExact: ["Rosemon"],
+      burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] },
     },
   ],
   "BT13-092": [

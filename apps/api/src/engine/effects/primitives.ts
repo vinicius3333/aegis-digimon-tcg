@@ -5562,7 +5562,7 @@ function dnaRequirementMatches(
 }
 
 function dnaMaterialSpecMatches(
-  spec: { color?: string; level?: number; names?: string[]; traits?: string[] },
+  spec: { color?: string; level?: number; names?: string[]; namesExact?: string[]; traits?: string[] },
   material: CardDefinition,
 ): boolean {
   if (spec.color !== undefined && !material.colors.includes(spec.color as CardColor)) return false;
@@ -5570,6 +5570,10 @@ function dnaMaterialSpecMatches(
   if (spec.names && spec.names.length > 0) {
     const name = (material.nameEn ?? material.cardId).toLowerCase();
     if (!spec.names.some((token) => name.includes(token.toLowerCase()))) return false;
+  }
+  if (spec.namesExact && spec.namesExact.length > 0) {
+    const name = (material.nameEn ?? material.cardId).toLowerCase();
+    if (!spec.namesExact.some((token) => name === token.toLowerCase())) return false;
   }
   if (spec.traits && spec.traits.length > 0) {
     if (!spec.traits.some((trait) => (material.types ?? []).includes(trait))) return false;
