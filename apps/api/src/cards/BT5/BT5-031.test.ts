@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-031.js";
@@ -31,7 +31,7 @@ describe("BT5-031 MetalGarurumon", () => {
     expect(opponent.trash.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
   });
 
-  it("uses explicit source-trash processing before returning the target", async () => {
+  it("does not fire source-trash inherited effects during return teardown (Q1399)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -39,7 +39,7 @@ describe("BT5-031 MetalGarurumon", () => {
             { card: "BT1-040", as: "base" },
             { card: "BT5-020", as: "watcher", under: ["BT6-002"] },
           ],
-          deck: [{ card: "BT1-010", as: "drawn" }],
+          deck: [{ card: "BT1-010", as: "notDrawn" }],
           hand: [{ card: "BT5-031", as: "evolving" }],
         },
         1: {
@@ -49,6 +49,7 @@ describe("BT5-031 MetalGarurumon", () => {
       },
       { autoSelectCards: true },
     );
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("watcher"));
     s.state.memory = 3;
 
     expect(
@@ -58,10 +59,12 @@ describe("BT5-031 MetalGarurumon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
     expect(s.state.players[1]!.deck.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(false);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("notDrawn").instanceId);
   });
 
   it("gains 1 memory only once per turn when its host attacks", async () => {

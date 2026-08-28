@@ -2,16 +2,15 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-fixed IR for BT5-031 (MetalGarurumon).
-// The printed source-trash clause is explicit effect processing, so bind the target and
-// run TrashDigivolution before Return. Automatic attachment movement during Return does
-// not emit the source-trash event required by inherited watchers.
+// BT6-002 Q1399: returning a Digimon tears down its attached sources by rule and
+// does not count as trashing digivolution cards by an effect.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "SelectBind",
+          kind: "Return",
           target: {
             filter: {
               controller: "opponent",
@@ -24,8 +23,8 @@ const compiled: CompiledCard = {
               ],
             },
             count: 1,
-            bindAs: "metalGarurumonReturnTarget",
           },
+          to: "deckBottom",
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
@@ -39,16 +38,6 @@ const compiled: CompiledCard = {
             },
             raw: "a Digimon card with [Garurumon] in its name other than [KendoGarurumon] is in this Digimon's digivolution cards",
           },
-        },
-        {
-          kind: "TrashDigivolution",
-          target: { filter: {}, count: 1, fromSelectionRef: "metalGarurumonReturnTarget" },
-          amount: 99,
-        },
-        {
-          kind: "Return",
-          target: { filter: {}, count: 1, fromSelectionRef: "metalGarurumonReturnTarget" },
-          to: "deckBottom",
         },
       ],
     },

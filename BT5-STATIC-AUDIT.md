@@ -73,7 +73,7 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 | BT5-028 CrysPaledramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All-opponent bottom-source trash and live sourceless Security Attack aura |
 | BT5-029 WereGarurumon: Sagittarius Mode | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Source-gated Jamming and inherited name-family DP aura on legal stacks |
 | BT5-030 Neptunemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent-turn initial-attack restriction with Blocker and later-redirection rulings |
-| BT5-031 MetalGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected bound source-trash-before-return sequence with inherited watcher proof |
+| BT5-031 MetalGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Q1399 canonical deck-bottom return with inherited watcher negative proof |
 | BT5-032 Hexeblaumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bottom-source trash, ordered Jamming condition, and live no-source attack/block auras |
 | BT5-033 Cutemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent-turn digivolution-reduction block with Digisorption/fixed-cost boundaries |
 | BT5-034 Kotemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional up-to-two Warrior/Holy Warrior reveal union and deck-bottom remainder |
@@ -151,8 +151,8 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 | BT5-106 Demonic Disaster | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Delete-own cost to unsuspend purple plus suppressed-On-Play Security revival |
 | BT5-107 Revive From the Darkness! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Mandatory purple deletion then optional level-5-or-lower suppressed revival |
 | BT5-108 Earth Shaker | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent unsuspended level-4 and level-5 opponent deletion actions |
-| BT5-109 Mega Digimon Fusion! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Banned status recorded; once-bound level-6-to-7 reduction and end-turn cleanup |
-| BT5-110 All Delete | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected bound explicit source trash, Omnimon return, and all-board deletion |
+| BT5-109 Mega Digimon Fusion! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Banned status; corrected once-bound end-turn Q1399 return teardown |
+| BT5-110 All Delete | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bound Omnimon Q1399 return teardown followed by all-board deletion |
 | BT5-111 Omnimon X (Anti-body) | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected battle-area-only Omnimon shortcut, live-DP deletion, and exact-two-source EndAttack cost |
 | BT5-112 Omnimon Zwart Defeat | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Security self-play plus exact opposing-Tamer evolution and opposing-Digimon deletion targets |
 
@@ -163,7 +163,7 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 - Catalog cards: 112
 - Assigned: 112
 - Integrated card audits: 112
-- Corrected: 6
+- Corrected: 5
 - Provisional: 112
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
