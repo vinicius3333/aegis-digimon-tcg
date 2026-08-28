@@ -53,4 +53,32 @@ describe("BT8-036 Ankylomon ＜when played＞ cost reduction (blue Digimon in pl
     expect(p0.battleArea.some((p) => p.topCard?.cardId === BT8_036)).toBe(true);
     expect(s.state.memory).toBe(0);
   });
+
+  it("applies the inherited -3000 DP effect when a blue Digimon is in play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT8-041", as: "host", under: ["BT8-034", "BT8-036"] },
+          { card: BLUE_DIGIMON, as: "blueAlly" },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "BT2-047", as: "target", dp: 6000 }],
+        security: ["BT1-001"],
+      },
+    });
+
+    const target = s.perm("target");
+    const targetDP = target.currentDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => target.currentDP === targetDP - 3000);
+
+    expect(target.currentDP).toBe(targetDP - 3000);
+  });
 });
