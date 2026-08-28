@@ -175,7 +175,25 @@ export type ServerEvent =
       /** The clause lives in the source card's inherited text box (see `effectTriggered`). */
       isInherited?: boolean;
     }
-  | { kind: "cardsMoved"; instanceIds: string[]; from: string; to: string } // generic zone movement for the log
+  | {
+      // Generic zone movement for the log. Identity-free by default: the event is
+      // broadcast the instant it happens, which is normally BEFORE the state patch
+      // that lands the cards in their destination, so a client cannot reliably
+      // resolve `instanceIds` against its own zone index at delivery time.
+      kind: "cardsMoved";
+      instanceIds: string[];
+      from: string;
+      to: string;
+      /**
+       * Card identities, in `instanceIds` order — present only when the movement
+       * itself makes them public (an effect trashing security cards turns them face
+       * up in a public trash). Carried on the event so the destruction scene and the
+       * panel can name the cards without racing the state patch.
+       */
+      cardIds?: string[];
+      /** The seat whose zone the cards left, when `cardIds` is present. */
+      seat?: Seat;
+    }
   | { kind: "turnEnded"; endingSeat: Seat; nextSeat: Seat; turnCount: number } // turn transition overlay
   | { kind: "actionRejected"; intent: string; reason: string } // sent to the offending client only
   | {

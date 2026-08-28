@@ -107,6 +107,24 @@ describe("sidePanelFromEvent", () => {
     expect(sidePanelFromEvent(event, VIEWER, lookup({ a: "BT1-010" }, {}), "id", 0)).toBeNull();
   });
 
+  it("names the cards from the event itself before the board index has caught up", () => {
+    const event: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["a", "b"],
+      from: "security",
+      to: "trash",
+      cardIds: ["BT1-010", "BT1-095"],
+      seat: 1,
+    };
+    const result = sidePanelFromEvent(event, VIEWER, lookup({}, {}), "id", 0);
+    expect(result?.titleKey).toBe("panel.trashedCards");
+    expect(result?.side).toBe("opp");
+    expect(result?.cards).toEqual([
+      { cardId: "BT1-010", badge: 1 },
+      { cardId: "BT1-095", badge: 2 },
+    ]);
+  });
+
   it("numbers a reveal from its first card, because reveal order is the point", () => {
     const theirs: ServerEvent = { kind: "cardRevealed", seat: 1, cardId: "BT1-021" };
     const result = sidePanelFromEvent(theirs, VIEWER, lookup({}, {}), "b", 0);

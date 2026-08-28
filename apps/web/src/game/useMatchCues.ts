@@ -442,6 +442,11 @@ export function useMatchCues({
   const securityCountsRef = useRef<{ you: number; opp: number } | null>(null);
   const recoveryFlightSeatsRef = useRef<Set<Seat>>(new Set());
   const securityGainKeyRef = useRef(0);
+  // Destruction scenes enqueued and not yet finished. A chained effect (Medusamon's
+  // Petrification tokens) trashes one security card per resolution step, so each trash
+  // arrives in its own batch — and each batch's first shield break must NOT take the
+  // centre of the screen off the previous card's still-playing scene.
+  const pendingDestructionsRef = useRef(0);
   // Set when the draw phase is announced and spent by the hand that grows in the
   // same commit, which is what tells a turn-start draw from an effect draw.
   const turnStartDrawRef = useRef({ you: false, opp: false });
@@ -1109,12 +1114,15 @@ export function useMatchCues({
         viewerSeat,
       });
       // Only the first card takes the centre of the screen off whatever held it; the rest
-      // queue behind their predecessor on the same track.
+      // queue behind their predecessor on the same track — including a predecessor from an
+      // EARLIER batch: a chained effect delivers one trash per batch, and replacing would
+      // cancel the previous card's scene mid-play.
       enqueue(
         shieldBreakStep(buildSecurityBreakScene({ key, defenderSeat: destruction.seat, viewerSeat }), {
-          replace: index === 0,
+          replace: index === 0 && pendingDestructionsRef.current === 0,
         }),
       );
+      pendingDestructionsRef.current += 1;
       enqueue({
         id: `security-destroyed-${key}`,
         track: CENTER_STAGE_TRACK,
@@ -1130,6 +1138,7 @@ export function useMatchCues({
             releaseSecurityCard(key);
             await context.wait(SECURITY_DESTROY_TOTAL_MS - SECURITY_DESTROY_OUTCOME_AT_MS);
           } finally {
+            pendingDestructionsRef.current = Math.max(0, pendingDestructionsRef.current - 1);
             releaseSecurityCard(key);
             setSecurityClash((current) => (current?.key === key ? null : current));
           }
@@ -1137,6 +1146,14 @@ export function useMatchCues({
       });
       releaseSecurityCardWhenIdle(key);
     });
+    // A destruction step dropped from the queue before it ever ran (a newer check
+    // replacing the track) never reaches its `finally`, so the count is squared with
+    // reality at the latest when nothing is running — same discipline as the held
+    // shield figures above.
+    if (destructions.length > 0)
+      void queue.idle().then(() => {
+        pendingDestructionsRef.current = 0;
+      });
     for (const scene of clashScenes) {
       const impacted: ReadonlySet<string> = new Set(scene.loserPermanentIds);
       enqueue({

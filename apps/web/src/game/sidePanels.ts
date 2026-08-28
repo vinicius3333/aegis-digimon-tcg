@@ -171,12 +171,15 @@ export function sidePanelFromEvent(
     case "cardsMoved": {
       const titleKey = titleForMovement(event.from, event.to);
       if (!titleKey) return null;
-      const cardIds = event.instanceIds.flatMap((instanceId) => {
-        const cardId = lookup.cardId(instanceId);
+      // The event's own identities first: the index can be one state patch behind
+      // the movement the event narrates (see securityDestructionsFromEvents).
+      const cardIds = event.instanceIds.flatMap((instanceId, index) => {
+        const cardId = event.cardIds?.[index] ?? lookup.cardId(instanceId);
         return cardId ? [cardId] : [];
       });
       if (cardIds.length === 0) return null;
-      const owner = event.instanceIds.map((instanceId) => lookup.seat(instanceId)).find((s) => s !== undefined);
+      const owner =
+        event.seat ?? event.instanceIds.map((instanceId) => lookup.seat(instanceId)).find((s) => s !== undefined);
       if (owner === undefined) return null;
       return {
         id,
