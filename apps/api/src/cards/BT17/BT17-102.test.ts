@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-102.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 
@@ -19,6 +20,15 @@ const GREYMON = "BT17-102";
 const AGUMON_LV3 = "BT1-010";
 
 describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4713)", () => {
+  it("declares the catalogued alternate Lv.3 Agumon-in-name route", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 3, names: ["Agumon"], cost: 2, isAlternate: true },
+    ]);
+    expect(runtimeCompiledCard(GREYMON)?.digivolutionRequirement).toEqual([
+      { level: 3, names: ["Agumon"], cost: 2, isAlternate: true },
+    ]);
+  });
+
   it("keeps the delete clause independent from the Koromon-only DP boost", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",
@@ -45,7 +55,7 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
     const p0 = s.state.players[0];
     const p1 = s.state.players[1];
     s.state.turnSeat = 0;
-    s.state.memory = 5;
+    s.state.memory = 2;
     const agumonId = s.perm("agumon").permanentId;
     const greymonId = s.inst("greymon").instanceId;
     const oppPermId = s.perm("oppTarget").permanentId;
@@ -54,6 +64,7 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
       type: "digivolve",
       instanceId: greymonId,
       permanentId: agumonId,
+      useAlternateCost: true,
     });
     expect(res.ok).toBe(true);
 
@@ -66,18 +77,131 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
     // The opponent's Digimon with 4000 DP (≤ Greymon's 5000 DP) was deleted.
     expect(p1?.battleArea.some((p) => p.permanentId === oppPermId)).toBe(false);
   });
+
+  it("naturally plays a Tai/Kari Tamer when the Greymon host is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: GREYMON,
+              as: "greymon",
+              dp: 5000,
+              under: [{ card: AGUMON_LV3, as: "agumon" }],
+            },
+          ],
+          hand: [{ card: "BT17-093", as: "taiKari" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 12000, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const p0 = s.state.players[0];
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+
+    const result = s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("greymon").permanentId },
+    });
+    expect(result.ok).toBe(true);
+
+    await settle(() => p0?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093"), 1200);
+    expect(p0?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093")).toBe(true);
+  });
+
+  it("naturally hatches when the optional Tai/Kari Tamer branch has no candidate", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "BT14-001", as: "egg" }],
+          battleArea: [
+            {
+              card: GREYMON,
+              as: "greymon",
+              dp: 5000,
+              under: [{ card: AGUMON_LV3, as: "agumon" }],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 12000, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const p0 = s.state.players[0];
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+
+    const result = s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("greymon").permanentId },
+    });
+    expect(result.ok).toBe(true);
+
+    await settle(() => p0?.breeding !== undefined, 1200);
+    expect(p0?.breeding?.topCard?.cardId).toBe("BT14-001");
+  });
 });
 
 describe("BT17-102 Greymon — dynamic stack names", () => {
-  it("has the names of level 3 and lower cards in its stack", async () => {
+  it("has the names of level 3 and lower cards in its stack, including (Rule) aliases", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: GREYMON, as: "greymon", under: [{ card: AGUMON_LV3, as: "agumon" }] }],
+        battleArea: [
+          {
+            card: GREYMON,
+            as: "greymon",
+            under: [
+              { card: AGUMON_LV3, as: "agumon" },
+              { card: "BT14-001", as: "koromon" },
+            ],
+          },
+        ],
       },
       1: {},
     });
     await s.ready();
 
-    expect(observe(s.engine).effectiveNames(s.perm("greymon"))).toEqual(expect.arrayContaining(["greymon", "agumon"]));
+    expect(observe(s.engine).effectiveNames(s.perm("greymon"))).toEqual(
+      expect.arrayContaining(["greymon", "agumon", "koromon"]),
+    );
+  });
+
+  it("uses a Koromon stack alias for the +3000 DP gate on a natural digivolve", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: AGUMON_LV3,
+              as: "agumon",
+              under: [{ card: "BT14-001", as: "koromon" }],
+            },
+          ],
+          hand: [{ card: GREYMON, as: "greymon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 7000, as: "boostBoundary" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const p0 = s.state.players[0];
+    const p1 = s.state.players[1];
+    s.state.turnSeat = 0;
+    s.state.memory = 2;
+
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("agumon").permanentId,
+      instanceId: s.inst("greymon").instanceId,
+      useAlternateCost: true,
+    });
+    expect(result.ok).toBe(true);
+
+    await settle(() => p0?.battleArea.some((permanent) => permanent.topCard?.cardId === GREYMON), 1000);
+    await settle(() => p1?.battleArea.length === 0, 1000);
+    expect(p0?.battleArea.some((permanent) => permanent.topCard?.cardId === GREYMON)).toBe(true);
+    expect(p1?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(false);
   });
 });

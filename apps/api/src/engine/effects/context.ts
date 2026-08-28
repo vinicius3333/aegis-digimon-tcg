@@ -24,7 +24,7 @@ import { grantedTokenEffectsForTiming } from "./interpreter.js";
 import { UseTracker } from "./kernel.js";
 import { linkMax } from "./mindLink.js";
 import { findPermanentInState } from "../state/access.js";
-import { effectiveKinds, effectiveTraits, type ContinuousEffectLedger } from "./continuous.js";
+import { effectiveKinds, effectiveNames, effectiveTraits, type ContinuousEffectLedger } from "./continuous.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives, TriggerInfo } from "./EffectContext.js";
 
 /**
@@ -140,6 +140,7 @@ export function createGameAccess(
     recipientId: string,
     cardTraits: readonly string[],
   ) => { amount: number; controllerSeat?: Seat; optional?: boolean; oncePerTurnKey?: string } | undefined,
+  effectiveNamesResolver?: (permanent: Permanent, printedName: string) => string[],
 ): GameAccess {
   const player = (seat: Seat): PlayerState => {
     const p = state.players[seat];
@@ -184,6 +185,14 @@ export function createGameAccess(
       const permanent = permanentById(permanentId);
       const printed = permanent?.topCard === undefined ? [] : requireCardDefinition(permanent.topCard.cardId).kinds;
       return (effectiveKindsResolver ?? ((_id, kinds) => [...kinds]))(permanentId, printed);
+    },
+    effectiveNames: (permanent): string[] => {
+      const printedName =
+        permanent.topCard === undefined ? "" : (requireCardDefinition(permanent.topCard.cardId).nameEn ?? "");
+      return (effectiveNamesResolver ?? ((_permanent, name) => (name === "" ? [] : [name.toLowerCase()])))(
+        permanent,
+        printedName,
+      );
     },
     effectiveDP,
     colorRequirementWaived: (instanceId): boolean => (colorRequirementWaived ?? (() => false))(instanceId),
@@ -439,6 +448,7 @@ export function gatherTriggeredEffects(
     undefined,
     undefined,
     (id, traits) => env.continuous.linkCostReductionGrant(id, traits),
+    (permanent, printedName) => effectiveNames(env.continuous, permanent, printedName),
   );
   const lookup = createCardStateLookup(env.state);
 

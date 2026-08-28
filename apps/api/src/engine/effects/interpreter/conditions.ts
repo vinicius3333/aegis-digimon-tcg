@@ -456,11 +456,16 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       );
     }
     case "selfHasName": {
-      // "This Digimon is [X]" — exact current top-card name check.
+      // "This Digimon is [X]" — exact effective name check, including dynamic aliases from
+      // lower-level cards in the current digivolution stack (BT17-102).
       const def = sourceTopDefinition(ctx);
       if (def === undefined) return false;
-      const topName = (def.nameEn ?? "").toLowerCase();
-      return (cond.names ?? []).some((name) => topName === name.toLowerCase());
+      const self = ctx.source.permanent();
+      const names =
+        self?.topCard === undefined
+          ? [def.nameEn ?? ""]
+          : (ctx.game.effectiveNames?.(self) ?? [def.nameEn ?? ""]);
+      return (cond.names ?? []).some((name) => names.some((actual) => actual.toLowerCase() === name.toLowerCase()));
     }
     case "selfColorCount": {
       // "This Digimon has N or more colors" — use the deleted HOST's effective-color
