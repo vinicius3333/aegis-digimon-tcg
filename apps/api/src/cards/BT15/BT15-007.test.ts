@@ -60,7 +60,7 @@ describe("BT15-007", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-007"] }],
+          battleArea: [{ card: "BT15-007", as: "host", under: ["BT15-001"] }],
           hand: [{ card: "BT1-012", as: "birdCost" }],
           deck: ["BT1-009", "BT1-045", "BT1-055", "BT1-069"],
         },
@@ -79,7 +79,7 @@ describe("BT15-007", () => {
 
   it("gains memory once only for opposing security removed during its owner's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-007"] }] },
+      0: { battleArea: [{ card: "BT15-009", as: "host", under: ["BT15-007"] }] },
     });
     s.state.turnSeat = 0;
     s.state.memory = 0;
@@ -98,7 +98,7 @@ describe("BT15-007", () => {
 
   it("gains memory through a natural attack that removes opposing security", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-007"] }] },
+      0: { battleArea: [{ card: "BT15-009", as: "host", under: ["BT15-007"] }] },
       1: { security: [{ card: "BT1-001", as: "opponentSecurity" }] },
     });
     await s.ready();
