@@ -28,7 +28,6 @@ export const compiled: CompiledCard = {
             filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"], colors: ["Red"] },
             raw: "you have a red Tamer in play",
           },
-          optional: true,
           useLenderAsSource: true,
         },
       ],
