@@ -28,7 +28,7 @@ describe("BT20-058 Raidenmon", () => {
           actions: [
             {
               kind: "PlayWithoutCost",
-              from: ["digivolutionCards"],
+              fromOwnDigivolutionStack: true,
               payCost: false,
               optional: true,
               target: {
