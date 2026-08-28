@@ -32,11 +32,11 @@ claim is valid.
 | BT10-041–050 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-041-050.md` | Yes |
 | BT10-051–060 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-051-060.md` | Yes |
 | BT10-061–070 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-061-070.md` | Yes |
-| BT10-071–080 | Luna in progress | `internal-docs/audits/BT10/BT10-071-080.md` | No |
+| BT10-071–080 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-071-080.md` | Yes |
 | BT10-081–090 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-081-090.md` | Yes |
 | BT10-091–100 | Luna in progress | `internal-docs/audits/BT10/BT10-091-100.md` | No |
 | BT10-101–110 | Luna in progress | `internal-docs/audits/BT10/BT10-101-110.md` | No |
-| BT10-111–112 | Queued | `internal-docs/audits/BT10/BT10-111-112.md` | No |
+| BT10-111–112 | Luna in progress | `internal-docs/audits/BT10/BT10-111-112.md` | No |
 
 ## Score model
 
@@ -132,6 +132,16 @@ other component and is never rounded up.
 | BT10-068 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-061-070.md` |
 | BT10-069 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-061-070.md` |
 | BT10-070 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-061-070.md` |
+| BT10-071 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-071-080.md` |
+| BT10-072 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected; snapshot ambiguity | `BT10-071-080.md` |
+| BT10-073 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-071-080.md` |
+| BT10-074 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-071-080.md` |
+| BT10-075 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; snapshot ambiguity | `BT10-071-080.md` |
+| BT10-076 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected; snapshot ambiguity | `BT10-071-080.md` |
+| BT10-077 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected; snapshot and Q2008 proof ambiguities | `BT10-071-080.md` |
+| BT10-078 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-071-080.md` |
+| BT10-079 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-071-080.md` |
+| BT10-080 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; snapshot ambiguity | `BT10-071-080.md` |
 | BT10-081 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-081-090.md` |
 | BT10-082 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; snapshot ambiguity | `BT10-081-090.md` |
 | BT10-083 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; snapshot ambiguity | `BT10-081-090.md` |
@@ -146,12 +156,12 @@ other component and is never rounded up.
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 110
-- Integrated card audits: 80
-- Corrected: 15
-- Provisional: 80
+- Assigned: 112
+- Integrated card audits: 90
+- Corrected: 18
+- Provisional: 90
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 9
-- Remaining unassigned: 2
+- Blocked or ambiguous: 15
+- Remaining unassigned: 0
 
 BT10 static re-audit remains open.
