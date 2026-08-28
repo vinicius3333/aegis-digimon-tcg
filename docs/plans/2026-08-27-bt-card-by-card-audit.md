@@ -40,7 +40,7 @@ The first BT1 wave is:
 | Luna B | BT1-011 through BT1-020 | `internal-docs/audits/BT1/BT1-011-020.md` |
 | Luna C | BT1-021 through BT1-030 | `internal-docs/audits/BT1/BT1-021-030.md` |
 
-Later waves continue from BT1-031 without opening BT2 early. Range sizes may shrink when cards share a complex engine seam, but queue order and card ownership remain explicit.
+Later waves continue from BT1-031. When the current collection is fully assigned and the user requests additional parallelism, the next collection may begin static preparation in isolated worktrees; its integration still waits for the preceding collection's static ledger coverage. Range sizes may shrink when cards share a complex engine seam, but queue order and card ownership remain explicit.
 
 ## Per-card protocol
 
