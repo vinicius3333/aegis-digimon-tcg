@@ -5114,6 +5114,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const cardId = resolveTokenCardId(tokenName);
     if (cardId === undefined) return undefined;
     const def = requireCardDefinition(cardId);
+    // Token plays normally bypass RestrictPlay (Q3834), but a ruling can explicitly include
+    // Digimon tokens in a matching prohibition (BT14-017/Q2381). Attribute this effect-driven
+    // play to the resolving source seat so the source player's effects retain their normal
+    // ability to play into the restricted seat's area (Q4675/Q4676).
+    const effectSeat = effectSeatStack.at(-1) ?? seat;
+    if (continuous.isPlayBlocked(effectSeat, def, "play", true)) return undefined;
     const pay = opts?.payCost !== false;
     const cost = pay ? normalizeCost(def.playCost) : 0;
     if (cost > 0 && engine.memory.maxCostFor(seat) < cost) return undefined;

@@ -570,8 +570,9 @@ export interface Primitives {
    * Record a seat-level play/move prohibition (rule implementation / rule implementation /
    * rule implementation): the restricted `seat` may not play/move a card matching `match` for
    * `duration`. Only the RESTRICTED seat's own actions/effects are blocked (the source
-   * player's effects may still play such cards), and token plays are exempt (KB EX7-014
-   * Q4673-4676/Q3834). Consulted by play-card / breeding-move legality and effect-driven plays.
+   * player's effects may still play such cards), and token plays are exempt unless the match
+   * opts into them (KB EX7-014 Q4673-4676/Q3834; BT14-017/Q2381). Consulted by play-card /
+   * breeding-move legality and effect-driven plays.
    * When `byEffectOnly` is true the prohibition applies only to effect-driven plays, leaving
    * normal hand play unaffected (KB Q4665–Q4668, Q6245 BT20-020).
    */
@@ -588,7 +589,8 @@ export interface Primitives {
    * right now by an active RestrictPlay prohibition? Used by the interpreter to gate an
    * EFFECT-driven play attributed to the resolving effect's owner seat — so a "your opponent
    * can't play <X>" effect blocks the opponent's effects (Q4676) but not the source player's
-   * (Q4675). Token plays return false (exempt, Q3834). Optional on the port (test fakes skip).
+   * (Q4675). Token plays return false (exempt by default, Q3834) unless the active match opts into tokens
+   * (BT14-017/Q2381). Optional on the port (test fakes skip).
    */
   isPlayProhibited?(seat: Seat, cardId: string, mode: "play" | "move", fromZone?: ZoneRef): boolean;
   /**

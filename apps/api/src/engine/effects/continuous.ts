@@ -416,6 +416,11 @@ export interface PlayMatch {
   kinds?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
   /** Upper DP bound for the "Digimon with N DP or less" form (printed DP). */
   dpAtMost?: number;
+  /**
+   * Treat synthetic Digimon tokens as matching the Digimon kind. Most play prohibitions
+   * exempt tokens, but cards whose ruling explicitly includes them (BT14-017/Q2381) opt in.
+   */
+  allowTokens?: boolean;
   /** Loose-card origin zones matched by the prohibition; undefined means every origin. */
   fromZones?: ZoneRef[];
 }
@@ -811,7 +816,8 @@ export class ContinuousEffectLedger {
    * own ACTION or EFFECT is performing the play/move — for a manual play that is the playing
    * player; for an effect-driven play it is the seat the resolving effect is attributed to
    * (so a "your opponent can't play" effect blocks the opponent's actions and effects, but
-   * NOT the source player's effects: KB EX7-014 Q4675/Q4676). Token plays are EXEMPT (Q3834).
+   * NOT the source player's effects: KB EX7-014 Q4675/Q4676). Token plays are exempt by default
+   * (Q3834), unless the active match explicitly opts into them.
    * `requestedMode` is "play" (play / enter-field, incl. breeding) or "move" (effect-driven
    * or breeding move); a "playOrMove" prohibition matches either.
    * `effectPlay` true means the caller is an effect-driven play path — prohibitions with
@@ -825,7 +831,6 @@ export class ContinuousEffectLedger {
     effectPlay?: boolean,
     fromZone?: ZoneRef,
   ): boolean {
-    if (cardDef.isToken === true) return false; // Q3834: token plays are exempt
     return this.playProhibitions.some(
       (p) =>
         p.seat === seat &&
@@ -1591,6 +1596,7 @@ function modeMatches(mode: "play" | "move" | "playOrMove", requested: "play" | "
 
 /** Does a card definition satisfy a PlayMatch predicate (kind AND optional DP cap)? */
 function playMatchesCard(match: PlayMatch, def: CardDefinition): boolean {
+  if (def.isToken === true && match.allowTokens !== true) return false;
   if (match.kinds !== undefined && match.kinds.length > 0) {
     if (!match.kinds.some((k) => def.kinds.includes(k as CardKind))) return false;
   }

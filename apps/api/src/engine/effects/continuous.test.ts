@@ -352,6 +352,19 @@ describe("ContinuousEffectLedger", () => {
       expect(ledger.isPlayBlocked(1 as Seat, tokenOption, "play")).toBe(false);
     });
 
+    it("allows a ruling-specific prohibition to include matching Digimon tokens (BT14-017/Q2381)", () => {
+      const ledger = new ContinuousEffectLedger();
+      const tokenDigimon = def({ kinds: [CardKind.Digimon], dp: 6000, isToken: true });
+      ledger.addPlayProhibition(
+        1 as Seat,
+        0 as Seat,
+        { kinds: ["Digimon"], dpAtMost: 6000, allowTokens: true },
+        "play",
+        EffectDuration.UntilOpponentTurnEnd,
+      );
+      expect(ledger.isPlayBlocked(1 as Seat, tokenDigimon, "play")).toBe(true);
+    });
+
     it("honors the DP cap (EX7-014: Digimon with 6000 DP or less)", () => {
       const ledger = new ContinuousEffectLedger();
       ledger.addPlayProhibition(

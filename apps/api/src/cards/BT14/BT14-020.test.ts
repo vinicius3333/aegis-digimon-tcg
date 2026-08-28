@@ -73,7 +73,9 @@ describe("BT14-020", () => {
       { autoDeclineOptional: true },
     );
     s.state.memory = 10;
-    const timing = advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    // Drive the real turn machine so the Start of Your Main Phase clauses originate from
+    // the production phase transition rather than a direct timing injection.
+    const turn = s.engine.runOneTurn();
     await settle(() => s.decisions.some((decision) => decision.req.kind === "selectCards"));
     const decision = s.decisions.find((entry) => entry.req.kind === "selectCards")!;
     if (decision.req.kind !== "selectCards") throw new Error("expected card-selection decision");
@@ -91,7 +93,7 @@ describe("BT14-020", () => {
         response: { kind: "selectCards", instanceIds: [s.inst("chosen").instanceId] },
       }),
     ).toEqual({ ok: true });
-    await timing;
+    await settle(() => s.perm("target").stack.length === 2);
     expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT14-001", "BT14-012"]);
 
     expect(
@@ -104,6 +106,8 @@ describe("BT14-020", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.decisions.some((entry) => (entry.req as { kind: string }).kind === "declareBlock")).toBe(false);
     expect(s.perm("blocker").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     assertNoLoudGap(s);
   });
 
@@ -113,7 +117,8 @@ describe("BT14-020", () => {
       1: { battleArea: [{ card: "BT14-011", as: "blocker" }], security: ["BT1-001"] },
     });
     s.state.memory = 10;
-    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -123,6 +128,8 @@ describe("BT14-020", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.decisions.some((entry) => (entry.req as { kind: string }).kind === "declareBlock")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
     assertNoLoudGap(s);
   });
 
