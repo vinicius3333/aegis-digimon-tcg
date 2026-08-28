@@ -31,11 +31,11 @@ claim is valid.
 | BT11-031–040 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-031-040.md` | Yes |
 | BT11-041–050 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-041-050.md` | Yes |
 | BT11-051–060 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-051-060.md` | Yes |
-| BT11-061–070 | Luna in progress | `internal-docs/audits/BT11/BT11-061-070.md` | No |
-| BT11-071–080 | Luna in progress | `internal-docs/audits/BT11/BT11-071-080.md` | No |
+| BT11-061–070 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-061-070.md` | Yes |
+| BT11-071–080 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-071-080.md` | Yes |
 | BT11-081–090 | Luna in progress | `internal-docs/audits/BT11/BT11-081-090.md` | No |
-| BT11-091–100 | Queued | `internal-docs/audits/BT11/BT11-091-100.md` | No |
-| BT11-101–110 | Queued | `internal-docs/audits/BT11/BT11-101-110.md` | No |
+| BT11-091–100 | Luna in progress | `internal-docs/audits/BT11/BT11-091-100.md` | No |
+| BT11-101–110 | Luna in progress | `internal-docs/audits/BT11/BT11-101-110.md` | No |
 | BT11-111–112 | Queued | `internal-docs/audits/BT11/BT11-111-112.md` | No |
 
 ## Score model
@@ -122,16 +122,36 @@ other component and is never rounded up.
 | BT11-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected X Antibody trait match |
 | BT11-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected exact card-number destination gate |
 | BT11-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected optional reveal-add choice |
+| BT11-062 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed universal Numemon alias |
+| BT11-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed restricted card |
+| BT11-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected bottom placement and mandatory return |
+| BT11-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed any-controller unsuspend scope |
+| BT11-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed same-host redirection cost |
+| BT11-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-072 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected Analogman continuation gate |
+| BT11-073 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; metadata drift documented |
+| BT11-074 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; metadata drift documented |
+| BT11-075 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed vanilla card |
+| BT11-076 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; semantic snapshot drift documented |
+| BT11-077 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; metadata drift documented |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 90
-- Integrated card audits: 60
-- Corrected: 10
-- Provisional: 60
+- Assigned: 110
+- Integrated card audits: 80
+- Corrected: 13
+- Provisional: 80
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 22
+- Remaining unassigned: 2
 
 BT11 static re-audit remains open.
