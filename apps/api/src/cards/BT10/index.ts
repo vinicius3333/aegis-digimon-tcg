@@ -37,6 +37,7 @@ import "./BT10-039.js";
 import "./BT10-040.js";
 import "./BT10-041.js";
 import "./BT10-042.js";
+import "./BT10-043.js";
 import "./BT10-044.js";
 import "./BT10-045.js";
 import "./BT10-046.js";
