@@ -1,16 +1,34 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT18-035.js";
+import { compiled } from "./BT18-035.js";
 
 describe("BT18-035 Piddomon", () => {
-  it("plays this exact security card without cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT18-035", as: "piddomon", faceUp: true }] } });
-    s.state.memory = 3;
+  it("plays this exact security card without cost after a natural security check", async () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Security",
+      actions: [{ kind: "PlayWithoutCost", from: ["security"], payCost: false, target: { isSelf: true } }],
+    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-063", as: "attacker" }] },
+        1: { security: [{ card: "BT18-035", as: "piddomon" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("piddomon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("piddomon").instanceId),
     );
@@ -18,8 +36,8 @@ describe("BT18-035 Piddomon", () => {
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("piddomon").instanceId),
     ).toBe(true);
-    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("piddomon").instanceId)).toBe(false);
-    expect(s.state.memory).toBe(3);
+    expect(s.state.players[1]!.security.some((card) => card.instanceId === s.inst("piddomon").instanceId)).toBe(false);
+    expect(s.state.memory).toBe(10);
     assertNoLoudGap(s);
   });
 
