@@ -110,6 +110,39 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
     await settle(() => p0?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093"), 1200);
     expect(p0?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093")).toBe(true);
   });
+
+  it("naturally hatches when the optional Tai/Kari Tamer branch has no candidate", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "BT14-001", as: "egg" }],
+          battleArea: [
+            {
+              card: GREYMON,
+              as: "greymon",
+              dp: 5000,
+              under: [{ card: AGUMON_LV3, as: "agumon" }],
+            },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 12000, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const p0 = s.state.players[0];
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+
+    const result = s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("greymon").permanentId },
+    });
+    expect(result.ok).toBe(true);
+
+    await settle(() => p0?.breeding !== undefined, 1200);
+    expect(p0?.breeding?.topCard?.cardId).toBe("BT14-001");
+  });
 });
 
 describe("BT17-102 Greymon — dynamic stack names", () => {
