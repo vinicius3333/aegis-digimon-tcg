@@ -27,8 +27,8 @@ provisional and capped at 8/10.
 | BT20-031–040 | Luna assigned | `internal-docs/audits/BT20/BT20-031-040.md` | No |
 | BT20-041–050 | Luna assigned | `internal-docs/audits/BT20/BT20-041-050.md` | No |
 | BT20-051–060 | Luna assigned | `internal-docs/audits/BT20/BT20-051-060.md` | No |
-| BT20-061–070 | Unassigned | `internal-docs/audits/BT20/BT20-061-070.md` | No |
-| BT20-071–080 | Unassigned | `internal-docs/audits/BT20/BT20-071-080.md` | No |
+| BT20-061–070 | Luna assigned | `internal-docs/audits/BT20/BT20-061-070.md` | No |
+| BT20-071–080 | Luna assigned | `internal-docs/audits/BT20/BT20-071-080.md` | No |
 | BT20-081–090 | Unassigned | `internal-docs/audits/BT20/BT20-081-090.md` | No |
 | BT20-091–100 | Unassigned | `internal-docs/audits/BT20/BT20-091-100.md` | No |
 | BT20-101–102 | Unassigned | `internal-docs/audits/BT20/BT20-101-102.md` | No |
@@ -69,12 +69,12 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 60
+- Assigned: 80
 - Integrated card audits: 20
 - Corrected: 2
 - Provisional: 20
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 10 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020` source/stack-proof gaps)
-- Remaining unassigned: 42
+- Remaining unassigned: 22
 
 BT20 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
