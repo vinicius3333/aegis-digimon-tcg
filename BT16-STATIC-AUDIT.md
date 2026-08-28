@@ -1,6 +1,6 @@
 # BT16 Static Card Implementation Re-audit
 
-Status: static card-by-card pass in progress; execution gates deferred
+Status: static card-by-card coverage complete; execution gates deferred; collection remains open
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -35,7 +35,7 @@ collection-complete claim is valid.
 | BT16-071–080 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-071-080.md` | Yes |
 | BT16-081–090 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-081-090.md` | Yes |
 | BT16-091–100 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-091-100.md` | Yes |
-| BT16-101–102 | Luna assigned | `internal-docs/audits/BT16/BT16-101-102.md` | No |
+| BT16-101–102 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-101-102.md` | Yes |
 
 Process note: during BT16-011 inspection, the worker accidentally invoked one
 scoped `git diff --check -- <files>` command. It returned no output, was
@@ -170,16 +170,23 @@ feasible natural originating event.
 | BT16-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2696 conditional first deletion and unconditional lowest-play-cost tied deletion are proved through natural public Option use (`02548f20a`). |
 | BT16-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal/add/trash/self-placement proves the SoC Main path; Delay reduction maps to the direct scoped runtime despite generated-snapshot drift (`d72450b11`). |
 | BT16-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2697, Pulsemon color waiver, optional security payment/cost reduction, level deletion, and security-bottom placement have natural public-play proof (`687a390fe`). |
+| BT16-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected true DP-zero identification and natural battle-deletion cause publication; Q2698/Q5452, Rapidmon stack aura, both deletion causes, negatives, and shared frequency are naturally covered (`dc624ca23`). |
+| BT16-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the security watcher to either stack; Q2699–Q2701, both security directions, optional activation, frequency, conditional boost/immunity, and unconditional unsuspend are naturally covered (`c9aefb196`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 100
-- Corrected: 27
-- Provisional: 100
+- Integrated card audits: 102
+- Corrected: 29
+- Provisional: 102
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
+- Provisional 8/10: 98
+- Provisional 6/10: 4 (`BT16-061`, `BT16-091`, `BT16-093`, `BT16-094`)
 - Remaining unassigned: 0
 
-BT16 static re-audit is in progress.
+BT16 has complete static card-by-card coverage, but the collection remains open:
+all execution gates are deferred, BT16-061 retains an unresolved deletion-origin
+runtime seam, and BT16-091, BT16-093, and BT16-094 retain source-level behavioral
+proof gaps.
