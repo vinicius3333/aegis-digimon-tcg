@@ -30,10 +30,10 @@ collection-complete claim is valid.
 | BT12-041–050 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-041-050.md` | Yes |
 | BT12-051–060 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-051-060.md` | Yes |
 | BT12-061–070 | Luna in progress | `internal-docs/audits/BT12/BT12-061-070.md` | No |
-| BT12-071–080 | Luna in progress | `internal-docs/audits/BT12/BT12-071-080.md` | No |
+| BT12-071–080 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-071-080.md` | Yes |
 | BT12-081–090 | Luna in progress | `internal-docs/audits/BT12/BT12-081-090.md` | No |
 | BT12-091–100 | Queued | `internal-docs/audits/BT12/BT12-091-100.md` | No |
-| BT12-101–110 | Queued | `internal-docs/audits/BT12/BT12-101-110.md` | No |
+| BT12-101–110 | Luna in progress | `internal-docs/audits/BT12/BT12-101-110.md` | No |
 | BT12-111–112 | Queued | `internal-docs/audits/BT12/BT12-111-112.md` | No |
 
 ## Score model
@@ -121,16 +121,26 @@ other component and is never rounded up.
 | BT12-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; no new correction |
 | BT12-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; no new correction |
 | BT12-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; inherited Save gate drift documented |
+| BT12-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; atomic reveal drift documented |
+| BT12-072 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; self/bottom placement drift documented |
+| BT12-073 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; no new correction |
+| BT12-074 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; inherited Save gate drift documented |
+| BT12-075 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; under-Tamer/Save drift documented |
+| BT12-076 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; no new correction |
+| BT12-077 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; source/Then/Save drift documented |
+| BT12-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; no new correction |
+| BT12-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; exact no-effect record |
+| BT12-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; reveal near-match proof `e871250a4` |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 90
-- Integrated card audits: 60
-- Corrected: 1
-- Provisional: 60
+- Assigned: 100
+- Integrated card audits: 70
+- Corrected: 2
+- Provisional: 70
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
-- Remaining unassigned: 22
+- Remaining unassigned: 12
 
 BT12 static re-audit is in progress.
