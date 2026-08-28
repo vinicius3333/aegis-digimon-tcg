@@ -3877,6 +3877,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const ownerSeat = ownerSeatOfLoose(state, instanceId);
       if (ownerSeat !== undefined) returnedFromTrashById.set(instanceId, ownerSeat);
     }
+    // Bind each battle-area target to the permanent identity selected by the return effect.
+    // A would-be-returned reaction can replace that Digimon with a new permanent (BT20-074
+    // DNA digivolving one of the materials; Q4400). The original deck return must then lose its
+    // target rather than re-finding the same card instance underneath the new Digimon.
+    const targetedPermanentByInstance = new Map<string, string>();
     // Fire `wouldBeReturned` for each battle-area permanent whose top-card is about to land in
     // the deck (CAP-C-11). Fires BEFORE the move, consistent with returnToHand.
     if (engine.fireSubTrigger) {
@@ -3891,6 +3896,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           }
         }
         if (foundPermId !== undefined) {
+          targetedPermanentByInstance.set(instanceId, foundPermId);
           await engine.fireSubTrigger("wouldBeReturned", {
             subjectPermanentId: foundPermId,
             returnDestination: "deck",
@@ -3898,6 +3904,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
+    instanceIds = instanceIds.filter((instanceId) => {
+      const targetedPermanentId = targetedPermanentByInstance.get(instanceId);
+      if (targetedPermanentId === undefined) return true;
+      return access.permanentById(targetedPermanentId)?.topCard?.instanceId === instanceId;
+    });
     // Digivolution-stack cards being returned to the deck BOTTOM (toTop === false): record each
     // one's host permanent + cardId BEFORE removal so onDigivolutionCardReturnToDeckBottom can fire
     // for the host's own watcher once the card has landed (BT11-065 "[Vemmon] placed from this
