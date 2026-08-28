@@ -26,10 +26,10 @@ collection-complete claim is valid.
 | BT13-001–010 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-001-010.md` | Yes |
 | BT13-011–020 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-011-020.md` | Yes |
 | BT13-021–030 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-021-030.md` | Yes |
-| BT13-031–040 | Luna assigned | `internal-docs/audits/BT13/BT13-031-040.md` | No |
+| BT13-031–040 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-031-040.md` | Yes |
 | BT13-041–050 | Luna assigned | `internal-docs/audits/BT13/BT13-041-050.md` | No |
 | BT13-051–060 | Luna assigned | `internal-docs/audits/BT13/BT13-051-060.md` | No |
-| BT13-061–070 | Unassigned | `internal-docs/audits/BT13/BT13-061-070.md` | No |
+| BT13-061–070 | Luna assigned | `internal-docs/audits/BT13/BT13-061-070.md` | No |
 | BT13-071–080 | Unassigned | `internal-docs/audits/BT13/BT13-071-080.md` | No |
 | BT13-081–090 | Unassigned | `internal-docs/audits/BT13/BT13-081-090.md` | No |
 | BT13-091–100 | Unassigned | `internal-docs/audits/BT13/BT13-091-100.md` | No |
@@ -91,16 +91,26 @@ other component and is never rounded up.
 | BT13-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Kiyoshiro and ordered-return correction `0587a6001` |
 | BT13-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Manual hand-add event source; behavioral proof remains partial |
 | BT13-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Q2281–Q2283 source trace |
+| BT13-031 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Evade, Tamer return, and effect-hand-add source |
+| BT13-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; own-stack play and Blocker source |
+| BT13-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Burst host correction `90991c9dd`; payable-Thomas boundary `aa5a5f89c` |
+| BT13-034 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; reveal groups and combined-security boundary |
+| BT13-035 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon threshold and Reboot source |
+| BT13-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; owner-security watcher and inherited boundary |
+| BT13-037 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; top-security cost and combined-security source |
+| BT13-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Security Attack modifier and combined-security source |
+| BT13-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon-name route and inherited Reboot source |
+| BT13-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Veemon correction `684739265`; ExVeemon leave-play boundary `5f995a9cd` |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 60
-- Integrated card audits: 30
-- Corrected: 10
-- Provisional: 30
+- Assigned: 70
+- Integrated card audits: 40
+- Corrected: 12
+- Provisional: 40
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
-- Remaining unassigned: 52
+- Remaining unassigned: 42
 
 BT13 static re-audit is in progress.
