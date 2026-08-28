@@ -34,8 +34,8 @@ collection-complete claim is valid.
 | BT14-061–070 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-061-070.md` | Yes |
 | BT14-071–080 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-071-080.md` | Yes |
 | BT14-081–090 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-081-090.md` | Yes |
-| BT14-091–100 | Unassigned | `internal-docs/audits/BT14/BT14-091-100.md` | No |
-| BT14-101–102 | Unassigned | `internal-docs/audits/BT14/BT14-101-102.md` | No |
+| BT14-091–100 | Luna assigned | `internal-docs/audits/BT14/BT14-091-100.md` | No |
+| BT14-101–102 | Luna assigned | `internal-docs/audits/BT14/BT14-101-102.md` | No |
 
 ## Score model
 
@@ -158,12 +158,12 @@ behavior.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 90
+- Assigned: 102
 - Integrated card audits: 90
 - Corrected: 16
 - Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 12
+- Remaining unassigned: 0
 
 BT14 static re-audit is in progress.
