@@ -17,10 +17,34 @@ describe("BT14-089", () => {
       actions: [{ kind: "ActivateMain" }],
     });
   });
+
+  it("deletes a 6000 DP or lower opposing Digimon without a Greymon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-058", as: "attacker" }],
+          hand: [{ card: "BT14-089", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT14-069", as: "lowest", dp: 2000 },
+            { card: "BT14-074", as: "higher", dp: 6000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069"));
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-074")).toBe(true);
+  });
+
   it("deletes the lowest-DP opposing Digimon when a Greymon is present", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", as: "greymon" }], hand: [{ card: "BT14-089", as: "option" }] },
+        0: { battleArea: [{ card: "BT14-012", as: "greymon" }], hand: [{ card: "BT14-089", as: "option" }] },
         1: {
           battleArea: [
             { card: "BT14-069", as: "lowest", dp: 2000 },
@@ -35,6 +59,32 @@ describe("BT14-089", () => {
       ok: true,
     });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-074")).toBe(true);
+  });
+
+  it("naturally activates its Main effect from a Security check", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT14-058", as: "attacker" }] },
+        1: {
+          security: [{ card: "BT14-089", as: "securityOption" }],
+          battleArea: [
+            { card: "BT14-069", as: "lowest", dp: 2000 },
+            { card: "BT14-074", as: "higher", dp: 6000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069"));
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-069")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-074")).toBe(true);
   });
