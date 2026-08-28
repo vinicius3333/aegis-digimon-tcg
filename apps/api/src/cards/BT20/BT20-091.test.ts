@@ -56,7 +56,14 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
     expect(compiled.effects[1]).toMatchObject({
       trigger: "OpponentsTurn",
       frequency: "OncePerTurn",
-      actions: [{ kind: "Replacement", event: "wouldLeavePlay", mode: "instead" }],
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "instead",
+          target: { filter: { nameOrTrait: [{ tokens: ["Omekamon"], match: "nameExact" }] } },
+        },
+      ],
     });
     for (const watcher of compiled.effects[0]?.actions ?? []) {
       expect((watcher as { actions?: unknown[] }).actions).toMatchObject([
