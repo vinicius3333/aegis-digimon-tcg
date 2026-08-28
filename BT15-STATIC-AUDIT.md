@@ -32,8 +32,8 @@ collection-complete claim is valid.
 | BT15-031–040 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-031-040.md` | Yes |
 | BT15-041–050 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-041-050.md` | Yes |
 | BT15-051–060 | Luna assigned | `internal-docs/audits/BT15/BT15-051-060.md` | No |
-| BT15-061–070 | Unassigned | `internal-docs/audits/BT15/BT15-061-070.md` | No |
-| BT15-071–080 | Unassigned | `internal-docs/audits/BT15/BT15-071-080.md` | No |
+| BT15-061–070 | Luna assigned | `internal-docs/audits/BT15/BT15-061-070.md` | No |
+| BT15-071–080 | Luna assigned | `internal-docs/audits/BT15/BT15-071-080.md` | No |
 | BT15-081–090 | Unassigned | `internal-docs/audits/BT15/BT15-081-090.md` | No |
 | BT15-091–100 | Unassigned | `internal-docs/audits/BT15/BT15-091-100.md` | No |
 | BT15-101–102 | Unassigned | `internal-docs/audits/BT15/BT15-101-102.md` | No |
@@ -119,13 +119,13 @@ behavior.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 60
+- Assigned: 80
 - Integrated card audits: 50
 - Corrected: 5
 - Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 42
+- Remaining unassigned: 22
 
 BT15 static re-audit is in progress.
 
