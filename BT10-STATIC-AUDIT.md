@@ -35,7 +35,7 @@ claim is valid.
 | BT10-071–080 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-071-080.md` | Yes |
 | BT10-081–090 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-081-090.md` | Yes |
 | BT10-091–100 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-091-100.md` | Yes |
-| BT10-101–110 | Luna in progress | `internal-docs/audits/BT10/BT10-101-110.md` | No |
+| BT10-101–110 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-101-110.md` | Yes |
 | BT10-111–112 | Luna in progress | `internal-docs/audits/BT10/BT10-111-112.md` | No |
 
 ## Score model
@@ -162,16 +162,26 @@ other component and is never rounded up.
 | BT10-098 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-091-100.md` |
 | BT10-099 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; snapshot ambiguity | `BT10-091-100.md` |
 | BT10-100 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-091-100.md` |
+| BT10-101 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected; snapshot ambiguity | `BT10-101-110.md` |
+| BT10-102 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected; snapshot ambiguity | `BT10-101-110.md` |
+| BT10-103 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-101-110.md` |
+| BT10-104 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected; snapshot ambiguity | `BT10-101-110.md` |
+| BT10-105 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; snapshot ambiguity | `BT10-101-110.md` |
+| BT10-106 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; proof strengthened | `BT10-101-110.md` |
+| BT10-107 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; snapshot ambiguity | `BT10-101-110.md` |
+| BT10-108 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; snapshot ambiguity | `BT10-101-110.md` |
+| BT10-109 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-101-110.md` |
+| BT10-110 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; proof strengthened; snapshot ambiguity | `BT10-101-110.md` |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 100
-- Corrected: 18
-- Provisional: 100
+- Integrated card audits: 110
+- Corrected: 21
+- Provisional: 110
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 18
+- Blocked or ambiguous: 25
 - Remaining unassigned: 0
 
 BT10 static re-audit remains open.
