@@ -23,7 +23,7 @@ describe("BT15-005", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-009", as: "host", under: ["BT15-005"] },
+          { card: "BT13-061", as: "host", under: ["BT15-005"] },
           { card: "BT1-009", as: "first", suspended: true },
           { card: "BT1-009", as: "second", suspended: true },
         ],
@@ -48,7 +48,7 @@ describe("BT15-005", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-009", as: "host", under: ["BT15-005"] },
+          { card: "BT13-061", as: "host", under: ["BT15-005"] },
           { card: "BT1-009", as: "mine", suspended: true },
         ],
         deck: [{ card: "BT1-001", as: "top" }],
@@ -71,7 +71,7 @@ describe("BT15-005", () => {
   it("draws when the opponent's production unsuspend phase unsuspends a Digimon", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-005"] }],
+        battleArea: [{ card: "BT13-061", as: "host", under: ["BT15-005"] }],
         deck: [{ card: "BT1-001", as: "drawn" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "theirs", suspended: true }], deck: ["BT1-002"] },
