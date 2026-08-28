@@ -26,10 +26,10 @@ claim is valid.
 | BT7-001–010 | Static audit delivered | `internal-docs/audits/BT7/BT7-001-010.md` | Yes |
 | BT7-011–020 | Static audit delivered | `internal-docs/audits/BT7/BT7-011-020.md` | Yes |
 | BT7-021–030 | Static audit delivered | `internal-docs/audits/BT7/BT7-021-030.md` | Yes |
-| BT7-031–040 | Luna in progress | `internal-docs/audits/BT7/BT7-031-040.md` | No |
+| BT7-031–040 | Static audit delivered | `internal-docs/audits/BT7/BT7-031-040.md` | Yes |
 | BT7-041–050 | Static audit delivered | `internal-docs/audits/BT7/BT7-041-050.md` | Yes |
 | BT7-051–060 | Static audit delivered | `internal-docs/audits/BT7/BT7-051-060.md` | Yes |
-| BT7-061–070 | Queued | `internal-docs/audits/BT7/BT7-061-070.md` | No |
+| BT7-061–070 | Luna in progress | `internal-docs/audits/BT7/BT7-061-070.md` | No |
 | BT7-071–080 | Static audit delivered | `internal-docs/audits/BT7/BT7-071-080.md` | Yes |
 | BT7-081–090 | Luna in progress | `internal-docs/audits/BT7/BT7-081-090.md` | No |
 | BT7-091–100 | Queued | `internal-docs/audits/BT7/BT7-091-100.md` | No |
@@ -90,6 +90,16 @@ other component and is never rounded up.
 | BT7-028 KingWhamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Level-three-or-Whamon source-stack free play and opponent level-four return/source teardown watcher |
 | BT7-029 MagnaGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected decline-aborts-dependent-bounce behavior with shared dual-trigger once-per-turn identity |
 | BT7-030 AncientMegatheriummon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Per-Hybrid bottom-source trash scaling, post-action source-less draw, and bounded On Deletion free play |
+| BT7-031 Herissmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Self-source Digi-Burst discard watcher, owner-hand return, and legal inherited evolution stack |
+| BT7-032 Pulsemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact-three-security inherited attack memory gain with four-security negative boundary |
+| BT7-033 Bulkmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent-turn inherited Blocker aura with live three-security threshold boundary |
+| BT7-034 Filmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected payload-attached Digi-Burst 2 cost and one opponent Security Attack -2 target |
+| BT7-035 Kazemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Yellow-Tamer alternate evolution metadata, cost-two stack transition, and QA boundaries |
+| BT7-036 Zephyrmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact Zoe name plus Hybrid-stack Security Digimon +3000 DP duration |
+| BT7-037 Boutmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Player-attack-only inherited unsuspend with security threshold and pre-block timing |
+| BT7-038 JetSilphymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact self destination for Tamer-stack reducer plus Hybrid-stack Recovery branch |
+| BT7-039 Stefilmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact-one-source optional placement/draw scaling and self Digi-Burst inherited watcher |
+| BT7-040 Rasenmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Hand-resident security-count evolution cost and up-to-four Digi-Burst single-target scaling |
 | BT7-041 Kazuchimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected optional Recovery +1-until-three branch plus exclusive memory threshold and Security Attack aura |
 | BT7-042 AncientKazemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent-turn Hybrid-stack Security Digimon DP bonus and bounded yellow Hybrid On Deletion play |
 | BT7-043 Gotsumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional green-Digimon hand reveal and deck-top placement through loose-card targeting |
@@ -124,12 +134,12 @@ other component and is never rounded up.
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 90
-- Integrated card audits: 60
-- Corrected: 15
-- Provisional: 60
+- Assigned: 100
+- Integrated card audits: 70
+- Corrected: 18
+- Provisional: 70
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 22
+- Remaining unassigned: 12
 
 BT7 static re-audit remains open.
