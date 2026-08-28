@@ -100,6 +100,34 @@ describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate i
     expect(kouji.isSuspended).toBe(true);
   });
 
+  it("Q2142: still suspends Rina when an eligible Veedramon has no When Digivolving effect", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-112", dp: 0, as: "rina" },
+            // BT11-027 is a cataloged Veedramon with no [When Digivolving] effect.
+            { card: "BT11-027", dp: 6000, as: "veedramon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const rina = s.perm("rina");
+    const veedramon = s.perm("veedramon");
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([veedramon.permanentId]);
+    await settle(() => false, 60);
+
+    // Q2142: paying the “by suspending this Tamer” cost is still legal even though
+    // there is no borrowed When Digivolving effect to activate afterward.
+    expect(rina.isSuspended).toBe(true);
+    expect(veedramon.isSuspended).toBe(true);
+    expect(s.state.memory).toBe(5);
+  });
+
   it("does not reactivate the effect when this Tamer is already suspended", async () => {
     registerIrCard(TARGET_CARD, stub);
 
