@@ -56,9 +56,9 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
 
   it("keeps BT19-102's named stack gate and two DigiXros material slots", () => {
     expect(digivolutionRequirementsFor("BT19-102")).toEqual([
-      { names: ["Luminamon"], cost: 2, isAlternate: true },
+      { namesExact: ["Luminamon"], cost: 2, isAlternate: true },
       {
-        names: ["Nene Amano"],
+        namesExact: ["Nene Amano"],
         cost: 3,
         isAlternate: true,
         minNameStackCount: 1,

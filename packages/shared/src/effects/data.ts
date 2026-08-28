@@ -480,11 +480,12 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { level: 4, traitSubstrings: ["Aqua", "Sea Animal"], cost: 3, isAlternate: true },
     { level: 4, traits: ["TS"], cost: 3, isAlternate: true },
   ],
-  // BT19-102: the Nene path requires a Shademon card already under that Tamer.
+  // BT19-102: the bracketed [Luminamon]/[Nene Amano] paths are exact names; the Nene path
+  // also requires the exact [Shademon] name under that Tamer (minNameStackNames is exact).
   "BT19-102": [
-    { names: ["Luminamon"], cost: 2, isAlternate: true },
+    { namesExact: ["Luminamon"], cost: 2, isAlternate: true },
     {
-      names: ["Nene Amano"],
+      namesExact: ["Nene Amano"],
       cost: 3,
       isAlternate: true,
       minNameStackCount: 1,
@@ -614,14 +615,13 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
       traits: ["Night Claw", "Light Fang"],
     },
   ],
-  // BT19-101 (ZeedMillenniummon): "[Digivolve]MoonMillenniummon: Cost 2". The printed name is
-  // NOT bracketed, so the text parser cannot extract the name gate and emits a gateless entry
-  // that would match any base of any level. Gate it on the base name explicitly.
+  // BT19-101 (ZeedMillenniummon): "[Digivolve][MoonMillenniummon]: Cost 2". The generated
+  // record was gateless; preserve the bracketed exact-name gate explicitly.
   "BT19-101": [
     {
       cost: 2,
       isAlternate: true,
-      names: ["MoonMillenniummon"],
+      namesExact: ["MoonMillenniummon"],
     },
   ],
   // BT22-063/067 may evolve from their named CS Tamers only while their owner has at most
