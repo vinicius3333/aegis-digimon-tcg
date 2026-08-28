@@ -134,6 +134,8 @@ export interface PlaceUnderAction extends ActionBase {
    * rather than loose cards from hand or trash.
    */
   targetIsPermanent?: boolean;
+  /** When relocating a permanent, attach only its top card and trash its existing sources/links. */
+  shedOwnCards?: boolean;
   /** Move every Digimon card from one selected permanent's stack under a selected host. */
   fromSelectedPermanentDigivolutionCards?: boolean;
   /**
