@@ -975,6 +975,14 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
       burstDigivolve: { returnTamerNamesExact: ["Thomas H. Norstein"] },
     },
   ],
+  "BT13-060": [
+    {
+      cost: 0,
+      isAlternate: true,
+      namesExact: ["Rosemon"],
+      burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] },
+    },
+  ],
   "BT13-092": [
     { cost: 0, isAlternate: true, names: ["Ravemon"], burstDigivolve: { returnTamerNamesExact: ["Keenan Crier"] } },
   ],
