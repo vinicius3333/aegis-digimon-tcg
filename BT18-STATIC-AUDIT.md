@@ -25,7 +25,7 @@ provisional and capped at 8/10.
 | BT18-011–020 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-011-020.md` | Yes |
 | BT18-021–030 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-021-030.md` | Yes |
 | BT18-031–040 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-031-040.md` | Yes |
-| BT18-041–050 | Luna assigned | `internal-docs/audits/BT18/BT18-041-050.md` | No |
+| BT18-041–050 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-041-050.md` | Yes |
 | BT18-051–060 | Luna assigned | `internal-docs/audits/BT18/BT18-051-060.md` | No |
 | BT18-061–070 | Luna assigned | `internal-docs/audits/BT18/BT18-061-070.md` | No |
 | BT18-071–080 | Luna assigned | `internal-docs/audits/BT18/BT18-071-080.md` | No |
@@ -85,16 +85,26 @@ applicable non-gate component rather than being rounded up.
 | BT18-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/deletion and Angel evolution prove optional placement, mandatory security-to-hand, inherited recovery, and exact count boundaries (`eb4b0455e`). |
 | BT18-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution/decline prove original-DP semantics, while public attacks against both players prove security-owner scope and once-per-turn unsuspend (`70f0f1fea`, `4fdd94580`). |
 | BT18-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, evolution, attack and Counter Blast Digivolve prove all three security-costed DP clauses, threshold auras, Overflow, and ACE stack behavior (`e06d19efc`). |
+| BT18-041 | 1/2 | 2/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | Added four KB-backed DNA requirements and natural play/evolution/deletion/DNA proof; the immutable catalog omits the Q2965 DNA header (`58f464069`, `347da577c`). |
+| BT18-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Removed spurious optionality; natural evolution, opponent-turn end, attacks, shared frequency, and six-Hybrid Koji route prove all clauses (`f0f366897`, `7c03d9525`). |
+| BT18-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution intents prove Digimon/Tamer reduction sources, breeding and destination negatives, frequency, and inherited Piercing (`03a81655d`). |
+| BT18-044 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Removed false optionality from mandatory security exchange; natural play, no-candidate, face-up Security, alternate evolution, and inherited DP prove the flow (`18a61cf8c`). |
+| BT18-045 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Live suspended/active states and two independent legal auras prove the self-excluding other-Digimon DP grant (`c94aca50e`). |
+| BT18-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attacks prove the relative-DP player restriction while permitting Digimon targets; face-up Security, alternate evolution, Rule trait, and inherited DP are covered (`bc4889a1d`). |
+| BT18-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Removed false optionality from mandatory costs; natural play/evolution/attack prove own suspension payment, opposing targets, no-cost boundary, Rule, and frequency (`7d7c964f7`). |
+| BT18-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural legal evolution, attack-driven Hybrid evolution, named routes, and effect deletion prove suspension, reduction, and inherited stack play (`71c6c172f`). |
+| BT18-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and Kazemon evolution prove target ownership and modifier duration; both named routes and top/inherited Piercing use legal stacks (`be13d4dff`). |
+| BT18-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, Arbormon evolution, ownership/level negatives, and inherited attacks prove both unsuspend timings and suspension frequency (`92684b946`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 100
-- Integrated card audits: 40
-- Corrected: 2
-- Provisional: 40
+- Integrated card audits: 50
+- Corrected: 6
+- Provisional: 50
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 4 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps)
+- Blocked or ambiguous: 5 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps; `BT18-041` catalog/KB DNA mismatch)
 - Remaining unassigned: 2
 
 BT18 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
