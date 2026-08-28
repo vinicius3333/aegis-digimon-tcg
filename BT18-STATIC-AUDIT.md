@@ -26,7 +26,7 @@ provisional and capped at 8/10.
 | BT18-021–030 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-021-030.md` | Yes |
 | BT18-031–040 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-031-040.md` | Yes |
 | BT18-041–050 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-041-050.md` | Yes |
-| BT18-051–060 | Luna assigned | `internal-docs/audits/BT18/BT18-051-060.md` | No |
+| BT18-051–060 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-051-060.md` | Yes |
 | BT18-061–070 | Luna assigned | `internal-docs/audits/BT18/BT18-061-070.md` | No |
 | BT18-071–080 | Luna assigned | `internal-docs/audits/BT18/BT18-071-080.md` | No |
 | BT18-081–090 | Luna assigned | `internal-docs/audits/BT18/BT18-081-090.md` | No |
@@ -95,14 +95,24 @@ applicable non-gate component rather than being rounded up.
 | BT18-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural legal evolution, attack-driven Hybrid evolution, named routes, and effect deletion prove suspension, reduction, and inherited stack play (`71c6c172f`). |
 | BT18-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and Kazemon evolution prove target ownership and modifier duration; both named routes and top/inherited Piercing use legal stacks (`be13d4dff`). |
 | BT18-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, Arbormon evolution, ownership/level negatives, and inherited attacks prove both unsuspend timings and suspension frequency (`92684b946`). |
+| BT18-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Hydramon evolution and unsuspended/wrong-host/level/trait negatives prove the suspended Plant/Vegetation cost reduction (`bf4fd04bf`). |
+| BT18-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public play and two natural battles prove per-face-up-security De-Digivolve, Security Blocker, inherited trash, and frequency (`9487d8d5e`). |
+| BT18-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public hand activation proves exact Kazemon/Zephyrmon cost and refusal; legal evolution proves suspension lock, Raid, and inherited DP (`f308e27fa`). |
+| BT18-054 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry, DigiXros, and opponent battle prove DP-bounded mass suspension/lock and own-stack leave replacement (`20103d6a4`). |
+| BT18-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battles and opponent bounce prove suspension watcher, frequency, optional leave branches, and Q3968 Alliance-source interaction (`27c42fb77`). |
+| BT18-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battles prove another-own-Digimon unsuspend and frequency; effect-deletion negative, security scaling, Piercing, Reboot, and alternate evolution are covered (`d083fb202`). |
+| BT18-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Two natural multicolor Tamer evolutions plus breeding and controller boundaries prove reduction scope/frequency and inherited Blocker (`23a54e844`). |
+| BT18-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves Knightmon-text discard, draw, refusal/no-candidate behavior, while a legal stack proves inherited DP (`5fc1144b2`). |
+| BT18-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Digimon/Tamer memory sources and battle deletion prove player scope, Tamer exception, and immediate restriction removal (`1389ea589`). |
+| BT18-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves both reveal dispositions and remainder; legal Vemmon-text evolutions prove inherited reduction, frequency, host and turn boundaries (`a68e6a4a6`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 50
+- Integrated card audits: 60
 - Corrected: 6
-- Provisional: 50
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 5 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps; `BT18-041` catalog/KB DNA mismatch)
 - Remaining unassigned: 0
