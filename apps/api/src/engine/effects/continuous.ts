@@ -106,6 +106,14 @@ interface PlayerKeywordGrant {
   duration: EffectDuration;
 }
 
+interface PlayerCustomEffectGrant {
+  seat: Seat;
+  ownerSeat: Seat;
+  token: string;
+  duration: EffectDuration;
+  matches: (permanentId: string) => boolean;
+}
+
 /**
  * A positive attack-legality grant: the attacker MAY also attack an opponent's
  * unsuspended Digimon (rule implementation, e.g. ST12-08). The base
@@ -496,6 +504,7 @@ export class ContinuousEffectLedger {
   private colorWaivers: ColorWaiver[] = [];
   private keywordGrants: KeywordGrant[] = [];
   private playerKeywordGrants: PlayerKeywordGrant[] = [];
+  private playerCustomEffectGrants: PlayerCustomEffectGrant[] = [];
   /** Break dependency cycles while a conditional grant asks about other live keywords. */
   private evaluatingKeywordGrants = new Set<KeywordGrant>();
   private linkMaxGrants: LinkMaxGrant[] = [];
@@ -1045,6 +1054,22 @@ export class ContinuousEffectLedger {
     this.playerKeywordGrants.push({ seat, keyword, amount, duration });
   }
 
+  /** Grant a named custom effect to every matching current/future permanent controlled by `seat`. */
+  addPlayerCustomEffectGrant(
+    seat: Seat,
+    ownerSeat: Seat,
+    token: string,
+    duration: EffectDuration,
+    matches: (permanentId: string) => boolean,
+  ): void {
+    this.playerCustomEffectGrants.push({ seat, ownerSeat, token, duration, matches });
+  }
+
+  /** Return active player-scoped named grants that match a newly entered permanent. */
+  playerCustomEffectsFor(permanentId: string, seat: Seat): readonly PlayerCustomEffectGrant[] {
+    return this.playerCustomEffectGrants.filter((grant) => grant.seat === seat && grant.matches(permanentId));
+  }
+
   /** Keywords currently granted to a permanent (with optional amounts). */
   grantedKeywords(permanentId: string): { keyword: string; amount?: number }[] {
     const direct = this.keywordGrants
@@ -1434,6 +1459,9 @@ export class ContinuousEffectLedger {
     this.playerKeywordGrants = this.playerKeywordGrants.filter(
       (grant) => !clearsAt(grant.duration, boundary, grant.seat, sweepSeat),
     );
+    this.playerCustomEffectGrants = this.playerCustomEffectGrants.filter(
+      (grant) => !clearsAt(grant.duration, boundary, grant.ownerSeat, sweepSeat),
+    );
     this.linkMaxGrants = this.linkMaxGrants.filter(
       (g) => !clearsAt(g.duration, boundary, ownerOf(g.permanentId), sweepSeat),
     );
@@ -1535,6 +1563,7 @@ export class ContinuousEffectLedger {
     this.colorWaivers = [];
     this.keywordGrants = [];
     this.playerKeywordGrants = [];
+    this.playerCustomEffectGrants = [];
     this.linkMaxGrants = [];
     this.linkCostReductionGrants = [];
     this.kindGrants = [];

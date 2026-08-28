@@ -4586,6 +4586,16 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     continuous.addCustomEffectGrant(instanceId, ownerSeat, token, duration);
   };
 
+  const grantPlayerCustomEffect: NonNullable<Primitives["grantPlayerCustomEffect"]> = (
+    seat,
+    ownerSeat,
+    token,
+    duration,
+    matches,
+  ): void => {
+    continuous.addPlayerCustomEffectGrant(seat, ownerSeat, token, duration, matches);
+  };
+
   // Generic custom-grant store: the interpreter's catch-all for GrantStatic actions whose
   // `grant` shape has no dedicated primitive (object-shaped grants like BT11-062's
   // `cannotLeavePlay` or BT16-055's `Protection`, and unrecognized string grants like
@@ -5142,6 +5152,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     stackEffectConferrals,
     projectOnDeletionAtEndOfAttack,
     grantCustomEffect,
+    grantPlayerCustomEffect,
     customEffectGrants: (permanentId) =>
       continuous
         .listCustomEffectGrants()

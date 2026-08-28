@@ -95,6 +95,8 @@ export interface GrantStaticAction extends ActionBase {
   topmostOnly?: boolean;
   staticEffect?: { kind: string; [key: string]: unknown };
   duration?: EffectDurationRef;
+  /** Apply named granted effects to matching permanents that enter before the duration expires. */
+  includeLaterEntrants?: boolean;
   /**
    * The name alias is valid ONLY during DigiXros material-slot matching. It must not appear in
    * `effectiveNames()` or any ordinary name filter (KB Q3068, Q3105, Q3119). Implied by

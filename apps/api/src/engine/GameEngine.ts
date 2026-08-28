@@ -3290,6 +3290,9 @@ export class GameEngine {
       return;
     }
     const entryPermanentId = this.findInstance(sourceInstanceId)?.permanent?.permanentId;
+    if (entryPermanentId !== undefined) {
+      this.materializePlayerCustomEffects(this.access.permanentById(entryPermanentId));
+    }
     await this.withPendingSubTriggers(
       ["whenPlayed", "onEnterFieldAnyone"],
       { ...this.playedTrigger(entryPermanentId), entryCause: "play" },
@@ -3308,6 +3311,15 @@ export class GameEngine {
         }),
       },
     );
+  }
+
+  /** Materialize filtered player-scoped named grants before a new permanent's On Play window. */
+  private materializePlayerCustomEffects(permanent: Permanent | undefined): void {
+    const top = permanent?.topCard;
+    if (permanent === undefined || top === undefined) return;
+    for (const grant of this.continuous.playerCustomEffectsFor(permanent.permanentId, permanent.controllerSeat)) {
+      this.continuous.addCustomEffectGrant(top.instanceId, top.ownerSeat, grant.token, grant.duration);
+    }
   }
 
   /** The `whenPlayed` payload for a played permanent: its subject id plus its printed level/cost. */
@@ -3347,6 +3359,7 @@ export class GameEngine {
     const attackerPermanentId = this.combat?.currentAttackerId;
     const subjectPermanent = this.findInstance(instanceId)?.permanent;
     if (subjectPermanent !== undefined) subjectPermanent.enteredByEffect = true;
+    if (timing === EffectTiming.OnPlay) this.materializePlayerCustomEffects(subjectPermanent);
     // Effect-driven digivolutions are genuine digivolutions for "digivolved this turn"
     // conditions (BT1-007 Q871). As with the manual action seam, breeding-area evolutions
     // remain excluded unless card text explicitly references that area (Q870).

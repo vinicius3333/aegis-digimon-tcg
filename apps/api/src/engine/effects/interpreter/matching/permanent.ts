@@ -518,12 +518,12 @@ export function permanentMatchesFilter(
   }
 
   // Digivolution-stack NAME exclusion ("[Diaboromon] without [Doomsday Clock] in its
-  // digivolution cards", BT17-100): reject if any stacked card's name matches an excluded token.
+  // digivolution cards", BT17-100): reject if any stacked card has an excluded exact name.
   if (filter.excludeCardsNamed && filter.excludeCardsNamed.length > 0) {
     const excluded = filter.excludeCardsNamed.map((n) => n.toLowerCase());
     const hasExcluded = permanent.stack.some((card) => {
       const name = (ctx.game.definitionOf(card).nameEn ?? "").toLowerCase();
-      return excluded.some((n) => name.includes(n));
+      return excluded.some((n) => name === n);
     });
     if (hasExcluded) return false;
   }

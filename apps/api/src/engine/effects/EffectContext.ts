@@ -1246,6 +1246,14 @@ export interface Primitives {
    * parallel/inert path. Duration-scoped: lapses at its boundary or when the host leaves play.
    */
   grantCustomEffect?(instanceId: string, ownerSeat: Seat, token: string, duration: EffectDuration): void;
+  /** Grant a named effect to every matching current/future permanent controlled by `seat`. */
+  grantPlayerCustomEffect?(
+    seat: Seat,
+    ownerSeat: Seat,
+    token: string,
+    duration: EffectDuration,
+    matches: (permanentId: string) => boolean,
+  ): void;
   /** Active named effects granted to a permanent, for live text-presence filters. */
   customEffectGrants?(permanentId: string): readonly { token: string }[];
   /**

@@ -5,6 +5,7 @@ import { toDuration } from "../duration.js";
 import { unsupported } from "../errors.js";
 import { COLOR_MAP, PROTECTION_STRING_TOKEN_MAP, PROTECTION_TOKEN_MAP } from "../maps.js";
 import { DefinitionFacts, definitionMatches, parseCopyEffectsFilterText } from "../matching/definition.js";
+import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardColor, CardKind } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
@@ -151,6 +152,25 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           for (const token of action.tokens ?? []) {
             if (token === "get -5000DP") continue;
             ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, token, grantDuration);
+          }
+        }
+        // Q1907: BT9-102's "all ... gain [On Play]" grant also covers qualifying Digimon
+        // entering after the option resolves. Keep a player-scoped filtered grant so the engine
+        // can materialize it before a newly-entered Digimon's own On Play window (an ordinary
+        // onEnterFieldAnyone watcher runs after that window and would be too late).
+        if (action.includeLaterEntrants === true) {
+          for (const token of action.tokens ?? []) {
+            if (token === "get -5000DP") continue;
+            ctx.fx.grantPlayerCustomEffect?.(
+              ctx.source.ownerSeat,
+              ctx.source.ownerSeat,
+              token,
+              grantDuration,
+              (permanentId) => {
+                const permanent = ctx.game.permanentById(permanentId);
+                return permanent !== undefined && permanentMatchesFilter(ctx, permanent, action.target.filter, ctx.source);
+              },
+            );
           }
         }
         return false;
