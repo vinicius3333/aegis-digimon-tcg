@@ -182,4 +182,20 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
     expect(effects.length).toBeGreaterThan(0);
     expect(effects[0]!.isInherited).toBe(true);
   });
+
+  it("draws from the inherited Save attack effect only on a Save-text host", async () => {
+    const save = setupEngine({
+      0: { battleArea: [{ card: "BT12-077", as: "host", under: ["BT12-083"] }], deck: ["BT1-010"] },
+    });
+    await save.ready();
+    await advance(save.engine).fire(EffectTiming.OnUseAttack, save.perm("host"));
+    expect(save.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-010");
+
+    const plain = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-083"] }], deck: ["BT1-010"] },
+    });
+    await plain.ready();
+    await advance(plain.engine).fire(EffectTiming.OnUseAttack, plain.perm("host"));
+    expect(plain.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT1-010");
+  });
 });

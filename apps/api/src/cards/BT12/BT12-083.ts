@@ -21,6 +21,11 @@ const levelScaling = whenDigivolving?.actions[1];
 if (levelScaling?.kind === "CostModifier" && levelScaling.scaling !== undefined) {
   levelScaling.scaling.unit = "colors";
 }
+const inherited = compiled.effects.find((effect) => effect.isInherited === true);
+const draw = inherited?.actions.find((action) => action.kind === "Draw");
+if (draw?.kind === "Draw") {
+  draw.condition = { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Save"], match: "text" }] } };
+}
 compiled.coverage = "full";
 compiled.residual = [];
 registerIrCard("BT12-083", compiled);
