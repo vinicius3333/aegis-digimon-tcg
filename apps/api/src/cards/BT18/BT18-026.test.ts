@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-026.js";
@@ -62,8 +63,17 @@ describe("BT18-026 DaiPenmon", () => {
     );
     preferred.push(s.perm("tommy").topCard.instanceId, s.inst("kumamon").instanceId, s.inst("korikakumon").instanceId);
     s.state.memory = 5;
+    await s.ready();
+    const source = s.inst("dai");
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(source)).find((effect) =>
+      effect.effectKey.startsWith("BT18-026/"),
+    )!.effectKey;
+    s.state.phase = Phase.Main;
+    await s.engine.recomputeContinuousEffects();
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("dai"));
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("tommy").topCard.cardId === "BT18-026");
 
     expect(s.state.memory).toBe(2);
@@ -90,6 +100,34 @@ describe("BT18-026 DaiPenmon", () => {
     expect(s.perm("tommy").topCard.cardId).toBe("BT18-089");
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT18-022");
     expect(s.state.memory).toBe(5);
+  });
+
+  it("naturally deletes an opposing empty-stack Digimon after evolving from a Hybrid", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-025", as: "hybrid" }],
+          hand: [{ card: "BT18-026", as: "dai" }],
+        },
+        1: { battleArea: [{ card: "BT1-030", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const targetId = s.perm("target").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("hybrid").permanentId,
+        instanceId: s.inst("dai").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId));
+
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId)).toBe(false);
   });
 
   it("digivolves from a blue/red level-4 Hybrid for 3", async () => {
