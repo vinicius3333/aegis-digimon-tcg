@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import type { PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -16,9 +16,7 @@ describe("BT19-006 Pagumon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, s.perm("host"), {
-      removalCause: "byEffect",
-    });
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
 
     expect((s.state.players[0] as PlayerState).hand.map((card) => card.cardId)).toContain("BT10-071");
     expect((s.state.players[0] as PlayerState).trash.map((card) => card.cardId)).toEqual(
@@ -30,17 +28,26 @@ describe("BT19-006 Pagumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT19-067", as: "host", under: ["BT19-006"] }],
+          battleArea: [{ card: "BT19-067", as: "host", dp: 1000, under: ["BT19-006"] }],
           trash: ["BT10-071"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnDestroyedAnyone, s.perm("host"), {
-      removalCause: "byBattle",
-    });
-    await settle(() => false, 20);
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
 
     expect((s.state.players[0] as PlayerState).hand.map((card) => card.cardId)).not.toContain("BT10-071");
   });
