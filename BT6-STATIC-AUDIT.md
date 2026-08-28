@@ -1,6 +1,6 @@
 # BT6 Static Card Implementation Re-audit
 
-Status: static card-by-card pass in progress; execution gates deferred
+Status: static card-by-card pass delivered; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -34,7 +34,7 @@ claim is valid.
 | BT6-081–090 | Static audit delivered | `internal-docs/audits/BT6/BT6-081-090.md` | Yes |
 | BT6-091–100 | Static audit delivered | `internal-docs/audits/BT6/BT6-091-100.md` | Yes |
 | BT6-101–110 | Static audit delivered | `internal-docs/audits/BT6/BT6-101-110.md` | Yes |
-| BT6-111–112 | Luna in progress | `internal-docs/audits/BT6/BT6-111-112.md` | No |
+| BT6-111–112 | Static audit delivered | `internal-docs/audits/BT6/BT6-111-112.md` | Yes |
 
 ## Score model
 
@@ -170,16 +170,20 @@ other component and is never rounded up.
 | BT6-108 Underworld's Call | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected own-effect hand-trash provenance, optional purple level-four-or-lower free play, and Security Main activation |
 | BT6-109 Fly Bullet | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Three Musketeers color waiver, one opposing level-six-or-lower deletion, and Security Main activation |
 | BT6-110 Cutting Edge | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional level-five-or-lower Eosmon free play followed by mandatory live-DP-bounded deletion and Security activation |
+| BT6-111 Alphamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected battle-area-only Royal Knight/X Antibody Security gate, delayed battle-end timing, and legal black evolution stack |
+| BT6-112 BeelStarmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact cost-seven trash Option return, color-aware free use, reduction boundaries, and legal purple evolution stack |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 110
-- Corrected: 18
-- Provisional: 110
+- Integrated card audits: 112
+- Corrected: 20
+- Provisional: 112
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
 
-BT6 static re-audit remains open.
+BT6's static card-by-card pass is delivered. The collection audit remains open
+because every execution gate is deferred and no card has reproducible 10/10
+evidence in this pass.
