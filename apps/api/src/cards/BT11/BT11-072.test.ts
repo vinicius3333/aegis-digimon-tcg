@@ -116,4 +116,22 @@ describe("BT11-072 Machinedramon", () => {
     expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT11-092");
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
+
+  it("does not play Machinedramon when no Analogman was placed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-072", as: "deleted" }],
+          hand: [{ card: "BT11-072", as: "replacement" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("replacement").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
 });
