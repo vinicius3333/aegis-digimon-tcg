@@ -23,7 +23,7 @@ collection-complete claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT13-001–010 | Luna assigned | `internal-docs/audits/BT13/BT13-001-010.md` | No |
+| BT13-001–010 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-001-010.md` | Yes |
 | BT13-011–020 | Luna assigned | `internal-docs/audits/BT13/BT13-011-020.md` | No |
 | BT13-021–030 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-021-030.md` | Yes |
 | BT13-031–040 | Unassigned | `internal-docs/audits/BT13/BT13-031-040.md` | No |
@@ -61,6 +61,16 @@ other component and is never rounded up.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT13-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; inherited deletion boundary source |
+| BT13-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; battle-area and inherited aura source |
+| BT13-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; owner-security trigger source |
+| BT13-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Battle-area scope correction `b41af7a87` |
+| BT13-005 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; stack-count boundary source |
+| BT13-006 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Q2258 cost-without-target source |
+| BT13-007 | 1/2 | 2/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | Three stale KB references remain catalog/KB drift |
+| BT13-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Marcus correction `62cd9d1e2` |
+| BT13-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact BaoHuckmon correction `b257f200c` |
+| BT13-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Garudamon/Kristy correction `078d484d4` |
 | BT13-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
 | BT13-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
 | BT13-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
@@ -76,11 +86,11 @@ other component and is never rounded up.
 
 - Catalog cards: 112
 - Assigned: 40
-- Integrated card audits: 10
-- Corrected: 2
-- Provisional: 10
+- Integrated card audits: 20
+- Corrected: 6
+- Provisional: 20
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 0
+- Blocked or ambiguous: 1
 - Remaining unassigned: 72
 
 BT13 static re-audit is in progress.
