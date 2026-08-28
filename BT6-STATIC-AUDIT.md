@@ -33,7 +33,7 @@ claim is valid.
 | BT6-071–080 | Static audit delivered | `internal-docs/audits/BT6/BT6-071-080.md` | Yes |
 | BT6-081–090 | Static audit delivered | `internal-docs/audits/BT6/BT6-081-090.md` | Yes |
 | BT6-091–100 | Static audit delivered | `internal-docs/audits/BT6/BT6-091-100.md` | Yes |
-| BT6-101–110 | Luna in progress | `internal-docs/audits/BT6/BT6-101-110.md` | No |
+| BT6-101–110 | Static audit delivered | `internal-docs/audits/BT6/BT6-101-110.md` | Yes |
 | BT6-111–112 | Luna in progress | `internal-docs/audits/BT6/BT6-111-112.md` | No |
 
 ## Score model
@@ -160,14 +160,24 @@ other component and is never rounded up.
 | BT6-098 Raddle Star | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exclusive opponent-count return branches with canonical deck-bottom stack cleanup |
 | BT6-099 Acid Injection | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Top-security trash followed by opponent -5000 DP, including empty-security continuation |
 | BT6-100 Reinforcing Memory Boost! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Two-card security/hand split, battle-area placement, Delay timing, and restriction evidence |
+| BT6-101 Wyvern's Breath | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | One opposing Digimon -15000 DP for the turn, inclusive DP-deletion consequence, and Security Main activation |
+| BT6-102 Tropical Venom | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | One-opponent target, granted On Deletion memory loss, and next-turn duration boundary |
+| BT6-103 Blasted Disaster | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All-opponent suspension followed by post-action suspended-count memory scaling and one-target Security effect |
+| BT6-104 Parabolic Junk | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Own-Digimon On Deletion memory grant, opponent-next-turn duration, Security hand return, and one-copy restriction |
+| BT6-105 Gewalt Schwärmer | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Three Musketeers color waiver, all-own-and-opponent play-cost-seven ceiling, and Security hand return |
+| BT6-106 Iron-Fisted Onslaught | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All tied highest-play-cost opposing Digimon deletion and Security Main activation |
+| BT6-107 Glaive Memory Boost! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional purple trash return, mandatory battle-area placement even with empty trash, and Delay memory gain |
+| BT6-108 Underworld's Call | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected own-effect hand-trash provenance, optional purple level-four-or-lower free play, and Security Main activation |
+| BT6-109 Fly Bullet | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Three Musketeers color waiver, one opposing level-six-or-lower deletion, and Security Main activation |
+| BT6-110 Cutting Edge | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional level-five-or-lower Eosmon free play followed by mandatory live-DP-bounded deletion and Security activation |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 100
-- Corrected: 17
-- Provisional: 100
+- Integrated card audits: 110
+- Corrected: 18
+- Provisional: 110
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
