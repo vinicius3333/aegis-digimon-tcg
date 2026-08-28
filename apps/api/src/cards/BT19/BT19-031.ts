@@ -43,6 +43,7 @@ const compiled: CompiledCard = {
           payCost: false,
           optional: true,
           abortOnDecline: true,
+          bindResultAs: "playedShootingStarmon",
         },
         {
           kind: "PlaceUnder",
@@ -61,6 +62,8 @@ const compiled: CompiledCard = {
           },
           underFilter: {
             controller: "mine",
+            kind: ["Digimon"],
+            boundRef: "playedShootingStarmon",
             nameOrTrait: [
               {
                 tokens: ["ShootingStarmon"],
@@ -87,6 +90,8 @@ const compiled: CompiledCard = {
           },
           underFilter: {
             controller: "mine",
+            kind: ["Digimon"],
+            boundRef: "playedShootingStarmon",
             nameOrTrait: [
               {
                 tokens: ["ShootingStarmon"],
