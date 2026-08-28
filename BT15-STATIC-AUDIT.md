@@ -34,7 +34,7 @@ collection-complete claim is valid.
 | BT15-051–060 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-051-060.md` | Yes |
 | BT15-061–070 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-061-070.md` | Yes |
 | BT15-071–080 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-071-080.md` | Yes |
-| BT15-081–090 | Luna assigned | `internal-docs/audits/BT15/BT15-081-090.md` | No |
+| BT15-081–090 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-081-090.md` | Yes |
 | BT15-091–100 | Luna assigned | `internal-docs/audits/BT15/BT15-091-100.md` | No |
 | BT15-101–102 | Luna assigned | `internal-docs/audits/BT15/BT15-101-102.md` | No |
 
@@ -145,14 +145,24 @@ behavior.
 | BT15-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural effect-play aura, suppressed On Play, result-bound redirect, and inherited Piercing proof |
 | BT15-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Supported white-only evolution restriction correction plus natural opponent-end and battle-stack proof `82758e70f` |
 | BT15-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play, evolution, deletion, target-ceiling, and Blocker behavior proof |
+| BT15-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural effect-played security path and legal Leviamon-stack alternate evolution proof |
+| BT15-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Explicit Sea Animal exclusion correction plus natural Wings of Love trash-return origin `9dd149d12` |
+| BT15-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal/bottom ordering and Digimon-effect hand-add watcher proof |
+| BT15-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attack paths prove direct security trash and own effect-driven security removal |
+| BT15-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent attack redirect to a suspended Insectoid and security boundary proof |
+| BT15-086 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public Mind Link, inherited Jamming/Blocker, end-turn stack exit, and Security play proof |
+| BT15-087 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Invalid TeamWork replaced by Alliance plus natural Mind Link, Reboot, stack-exit, and Security proof `ce55583cf` |
+| BT15-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural post-play Sora sequencing and Security Biyomon play/self-return proof |
+| BT15-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main and Security paths prove live opposing-security DP ceilings |
+| BT15-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural qualified/unqualified/Security branches prove catalog-authoritative lowest-level selection |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 80
-- Corrected: 27
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 29
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
