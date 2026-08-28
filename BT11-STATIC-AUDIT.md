@@ -35,8 +35,8 @@ claim is valid.
 | BT11-071–080 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-071-080.md` | Yes |
 | BT11-081–090 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-081-090.md` | Yes |
 | BT11-091–100 | Luna in progress | `internal-docs/audits/BT11/BT11-091-100.md` | No |
-| BT11-101–110 | Luna in progress | `internal-docs/audits/BT11/BT11-101-110.md` | No |
-| BT11-111–112 | Queued | `internal-docs/audits/BT11/BT11-111-112.md` | No |
+| BT11-101–110 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-101-110.md` | Yes |
+| BT11-111–112 | Luna in progress | `internal-docs/audits/BT11/BT11-111-112.md` | No |
 
 ## Score model
 
@@ -152,16 +152,26 @@ other component and is never rounded up.
 | BT11-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed whole-permanent placement semantics |
 | BT11-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected Sea Animal exclusion; strengthened effect-play negative |
 | BT11-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed same-target duration semantics |
+| BT11-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed Insect substring and mandatory target count |
+| BT11-103 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed suspension-triggered aura payload |
+| BT11-104 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed independent boost and attacker selections |
+| BT11-105 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected successful-placement continuation gate |
+| BT11-106 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed same-target unblockability grant |
+| BT11-107 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed X Antibody stack gate and budget deletion |
+| BT11-108 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected De-Digivolve level floor encoding |
+| BT11-109 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected bottom relocation and source-stack shedding |
+| BT11-110 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 110
-- Integrated card audits: 90
-- Corrected: 16
-- Provisional: 90
+- Assigned: 112
+- Integrated card audits: 100
+- Corrected: 19
+- Provisional: 100
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 2
+- Remaining unassigned: 0
 
 BT11 static re-audit remains open.
