@@ -24,7 +24,7 @@ provisional and capped at 8/10.
 | BT19-001–010 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-001-010.md` | Yes |
 | BT19-011–020 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-011-020.md` | Yes |
 | BT19-021–030 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-021-030.md` | Yes |
-| BT19-031–040 | Luna assigned | `internal-docs/audits/BT19/BT19-031-040.md` | No |
+| BT19-031–040 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-031-040.md` | Yes |
 | BT19-041–050 | Luna prepared; chronological review pending | `internal-docs/audits/BT19/BT19-041-050.md` | No |
 | BT19-051–060 | Luna assigned | `internal-docs/audits/BT19/BT19-051-060.md` | No |
 | BT19-061–070 | Luna assigned | `internal-docs/audits/BT19/BT19-061-070.md` | No |
@@ -75,16 +75,26 @@ applicable non-gate component rather than being rounded up.
 | BT19-028 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected trait containment, optional sequencing, and whole-permanent placement; digivolution behavior remains manually originated (`11d80a6ec`). |
 | BT19-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected optional security cost and yellow Data/Witchelny opponent-effect scope; play/context origin remains manually injected (`8bb9214bd`). |
 | BT19-030 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Option use proves the inherited reduction, while start-main, threshold, Security, and turn-scope origins retain manual seams (`0159bf7b6`). |
+| BT19-031 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Bound both named trash placements to the ShootingStarmon played by this effect; natural Decoy/deletion proof is strong, but inherited attack timing remains injected (`1494ec1cd`). |
+| BT19-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion and opponent-effect flows prove the security threshold, recovery, debuff duration, and inherited Barrier payment (`5c29abc3f`). |
+| BT19-033 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural deletion proves Save; free On Play evolution remains manually fired and inherited Piercing is structural (`9001a9a4b`). |
+| BT19-034 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | A real Option use proves part of the inherited watcher, while digivolution and several cost/non-use boundaries remain injected (`26eb14e0e`). |
+| BT19-035 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play and deletion prove the watcher and source placement; inherited attack reduction remains manually fired (`f9c9fe9c3`). |
+| BT19-036 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural opponent-effect replacement proves the inherited clause, while both entry timings and security placement remain injected (`23c87d1d9`). |
+| BT19-037 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Entry, inherited, and timing-suppression behavior is manually fired or structural despite feasible natural origins (`1a0b8a080`). |
+| BT19-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural deletion proves source placement; both entry timings remain injected and inherited Piercing is structural (`b9190c9d3`). |
+| BT19-039 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Aligned When Digivolving optional security-cost abort semantics; natural Recovery is covered, but entry/security watcher origins remain injected (`05068ec53`). |
+| BT19-040 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | A real Option use proves token creation, while digivolution and remaining watcher/boundary cases retain injected or structural seams (`1a6972f64`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 90
-- Integrated card audits: 30
-- Corrected: 8
-- Provisional: 30
+- Integrated card audits: 40
+- Corrected: 10
+- Provisional: 40
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 16 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-030` source-proof gaps; excludes fully proved `BT19-022`)
+- Blocked or ambiguous: 25 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-040` source-proof gaps; excludes fully proved `BT19-022` and `BT19-032`)
 - Remaining unassigned: 12
 
 BT19 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
