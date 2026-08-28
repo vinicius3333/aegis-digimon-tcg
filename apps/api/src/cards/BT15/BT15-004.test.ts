@@ -83,6 +83,25 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
     expect(s.perm("tentomon").isSuspended, "Tentomon must be suspended after its attack").toBe(true);
   });
 
+  it("attacks through the natural end-of-turn window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: TENTOMON, dp: 4000, as: "tentomon", under: [MOTIMON] }],
+          deck: [DUMMY],
+        },
+        1: { battleArea: [{ card: DUMMY, dp: 1000, as: "target", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("tentomon").isSuspended).toBe(true);
+  });
+
   it("does NOT trigger when the Digimon is already suspended (KB Q2490)", async () => {
     const s = setupEngine(
       {
