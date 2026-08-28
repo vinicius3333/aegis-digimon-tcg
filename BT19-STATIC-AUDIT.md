@@ -30,7 +30,7 @@ provisional and capped at 8/10.
 | BT19-061–070 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-061-070.md` | Yes |
 | BT19-071–080 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-071-080.md` | Yes |
 | BT19-081–090 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-081-090.md` | Yes |
-| BT19-091–100 | Luna assigned | `internal-docs/audits/BT19/BT19-091-100.md` | No |
+| BT19-091–100 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-091-100.md` | Yes |
 | BT19-101–102 | Luna assigned | `internal-docs/audits/BT19/BT19-101-102.md` | No |
 
 ## Score model
@@ -135,16 +135,26 @@ applicable non-gate component rather than being rounded up.
 | BT19-088 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Thresholded Impmon-to-Beelzemon digivolution and memory clauses remain structural (`765507884`). |
 | BT19-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Option play proves selected-target Option-effect protection and DP immunity (`765507884`). |
 | BT19-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural modal paths prove under-Tamer play, exact compound unsuspension, attack, and Security behavior (`765507884`). |
+| BT19-091 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Token generation, exact-name exclusion, double Alliance, attack, and Security play remain structurally asserted without natural behavior (`995833fb9`). |
+| BT19-092 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Optional blue-Digimon return cost, upgraded return, fallback, and Security activation have structural evidence only (`995833fb9`). |
+| BT19-093 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Device waiver, effect-trash restriction, placement, and Security return remain structurally proven (`995833fb9`). |
+| BT19-094 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Trash watcher, opponent choice, result-bound recovery, deletion count, and Security play remain structural (`995833fb9`). |
+| BT19-095 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Device waiver, temporary same-target grants, effect-trash grants, and Security suspension remain structural (`995833fb9`). |
+| BT19-096 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Face-up Royal Base placement and scaled DeleteBudget are traced structurally without natural behavior (`995833fb9`). |
+| BT19-097 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Deck-trash watcher, Main mill/placement, Delay revival, and Security placement remain structural (`995833fb9`). |
+| BT19-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural source scenarios cover effect-trash, Main, and Security Device placement, but remain unexecuted (`995833fb9`). |
+| BT19-099 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Reduced Composite revival and Delay replacement with relative play cost remain structurally proven (`995833fb9`). |
+| BT19-100 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected the filtered D-Reaper domain, exact Mother D-Reaper scaling, and Security target ceiling while preserving legacy unfiltered behavior; proof remains structural (`995833fb9`, `466b69646`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 90
-- Corrected: 23
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 24
+- Provisional: 100
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 64 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`–`BT19-054`, `BT19-057`, `BT19-060`–`BT19-078`, `BT19-080`–`BT19-086`, `BT19-088` source-proof gaps)
+- Blocked or ambiguous: 74 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`–`BT19-054`, `BT19-057`, `BT19-060`–`BT19-078`, `BT19-080`–`BT19-086`, `BT19-088`, `BT19-091`–`BT19-100` source-proof gaps)
 - Remaining unassigned: 0
 
 Operational disclosure: the BT19-041–050 worker accidentally ran one isolated
