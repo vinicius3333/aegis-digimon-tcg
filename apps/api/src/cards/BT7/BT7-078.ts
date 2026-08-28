@@ -12,7 +12,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // via the deleteOwn cost handler).
 //
 // KB Q1642: You may delete this card itself to delete a Lv.6 or lower opponent Digimon
-// (because this card is Lv.7, so opp Lv. ≤ 7 covers Lv.6). No filter change needed
+// (this card is Lv.6, so the deleted-level bound permits Lv.6). No filter change needed
 // beyond the levelComparison relativeTo lastDeleted.
 
 const compiled: CompiledCard = {
