@@ -1716,7 +1716,28 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const found = tamers.find((t) => t.topCard?.instanceId === chosenTamer[0]);
       if (found !== undefined) tamerId = found.permanentId;
     }
-    const toPlaceIds = eligible.slice(0, n).map((c) => c.instanceId);
+    // Once the optional processing is accepted, §16-21-3 requires the specified
+    // number whenever possible, but §16-21-1 leaves the choice of eligible cards
+    // to the controller. Ask for that choice explicitly instead of taking the
+    // first cards in stack order; the response order is also the processing order
+    // required by §16-21-4.
+    const requiredCount = Math.min(n, eligible.length);
+    const selectedIds = await engine.ask.selectInstances(
+      perm.controllerSeat,
+      eligible.map((card) => card.instanceId),
+      requiredCount,
+      requiredCount,
+      `＜Material Save ${n}＞: choose ${requiredCount} specified digivolution card${requiredCount === 1 ? "" : "s"} to place under the Tamer, in order.`,
+    );
+    const eligibleIds = new Set(eligible.map((card) => card.instanceId));
+    if (
+      selectedIds.length !== requiredCount ||
+      new Set(selectedIds).size !== requiredCount ||
+      selectedIds.some((instanceId) => !eligibleIds.has(instanceId))
+    ) {
+      return false;
+    }
+    const toPlaceIds = selectedIds;
     await placeUnder(tamerId, toPlaceIds);
     return true;
   };
