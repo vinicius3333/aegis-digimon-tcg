@@ -2,9 +2,41 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
-import "./BT8-094.js";
+import { compiled } from "./BT8-094.js";
 
 describe("BT8-094 Digimon Emperor [Opponent's Turn] gain 2 memory on opponent's Lv3 breeding->battle move", () => {
+  it("keeps both opponent-relative level gates in executable IR", () => {
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "onDeletionOf",
+              sourceFilter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+              actions: [{ kind: "Draw", amount: 1, controller: "mine", optional: true, cost: { kind: "suspend" } }],
+            },
+          ],
+        },
+        {
+          trigger: "OpponentsTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenMovedFromBreeding",
+              sourceFilter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "eq", value: 3 } },
+              actions: [{ kind: "GainMemory", amount: 2 }],
+            },
+          ],
+        },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
+      ],
+    });
+  });
+
   it("suspends and draws when an opposing level 5 or lower Digimon is deleted", async () => {
     const s = setup(
       {
