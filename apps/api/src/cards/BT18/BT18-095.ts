@@ -21,6 +21,7 @@ export const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
+              distinctNames: true,
             },
             count: 5,
             upTo: true,
@@ -38,6 +39,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
+              digivolutionCardsAtLeast: 5,
             },
             count: 1,
           },
