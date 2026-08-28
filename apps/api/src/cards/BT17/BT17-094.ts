@@ -23,9 +23,10 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }],
-              orFilters: [{ controllerDefault: "mine", kind: ["Tamer"] }],
+              or: [
+                { kind: ["Tamer"] },
+                { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] },
+              ],
             },
             raw: "you have a Tamer or a Digimon with the [Hybrid] trait",
           },
@@ -63,7 +64,7 @@ export const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
-              orFilters: [
+              or: [
                 {
                   controller: "mine",
                   kind: ["Digimon"],
@@ -100,6 +101,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
+              hasInheritedEffects: true,
             },
             count: 1,
           },
