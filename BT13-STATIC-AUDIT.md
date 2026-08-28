@@ -30,7 +30,7 @@ collection-complete claim is valid.
 | BT13-041–050 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-041-050.md` | Yes |
 | BT13-051–060 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-051-060.md` | Yes |
 | BT13-061–070 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-061-070.md` | Yes |
-| BT13-071–080 | Luna assigned | `internal-docs/audits/BT13/BT13-071-080.md` | No |
+| BT13-071–080 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-071-080.md` | Yes |
 | BT13-081–090 | Luna assigned | `internal-docs/audits/BT13/BT13-081-090.md` | No |
 | BT13-091–100 | Luna assigned | `internal-docs/audits/BT13/BT13-091-100.md` | No |
 | BT13-101–110 | Unassigned | `internal-docs/audits/BT13/BT13-101-110.md` | No |
@@ -131,14 +131,24 @@ other component and is never rounded up.
 | BT13-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon play and alternate evolution boundaries |
 | BT13-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Sukamon play, replacement, and evolution boundaries |
 | BT13-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon play and alternate evolution boundaries |
+| BT13-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opposing suspension events, same-turn OPT, and live Blocker proof |
+| BT13-072 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; reveal/place-under, immunity, and inherited stack proof |
+| BT13-073 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Real Chessmon alternate evolution, non-Chessmon rejection, and Blocker proof |
+| BT13-074 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; reveal/play and dynamic Jamming/Reboot proof |
+| BT13-075 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Dynamic restriction, optional cost, and by-effect replacement corrections |
+| BT13-076 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | All-target return-protection correction and controller/turn boundaries |
+| BT13-077 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Forced Attack correction, accept/decline, immunity, and Blocker proof |
+| BT13-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Empty-hand draw/trash ordering and same-turn inherited OPT proof |
+| BT13-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Retaliation grant and outside-battle deletion boundaries |
+| BT13-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Breeding kind, CostGatedBlock, exact target, and independent decline corrections |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 100
-- Integrated card audits: 70
-- Corrected: 23
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 27
+- Provisional: 80
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 12
