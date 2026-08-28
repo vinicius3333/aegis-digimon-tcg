@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -46,15 +45,9 @@ describe("BT18-042 MagnaGarurumon", () => {
       {
         0: {
           battleArea: [
-            {
-              card: "BT18-042",
-              as: "source",
-              under: [
-                { card: "BT1-009", as: "level3Source" },
-                { card: "BT1-060", as: "level5Source" },
-              ],
-            },
+            { card: "BT1-060", as: "base", under: [{ card: "BT1-009", as: "level3Source" }] },
           ],
+          hand: [{ card: "BT18-042", as: "source" }],
           security: ["BT1-001"],
         },
         1: {
@@ -66,15 +59,23 @@ describe("BT18-042 MagnaGarurumon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
+    s.state.memory = 10;
     await s.ready();
-    preferredInstanceIds.push(s.inst("level5Source").instanceId);
+    preferredInstanceIds.push(s.perm("base").topCard!.instanceId);
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() => s.perm("source").stack.length === 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT18-042");
+    await settle(() => s.perm("base").stack.length === 1);
     s.state.turnSeat = 1;
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await advance(s.engine).runTurn(1);
 
-    expect(s.perm("source").stack).toHaveLength(1);
+    expect(s.perm("base").stack).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-009"]);
     assertNoLoudGap(s);
@@ -90,24 +91,39 @@ describe("BT18-042 MagnaGarurumon", () => {
             { card: "BT1-010", as: "second" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-060", as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-060", as: "firstAttacker" },
+            { card: "BT1-060", as: "secondAttacker" },
+          ],
+        },
       },
       { autoAcceptOptional: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("first").instanceId));
 
     expect(s.perm("source").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("first").instanceId)).toBe(true);
-    s.perm("source").isSuspended = true;
-    await advance(s.engine).fireSubTrigger("whenAttacking", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
-    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("source").isSuspended).toBe(false);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("second").instanceId]);
     assertNoLoudGap(s);
   });
