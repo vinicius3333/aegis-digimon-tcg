@@ -55,11 +55,42 @@ describe("BT13-076 KingEtemon", () => {
             kind: ["Digimon"],
             nameOrTrait: [{ match: "name", tokens: ["Etemon", "Sukamon"] }],
           },
+          count: "all",
         },
         restriction: "cannotReturnToHandOrDeck",
         duration: "permanent",
       },
     ]);
+  });
+
+  it("grants every matching own Digimon Blocker and return protection only during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT13-076", as: "king" },
+          { card: "BT11-041", as: "etemon" },
+          { card: "BT11-040", as: "sukamon" },
+          { card: "BT11-042", as: "nonmatching" },
+        ],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    await s.engine.recomputeContinuousEffects();
+
+    for (const alias of ["etemon", "sukamon"]) {
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(true);
+      expect(observe(s.engine).isRestricted(s.perm(alias), "cannotReturnToHandOrDeck")).toBe(true);
+    }
+    expect(observe(s.engine).hasKeyword(s.perm("nonmatching"), "Blocker")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("nonmatching"), "cannotReturnToHandOrDeck")).toBe(false);
+
+    s.state.turnSeat = 0;
+    await s.engine.recomputeContinuousEffects();
+    for (const alias of ["etemon", "sukamon"]) {
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(false);
+      expect(observe(s.engine).isRestricted(s.perm(alias), "cannotReturnToHandOrDeck")).toBe(false);
+    }
   });
 
   it("reduces an opposing Digimon when your Etemon is deleted", async () => {
