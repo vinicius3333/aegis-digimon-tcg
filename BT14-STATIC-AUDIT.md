@@ -25,9 +25,9 @@ collection-complete claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT14-001–010 | Luna assigned | `internal-docs/audits/BT14/BT14-001-010.md` | No |
-| BT14-011–020 | Luna assigned | `internal-docs/audits/BT14/BT14-011-020.md` | No |
-| BT14-021–030 | Luna assigned | `internal-docs/audits/BT14/BT14-021-030.md` | No |
+| BT14-001–010 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-001-010.md` | Yes |
+| BT14-011–020 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-011-020.md` | Yes |
+| BT14-021–030 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-021-030.md` | Yes |
 | BT14-031–040 | Unassigned | `internal-docs/audits/BT14/BT14-031-040.md` | No |
 | BT14-041–050 | Unassigned | `internal-docs/audits/BT14/BT14-041-050.md` | No |
 | BT14-051–060 | Unassigned | `internal-docs/audits/BT14/BT14-051-060.md` | No |
@@ -64,14 +64,44 @@ behavior.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT14-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opposing-security removal and inherited Once Per Turn proof |
+| BT14-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inclusive source-count erratum and live Jamming boundary proof |
+| BT14-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural recovery-origin security addition and inherited draw proof |
+| BT14-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural own-effect suspension plus foreign-cause rejection proof |
+| BT14-005 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact-three trait cost, refusal, and Once Per Turn attack proof |
+| BT14-006 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural hand-trash origin, exact card identity, cost, and breeding boundary |
+| BT14-007 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Tai-gated free Greymon evolution and inherited name aura proof |
+| BT14-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attack, 3000-DP boundary, target count, and inherited stack proof |
+| BT14-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Effect-play prohibition, breeding-placement seam, and legal stack proof |
+| BT14-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Security-only Jamming boundary and legal evolution-stack proof |
+| BT14-011 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Blocker declaration, redirection, suspension, and battle proof |
+| BT14-012 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Alternate evolution, Tai attack branch, and inherited name aura proof |
+| BT14-013 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural main-phase reducer; inherited end-of-turn edges retain timing seams |
+| BT14-014 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | On Play/evolution deletion, Blast Digivolve, and Overflow proof |
+| BT14-015 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural repeated attacks prove exact DP boundary and inherited OPT |
+| BT14-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Raid selection, eligibility, tie peer, and decline proof |
+| BT14-017 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2381 token RestrictPlay correction and natural Goldramon proof `20910491e` |
+| BT14-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural token creation, replacement destinations, recovery, and X-stack proof |
+| BT14-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent attacks, bottom-two ordering, partial count, and OPT proof |
+| BT14-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural main-phase unblockable branch and Gomamon deletion replacement proof |
+| BT14-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural effect/battle Evade, refusal, suspension, and evolution proof |
+| BT14-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Any-source trash, re-evaluated return target, and public evolution proof |
+| BT14-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inclusive erratum, pooled source trash, snapshot, and inherited proof |
+| BT14-024 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent attacks, bottom-two inherited trash, and public stack proof |
+| BT14-025 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Effect/battle Evade, refusal, suspended cost, and legal stack proof |
+| BT14-026 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2394 pooled sources, Blast Digivolve, return, and Overflow proof |
+| BT14-027 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2395 both-player level-3 return and legal evolution proof |
+| BT14-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Blocker, source-triggered battle protection, Security, and Retaliation proof |
+| BT14-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Errata diagnostic correction and equal-count/pooled-trash proof `c29f00cf1` |
+| BT14-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2400–Q2404 routing, recovery, and both evolution-color proofs |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 30
-- Integrated card audits: 0
-- Corrected: 0
-- Provisional: 0
+- Integrated card audits: 30
+- Corrected: 2
+- Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 72
