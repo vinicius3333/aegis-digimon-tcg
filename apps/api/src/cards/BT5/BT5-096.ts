@@ -2,16 +2,21 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const target = { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } }, count: "all" };
+// The printed source-trash clause is explicit effect processing. Bind every eligible
+// opponent stack, emit TrashDigivolution for that complete set, then return the same
+// Digimon. Automatic attachment cleanup during Return does not emit source-trash events.
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
       actions: [
         {
-          kind: "Return",
-          target,
-          to: "hand",
+          kind: "SelectBind",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 3000 } },
+            count: "all",
+            bindAs: "normalReturnTargets",
+          },
           condition: {
             kind: "youHaveNone",
             filter: {
@@ -22,12 +27,22 @@ const compiled: CompiledCard = {
           },
         },
         {
+          kind: "TrashDigivolution",
+          target: { filter: {}, count: "all", fromSelectionRef: "normalReturnTargets" },
+          amount: 99,
+        },
+        {
           kind: "Return",
+          target: { filter: {}, count: "all", fromSelectionRef: "normalReturnTargets" },
+          to: "hand",
+        },
+        {
+          kind: "SelectBind",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 5000 } },
             count: "all",
+            bindAs: "upgradedReturnTargets",
           },
-          to: "hand",
           condition: {
             kind: "youHave",
             filter: {
@@ -37,6 +52,16 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
+        },
+        {
+          kind: "TrashDigivolution",
+          target: { filter: {}, count: "all", fromSelectionRef: "upgradedReturnTargets" },
+          amount: 99,
+        },
+        {
+          kind: "Return",
+          target: { filter: {}, count: "all", fromSelectionRef: "upgradedReturnTargets" },
+          to: "hand",
         },
       ],
     },

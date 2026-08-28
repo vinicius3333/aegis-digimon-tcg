@@ -1,6 +1,6 @@
 # BT5 Static Card Implementation Re-audit
 
-Status: static card-by-card pass queued; execution gates deferred
+Status: initial static card-by-card pass complete; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -23,7 +23,7 @@ The re-audit intentionally does not execute tests, typecheck, lint, formatting, 
 | BT5-061–070 | Static audit delivered | `internal-docs/audits/BT5/BT5-061-070.md` | Yes |
 | BT5-071–080 | Static audit delivered | `internal-docs/audits/BT5/BT5-071-080.md` | Yes |
 | BT5-081–090 | Static audit delivered | `internal-docs/audits/BT5/BT5-081-090.md` | Yes |
-| BT5-091–100 | Luna in progress | `internal-docs/audits/BT5/BT5-091-100.md` | No |
+| BT5-091–100 | Static audit delivered | `internal-docs/audits/BT5/BT5-091-100.md` | Yes |
 | BT5-101–110 | Static audit delivered | `internal-docs/audits/BT5/BT5-101-110.md` | Yes |
 | BT5-111–112 | Static audit delivered | `internal-docs/audits/BT5/BT5-111-112.md` | Yes |
 
@@ -133,6 +133,16 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 | BT5-088 Sora Takenouchi & Joe Kido | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected up-to-two bottom-source trash with blue-attack and suspension gates |
 | BT5-089 Izzy Izumi & Mimi Tachikawa | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Level-5 green attack reveal/digivolve staging with remainder timing and refusal |
 | BT5-090 Arata Sanada | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Unidentified-trash memory gate and exact Diaboromon evolution token watcher |
+| BT5-091 Takumi Aiba | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional suspend-to-draw evolution watcher plus both-player level-3 attack memory loss |
+| BT5-092 Nokia Shiramine | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact Agumon/Gabumon free play and named destination exclusions on suspend reduction |
+| BT5-093 Tai Kamiya & Matt Ishida | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opposing level-6 start-turn memory gate plus owner-turn Omnimon Security Attack aura |
+| BT5-094 Rowdy Rocker | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional red level-4-or-lower bottom-source placement with draw only after placement |
+| BT5-095 Transcendent Sword | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Mutually exclusive 11,000/15,000 deletion thresholds with printed name exclusions |
+| BT5-096 Supreme Cannon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected plural bound target sets with explicit source trash before both DP-threshold returns |
+| BT5-097 Absolute Blast | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bottom-source trash followed by independently selected sourceless deck-bottom return |
+| BT5-098 Meteor Shower | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional free play of one yellow Starmon-name Digimon from hand |
+| BT5-099 Spiral Masquerade | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Repeat-per-own-Digimon -3,000 DP scaling on one opposing target |
+| BT5-100 Royal Nuts | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Reveal five, add one Digisorption Digimon, and deck-bottom every remainder |
 | BT5-101 You Can't Actually Fly? | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent suspension plus independent level-7-gated top-security trash |
 | BT5-102 Wisselen | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Up-to-two attack/block restrictions and Digi-Burst board-state memory branches |
 | BT5-103 A Blazing Storm of Metal! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Reboot-filtered DP/Blocker grants and Security player-attack restriction |
@@ -152,11 +162,13 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 102
-- Corrected: 6
-- Provisional: 102
+- Integrated card audits: 112
+- Corrected: 7
+- Provisional: 112
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 0
 
-BT5 static re-audit remains open.
+Initial static card-by-card coverage is complete, but BT5 remains open because
+the execution gates are deferred and BT5-060 retains one private-look modeling
+ambiguity.
