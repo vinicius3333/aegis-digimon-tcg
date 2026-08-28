@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-098.js";
-describe("BT7-098 Wyvern's Breath", () => {
+describe("BT7-098 Ultra Turbulence", () => {
   it("reduces an opposing Digimon by 3000 DP", async () => {
     const s = setupEngine(
       {
