@@ -27,15 +27,17 @@ export const compiled: CompiledCard = {
           from: ["trash"],
           payCost: false,
           condition: {
-            kind: "selfDigivolutionStackHasTrait",
-            filter: {
-              nameOrTrait: [
-                {
-                  tokens: ["Darcmon", "HippoGryphonmon"],
-                  match: "name",
-                },
-              ],
-            },
+            kind: "allOf",
+            conditions: [
+              {
+                kind: "selfDigivolutionStackHasTrait",
+                filter: { nameOrTrait: [{ tokens: ["Darcmon"], match: "name" }] },
+              },
+              {
+                kind: "selfDigivolutionStackHasTrait",
+                filter: { nameOrTrait: [{ tokens: ["HippoGryphonmon"], match: "name" }] },
+              },
+            ],
             raw: "[Darcmon] and [HippoGryphonmon] are in this Digimon's digivolution cards",
           },
           cost: {
