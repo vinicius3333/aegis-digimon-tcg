@@ -21,7 +21,7 @@ describe("BT8-008 Gammamon", () => {
   it("deletes a 3000-DP-or-lower Digimon when its 6000-DP-or-higher host attacks", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT8-017", as: "host", under: ["BT8-008"] }] },
+        0: { battleArea: [{ card: "BT8-013", as: "host", under: ["BT8-008"] }] },
         1: { security: ["BT8-034"], battleArea: [{ card: "BT8-033", as: "target", dp: 3000 }] },
       },
       { autoSelectCards: true },
@@ -41,7 +41,7 @@ describe("BT8-008 Gammamon", () => {
   it("gains Gammamon's non-inherited red-Tamer effect from Canoweissmon", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT10-011", as: "canoweiss", under: ["BT10-011", "BT8-008"] }],
+        battleArea: [{ card: "BT10-011", as: "canoweiss", under: ["BT8-008", "BT8-013"] }],
         hand: [{ card: "BT8-086", as: "hiro" }],
         deck: [
           { card: "BT8-033", as: "drawnOne" },
@@ -61,7 +61,7 @@ describe("BT8-008 Gammamon", () => {
   it("does not delete when the host is below 6000 DP or the target is above 3000 DP", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT8-017", as: "host", under: ["BT8-008"], dp: 5999 }] },
+        0: { battleArea: [{ card: "BT8-013", as: "host", under: ["BT8-008"], dp: 5999 }] },
         1: { security: ["BT8-034"], battleArea: [{ card: "BT8-033", as: "target", dp: 3001 }] },
       },
       { autoSelectCards: true },
