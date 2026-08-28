@@ -22,7 +22,7 @@ describe("BT13-041 Chirinmon", () => {
           payCost: false,
           suspended: true,
           optional: true,
-          target: { filter: { controller: "mine", nameOrTrait: [{ match: "name", tokens: ["Kudamon"] }] }, count: 1 },
+          target: { filter: { controller: "mine", nameOrTrait: [{ match: "nameExact", tokens: ["Kudamon"] }] }, count: 1 },
         },
       ],
     });
