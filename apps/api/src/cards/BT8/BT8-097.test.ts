@@ -3,9 +3,27 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../ST7/ST7-06.js";
-import "./BT8-097.js";
+import { compiled } from "./BT8-097.js";
 
 describe("BT8-097 Crimson Blaze", () => {
+  it("keeps the zero-floored reduction and errata order in executable IR", () => {
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 1, scaling: { unit: "cards" } }] },
+        {
+          trigger: "Main",
+          actions: [
+            { kind: "RestrictPlay", seat: "opponent", mode: "play", byEffectOnly: true, duration: "untilOpponentTurnEnd" },
+            { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: "all" } },
+          ],
+        },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+      ],
+    });
+  });
+
   it("reduces its use cost by each opposing Digimon and never below zero", async () => {
     const opponents = Array.from({ length: 7 }, (_, index) => ({
       card: "BT1-009",
