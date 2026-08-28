@@ -45,6 +45,23 @@ describe("BT18-082 Lucemon: Chaos Mode", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-003")).toBe(true);
   });
 
+  it("naturally resolves only the opponent deletion branch when that choice deletes a permanent", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT18-082", as: "chaos" }], deck: ["BT1-001"], security: ["BT1-002"] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: ["BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 13;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-003")).toBe(false);
+  });
+
   it("naturally resolves the When Digivolving fallback from Lucemon", async () => {
     const s = setupEngine(
       {
