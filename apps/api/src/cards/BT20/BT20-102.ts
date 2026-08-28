@@ -60,8 +60,12 @@ export const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 {
-                  tokens: ["Omnimon", "X Antibody"],
+                  tokens: ["Omnimon"],
                   match: "name",
+                },
+                {
+                  tokens: ["X Antibody"],
+                  match: "trait",
                 },
               ],
             },
@@ -104,8 +108,12 @@ export const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 {
-                  tokens: ["Omnimon", "X Antibody"],
+                  tokens: ["Omnimon"],
                   match: "name",
+                },
+                {
+                  tokens: ["X Antibody"],
+                  match: "trait",
                 },
               ],
             },
