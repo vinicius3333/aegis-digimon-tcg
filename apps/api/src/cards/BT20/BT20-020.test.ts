@@ -33,6 +33,7 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: { controller: "opponent" },
           actions: [
             {
               kind: "Delete",
