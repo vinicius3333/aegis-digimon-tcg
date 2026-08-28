@@ -26,10 +26,10 @@ claim is valid.
 | BT6-001–010 | Static audit delivered | `internal-docs/audits/BT6/BT6-001-010.md` | Yes |
 | BT6-011–020 | Static audit delivered | `internal-docs/audits/BT6/BT6-011-020.md` | Yes |
 | BT6-021–030 | Static audit delivered | `internal-docs/audits/BT6/BT6-021-030.md` | Yes |
-| BT6-031–040 | Luna in progress | `internal-docs/audits/BT6/BT6-031-040.md` | No |
+| BT6-031–040 | Static audit delivered | `internal-docs/audits/BT6/BT6-031-040.md` | Yes |
 | BT6-041–050 | Luna in progress | `internal-docs/audits/BT6/BT6-041-050.md` | No |
 | BT6-051–060 | Luna in progress | `internal-docs/audits/BT6/BT6-051-060.md` | No |
-| BT6-061–070 | Queued | `internal-docs/audits/BT6/BT6-061-070.md` | No |
+| BT6-061–070 | Luna in progress | `internal-docs/audits/BT6/BT6-061-070.md` | No |
 | BT6-071–080 | Queued | `internal-docs/audits/BT6/BT6-071-080.md` | No |
 | BT6-081–090 | Queued | `internal-docs/audits/BT6/BT6-081-090.md` | No |
 | BT6-091–100 | Queued | `internal-docs/audits/BT6/BT6-091-100.md` | No |
@@ -90,14 +90,24 @@ other component and is never rounded up.
 | BT6-028 Pukumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst 2 cost and all-own-Digimon cant-be-blocked restriction through combat legality |
 | BT6-029 Azulongmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All-opponent bottom-source trash with post-trash memory and live Security Attack scaling |
 | BT6-030 Gabumon - Bond of Friendship | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected bound deck-bottom Return with Q1399 rules teardown and watcher negative |
+| BT6-031 Tinkermon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent Security Attack reduction through the end of the opponent's next turn |
+| BT6-032 Tapirmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Owner-security inherited draw watcher with once-per-turn and legal-stack evidence |
+| BT6-033 Pulsemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Up-to-three security trash scaling and exact-three inherited Jamming boundary |
+| BT6-034 Wizardmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Owner-security inherited memory watcher with once-per-turn and legal-stack evidence |
+| BT6-035 Baluchimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Three-or-fewer security Draw 2 with four-security negative |
+| BT6-036 Mimicmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Three-or-fewer security memory gain with four-security negative |
+| BT6-037 Bulkmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live at-least-three security Security Attack aura with two-security negative |
+| BT6-038 Apemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and focused direct-module loading |
+| BT6-039 Mammothmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Legal inherited stack and live four-to-three security DP transition |
+| BT6-040 Mistymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Owner-security inherited DP watcher with legal stack and combined target reduction |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 30
+- Integrated card audits: 40
 - Corrected: 4
-- Provisional: 30
+- Provisional: 40
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
