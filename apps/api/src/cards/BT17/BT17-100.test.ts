@@ -134,8 +134,11 @@ describe("BT17-100 Doomsday Clock — inherited leave prevention", () => {
   it("places a stacked Doomsday Clock in the battle area at end of the opponent's turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT17-059", as: "host", under: [{ card: DOOMSDAY_CLOCK, as: "stackedClock" }] }] },
-        1: {},
+        0: {
+          battleArea: [{ card: "BT17-059", as: "host", under: [{ card: DOOMSDAY_CLOCK, as: "stackedClock" }] }],
+          deck: ["AD1-001"],
+        },
+        1: { deck: ["AD1-001"] },
       },
       { autoSelectCards: true },
     );
