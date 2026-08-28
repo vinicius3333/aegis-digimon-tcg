@@ -408,6 +408,7 @@ export function gatherTriggeredEffects(
       targetPermanentId: string;
       stackInstanceId: string;
       trigger?: string;
+      excludeInherited?: boolean;
       inheritedOnly?: boolean;
       granterInstanceId?: string;
     }[];

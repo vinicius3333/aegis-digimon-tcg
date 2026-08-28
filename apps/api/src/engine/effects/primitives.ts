@@ -817,6 +817,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     await engine.fireEnteredByEffect?.(EffectTiming.OnPlay, instance.instanceId, owner.seat, {
       playedFromZone: "security",
     });
+    // Playing a card from security is still an effect-driven removal from that stack. Publish
+    // both security-removal buses after the entering card's effects have installed its live
+    // watchers, so cards such as BT15-037 observe the same-time removal (KB Q2519).
+    await engine.fireSubTrigger?.("whenEffectRemovesFromSecurity", { removedFromSecuritySeat: owner.seat });
+    await engine.fireSubTrigger?.("whenSecurityRemoved", {
+      removedFromSecuritySeat: owner.seat,
+      securityRemovedByEffect: true,
+    });
     await engine.fireSubTrigger?.("whenPlayed", {
       subjectPermanentId: permanent.permanentId,
       playedByEffect: true,
@@ -4726,11 +4734,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     _duration: EffectDuration,
-    opts?: { trigger?: string; inheritedOnly?: boolean; granterInstanceId?: string },
+    opts?: { trigger?: string; excludeInherited?: boolean; inheritedOnly?: boolean; granterInstanceId?: string },
   ): void => {
     continuous.conferStackEffects(targetPermanentId, stackInstanceId, {
       ...continuousOpt(),
       trigger: opts?.trigger,
+      excludeInherited: opts?.excludeInherited,
       inheritedOnly: opts?.inheritedOnly,
       granterInstanceId: opts?.granterInstanceId,
     });

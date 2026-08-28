@@ -614,6 +614,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           const def = ctx.game.definitionOf(stackCard);
           if (!definitionMatches(action.filter, def as DefinitionFacts)) continue;
           ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, {
+            excludeInherited: action.excludeInherited === true,
             granterInstanceId: ctx.source.instanceId,
           });
         }
