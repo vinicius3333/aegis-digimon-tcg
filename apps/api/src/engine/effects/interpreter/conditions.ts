@@ -149,12 +149,15 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.trigger.attackMechanic === cond.keyword;
     case "allYoursMatchFilter":
       {
-        const filter = cond.filter === undefined ? undefined : { ...cond.filter, controller: "mine" as const };
+        // Preserve the legacy no-filter predicate exactly: an omitted filter is a
+        // structural/vacuous gate and remains true even with an empty battle area.
+        if (cond.filter === undefined) return true;
+        const filter = { ...cond.filter, controller: "mine" as const };
         // "All of your Digimon and Tamers" quantifies only those card kinds and is not
         // vacuously true when the battle area has none (KB BT19-100 Q3176-Q3178). This
         // also leaves unrelated battle-area Options outside the quantified domain.
         const quantified = ctx.game.player(mine).battleArea.filter((permanent) => {
-          if (filter === undefined || filter.kind === undefined || filter.kind.length === 0) return true;
+          if (filter.kind === undefined || filter.kind.length === 0) return true;
           if (permanent.topCard === undefined) return false;
           const definition = ctx.game.definitionOf(permanent.topCard);
           const effectiveKinds = ctx.game.effectiveKinds?.(permanent.permanentId, definition.kinds) ?? definition.kinds;
@@ -165,10 +168,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         });
         return (
           quantified.length > 0 &&
-          quantified.every(
-            (permanent) =>
-              filter === undefined || permanentMatchesFilter(ctx, permanent, filter, ctx.source),
-          )
+          quantified.every((permanent) => permanentMatchesFilter(ctx, permanent, filter, ctx.source))
         );
       }
     case "breedingAreaEmpty":
