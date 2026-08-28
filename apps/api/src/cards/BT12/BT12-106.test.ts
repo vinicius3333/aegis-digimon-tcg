@@ -27,7 +27,7 @@ describe("BT12-106 compiled module", () => {
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });
 
-  it("keeps the Main unsuspend restriction live for later opponent entrants", () => {
+  it("keeps the Main unsuspend restriction live for later opponent entrants", async () => {
     const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
     const card = runtimeCompiledCard("BT12-106")!;
     const restriction = card.effects
