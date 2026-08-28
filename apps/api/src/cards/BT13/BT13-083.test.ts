@@ -37,10 +37,9 @@ describe("BT13-083 Gizmon: AT", () => {
 
   it("returns two Gizmon cards before optionally playing Gizmon: XT", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions?.[0]).toMatchObject({
-      kind: "PlayWithoutCost",
+      kind: "CostGatedBlock",
       optional: true,
-      from: ["trash"],
-      target: { filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Gizmon: XT"] }] }, count: 1 },
+      abortOnDecline: true,
       cost: {
         kind: "return",
         target: {
@@ -50,6 +49,14 @@ describe("BT13-083 Gizmon: AT", () => {
           to: "deckBottom",
         },
       },
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          optional: true,
+          from: ["trash"],
+          target: { filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Gizmon: XT"] }] }, count: 1 },
+        },
+      ],
     });
   });
 
@@ -78,20 +85,101 @@ describe("BT13-083 Gizmon: AT", () => {
       {
         0: {
           battleArea: [{ card: "BT13-083", as: "gizmon" }],
-          trash: [
-            { card: "BT13-080", as: "firstGizmon" },
-            { card: "BT13-080", as: "secondGizmon" },
-            { card: "BT13-086", as: "xt" },
-          ],
+          trash: [{ card: "BT13-080", as: "firstGizmon" }, { card: "BT13-086", as: "xt" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("firstGizmon").instanceId, s.inst("secondGizmon").instanceId);
+    preferred.push(s.inst("firstGizmon").instanceId, s.inst("gizmon").instanceId);
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("gizmon").permanentId]);
+    const resolving = advance(s.engine).verb.deletePermanent([s.perm("gizmon").permanentId]);
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const ordering = s.state.pendingDecision!;
+    const requestedOrder = [s.inst("gizmon").instanceId, s.inst("firstGizmon").instanceId];
+    expect(ordering.payloadJson).toContain(s.inst("gizmon").instanceId);
+    expect(ordering.payloadJson).toContain(s.inst("firstGizmon").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: requestedOrder },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-086"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-086")).toBe(true);
-    expect(s.state.players[0]!.deck.slice(-2).map((card) => card.cardId)).toEqual(["BT13-080", "BT13-080"]);
+    expect(s.state.players[0]!.deck.slice(-2).map((card) => card.instanceId)).toEqual(requestedOrder);
+  });
+
+  it("pays the return cost and declines cost-only play when no Gizmon: XT exists (Q2330)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-083", as: "gizmon" }],
+          trash: [{ card: "BT13-080", as: "returnable" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("gizmon").permanentId]);
+    await settle(() => s.state.players[0]!.deck.some((card) => card.cardId === "BT13-080"));
+    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT13-080")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-086")).toBe(false);
+  });
+
+  it("leaves the return cards and XT in trash when the wrapper is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-083", as: "gizmon" }],
+          trash: [{ card: "BT13-080", as: "returnable" }, { card: "BT13-086", as: "xt" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("gizmon").permanentId]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT13-083", "BT13-080", "BT13-086"]),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-086")).toBe(false);
+  });
+
+  it("pays the wrapper and can decline the nested XT play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-083", as: "gizmon" }],
+          trash: [{ card: "BT13-080", as: "returnable" }, { card: "BT13-086", as: "xt" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const resolving = advance(s.engine).verb.deletePermanent([s.perm("gizmon").permanentId]);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const wrapper = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: wrapper.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== wrapper.decisionId);
+    const nested = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: nested.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+    expect(s.state.players[0]!.deck.slice(-2).map((card) => card.cardId)).toEqual(["BT13-080", "BT13-083"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT13-086");
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-086")).toBe(false);
   });
 });
