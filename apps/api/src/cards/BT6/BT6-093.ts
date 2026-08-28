@@ -21,6 +21,7 @@ const compiled: CompiledCard = {
               ],
               orFilters: [
                 {
+                  controller: "mine",
                   kind: ["Digimon"],
                   nameOrTrait: [
                     {
