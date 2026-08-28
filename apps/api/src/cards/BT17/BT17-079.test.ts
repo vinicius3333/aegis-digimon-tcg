@@ -60,7 +60,16 @@ describe("BT17-079 Takuya Kanbara", () => {
     main.state.turnSeat = 0;
     await main.ready();
     await advance(main.engine).runTurn(0);
-    expect(main.state.memory).toBe(1);
+    expect(
+      main.events.some(
+        (event) =>
+          event.kind === "memoryChanged" &&
+          "reason" in event &&
+          event.reason === "gainMemory" &&
+          event.from === 0 &&
+          event.to === 1,
+      ),
+    ).toBe(true);
   });
 
   it("naturally grants the inherited host DP and Piercing only during its turn", async () => {
