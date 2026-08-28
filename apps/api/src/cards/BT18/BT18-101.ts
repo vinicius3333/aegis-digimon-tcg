@@ -103,7 +103,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Lucemon: Chaos Mode"],
+      namesExact: ["Lucemon: Chaos Mode"],
       cost: 6,
       isAlternate: true,
     },

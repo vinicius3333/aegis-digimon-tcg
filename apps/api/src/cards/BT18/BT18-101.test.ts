@@ -21,6 +21,9 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Lucemon: Chaos Mode"], cost: 6, isAlternate: true },
+    ]);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "WhenDigivolving",
       actions: [

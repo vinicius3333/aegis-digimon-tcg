@@ -459,6 +459,10 @@ export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequ
  * the CLIENT (digivolve-target highlighting + cost labels) read ONE source of truth.
  */
 export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequirement[]> = {
+  // BT18-101's bracketed [Lucemon: Chaos Mode] source is an exact card name;
+  // retain that exactness in the shared legality/highlighting source while the generated
+  // effects.json record remains read-only and historically used a substring `names` gate.
+  "BT18-101": [{ namesExact: ["Lucemon: Chaos Mode"], cost: 6, isAlternate: true }],
   // BT12-012: the Takuya clause treats that Tamer as a level 3 red Digimon, so it uses
   // Agunimon's ordinary red Lv.3 cost 2. The generated record incorrectly assigned cost 0.
   "BT12-012": [
