@@ -32,7 +32,7 @@ collection-complete claim is valid.
 | BT16-041–050 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-041-050.md` | Yes |
 | BT16-051–060 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-051-060.md` | Yes |
 | BT16-061–070 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-061-070.md` | Yes |
-| BT16-071–080 | Coordinator accepted; awaiting earlier ranges | `internal-docs/audits/BT16/BT16-071-080.md` | No |
+| BT16-071–080 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-071-080.md` | Yes |
 | BT16-081–090 | Luna assigned | `internal-docs/audits/BT16/BT16-081-090.md` | No |
 | BT16-091–100 | Luna assigned | `internal-docs/audits/BT16/BT16-091-100.md` | No |
 | BT16-101–102 | Luna assigned | `internal-docs/audits/BT16/BT16-101-102.md` | No |
@@ -140,14 +140,24 @@ feasible natural originating event.
 | BT16-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves Blocker duration and a legal effect-play origin proves inherited once-per-turn draw behavior (`8bab33177`). |
 | BT16-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q4708–Q4709, natural Gesomon evolution, three-source trash, unconditional post-Then restriction, and inherited attack draw-trash are covered (`42f314e31`). |
 | BT16-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2657 selection binding, natural Veemon evolution and attack timings, own selected deletion, DP comparison, and Armor Purge match the direct IR (`2a7ffbd95`). |
+| BT16-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2658 requirement enforcement, natural attack-driven Leomon evolution, and inherited self-delete/trash-play sequencing match the compiled IR (`d9b4a9426`). |
+| BT16-072 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2659 simultaneous deletion and same-name exclusion, reveal selection/remainder, Blocker, and natural deletion-batch behavior are covered (`9a213a6a6`). |
+| BT16-073 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added the missing same-name Tamer exclusion; Q2660, natural effect deletion, Retaliation, draw/trash, and existing-name negatives are covered (`91058baa8`). |
+| BT16-074 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2661/Q5532–Q5533, natural alternate evolution at exactly three security, bound delayed deletion, and inherited security-cost unsuspend are covered (`0e3380c22`). |
+| BT16-075 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the inherited Rush watcher to effect-play provenance; trait-union recovery and shared played-by-effect runtime mapping are traced (`311199eb5`). |
+| BT16-076 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2662 evolution requirements, natural 6000-DP deletion and 6001-DP fallback branches, SoC stack condition, and inherited unsuspend are covered (`024f3e6f9`). |
+| BT16-077 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Errata/Q2663–Q2664/Q4288/Q4298/Q4710, legal purple/red DNA, Free trash play, selected Rush, and player attack are naturally proved (`dd981d505`). |
+| BT16-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the reaction to effect-deletion provenance; Q2665 unrestricted own/opponent low-level deletion and natural trash play match the runtime (`b83d10df2`). |
+| BT16-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Shared-use timing, hand/trash play, source-stack gate, scaled level cap, Alliance, and natural end-turn deletion are covered (`a33d6b508`). |
+| BT16-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2666–Q2667 exact-three overlap, natural attack, opponent-effect leave prevention/security cost, and battle-deletion recovery-to-three are covered (`08c037da9`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 70
-- Corrected: 14
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 17
+- Provisional: 80
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 0
