@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -40,7 +39,7 @@ describe("BT16-010", () => {
     const lowestId = s.perm("lowest").permanentId;
     const higherId = s.perm("higher").permanentId;
 
-    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("helloogarmon"));
+    await advance(s.engine).runTurn(1);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT14-071"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === helloogarmonId)).toBe(false);
@@ -53,8 +52,85 @@ describe("BT16-010", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT16-010", as: "helloogarmon" }] }, 1: {} });
     s.state.turnSeat = 1;
 
-    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("helloogarmon"));
+    await advance(s.engine).runTurn(1);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("digivolves from a level-4 SoC Digimon for 3 memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT14-074", as: "base" }],
+        hand: [{ card: "BT16-010", as: "helloogarmon" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("helloogarmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT16-010");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT14-074")).toBe(true);
+  });
+
+  it("uses Retaliation to delete an opposing Digimon after losing a natural battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT16-010", as: "helloogarmon", dp: 3000 }] },
+      1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 4000, suspended: true }] },
+    });
+    const defenderInstanceId = s.perm("defender").topCard.instanceId;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("helloogarmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.length === 0 &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[1]!.trash.some((card) => card.instanceId === defenderInstanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("may decline the optional Loogamon play after a natural deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-010", as: "helloogarmon", dp: 3000 }],
+          trash: [{ card: "BT14-071", as: "loogamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 4000 }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.turnSeat = 1;
+    const loogamonInstanceId = s.inst("loogamon").instanceId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("helloogarmon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === loogamonInstanceId)).toBe(true);
   });
 });

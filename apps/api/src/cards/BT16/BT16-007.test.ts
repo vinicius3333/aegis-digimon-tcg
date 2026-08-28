@@ -1,7 +1,5 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-007.js";
 import "../index.js";
 
@@ -24,36 +22,70 @@ describe("BT16-007", () => {
       actions: [{ kind: "Suspend" }],
     }));
 
-  it("gains memory once for qualifying Free and yellow plays", async () => {
+  it("gains memory from a natural qualifying Free play", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT16-007", as: "host" },
-          { card: "BT8-053", as: "freeSubject" },
-          { card: "BT16-029", as: "yellowSubject" },
+        ],
+        hand: [{ card: "BT8-053", as: "freeSubject" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("freeSubject").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT8-053"));
+
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("gains memory from the post-evolution Free identity and only once per turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT16-007", as: "host" },
+          { card: "BT16-029", as: "subject" },
+        ],
+        hand: [
+          { card: "BT16-008", as: "evolving" },
+          { card: "BT11-035", as: "yellowSubject" },
         ],
       },
     });
-    s.state.memory = 0;
+    await s.ready();
+    s.state.memory = 6;
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("freeSubject").permanentId });
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("yellowSubject").permanentId });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("subject").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("subject").topCard?.cardId === "BT16-008");
 
+    expect(s.state.memory).toBe(4);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yellowSubject").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-035"));
     expect(s.state.memory).toBe(1);
   });
 
   it("does not gain memory for a different-color non-Free play", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [
-          { card: "BT16-007", as: "host" },
-          { card: "BT1-009", as: "subject" },
-        ],
+        battleArea: [{ card: "BT16-007", as: "host" }],
+        hand: [{ card: "BT1-009", as: "subject" }],
       },
     });
-    s.state.memory = 0;
+    await s.ready();
+    s.state.memory = 2;
 
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("subject").permanentId });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009"));
 
     expect(s.state.memory).toBe(0);
   });
@@ -62,13 +94,44 @@ describe("BT16-007", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT16-008", as: "host", under: ["BT16-007"] }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT16-001"] },
       },
       { autoSelectCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
 
     expect(s.perm("target").isSuspended).toBe(true);
+  });
+
+  it("digivolves through the Poromon alternate requirement for zero memory", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-010", as: "base", under: ["BT16-001"] }],
+        hand: [{ card: "BT16-007", as: "evolving" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT16-007");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT16-001")).toBe(true);
   });
 });
