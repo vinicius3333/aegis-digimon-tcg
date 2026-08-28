@@ -39,6 +39,35 @@ describe("BT18-013 Deltamon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 
+  it("selects the Wicked God branch of the OR trait filter and rejects a nonmatching card", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT18-013", as: "deltamon" },
+            { card: "BT1-001", as: "cost" },
+          ],
+          trash: [
+            { card: "BT1-030", as: "nonmatching" },
+            { card: "BT19-075", as: "wicked" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("wicked").instanceId);
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deltamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wicked").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wicked").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("nonmatching").instanceId);
+  });
+
   it("may decline the optional processing condition without moving either card", async () => {
     const s = setupEngine(
       {
