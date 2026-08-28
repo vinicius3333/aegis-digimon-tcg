@@ -77,4 +77,34 @@ describe("BT13-071 Giromon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-001"]);
   });
+
+  it("makes Giromon eligible to block a real opponent attack and suspends it when blocking", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-071", as: "giromon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [s.perm("giromon").permanentId],
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("giromon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blocked"));
+    expect(s.perm("giromon").isSuspended).toBe(true);
+  });
 });
