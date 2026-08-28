@@ -21,6 +21,11 @@ export async function runDnaDigivolve(
   ctx: EffectContext,
   action: Extract<Action, { kind: "DnaDigivolve" }>,
 ): Promise<void> {
+  // Bind the DNA outcome for ordered follow-up clauses such as BT16-097's
+  // "if this effect DNA digivolved, Recovery +1". Ordinary Digivolve owns the
+  // same result binding; DNA must clear stale state before resolving and publish
+  // success only after the merge primitive creates the result.
+  ctx.lastDigivolveResult = false;
   if (action.into === undefined) {
     unsupported(ctx, action, "DnaDigivolve without an `into` filter is unresolvable");
     return;
@@ -172,6 +177,7 @@ export async function runDnaDigivolve(
     payCost: action.payCost,
     ...(looseMaterialIds.length > 0 ? { extraMaterialInstanceIds: looseMaterialIds } : {}),
   });
+  if (result !== undefined) ctx.lastDigivolveResult = true;
   if (action.bindResultAs && result !== undefined) {
     if (!ctx.boundPlayed) (ctx as { boundPlayed: Map<string, Set<string>> }).boundPlayed = new Map();
     ctx.boundPlayed!.set(action.bindResultAs, new Set([result.permanentId]));
