@@ -31,12 +31,12 @@ claim is valid.
 | BT9-031–040 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-031-040.md` | Yes |
 | BT9-041–050 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-041-050.md` | Yes |
 | BT9-051–060 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-051-060.md` | Yes |
-| BT9-061–070 | Luna in progress | `internal-docs/audits/BT9/BT9-061-070.md` | No |
-| BT9-071–080 | Luna in progress | `internal-docs/audits/BT9/BT9-071-080.md` | No |
-| BT9-081–090 | Luna in progress | `internal-docs/audits/BT9/BT9-081-090.md` | No |
-| BT9-091–100 | Queued | `internal-docs/audits/BT9/BT9-091-100.md` | No |
-| BT9-101–110 | Queued | `internal-docs/audits/BT9/BT9-101-110.md` | No |
-| BT9-111–112 | Queued | `internal-docs/audits/BT9/BT9-111-112.md` | No |
+| BT9-061–070 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-061-070.md` | Yes |
+| BT9-071–080 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-071-080.md` | Yes |
+| BT9-081–090 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-081-090.md` | Yes |
+| BT9-091–100 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-091-100.md` | Yes |
+| BT9-101–110 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-101-110.md` | Yes |
+| BT9-111–112 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-111-112.md` | Yes |
 
 ## Score model
 
@@ -122,16 +122,69 @@ other component and is never rounded up.
 | BT9-058 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-051-060.md` |
 | BT9-059 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-051-060.md` |
 | BT9-060 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-051-060.md` |
+| BT9-061 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-061-070.md` |
+| BT9-062 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-061-070.md` |
+| BT9-063 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-061-070.md` |
+| BT9-064 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-061-070.md` |
+| BT9-065 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-061-070.md` |
+| BT9-066 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-061-070.md` |
+| BT9-067 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-061-070.md` |
+| BT9-068 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-061-070.md` |
+| BT9-069 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-061-070.md` |
+| BT9-070 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-061-070.md` |
+| BT9-071 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-071-080.md` |
+| BT9-072 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-071-080.md` |
+| BT9-073 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-071-080.md` |
+| BT9-074 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-071-080.md` |
+| BT9-075 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-071-080.md` |
+| BT9-076 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-071-080.md` |
+| BT9-077 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-071-080.md` |
+| BT9-078 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-071-080.md` |
+| BT9-079 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-071-080.md` |
+| BT9-080 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-071-080.md` |
+| BT9-081 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-081-090.md` |
+| BT9-082 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-081-090.md` |
+| BT9-083 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-081-090.md` |
+| BT9-084 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-081-090.md` |
+| BT9-085 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-081-090.md` |
+| BT9-086 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-081-090.md` |
+| BT9-087 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-081-090.md` |
+| BT9-088 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-081-090.md` |
+| BT9-089 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-081-090.md` |
+| BT9-090 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-081-090.md` |
+| BT9-091 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-091-100.md` |
+| BT9-092 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-091-100.md` |
+| BT9-093 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-091-100.md` |
+| BT9-094 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-091-100.md` |
+| BT9-095 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-091-100.md` |
+| BT9-096 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-091-100.md` |
+| BT9-097 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-091-100.md` |
+| BT9-098 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-091-100.md` |
+| BT9-099 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-091-100.md` |
+| BT9-100 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-091-100.md` |
+| BT9-101 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-101-110.md` |
+| BT9-102 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-101-110.md` |
+| BT9-103 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-101-110.md` |
+| BT9-104 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-101-110.md` |
+| BT9-105 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-101-110.md` |
+| BT9-106 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-101-110.md` |
+| BT9-107 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-101-110.md` |
+| BT9-108 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-101-110.md` |
+| BT9-109 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-101-110.md` |
+| BT9-110 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-101-110.md` |
+| BT9-111 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-111-112.md` |
+| BT9-112 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-111-112.md` |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 90
-- Integrated card audits: 60
-- Corrected: 9
-- Provisional: 60
+- Assigned: 112
+- Integrated card audits: 112
+- Corrected: 17
+- Provisional: 112
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 22
+- Remaining unassigned: 0
 
-BT9 static re-audit remains open.
+BT9 static coverage is complete, but the re-audit remains open pending the
+deferred execution gates.
