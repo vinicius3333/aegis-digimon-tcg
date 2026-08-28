@@ -1,6 +1,6 @@
 # BT20 Static Card Implementation Re-audit
 
-Status: static preparation overlap in progress; chronological integration waits for BT19; execution gates deferred
+Status: static card-by-card audit in progress; BT19 static coverage recorded; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -9,10 +9,9 @@ the immutable committed card-catalog blob.
 
 This ledger follows the repository's `verify-card-implementation` protocol
 and the chronological campaign plan. BT20 workers may prepare static range
-evidence because every BT19 card is assigned and the user requested five
-parallel Luna lanes, but no BT20 range may be integrated before BT19 static
-coverage is recorded. Detailed English reports belong under
-`internal-docs/audits/BT20/`.
+evidence in five parallel Luna lanes. BT19 static coverage is now recorded,
+so accepted BT20 ranges may be integrated in strict ascending order. Detailed
+English reports belong under `internal-docs/audits/BT20/`.
 
 ## Current execution state
 
@@ -22,8 +21,8 @@ provisional and capped at 8/10.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT20-001–010 | Luna prepared; chronological integration waits for BT19 | `internal-docs/audits/BT20/BT20-001-010.md` | No |
-| BT20-011–020 | Luna assigned | `internal-docs/audits/BT20/BT20-011-020.md` | No |
+| BT20-001–010 | Luna prepared; coordinator review ready | `internal-docs/audits/BT20/BT20-001-010.md` | No |
+| BT20-011–020 | Luna prepared; chronological integration waits for BT20-001–010 | `internal-docs/audits/BT20/BT20-011-020.md` | No |
 | BT20-021–030 | Luna assigned | `internal-docs/audits/BT20/BT20-021-030.md` | No |
 | BT20-031–040 | Luna assigned | `internal-docs/audits/BT20/BT20-031-040.md` | No |
 | BT20-041–050 | Luna assigned | `internal-docs/audits/BT20/BT20-041-050.md` | No |
@@ -58,4 +57,4 @@ applicable non-gate component rather than being rounded up.
 - Blocked or ambiguous: 0
 - Remaining unassigned: 42
 
-BT20 static preparation is in progress; chronological integration remains blocked on BT19 static coverage.
+BT20 static auditing is in progress; accepted ranges are eligible for strict chronological integration.

@@ -1,6 +1,6 @@
 # BT19 Static Card Implementation Re-audit
 
-Status: static card-by-card audit in progress; BT18 static coverage recorded; execution gates deferred
+Status: static card-by-card coverage recorded; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -31,7 +31,7 @@ provisional and capped at 8/10.
 | BT19-071–080 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-071-080.md` | Yes |
 | BT19-081–090 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-081-090.md` | Yes |
 | BT19-091–100 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-091-100.md` | Yes |
-| BT19-101–102 | Luna assigned | `internal-docs/audits/BT19/BT19-101-102.md` | No |
+| BT19-101–102 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-101-102.md` | Yes |
 
 ## Score model
 
@@ -145,20 +145,23 @@ applicable non-gate component rather than being rounded up.
 | BT19-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural source scenarios cover effect-trash, Main, and Security Device placement, but remain unexecuted (`995833fb9`). |
 | BT19-099 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Reduced Composite revival and Delay replacement with relative play cost remain structurally proven (`995833fb9`). |
 | BT19-100 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected the filtered D-Reaper domain, exact Mother D-Reaper scaling, and Security target ceiling while preserving legacy unfiltered behavior; proof remains structural (`995833fb9`, `466b69646`). |
+| BT19-101 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected exact MoonMillenniummon evolution; natural return and immunity paths are covered, but the central Overclock loop remains unproven (`a72eda074`, `87f7d6238`). |
+| BT19-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected optional By-playing processing and exact Luminamon/Nene routes; natural positive, decline, unavailable-cost, deletion, and exact-name boundaries are source-covered (`4daef6770`, `87f7d6238`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 100
-- Corrected: 24
-- Provisional: 100
+- Integrated card audits: 102
+- Corrected: 26
+- Provisional: 102
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 74 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`–`BT19-054`, `BT19-057`, `BT19-060`–`BT19-078`, `BT19-080`–`BT19-086`, `BT19-088`, `BT19-091`–`BT19-100` source-proof gaps)
+- Blocked or ambiguous: 75 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`–`BT19-054`, `BT19-057`, `BT19-060`–`BT19-078`, `BT19-080`–`BT19-086`, `BT19-088`, `BT19-091`–`BT19-101` source-proof gaps)
 - Remaining unassigned: 0
 
 Operational disclosure: the BT19-041–050 worker accidentally ran one isolated
 `git diff --check` against the BT19-042/044 changed files. It was not used as a
 delivery gate, was not repeated, and all Executed delivery gates remain `0/2`.
 
-BT19 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
+BT19 static card-by-card coverage is recorded. All scores remain provisional,
+delivery gates remain `0/2`, and no 10/10 collection-complete claim is made.
