@@ -8,23 +8,23 @@ import "./BT6-066.js";
 describe("BT6-066 PileVolcamon", () => {
   it("has Reboot but remains suspended after attacking on its own turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT6-066", as: "gigadramon" }] },
+      0: { battleArea: [{ card: "BT6-066", under: ["BT6-061"], as: "pilevolcamon" }] },
       1: { security: ["BT1-010", "BT1-011"] },
     });
     await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("gigadramon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("pilevolcamon"), "Reboot")).toBe(true);
 
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("gigadramon").permanentId,
+        attackerPermanentId: s.perm("pilevolcamon").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     const combat = (s.engine as unknown as { combat: { isAttacking: boolean } }).combat;
     await settle(() => s.state.phase === Phase.Main && !combat.isAttacking, 5000);
 
-    expect(s.perm("gigadramon").isSuspended).toBe(true);
+    expect(s.perm("pilevolcamon").isSuspended).toBe(true);
   });
 
   it("de-digivolves only once per turn when another own Digimon is deleted on the opponent's turn", async () => {
@@ -37,7 +37,9 @@ describe("BT6-066 PileVolcamon", () => {
             { card: "BT1-011", as: "second" },
           ],
         },
-        1: { battleArea: [{ card: "BT6-067", as: "target", under: ["BT6-064", "BT6-056"] }] },
+        1: {
+          battleArea: [{ card: "BT6-067", as: "target", under: ["BT6-056", "BT6-058", "BT6-064"] }],
+        },
       },
       { autoSelectCards: true },
     );
@@ -46,9 +48,9 @@ describe("BT6-066 PileVolcamon", () => {
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("first").permanentId], "byEffect");
-    await settle(() => s.perm("target").stack.length === 1);
+    await settle(() => s.perm("target").stack.length === 2);
     await advance(s.engine).verb.deletePermanent([s.perm("second").permanentId], "byEffect");
 
-    expect(s.perm("target").stack).toHaveLength(1);
+    expect(s.perm("target").stack).toHaveLength(2);
   });
 });
