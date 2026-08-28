@@ -14,6 +14,7 @@ import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../
 import { createCardSource, type CardStateLookup } from "../../engine/cards/CardSource.js";
 import { createGameAccess, createEffectContext } from "../../engine/effects/context.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 // The REAL authored IR (the override exports it so the A3 asserts against the on-disk source).
 import { compiled as BT15_092 } from "./BT15-092.js";
 import "../index.js";
@@ -139,5 +140,47 @@ describe("BT15-092 Revelation of Light — [Main] play-from-security (use-option
     const r = await runMainEffect(withoutPlay(BT15_092));
     expect(r.playedFromSecurity).toBe(false);
     expect(r.battleAreaCount).toBe(0);
+  });
+
+  it("naturally plays a yellow level-4-or-lower security Digimon, shuffles, and replaces itself on top with Kari", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-084", as: "kari" }],
+          hand: [{ card: "BT15-092", as: "option" }],
+          security: [{ card: "BT15-033", as: "eligible" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("eligible").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("option").instanceId);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(false);
+  });
+
+  it("naturally activates its security effect when revealed by an attack", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT15-092", as: "option" }] },
+        1: { battleArea: [{ card: "BT15-053", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+
+    expect(s.perm("attacker").currentDP).toBe(7000);
   });
 });
