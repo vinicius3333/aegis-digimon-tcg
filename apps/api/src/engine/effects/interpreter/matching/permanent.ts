@@ -642,6 +642,7 @@ export function permanentMatchesFilter(
       .map((card) => ctx.game.definitionOf(card).inheritedEffectText ?? "")
       .join("\n")
       .toLowerCase();
+    const normalizedInheritedText = inheritedText.replace(/[\s-]+/g, "");
     const grantedTokens = ctx.fx.customEffectGrants?.(permanent.permanentId) ?? [];
     const liveMatches = textRefs.some((reference) =>
       reference.tokens.some((token) => {
@@ -652,6 +653,7 @@ export function permanentMatchesFilter(
         );
         return (
           inheritedHeader.test(inheritedText) ||
+          normalizedInheritedText.includes(`[${normalizedToken}]`) ||
           grantedTokens.some((grant) => {
             const granted = grant.token.toLowerCase();
             return (
