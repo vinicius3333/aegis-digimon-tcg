@@ -36,7 +36,7 @@ collection-complete claim is valid.
 | BT15-071–080 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-071-080.md` | Yes |
 | BT15-081–090 | Luna assigned | `internal-docs/audits/BT15/BT15-081-090.md` | No |
 | BT15-091–100 | Luna assigned | `internal-docs/audits/BT15/BT15-091-100.md` | No |
-| BT15-101–102 | Unassigned | `internal-docs/audits/BT15/BT15-101-102.md` | No |
+| BT15-101–102 | Luna assigned | `internal-docs/audits/BT15/BT15-101-102.md` | No |
 
 ## Score model
 
@@ -149,13 +149,13 @@ behavior.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 100
+- Assigned: 102
 - Integrated card audits: 80
 - Corrected: 27
 - Provisional: 80
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 2
+- Remaining unassigned: 0
 
 BT15 static re-audit is in progress.
 
