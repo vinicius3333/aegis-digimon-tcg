@@ -29,7 +29,7 @@ claim is valid.
 | BT7-031–040 | Static audit delivered | `internal-docs/audits/BT7/BT7-031-040.md` | Yes |
 | BT7-041–050 | Static audit delivered | `internal-docs/audits/BT7/BT7-041-050.md` | Yes |
 | BT7-051–060 | Static audit delivered | `internal-docs/audits/BT7/BT7-051-060.md` | Yes |
-| BT7-061–070 | Luna in progress | `internal-docs/audits/BT7/BT7-061-070.md` | No |
+| BT7-061–070 | Static audit delivered | `internal-docs/audits/BT7/BT7-061-070.md` | Yes |
 | BT7-071–080 | Static audit delivered | `internal-docs/audits/BT7/BT7-071-080.md` | Yes |
 | BT7-081–090 | Static audit delivered | `internal-docs/audits/BT7/BT7-081-090.md` | Yes |
 | BT7-091–100 | Luna in progress | `internal-docs/audits/BT7/BT7-091-100.md` | No |
@@ -120,6 +120,16 @@ other component and is never rounded up.
 | BT7-058 SkullKnightmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected self/name inherited Security Attack aura and structured DeadlyAxemon placement evolution cost |
 | BT7-059 DeadlyAxemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Up-to-two Knightmon reveal and self/name-conditioned inherited DP aura |
 | BT7-060 Grumblemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Black-Tamer alternate evolution with derived cost and ordinary stack transition boundaries |
+| BT7-061 Gigasmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected black-Tamer base-color metadata with derived cost and self Blocker aura |
+| BT7-062 Dorugamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent-turn Blocker from another or stack X-Antibody source plus inherited host DP aura |
+| BT7-063 DarkKnightmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact one-of-each placement/replay and shared own-stack selection; sole-source ruling ambiguous |
+| BT7-064 DoruGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected ordinary evolution timing and any-kind black X-Antibody placement before protection |
+| BT7-065 Dorugoramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Source-stack X-Antibody DP scaling and successful-placement dynamic play-cost deletion cap |
+| BT7-066 AncientVolcanomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | De-Digivolve 3 plus bounded optional black level-four-or-lower Hybrid play |
+| BT7-067 Ghostmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Effectless full-coverage registration and ordinary purple level-two evolution evidence |
+| BT7-068 Lopmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited own-Tamer play watcher with owner-turn and once-per-turn boundaries |
+| BT7-069 Eyesmon: Scatter Mode | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Mandatory On Deletion Draw 3 then hand Trash 2 plus one-copy restriction metadata |
+| BT7-070 Wendigomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional reveal with mandatory revealed-Tamer trash and inherited Tamer-play draw |
 | BT7-071 Loweemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Purple-Tamer alternate evolution with cost-two stack transition and color boundary |
 | BT7-072 Eyesmon: Scatter Mode | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact-name trash condition, own-effect hand-trash self play, and owner-trash DP scaling |
 | BT7-073 KaiserLeomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Purple-Tamer alternate evolution and Hybrid-or-Koichi Retaliation through opponent next turn |
@@ -157,11 +167,11 @@ other component and is never rounded up.
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 92
-- Corrected: 29
-- Provisional: 92
+- Integrated card audits: 102
+- Corrected: 32
+- Provisional: 102
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 0
+- Blocked or ambiguous: 1
 - Remaining unassigned: 0
 
 BT7 static re-audit remains open.
