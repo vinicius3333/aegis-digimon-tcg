@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -33,5 +34,20 @@ describe("BT13-078 Phascomon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("phascomon").permanentId]);
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-002"]);
+  });
+
+  it("draws before trashing for the inherited end-of-opponent-turn effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", under: ["BT13-078"], as: "host" }], deck: ["BT1-002"], hand: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("host"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(1);
   });
 });
