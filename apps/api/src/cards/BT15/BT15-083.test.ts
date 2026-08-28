@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type Seat } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
+import "../index.js";
 import "./BT15-083.js";
 
 // A3 for BT15-083 (Matt Ishida) — Blue Tamer.
@@ -35,7 +37,7 @@ function makeSource(permanentId = "PERM#matt", onBattleArea = true): CardSource 
       nameEn: "Matt Ishida",
       kinds: ["Tamer"],
       colors: ["Blue"],
-      playCost: 2,
+      playCost: 3,
       dp: undefined,
       evoCosts: [],
       maxCountInDeck: 4,
@@ -125,6 +127,17 @@ function makeSimpleContext(recorder: { calls: Call[] }, source: CardSource) {
 
 describe("BT15-083 Matt Ishida", () => {
   const module = getEffectModule("BT15-083");
+
+  it("matches the catalog identity and keeps the direct module full and residual-free", () => {
+    expect(getCardDefinition("BT15-083")).toMatchObject({
+      nameEn: "Matt Ishida",
+      colors: ["Blue"],
+      kinds: ["Tamer"],
+      playCost: 3,
+    });
+    expect(module?.coverage).toBe("full");
+    expect(module?.residual).toEqual([]);
+  });
 
   it("is registered", () => {
     expect(module, "BT15-083 must self-register on import").toBeDefined();
@@ -297,5 +310,49 @@ describe("BT15-083 Matt Ishida", () => {
       expect(call!.args[0]).toEqual(["INST#BT15-083"]);
       expect((call!.args[1] as { payCost: boolean }).payCost).toBe(false);
     });
+  });
+
+  it("naturally reveals three cards on play, adds a named match, and bottoms the rest", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT15-083", as: "matt" }],
+          deck: ["BT1-029", "BT1-001", "BT1-001"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("matt").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-029"));
+
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("matt").instanceId)).toBe(false);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-001"]);
+  });
+
+  it("naturally suspends Matt and gains memory when an own Digimon effect adds a card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-083", as: "matt" }],
+          hand: [{ card: "BT1-010", as: "agumon" }],
+          deck: ["BT15-082", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("matt").isSuspended);
+
+    expect(s.state.memory).toBe(8);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT15-082")).toBe(true);
   });
 });
