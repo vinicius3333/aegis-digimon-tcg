@@ -121,4 +121,34 @@ describe("BT20-080 Fenriloogamon", () => {
     await settle(() => s.state.players[0]!.battleArea[0]?.topCard.cardId === "BT20-080");
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-080");
   });
+
+  it("naturally trashes the opponent's top security after an opponent Digimon is deleted", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-080", under: ["BT20-080"], as: "host" },
+            { card: "BT20-032", as: "sacrifice" },
+          ],
+          hand: [{ card: "BT20-073", as: "metal" }],
+          security: ["BT20-047"],
+        },
+        1: { battleArea: [{ card: "BT20-071", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("sacrifice").permanentId, s.perm("target").permanentId);
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
+    await settle(() => {
+      const opponent = s.state.players[1]!;
+      const mine = s.state.players[0]!;
+      return opponent.battleArea.length === 0 && mine.security.length === 0;
+    });
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT20-047")).toBe(true);
+  });
 });
