@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-036.js";
 
 describe("BT9-036 Gatomon (X Antibody)", () => {
@@ -30,5 +30,44 @@ describe("BT9-036 Gatomon (X Antibody)", () => {
     );
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.perm("target").currentDP).toBe(1000);
+  });
+
+  it("uses the zero-cost Gatomon alternate evolution and retains the inherited effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-036", as: "base" }],
+          hand: [{ card: "BT9-036", as: "evolving" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: { battleArea: [{ card: "BT1-028", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT2-036"]);
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("base"));
+    expect(s.perm("target").currentDP).toBe(1000);
+  });
+
+  it("does not apply the inherited effect below the three-security threshold", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT2-036", as: "host", under: ["BT9-036"] }], security: ["BT1-001", "BT1-002"] },
+        1: { battleArea: [{ card: "BT1-028", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.perm("target").currentDP).toBe(3000);
   });
 });
