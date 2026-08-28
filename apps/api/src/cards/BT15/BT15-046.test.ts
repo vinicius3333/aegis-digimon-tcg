@@ -52,4 +52,25 @@ describe("BT15-046", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId), 1_500);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
+
+  it("digivolves legally from a green level-3 Digimon and preserves the source stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-065", as: "base" }],
+        hand: [{ card: "BT15-046", as: "woodmon" }],
+      },
+    });
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("woodmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT15-046");
+
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-065"]);
+  });
 });
