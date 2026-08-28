@@ -29,8 +29,12 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "DeDigivolve", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 }, amount: 1 },
-        { kind: "Trash", target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 } },
+        {
+          kind: "DeDigivolve",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 },
+          amount: 1,
+          stopAtLevel: 3,
+        },
         { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 6 }, count: 3 } },
       ],
     },

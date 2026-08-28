@@ -52,6 +52,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "Digivolve",
+          condition: { kind: "ifThisEffectActed", raw: "if you placed a card under a Digimon" },
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           into: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Destromon", "Galacticmon"], match: "name" }] },
           from: ["trash"],
