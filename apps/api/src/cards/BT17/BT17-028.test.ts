@@ -49,24 +49,32 @@ describe("BT17-028", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === higherId)).toBe(true);
   });
 
-  it("moves the opponent's top security to hand when an effect adds to a hand", async () => {
+  it("moves the opponent's top security to hand when its On Play effect returns a Digimon", async () => {
     const s = setupEngine(
       {
-        0: {
-          battleArea: [{ card: "BT17-028", as: "ancient" }],
-          hand: [{ card: "BT1-029", as: "gabumon" }],
-          deck: ["BT1-011"],
+        0: { hand: [{ card: "BT17-028", as: "ancient" }] },
+        1: {
+          battleArea: [{ card: "BT1-029", as: "target" }],
+          security: ["BT1-011", { card: "BT1-010", as: "topSecurity" }],
         },
-        1: { security: ["BT1-011", { card: "BT1-010", as: "topSecurity" }] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
-    s.state.memory = 3;
+    s.state.memory = 12;
+    const targetId = s.perm("target").topCard!.instanceId;
     const topSecurityId = s.inst("topSecurity").instanceId;
 
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToHand", { effectAddedToHandSeat: 0 });
-    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === topSecurityId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.hand.some((card) => card.instanceId === targetId) &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === topSecurityId),
+    );
 
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === targetId)).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === topSecurityId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
