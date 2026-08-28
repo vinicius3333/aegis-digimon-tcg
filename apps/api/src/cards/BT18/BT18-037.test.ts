@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-037.js";
 
@@ -23,28 +21,32 @@ describe("BT18-037 Lobomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-037", as: "lobomon" }],
+          battleArea: [{ card: "BT7-087", as: "koji" }],
+          hand: [{ card: "BT18-037", as: "lobomon" }],
           security: [{ card: "BT12-009", as: "hybrid", faceUp: true }, "BT1-001"],
           deck: ["BT1-002"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 5;
     await s.ready();
 
-    const resolving = advance(s.engine).fireForInstance(EffectTiming.WhenDigivolving, s.perm("lobomon").topCard!);
-    await settle(() => s.decisions.length > 0);
-    const decision = s.decisions[0]!.req;
     expect(
       s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: decision.decisionId,
-        response: { kind: "optional", accept: true },
+        type: "digivolve",
+        permanentId: s.perm("koji").permanentId,
+        instanceId: s.inst("lobomon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await settle(
+      () =>
+        s.perm("koji").topCard?.instanceId === s.inst("lobomon").instanceId &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId),
+    );
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("hybrid").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.security.some((card) => card.cardId === "BT1-002")).toBe(true);
     assertNoLoudGap(s);
@@ -99,7 +101,8 @@ describe("BT18-037 Lobomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-037", as: "lobomon" }],
+          battleArea: [{ card: "BT7-087", as: "koji" }],
+          hand: [{ card: "BT18-037", as: "lobomon" }],
           security: [
             { card: "BT12-009", as: "hybrid" },
             { card: "BT1-009", as: "nonmatch" },
@@ -109,11 +112,20 @@ describe("BT18-037 Lobomon", () => {
       },
       { autoDeclineOptional: true },
     );
+    s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.WhenDigivolving, s.perm("lobomon").topCard!);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("koji").permanentId,
+        instanceId: s.inst("lobomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("koji").topCard?.instanceId === s.inst("lobomon").instanceId);
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.deck.some(({ instanceId }) => instanceId === s.inst("recoveryCard").instanceId)).toBe(
       true,
