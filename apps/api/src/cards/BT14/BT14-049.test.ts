@@ -39,4 +39,51 @@ describe("BT14-049", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.some((card) => card.cardId === "BT14-042")).toBe(true);
   });
+
+  it("naturally exposes Counter timing and Blast Digivolves to resolve the inherited effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-045", as: "base" }],
+          hand: [{ card: "BT14-049", as: "lillymon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT14-042", as: "attacker", dp: 7000 },
+            { card: "BT14-042", as: "target", dp: 4000 },
+          ],
+          security: ["BT1-001"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const targetId = s.perm("target").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("lillymon").instanceId);
+    expect(eligible).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT14-049");
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
+    expect(s.state.players[1]!.deck.some((card) => card.cardId === "BT14-042")).toBe(true);
+  });
 });
