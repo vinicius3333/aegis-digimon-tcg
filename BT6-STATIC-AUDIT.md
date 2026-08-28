@@ -27,10 +27,10 @@ claim is valid.
 | BT6-011–020 | Static audit delivered | `internal-docs/audits/BT6/BT6-011-020.md` | Yes |
 | BT6-021–030 | Static audit delivered | `internal-docs/audits/BT6/BT6-021-030.md` | Yes |
 | BT6-031–040 | Static audit delivered | `internal-docs/audits/BT6/BT6-031-040.md` | Yes |
-| BT6-041–050 | Luna in progress | `internal-docs/audits/BT6/BT6-041-050.md` | No |
+| BT6-041–050 | Static audit delivered | `internal-docs/audits/BT6/BT6-041-050.md` | Yes |
 | BT6-051–060 | Luna in progress | `internal-docs/audits/BT6/BT6-051-060.md` | No |
 | BT6-061–070 | Luna in progress | `internal-docs/audits/BT6/BT6-061-070.md` | No |
-| BT6-071–080 | Queued | `internal-docs/audits/BT6/BT6-071-080.md` | No |
+| BT6-071–080 | Luna in progress | `internal-docs/audits/BT6/BT6-071-080.md` | No |
 | BT6-081–090 | Queued | `internal-docs/audits/BT6/BT6-081-090.md` | No |
 | BT6-091–100 | Queued | `internal-docs/audits/BT6/BT6-091-100.md` | No |
 | BT6-101–110 | Queued | `internal-docs/audits/BT6/BT6-101-110.md` | No |
@@ -100,14 +100,24 @@ other component and is never rounded up.
 | BT6-038 Apemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and focused direct-module loading |
 | BT6-039 Mammothmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Legal inherited stack and live four-to-three security DP transition |
 | BT6-040 Mistymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Owner-security inherited DP watcher with legal stack and combined target reduction |
+| BT6-041 Manticoremon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Top-security cost, one-opponent -5000 DP target, and empty-security negative |
+| BT6-042 Babamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional Rosemon or up-to-two yellow level-3 On Deletion free-play modes |
+| BT6-043 SkullMammothmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Intrinsic Blocker plus live three-or-fewer security DP aura boundary |
+| BT6-044 Dynasmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Security-cost reveal ordering, optional up-to-two add, and owner-security Recovery watcher |
+| BT6-045 Bakomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Two-suspended-opponent threshold, one-suspended negative, and legal inherited stack |
+| BT6-046 Pomumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary green evolution evidence |
+| BT6-047 Morphomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent Menoa/Eosmon reveal slots, partial match, and deck-bottom remainder |
+| BT6-048 Parasaurmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary green evolution evidence |
+| BT6-049 Arbormon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Green-Tamer alternate digivolution with legal positive and red-Tamer rejection |
+| BT6-050 Petaldramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Green-Tamer alternate digivolution and intrinsic Piercing through shared combat seams |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 40
+- Integrated card audits: 50
 - Corrected: 4
-- Provisional: 40
+- Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
