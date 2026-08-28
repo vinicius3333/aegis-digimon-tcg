@@ -6,7 +6,7 @@ describe("BT6-051 Toropiamon", () => {
   it("suspends an opposing 5000 DP Digimon when its host attacks", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-010", under: ["BT6-051"], as: "host" }] },
+        0: { battleArea: [{ card: "BT1-080", under: ["BT6-051"], as: "host" }] },
         1: { battleArea: [{ card: "BT1-010", dp: 5000, as: "target" }], security: ["BT1-010"] },
       },
       { autoSelectCards: true },
