@@ -53,7 +53,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["DexDorugoramon"], match: "name" }],
+            nameOrTrait: [{ tokens: ["DexDorugoramon"], match: "nameExact" }],
           },
           actions: [
             {
@@ -62,7 +62,7 @@ export const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["DeathXmon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["DeathXmon"], match: "nameExact" }],
                 },
                 count: 1,
               },
@@ -76,7 +76,7 @@ export const compiled: CompiledCard = {
                     kind: ["Digimon"],
                     zone: "digivolutionCards",
                     hostFilter: { isTriggerSource: true },
-                    nameOrTrait: [{ tokens: ["Dorumon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Dorumon"], match: "nameExact" }],
                   },
                   count: 1,
                 },
@@ -101,7 +101,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Dorumon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
