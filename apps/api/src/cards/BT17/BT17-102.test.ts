@@ -77,6 +77,39 @@ describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4
     // The opponent's Digimon with 4000 DP (≤ Greymon's 5000 DP) was deleted.
     expect(p1?.battleArea.some((p) => p.permanentId === oppPermId)).toBe(false);
   });
+
+  it("naturally plays a Tai/Kari Tamer when the Greymon host is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: GREYMON,
+              as: "greymon",
+              dp: 5000,
+              under: [{ card: AGUMON_LV3, as: "agumon" }],
+            },
+          ],
+          hand: [{ card: "BT17-093", as: "taiKari" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 12000, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const p0 = s.state.players[0];
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+
+    const result = s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("greymon").permanentId },
+    });
+    expect(result.ok).toBe(true);
+
+    await settle(() => p0?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093"), 1200);
+    expect(p0?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-093")).toBe(true);
+  });
 });
 
 describe("BT17-102 Greymon — dynamic stack names", () => {
