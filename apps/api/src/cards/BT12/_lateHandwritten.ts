@@ -710,11 +710,14 @@ export function lateBt12Module(cardId: string): EffectModule {
           const resolve = async (ctx: EffectContext) => {
             const target = await choosePermanent(ctx, opposingDigimon(ctx, source));
             if (target) await ctx.fx.deletePermanent([target], "byEffect");
-            const shoutmon = myPermanents(ctx, source, (d) => d.nameEn.includes("Shoutmon X7: Superior Mode"))[0];
+            const shoutmon = await choosePermanent(
+              ctx,
+              myPermanents(ctx, source, (d) => d.nameEn === "Shoutmon X7: Superior Mode"),
+            );
             if (shoutmon) {
-              await ctx.fx.unsuspend([shoutmon.permanentId]);
+              await ctx.fx.unsuspend([shoutmon]);
               if (await ctx.ask.optional(ctx, "Attack a player with this Digimon?"))
-                await ctx.fx.forceAttack(shoutmon.permanentId, { attackPlayer: true, attackPlayerOnly: true });
+                await ctx.fx.forceAttack(shoutmon, { attackPlayer: true, attackPlayerOnly: true });
             }
           };
           if (timing === EffectTiming.OnUseOption)
