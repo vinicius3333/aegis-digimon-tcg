@@ -29,15 +29,12 @@ describe("BT8-065 CatchMamemon", () => {
     expect(s.perm("target").topCard?.cardId).toBe("BT1-015");
   });
 
-  it("uses the printed Mamemon name-or-trait filter", () => {
+  it("uses the printed Mamemon name-only filter", () => {
     expect(compiled?.effects[0]?.actions[0]).toMatchObject({
       kind: "Return",
       target: {
         filter: {
-          nameOrTrait: expect.arrayContaining([
-            { match: "name", tokens: ["Mamemon"] },
-            { match: "trait", tokens: ["Mamemon"] },
-          ]),
+          nameOrTrait: [{ match: "name", tokens: ["Mamemon"] }],
         },
       },
     });
