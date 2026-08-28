@@ -31,7 +31,7 @@ collection-complete claim is valid.
 | BT12-051–060 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-051-060.md` | Yes |
 | BT12-061–070 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-061-070.md` | Yes |
 | BT12-071–080 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-071-080.md` | Yes |
-| BT12-081–090 | Luna in progress | `internal-docs/audits/BT12/BT12-081-090.md` | No |
+| BT12-081–090 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-081-090.md` | Yes |
 | BT12-091–100 | Luna in progress | `internal-docs/audits/BT12/BT12-091-100.md` | No |
 | BT12-101–110 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-101-110.md` | Yes |
 | BT12-111–112 | Luna in progress | `internal-docs/audits/BT12/BT12-111-112.md` | No |
@@ -141,6 +141,16 @@ other component and is never rounded up.
 | BT12-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; no new correction |
 | BT12-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; exact no-effect record |
 | BT12-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; reveal near-match proof `e871250a4` |
+| BT12-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-081-090.md`; exclusive instead branch corrected in `2bd4c4c21` |
+| BT12-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-081-090.md`; structured stack and inherited gates documented |
+| BT12-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-081-090.md`; permanent placement, color ceiling, Save gate, and source shedding corrected |
+| BT12-084 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-081-090.md`; mandatory follow-up corrected in `8c0734ef9`; handwritten timing override retained |
+| BT12-085 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-081-090.md`; empty IR plus handwritten runtime limitation |
+| BT12-086 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-081-090.md`; empty IR plus handwritten reveal/Save runtime limitation |
+| BT12-087 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-081-090.md`; Your Turn reducer and Security proof remain source-uncovered |
+| BT12-088 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-081-090.md`; handwritten inherited Security trigger retained |
+| BT12-089 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-081-090.md`; empty IR plus handwritten placement/evolution runtime limitation |
+| BT12-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-081-090.md`; trigger-subject normalization documented |
 | BT12-101 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-101-110.md`; handwritten timing fallback retained |
 | BT12-102 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-101-110.md`; source-stack shedding corrected in `3e5928ec5` |
 | BT12-103 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-101-110.md`; direct threshold repair documented |
@@ -156,11 +166,11 @@ other component and is never rounded up.
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 90
-- Corrected: 5
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 8
+- Provisional: 100
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 5
+- Blocked or ambiguous: 10
 - Remaining unassigned: 0
 
 BT12 static re-audit is in progress.
