@@ -10,7 +10,7 @@ describe("BT20-033 LoaderLeomon", () => {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
         actions: [
           { kind: "Restrict", restriction: "cannotActivateWhenDigivolving", duration: "untilOpponentTurnEnd" },
-          { kind: "ModifyDP", amount: -3000, duration: "untilOpponentTurnEnd" },
+          { kind: "ModifyDP", amount: -3000, duration: "untilOpponentTurnEnd", target: { sameTarget: true } },
         ],
       });
     }
