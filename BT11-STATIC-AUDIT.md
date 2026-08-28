@@ -25,9 +25,9 @@ claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT11-001–010 | Luna dispatch planned | `internal-docs/audits/BT11/BT11-001-010.md` | No |
-| BT11-011–020 | Luna dispatch planned | `internal-docs/audits/BT11/BT11-011-020.md` | No |
-| BT11-021–030 | Luna dispatch planned | `internal-docs/audits/BT11/BT11-021-030.md` | No |
+| BT11-001–010 | Luna in progress | `internal-docs/audits/BT11/BT11-001-010.md` | No |
+| BT11-011–020 | Luna in progress | `internal-docs/audits/BT11/BT11-011-020.md` | No |
+| BT11-021–030 | Luna in progress | `internal-docs/audits/BT11/BT11-021-030.md` | No |
 | BT11-031–040 | Queued | `internal-docs/audits/BT11/BT11-031-040.md` | No |
 | BT11-041–050 | Queued | `internal-docs/audits/BT11/BT11-041-050.md` | No |
 | BT11-051–060 | Queued | `internal-docs/audits/BT11/BT11-051-060.md` | No |
