@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-057.js";
 import "./index.js";
@@ -90,6 +89,7 @@ describe("BT17-057 Chaosdramon", () => {
           battleArea: [{ card: "BT17-057", under: ["BT17-052", "BT17-054", "BT17-055"], as: "chaosdramon" }],
           hand: [{ card: "BT17-052", as: "unrelatedHandCard" }],
         },
+        1: { hand: [{ card: "BT17-072", as: "opponentDeleter" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -97,8 +97,11 @@ describe("BT17-057 Chaosdramon", () => {
     const chaosId = s.perm("chaosdramon").permanentId;
     const unrelatedId = s.inst("unrelatedHandCard").instanceId;
 
-    await advance(s.engine).verb.deletePermanent([chaosId], "byEffect");
-    await settle();
+    s.state.memory = 13;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentDeleter").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("chaosdramon").stack.length === 1);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === chaosId)).toBe(true);
     expect(s.perm("chaosdramon").stack.map((card) => card.cardId)).toEqual(["BT17-055"]);
