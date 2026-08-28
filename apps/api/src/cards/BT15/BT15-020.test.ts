@@ -78,6 +78,62 @@ describe("BT15-020", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
+  it("reaches Gabumon through its legal blue level-2 evolution route", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT1-003", as: "base" },
+          hand: [{ card: "BT15-020", as: "gabumon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gabumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT15-020");
+
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack).toHaveLength(2);
+  });
+
+  it("resolves Start of Your Main Phase through public turn progression", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT15-020", as: "gabumon" },
+            { card: "BT1-086", as: "matt" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { deck: ["BT1-003"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 0;
+    s.state.isFirstPlayersFirstTurn = false;
+
+    await advance(s.engine).runTurn(0);
+
+    expect(observe(s.engine).hasKeyword(s.perm("gabumon"), "Blocker")).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+
+    expect(observe(s.engine).hasKeyword(s.perm("gabumon"), "Blocker")).toBe(false);
+  });
+
   it("draws only once from two real attacks by a host carrying the inherited effect", async () => {
     const s = setupEngine(
       {
