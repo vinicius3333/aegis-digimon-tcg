@@ -70,12 +70,13 @@ describe("BT13-076 KingEtemon", () => {
           { card: "BT11-041", as: "etemon" },
         ],
       },
-      1: { battleArea: [{ card: "BT1-015", as: "target" }] },
+      1: { battleArea: [{ card: "BT1-015", as: "target", dp: 9000 }] },
     });
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("etemon").permanentId]);
 
+    expect(s.perm("target").currentDP).toBe(6000);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
   });
 
