@@ -1017,17 +1017,19 @@ const INTERNAL_IR_DESCRIPTION = /^\[[^\]]+\](?:\s+＜[^＞]+＞)?\s+[A-Z][A-Za-z
  */
 const GENERATED_ACTION_PHRASES: readonly RegExp[] = [
   /^Draw -?\d+$/,
-  /^Delete \d+ target\(s\)$/,
-  /^(?:Suspend|Unsuspend) \d+ target\(s\)$/,
-  /^Trash \d+ card\(s\)$/,
+  // A target count is a number or the literal "all" (`String(action.target.count)`
+  // in describeAction stringifies both), so "Delete all target(s)" is generated too.
+  /^Delete (?:\d+|all) target\(s\)$/,
+  /^(?:Suspend|Unsuspend) (?:\d+|all) target\(s\)$/,
+  /^Trash (?:\d+|all) card\(s\)$/,
   /^Trash (?:up to )?-?\d+ card\(s\) from the top of the deck$/,
-  /^Return \d+ to [A-Za-z]+$/,
+  /^Return (?:\d+|all) to [A-Za-z]+$/,
   /^Modify DP by -?\d+$/,
   /^Set base DP to -?\d+$/,
   /^Set memory to -?\d+$/,
   /^(?:Gain|Lose) \d+ memory$/,
   /^Play without paying the cost$/,
-  /^Place (?:up to )?\d+ card\(s\) under$/,
+  /^Place (?:up to )?(?:\d+|all) card\(s\) under$/,
   /^Reveal top \d+ and add$/,
   /^Gain (?:＜[^＞]+＞|<[^>]+>|keyword)$/,
   /^Hatch a Digi-Egg$/,
