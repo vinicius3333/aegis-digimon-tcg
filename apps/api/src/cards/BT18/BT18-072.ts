@@ -110,6 +110,9 @@ export const compiled: CompiledCard = {
         {
           names: ["Beetlemon"],
         },
+        {
+          names: ["MetalKabuterimon"],
+        },
       ],
       count: 2,
     },
