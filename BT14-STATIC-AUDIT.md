@@ -31,9 +31,9 @@ collection-complete claim is valid.
 | BT14-031–040 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-031-040.md` | Yes |
 | BT14-041–050 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-041-050.md` | Yes |
 | BT14-051–060 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-051-060.md` | Yes |
-| BT14-061–070 | Luna assigned | `internal-docs/audits/BT14/BT14-061-070.md` | No |
-| BT14-071–080 | Luna assigned | `internal-docs/audits/BT14/BT14-071-080.md` | No |
-| BT14-081–090 | Luna assigned | `internal-docs/audits/BT14/BT14-081-090.md` | No |
+| BT14-061–070 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-061-070.md` | Yes |
+| BT14-071–080 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-071-080.md` | Yes |
+| BT14-081–090 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-081-090.md` | Yes |
 | BT14-091–100 | Unassigned | `internal-docs/audits/BT14/BT14-091-100.md` | No |
 | BT14-101–102 | Unassigned | `internal-docs/audits/BT14/BT14-101-102.md` | No |
 
@@ -124,14 +124,44 @@ behavior.
 | BT14-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play/evolution placement, Rush, and inherited Blocker proof |
 | BT14-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Missing Save placement correction plus natural Retaliation/Save proof `0925a97b6` |
 | BT14-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural traited-Tamer attack play and inherited leave-play replacement proof |
+| BT14-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play/evolution opponent-trash return and mandatory By-cost proof |
+| BT14-062 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent Option deletion-immunity proof and cause boundary trace |
+| BT14-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle deletion reveal/add/play and inherited Blocker proof |
+| BT14-064 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural On Play and inherited deletion watcher; When Digivolving remains structural |
+| BT14-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Opponent reveal/top-or-bottom runtime correction and repeated De-Digivolve proof `b64241ff4` |
+| BT14-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution memory gain and On Deletion Numemon play proof |
+| BT14-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play/evolution reveal-budget and top-or-bottom restoration proof |
+| BT14-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal, opponent attack, Blocker duration, and De-Digivolve proof |
+| BT14-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural inherited battle-deletion memory proof on a legal stack |
+| BT14-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural effect-origin hand trash and same-turn Once Per Turn proof |
+| BT14-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural start-main Eiji placement and inherited Dark Animal watcher proof |
+| BT14-072 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play/When Attacking return-then-trash proof |
+| BT14-073 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Effect-owner provenance correction and natural direct/inherited proof `4302a4b37` |
+| BT14-074 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attack-cost/Eiji memory and inherited play-watcher proof |
+| BT14-075 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/attack mill and DP scaling; On Deletion remains direct/manual |
+| BT14-076 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Played-Agumon Rush binding correction and natural evolution/deletion chain `bc75ffe11` |
+| BT14-077 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural On Play mill/memory; When Digivolving remains structural |
+| BT14-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural end-turn deletion/draw; scaled On Deletion remains direct/manual |
+| BT14-079 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Legal evolution and inherited unsuspend; Eiji level-4 branch remains structural |
+| BT14-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution/attack proves scaled mill, shared OPT, and Security Attack |
+| BT14-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution, Eiji +2 play scaling, attack, and turn-end threshold proof |
+| BT14-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Opponent-security watcher correction and natural removal/Security proof `be66987a4` |
+| BT14-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Opponent-host source-discard correction and natural watcher/Security proof `f6713bdb3` |
+| BT14-084 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Dedicated security-to-hand cost correction; Security self-play remains structural `de359e124` |
+| BT14-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Digimon suspension-subject correction and natural watcher/Security proof `23d48e38e` |
+| BT14-086 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Host-only Mind Link aura/own-stack correction; Security remains structural `dd70776f8` |
+| BT14-087 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Own-stack Mind Link recovery correction and host-only keyword/Security proof `dd29f8ba3` |
+| BT14-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attack watcher/non-white filter correction and breeding/Security proof `170afbb01` |
+| BT14-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural no-Greymon/Greymon deletion branches and Security ActivateMain proof |
+| BT14-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Tai waiver, Courage stack/evolution, and Security self-return proof |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 90
-- Integrated card audits: 60
-- Corrected: 6
-- Provisional: 60
+- Integrated card audits: 90
+- Corrected: 16
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 12
