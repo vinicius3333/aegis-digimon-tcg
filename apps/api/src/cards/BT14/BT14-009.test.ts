@@ -53,3 +53,19 @@ it("allows ordinary Digimon play but blocks Digimon effect-play for both players
   expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-085")).toBe(true);
   assertNoLoudGap(s);
 });
+
+it("also blocks an effect-driven Digimon placement into the breeding area", async () => {
+  const s = setupEngine({
+    0: {
+      battleArea: [{ card: "BT14-009", as: "gotsumon" }],
+      hand: [{ card: "BT14-010", as: "effectDigimon" }],
+    },
+  });
+  await s.ready();
+
+  await advance(s.engine).verb.playInstances([s.inst("effectDigimon").instanceId], "BT14-038", { breeding: true });
+
+  expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("effectDigimon").instanceId)).toBe(true);
+  expect(s.state.players[0]!.breeding).toBeUndefined();
+  assertNoLoudGap(s);
+});
