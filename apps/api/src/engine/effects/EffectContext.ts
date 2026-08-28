@@ -668,6 +668,8 @@ export interface Primitives {
       breeding?: boolean;
       costDelta?: number;
       suppressOnPlayEffects?: boolean;
+      /** Do not partially resolve a multi-card effect play when one selected card is blocked. */
+      allOrNone?: boolean;
       /** Card whose resolving effect initiated this play. */
       effectSourceCardId?: string;
       /** Server-selected DigiXros materials to place before firing this effect-played card's On Play. */

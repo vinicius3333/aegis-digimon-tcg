@@ -55,6 +55,11 @@ export interface PlayWithoutCostAction extends ActionBase {
   suppressOnPlayEffects?: boolean;
   /** Alternative to `target`. */
   source?: Filter;
+  /**
+   * When true, a multi-card effect play is transactional: if any selected card cannot legally
+   * enter the field, none of the selected cards are played (BT13-112, KB Q2367).
+   */
+  allOrNone?: boolean;
   costModifier?: { amount: number; [key: string]: unknown };
   /**
    * Drop candidates whose `nameEn` already appears among the controller's cards in the listed

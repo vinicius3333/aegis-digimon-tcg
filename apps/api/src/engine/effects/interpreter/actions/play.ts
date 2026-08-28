@@ -412,7 +412,17 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Seat-level RestrictPlay: drop candidates the resolving effect's owner is forbidden
       // from playing (the effect is attributed to ctx.source.ownerSeat, so the prohibition on
       // THAT seat applies — Q4676; the source player's own effects are unaffected — Q4675).
-      candidates = candidates.filter((c) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, c.cardId, "play"));
+      // BT13-112's "play 1 of each ..." is all-or-none (Q2367): preserve the pre-filter pool
+      // long enough to reject the whole batch when any otherwise-matching card is prohibited.
+      // The card uses one explicit source zone, so the zone-qualified prohibition seam receives
+      // the same origin that playInstances will later observe.
+      const playOrigin = zones.length === 1 ? zones[0] : undefined;
+      const allOrNoneBlocked =
+        action.allOrNone === true &&
+        candidates.some((c) => ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, c.cardId, "play", playOrigin) === true);
+      candidates = allOrNoneBlocked
+        ? []
+        : candidates.filter((c) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, c.cardId, "play", playOrigin));
       if (action.target?.filter?.excludeSameNameAsOwnTamers === true) {
         const ownTamerNames = new Set<string>();
         for (const permanent of ctx.game.player(ctx.source.ownerSeat).battleArea) {
@@ -672,6 +682,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
                 ...(digiXrosMaterialInstanceIds.length > 0 ? { digiXrosMaterialInstanceIds } : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
+                ...(action.allOrNone === true ? { allOrNone: true } : {}),
                 hostPermanentIds,
               })
             : [];

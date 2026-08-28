@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectDuration } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -84,6 +86,38 @@ describe("BT13-112 Omnimon", () => {
     )) {
       expect(observe(s.engine).hasKeyword(permanent, "Rush")).toBe(true);
     }
+    expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Rush")).toBe(true);
+  });
+
+  it("plays no Royal Knight when one otherwise eligible distinct name is blocked (Q2367)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-112", as: "omnimon" }],
+          breeding: { card: "BT13-007", as: "drasil", under: ["BT13-040", "BT13-111"] },
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
+    );
+    // A restriction that blocks the 7000-DP Magnamon but permits 13000-DP Gallantmon creates a
+    // genuine partial-candidate boundary; Q2367 requires the entire selected batch to abort.
+    advance(s.engine).ledgers.continuous.addPlayProhibition(
+      0,
+      1,
+      { kinds: ["Digimon"], dpAtMost: 10000 },
+      "play",
+      EffectDuration.UntilEachTurnEnd,
+      { byEffectOnly: true },
+    );
+    s.state.memory = 14;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-112"));
+
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT13-007");
+    expect(s.state.players[0]!.breeding?.stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT13-040", "BT13-111"]),
+    );
+    expect(s.state.players[0]!.battleArea.filter((p) => ["BT13-040", "BT13-111"].includes(p.topCard?.cardId ?? ""))).toHaveLength(0);
   });
 
   it("allows declining the optional modal effect", async () => {

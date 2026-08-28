@@ -26,6 +26,7 @@ const modalEffect = () => ({
         },
         from: ["digivolutionCards"],
         payCost: false,
+        allOrNone: true,
         bindResultAs: "playedRoyalKnights",
       },
       {
