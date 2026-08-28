@@ -29,7 +29,7 @@ provisional and capped at 8/10.
 | BT19-051–060 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-051-060.md` | Yes |
 | BT19-061–070 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-061-070.md` | Yes |
 | BT19-071–080 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-071-080.md` | Yes |
-| BT19-081–090 | Luna assigned | `internal-docs/audits/BT19/BT19-081-090.md` | No |
+| BT19-081–090 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-081-090.md` | Yes |
 | BT19-091–100 | Luna assigned | `internal-docs/audits/BT19/BT19-091-100.md` | No |
 | BT19-101–102 | Luna assigned | `internal-docs/audits/BT19/BT19-101-102.md` | No |
 
@@ -125,16 +125,26 @@ applicable non-gate component rather than being rounded up.
 | BT19-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The debuff is observed after injected On Play timing, while stack placement and optional ADR-01 Jeri redirection remain unexecuted (`8342c6952`). |
 | BT19-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public DigiXros intents prove under-Tamer material expansion, Tamer suspension, memory, and the negative boundary (`8342c6952`). |
 | BT19-080 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected owner-turn scope, aborting Tamer-suspension gate, and normal attack suspension; proof remains structural (`5b75739af`). |
+| BT19-081 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Start-main placement/memory and under-Tamer DigiXros expansion remain structurally asserted without natural state proof (`765507884`). |
+| BT19-082 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Memory setting and attack-triggered bottom-source placement have structural evidence only (`765507884`). |
+| BT19-083 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Reveal selectors and original Option-cost watcher remain structurally proven without natural behavior (`765507884`). |
+| BT19-084 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Face-up Security digivolution and result-bound placement are observed, but central Main timing is manually activated (`765507884`). |
+| BT19-085 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Named presence, green digivolution watcher, and opponent suspension remain structural (`765507884`). |
+| BT19-086 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected explicit Device placement, compound suspend/four-Device cost, and exact Cyberdramon play; runtime proof remains structural (`cc611d496`). |
+| BT19-087 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural DigiXros intents prove under-Tamer/trash expansion, suspension, absence, and max-one-trash boundaries (`765507884`). |
+| BT19-088 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Thresholded Impmon-to-Beelzemon digivolution and memory clauses remain structural (`765507884`). |
+| BT19-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Option play proves selected-target Option-effect protection and DP immunity (`765507884`). |
+| BT19-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural modal paths prove under-Tamer play, exact compound unsuspension, attack, and Security behavior (`765507884`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 80
-- Corrected: 22
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 23
+- Provisional: 90
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 57 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`–`BT19-054`, `BT19-057`, `BT19-060`–`BT19-078`, `BT19-080` source-proof gaps)
+- Blocked or ambiguous: 64 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`–`BT19-054`, `BT19-057`, `BT19-060`–`BT19-078`, `BT19-080`–`BT19-086`, `BT19-088` source-proof gaps)
 - Remaining unassigned: 0
 
 Operational disclosure: the BT19-041–050 worker accidentally ran one isolated
