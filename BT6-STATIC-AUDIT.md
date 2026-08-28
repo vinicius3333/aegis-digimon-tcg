@@ -23,10 +23,10 @@ claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT6-001–010 | Luna in progress | `internal-docs/audits/BT6/BT6-001-010.md` | No |
+| BT6-001–010 | Static audit delivered | `internal-docs/audits/BT6/BT6-001-010.md` | Yes |
 | BT6-011–020 | Luna in progress | `internal-docs/audits/BT6/BT6-011-020.md` | No |
 | BT6-021–030 | Luna in progress | `internal-docs/audits/BT6/BT6-021-030.md` | No |
-| BT6-031–040 | Queued | `internal-docs/audits/BT6/BT6-031-040.md` | No |
+| BT6-031–040 | Luna in progress | `internal-docs/audits/BT6/BT6-031-040.md` | No |
 | BT6-041–050 | Queued | `internal-docs/audits/BT6/BT6-041-050.md` | No |
 | BT6-051–060 | Queued | `internal-docs/audits/BT6/BT6-051-060.md` | No |
 | BT6-061–070 | Queued | `internal-docs/audits/BT6/BT6-061-070.md` | No |
@@ -58,16 +58,26 @@ other component and is never rounded up.
 
 ## Card ledger
 
-Per-card rows will be added in exact ascending order as reviewed range reports
-are integrated.
+| Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT6-001 DemiMeramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Player-target attack gate, Blocker-redirection ruling, legal inherited stack, and turn duration |
+| BT6-002 Kyaromon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent source-trash watcher, ownership and once-per-turn gates, plus Q1399 bounce negative |
+| BT6-003 Bibimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact-three security condition with two/four-security boundaries and legal stack |
+| BT6-004 Pinamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Declared-opponent-Digimon attack gate with player-target and Blocker-redirection boundary |
+| BT6-005 Pagumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected black-Digimon reveal filter with independent color and card-kind negatives |
+| BT6-006 Tsunomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Effect-controller hand-trash watcher, owner-turn and once-per-turn gates, and legal stack |
+| BT6-007 Agumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Tai-name play watcher and exact Bond-host inherited Security Attack aura |
+| BT6-008 Shoutmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live Blitz-keyword attack gate, ordinary-attack ruling, and corrected legal evolution stack |
+| BT6-009 Huckmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional zero-to-two name-family reveal selection, duplicates, exclusions, and bottom ordering |
+| BT6-010 Flamemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live Hybrid-or-Ten-Warriors trait aura, Piercing behavior, and legal inherited stack |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 0
-- Corrected: 0
-- Provisional: 0
+- Integrated card audits: 10
+- Corrected: 2
+- Provisional: 10
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
