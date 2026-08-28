@@ -26,12 +26,12 @@ provisional and capped at 8/10.
 | BT19-021–030 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-021-030.md` | Yes |
 | BT19-031–040 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-031-040.md` | Yes |
 | BT19-041–050 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-041-050.md` | Yes |
-| BT19-051–060 | Luna assigned | `internal-docs/audits/BT19/BT19-051-060.md` | No |
+| BT19-051–060 | Luna prepared; coordinator review pending | `internal-docs/audits/BT19/BT19-051-060.md` | No |
 | BT19-061–070 | Luna assigned | `internal-docs/audits/BT19/BT19-061-070.md` | No |
-| BT19-071–080 | Luna assigned | `internal-docs/audits/BT19/BT19-071-080.md` | No |
+| BT19-071–080 | Luna prepared; chronological review pending | `internal-docs/audits/BT19/BT19-071-080.md` | No |
 | BT19-081–090 | Luna assigned | `internal-docs/audits/BT19/BT19-081-090.md` | No |
 | BT19-091–100 | Luna assigned | `internal-docs/audits/BT19/BT19-091-100.md` | No |
-| BT19-101–102 | Unassigned | `internal-docs/audits/BT19/BT19-101-102.md` | No |
+| BT19-101–102 | Luna assigned | `internal-docs/audits/BT19/BT19-101-102.md` | No |
 
 ## Score model
 
@@ -99,13 +99,13 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 100
+- Assigned: 102
 - Integrated card audits: 50
 - Corrected: 12
 - Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 32 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`, `BT19-050` source-proof gaps; excludes fully proved `BT19-022`, `BT19-032`, `BT19-045`, `BT19-046`, and `BT19-048`)
-- Remaining unassigned: 2
+- Remaining unassigned: 0
 
 Operational disclosure: the BT19-041–050 worker accidentally ran one isolated
 `git diff --check` against the BT19-042/044 changed files. It was not used as a
