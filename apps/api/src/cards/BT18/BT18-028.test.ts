@@ -65,6 +65,40 @@ describe("BT18-028 AncientMegatheriummon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT18-028")).toBe(true);
   });
 
+  it("naturally trashes bottom sources and restricts empty opposing Digimon when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-027", as: "base" }],
+          hand: [{ card: "BT18-028", as: "ancient" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-030", as: "empty" },
+            { card: "BT1-030", as: "stacked", under: ["BT18-021", "BT18-022", "BT18-023"] },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const emptyId = s.perm("empty").permanentId;
+    const stackedId = s.perm("stacked").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ancient").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(emptyId, "suspend"));
+
+    expect(s.perm("stacked").stack).toHaveLength(1);
+    expect(observe(s.engine).isRestricted(emptyId, "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(stackedId, "suspend")).toBe(false);
+  });
+
   it("DigiXroses with one Kumamon and one Korikakumon for 2 less each", async () => {
     expect(compiled.digiXrosRequirement).toEqual([
       { materials: [{ names: ["Kumamon"] }, { names: ["Korikakumon"] }], count: 2 },
