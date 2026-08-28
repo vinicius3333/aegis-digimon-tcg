@@ -60,6 +60,29 @@ describe("BT17-072 Ornismon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === suspendedId)).toBe(true);
   });
 
+  it("deletes an opposing unsuspended Digimon when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-066", as: "source" }], hand: [{ card: "BT17-072", as: "ornismon" }] },
+        1: { battleArea: [{ card: "BT17-063", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const targetId = s.perm("target").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("ornismon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
+
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT17-063")).toBe(true);
+  });
+
   it("observes the DP and security-attack bonuses with another level 6", async () => {
     const s = setupEngine({
       0: {
@@ -73,5 +96,13 @@ describe("BT17-072 Ornismon", () => {
 
     expect(s.perm("ornismon").currentDP).toBe(15000);
     expect(observe(s.engine).hasKeyword(s.perm("ornismon"), "SecurityAttack")).toBe(true);
+  });
+
+  it("does not grant the continuous bonuses without another level-6 Digimon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-072", as: "ornismon" }] } });
+    await s.ready();
+
+    expect(s.perm("ornismon").currentDP).toBe(13000);
+    expect(observe(s.engine).hasKeyword(s.perm("ornismon"), "SecurityAttack")).toBe(false);
   });
 });

@@ -1002,6 +1002,7 @@ export class GameEngine {
           traits,
           (key) => this.tracker.count(`link-cost/${key}`, "replacement") > 0,
         ),
+      (permanent, printedName) => effectiveNames(this.continuous, permanent, printedName),
     );
     return this.gameAccess;
   }

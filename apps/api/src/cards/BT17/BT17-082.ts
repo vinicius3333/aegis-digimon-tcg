@@ -60,12 +60,9 @@ export const compiled: CompiledCard = {
               cost: {
                 kind: "suspend",
                 target: {
-                  filter: {
-                    controller: "mine",
-                    kind: ["Tamer"],
-                    nameOrTrait: [{ tokens: ["Minami Uehara"], match: "name" }],
-                  },
+                  filter: { isSelfRef: true },
                   count: 1,
+                  isSelf: true,
                 },
                 raw: "by suspending this Tamer",
               },

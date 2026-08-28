@@ -20,6 +20,25 @@ describe("BT18-009 Shamanmon", () => {
     expect(observe(s.engine).canGainMemoryFromEffect(0, ["Digimon"])).toBe(true);
   });
 
+  it("blocks a natural opponent Digimon On Deletion memory gain", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-009", as: "shamanmon" }],
+          hand: [{ card: "BT18-008", as: "goblimon" }],
+        },
+        1: { battleArea: [{ card: "BT14-069", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("goblimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId));
+    expect(s.state.memory).toBe(7);
+  });
+
   it("digivolves from a red level 2 for 0 and preserves the source stack", async () => {
     const s = setupEngine({
       0: {
