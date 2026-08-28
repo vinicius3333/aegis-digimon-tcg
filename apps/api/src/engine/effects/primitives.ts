@@ -1747,13 +1747,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * The source permanent is removed from the field; its top, stack, and linked
    * cards are attached to the destination's digivolution stack.
    *
-   * `shedOwnCards` switches this to the DigiXros placement of §7-2-2-7: "As soon as a card
-   * from the battle area is to be placed under a card for a DigiXros, that card is removed
-   * from the battle area, therefore any cards under it are trashed." Only the source's TOP
-   * card becomes a material; its own digivolution stack is trashed, and so is its link card
-   * (§4-8-6 — the DigiXros result is a new card). Card effects that merely place a permanent
-   * under another are NOT this case (§4-16, KB Q4250/Q4251/Q4256/Q4257: those keep the stack),
-   * so the flag is opt-in and only `actions/digiXros.ts` sets it.
+   * `shedOwnCards` opts into a placement rule where "as soon as a card from the battle area is
+   * to be placed under a card", that card is removed from the battle area and any cards under it
+   * are trashed. Only the source's TOP card becomes a material; its own digivolution stack is
+   * trashed, and so is its link card (§4-8-6 — the resulting card is new). DigiXros uses this
+   * rule under §7-2-2-7, and card-specific placements such as BT12-083 and BT12-102 require the
+   * same source-stack shedding. Effects that merely place a permanent under another and whose
+   * ruling keeps the stack (for example §4-16, KB Q4250/Q4251/Q4256/Q4257) leave the flag unset;
+   * the caller opts in only when the applicable placement rule requires shedding.
    */
   const relocatePermanent = (
     destPermanentId: string,

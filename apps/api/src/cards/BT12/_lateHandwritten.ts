@@ -795,7 +795,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     blue.filter(({ permanentId }) => permanentId !== moved),
                   );
                   if (!destination) return;
-                  if (ctx.fx.relocatePermanent(destination, moved)) {
+                  if (ctx.fx.relocatePermanent(destination, moved, { shedOwnCards: true })) {
                     ctx.playCostDelta = (ctx.playCostDelta ?? 0) + 3;
                   }
                 },
