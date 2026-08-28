@@ -31,9 +31,9 @@ collection-complete claim is valid.
 | BT14-031–040 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-031-040.md` | Yes |
 | BT14-041–050 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-041-050.md` | Yes |
 | BT14-051–060 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-051-060.md` | Yes |
-| BT14-061–070 | Unassigned | `internal-docs/audits/BT14/BT14-061-070.md` | No |
-| BT14-071–080 | Unassigned | `internal-docs/audits/BT14/BT14-071-080.md` | No |
-| BT14-081–090 | Unassigned | `internal-docs/audits/BT14/BT14-081-090.md` | No |
+| BT14-061–070 | Luna assigned | `internal-docs/audits/BT14/BT14-061-070.md` | No |
+| BT14-071–080 | Luna assigned | `internal-docs/audits/BT14/BT14-071-080.md` | No |
+| BT14-081–090 | Luna assigned | `internal-docs/audits/BT14/BT14-081-090.md` | No |
 | BT14-091–100 | Unassigned | `internal-docs/audits/BT14/BT14-091-100.md` | No |
 | BT14-101–102 | Unassigned | `internal-docs/audits/BT14/BT14-101-102.md` | No |
 
@@ -128,12 +128,12 @@ behavior.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 60
+- Assigned: 90
 - Integrated card audits: 60
 - Corrected: 6
 - Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 42
+- Remaining unassigned: 12
 
 BT14 static re-audit is in progress.
