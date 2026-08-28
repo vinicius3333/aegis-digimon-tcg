@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-067.js";
 import "./index.js";
@@ -81,5 +82,75 @@ describe("BT17-067 DexDoruGreymon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.perm("doruGreymon").topCard.cardId).toBe("BT17-067");
+  });
+
+  it("naturally replaces an effect deletion from the trash and resolves the trash digivolution effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-061", as: "doruGreymon" }],
+          trash: [{ card: "BT17-067", as: "dexDoruGreymon" }],
+          hand: [{ card: "BT1-001", as: "discarded" }],
+          deck: [{ card: "BT1-011", as: "notDrawn" }],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const doruId = s.perm("doruGreymon").permanentId;
+    const targetId = s.perm("target").permanentId;
+
+    expect(await advance(s.engine).verb.deletePermanent([doruId], "byEffect")).toBe(0);
+    await settle(() => s.perm("doruGreymon").topCard.cardId === "BT17-067");
+
+    expect(s.perm("doruGreymon").topCard.cardId).toBe("BT17-067");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-067")).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT1-011")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
+  });
+
+  it("allows declining the trash replacement, so the originating deletion proceeds", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-061", as: "doruGreymon" }],
+          trash: [{ card: "BT17-067", as: "dexDoruGreymon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const doruId = s.perm("doruGreymon").permanentId;
+
+    expect(await advance(s.engine).verb.deletePermanent([doruId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-067")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT16-061")).toBe(true);
+  });
+
+  it("runs the inherited end-of-attack choice from a natural attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-071", under: ["BT17-067"], as: "host" }] },
+        1: { battleArea: [{ card: "BT17-070", as: "levelSix" }, { card: "BT17-078", as: "levelSeven" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-070")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-078")).toBe(true);
   });
 });
