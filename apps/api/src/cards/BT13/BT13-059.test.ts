@@ -105,7 +105,7 @@ describe("BT13-059 Examon", () => {
         preferOptionIndex: 1,
       },
     );
-    preferredTargets.push(s.perm("ally").permanentId);
+    preferredTargets.push(s.perm("ally").topCard!.instanceId);
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("examon"));
