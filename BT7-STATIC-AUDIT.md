@@ -24,7 +24,7 @@ claim is valid.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT7-001–010 | Luna in progress | `internal-docs/audits/BT7/BT7-001-010.md` | No |
-| BT7-011–020 | Luna in progress | `internal-docs/audits/BT7/BT7-011-020.md` | No |
+| BT7-011–020 | Static audit delivered | `internal-docs/audits/BT7/BT7-011-020.md` | Yes |
 | BT7-021–030 | Static audit delivered | `internal-docs/audits/BT7/BT7-021-030.md` | Yes |
 | BT7-031–040 | Queued | `internal-docs/audits/BT7/BT7-031-040.md` | No |
 | BT7-041–050 | Queued | `internal-docs/audits/BT7/BT7-041-050.md` | No |
@@ -60,6 +60,16 @@ other component and is never rounded up.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT7-011 BurningGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Red-Tamer alternate evolution and Hybrid-or-Takuya-conditioned 4000-DP deletion |
+| BT7-012 Brachiomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Effectless full-coverage registration and ordinary red level-four evolution evidence |
+| BT7-013 MetalGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exclusive Tamer/no-Tamer On Play branches and inherited once-per-turn opponent-deletion watcher |
+| BT7-014 Aldamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Tamer-source hand reducer, Hybrid-stack DP gain, and Option-only Security-effect suppression |
+| BT7-015 AvengeKidmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected hand-resident BeforePayCost reducer plus both-trash return count and threshold deletion |
+| BT7-016 EmperorGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blitz and self-only blocked watcher with per-Hybrid memory scaling before battle |
+| BT7-017 Chaosdramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Machinedramon alternate evolution and optional Cyborg placement with scaled deletion boundaries |
+| BT7-018 Gomamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digivolution-card-source-only On Play Draw 2 with ordinary-play and De-Digivolve negatives |
+| BT7-019 Strabimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact Hybrid/Susanoomon/Koji reveal union and inherited optional Koji free play |
+| BT7-020 Shellmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Effectless full-coverage registration and ordinary blue level-three evolution evidence |
 | BT7-021 Kumamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blue-Tamer alternate evolution, cost-two stack transition, and bottom-source trash boundary |
 | BT7-022 KendoGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blue-Tamer alternate evolution plus Hybrid-or-Koji stack-conditioned Jamming duration |
 | BT7-023 Korikakumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Tamer evolution metadata and one shared source-less target for attack-or-block restriction |
@@ -75,9 +85,9 @@ other component and is never rounded up.
 
 - Catalog cards: 112
 - Assigned: 30
-- Integrated card audits: 10
-- Corrected: 3
-- Provisional: 10
+- Integrated card audits: 20
+- Corrected: 4
+- Provisional: 20
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 82
