@@ -135,7 +135,8 @@ export interface SearchAction extends ActionBase {
   controller: Controller;
   filter: Filter;
   count: number | "all";
-  to?: "hand";
+  /** Add the selected cards to hand, or expose the full matching search set to a following action. */
+  to?: "hand" | "revealed";
   /** Play the selected cards instead of adding them to hand. */
   then?: {
     kind: "PlayWithoutCost";
