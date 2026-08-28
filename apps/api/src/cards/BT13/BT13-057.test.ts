@@ -51,24 +51,29 @@ describe("BT13-057 Rosemon", () => {
   it("accepts the optional digivolving condition, pays one legal target, and unsuspends this Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-057", as: "rose", suspended: true }] },
-      1: { battleArea: [{ card: "BT13-047", as: "opponent" }] },
+      1: { battleArea: [{ card: "BT13-047", as: "opponent" }, { card: "BT13-100", as: "opponentTamer" }] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("rose"));
-    await settle(() => !s.perm("rose").isSuspended && s.perm("opponent").isSuspended);
+    await settle(
+      () =>
+        !s.perm("rose").isSuspended &&
+        (s.perm("opponent").isSuspended || s.perm("opponentTamer").isSuspended),
+    );
     expect(s.perm("rose").isSuspended).toBe(false);
-    expect(s.perm("opponent").isSuspended).toBe(true);
+    expect([s.perm("opponent").isSuspended, s.perm("opponentTamer").isSuspended].filter(Boolean)).toHaveLength(1);
   });
 
-  it("can decline the optional processing condition without changing either permanent", async () => {
+  it("can decline the optional processing condition without changing Rosemon or either legal target", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-057", as: "rose", suspended: true }] },
-      1: { battleArea: [{ card: "BT13-047", as: "opponent" }] },
+      1: { battleArea: [{ card: "BT13-047", as: "opponent" }, { card: "BT13-100", as: "opponentTamer" }] },
     }, { autoDeclineOptional: true, autoSelectCards: true });
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("rose"));
     expect(s.perm("rose").isSuspended).toBe(true);
     expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(s.perm("opponentTamer").isSuspended).toBe(false);
   });
 
   it("only reacts once to an opponent suspension, not an own suspension", async () => {
