@@ -110,44 +110,59 @@ describe("BT18-039 Mistymon", () => {
     assertNoLoudGap(s);
   });
 
-  it("inherits a once-per-turn unsuspend only when its controller's security is removed", async () => {
+  it("unsuspends only for its controller's security and only once per turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-060", as: "host", under: ["BT18-039"], suspended: true }],
-        security: ["BT1-009"],
+        battleArea: [
+          { card: "BT1-009", as: "outgoing", dp: 10000 },
+          { card: "BT1-060", as: "host", under: ["BT18-039"], suspended: true },
+        ],
+        security: ["BT1-009", "BT1-010"],
       },
-      1: { battleArea: [{ card: "BT17-063", as: "attacker" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "incomingOne", dp: 10000 },
+          { card: "BT1-009", as: "incomingTwo", dp: 10000 },
+        ],
+        security: ["BT1-011"],
+      },
     });
-    s.state.turnSeat = 1;
     await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("outgoing").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("host").isSuspended).toBe(true);
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("incomingOne").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1 && s.perm("host").isSuspended === false);
+
+    expect(s.perm("host").isSuspended).toBe(false);
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    expect(s.perm("host").isSuspended).toBe(true);
 
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
+        attackerPermanentId: s.perm("incomingTwo").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").isSuspended === false);
+    await settle(() => s.state.players[0]!.security.length === 0);
 
-    expect(s.perm("host").isSuspended).toBe(false);
-    assertNoLoudGap(s);
-  });
-
-  it("keeps the inherited watcher limited to the controller's security and one firing per turn", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-060", as: "host", under: ["BT18-039"], suspended: true }] },
-    });
-    await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
-    expect(s.perm("host").isSuspended).toBe(true);
-
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
-    expect(s.perm("host").isSuspended).toBe(false);
-
-    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     expect(s.perm("host").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
