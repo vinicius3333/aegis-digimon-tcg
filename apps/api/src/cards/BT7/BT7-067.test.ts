@@ -1,8 +1,14 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import "./BT7-067.js";
 
 describe("BT7-067 Ghostmon", () => {
+  it("keeps the effectless runtime record empty", () => {
+    expect(runtimeCompiledCard("BT7-067")).toMatchObject({ coverage: "full", residual: [], effects: [] });
+  });
+
   it("matches its official effectless metadata and plays without a decision", async () => {
     expect(getCardDefinition("BT7-067")).toMatchObject({
       nameEn: "Ghostmon",
