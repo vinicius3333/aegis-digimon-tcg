@@ -83,7 +83,7 @@ describe("BT18-078 Duskmon", () => {
     s.state.memory = 6;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("duskmon").instanceId })).toEqual({ ok: true });
-    await settle(() => observe(s.engine).effectiveColors(s.perm("target")).length > 0);
+    await settle(() => observe(s.engine).effectiveColors(s.perm("target")).includes("Red"));
     const target = s.perm("target");
 
     expect(observe(s.engine).effectiveColors(target)).toEqual(["Red"]);
