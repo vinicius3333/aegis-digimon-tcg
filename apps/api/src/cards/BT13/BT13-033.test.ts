@@ -102,8 +102,11 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
   it("rejects the longer MirageGaogamon: Burst Mode as a Burst base even with payable Thomas", () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT13-033", as: "long-base" }],
-        hand: [{ card: "BT13-033", as: "burst" }, { card: "BT13-097", as: "thomas" }],
+        battleArea: [
+          { card: "BT13-033", as: "long-base" },
+          { card: "BT13-097", as: "thomas" },
+        ],
+        hand: [{ card: "BT13-033", as: "burst" }],
       },
     });
     expect(
@@ -116,7 +119,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
     ).toMatchObject({ ok: false });
     expect(s.perm("long-base").topCard.cardId).toBe("BT13-033");
     expect(s.state.players[0]!.hand).toContain(s.inst("burst"));
-    expect(s.state.players[0]!.hand).toContain(s.inst("thomas"));
+    expect(s.state.players[0]!.battleArea).toContain(s.perm("thomas"));
   });
 
   it("returns an opposing Digimon, then gains memory from the resulting hand size", async () => {
