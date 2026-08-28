@@ -62,6 +62,24 @@ describe("BT13-084 Astamon", () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: "BT13-083", as: "cost" }],
+          hand: [{ card: "BT13-084", as: "astamon" }, { card: "BT13-088", as: "sleep" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("astamon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("astamon").topCard?.cardId === "BT13-088");
+    expect(s.perm("astamon").topCard?.cardId).toBe("BT13-088");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-083")).toBe(true);
+  });
+
+  it("can decline the optional Belphemon digivolution without deleting the other Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
           battleArea: [
             { card: "BT13-084", as: "astamon" },
             { card: "BT13-083", as: "cost" },
@@ -69,11 +87,30 @@ describe("BT13-084 Astamon", () => {
           hand: [{ card: "BT13-088", as: "sleep" }],
         },
       },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("astamon"));
+    expect(s.perm("astamon").topCard?.cardId).toBe("BT13-084");
+    expect(s.perm("cost").topCard?.cardId).toBe("BT13-083");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT13-088")).toBe(true);
+  });
+
+  it("plays a level 4 purple Digimon from trash after an inherited host sees a hand trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-084"] }],
+          hand: [{ card: "BT1-001", as: "discard" }],
+          trash: [{ card: "BT13-080", as: "rescue" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("astamon"));
-    await settle(() => s.perm("astamon").topCard?.cardId === "BT13-088");
-    expect(s.perm("astamon").topCard?.cardId).toBe("BT13-088");
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-083")).toBe(true);
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).verb.trash([s.inst("discard").instanceId], 0);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-080"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-080")).toBe(true);
   });
 });

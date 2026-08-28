@@ -31,10 +31,10 @@ collection-complete claim is valid.
 | BT13-051–060 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-051-060.md` | Yes |
 | BT13-061–070 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-061-070.md` | Yes |
 | BT13-071–080 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-071-080.md` | Yes |
-| BT13-081–090 | Luna assigned | `internal-docs/audits/BT13/BT13-081-090.md` | No |
-| BT13-091–100 | Luna assigned | `internal-docs/audits/BT13/BT13-091-100.md` | No |
+| BT13-081–090 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-081-090.md` | Yes |
+| BT13-091–100 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-091-100.md` | Yes |
 | BT13-101–110 | Luna assigned | `internal-docs/audits/BT13/BT13-101-110.md` | No |
-| BT13-111–112 | Unassigned | `internal-docs/audits/BT13/BT13-111-112.md` | No |
+| BT13-111–112 | Luna assigned | `internal-docs/audits/BT13/BT13-111-112.md` | No |
 
 ## Score model
 
@@ -141,16 +141,36 @@ other component and is never rounded up.
 | BT13-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Empty-hand draw/trash ordering and same-turn inherited OPT proof |
 | BT13-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Retaliation grant and outside-battle deletion boundaries |
 | BT13-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Breeding kind, CostGatedBlock, exact target, and independent decline corrections |
+| BT13-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play, On Deletion, and inherited end-of-turn proof |
+| BT13-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Outside-battle versus by-battle deletion boundary proof |
+| BT13-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact identities, CostGatedBlock, ordered bottom-deck return, and independent decline corrections |
+| BT13-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Real On Play processing and inherited hand-trash proof |
+| BT13-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Ravemon correction and natural attack/deletion proof |
+| BT13-086 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact identity and mandatory Akihiro corrections; reducer/restriction execution remains structural |
+| BT13-087 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Royal Knight play and four-card reveal/add/trash proof |
+| BT13-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Rage Mode, CR 15-7 optional processing, restriction, immunity, and attack proof |
+| BT13-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact identities, natural delayed play, deletion play, and Burst boundary proof |
+| BT13-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Battle-area scaling, source-inclusive count, breeding exclusion, and Once Per Turn proof |
+| BT13-091 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural main-phase deletion; hand-size, attack-end, and inherited stack branches remain partial |
+| BT13-092 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Burst host and rule-owned pending-trash corrections; effect bodies remain partial |
+| BT13-093 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact King Drasil destination and natural deletion-to-breeding placement proof |
+| BT13-094 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Biyomon granted-effect correction and natural recipient deletion/play proof |
+| BT13-095 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Battle-area condition, natural suspension, Q2341 no-target, and breeding-negative proof |
+| BT13-096 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Correct hand/host placement, CR 15-7 CostGatedBlock, and independent decline proof |
+| BT13-097 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Accept/decline and both-player draw source; originating attack remains a direct timing seam |
+| BT13-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Kudamon/Kentaurosmon correction and live security/Main proof; threshold boundary partial |
+| BT13-099 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Live treated-as-Digimon positive case; suspension and high-security negatives remain partial |
+| BT13-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Optional suspend cost correction and natural qualifying evolution accept/decline proof |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 110
-- Integrated card audits: 80
-- Corrected: 27
-- Provisional: 80
+- Assigned: 112
+- Integrated card audits: 100
+- Corrected: 40
+- Provisional: 100
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
-- Remaining unassigned: 2
+- Remaining unassigned: 0
 
 BT13 static re-audit is in progress.

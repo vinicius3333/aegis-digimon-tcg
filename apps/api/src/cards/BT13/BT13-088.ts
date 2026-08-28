@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Belphemon: Rage Mode"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -41,8 +41,9 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "top",
             host: "self",
+            optional: true,
           },
-          optional: false,
+          abortOnDecline: true,
         },
         {
           kind: "GrantImmunity",
@@ -82,7 +83,7 @@ export const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Belphemon: Rage Mode"],
-                    match: "name",
+                    match: "nameExact",
                   },
                 ],
               },
@@ -93,8 +94,9 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "top",
             host: "self",
+            optional: true,
           },
-          optional: false,
+          abortOnDecline: true,
         },
         {
           kind: "GrantImmunity",
@@ -145,7 +147,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Belphemon: Rage Mode"],
+      namesExact: ["Belphemon: Rage Mode"],
       cost: 1,
       isAlternate: true,
     },

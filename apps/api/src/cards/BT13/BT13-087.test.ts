@@ -70,4 +70,22 @@ describe("BT13-087 Dynasmon", () => {
 
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT13-081");
   });
+
+  it("naturally reveals four on play, adds both qualifying cards, and trashes the rest", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-087", as: "dynasmon" }],
+          deck: ["BT18-034", "BT13-017", "BT1-001", "BT1-002"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT18-034"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT18-034", "BT13-017"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
+  });
 });

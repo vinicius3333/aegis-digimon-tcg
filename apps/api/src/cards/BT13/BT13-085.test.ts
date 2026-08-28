@@ -10,7 +10,7 @@ describe("BT13-085 Crowmon", () => {
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       from: ["trash"],
       optional: true,
-      into: { nameOrTrait: [{ match: "name", tokens: ["Ravemon"] }] },
+      into: { nameOrTrait: [{ match: "nameExact", tokens: ["Ravemon"] }] },
       condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Tamer"] }, raw: "you have a Tamer" },
     });
   });
@@ -44,5 +44,29 @@ describe("BT13-085 Crowmon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-083"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-083")).toBe(true);
+  });
+
+  it("may digivolve into the exact Ravemon from trash when attacking with a Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-085", as: "crow" }, { card: "BT13-100", as: "tamer" }],
+          trash: [{ card: "BT13-089", as: "ravemon" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("crow").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("crow").topCard?.cardId === "BT13-089");
+    expect(s.perm("crow").topCard?.cardId).toBe("BT13-089");
   });
 });

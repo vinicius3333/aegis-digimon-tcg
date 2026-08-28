@@ -266,7 +266,7 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect | readonly CardEf
           filter: {
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Biyomon"], match: "name" }],
+            nameOrTrait: [{ tokens: ["Biyomon"], match: "nameExact" }],
           },
           count: 1,
         },
