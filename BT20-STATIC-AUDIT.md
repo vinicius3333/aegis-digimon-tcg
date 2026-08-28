@@ -24,7 +24,7 @@ provisional and capped at 8/10.
 | BT20-001–010 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-001-010.md` | Yes |
 | BT20-011–020 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-011-020.md` | Yes |
 | BT20-021–030 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-021-030.md` | Yes |
-| BT20-031–040 | Luna assigned | `internal-docs/audits/BT20/BT20-031-040.md` | No |
+| BT20-031–040 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-031-040.md` | Yes |
 | BT20-041–050 | Luna assigned | `internal-docs/audits/BT20/BT20-041-050.md` | No |
 | BT20-051–060 | Luna assigned | `internal-docs/audits/BT20/BT20-051-060.md` | No |
 | BT20-061–070 | Luna assigned | `internal-docs/audits/BT20/BT20-061-070.md` | No |
@@ -75,16 +75,26 @@ applicable non-gate component rather than being rounded up.
 | BT20-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural digivolution and stack-source play prove the watcher, condition boundary, De-Digivolve, and keywords (`b910cfb4f`). |
 | BT20-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected Pulsemon name-only matching with legal SEEKERS positive/text-only negative; inherited timing remains injected (`adb60c364`). |
 | BT20-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves independent reveal selectors and bottoming; live stack state proves inherited-only Barrier (`b910cfb4f`). |
+| BT20-031 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry paths prove -3000 DP, but inherited Barrier remains observational rather than behavior-driving (`1fdfbef5a`). |
+| BT20-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves ordered Security take/recovery boundaries and natural battle proves inherited memory (`1fdfbef5a`). |
+| BT20-033 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected the second debuff to reuse the selected LoaderLeomon target; suppression boundaries remain unexecuted (`209ee634a`). |
+| BT20-034 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Inherited Security trash is natural, but Tamer placement and Fortitude remain injected or observational (`1fdfbef5a`). |
+| BT20-035 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Tamer-placement and Security-removal paths are injected while Fortitude is structural despite feasible natural origins (`1fdfbef5a`). |
+| BT20-036 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected the follow-up attack to bind the actual DNA result; the feasible end-turn origin remains manually fired (`cf95fc6e1`). |
+| BT20-037 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution proves scaling and locks, but Partition still uses a manually driven deletion seam (`1fdfbef5a`). |
+| BT20-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle/breeding evolutions prove zone-scoped reduction; natural combat proves inherited Piercing (`1fdfbef5a`). |
+| BT20-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution prove one-target suspension and natural combat proves inherited Piercing (`1fdfbef5a`). |
+| BT20-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural qualifying play drives reduced Groundramon evolution; Raid and inherited DP are behavior-driven (`1fdfbef5a`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 30
-- Corrected: 4
-- Provisional: 30
+- Integrated card audits: 40
+- Corrected: 6
+- Provisional: 40
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 17 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029` source/stack-proof gaps)
+- Blocked or ambiguous: 23 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037` source/stack-proof gaps)
 - Remaining unassigned: 22
 
 BT20 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
