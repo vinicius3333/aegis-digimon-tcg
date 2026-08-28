@@ -7,11 +7,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 1. digivolutionRequirement adds requiredDigivolutionCardCount:{trait:'Hybrid',min:10}
 //    (KB Q3055/Q3056 confirm it can still digivolve if >= 10 and cannot via Blast Digivolve).
 //    New capability needed — see LANE_E.md: requiredDigivolutionCardCount.
-// 2. CostModifier scaling filter now counts colors from zone:'digivolutionCards', not from
-//    the Digimon itself (text: "For each color in this Digimon's digivolution cards").
+// 2. Deletion scaling now lives on each Delete action so target resolution sees the dynamic
+//    ceiling (text: "For each color in this Digimon's digivolution cards").
 // 3. Second WhenAttacking: cost places Tamer only (not Digimon+Tamer).
 // 4. Second WhenAttacking: cost uses SecurityManipulation placeAsSecurity (bottom),
-//    then trashSecurityTop scaled by number of placed cards.
+//    then a supported named-count SecurityManipulation trash scaled by cards actually placed.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -38,18 +38,13 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-        },
-        {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "dpDeletion",
-          amount: 2000,
-          scaling: {
+          dpCeilingScaling: {
             per: 1,
             filter: {
               zone: "digivolutionCards",
               controllerDefault: "mine",
             },
+            amount: 2000,
             unit: "colors",
           },
         },
@@ -68,18 +63,13 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-        },
-        {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "dpDeletion",
-          amount: 2000,
-          scaling: {
+          dpCeilingScaling: {
             per: 1,
             filter: {
               zone: "digivolutionCards",
               controllerDefault: "mine",
             },
+            amount: 2000,
             unit: "colors",
           },
         },
@@ -104,12 +94,14 @@ export const compiled: CompiledCard = {
           toTop: false,
           optional: true,
           abortOnDecline: true,
+          trackCount: "placedTamers",
           raw: "By placing up to 5 Tamer cards from this Digimon's digivolution cards as your bottom security cards",
         },
         {
-          kind: "trashSecurityTop",
+          kind: "SecurityManipulation",
+          op: "trashTop",
           controller: "opponent",
-          scalingSource: "prevActionCount",
+          amountFromNamedCount: { base: 0, countSource: "placedTamers", per: 1 },
           raw: "trash opponent's top security cards for each card placed by this effect",
         },
       ],
