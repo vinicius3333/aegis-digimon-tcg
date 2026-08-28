@@ -734,17 +734,19 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
         const candidates = security.filter((card) =>
           definitionMatches(definitionFilter, revealedDefinition(ctx, card)),
         );
-        const maximum = action.count === "all" ? candidates.length : action.count;
-        const selectedIds = await ctx.ask.selectCards(ctx, {
-          candidates: candidates.map((card) => card.instanceId),
-          min: 0,
-          max: Math.min(maximum, candidates.length),
-          visible: security.map((card) => card.instanceId),
-          visibleCards: security.map((card) => ({
-            instanceId: card.instanceId,
-            cardId: card.cardId,
-          })),
-        });
+        const selectedIds =
+          action.to === "revealed"
+            ? candidates.map((card) => card.instanceId)
+            : await ctx.ask.selectCards(ctx, {
+                candidates: candidates.map((card) => card.instanceId),
+                min: 0,
+                max: Math.min(action.count === "all" ? candidates.length : action.count, candidates.length),
+                visible: security.map((card) => card.instanceId),
+                visibleCards: security.map((card) => ({
+                  instanceId: card.instanceId,
+                  cardId: card.cardId,
+                })),
+              });
         const selected = candidates.filter((card) => selectedIds.includes(card.instanceId));
         for (const card of selected) card.faceUp = true;
         ctx.lastRevealedCards = selected.map((card) => ({
