@@ -114,6 +114,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            sameTarget: true,
           },
           immuneFrom: "opponentDigimonEffects",
           duration: "untilOpponentTurnEnd",
