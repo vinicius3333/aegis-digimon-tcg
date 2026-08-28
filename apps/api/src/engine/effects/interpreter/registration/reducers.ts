@@ -338,7 +338,34 @@ const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
   "BT7-051", // RhinoKabuterimon: this card's own digivolution cost -2 with a Tamer source
   "BT11-059", // -1 per green/black Tamer when one of your Digimon digivolves into this card (Q2092)
   "EX5-012", // qualifying 3+ source Light Fang/Night Claw/Galaxy stack -> self evo cost -2 (Q3549)
+  "BT17-048", // suspend up to 5 Tamers to reduce this card's own evo cost per Tamer
 ]);
+
+/**
+ * A Static nested wouldDigivolve reducer whose source card is the imminent hand target. The
+ * reducer is consumed by the digivolve pay-time path below, so leaving the marker in the
+ * ordinary continuous ledger would arm the same reduction again after BT17-048 is already on
+ * the field. This mirrors the intrinsic Digisorption marker path.
+ */
+export function isIntrinsicWouldDigivolveSelfReducerMarker(cardId: string, effect: CardEffect): boolean {
+  if (effect.trigger !== "Static" || !VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS.has(cardId)) return false;
+  const actions = effect.actions ?? [];
+  return (
+    actions.length > 0 &&
+    actions.every(
+      (outer) =>
+        outer.kind === "Replacement" &&
+        outer.event === "wouldDigivolve" &&
+        (outer.actions ?? []).some(
+          (inner) =>
+            inner.kind === "Replacement" &&
+            inner.event === "wouldDigivolve" &&
+            inner.mode === "reduceCost" &&
+            typeof inner.amount === "number",
+        ),
+    )
+  );
+}
 
 export function collectWouldDigivolveSelfReducers(cardId: string, effects: readonly CardEffect[]): void {
   if (!VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS.has(cardId)) return;
@@ -408,6 +435,10 @@ export function potentialWouldDigivolveSelfReduction(
   if (reducer.cost === undefined) return Math.max(0, reducer.amount * scale);
   if (reducer.cost.target?.upTo !== true || typeof reducer.cost.target.count !== "number") {
     return reducer.amount * scale;
+  }
+  if (reducer.cost.kind === "suspend") {
+    const candidates = candidatePermanents(ctx, reducer.cost.target).filter((permanent) => !permanent.isSuspended);
+    return reducer.amount * scale * Math.min(reducer.cost.target.count, candidates.length);
   }
   const zones: ZoneRef[] = reducer.cost.target.filter.zone === "trash" ? ["trash"] : [];
   if (zones.length === 0) return 0;
