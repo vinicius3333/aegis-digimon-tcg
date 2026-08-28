@@ -1,6 +1,6 @@
 # BT11 Static Card Implementation Re-audit
 
-Status: static card-by-card pass in progress; execution gates deferred
+Status: static card-by-card pass complete; execution gates deferred and collection verification remains open
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -36,7 +36,7 @@ claim is valid.
 | BT11-081–090 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-081-090.md` | Yes |
 | BT11-091–100 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-091-100.md` | Yes |
 | BT11-101–110 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-101-110.md` | Yes |
-| BT11-111–112 | Luna in progress | `internal-docs/audits/BT11/BT11-111-112.md` | No |
+| BT11-111–112 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-111-112.md` | Yes |
 
 ## Score model
 
@@ -172,16 +172,19 @@ other component and is never rounded up.
 | BT11-108 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected De-Digivolve level floor encoding |
 | BT11-109 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected bottom relocation and source-stack shedding |
 | BT11-110 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-111 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected alternate evolution, self-bottom placement, mandatory deletion, and prevention cost |
+| BT11-112 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected self-suspension continuation gate; strengthened Q2142 proof |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 110
-- Corrected: 20
-- Provisional: 110
+- Integrated card audits: 112
+- Corrected: 22
+- Provisional: 112
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
 
-BT11 static re-audit remains open.
+BT11 static inspection is complete. Collection verification remains open
+because every execution score is 0/2 and no delivery gate was run.
