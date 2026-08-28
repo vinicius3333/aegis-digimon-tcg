@@ -29,4 +29,11 @@ describe("BT15-076", () => {
       actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true }],
     });
   });
+
+  it("has the printed Blocker keyword", () => {
+    expect(compiled.effects?.[3]).toMatchObject({
+      trigger: "Static",
+      keywords: [{ keyword: "Blocker" }],
+    });
+  });
 });
