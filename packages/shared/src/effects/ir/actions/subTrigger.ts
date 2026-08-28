@@ -31,6 +31,7 @@ export type SubTriggerEvent =
   | "onDeletionOf"
   | "whenSecurityRemoved"
   | "whenCardTrashedFromSecurity"
+  | "whenEffectTrashesFromSecurity"
   | "whenAddSecurity"
   | "onAddDigivolutionCards"
   | "whenPlayed"
