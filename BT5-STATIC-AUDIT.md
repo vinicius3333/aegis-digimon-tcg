@@ -25,7 +25,7 @@ The re-audit intentionally does not execute tests, typecheck, lint, formatting, 
 | BT5-081–090 | Static audit delivered | `internal-docs/audits/BT5/BT5-081-090.md` | Yes |
 | BT5-091–100 | Luna in progress | `internal-docs/audits/BT5/BT5-091-100.md` | No |
 | BT5-101–110 | Static audit delivered | `internal-docs/audits/BT5/BT5-101-110.md` | Yes |
-| BT5-111–112 | Luna in progress | `internal-docs/audits/BT5/BT5-111-112.md` | No |
+| BT5-111–112 | Static audit delivered | `internal-docs/audits/BT5/BT5-111-112.md` | Yes |
 
 ## Score model
 
@@ -143,6 +143,8 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 | BT5-108 Earth Shaker | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent unsuspended level-4 and level-5 opponent deletion actions |
 | BT5-109 Mega Digimon Fusion! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Banned status recorded; once-bound level-6-to-7 reduction and end-turn cleanup |
 | BT5-110 All Delete | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected bound explicit source trash, Omnimon return, and all-board deletion |
+| BT5-111 Omnimon X (Anti-body) | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected battle-area-only Omnimon shortcut, live-DP deletion, and exact-two-source EndAttack cost |
+| BT5-112 Omnimon Zwart Defeat | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Security self-play plus exact opposing-Tamer evolution and opposing-Digimon deletion targets |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT5/`.
 
@@ -150,9 +152,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 100
-- Corrected: 5
-- Provisional: 100
+- Integrated card audits: 102
+- Corrected: 6
+- Provisional: 102
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 0
