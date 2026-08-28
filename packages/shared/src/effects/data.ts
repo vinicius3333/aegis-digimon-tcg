@@ -1216,6 +1216,23 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       count: 2,
     },
   ],
+  // BT19-065: [DigiXros -1] 5 Lv.5-or-lower [Cyborg]/[Composite] Digimon cards with different
+  // card numbers. The generated parser retained unrelated header tokens as traits and dropped
+  // the five-card cap, while also encoding 1 as the requirement's material-count field.
+  "BT19-065": [
+    {
+      materials: [
+        {
+          kind: ["Digimon"],
+          levelComparison: { op: "lte", value: 5 },
+          nameOrTrait: [{ tokens: ["Cyborg", "Composite"], match: "trait" }],
+          differentCardNumbers: true,
+        },
+      ],
+      count: 1,
+      maxMaterials: 5,
+    },
+  ],
   // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
   "ST19-10": [
     {
