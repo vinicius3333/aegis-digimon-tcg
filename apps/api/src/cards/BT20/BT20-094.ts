@@ -72,6 +72,13 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              kind: ["Digimon"],
+              zone: "digivolutionCards",
+              hostFilter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Imperialdramon: Fighter Mode"], match: "name" }],
+              },
               nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }],
             },
             count: 1,
