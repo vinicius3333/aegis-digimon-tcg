@@ -61,6 +61,25 @@ describe("BT18-102 Susanoomon", () => {
       trigger: "Rule",
       actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Hybrid"] }],
     });
+    expect(compiled.effects[3]).toMatchObject({
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "addBottom",
+          source: {
+            filter: {
+              zone: "digivolutionCards",
+              kind: ["Tamer"],
+              hostFilter: { isSelfRef: true },
+            },
+            count: 5,
+            upTo: true,
+          },
+          trackCount: "placedTamers",
+        },
+      ],
+    });
   });
 
   it("raises both deletion ceilings by the distinct colors in this stack", () => {
@@ -92,6 +111,39 @@ describe("BT18-102 Susanoomon", () => {
         incompatibleWithBlastDigivolve: true,
       },
     ]);
+  });
+
+  it("does not source a Tamer from another own stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-102", as: "susanoomon", under: HYBRID_STACK },
+            { card: "BT1-009", as: "otherOwnStack", under: [{ card: "BT1-085", as: "otherStackTamer" }] },
+          ],
+          security: ["BT1-001"],
+        },
+        1: {
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("susanoomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("otherOwnStack").stack.some((card) => card.instanceId === s.inst("otherStackTamer").instanceId)).toBe(
+      true,
+    );
   });
 
   it("naturally evolves from a Takuya/Koji Tamer with ten Hybrids and applies six-color deletion", async () => {

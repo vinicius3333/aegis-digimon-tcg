@@ -10,8 +10,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 2. Deletion scaling now lives on each Delete action so target resolution sees the dynamic
 //    ceiling (text: "For each color in this Digimon's digivolution cards").
 // 3. Second WhenAttacking: cost places Tamer only (not Digimon+Tamer).
-// 4. Second WhenAttacking: cost uses SecurityManipulation placeAsSecurity (bottom),
-//    then a supported named-count SecurityManipulation trash scaled by cards actually placed.
+// 4. Second WhenAttacking: cost uses the supported addBottom loose-card path,
+//    bound to this Digimon's host stack, then a named-count SecurityManipulation trash
+//    scaled by cards actually placed.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -80,13 +81,14 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SecurityManipulation",
-          op: "placeAsSecurity",
+          op: "addBottom",
           controller: "mine",
           source: {
             filter: {
               controller: "mine",
               kind: ["Tamer"],
               zone: "digivolutionCards",
+              hostFilter: { isSelfRef: true },
             },
             count: 5,
             upTo: true,
