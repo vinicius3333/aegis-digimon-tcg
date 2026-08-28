@@ -35,7 +35,7 @@ collection-complete claim is valid.
 | BT15-061–070 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-061-070.md` | Yes |
 | BT15-071–080 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-071-080.md` | Yes |
 | BT15-081–090 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-081-090.md` | Yes |
-| BT15-091–100 | Luna assigned | `internal-docs/audits/BT15/BT15-091-100.md` | No |
+| BT15-091–100 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-091-100.md` | Yes |
 | BT15-101–102 | Luna assigned | `internal-docs/audits/BT15/BT15-101-102.md` | No |
 
 ## Score model
@@ -155,14 +155,24 @@ behavior.
 | BT15-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural post-play Sora sequencing and Security Biyomon play/self-return proof |
 | BT15-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main and Security paths prove live opposing-security DP ceilings |
 | BT15-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural qualified/unqualified/Security branches prove catalog-authoritative lowest-level selection |
+| BT15-091 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Compound material-cost sequencing and bound-host correction plus natural complete/incomplete payment proof `0d6ea26f7` |
+| BT15-092 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main security play/replacement and attack-origin Security DP reduction proof |
+| BT15-093 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Mandatory second -6000 DP correction plus natural same-target -12000 DP proof `c338fc75d` |
+| BT15-094 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural controller-any suspension, Insectoid selection, and opponent-turn duration proof |
+| BT15-095 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Option play and battle deletion prove the granted security-trash trigger |
+| BT15-096 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural two-hit and one-hit reveal flows prove add/trash/top-deck boundaries |
+| BT15-097 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Mandatory Machine/Cyborg/SoC hand cost correction and cross-kind lowest-play-cost proof `6c91dc629` |
+| BT15-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural own-deletion cost, optional Myotismon play, self-placement, and no-cost negative proof |
+| BT15-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Mandatory hand-trash cost correction plus stored-level deletion and Myotismon draw proof `2f47b813f` |
+| BT15-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main and Leviamon X digivolution origins prove both level deletions and trash return |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 90
-- Corrected: 29
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 33
+- Provisional: 100
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
