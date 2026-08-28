@@ -32,8 +32,8 @@ describe("BT15-003", () => {
         0: {
           battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT15-003"] }],
           security: [
-            { card: "BT1-001", as: "bottom" },
             { card: "BT1-002", as: "top" },
+            { card: "BT1-001", as: "bottom" },
           ],
         },
         1: {
@@ -59,7 +59,7 @@ describe("BT15-003", () => {
         s.state.memory === 1,
     );
 
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("bottom").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("top").instanceId)).toBe(true);
     await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
     expect(
       s.engine.applyIntent(0, {
@@ -72,6 +72,34 @@ describe("BT15-003", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("can choose the bottom security card through the public attack cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT15-003"] }],
+          security: [
+            { card: "BT1-002", as: "top" },
+            { card: "BT1-001", as: "bottom" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1 && s.state.players[0]!.security.length === 1);
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("bottom").instanceId)).toBe(true);
   });
 
   it("may decline without trashing security or gaining memory", async () => {
