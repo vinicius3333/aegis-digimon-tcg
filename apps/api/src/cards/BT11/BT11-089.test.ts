@@ -20,7 +20,16 @@ describe("BT11-089 [On Play] reveal 4 -> add 1 red Vaccine Digimon to hand", () 
     expect(getCardDefinition("BT11-089")).toMatchObject({ cardId: "BT11-089", colors: ["Red"], kinds: ["Tamer"], playCost: 3 });
     expect(compiled.effects).toMatchObject([
       { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 4 }] },
-      { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenPlayed" }] },
+      {
+        trigger: "YourTurn",
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenPlayed",
+            sourceFilter: { excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
+          },
+        ],
+      },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }] },
     ]);
   });
