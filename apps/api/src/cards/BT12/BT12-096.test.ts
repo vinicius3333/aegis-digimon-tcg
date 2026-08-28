@@ -6,8 +6,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT12-096.js";
 
-describe("BT12-096 handwritten module", () => {
-  it("registers its printed OnStartTurn effect without declarative effect record", () => {
+describe("BT12-096 compiled IR module", () => {
+  it("registers its printed OnStartTurn effect through the compiled IR record", () => {
     const module = getEffectModule("BT12-096");
     expect(module?.cardId).toBe("BT12-096");
     const source = {
@@ -46,5 +46,35 @@ describe("BT12-096 handwritten module", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tagiru"));
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-096")).toBe(true);
+  });
+
+  it("suspends Tagiru, places an under-Tamer card, and reduces a Save digivolution by 1", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-096", as: "tagiru", under: [{ card: "BT10-075", as: "placedCost" }] },
+            { card: "BT10-071", as: "host" },
+          ],
+          hand: [{ card: "BT10-075", as: "evolver" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tagiru").isSuspended);
+
+    expect(s.perm("tagiru").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-1);
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("placedCost").instanceId)).toBe(true);
   });
 });
