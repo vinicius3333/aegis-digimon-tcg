@@ -26,12 +26,12 @@ collection-complete claim is valid.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT17-001–010 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-001-010.md` | Yes |
-| BT17-011–020 | Luna assigned | `internal-docs/audits/BT17/BT17-011-020.md` | No |
+| BT17-011–020 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-011-020.md` | Yes |
 | BT17-021–030 | Luna assigned | `internal-docs/audits/BT17/BT17-021-030.md` | No |
 | BT17-031–040 | Luna assigned | `internal-docs/audits/BT17/BT17-031-040.md` | No |
 | BT17-041–050 | Luna assigned | `internal-docs/audits/BT17/BT17-041-050.md` | No |
 | BT17-051–060 | Luna assigned | `internal-docs/audits/BT17/BT17-051-060.md` | No |
-| BT17-061–070 | Unassigned | `internal-docs/audits/BT17/BT17-061-070.md` | No |
+| BT17-061–070 | Luna assigned | `internal-docs/audits/BT17/BT17-061-070.md` | No |
 | BT17-071–080 | Unassigned | `internal-docs/audits/BT17/BT17-071-080.md` | No |
 | BT17-081–090 | Unassigned | `internal-docs/audits/BT17/BT17-081-090.md` | No |
 | BT17-091–100 | Unassigned | `internal-docs/audits/BT17/BT17-091-100.md` | No |
@@ -75,16 +75,26 @@ feasible natural originating event.
 | BT17-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2710–Q2714, natural Calumon/Takato trigger, delete/no-delete branches, and inherited numeric DP-ceiling increase at nonpositive memory are covered (`f1093d57c`). |
 | BT17-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2715–Q2717 exact dual reveal filters/remainder and a natural inherited battle-deletion Tamer play are proved with legal Hybrid fixtures (`615804154`). |
 | BT17-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2718–Q2722, natural delete/fallback branches, legal evolution, and inherited numeric deletion-ceiling increase match the direct IR (`024ea314d`). |
+| BT17-011 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2723–Q2731 and Q4657/Q6554–Q6555 are proved through natural Tamer and BurningGreymon evolution stacks, AncientGreymon follow-up, end-turn deletion, and inherited DP behavior (`4cfa303c4`). |
+| BT17-012 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural attack proves Raid publication and the reduced-cost Hybrid evolution while preserving the legal attacking source stack (`346570295`). |
+| BT17-013 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution covers the 6000-DP boundary and no-delete Security Attack branch, while a Gallantmon host proves the inherited effect-deletion unsuspend (`6cd6d9881`). |
+| BT17-014 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the effect-driven Tamer evolution to use runtime-consumed `virtualBase`; a natural Main effect proves material placement, exact cost, legal stack, and deletion (`fd1473221`). |
+| BT17-015 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected Q2743's legal empty Gabumon branch with scoped `allowNoTarget` preflight; natural play/evolution/security flows prove both modal outcomes and inherited behavior (`bbc9669ad`). |
+| BT17-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution and attack paths prove deletion and no-delete DP/Blocker behavior on a legal red level-5 stack without manual timing injection (`60422e7ce`). |
+| BT17-017 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle deletion, On Play/evolution deletion, trash returns, free Tamer play, and public DigiXros with both named materials prove the full IR (`4ecc9ec1c`). |
+| BT17-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural attack counter window proves Blast Digivolution on a Gallantmon stack; aggregate-DP deletion and 20-card trash scaling prove both remaining clauses (`e9b8ecb7f`). |
+| BT17-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A complete turn proves the Matt-conditioned draw and a legal two-material end-turn DNA stack proves the inherited evolution requirement (`d30c454c0`). |
+| BT17-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal and inherited attack flows prove dual-category selection, bottom-deck remainder, reduced-cost Tamer play, and the Security-only negative boundary (`955a83bc5`). |
 
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 60
-- Integrated card audits: 10
-- Corrected: 0
-- Provisional: 10
+- Assigned: 70
+- Integrated card audits: 20
+- Corrected: 2
+- Provisional: 20
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 42
+- Remaining unassigned: 32
 
 BT17 static re-audit is in progress.
