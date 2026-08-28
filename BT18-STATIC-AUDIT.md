@@ -1,6 +1,6 @@
 # BT18 Static Card Implementation Re-audit
 
-Status: static preparation overlap in progress; chronological integration waits for BT17; execution gates deferred
+Status: static card-by-card audit in progress; BT17 static coverage recorded; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -9,9 +9,8 @@ the immutable committed card-catalog blob.
 
 This ledger follows the repository's `verify-card-implementation` protocol
 and the chronological campaign plan. BT18 workers may prepare static range
-evidence because every BT17 card is already assigned and the user requested
-five parallel Luna lanes, but no BT18 range may be integrated before BT17
-static coverage is recorded. Detailed English reports belong under
+evidence in five parallel Luna lanes. BT17 static coverage is now recorded,
+so accepted BT18 ranges may be integrated in strict ascending order. Detailed English reports belong under
 `internal-docs/audits/BT18/`.
 
 ## Current execution state
@@ -23,12 +22,12 @@ provisional and capped at 8/10.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT18-001–010 | Luna assigned | `internal-docs/audits/BT18/BT18-001-010.md` | No |
-| BT18-011–020 | Unassigned | `internal-docs/audits/BT18/BT18-011-020.md` | No |
-| BT18-021–030 | Unassigned | `internal-docs/audits/BT18/BT18-021-030.md` | No |
-| BT18-031–040 | Unassigned | `internal-docs/audits/BT18/BT18-031-040.md` | No |
-| BT18-041–050 | Unassigned | `internal-docs/audits/BT18/BT18-041-050.md` | No |
-| BT18-051–060 | Unassigned | `internal-docs/audits/BT18/BT18-051-060.md` | No |
-| BT18-061–070 | Unassigned | `internal-docs/audits/BT18/BT18-061-070.md` | No |
+| BT18-011–020 | Luna assigned | `internal-docs/audits/BT18/BT18-011-020.md` | No |
+| BT18-021–030 | Luna assigned | `internal-docs/audits/BT18/BT18-021-030.md` | No |
+| BT18-031–040 | Luna assigned | `internal-docs/audits/BT18/BT18-031-040.md` | No |
+| BT18-041–050 | Luna assigned | `internal-docs/audits/BT18/BT18-041-050.md` | No |
+| BT18-051–060 | Luna assigned | `internal-docs/audits/BT18/BT18-051-060.md` | No |
+| BT18-061–070 | Luna assigned | `internal-docs/audits/BT18/BT18-061-070.md` | No |
 | BT18-071–080 | Unassigned | `internal-docs/audits/BT18/BT18-071-080.md` | No |
 | BT18-081–090 | Unassigned | `internal-docs/audits/BT18/BT18-081-090.md` | No |
 | BT18-091–100 | Unassigned | `internal-docs/audits/BT18/BT18-091-100.md` | No |
@@ -50,12 +49,12 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 10
+- Assigned: 70
 - Integrated card audits: 0
 - Corrected: 0
 - Provisional: 0
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 92
+- Remaining unassigned: 32
 
-BT18 static preparation is in progress; chronological integration remains blocked on BT17 static coverage.
+BT18 static auditing is in progress; accepted ranges are eligible for strict chronological integration.

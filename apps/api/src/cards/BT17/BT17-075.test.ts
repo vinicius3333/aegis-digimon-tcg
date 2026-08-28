@@ -82,4 +82,83 @@ describe("BT17-075 Eosmon", () => {
 
     expect(s.perm("target").topCard.cardId).toBe("BT17-063");
   });
+
+  it("resolves the opponent-first and fallback Tamer branches before De-Digivolve", async () => {
+    const opponentFirst = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-087", as: "ownTamer" }],
+          hand: [{ card: "BT17-075", as: "eosmon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT17-071", under: ["BT17-063"], as: "opponentStack" }],
+          hand: [{ card: "BT17-083", as: "opponentTamer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    opponentFirst.state.memory = 6;
+
+    expect(
+      opponentFirst.engine.applyIntent(0, { type: "playCard", instanceId: opponentFirst.inst("eosmon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => opponentFirst.perm("opponentStack").topCard.cardId === "BT17-063");
+
+    expect(opponentFirst.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT17-083")).toBe(true);
+    expect(opponentFirst.perm("opponentStack").topCard.cardId).toBe("BT17-063");
+
+    const fallback = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-087", as: "ownTamer" }],
+          hand: [
+            { card: "BT17-075", as: "fallbackEosmon" },
+            { card: "BT16-090", as: "whiteTamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT17-071", under: ["BT17-063"], as: "fallbackStack" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    fallback.state.memory = 6;
+
+    expect(
+      fallback.engine.applyIntent(0, { type: "playCard", instanceId: fallback.inst("fallbackEosmon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => fallback.perm("fallbackStack").topCard.cardId === "BT17-063");
+
+    expect(fallback.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT16-090")).toBe(true);
+    expect(fallback.perm("fallbackStack").topCard.cardId).toBe("BT17-063");
+  });
+
+  it("redirects a natural opponent attack only to an unsuspended Eosmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-074", suspended: true, as: "suspendedDecoy" },
+            { card: "BT17-076", under: ["BT17-075"], as: "eosmon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT17-063", dp: 1000, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("attacker").instanceId));
+
+    const declared = s.events.filter((event) => event.kind === "attackDeclared").at(-1);
+    expect(declared).toMatchObject({ target: { kind: "permanent", permanentId: s.perm("eosmon").permanentId } });
+    expect(s.perm("eosmon").isSuspended).toBe(true);
+    expect(s.perm("suspendedDecoy").isSuspended).toBe(true);
+  });
 });

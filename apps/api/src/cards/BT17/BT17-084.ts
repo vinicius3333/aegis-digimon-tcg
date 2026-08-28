@@ -71,6 +71,7 @@ const compiled: CompiledCard = {
                     value: 4,
                   },
                   zone: "digivolutionCards",
+                  hostFilter: { sourceRef: "triggerSubject" },
                 },
                 count: 1,
               },

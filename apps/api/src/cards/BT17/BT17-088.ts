@@ -88,6 +88,7 @@ export const compiled: CompiledCard = {
                   filter: {
                     controller: "mine",
                     kind: ["Tamer"],
+                    isSelfRef: true,
                     nameOrTrait: [
                       {
                         tokens: ["Willis"],
@@ -96,6 +97,7 @@ export const compiled: CompiledCard = {
                     ],
                   },
                   count: 1,
+                  isSelf: true,
                 },
                 raw: "by suspending this Tamer",
               },
