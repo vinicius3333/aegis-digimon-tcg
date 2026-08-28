@@ -90,7 +90,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "Suspend",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "opponent",
@@ -101,16 +101,19 @@ export const compiled: CompiledCard = {
               },
             },
             count: 1,
+            bindAs: "suspendedTarget",
+          },
+        },
+        {
+          kind: "Suspend",
+          target: {
+            fromSelectionRef: "suspendedTarget",
           },
         },
         {
           kind: "Restrict",
           target: {
-            filter: {
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
+            fromSelectionRef: "suspendedTarget",
           },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
