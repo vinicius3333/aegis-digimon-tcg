@@ -4,6 +4,8 @@ import type { Permanent } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, DecisionApi } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import "./BT12-083.js";
 
@@ -126,10 +128,31 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
     const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
     const card = runtimeCompiledCard("BT12-083")!;
     const whenDigivolving = card.effects.find((effect) => effect.trigger === "WhenDigivolving");
-    expect(whenDigivolving?.actions[1]).toMatchObject({
-      kind: "CostModifier",
-      scaling: { per: 1, unit: "colors" },
+    expect(whenDigivolving?.actions[0]).toMatchObject({
+      kind: "PlaceUnder",
+      targetIsPermanent: true,
+      scaling: { per: 1, unit: "colors", levelCeilingAdd: 1 },
     });
+  });
+
+  it("raises the placed Digimon level ceiling for each distinct Tamer color", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT12-083", as: "arrester" },
+          { card: "BT12-087", as: "tamer" },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT12-087", as: "destination" },
+          { card: "BT12-010", as: "target" },
+        ],
+      },
+    }, { autoSelectCards: true });
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("arrester"));
+    expect(s.perm("destination").stack.map(({ cardId }) => cardId)).toContain("BT12-010");
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-010")).toBe(false);
   });
 
   it("limits the Save alternate evolution to red, black, or purple level 4 cards", () => {

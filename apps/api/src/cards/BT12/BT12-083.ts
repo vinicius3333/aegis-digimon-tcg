@@ -17,9 +17,12 @@ if (endOfTurn !== undefined) {
 const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving");
 const saveRequirement = compiled.digivolutionRequirement?.find((requirement) => requirement.texts?.includes("Save"));
 if (saveRequirement !== undefined) saveRequirement.colors = ["Red", "Black", "Purple"];
+const placement = whenDigivolving?.actions[0];
 const levelScaling = whenDigivolving?.actions[1];
-if (levelScaling?.kind === "CostModifier" && levelScaling.scaling !== undefined) {
-  levelScaling.scaling.unit = "colors";
+if (placement?.kind === "PlaceUnder" && levelScaling?.kind === "CostModifier" && levelScaling.scaling !== undefined) {
+  placement.targetIsPermanent = true;
+  placement.scaling = { ...levelScaling.scaling, unit: "colors", levelCeilingAdd: levelScaling.amount };
+  whenDigivolving!.actions = [placement];
 }
 const inherited = compiled.effects.find((effect) => effect.isInherited === true);
 const draw = inherited?.actions.find((action) => action.kind === "Draw");
