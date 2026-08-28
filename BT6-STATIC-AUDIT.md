@@ -31,10 +31,10 @@ claim is valid.
 | BT6-051–060 | Static audit delivered | `internal-docs/audits/BT6/BT6-051-060.md` | Yes |
 | BT6-061–070 | Static audit delivered | `internal-docs/audits/BT6/BT6-061-070.md` | Yes |
 | BT6-071–080 | Static audit delivered | `internal-docs/audits/BT6/BT6-071-080.md` | Yes |
-| BT6-081–090 | Luna in progress | `internal-docs/audits/BT6/BT6-081-090.md` | No |
+| BT6-081–090 | Static audit delivered | `internal-docs/audits/BT6/BT6-081-090.md` | Yes |
 | BT6-091–100 | Luna in progress | `internal-docs/audits/BT6/BT6-091-100.md` | No |
 | BT6-101–110 | Luna in progress | `internal-docs/audits/BT6/BT6-101-110.md` | No |
-| BT6-111–112 | Queued | `internal-docs/audits/BT6/BT6-111-112.md` | No |
+| BT6-111–112 | Luna in progress | `internal-docs/audits/BT6/BT6-111-112.md` | No |
 
 ## Score model
 
@@ -140,14 +140,24 @@ other component and is never rounded up.
 | BT6-078 SkullGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected own-effect hand-trash provenance plus bottom-stack placement and inherited Retaliation |
 | BT6-079 Murmukusmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Retaliation and exact Ornismon free play at the post-deletion nine-to-ten trash boundary |
 | BT6-080 Ornismon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Security Attack +1 and inclusive opposing level-5 On Play deletion boundary |
+| BT6-081 Titamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Hand-trash/free-play sequence and self-scoped once-per-turn DP/Security Attack watcher |
+| BT6-082 Sistermon Blanc | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live Huckmon/Royal Knight enablement, all-own-Sistermon Blocker aura, and On Play draw |
+| BT6-083 Eosmon (Lv.4) | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent own/opponent Tamer free-play branches and legal inherited Eosmon stack |
+| BT6-084 Sistermon Ciel | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected universal Sistermon Noir alias/Rule plus Huckmon/Royal Knight DP aura |
+| BT6-085 Eosmon (Lv.5) | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Catalog-backed 50-copy metadata, Eosmon free play, and inherited DP grant |
+| BT6-086 Eosmon (Lv.6) | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected any-order per-Tamer stack placement, placed-count deletion, and live scaling |
+| BT6-087 Tai Kamiya | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact Agumon Main activation with Bond evolution, security trash, and delayed deletion |
+| BT6-088 Matt Ishida | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact Gabumon Main activation with Bond evolution, security trash, and delayed deletion |
+| BT6-089 T.K. Takaishi & Kari Kamiya | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Strict fewer-security memory gate and optional self-suspend attack DP reduction |
+| BT6-090 Izzy Izumi & Joe Kido | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected decline-aborts-draw behavior plus two-opponent-Digimon memory threshold |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 80
-- Corrected: 10
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 15
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
