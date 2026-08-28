@@ -36,5 +36,22 @@ describe("BT14-083", () => {
     await settle(() => s.perm("watcher").isSuspended && s.perm("host").stack.length === 0);
     expect(s.perm("host").stack).toHaveLength(0);
     expect(s.perm("watcher").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(8);
+  });
+
+  it("plays itself from security through a natural security check", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT14-071", as: "attacker" }] }, 1: { security: [{ card: "BT14-083", as: "securityJoe" }] } },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-083"));
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-083")).toBe(true);
   });
 });
