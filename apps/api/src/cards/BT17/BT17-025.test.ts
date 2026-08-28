@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -46,7 +45,7 @@ describe("BT17-025", () => {
     });
   });
 
-  it("plays a level 3 Digimon from trash and returns that played Digimon at the opponent's end step", async () => {
+  it("plays a level 3 Digimon from trash and returns it at the end of a complete opponent turn", async () => {
     const s = setupEngine(
       {
         0: {
@@ -55,7 +54,12 @@ describe("BT17-025", () => {
           deck: ["BT1-011"],
           hand: [{ card: "BT17-025", as: "werewolf" }],
         },
-        1: { battleArea: [{ card: "BT1-029", as: "opponentLevel3" }] },
+        // Keep the public Main phase open for the opponent's complete turn; this free card is
+        // never played, so it cannot alter the delayed-return outcome.
+        1: {
+          battleArea: [{ card: "BT1-029", as: "opponentLevel3" }],
+          hand: [{ card: "BT1-090", as: "opponentMainAction" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -77,7 +81,7 @@ describe("BT17-025", () => {
     expect(observe(s.engine).hasEffectiveTrait(s.perm("cerberusmon"), "Dark Animal")).toBe(true);
 
     s.state.turnSeat = 1;
-    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    await advance(s.engine).runTurn(1);
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === revivedId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === revivedId)).toBe(true);
