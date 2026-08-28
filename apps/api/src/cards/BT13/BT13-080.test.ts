@@ -72,4 +72,27 @@ describe("BT13-080 ProtoGizmon", () => {
 
     expect(observe(s.engine).isRestricted(s.perm("proto"), "digivolve")).toBe(true);
   });
+
+  it("returns two Gizmon cards before playing Gizmon: AT from the trash", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-080", as: "proto" }],
+          trash: [{ card: "BT13-083", as: "at" }, { card: "BT13-086", as: "xt" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("proto").topCard!.instanceId, s.inst("xt").instanceId);
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("proto").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083")).toBe(true);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT13-080", "BT13-086"]),
+    );
+  });
 });
