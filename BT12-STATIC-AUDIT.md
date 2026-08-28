@@ -26,10 +26,10 @@ collection-complete claim is valid.
 | BT12-001–010 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-001-010.md` | Yes |
 | BT12-011–020 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-011-020.md` | Yes |
 | BT12-021–030 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-021-030.md` | Yes |
-| BT12-031–040 | Luna in progress | `internal-docs/audits/BT12/BT12-031-040.md` | No |
+| BT12-031–040 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-031-040.md` | Yes |
 | BT12-041–050 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-041-050.md` | Yes |
 | BT12-051–060 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-051-060.md` | Yes |
-| BT12-061–070 | Queued | `internal-docs/audits/BT12/BT12-061-070.md` | No |
+| BT12-061–070 | Luna in progress | `internal-docs/audits/BT12/BT12-061-070.md` | No |
 | BT12-071–080 | Luna in progress | `internal-docs/audits/BT12/BT12-071-080.md` | No |
 | BT12-081–090 | Luna in progress | `internal-docs/audits/BT12/BT12-081-090.md` | No |
 | BT12-091–100 | Queued | `internal-docs/audits/BT12/BT12-091-100.md` | No |
@@ -91,6 +91,16 @@ other component and is never rounded up.
 | BT12-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
 | BT12-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
 | BT12-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
+| BT12-031 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-031-040.md`; action-order/stack-color drift documented |
+| BT12-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-031-040.md`; trait-union drift documented |
+| BT12-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-031-040.md`; exact no-effect record |
+| BT12-034 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-031-040.md`; Koromon requirement drift documented |
+| BT12-035 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-031-040.md`; inherited Save gate drift documented |
+| BT12-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-031-040.md`; no new correction |
+| BT12-037 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-031-040.md`; Save ordering/errata drift documented |
+| BT12-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-031-040.md`; no new correction |
+| BT12-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-031-040.md`; conditional pay-cost drift documented |
+| BT12-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-031-040.md`; conditional pay-cost drift documented |
 | BT12-041 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; repeat/DP-zero/Save drift documented |
 | BT12-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; no new correction |
 | BT12-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; Security DP drift documented |
@@ -115,12 +125,12 @@ other component and is never rounded up.
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 80
-- Integrated card audits: 50
+- Assigned: 90
+- Integrated card audits: 60
 - Corrected: 1
-- Provisional: 50
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
-- Remaining unassigned: 32
+- Remaining unassigned: 22
 
 BT12 static re-audit is in progress.
