@@ -65,6 +65,8 @@ export const compiled: CompiledCard = {
                       match: "trait",
                     },
                   ],
+                  zone: "digivolutionCards",
+                  hostFilter: { sourceRef: "triggerSubject" },
                 },
                 count: 1,
               },
