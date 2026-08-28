@@ -102,19 +102,8 @@ export const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GrantStatic",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          grant: "turnEndConditionOpponentMemoryAtLeast",
-          turnEndCondition: {
-            opponentMemoryGte: 3,
-          },
-          duration: "permanent",
+          kind: "SetTurnEndMemory",
+          minimum: 3,
           condition: {
             kind: "selfHasNameContaining",
             names: ["Fenriloogamon"],
