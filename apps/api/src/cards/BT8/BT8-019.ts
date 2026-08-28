@@ -80,6 +80,14 @@ const compiled: CompiledCard = {
               duration: "forTheTurn",
             },
           ],
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            unit: "cards",
+          },
         },
       ],
     },
