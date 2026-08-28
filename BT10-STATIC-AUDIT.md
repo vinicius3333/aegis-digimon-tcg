@@ -28,11 +28,11 @@ claim is valid.
 | BT10-001–010 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-001-010.md` | Yes |
 | BT10-011–020 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-011-020.md` | Yes |
 | BT10-021–030 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-021-030.md` | Yes |
-| BT10-031–040 | Luna in progress | `internal-docs/audits/BT10/BT10-031-040.md` | No |
-| BT10-041–050 | Luna in progress | `internal-docs/audits/BT10/BT10-041-050.md` | No |
+| BT10-031–040 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-031-040.md` | Yes |
+| BT10-041–050 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-041-050.md` | Yes |
 | BT10-051–060 | Luna in progress | `internal-docs/audits/BT10/BT10-051-060.md` | No |
-| BT10-061–070 | Queued | `internal-docs/audits/BT10/BT10-061-070.md` | No |
-| BT10-071–080 | Queued | `internal-docs/audits/BT10/BT10-071-080.md` | No |
+| BT10-061–070 | Luna in progress | `internal-docs/audits/BT10/BT10-061-070.md` | No |
+| BT10-071–080 | Luna in progress | `internal-docs/audits/BT10/BT10-071-080.md` | No |
 | BT10-081–090 | Queued | `internal-docs/audits/BT10/BT10-081-090.md` | No |
 | BT10-091–100 | Queued | `internal-docs/audits/BT10/BT10-091-100.md` | No |
 | BT10-101–110 | Queued | `internal-docs/audits/BT10/BT10-101-110.md` | No |
@@ -92,16 +92,36 @@ other component and is never rounded up.
 | BT10-028 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-021-030.md` |
 | BT10-029 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-021-030.md` |
 | BT10-030 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-021-030.md` |
+| BT10-031 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-031-040.md` |
+| BT10-032 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-031-040.md` |
+| BT10-033 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-031-040.md` |
+| BT10-034 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-031-040.md` |
+| BT10-035 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-031-040.md` |
+| BT10-036 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-031-040.md` |
+| BT10-037 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-031-040.md` |
+| BT10-038 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-031-040.md` |
+| BT10-039 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-031-040.md` |
+| BT10-040 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-031-040.md` |
+| BT10-041 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-041-050.md` |
+| BT10-042 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-041-050.md` |
+| BT10-043 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-041-050.md` |
+| BT10-044 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-041-050.md` |
+| BT10-045 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-041-050.md` |
+| BT10-046 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-041-050.md` |
+| BT10-047 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-041-050.md` |
+| BT10-048 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-041-050.md` |
+| BT10-049 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-041-050.md` |
+| BT10-050 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-041-050.md` |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 60
-- Integrated card audits: 30
-- Corrected: 9
-- Provisional: 30
+- Assigned: 80
+- Integrated card audits: 50
+- Corrected: 11
+- Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 52
+- Remaining unassigned: 32
 
 BT10 static re-audit remains open.
