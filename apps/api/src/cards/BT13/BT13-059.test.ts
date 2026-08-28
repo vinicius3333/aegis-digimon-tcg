@@ -23,7 +23,7 @@ describe("BT13-059 Examon", () => {
         {
           kind: "Restrict",
           restriction: "unsuspend",
-          duration: "untilOpponentTurnEnd",
+          duration: "untilOpponentNextUnsuspendPhase",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, sameTarget: true },
         },
       ]);
