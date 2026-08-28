@@ -26,7 +26,7 @@ provisional and capped at 8/10.
 | BT19-021–030 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-021-030.md` | Yes |
 | BT19-031–040 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-031-040.md` | Yes |
 | BT19-041–050 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-041-050.md` | Yes |
-| BT19-051–060 | Luna prepared; coordinator review pending | `internal-docs/audits/BT19/BT19-051-060.md` | No |
+| BT19-051–060 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-051-060.md` | Yes |
 | BT19-061–070 | Luna assigned | `internal-docs/audits/BT19/BT19-061-070.md` | No |
 | BT19-071–080 | Luna prepared; chronological review pending | `internal-docs/audits/BT19/BT19-071-080.md` | No |
 | BT19-081–090 | Luna assigned | `internal-docs/audits/BT19/BT19-081-090.md` | No |
@@ -95,16 +95,26 @@ applicable non-gate component rather than being rounded up.
 | BT19-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public evolution and natural effect/battle departures prove face-up Security DP, all-target Royal Base replacement, cause boundary, and Rule trait (`b6bb687ae`). |
 | BT19-049 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public evolution proves exact Henry play and 0/1/2-Tamer boundaries; decline and inherited attack/frequency remain injected (`b6bb687ae`). |
 | BT19-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public evolution and inherited DP state are covered, while both positive entry trigger clauses use controlled timing (`b6bb687ae`). |
+| BT19-051 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public alternate evolution, natural deletion, and inherited Blocker are covered; positive entry DP/protection timings remain injected (`09e2bfa8e`). |
+| BT19-052 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Alternate evolution and face-up Security Blocker are natural; scaled deletion and inherited battle watcher use controlled events (`09e2bfa8e`). |
+| BT19-053 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected all-matching simultaneous Royal Base trigger-source placement and filters; attack-time Security play remains manually fired (`b05beecdf`). |
+| BT19-054 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public green evolution and Security Attack are covered; positive suspended-target return timings remain controlled (`09e2bfa8e`). |
+| BT19-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion and a real opponent Active phase prove both reveal destinations, one-match/no-Tamer boundaries, remainder ordering, and inherited Reboot (`09e2bfa8e`). |
+| BT19-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public play proves independent Cyborg and exact Ryo/Device reveal categories; supplemental boundaries and live inherited DP preserve scope (`09e2bfa8e`). |
+| BT19-057 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Tightened exact RaptorSparrowmon evolution matching; natural Save/inherited state is covered, but attack evolution timing remains injected (`638b8ba34`). |
+| BT19-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion proves executable Save while live legal hosts preserve printed and inherited Blocker scope (`09e2bfa8e`). |
+| BT19-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion proves executable Save without a trash copy while live hosts preserve Retaliation and inherited Reboot (`09e2bfa8e`). |
+| BT19-060 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected exact Ryo Akiyama matching, but the card's source proof remains structural and never naturally exercises evolution or Tamer count (`789c6d09b`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 50
-- Corrected: 12
-- Provisional: 50
+- Integrated card audits: 60
+- Corrected: 15
+- Provisional: 60
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 32 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`, `BT19-050` source-proof gaps; excludes fully proved `BT19-022`, `BT19-032`, `BT19-045`, `BT19-046`, and `BT19-048`)
+- Blocked or ambiguous: 38 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`–`BT19-054`, `BT19-057`, `BT19-060` source-proof gaps)
 - Remaining unassigned: 0
 
 Operational disclosure: the BT19-041–050 worker accidentally ran one isolated
