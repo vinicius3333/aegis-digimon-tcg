@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-050.js";
@@ -81,7 +80,6 @@ describe("BT18-050 Petaldramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("arbormon").topCard?.cardId === "BT18-050");
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("arbormon"));
 
     expect(s.state.memory).toBe(4);
     expect(s.perm("arbormon").stack.at(-1)?.cardId).toBe("BT18-047");
