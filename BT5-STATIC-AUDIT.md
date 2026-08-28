@@ -19,11 +19,11 @@ The re-audit intentionally does not execute tests, typecheck, lint, formatting, 
 | BT5-021–030 | Static audit delivered | `internal-docs/audits/BT5/BT5-021-030.md` | Yes |
 | BT5-031–040 | Static audit delivered | `internal-docs/audits/BT5/BT5-031-040.md` | Yes |
 | BT5-041–050 | Static audit delivered | `internal-docs/audits/BT5/BT5-041-050.md` | Yes |
-| BT5-051–060 | Luna in progress | `internal-docs/audits/BT5/BT5-051-060.md` | No |
+| BT5-051–060 | Static audit delivered | `internal-docs/audits/BT5/BT5-051-060.md` | Yes |
 | BT5-061–070 | Static audit delivered | `internal-docs/audits/BT5/BT5-061-070.md` | Yes |
 | BT5-071–080 | Static audit delivered | `internal-docs/audits/BT5/BT5-071-080.md` | Yes |
 | BT5-081–090 | Luna in progress | `internal-docs/audits/BT5/BT5-081-090.md` | No |
-| BT5-091–100 | Queued for Luna | `internal-docs/audits/BT5/BT5-091-100.md` | No |
+| BT5-091–100 | Luna in progress | `internal-docs/audits/BT5/BT5-091-100.md` | No |
 | BT5-101–110 | Luna in progress | `internal-docs/audits/BT5/BT5-101-110.md` | No |
 | BT5-111–112 | Queued for Luna | `internal-docs/audits/BT5/BT5-111-112.md` | No |
 
@@ -93,6 +93,16 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 | BT5-048 Floramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary legal evolution evidence |
 | BT5-049 Kiwimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Add-all Digi-Sorption reveal filter with complete deck-bottom remainder |
 | BT5-050 Weedmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Self-source Digi-Burst discard event with legal stack and turn gate |
+| BT5-051 MoriShellmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and legal green level-3 evolution proof |
+| BT5-052 Garbagemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and legal green level-4 evolution proof |
+| BT5-053 Deramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live owner-turn DP scaling over other own suspended Digimon only |
+| BT5-054 Piximon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and legal green level-4 evolution proof |
+| BT5-055 BanchoLillymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Suspended-opponent deck-bottom return with selected-stack source teardown |
+| BT5-056 Rafflesimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst 2 team DP grant and once-per-turn attack/block restriction watcher |
+| BT5-057 Rosemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst 3 cost and all-own-live-Digi-Burst Security Attack grant |
+| BT5-058 Argomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digisorption, opponent-Tamer suspension, and live unsuspend restriction aura |
+| BT5-059 Keramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent reveal slots with corrected exact Arata Sanada name boundary |
+| BT5-060 Monitamon | 2 | 1 | 2 | 2 | 0 | Provisional 7/10 | Corrected exact Monitamon play boundary; private top-deck look remains unmodeled |
 | BT5-061 Commandramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Static Blocker registration, redirect behavior, and ordinary Black evolution path |
 | BT5-062 Mekanorimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blocker, owner-turn attack lock, and repeatable self-anchored battle-delete watcher |
 | BT5-063 Kurisarimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional exact Arata play and live same-name inherited Rush aura |
@@ -120,11 +130,11 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 70
-- Corrected: 1
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 3
+- Provisional: 80
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 0
+- Blocked or ambiguous: 1
 - Remaining unassigned: 0
 
 BT5 static re-audit remains open.
