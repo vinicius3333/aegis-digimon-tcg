@@ -5,6 +5,37 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-072.js";
 
 describe("BT10-072 Soundbirdmon", () => {
+  it("marks the placement cost as optional and aborts Draw 1 when declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-072", as: "soundbirdmon" },
+            { card: "BT12-088", as: "tamer" },
+          ],
+          hand: [{ card: "BT10-071", as: "purpleMaterial" }],
+          deck: [{ card: "BT1-009", as: "top" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("soundbirdmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("purpleMaterial").instanceId)).toBe(true);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("top").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
   it("places one purple Digimon from hand under the chosen Tamer, then draws exactly 1", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
