@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import type { CardDefinition } from "@aegis/shared";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -11,7 +13,7 @@ describe("BT19-101 ZeedMillenniummon", () => {
     expect(card).toMatchObject({
       coverage: "full",
       residual: [],
-      digivolutionRequirement: [{ names: ["MoonMillenniummon"], cost: 2, isAlternate: true }],
+      digivolutionRequirement: [{ namesExact: ["MoonMillenniummon"], cost: 2, isAlternate: true }],
     });
     expect(card?.effects).toMatchObject([
       { trigger: "Static", keywords: [{ keyword: "Overclock" }] },
@@ -42,7 +44,23 @@ describe("BT19-101 ZeedMillenniummon", () => {
     ]);
   });
 
-  it("resolves the mandatory On Play return through the public play intent", async () => {
+  it("rejects a near-name base for the exact MoonMillenniummon route", () => {
+    const nearName = {
+      cardId: "TEST-MOON-VARIANT",
+      set: "TEST",
+      nameEn: "MoonMillenniummon (Variant)",
+      kinds: ["Digimon"],
+      colors: ["Black"],
+      playCost: 0,
+      dp: 0,
+      evoCosts: [],
+      maxCountInDeck: 4,
+    } as unknown as CardDefinition;
+
+    expect(matchingAlternateDigivolutionRequirement("BT19-101", nearName)).toBeUndefined();
+  });
+
+  it("resolves the accepted optional On Play return through the public play intent", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT19-101", as: "zeed" }] },
@@ -63,7 +81,7 @@ describe("BT19-101 ZeedMillenniummon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("resolves the mandatory When Digivolving return through the alternate evolution", async () => {
+  it("resolves the accepted optional When Digivolving return through the alternate evolution", async () => {
     const s = setupEngine(
       {
         0: {
@@ -95,7 +113,7 @@ describe("BT19-101 ZeedMillenniummon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("resolves the mandatory When Attacking return through a public attack intent", async () => {
+  it("resolves the accepted optional When Attacking return through a public attack intent", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT19-101", as: "zeed", under: ["BT19-075"] }] },
