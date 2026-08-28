@@ -152,6 +152,13 @@ describe("BT9-109 X Antibody (override)", () => {
     expect(module, "BT9-109 must self-register on import").toBeDefined();
   });
 
+  it("uses the normal printed digivolution cost for its inherited effect", () => {
+    const inherited = compiled.effects.find((effect) => effect.trigger === "WhenAttacking")!;
+    const action = inherited.actions[0]!;
+    expect(action).toMatchObject({ kind: "Digivolve", payCost: true, optional: true });
+    expect(action).not.toHaveProperty("useAlternateCost");
+  });
+
   it("routes its clauses to the expected timings", () => {
     const source = makeSource();
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);

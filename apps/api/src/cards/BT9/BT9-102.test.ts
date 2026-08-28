@@ -11,10 +11,13 @@ describe("BT9-102 Attack of the Heavy Mobile Digimon!", () => {
     });
     expect(compiled).toMatchObject({
       coverage: "full", residual: [], effects: [
-        { trigger: "Main", actions: [{ kind: "GrantKeyword", keyword: "Rush", duration: "forTheTurn", optional: true, target: { count: "all", filter: { levels: [6], traits: ["Machine"] } } }, { kind: "GrantStatic", grant: "effects", tokens: ["OnPlayBlitzIfHasDigivolutionCard"], target: { count: "all", filter: { levels: [6], traits: ["Machine"] } } }] },
+        { trigger: "Main", actions: [{ kind: "GainKeyword", keyword: { keyword: "Rush" }, duration: "forTheTurn", optional: true, includeLaterEntrants: true, target: { count: "all", filter: { levels: [6], traits: ["Machine"] } } }, { kind: "GrantStatic", grant: "effects", tokens: ["OnPlayBlitzIfHasDigivolutionCard"], includeLaterEntrants: true, target: { count: "all", filter: { levels: [6], traits: ["Machine"] } } }] },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "Delete", optional: true, cost: { kind: "trash" } }] },
       ],
     });
+    const rush = compiled.effects.find((effect) => effect.trigger === "Main")!.actions[0]!;
+    expect(rush).not.toHaveProperty("playerWide");
+    expect(rush).toMatchObject({ kind: "GainKeyword", includeLaterEntrants: true });
   });
 
   it("installs the Rush effect by trashing a hand card", async () => {
