@@ -21,7 +21,7 @@ describe("BT18-095 Wind to Flame, Ice to Sword", () => {
           payCost: false,
           from: ["hand", "trash"],
           ignoreRequirements: true,
-          into: { nameOrTrait: [{ tokens: ["EmperorGreymon"], match: "name" }] },
+          into: { nameOrTrait: [{ tokens: ["EmperorGreymon"], match: "nameExact" }] },
         },
       ],
     });
