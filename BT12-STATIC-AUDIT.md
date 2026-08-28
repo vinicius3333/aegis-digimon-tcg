@@ -1,6 +1,6 @@
 # BT12 Static Card Implementation Re-audit
 
-Status: static card-by-card pass ready to dispatch; execution gates deferred
+Status: static card-by-card pass in progress; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -23,9 +23,9 @@ collection-complete claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT12-001–010 | Queued | `internal-docs/audits/BT12/BT12-001-010.md` | No |
-| BT12-011–020 | Queued | `internal-docs/audits/BT12/BT12-011-020.md` | No |
-| BT12-021–030 | Queued | `internal-docs/audits/BT12/BT12-021-030.md` | No |
+| BT12-001–010 | Luna in progress | `internal-docs/audits/BT12/BT12-001-010.md` | No |
+| BT12-011–020 | Luna in progress | `internal-docs/audits/BT12/BT12-011-020.md` | No |
+| BT12-021–030 | Luna in progress | `internal-docs/audits/BT12/BT12-021-030.md` | No |
 | BT12-031–040 | Queued | `internal-docs/audits/BT12/BT12-031-040.md` | No |
 | BT12-041–050 | Queued | `internal-docs/audits/BT12/BT12-041-050.md` | No |
 | BT12-051–060 | Queued | `internal-docs/audits/BT12/BT12-051-060.md` | No |
@@ -65,12 +65,12 @@ other component and is never rounded up.
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 0
+- Assigned: 30
 - Integrated card audits: 0
 - Corrected: 0
 - Provisional: 0
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 112
+- Remaining unassigned: 82
 
-BT12 static re-audit is ready to dispatch.
+BT12 static re-audit is in progress.
