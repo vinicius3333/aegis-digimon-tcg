@@ -4,7 +4,7 @@ import { compiled } from "./BT15-074.js";
 describe("BT15-074", () => {
   it("has Blocker and may trash an opponent's hand Digimon, otherwise gains memory", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Blocker" }] });
-    expect(compiled.effects?.[1]?.actions[0]).toMatchObject({ kind: "Trash", controller: "opponent", optional: true });
+    expect(compiled.effects?.[1]?.actions[0]).toMatchObject({ kind: "Trash", chooser: "opponent", optional: true });
     expect(compiled.effects?.[1]?.actions[1]).toMatchObject({
       kind: "GainMemory",
       amount: 1,
