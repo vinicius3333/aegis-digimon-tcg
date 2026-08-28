@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-004.js";
 
 describe("BT18-004 Puroromon", () => {
@@ -27,19 +28,18 @@ describe("BT18-004 Puroromon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-064", as: "host", under: ["BT18-004"] }],
+          battleArea: [{ card: "BT1-030", as: "host", under: ["BT18-004"] }],
           hand: [
             { card: "BT1-030", as: "nonRoyal" },
             { card: "BT18-044", as: "royal" },
           ],
           security: [{ card: "BT1-001", as: "top" }],
-          deck: ["BT1-002"],
         },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     await s.ready();
-    await advance(s.engine).runTurn(0);
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT18-044");
     expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
@@ -50,17 +50,25 @@ describe("BT18-004 Puroromon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-064", as: "host", under: ["BT18-004"] }],
+          battleArea: [{ card: "BT1-030", as: "host", under: ["BT18-004"] }],
           hand: [{ card: "BT18-044", as: "royal" }],
           security: [{ card: "BT1-001", as: "top" }],
-          deck: ["BT1-002"],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: false, autoSelectCards: true },
     );
     await s.ready();
 
-    await advance(s.engine).runTurn(0);
+    const resolution = advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("royal").instanceId);
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
