@@ -1,9 +1,24 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-083.js";
 
 describe("BT7-083 Sistermon Ciel (Awakened)", () => {
+  it("limits the deletion cost source to Sistermon Ciel in hand or trash", () => {
+    expect(runtimeCompiledCard("BT7-083")?.effects[0]?.actions[0]).toMatchObject({
+      kind: "PlaceUnder",
+      target: {
+        from: ["hand", "trash"],
+        filter: { nameOrTrait: [{ tokens: ["Sistermon Ciel"], match: "nameExact" }] },
+      },
+      underFilter: { isSelfRef: true },
+      position: "bottom",
+      optional: true,
+      abortOnDecline: true,
+    });
+  });
+
   it("places Sistermon Ciel under itself to delete a play-cost-5 Digimon", async () => {
     const s = setupEngine(
       {

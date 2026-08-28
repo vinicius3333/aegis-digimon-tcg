@@ -17,7 +17,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Hybrid", "Ten Warriors"],
-                match: "trait",
+                match: "traitContains",
               },
             ],
           },
