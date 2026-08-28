@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { universalNameAliasesFor } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-051.js";
@@ -15,10 +16,24 @@ describe("BT9-051 Panjyamon (X Antibody)", () => {
     expect(compiled).toMatchObject({
       coverage: "full", residual: [], digivolutionRequirement: [{ names: ["Panjyamon"], cost: 0, isAlternate: true }],
       effects: [
-        { trigger: "Static", actions: [{ kind: "GrantStatic", grant: "name", tokens: ["Leomon"] }] },
-        { trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldBeDeleted", mode: "instead", leaveCause: "byBattle" }] },
+        { trigger: "Rule", actions: [{ kind: "GrantStatic", grant: "name", tokens: ["Leomon"] }] },
+        {
+          trigger: "AllTurns",
+          actions: [{
+            kind: "Replacement",
+            event: "wouldBeDeleted",
+            mode: "instead",
+            leaveCause: "byBattle",
+            actions: [{
+              kind: "PlayWithoutCost",
+              fromOwnDigivolutionStack: true,
+              target: { filter: { nameOrTrait: [{ tokens: ["Leomon"], match: "nameExact" }] } },
+            }],
+          }],
+        },
       ],
     });
+    expect(universalNameAliasesFor("BT9-051")).toContain("Leomon");
   });
 
   it("may play a Leomon source before its host is deleted in battle", async () => {
@@ -42,5 +57,23 @@ describe("BT9-051 Panjyamon (X Antibody)", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === leomonId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === leomonId)).toBe(true);
+  });
+
+  it("does not search another own stack when this host has no Leomon source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT9-051", as: "host", under: [{ card: "BT1-028", as: "nonLeomon" }] },
+            { card: "BT2-047", as: "other", under: [{ card: "BT1-035", as: "otherLeomon" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const otherLeomonId = s.inst("otherLeomon").instanceId;
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === otherLeomonId)).toBe(false);
+    expect(s.perm("other").stack.some((card) => card.instanceId === otherLeomonId)).toBe(true);
   });
 });
