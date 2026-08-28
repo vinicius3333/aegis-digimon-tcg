@@ -25,7 +25,7 @@ collection-complete claim is valid.
 | --- | --- | --- | --- |
 | BT13-001–010 | Luna assigned | `internal-docs/audits/BT13/BT13-001-010.md` | No |
 | BT13-011–020 | Luna assigned | `internal-docs/audits/BT13/BT13-011-020.md` | No |
-| BT13-021–030 | Luna assigned | `internal-docs/audits/BT13/BT13-021-030.md` | No |
+| BT13-021–030 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-021-030.md` | Yes |
 | BT13-031–040 | Unassigned | `internal-docs/audits/BT13/BT13-031-040.md` | No |
 | BT13-041–050 | Unassigned | `internal-docs/audits/BT13/BT13-041-050.md` | No |
 | BT13-051–060 | Unassigned | `internal-docs/audits/BT13/BT13-051-060.md` | No |
@@ -61,14 +61,24 @@ other component and is never rounded up.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT13-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
+| BT13-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
+| BT13-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
+| BT13-024 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
+| BT13-025 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Thomas correction `70cad3ec0` |
+| BT13-026 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
+| BT13-027 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
+| BT13-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Kiyoshiro and ordered-return correction `0587a6001` |
+| BT13-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Manual hand-add event source; behavioral proof remains partial |
+| BT13-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Q2281–Q2283 source trace |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 30
-- Integrated card audits: 0
-- Corrected: 0
-- Provisional: 0
+- Integrated card audits: 10
+- Corrected: 2
+- Provisional: 10
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 82
