@@ -27,7 +27,7 @@ collection-complete claim is valid.
 | --- | --- | --- | --- |
 | BT16-001–010 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-001-010.md` | Yes |
 | BT16-011–020 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-011-020.md` | Yes |
-| BT16-021–030 | Luna assigned | `internal-docs/audits/BT16/BT16-021-030.md` | No |
+| BT16-021–030 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-021-030.md` | Yes |
 | BT16-031–040 | Luna assigned | `internal-docs/audits/BT16/BT16-031-040.md` | No |
 | BT16-041–050 | Luna assigned | `internal-docs/audits/BT16/BT16-041-050.md` | No |
 | BT16-051–060 | Luna assigned | `internal-docs/audits/BT16/BT16-051-060.md` | No |
@@ -90,14 +90,24 @@ feasible natural originating event.
 | BT16-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2617 battle-only protection is proved by natural play/evolution selection and a losing Security battle, with inherited DP stack coverage (`ff4b1bb3e`). |
 | BT16-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Blocker, level-bounded unsuspend, and inherited top-source trash are exercised through natural play, evolution, and attack intents (`664023dae`). |
 | BT16-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2775 draw/condition ordering, off-color alternate evolution, both memory branches, matcher negatives, and natural inherited Jamming are covered (`b5be60b9b`). |
+| BT16-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected loose-card Trash to top-source TrashDigivolution with a source gate; natural opposing attack proves suspension, trashing, and restriction (`7fce2b6d7`). |
+| BT16-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural inherited attack proves arbitrary evolution-card trash, no-source targeting, duration, and Armor Purge/alternate metadata (`8342f21eb`). |
+| BT16-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2618 exact-three overlap and optional End-of-Attack cost are proved through natural On Play, attack, security trash, and legal source stack (`0c13ed5b8`). |
+| BT16-024 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected full-security Search to `to: "revealed"` with typed/runtime support; Q2619–Q2621/Q3747, reduced evolution, remainder, and inherited Blocker have natural proof (`c8fcb07b9`). |
+| BT16-025 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2622/Q2887–Q2889, DNA/Partition, stack-count boundary, DNA-only lock, natural attack suspension, and fallback unsuspend are covered (`ab2b6caef`). |
+| BT16-026 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | ACE/overflow, alternate routes, natural De-Digivolve/restriction/deletion, and real Counter-Timing Blast Digivolve match shared runtime (`7ab98bae9`). |
+| BT16-027 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inclusive source-stack comparison, natural play/evolution, Dragon Mode stack branch, End-of-Attack unsuspend/bottom-deck, and frequency boundary are proved (`728814e62`). |
+| BT16-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected cross-permanent effect provenance to `triggerPlayedOrDigivolvedByEffect`; Q2623–Q2624, legal evolution, Tamer gate, and natural opponent effect-entry Blast routes are covered (`c1df3709e`). |
+| BT16-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2625 one-card union selection, exact reveal remainder, off-color Light Fang evolution, and inherited Security DP are naturally proved (`7fa5608fe`). |
+| BT16-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2626 requirement enforcement, natural On Play/Main Phase trash evolution, Nyaromon route, rejection boundary, and inherited Security DP are covered (`3b6f7932d`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 70
-- Integrated card audits: 20
-- Corrected: 2
-- Provisional: 20
+- Integrated card audits: 30
+- Corrected: 5
+- Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 32
