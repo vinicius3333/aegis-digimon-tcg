@@ -1,6 +1,6 @@
 # BT10 Static Card Implementation Re-audit
 
-Status: static card-by-card pass in progress; execution gates deferred
+Status: static card-by-card coverage complete; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -36,7 +36,7 @@ claim is valid.
 | BT10-081–090 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-081-090.md` | Yes |
 | BT10-091–100 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-091-100.md` | Yes |
 | BT10-101–110 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-101-110.md` | Yes |
-| BT10-111–112 | Luna in progress | `internal-docs/audits/BT10/BT10-111-112.md` | No |
+| BT10-111–112 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-111-112.md` | Yes |
 
 ## Score model
 
@@ -172,16 +172,19 @@ other component and is never rounded up.
 | BT10-108 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; snapshot ambiguity | `BT10-101-110.md` |
 | BT10-109 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-101-110.md` |
 | BT10-110 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; proof strengthened; snapshot ambiguity | `BT10-101-110.md` |
+| BT10-111 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected; snapshot maintenance ambiguity | `BT10-111-112.md` |
+| BT10-112 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-111-112.md` |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 110
-- Corrected: 21
-- Provisional: 110
+- Integrated card audits: 112
+- Corrected: 23
+- Provisional: 112
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 25
+- Blocked or ambiguous: 26
 - Remaining unassigned: 0
 
-BT10 static re-audit remains open.
+BT10 static coverage is complete. The audit remains open because all execution
+gates are deliberately deferred and no card is verified 10/10 in this pass.
