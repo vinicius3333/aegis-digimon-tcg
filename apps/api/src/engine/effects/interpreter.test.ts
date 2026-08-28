@@ -273,6 +273,8 @@ describe("new typed RAW-elimination conditions", () => {
       definitionOf: (id) => makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon], types: ["D-Reaper"] }),
     });
     ctx.lastResolvedPermanentIds = ["TARGET"];
+    const { ctx: emptyLegacyContext } = conditionContext({ ownBattleArea: [] });
+    expect(evaluateCondition(emptyLegacyContext, { kind: "allYoursMatchFilter" })).toBe(true);
     expect(evaluateCondition(ctx, { kind: "allYoursMatchFilter", filter: { kind: ["Digimon"] } })).toBe(true);
     expect(evaluateCondition(ctx, { kind: "digivolutionCountCompare", op: "lte" })).toBe(true);
     expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(false);
