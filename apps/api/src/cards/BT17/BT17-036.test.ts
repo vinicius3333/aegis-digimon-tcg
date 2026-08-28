@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-036.js";
 
 describe("BT17-036 Boutmon", () => {
@@ -24,7 +25,7 @@ describe("BT17-036 Boutmon", () => {
       frequency: "OncePerTurn",
       actions: [
         {
-          event: "whenEffectRemovesFromSecurity",
+          event: "whenEffectTrashesFromSecurity",
           actions: [
             {
               kind: "Digivolve",
@@ -52,5 +53,33 @@ describe("BT17-036 Boutmon", () => {
         },
       ],
     });
+  });
+
+  it("naturally digivolves for free when its inherited attack effect trashes security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-036", under: ["BT17-086"], as: "boutmon" }],
+          hand: [{ card: "BT16-047", as: "pulsemonText" }],
+          security: 1,
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const boutmonId = s.perm("boutmon").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: boutmonId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("boutmon").topCard.cardId === "BT16-047");
+
+    expect(s.perm("boutmon").topCard.cardId).toBe("BT16-047");
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });
