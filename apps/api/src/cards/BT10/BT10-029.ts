@@ -2,6 +2,7 @@
 // HAND-FIXED IR for BT10-029 — do not regenerate.
 // WhenAttacking inherited: removed spurious unconditional Draw (compiler emitted
 // conditional + unconditional from single clause; only the conditional one is correct).
+// Save destination is explicitly limited to the controller's Tamers.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
@@ -17,6 +18,10 @@ export const compiled: CompiledCard = {
             },
             count: 1,
             isSelf: true,
+          },
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
           },
           optional: true,
         },
