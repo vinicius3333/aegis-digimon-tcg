@@ -28,7 +28,7 @@ collection-complete claim is valid.
 | BT16-001–010 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-001-010.md` | Yes |
 | BT16-011–020 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-011-020.md` | Yes |
 | BT16-021–030 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-021-030.md` | Yes |
-| BT16-031–040 | Luna assigned | `internal-docs/audits/BT16/BT16-031-040.md` | No |
+| BT16-031–040 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-031-040.md` | Yes |
 | BT16-041–050 | Coordinator accepted; awaiting BT16-031–040 | `internal-docs/audits/BT16/BT16-041-050.md` | No |
 | BT16-051–060 | Luna assigned | `internal-docs/audits/BT16/BT16-051-060.md` | No |
 | BT16-061–070 | Coordinator accepted; awaiting earlier ranges | `internal-docs/audits/BT16/BT16-061-070.md` | No |
@@ -100,14 +100,24 @@ feasible natural originating event.
 | BT16-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected cross-permanent effect provenance to `triggerPlayedOrDigivolvedByEffect`; Q2623–Q2624, legal evolution, Tamer gate, and natural opponent effect-entry Blast routes are covered (`c1df3709e`). |
 | BT16-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2625 one-card union selection, exact reveal remainder, off-color Light Fang evolution, and inherited Security DP are naturally proved (`7fa5608fe`). |
 | BT16-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2626 requirement enforcement, natural On Play/Main Phase trash evolution, Nyaromon route, rejection boundary, and inherited Security DP are covered (`3b6f7932d`). |
+| BT16-031 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected both recovery filters to require exactly two colors; natural play/evolution, payment, invalid color-count and level boundaries, and inherited Security DP are covered (`73dbd49f9`). |
+| BT16-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Collision target switching, optional end-attack acceptance/decline, once-per-turn frequency, Armor Purge, and Armadillomon evolution match the compiled IR (`2bcddd88f`). |
+| BT16-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2629 and natural Security checks prove both security-count branches, source-lapse behavior, Armor Purge, and Hawkmon evolution (`0225e1d38`). |
+| BT16-034 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2630 exact-three overlap, low-security boundary, natural inherited security trash/unsuspend, top-card text negative, and Runnermon evolution are covered (`b3585b7d4`). |
+| BT16-035 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added the missing Yellow and Black level-5 cost-3 evolution routes; natural security removal, opponent negative, Barrier, Reboot, and both routes are proved (`e0040cba8`). |
+| BT16-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Yellow/Black DNA, invalid material rejection, De-Digivolve/-8000, Blocker, Partition, and both-player end-turn security trash match the IR (`19990f7a5`). |
+| BT16-037 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact reveal selection/remainder, no-match bottoming, Minomon evolution, and suspension-gated inherited DP are naturally covered (`7813634a0`). |
+| BT16-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Zero-cost Terriermon evolution, matching/nonmatching evolution-cost replacement, and positive/negative inherited Piercing hosts have natural proof (`bb59f6bee`). |
+| BT16-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2632–Q2633 category overlap, no duplicate take, exact remainder, Bibimon evolution, and live inherited top-card text gates are covered (`5087d1210`). |
+| BT16-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2634 requirement enforcement, both natural trash-evolution timings, Minomon route, and inherited attack suspension/reset are covered (`f8940de55`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 30
-- Corrected: 5
-- Provisional: 30
+- Integrated card audits: 40
+- Corrected: 7
+- Provisional: 40
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
