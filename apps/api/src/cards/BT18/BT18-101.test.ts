@@ -36,7 +36,11 @@ describe("BT18-101 Lucemon: Satan Mode", () => {
           requiresEmpty: "breedingArea",
           from: ["trash"],
           target: {
-            filter: { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["Lucemon: Larva"], match: "name" }] },
+            filter: {
+              controller: "mine",
+              zone: "trash",
+              nameOrTrait: [{ tokens: ["Lucemon: Larva"], match: "nameExact" }],
+            },
           },
         },
         {
