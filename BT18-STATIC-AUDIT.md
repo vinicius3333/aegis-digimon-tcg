@@ -29,8 +29,8 @@ provisional and capped at 8/10.
 | BT18-051–060 | Luna assigned | `internal-docs/audits/BT18/BT18-051-060.md` | No |
 | BT18-061–070 | Luna assigned | `internal-docs/audits/BT18/BT18-061-070.md` | No |
 | BT18-071–080 | Luna assigned | `internal-docs/audits/BT18/BT18-071-080.md` | No |
-| BT18-081–090 | Unassigned | `internal-docs/audits/BT18/BT18-081-090.md` | No |
-| BT18-091–100 | Unassigned | `internal-docs/audits/BT18/BT18-091-100.md` | No |
+| BT18-081–090 | Luna assigned | `internal-docs/audits/BT18/BT18-081-090.md` | No |
+| BT18-091–100 | Luna assigned | `internal-docs/audits/BT18/BT18-091-100.md` | No |
 | BT18-101–102 | Unassigned | `internal-docs/audits/BT18/BT18-101-102.md` | No |
 
 ## Score model
@@ -89,12 +89,12 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 80
+- Assigned: 100
 - Integrated card audits: 40
 - Corrected: 2
 - Provisional: 40
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 4 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps)
-- Remaining unassigned: 22
+- Remaining unassigned: 2
 
 BT18 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
