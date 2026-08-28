@@ -66,6 +66,7 @@ export function parseCopyEffectsFilterText(raw: string): Filter | undefined {
  * (e.g. `hasLevel` excludes Lv.- cards from a level-budget delete).
  */
 export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean {
+  if (filter.cardId !== undefined && def.cardId !== filter.cardId) return false;
   if (filter.forms && filter.forms.length > 0 && !filter.forms.some((form) => def.forms?.includes(form))) return false;
   // A small set of catalog records still uses the legacy `cardType`/`trait`
   // spelling inside `orFilters` (notably BT25-085's dual Option clause).
