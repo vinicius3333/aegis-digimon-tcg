@@ -38,6 +38,7 @@ export type NoticeAnchor = `${NoticeVertical}-${NoticeHorizontal}`;
 export type NoticeBody =
   | { variant: "effect"; cardId: string; timing?: string; description?: string; isInherited?: boolean }
   | { variant: "recovery"; amount: number }
+  | { variant: "securityGain"; amount: number }
   | { variant: "rejection"; reason: string }
   | { variant: "keyword"; keyword: NoticeKeyword; cardId: string };
 
@@ -102,6 +103,15 @@ export function recoveryNoticeFromEvent(
     body: { variant: "recovery", amount: event.amount },
     createdAt: nowMs,
   };
+}
+
+/**
+ * The notice a security stack deserves when an effect adds to it outside a recovery —
+ * a card placed there from the hand, the deck or the trash. The stack is face-down,
+ * so the notice carries only the count; on the stacking player's side.
+ */
+export function securityGainNotice(side: NoticeSide, amount: number, id: string, nowMs: number): MatchNotice {
+  return { id, side, fromSecurity: false, body: { variant: "securityGain", amount }, createdAt: nowMs };
 }
 
 /**
