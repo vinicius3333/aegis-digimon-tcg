@@ -25,7 +25,15 @@ describe("BT10-020 Deckerdramon", () => {
       expect.objectContaining({
         trigger: "AllTurns",
         isInherited: true,
-        actions: [expect.objectContaining({ kind: "Aura", while: expect.objectContaining({ count: 2 }) })],
+        actions: [
+          expect.objectContaining({
+            kind: "Aura",
+            while: expect.objectContaining({
+              count: 2,
+              filter: expect.objectContaining({ zone: "battleArea" }),
+            }),
+          }),
+        ],
       }),
     ]);
   });
@@ -84,6 +92,16 @@ describe("BT10-020 Deckerdramon", () => {
 
     expect(await advance(s.engine).verb.deletePermanent([s.state.players[1]!.battleArea[0]!.permanentId])).toBe(1);
     await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
+
+  it("does not grant inherited DP from one battle-area and one breeding-area Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-019", as: "host", under: ["BT10-020"] }] },
+      1: { battleArea: ["BT10-018"], breeding: "BT10-019" },
+    });
+    await s.ready();
+
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
 

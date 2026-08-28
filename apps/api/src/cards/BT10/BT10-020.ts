@@ -67,12 +67,13 @@ export const compiled: CompiledCard = {
             kind: "modifyDP",
             amount: 1000,
           },
-          while: {
-            kind: "opponentHas",
-            filter: {
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
-            },
+            while: {
+              kind: "opponentHas",
+              filter: {
+                controllerDefault: "opponent",
+                kind: ["Digimon"],
+                zone: "battleArea",
+              },
             count: 2,
             raw: "your opponent has 2 or more Digimon in play",
           },
