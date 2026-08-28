@@ -65,6 +65,23 @@ describe("BT13-095 Marcus Damon", () => {
     expect(s.state.memory).toBe(6);
   });
 
+  it("gains memory with no opposing Digimon when a battle-area Agumon is present (Q2341)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-008", as: "agumon" }],
+          hand: [{ card: "BT13-095", as: "marcus" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 6);
+    expect(s.perm("marcus").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(6);
+  });
+
   it("does not count a breeding-only Agumon for the suspension memory clause", async () => {
     const s = setupEngine(
       {
