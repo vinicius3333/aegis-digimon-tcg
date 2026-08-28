@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT14-071.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { EffectTiming } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -17,15 +16,49 @@ describe("BT14-071", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "SubTrigger", event: "whenPlayed", actions: [{ kind: "GainMemory", amount: 1 }] }],
     }));
-  it("places Eiji and gains memory at start of main phase", async () => {
+  it("places Eiji and gains memory at the natural start of main phase", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT14-071", as: "source" }], hand: [{ card: "BT14-087", as: "eiji" }] } },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 3;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("source"));
-    await settle(() => s.perm("source").stack.some((card) => card.cardId === "BT14-087"));
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() =>
+      s.perm("source").stack.some((card) => card.cardId === "BT14-087") && s.state.memory === 4,
+    );
     expect(s.perm("source").stack.some((card) => card.cardId === "BT14-087")).toBe(true);
     expect(s.state.memory).toBe(4);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("gains memory from the inherited watcher when a matching card is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: ["BT14-071"] }],
+          hand: [
+            { card: "BT14-072", as: "fangmon" },
+            { card: "BT1-002", as: "discard" },
+          ],
+          trash: [{ card: "BT14-071", as: "darkAnimal" }],
+        },
+        1: {},
+      },
+      { memory: 10, turnPlayer: 0, autoSelectCards: true, autoAcceptOptional: true },
+    );
+
+    expect(s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("fangmon").instanceId,
+    }).ok).toBe(true);
+
+    await settle(() =>
+      s.state.memory === 7 && s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"),
+    );
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-071")).toBe(true);
   });
 });

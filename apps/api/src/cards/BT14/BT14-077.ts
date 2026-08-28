@@ -1,7 +1,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR for BT14-077 (Machinedramon (Virus)). source: documented behavior.
+// Hand-authored IR for BT14-077 (SkullSatamon). source: documented behavior.
 // The AUTO-GENERATED header has been removed to protect this file from overwrite.
 //
 // SEMANTIC CORRECTIONS (Phase 10.1-02):
