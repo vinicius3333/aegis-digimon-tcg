@@ -71,4 +71,22 @@ describe("BT12-016 WarGrowlmon", () => {
     await advance(opponentPresent.engine).fire(EffectTiming.EndOfAttack, opponentPresent.perm("host"));
     expect(opponentPresent.state.memory).toBe(0);
   });
+
+  it("does not trigger the inherited effect when its attacker is deleted in a battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-018", as: "host", dp: 5000, under: ["BT12-016"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 5000 }] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.memory).toBe(0);
+  });
 });
