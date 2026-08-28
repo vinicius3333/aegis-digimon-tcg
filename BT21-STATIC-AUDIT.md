@@ -22,7 +22,7 @@ provisional and capped at 8/10.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT21-001–010 | Luna assigned | `internal-docs/audits/BT21/BT21-001-010.md` | No |
-| BT21-011–020 | Unassigned | `internal-docs/audits/BT21/BT21-011-020.md` | No |
+| BT21-011–020 | Luna assigned | `internal-docs/audits/BT21/BT21-011-020.md` | No |
 | BT21-021–030 | Unassigned | `internal-docs/audits/BT21/BT21-021-030.md` | No |
 | BT21-031–040 | Unassigned | `internal-docs/audits/BT21/BT21-031-040.md` | No |
 | BT21-041–050 | Unassigned | `internal-docs/audits/BT21/BT21-041-050.md` | No |
@@ -49,13 +49,13 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 10
+- Assigned: 20
 - Integrated card audits: 0
 - Corrected: 0
 - Provisional: 0
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 92
+- Remaining unassigned: 82
 
 BT21 static preparation is ready; chronological integration remains blocked
 until BT20 static coverage is recorded.
