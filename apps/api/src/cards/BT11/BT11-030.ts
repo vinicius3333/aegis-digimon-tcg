@@ -14,6 +14,7 @@ const playActions = [
       },
       count: 1,
       from: ["hand", "underTamers"],
+      position: "bottom",
     },
     optional: true,
   },
@@ -40,7 +41,7 @@ const playActions = [
 export const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Static",
+      trigger: "Rule",
       actions: [
         {
           kind: "GrantStatic",
