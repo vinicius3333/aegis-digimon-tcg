@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-053.js";
@@ -70,6 +68,7 @@ describe("BT18-053 JetSilphymon", () => {
           ],
           deck: ["BT1-001"],
         },
+        1: { battleArea: [{ card: "BT1-030", as: "opponent" }] },
       },
       { autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
     );
@@ -80,13 +79,22 @@ describe("BT18-053 JetSilphymon", () => {
     );
     s.state.memory = 5;
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("jetsilphymon"));
+    const effect = JSON.parse(s.inst("jetsilphymon").activatableEffectsJson || "[]") as { effectKey: string }[];
+    expect(effect).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("jetsilphymon").instanceId,
+        effectKey: effect[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("zoe").topCard?.cardId === "BT18-053" && s.state.pendingDecision === undefined);
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("zoe").stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT18-048", "BT18-049", "BT18-090"]),
     );
+    expect(s.perm("opponent").isSuspended).toBe(false);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     assertNoLoudGap(s);
   });
@@ -104,7 +112,15 @@ describe("BT18-053 JetSilphymon", () => {
     );
     s.state.memory = 5;
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("jetsilphymon"));
+    const effect = JSON.parse(s.inst("jetsilphymon").activatableEffectsJson || "[]") as { effectKey: string }[];
+    expect(effect).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("jetsilphymon").instanceId,
+        effectKey: effect[0]!.effectKey,
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
 
     expect(s.perm("zoe").topCard?.cardId).toBe("BT18-090");
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("kazemon").instanceId);
