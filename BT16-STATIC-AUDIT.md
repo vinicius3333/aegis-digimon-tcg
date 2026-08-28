@@ -25,7 +25,7 @@ collection-complete claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT16-001–010 | Luna assigned | `internal-docs/audits/BT16/BT16-001-010.md` | No |
+| BT16-001–010 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-001-010.md` | Yes |
 | BT16-011–020 | Luna assigned | `internal-docs/audits/BT16/BT16-011-020.md` | No |
 | BT16-021–030 | Luna assigned | `internal-docs/audits/BT16/BT16-021-030.md` | No |
 | BT16-031–040 | Luna assigned | `internal-docs/audits/BT16/BT16-031-040.md` | No |
@@ -65,14 +65,24 @@ feasible natural originating event.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT16-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Catalog/KB and inherited IR matched; natural multicolor attacks prove DP boundary and once-per-turn suppression (`be4922698`). |
+| BT16-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Live-color inherited aura traced; legal evolution from a multicolor host to a single-color top proves recomputation (`7185afbe1`). |
+| BT16-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Conditional inherited Blocker traced through the keyword ledger and proved by a natural opponent attack/block battle (`012bdb92e`). |
+| BT16-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle deletions prove the two-color gate and shared once-per-turn frequency without event injection (`1aa0a1e7a`, `0307ceae7`). |
+| BT16-005 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2601–Q2603 and deletion snapshots matched; registered Blocker peers prove natural, repeated, and simultaneous-deletion boundaries (`7d1972035`). |
+| BT16-006 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Mandatory inherited hand-trash cost traced transactionally and proved through natural deletion with and without a payable card (`9b2a6cd9f`). |
+| BT16-007 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2604, alternate Poromon evolution, post-event identity, cross-event frequency, and inherited attack suspension have natural public-intent proof (`c4579240c`). |
+| BT16-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Alternate Hawkmon evolution, exact deletion boundary, inherited suspension, and Jamming Security survival are naturally sourced (`2d6d16b2c`). |
+| BT16-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Alternate Gatomon evolution and DP duration matched; real battles prove Raid redirection and Armor Purge promotion (`2de96671d`). |
+| BT16-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2605, SoC evolution, natural turn boundary, Retaliation, no-target cost, and optional trash-play refusal are covered (`40ebe7d16`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 50
-- Integrated card audits: 0
+- Integrated card audits: 10
 - Corrected: 0
-- Provisional: 0
+- Provisional: 10
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 52
