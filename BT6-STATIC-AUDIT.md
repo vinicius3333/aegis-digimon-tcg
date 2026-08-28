@@ -28,10 +28,10 @@ claim is valid.
 | BT6-021–030 | Static audit delivered | `internal-docs/audits/BT6/BT6-021-030.md` | Yes |
 | BT6-031–040 | Static audit delivered | `internal-docs/audits/BT6/BT6-031-040.md` | Yes |
 | BT6-041–050 | Static audit delivered | `internal-docs/audits/BT6/BT6-041-050.md` | Yes |
-| BT6-051–060 | Luna in progress | `internal-docs/audits/BT6/BT6-051-060.md` | No |
+| BT6-051–060 | Static audit delivered | `internal-docs/audits/BT6/BT6-051-060.md` | Yes |
 | BT6-061–070 | Luna in progress | `internal-docs/audits/BT6/BT6-061-070.md` | No |
 | BT6-071–080 | Luna in progress | `internal-docs/audits/BT6/BT6-071-080.md` | No |
-| BT6-081–090 | Queued | `internal-docs/audits/BT6/BT6-081-090.md` | No |
+| BT6-081–090 | Luna in progress | `internal-docs/audits/BT6/BT6-081-090.md` | No |
 | BT6-091–100 | Queued | `internal-docs/audits/BT6/BT6-091-100.md` | No |
 | BT6-101–110 | Queued | `internal-docs/audits/BT6/BT6-101-110.md` | No |
 | BT6-111–112 | Queued | `internal-docs/audits/BT6/BT6-111-112.md` | No |
@@ -110,14 +110,24 @@ other component and is never rounded up.
 | BT6-048 Parasaurmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary green evolution evidence |
 | BT6-049 Arbormon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Green-Tamer alternate digivolution with legal positive and red-Tamer rejection |
 | BT6-050 Petaldramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Green-Tamer alternate digivolution and intrinsic Piercing through shared combat seams |
+| BT6-051 Toropiamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inclusive live-5000-DP opponent suspension on a legal inherited green stack |
+| BT6-052 Entmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Self battle-deletion watcher, survival identity, unsuspend, and once-per-turn boundary |
+| BT6-053 Eldradimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Security Attack +1 and opponent-turn DP-reduction immunity through consumed restriction |
+| BT6-054 AncientTroymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact Hybrid-form free-play filter plus non-Blocker suspension boundary |
+| BT6-055 Junkmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited On Deletion memory gain on a legal black stack |
+| BT6-056 Chikurimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected end-of-Security-battle De-Digivolve with both battle outcomes |
+| BT6-057 ToyAgumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live Blocker-gated inherited DP aura on a legal black host |
+| BT6-058 Nanimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected end-of-Security-battle self play from trash with both outcomes |
+| BT6-059 Machmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Errata-aligned Decoy (Black) marker through canonical replacement semantics |
+| BT6-060 Deputymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent Three Musketeers/Option reveal slots and cost-6 requirement-ignoring digivolution |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 50
-- Corrected: 4
-- Provisional: 50
+- Integrated card audits: 60
+- Corrected: 7
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
