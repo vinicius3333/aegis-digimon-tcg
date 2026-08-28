@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -9,15 +8,16 @@ describe("BT18-041 MetalEtemon", () => {
   it("reduces an opponent's Security Attack by 2 and De-Digivolves exactly 1", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-041", as: "metal" }] },
+        0: { hand: [{ card: "BT18-041", as: "metal" }] },
         1: { battleArea: [{ card: "BT1-060", as: "target", under: ["BT1-030"] }] },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 11;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.OnPlay, s.perm("metal").topCard!);
-    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("metal").topCard?.cardId === "BT18-041");
 
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
     expect(s.perm("target").topCard!.cardId).toBe("BT1-030");

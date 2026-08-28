@@ -32,7 +32,7 @@ collection-complete claim is valid.
 | BT17-041–050 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-041-050.md` | Yes |
 | BT17-051–060 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-051-060.md` | Yes |
 | BT17-061–070 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-061-070.md` | Yes |
-| BT17-071–080 | Luna assigned | `internal-docs/audits/BT17/BT17-071-080.md` | No |
+| BT17-071–080 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-071-080.md` | Yes |
 | BT17-081–090 | Luna assigned | `internal-docs/audits/BT17/BT17-081-090.md` | No |
 | BT17-091–100 | Luna assigned | `internal-docs/audits/BT17/BT17-091-100.md` | No |
 | BT17-101–102 | Luna assigned | `internal-docs/audits/BT17/BT17-101-102.md` | No |
@@ -135,14 +135,24 @@ feasible natural originating event.
 | BT17-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Effect deletion and battle negative prove cause gating; a real attack proves Dark Masters placement/DP gain and natural reveal proves treated levels (`a4ff71e97`). |
 | BT17-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the inherited turn threshold to the shared minimum-memory primitive; natural plays, complete turns, deletion boundary, and delayed return prove all clauses (`4d755b0c2`). |
 | BT17-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution prove Dark Masters placement and level deletion; a public attack returns seven trash cards, routes the Digi-Egg, and unsuspends (`fa14c9126`). |
+| BT17-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the stack-name gate to require both Darcmon and HippoGryphonmon; legal positive and missing-name negative stacks prove the boundary (`4e0bb4f1a`). |
+| BT17-072 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution and companion/no-companion cases prove deletion and the level-6 aura (`05553d7b2`). |
+| BT17-073 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle deletion and Dorugoramon attack flows prove the inherited unsuspend and trash replacement (`f1a5220cc`). |
+| BT17-074 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected redirect targeting to require an unsuspended Eosmon; natural evolution, play branches, opponent response, and attack redirection prove the clauses (`2353534c8`). |
+| BT17-075 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution covers both Tamer branches and cross-player De-Digivolve scaling; a real attack proves inherited redirection (`13fdcf96d`). |
+| BT17-076 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution and attack prove Eosmon play, relative-DP deletion, the shared once-per-turn key, and the Tamer aura (`a47d8a4f4`). |
+| BT17-077 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and attack flows prove digivolution-card trashing, the non-DNA branch, bare-target return, and unsuspend (`5aca71335`). |
+| BT17-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural normal play and legal WarGreymon/MetalGarurumon DNA prove unconditional deletion and the same-level return branch (`cf13ff397`). |
+| BT17-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security, full-turn memory-event, and legal inherited-host cases replace manual timing evidence (`94efe3124`). |
+| BT17-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security, start-main, end-turn placement/evolution, and decline flows prove all branches (`261b934a3`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 70
-- Corrected: 15
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 17
+- Provisional: 80
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
