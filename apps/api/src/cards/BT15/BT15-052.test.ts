@@ -35,6 +35,11 @@ describe("BT15-052", () => {
       actions: [{ kind: "Return", to: "deckBottom" }],
     });
   });
+  it("restricts its own digivolution to white Digimon", () =>
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "YourTurn",
+      actions: [{ kind: "RestrictDigivolveInto", into: { colors: ["White"] } }],
+    }));
   it("deletes itself at opponent end to play a non-Puppetmon Dark Masters", () =>
     expect(compiled.effects?.[3]).toMatchObject({
       trigger: "EndOfOpponentsTurn",
