@@ -44,7 +44,9 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "GainTriggeredEffect",
-              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              // "that Digimon" is the specific card moved from breeding, not an arbitrary
+              // opposing Digimon when the opponent has multiple permanents in play.
+              target: { sourceRef: "triggerSubject", filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
               gainedTrigger: "whenAttacking",
               gainedActions: [{ kind: "GainMemory", amount: -3 }],
               duration: "forTheTurn",

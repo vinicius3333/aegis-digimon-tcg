@@ -10,7 +10,17 @@ describe("BT11-081 MadLeomon: Armed Mode", () => {
       cardId: "BT11-081", colors: ["Purple"], level: 4, playCost: 6, dp: 5000, types: ["Undead", "Bagra Army"],
     });
     expect(compiled.effects).toMatchObject([
-      { trigger: "OpponentsTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenEffectAddsToOpponentHand" }] },
+      {
+        trigger: "OpponentsTurn",
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenEffectAddsToOpponentHand",
+            actions: [{ kind: "Draw", cost: { target: { filter: { hostFilter: { isSelfRef: true } } } } }],
+          },
+        ],
+      },
       { trigger: "OnDeletion", keywords: [{ keyword: "Save" }] },
       { trigger: "OpponentsTurn", isInherited: true, actions: [{ kind: "SubTrigger" }] },
     ]);
@@ -54,7 +64,10 @@ describe("BT11-081 MadLeomon: Armed Mode", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT11-081", as: "madleo", under: ["BT11-077", "BT11-082"] }],
+          battleArea: [
+            { card: "BT11-081", as: "madleo", under: ["BT11-077", "BT11-082"] },
+            { card: "BT11-082", as: "other", under: ["BT10-077"] },
+          ],
           deck: ["BT1-009", "BT1-010", "BT1-015", "BT1-020"],
         },
       },
@@ -64,6 +77,7 @@ describe("BT11-081 MadLeomon: Armed Mode", () => {
     await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
     await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
     expect(s.perm("madleo").stack).toHaveLength(1);
+    expect(s.perm("other").stack).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(2);
   });
 
