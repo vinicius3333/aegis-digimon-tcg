@@ -71,6 +71,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              dp: { op: "eq", value: 0 },
             },
             count: "all",
           },
