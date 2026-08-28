@@ -2,10 +2,24 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT18-037.js";
+import { compiled } from "./BT18-037.js";
 
 describe("BT18-037 Lobomon", () => {
   it("adds an exact Hybrid security card and recovers the exact deck card", async () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [
+        { kind: "Search", searchZone: "security", zone: "security", optional: true, count: 1, to: "hand" },
+        { kind: "Recover", amount: 1, condition: { kind: "bindingExists", ref: "searched" } },
+        { kind: "SecurityManipulation", op: "shuffle", controller: "mine" },
+      ],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Koji Minamoto"], cost: 2, isAlternate: true, baseIsTamer: true },
+      { names: ["KendoGarurumon"], cost: 0, isAlternate: true },
+    ]);
     const s = setupEngine(
       {
         0: {
