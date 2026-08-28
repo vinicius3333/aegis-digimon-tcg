@@ -37,13 +37,23 @@ export function candidatePermanents(
     }
     return permanents;
   }
-  // useTriggerSource: resolve to the permanent that triggered the enclosing replacement
-  // (the leaving/affected Digimon) rather than scanning the board. Used by BT19-053's
-  // SecurityManipulation source so the LEAVING Royal Base Digimon is placed as security.
+  // useTriggerSource: resolve to the permanent(s) that triggered the enclosing replacement
+  // (the leaving/affected Digimon) rather than scanning the board. A count:"all" target in a
+  // simultaneous leave event must preserve the complete deletedPermanentIds set (BT19-053,
+  // KB Q3108); the singular fallback remains important for ordinary replacement bodies and
+  // synthetic contexts that only provide deletedPermanentId.
   if (target.filter?.useTriggerSource === true) {
-    const triggerId = ctx.trigger.deletedPermanentId ?? ctx.trigger.subjectPermanentId;
-    const p = triggerId !== undefined ? ctx.game.permanentById(triggerId) : undefined;
-    return p ? [p] : [];
+    const triggerIds =
+      target.count === "all" && (ctx.trigger.deletedPermanentIds?.length ?? 0) > 1
+        ? ctx.trigger.deletedPermanentIds!
+        : [ctx.trigger.deletedPermanentId ?? ctx.trigger.subjectPermanentId];
+    const triggerFilter: Filter = { ...target.filter };
+    delete triggerFilter.useTriggerSource;
+    return triggerIds
+      .filter((id): id is string => id !== undefined)
+      .map((id) => ctx.game.permanentById(id))
+      .filter((permanent): permanent is Permanent => permanent !== undefined)
+      .filter((permanent) => permanentMatchesFilter(ctx, permanent, triggerFilter, source));
   }
   // `filter` is required by the IR type, but the JSON is written by several tools (the
   // prose compiler plus a number of patch scripts) and nothing validates their output
