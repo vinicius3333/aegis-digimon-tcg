@@ -14,12 +14,14 @@ const sharedBody = [
       count: 1,
     },
     amount: 99,
+    abortOnDecline: true,
     cost: {
       kind: "return",
       target: {
         filter: {
           controller: "mine",
           zone: "digivolutionCards",
+          isSelfRef: true,
           multicolor: true,
         },
         count: 1,
@@ -39,6 +41,7 @@ const sharedBody = [
       count: "all",
     },
     to: "deckBottom",
+    order: "any",
   },
 ];
 
