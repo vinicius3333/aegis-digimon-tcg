@@ -21,7 +21,7 @@ describe("BT19-077", () => {
       },
       {
         trigger: "Main",
-        actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 2, optional: true, cost: { kind: "suspend" } }],
+        actions: [{ kind: "Digivolve", from: ["hand"], payCost: true, reduceCost: 2, optional: true, cost: { kind: "suspend" } }],
       },
       { trigger: "AllTurns", actions: [{ kind: "Restrict", restriction: "attackOrBlock", duration: "permanent" }] },
       { trigger: "OnDeletion", actions: [{ kind: "SecurityManipulation", op: "placeAsSecurity", toTop: true }] },
