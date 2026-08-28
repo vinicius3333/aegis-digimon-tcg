@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-019.js";
 
@@ -130,11 +129,18 @@ describe("BT18-019 Millenniummon", () => {
           battleArea: [{ card: "BT18-019", as: "millennium", under: ["BT18-015", "BT11-072"] }],
           trash: [{ card: "BT18-019", as: "replacement" }],
         },
+        1: { battleArea: [{ card: "BT1-030", dp: 15000, as: "defender" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).verb.deletePermanent([s.perm("millennium").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("millennium").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT18-019"));
 
     expect(
@@ -152,11 +158,18 @@ describe("BT18-019 Millenniummon", () => {
           battleArea: [{ card: "BT18-019", as: "millennium", under: ["BT18-015"] }],
           trash: [{ card: "BT18-019", as: "replacement" }],
         },
+        1: { battleArea: [{ card: "BT1-030", dp: 15000, as: "defender" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).verb.deletePermanent([s.perm("millennium").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("millennium").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("replacement").instanceId));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
