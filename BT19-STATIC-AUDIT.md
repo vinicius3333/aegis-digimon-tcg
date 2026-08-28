@@ -23,7 +23,7 @@ provisional and capped at 8/10.
 | --- | --- | --- | --- |
 | BT19-001–010 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-001-010.md` | Yes |
 | BT19-011–020 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-011-020.md` | Yes |
-| BT19-021–030 | Luna assigned | `internal-docs/audits/BT19/BT19-021-030.md` | No |
+| BT19-021–030 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-021-030.md` | Yes |
 | BT19-031–040 | Luna assigned | `internal-docs/audits/BT19/BT19-031-040.md` | No |
 | BT19-041–050 | Luna assigned | `internal-docs/audits/BT19/BT19-041-050.md` | No |
 | BT19-051–060 | Luna assigned | `internal-docs/audits/BT19/BT19-051-060.md` | No |
@@ -65,16 +65,26 @@ applicable non-gate component rather than being rounded up.
 | BT19-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion exercises Evade and survival; live stack comparisons prove self-scoped Aquatic Rule and inherited Jamming (`6b8dca009`, `123fbd7b1`). |
 | BT19-019 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | IR and stack fixtures cover Yao count, Aquatic Rule, and inherited memory, but evolution and attack origins remain manually injected (`31fd45154`, `f3fbedb05`). |
 | BT19-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletions prove Kiriha play, decline, 0/1/2-Tamer boundaries, and independent mandatory Save; stack proof preserves inherited Reboot (`7b5ac18fb`). |
+| BT19-021 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Manual entry timings and legal stack observations support level filtering, Aquatic Rule, and inherited Jamming, but natural play/evolution proof is absent (`6cbef27a1`). |
+| BT19-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production deletion proves trash-only Blue Flare placement, no-candidate behavior, independent Save, and static/inherited Blocker scope (`f7a0e7f15`). |
+| BT19-023 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry timing is injected; legal peers still prove own-target protection, duration, Blocker, and inherited target-switch restriction (`6d932e910`). |
+| BT19-024 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected Decode, leave cause, trait containment, and source placement; natural battle supplies only the negative while positive timings remain injected (`a2037c5aa`). |
+| BT19-025 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected exact Blue Greymon/MailBirdramon DigiXros and ordering; public DigiXros is natural, but entry/attack/end-of-attack timings remain injected (`abbfca41e`). |
+| BT19-026 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected post-De-Digivolve count, under-Tamer source, and independent Save; deletion is production-driven, but entry/count proof is injected (`3a8b993c9`). |
+| BT19-027 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected Decode and ordered dynamic-level returns; source play and boundaries are observed, but evolution/end-turn origins remain injected (`ad61c7a6b`). |
+| BT19-028 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected trait containment, optional sequencing, and whole-permanent placement; digivolution behavior remains manually originated (`11d80a6ec`). |
+| BT19-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected optional security cost and yellow Data/Witchelny opponent-effect scope; play/context origin remains manually injected (`8bb9214bd`). |
+| BT19-030 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Option use proves the inherited reduction, while start-main, threshold, Security, and turn-scope origins retain manual seams (`0159bf7b6`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 20
-- Corrected: 1
-- Provisional: 20
+- Integrated card audits: 30
+- Corrected: 8
+- Provisional: 30
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 7 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019` source-proof gaps)
+- Blocked or ambiguous: 16 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-030` source-proof gaps; excludes fully proved `BT19-022`)
 - Remaining unassigned: 22
 
 BT19 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
