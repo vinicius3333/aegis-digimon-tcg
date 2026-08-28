@@ -44,9 +44,19 @@ function NoticeThumb({ cardId }: { cardId: string }) {
   );
 }
 
-function EffectNoticeBody({ cardId, timing, description }: { cardId: string; timing?: string; description?: string }) {
+function EffectNoticeBody({
+  cardId,
+  timing,
+  description,
+  isInherited,
+}: {
+  cardId: string;
+  timing?: string;
+  description?: string;
+  isInherited?: boolean;
+}) {
   const { t } = useTranslation();
-  const clause = playerFacingEffectClause({ cardId, timing, description });
+  const clause = playerFacingEffectClause({ cardId, timing, description, isInherited });
   const label = (timing ? TIMING_LABELS[timing] : undefined) ?? t("overlay.effect");
   return (
     <>
@@ -134,7 +144,12 @@ function NoticeView({
           time the queue is holding this notice for. */}
       <span className="match-notice__erode" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
       {body.variant === "effect" ? (
-        <EffectNoticeBody cardId={body.cardId} timing={body.timing} description={body.description} />
+        <EffectNoticeBody
+          cardId={body.cardId}
+          timing={body.timing}
+          description={body.description}
+          isInherited={body.isInherited}
+        />
       ) : body.variant === "recovery" ? (
         <RecoveryNoticeBody amount={body.amount} mine={notice.side === "you"} />
       ) : body.variant === "keyword" ? (

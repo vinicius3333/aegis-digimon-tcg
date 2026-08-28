@@ -58,8 +58,8 @@ function belongsToOpponent(eventSeat: Seat, viewerSeat: Seat): boolean {
  * own IR summary is replaced by the printed clause — or by nothing, when the card
  * offers no clause under this timing. An internal identifier is never shown.
  */
-function effectDetail(cardId: string, description: string, timing?: string): string | undefined {
-  return playerFacingEffectClause({ cardId, timing, description });
+function effectDetail(cardId: string, description: string, timing?: string, isInherited?: boolean): string | undefined {
+  return playerFacingEffectClause({ cardId, timing, description, isInherited });
 }
 
 export function opponentActionFromEvent(event: ServerEvent, viewerSeat: Seat, id: string): OpponentActionItem | null {
@@ -151,7 +151,7 @@ export function opponentActionFromEvent(event: ServerEvent, viewerSeat: Seat, id
         titleKey: "feed.effectResolved",
         titleParams: { card: cardName(event.sourceCardId) },
         titleCardIds: [event.sourceCardId],
-        detailText: effectDetail(event.sourceCardId, event.description, event.timing),
+        detailText: effectDetail(event.sourceCardId, event.description, event.timing, event.isInherited),
         detailCardIds: [event.sourceCardId],
         durationMs: EFFECT_DURATION_MS,
         correlationKey: `effect:${event.seat}:${event.sourceCardId}:${event.effectKey}`,

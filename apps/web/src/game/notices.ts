@@ -36,7 +36,7 @@ export type NoticeHorizontal = "left" | "right";
 export type NoticeAnchor = `${NoticeVertical}-${NoticeHorizontal}`;
 
 export type NoticeBody =
-  | { variant: "effect"; cardId: string; timing?: string; description?: string }
+  | { variant: "effect"; cardId: string; timing?: string; description?: string; isInherited?: boolean }
   | { variant: "recovery"; amount: number }
   | { variant: "rejection"; reason: string }
   | { variant: "keyword"; keyword: NoticeKeyword; cardId: string };
@@ -76,7 +76,13 @@ export function effectNoticeFromEvent(
     id,
     side: sideOf(event.seat, viewerSeat),
     fromSecurity: fromSecurity || event.duringSecurityCheck === true,
-    body: { variant: "effect", cardId: event.sourceCardId, timing: event.timing, description: event.description },
+    body: {
+      variant: "effect",
+      cardId: event.sourceCardId,
+      timing: event.timing,
+      description: event.description,
+      isInherited: event.isInherited,
+    },
     createdAt: nowMs,
   };
 }
