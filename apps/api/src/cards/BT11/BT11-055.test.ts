@@ -11,7 +11,12 @@ describe("BT11-055 MetalTyrannomon", () => {
     expect(compiled.effects).toHaveLength(3);
     expect(compiled.effects[0]).toMatchObject({ trigger: "WhenDigivolving" });
     expect(compiled.effects[1]).toMatchObject({ trigger: "OnPlay" });
-    expect(compiled.effects[2]).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", isInherited: true });
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      isInherited: true,
+      actions: [{ kind: "SubTrigger", sourceFilter: { isSelfRef: true } }],
+    });
   });
 
   it("Q2088: suspends per green/black Tamer but locks only one suspended Digimon", async () => {
@@ -47,7 +52,12 @@ describe("BT11-055 MetalTyrannomon", () => {
 
   it("inherited effect trashes only one top security card per turn after a battle deletion", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-018", as: "host", under: ["BT11-055"] }] },
+      0: {
+        battleArea: [
+          { card: "BT1-018", as: "host", under: ["BT11-055"] },
+          { card: "BT1-018", as: "other" },
+        ],
+      },
       1: {
         security: [
           { card: "BT1-001", as: "top" },
@@ -55,6 +65,11 @@ describe("BT11-055 MetalTyrannomon", () => {
         ],
       },
     });
+
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
+      attackerPermanentId: s.perm("other").permanentId,
+    });
+    expect(s.state.players[1]!.trash).toHaveLength(0);
 
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
       attackerPermanentId: s.perm("host").permanentId,
