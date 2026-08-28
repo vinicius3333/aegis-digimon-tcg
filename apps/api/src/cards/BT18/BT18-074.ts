@@ -18,6 +18,7 @@ export const compiled: CompiledCard = {
               filter: {
                 controllerDefault: "mine",
                 colors: ["Black"],
+                kind: ["Digimon", "Tamer"],
                 playCostLte: 7,
               },
               count: 1,
@@ -40,6 +41,7 @@ export const compiled: CompiledCard = {
               filter: {
                 controllerDefault: "mine",
                 colors: ["Black"],
+                kind: ["Digimon", "Tamer"],
                 playCostLte: 7,
               },
               count: 1,
