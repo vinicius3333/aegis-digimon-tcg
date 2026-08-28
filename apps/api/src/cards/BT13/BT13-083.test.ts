@@ -45,9 +45,9 @@ describe("BT13-083 Gizmon: AT", () => {
         target: {
           filter: { zone: "trash", controller: "mine", nameOrTrait: [{ match: "name", tokens: ["Gizmon"] }] },
           count: 2,
-          orderReturnedCards: true,
-          to: "deckBottom",
         },
+        orderReturnedCards: true,
+        to: "deckBottom",
       },
       actions: [
         {
