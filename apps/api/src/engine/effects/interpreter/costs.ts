@@ -182,7 +182,14 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "digivolutionCards") {
     const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
-    return required > 0 && candidates.length >= required;
+    if (required <= 0 || candidates.length < required) return false;
+    if (cost.target.filter.sameHost !== true) return true;
+    const byHost = new Map<string, number>();
+    for (const candidate of candidates) {
+      if (candidate.hostPermanentId !== undefined)
+        byHost.set(candidate.hostPermanentId, (byHost.get(candidate.hostPermanentId) ?? 0) + 1);
+    }
+    return [...byHost.values()].some((count) => count >= required);
   }
   if (cost.kind === "return" && cost.target !== undefined && Array.isArray(cost.target.filter.zone)) {
     const zones = cost.target.filter.zone as ZoneRef[];

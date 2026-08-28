@@ -85,6 +85,8 @@ const compiled: CompiledCard = {
                     filter: {
                       controller: "mine",
                       zone: "digivolutionCards",
+                      sameHost: true,
+                      hostFilter: { sourceRef: "triggerSubject" },
                       nameOrTrait: [
                         {
                           tokens: ["Vemmon"],
