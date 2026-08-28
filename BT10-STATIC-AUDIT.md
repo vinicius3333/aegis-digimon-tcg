@@ -25,12 +25,12 @@ claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT10-001–010 | Luna assigned | `internal-docs/audits/BT10/BT10-001-010.md` | No |
-| BT10-011–020 | Luna assigned | `internal-docs/audits/BT10/BT10-011-020.md` | No |
-| BT10-021–030 | Luna assigned | `internal-docs/audits/BT10/BT10-021-030.md` | No |
-| BT10-031–040 | Queued | `internal-docs/audits/BT10/BT10-031-040.md` | No |
-| BT10-041–050 | Queued | `internal-docs/audits/BT10/BT10-041-050.md` | No |
-| BT10-051–060 | Queued | `internal-docs/audits/BT10/BT10-051-060.md` | No |
+| BT10-001–010 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-001-010.md` | Yes |
+| BT10-011–020 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-011-020.md` | Yes |
+| BT10-021–030 | Coordinator reviewed | `internal-docs/audits/BT10/BT10-021-030.md` | Yes |
+| BT10-031–040 | Luna in progress | `internal-docs/audits/BT10/BT10-031-040.md` | No |
+| BT10-041–050 | Luna in progress | `internal-docs/audits/BT10/BT10-041-050.md` | No |
+| BT10-051–060 | Luna in progress | `internal-docs/audits/BT10/BT10-051-060.md` | No |
 | BT10-061–070 | Queued | `internal-docs/audits/BT10/BT10-061-070.md` | No |
 | BT10-071–080 | Queued | `internal-docs/audits/BT10/BT10-071-080.md` | No |
 | BT10-081–090 | Queued | `internal-docs/audits/BT10/BT10-081-090.md` | No |
@@ -62,16 +62,46 @@ other component and is never rounded up.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT10-001 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-001-010.md` |
+| BT10-002 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-001-010.md` |
+| BT10-003 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-001-010.md` |
+| BT10-004 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-001-010.md` |
+| BT10-005 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-001-010.md` |
+| BT10-006 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-001-010.md` |
+| BT10-007 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-001-010.md` |
+| BT10-008 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-001-010.md` |
+| BT10-009 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-001-010.md` |
+| BT10-010 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-001-010.md` |
+| BT10-011 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-011-020.md` |
+| BT10-012 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-011-020.md` |
+| BT10-013 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-011-020.md` |
+| BT10-014 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-011-020.md` |
+| BT10-015 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-011-020.md` |
+| BT10-016 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-011-020.md` |
+| BT10-017 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-011-020.md` |
+| BT10-018 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-011-020.md` |
+| BT10-019 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-011-020.md` |
+| BT10-020 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-011-020.md` |
+| BT10-021 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-021-030.md` |
+| BT10-022 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-021-030.md` |
+| BT10-023 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-021-030.md` |
+| BT10-024 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-021-030.md` |
+| BT10-025 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-021-030.md` |
+| BT10-026 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-021-030.md` |
+| BT10-027 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-021-030.md` |
+| BT10-028 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-021-030.md` |
+| BT10-029 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT10-021-030.md` |
+| BT10-030 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT10-021-030.md` |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 30
-- Integrated card audits: 0
-- Corrected: 0
-- Provisional: 0
+- Assigned: 60
+- Integrated card audits: 30
+- Corrected: 9
+- Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 82
+- Remaining unassigned: 52
 
 BT10 static re-audit remains open.
