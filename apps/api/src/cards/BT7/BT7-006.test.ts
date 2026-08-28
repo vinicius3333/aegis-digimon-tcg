@@ -7,7 +7,7 @@ describe("BT7-006 Kokomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-010", under: ["BT7-006"], as: "host" }],
+          battleArea: [{ card: "BT6-069", under: ["BT7-006"], as: "host" }],
           deck: [{ card: "BT1-085", as: "tamer" }, "BT1-010", "BT1-011"],
         },
         1: { security: ["BT1-101"] },
@@ -32,7 +32,7 @@ describe("BT7-006 Kokomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-010", under: ["BT7-006"], as: "host" }],
+          battleArea: [{ card: "BT6-069", under: ["BT7-006"], as: "host" }],
           deck: [{ card: "BT1-085", as: "tamer" }, "BT1-010", "BT1-011"],
         },
         1: { security: ["BT1-101"] },
