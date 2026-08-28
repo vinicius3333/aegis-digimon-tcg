@@ -11,7 +11,14 @@ describe("BT10-020 Deckerdramon", () => {
         trigger: "OnPlay",
         actions: [
           expect.objectContaining({ kind: "Draw", amount: 1 }),
-          expect.objectContaining({ kind: "Draw", amount: 1, scaling: expect.objectContaining({ per: 1 }) }),
+          expect.objectContaining({
+            kind: "Draw",
+            amount: 1,
+            scaling: expect.objectContaining({
+              per: 1,
+              filter: expect.objectContaining({ zone: "battleArea" }),
+            }),
+          }),
         ],
       }),
       expect.objectContaining({ trigger: "OnDeletion", keywords: [expect.objectContaining({ keyword: "Save" })] }),
@@ -35,6 +42,22 @@ describe("BT10-020 Deckerdramon", () => {
     });
     await settle(() => player.deck.length === 0);
     expect(player.hand).toHaveLength(3);
+  });
+
+  it("does not count an opposing breeding Digimon for the On Play scaling", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT10-020", as: "source" }], deck: ["BT10-017", "BT10-018", "BT10-019"] },
+      1: { battleArea: ["BT10-018"], breeding: "BT10-019" },
+    });
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.hand.length === 2);
+
+    expect(player.hand).toHaveLength(2);
+    expect(player.deck).toHaveLength(1);
   });
 
   it("does not grant inherited DP below the 2-Digimon threshold", async () => {
