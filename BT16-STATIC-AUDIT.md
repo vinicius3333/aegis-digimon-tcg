@@ -28,8 +28,8 @@ collection-complete claim is valid.
 | BT16-001–010 | Luna assigned | `internal-docs/audits/BT16/BT16-001-010.md` | No |
 | BT16-011–020 | Luna assigned | `internal-docs/audits/BT16/BT16-011-020.md` | No |
 | BT16-021–030 | Luna assigned | `internal-docs/audits/BT16/BT16-021-030.md` | No |
-| BT16-031–040 | Unassigned | `internal-docs/audits/BT16/BT16-031-040.md` | No |
-| BT16-041–050 | Unassigned | `internal-docs/audits/BT16/BT16-041-050.md` | No |
+| BT16-031–040 | Luna assigned | `internal-docs/audits/BT16/BT16-031-040.md` | No |
+| BT16-041–050 | Luna assigned | `internal-docs/audits/BT16/BT16-041-050.md` | No |
 | BT16-051–060 | Unassigned | `internal-docs/audits/BT16/BT16-051-060.md` | No |
 | BT16-061–070 | Unassigned | `internal-docs/audits/BT16/BT16-061-070.md` | No |
 | BT16-071–080 | Unassigned | `internal-docs/audits/BT16/BT16-071-080.md` | No |
@@ -69,12 +69,12 @@ feasible natural originating event.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 30
+- Assigned: 50
 - Integrated card audits: 0
 - Corrected: 0
 - Provisional: 0
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 72
+- Remaining unassigned: 52
 
 BT16 static re-audit is in progress.
