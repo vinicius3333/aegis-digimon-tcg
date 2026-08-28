@@ -80,6 +80,22 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   } else {
     ctx.lastActionConditionMatched = true;
   }
+  // A Delay payload may use any action kind, including GainKeyword. Consume an armed Delay
+  // grant here for action kinds whose specialized handlers do not own that gate. The intrinsic
+  // Main Delay wrapper passes delayArmedConsumed after consuming its grant, while Play,
+  // Replacement, and SubTrigger handlers can safely observe the same flag without double use.
+  if (
+    action.kind !== "RawUnparsed" &&
+    action.requiresDelayArmed === true &&
+    ctx.delayArmedConsumed !== true
+  ) {
+    const self = ctx.source.permanent();
+    if (self === undefined) return false;
+    const hasDelay = (ctx.fx.grantedKeywords?.(self.permanentId) ?? []).some((grant) => grant.keyword === "Delay");
+    if (!hasDelay) return false;
+    ctx.fx.revokeKeyword?.(self.permanentId, "Delay");
+    ctx.delayArmedConsumed = true;
+  }
   // "By paying ..., return 1 [X]" is not worth offering when nothing can be returned — but
   // only a BATTLE-AREA return is answered by a board scan. A return that sources a loose card
   // ("from your trash to the hand", BT16-031) has its candidates in another zone, where

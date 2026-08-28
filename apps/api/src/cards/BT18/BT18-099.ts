@@ -80,6 +80,12 @@ export const compiled: CompiledCard = {
             },
           ],
         },
+      ],
+    },
+    {
+      trigger: "Main",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      actions: [
         {
           kind: "GainKeyword",
           target: {
@@ -88,21 +94,21 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "delayTarget",
           },
           keyword: {
             keyword: "Piercing",
             raw: "＜Piercing＞",
           },
           duration: "untilYourTurnEnd",
+          requiresDelayArmed: true,
         },
         {
           kind: "GainKeyword",
           target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-            },
+            filter: {},
             count: 1,
+            fromSelectionRef: "delayTarget",
           },
           keyword: {
             keyword: "SecurityAttack",
