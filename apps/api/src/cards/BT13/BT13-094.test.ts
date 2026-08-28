@@ -76,14 +76,17 @@ describe("BT13-094 BT13-094", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-094", as: "kristy" }, { card: "BT13-008", as: "recipient" }],
-          hand: [{ card: "BT1-012", as: "biyomon" }],
+          battleArea: [{ card: "BT13-008", as: "recipient" }],
+          hand: [{ card: "BT13-094", as: "kristy" }, { card: "BT1-012", as: "biyomon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("kristy"));
-    await advance(s.engine).verb.deletePermanent([s.perm("recipient").permanentId]);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kristy").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("kristy").instanceId));
+    const recipientPermanentId = s.perm("recipient").permanentId;
+    await advance(s.engine).verb.deletePermanent([recipientPermanentId]);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-012"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-012")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("biyomon").instanceId)).toBe(false);
