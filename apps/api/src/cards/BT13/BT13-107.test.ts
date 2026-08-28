@@ -32,7 +32,7 @@ describe("BT13-107 Vulcan Crusher", () => {
     });
   });
 
-  it("requires returning a Leopardmon: Leopard Mode top card before unsuspending all own Digimon", () => {
+  it("requires returning a top card hosted by an exact Leopardmon: Leopard Mode before unsuspending all own Digimon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions?.[2]).toMatchObject({
       kind: "Unsuspend",
       target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
@@ -42,12 +42,18 @@ describe("BT13-107 Vulcan Crusher", () => {
           filter: {
             controller: "mine",
             zone: "digivolutionCards",
-            nameOrTrait: [{ match: "nameExact", tokens: ["Leopardmon: Leopard Mode"] }],
+            hostFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ match: "nameExact", tokens: ["Leopardmon: Leopard Mode"] }],
+            },
           },
           count: 1,
           topCardOnly: true,
         },
+        optional: true,
       },
+      abortOnDecline: true,
     });
     expect(
       compiled.effects?.find((entry) => entry.trigger === "Security")?.actions?.map((action) => action.kind),
@@ -64,12 +70,12 @@ describe("BT13-107 Vulcan Crusher", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("vulcan").instanceId)).toBe(true);
   });
 
-  it("chooses an own DP ceiling, returns only a qualifying suspended Digimon, then pays with the exact top Leopardmon stack card", async () => {
+  it("chooses an own DP ceiling, returns only a qualifying suspended Digimon, then returns an arbitrary top card from a Leopardmon host", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [{ card: "BT13-107", as: "vulcan" }],
-          battleArea: [{ card: "BT13-036", as: "host", under: ["BT13-058"] }],
+          battleArea: [{ card: "BT13-058", as: "host", under: ["BT13-056"] }],
           deck: [],
         },
         1: {
@@ -87,7 +93,82 @@ describe("BT13-107 Vulcan Crusher", () => {
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("low").instanceId));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("high").instanceId)).toBe(true);
     expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.perm("host").stack.some((card) => card.cardId === "BT13-058")).toBe(false);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT13-058")).toBe(true);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT13-056")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT13-056")).toBe(true);
+  });
+
+  it("does not unlock unsuspend when Leopardmon: Leopard Mode has no digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-107", as: "vulcan" }],
+          battleArea: [
+            { card: "BT13-058", as: "host", suspended: true },
+            { card: "BT13-036", as: "other", suspended: true },
+          ],
+          deck: [],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "target", suspended: true, dp: 1000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId));
+
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("other").isSuspended).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+  });
+
+  it("pays the optional top-card processing cost for a Leopardmon host with only a level-2 Digi-Egg", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-107", as: "vulcan" }],
+          battleArea: [
+            { card: "BT13-058", as: "host", under: ["BT13-001"], suspended: true },
+            { card: "BT13-036", as: "other", suspended: true },
+          ],
+          deck: [],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "target", suspended: true, dp: 1000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId));
+
+    expect(s.perm("other").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-001")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-058")).toBe(false);
+  });
+
+  it("may decline returning the Leopardmon host top card without unsuspending own Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-107", as: "vulcan" }],
+          battleArea: [
+            { card: "BT13-058", as: "host", under: ["BT13-056"], suspended: true },
+            { card: "BT13-036", as: "other", suspended: true },
+          ],
+          deck: [],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "target", suspended: true, dp: 1000 }] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vulcan").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId));
+
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("other").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT13-056")).toBe(false);
   });
 });

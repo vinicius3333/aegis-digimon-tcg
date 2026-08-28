@@ -62,7 +62,6 @@ export const compiled: CompiledCard = {
           },
           from: ["digivolutionCards"],
           payCost: false,
-          optional: true,
           suppressOnPlayEffects: true,
           bindResultAs: "playedDigimon",
         },

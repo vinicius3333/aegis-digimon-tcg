@@ -39,7 +39,7 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
       kind: "Draw",
       controller: "mine",
       amount: 1,
-      cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+      cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
       abortOnDecline: true,
     });
     expect(watcher.actions?.[1]).toMatchObject({
@@ -102,5 +102,25 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
     await settle();
     expect(ineligible.perm("tamers").isSuspended).toBe(false);
     expect(ineligible.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
+  });
+
+  it("may decline the suspend processing cost without drawing or gaining memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-101", as: "tamers" }],
+          hand: [{ card: "BT13-035", as: "pawn" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pawn").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-035"));
+
+    expect(s.perm("tamers").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
   });
 });

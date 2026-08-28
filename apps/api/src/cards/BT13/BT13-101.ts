@@ -58,6 +58,7 @@ export const compiled: CompiledCard = {
                   isSelf: true,
                 },
                 raw: "by suspending this Tamer",
+                optional: true,
               },
               abortOnDecline: true,
             },

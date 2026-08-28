@@ -49,7 +49,6 @@ describe("BT13-110 Royal Knights of the Purge", () => {
       kind: "PlayWithoutCost",
       from: ["digivolutionCards"],
       payCost: false,
-      optional: true,
       suppressOnPlayEffects: true,
       bindResultAs: "playedDigimon",
       target: {
@@ -61,6 +60,7 @@ describe("BT13-110 Royal Knights of the Purge", () => {
         count: 1,
       },
     });
+    expect(delay?.actions?.[0]).not.toHaveProperty("optional");
     expect(delay?.actions?.[1]).toMatchObject({
       kind: "GainKeyword",
       keyword: { keyword: "Rush" },
