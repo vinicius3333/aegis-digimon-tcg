@@ -37,4 +37,27 @@ describe("BT11-085 WaruSeadramon", () => {
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("source").instanceId),
     );
   });
+
+  it("also plays a purple level 3 from an own blue Digimon's sources", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-027", as: "base", under: [{ card: "BT10-073", as: "source" }] }],
+          hand: [{ card: "BT11-085", as: "waru" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("waru").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("source").instanceId),
+    );
+  });
 });
