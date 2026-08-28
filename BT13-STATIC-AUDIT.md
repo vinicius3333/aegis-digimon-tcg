@@ -33,7 +33,7 @@ collection-complete claim is valid.
 | BT13-071–080 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-071-080.md` | Yes |
 | BT13-081–090 | Luna assigned | `internal-docs/audits/BT13/BT13-081-090.md` | No |
 | BT13-091–100 | Luna assigned | `internal-docs/audits/BT13/BT13-091-100.md` | No |
-| BT13-101–110 | Unassigned | `internal-docs/audits/BT13/BT13-101-110.md` | No |
+| BT13-101–110 | Luna assigned | `internal-docs/audits/BT13/BT13-101-110.md` | No |
 | BT13-111–112 | Unassigned | `internal-docs/audits/BT13/BT13-111-112.md` | No |
 
 ## Score model
@@ -145,12 +145,12 @@ other component and is never rounded up.
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 100
+- Assigned: 110
 - Integrated card audits: 80
 - Corrected: 27
 - Provisional: 80
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
-- Remaining unassigned: 12
+- Remaining unassigned: 2
 
 BT13 static re-audit is in progress.
