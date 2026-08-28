@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import { compiled } from "./BT18-099.js";
 
 describe("BT18-099 Fist of Athena", () => {
@@ -36,11 +39,26 @@ describe("BT18-099 Fist of Athena", () => {
           event: "whenAttackTargetSwitched",
           actions: [{ kind: "GainKeyword", keyword: { keyword: "Delay" } }],
         },
-        { kind: "GainKeyword", keyword: { keyword: "Piercing" }, duration: "untilYourTurnEnd" },
-        { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "untilYourTurnEnd" },
       ],
     });
     expect(compiled.effects[3]).toMatchObject({
+      trigger: "Main",
+      keywords: [{ keyword: "Delay" }],
+      actions: [
+        {
+          kind: "GainKeyword",
+          requiresDelayArmed: true,
+          target: { bindAs: "delayTarget" },
+          keyword: { keyword: "Piercing" },
+        },
+        {
+          kind: "GainKeyword",
+          target: { fromSelectionRef: "delayTarget" },
+          keyword: { keyword: "SecurityAttack", amount: 1 },
+        },
+      ],
+    });
+    expect(compiled.effects[4]).toMatchObject({
       trigger: "Security",
       isSecurity: true,
       actions: [
@@ -58,5 +76,87 @@ describe("BT18-099 Fist of Athena", () => {
         { kind: "PlaceInBattleAreaSelf", optional: true },
       ],
     });
+  });
+
+  it("naturally places itself from Main", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT18-099", as: "option" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 12000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId));
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
+  it("arms Delay after a natural target switch and applies both delayed keywords to one Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT18-099", as: "option" }, { card: "BT1-009", as: "defender" }] },
+        1: { battleArea: [{ card: "BT18-013", as: "raid" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+
+    expect(observe(s.engine).activatableEffects(s.perm("option"))).toEqual([]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("raid").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).activatableEffects(s.perm("option")).length > 0);
+
+    const delay = observe(s.engine).activatableEffects(s.perm("option"))[0] as { effectKey: string } | undefined;
+    expect(delay?.effectKey).toBeDefined();
+    s.state.turnSeat = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        permanentId: s.perm("option").permanentId,
+        effectKey: delay!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.every((perm) => perm.topCard?.instanceId !== s.inst("option").instanceId));
+
+    expect(observe(s.engine).hasPierce(s.perm("defender"))).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("defender"), "SecurityAttack")).toBe(1);
+  });
+
+  it("naturally resolves Security by playing a level-5-or-lower Knightmon-text Digimon and placing itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT18-099", as: "option" }],
+          trash: [{ card: "BT18-062", as: "knightmonText" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId));
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("knightmonText").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });

@@ -3,12 +3,20 @@
 import { MEMORY_MIN } from "../../MemoryGauge.js";
 import { requireOpponentAsk } from "../../decisions/decisionApi.js";
 import type { EffectContext } from "../EffectContext.js";
+import { canAttemptDigivolve, runDigivolve } from "./actions/digivolve.js";
 import { definitionMatches } from "./matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "./matching/permanent.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "./targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets, topInstanceIds } from "./targeting/permanents.js";
-import { CardKind, getCardDefinition, isDigimon, isTamer } from "@aegis/shared";
-import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
+import {
+  canAssignDistinctColors,
+  CardKind,
+  filterToDistinctColors,
+  getCardDefinition,
+  isDigimon,
+  isTamer,
+} from "@aegis/shared";
+import type { Action, Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // Cost payment
@@ -26,6 +34,23 @@ function placeCostHostCandidates(ctx: EffectContext, host: Target): Permanent[] 
     if (breeding !== undefined && permanentMatchesFilter(ctx, breeding, filter, ctx.source)) candidates.push(breeding);
   }
   return candidates;
+}
+
+/**
+ * Keep the selected permanents that satisfy the shared "different colors" rule. A
+ * multicolor permanent contributes one assignable color, rather than occupying every
+ * printed color (CR 4-24-2 / KB Q3048). The target resolver handles the board choice;
+ * placement costs must revalidate its submitted ids before moving any permanent.
+ */
+function distinctColorPermanentIds(ctx: EffectContext, permanentIds: readonly string[]): string[] {
+  const selected = permanentIds
+    .map((permanentId) => ctx.game.permanentById(permanentId))
+    .filter((permanent): permanent is Permanent => permanent?.topCard !== undefined);
+  const colorSets = selected.map((permanent) => ctx.game.definitionOf(permanent.topCard).colors);
+  if (canAssignDistinctColors(colorSets)) return selected.map((permanent) => permanent.permanentId);
+  return filterToDistinctColors(selected, (permanent) => ctx.game.definitionOf(permanent.topCard).colors).map(
+    (permanent) => permanent.permanentId,
+  );
 }
 
 /**
@@ -49,6 +74,17 @@ function permanentTopReturnCostCandidates(ctx: EffectContext, target: Target): P
  */
 export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "raw") return false;
+  if (cost.kind === "digivolve") {
+    if (cost.target === undefined || cost.into === undefined) return false;
+    return canAttemptDigivolve(ctx, {
+      kind: "Digivolve",
+      target: cost.target,
+      into: cost.into,
+      from: cost.from ?? ["hand", "trash"],
+      payCost: true,
+      ...(cost.costReduction === undefined ? {} : { costDelta: -cost.costReduction }),
+    });
+  }
   if (cost.kind === "trash" && cost.target?.from?.includes("hand") && cost.target.from.includes("digivolutionCards")) {
     const filter = { ...cost.target.filter, zone: undefined };
     const candidates = candidateLooseInstances(ctx, { ...cost.target, filter }, ["hand", "digivolutionCards"]);
@@ -182,7 +218,14 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "digivolutionCards") {
     const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
-    return required > 0 && candidates.length >= required;
+    if (required <= 0 || candidates.length < required) return false;
+    if (cost.target.filter.sameHost !== true) return true;
+    const byHost = new Map<string, number>();
+    for (const candidate of candidates) {
+      if (candidate.hostPermanentId !== undefined)
+        byHost.set(candidate.hostPermanentId, (byHost.get(candidate.hostPermanentId) ?? 0) + 1);
+    }
+    return [...byHost.values()].some((count) => count >= required);
   }
   if (cost.kind === "return" && cost.target !== undefined && Array.isArray(cost.target.filter.zone)) {
     const zones = cost.target.filter.zone as ZoneRef[];
@@ -305,11 +348,18 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     // destination host. EX3-066 otherwise asked to place a Cyborg with an empty
     // hand/trash, then opened a guaranteed no-op selection.
     if (cost.targetIsPermanent === true) {
-      const required = cost.target.count === "all" ? 1 : (cost.target.count ?? 1);
-      if (candidatePermanents(ctx, cost.target).length < required) return false;
+      const candidates = candidatePermanents(ctx, cost.target);
+      const selectedIds = candidates.map((permanent) => permanent.permanentId);
+      const legalIds =
+        cost.target.filter.differentColors === true ? distinctColorPermanentIds(ctx, selectedIds) : selectedIds;
+      const required = cost.target.upTo === true ? 1 : cost.target.count === "all" ? 1 : (cost.target.count ?? 1);
+      if (legalIds.length < required) return false;
       if (cost.destination === "security" || cost.destination === "battleArea") return true;
       if (cost.host !== null && typeof cost.host === "object") {
         return placeCostHostCandidates(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
+      }
+      if (cost.host === "target" && cost.underFilter !== undefined) {
+        return candidatePermanents(ctx, { filter: cost.underFilter, count: 1 }).length > 0;
       }
       return ctx.source.permanent() !== undefined;
     }
@@ -403,6 +453,21 @@ export async function payCost(
     case "attack":
     case "digivolveSelf":
       return false;
+    case "digivolve": {
+      if (cost.target === undefined || cost.into === undefined) return false;
+      const action: Extract<Action, { kind: "Digivolve" }> = {
+        kind: "Digivolve",
+        target: cost.target,
+        into: cost.into,
+        from: cost.from ?? ["hand", "trash"],
+        payCost: true,
+        ...(cost.costReduction === undefined ? {} : { costDelta: -cost.costReduction }),
+      };
+      await runDigivolve(ctx, action);
+      const paid = ctx.lastDigivolveResult === true;
+      if (paid && out) out.paidCount = 1;
+      return paid;
+    }
     case "reveal": {
       if (cost.target === undefined) return false;
       const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
@@ -1552,12 +1617,16 @@ export async function payCost(
       }
       // Routed place-as-cost (cost.destination set): the chosen card(s) go to the
       // security stack or a chosen/own digivolution stack at top/bottom, instead of
-      // the default "under the source" placeUnder below. Source zones come from
-      // cost.target.from (defaulting to hand); the cost is all-or-nothing.
+      // the default "under the source" placeUnder below. Loose-card source zones come from
+      // cost.target.from (defaulting to hand); permanent relocation tracks actual moves.
       if (cost.destination !== undefined) {
         if (!cost.target) return false;
         if (cost.targetIsPermanent === true) {
-          const sourceIds = await resolvePermanentTargets(ctx, cost.target);
+          const resolvedSourceIds = await resolvePermanentTargets(ctx, cost.target);
+          const sourceIds =
+            cost.target.filter.differentColors === true
+              ? distinctColorPermanentIds(ctx, resolvedSourceIds)
+              : resolvedSourceIds;
           if (sourceIds.length === 0) return false;
           if (cost.storeAs !== undefined) {
             const sourcePermanent = ctx.game.permanentById(sourceIds[0]!);
@@ -1622,13 +1691,30 @@ export async function payCost(
             ctx.selections ??= new Map();
             ctx.selections.set(cost.bindHostAs, hostPermId);
           }
+          const placedSourceIds: string[] = [];
+          const topInstanceIds = new Map(
+            sourceIds.map((sourcePermanentId) => [
+              sourcePermanentId,
+              ctx.game.permanentById(sourcePermanentId)?.topCard?.instanceId,
+            ]),
+          );
           for (const sourcePermanentId of sourceIds) {
-            await relocateByEffect(ctx, hostPermId, sourcePermanentId, {
+            const moved = await relocateByEffect(ctx, hostPermId, sourcePermanentId, {
               belowTop: cost.position !== "bottom",
               shedOwnCards: cost.shedOwnCards === true,
             });
+            if (moved) placedSourceIds.push(sourcePermanentId);
           }
-          if (out) out.paidCount = sourceIds.length;
+          if (placedSourceIds.length === 0) return false;
+          ctx.lastPlacedUnderInstanceIds = placedSourceIds
+            .map((sourcePermanentId) => topInstanceIds.get(sourcePermanentId))
+            .filter((instanceId): instanceId is string => instanceId !== undefined);
+          ctx.lastEffectActed = true;
+          if (cost.trackCount !== undefined) {
+            ctx.namedCounts ??= new Map();
+            ctx.namedCounts.set(cost.trackCount, placedSourceIds.length);
+          }
+          if (out) out.paidCount = placedSourceIds.length;
           return true;
         }
         const srcZones: ZoneRef[] = (cost.target.from?.length ?? 0) > 0 ? (cost.target.from as ZoneRef[]) : ["hand"];
