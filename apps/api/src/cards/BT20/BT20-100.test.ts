@@ -9,12 +9,21 @@ describe("BT20-100 The Last Guardian", () => {
           kind: "RevealAdd",
           revealCount: 3,
           add: [
-            { count: 1, filter: { nameOrTrait: [{ tokens: ["Cool Boy"], match: "name" }] } },
+            { count: 1, filter: { nameOrTrait: [{ tokens: ["Cool Boy"], match: "nameExact" }] } },
             { count: 1, filter: { nameOrTrait: [{ tokens: ["Royal Knight", "X Antibody"], match: "trait" }] } },
           ],
           rest: "deckBottom",
         },
         { kind: "PlaceInBattleAreaSelf" },
+      ],
+    });
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      actions: [
+        {
+          target: {
+            filter: { nameOrTrait: [{ tokens: ["Omekamon", "Cool Boy"], match: "nameExact" }] },
+          },
+        },
       ],
     });
   });
