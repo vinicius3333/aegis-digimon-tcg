@@ -15,7 +15,7 @@ export const compiled: CompiledCard = {
           underFilter: {
             controller: "mine",
             nameOrTrait: [{ tokens: ["Diaboromon"], match: "name" }],
-            excludeNameOrTrait: [{ tokens: ["Doomsday Clock"], match: "name" }],
+            excludeCardsNamed: ["Doomsday Clock"],
           },
         },
       ],
