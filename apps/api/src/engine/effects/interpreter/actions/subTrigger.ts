@@ -73,6 +73,7 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   // event-shaped spelling. Both describe the same deleted-permanent payload.
   OnDeletion: "onDeletionOf",
   whenSecurityRemoved: "whenSecurityRemoved",
+  whenCardTrashedFromSecurity: "whenCardTrashedFromSecurity",
   whenSecurityBattleEnded: "whenSecurityBattleEnded",
   // Alias used by the ST15 hand-authored module; both spellings share the
   // same security-removal payload and fire sites.
@@ -217,7 +218,9 @@ export async function runSubTrigger(
   // security lost a card. Interpret sourceFilter.controller as the watched stack direction:
   // most cards watch "your" stack, while BT9-016 watches the opponent's stack.
   const securityRemovalGate =
-    event === "whenEffectRemovesFromSecurity" || event === "whenSecurityRemoved"
+    event === "whenEffectRemovesFromSecurity" ||
+    event === "whenSecurityRemoved" ||
+    event === "whenCardTrashedFromSecurity"
       ? (subCtx: EffectContext): boolean => {
           const removedSeat = subCtx.trigger?.removedFromSecuritySeat;
           if (removedSeat === undefined) return false;
@@ -257,6 +260,7 @@ export async function runSubTrigger(
     subjectFilter === undefined ||
     event === "whenEffectRemovesFromSecurity" ||
     event === "whenSecurityRemoved" ||
+    event === "whenCardTrashedFromSecurity" ||
     event === "onDiscardLibrary" ||
     event === "onDigivolutionCardReturnToDeckBottom" ||
     event === "whenHandTrashed" ||
