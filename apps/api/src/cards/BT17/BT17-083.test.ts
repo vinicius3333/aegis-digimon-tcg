@@ -1,12 +1,27 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./index.js";
 
 const KOJI = "BT17-083";
+
+/** Observe the production OnStartTurn window without replacing or manually firing it. */
+function observeStartTurn(s: EngineSetup): number[] {
+  const memoryAfterStartTurn: number[] = [];
+  const engineAny = s.engine as unknown as {
+    fireTiming(timing: EffectTiming, trigger?: unknown): Promise<void>;
+  };
+  const original = engineAny.fireTiming.bind(s.engine);
+  engineAny.fireTiming = async (timing: EffectTiming, trigger?: unknown) => {
+    const result = await original(timing, trigger);
+    if (timing === EffectTiming.OnStartTurn) memoryAfterStartTurn.push(s.state.memory);
+    return result;
+  };
+  return memoryAfterStartTurn;
+}
 
 describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
   it("matches the immutable catalog identity and printed clauses", () => {
@@ -101,19 +116,43 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
     assertNoLoudGap(s);
   });
 
-  it("sets memory to 3 at the start of your turn only from 2 or less", async () => {
-    const low = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: [KOJI] }] } });
+  it("sets memory to 3 at the natural start of your turn only from 2 or less", async () => {
+    const low = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: [KOJI] }],
+          deck: ["BT1-010"],
+          hand: ["BT1-010"],
+        },
+        1: { deck: ["BT1-010"], hand: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     low.state.memory = 2;
+    low.state.turnSeat = 0;
+    const lowMemoryAfterStartTurn = observeStartTurn(low);
     await low.ready();
-    await advance(low.engine).fire(EffectTiming.OnStartTurn, low.perm("host"));
-    expect(low.state.memory).toBe(3);
+    await advance(low.engine).runTurn(0);
+    expect(lowMemoryAfterStartTurn).toEqual([3]);
     assertNoLoudGap(low);
 
-    const high = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: [KOJI] }] } });
+    const high = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: [KOJI] }],
+          deck: ["BT1-010"],
+          hand: ["BT1-010"],
+        },
+        1: { deck: ["BT1-010"], hand: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     high.state.memory = 4;
+    high.state.turnSeat = 0;
+    const highMemoryAfterStartTurn = observeStartTurn(high);
     await high.ready();
-    await advance(high.engine).fire(EffectTiming.OnStartTurn, high.perm("host"));
-    expect(high.state.memory).toBe(4);
+    await advance(high.engine).runTurn(0);
+    expect(highMemoryAfterStartTurn).toEqual([4]);
     assertNoLoudGap(high);
   });
 
