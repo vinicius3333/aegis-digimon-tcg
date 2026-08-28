@@ -25,12 +25,12 @@ claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT11-001–010 | Luna in progress | `internal-docs/audits/BT11/BT11-001-010.md` | No |
-| BT11-011–020 | Luna in progress | `internal-docs/audits/BT11/BT11-011-020.md` | No |
-| BT11-021–030 | Luna in progress | `internal-docs/audits/BT11/BT11-021-030.md` | No |
-| BT11-031–040 | Queued | `internal-docs/audits/BT11/BT11-031-040.md` | No |
-| BT11-041–050 | Queued | `internal-docs/audits/BT11/BT11-041-050.md` | No |
-| BT11-051–060 | Queued | `internal-docs/audits/BT11/BT11-051-060.md` | No |
+| BT11-001–010 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-001-010.md` | Yes |
+| BT11-011–020 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-011-020.md` | Yes |
+| BT11-021–030 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-021-030.md` | Yes |
+| BT11-031–040 | Luna in progress | `internal-docs/audits/BT11/BT11-031-040.md` | No |
+| BT11-041–050 | Luna in progress | `internal-docs/audits/BT11/BT11-041-050.md` | No |
+| BT11-051–060 | Luna in progress | `internal-docs/audits/BT11/BT11-051-060.md` | No |
 | BT11-061–070 | Queued | `internal-docs/audits/BT11/BT11-061-070.md` | No |
 | BT11-071–080 | Queued | `internal-docs/audits/BT11/BT11-071-080.md` | No |
 | BT11-081–090 | Queued | `internal-docs/audits/BT11/BT11-081-090.md` | No |
@@ -62,16 +62,46 @@ other component and is never rounded up.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT11-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-005 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-006 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected effect-provenance gate |
+| BT11-007 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected universal Rule aliases |
+| BT11-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-011 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-012 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-013 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-014 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-015 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-017 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected universal Rule aliases |
+| BT11-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-024 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected bottom source placement |
+| BT11-025 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-026 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-027 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
+| BT11-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected universal aliases and bottom placement |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 30
-- Integrated card audits: 0
-- Corrected: 0
-- Provisional: 0
+- Assigned: 60
+- Integrated card audits: 30
+- Corrected: 5
+- Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 82
+- Remaining unassigned: 52
 
 BT11 static re-audit remains open.
