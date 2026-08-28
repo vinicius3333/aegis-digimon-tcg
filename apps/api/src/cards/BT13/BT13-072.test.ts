@@ -75,4 +75,15 @@ describe("BT13-072 DoruGreymon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
     expect(observe(s.engine).isRestricted(s.perm("doru"), "dpImmune")).toBe(true);
   });
+
+  it("places an X Antibody Digimon from hand under the inherited host at turn end", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT13-072"] }], hand: ["BT9-055"] },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("host"));
+
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT9-055");
+  });
 });
