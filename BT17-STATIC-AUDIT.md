@@ -28,7 +28,7 @@ collection-complete claim is valid.
 | BT17-001–010 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-001-010.md` | Yes |
 | BT17-011–020 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-011-020.md` | Yes |
 | BT17-021–030 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-021-030.md` | Yes |
-| BT17-031–040 | Luna assigned | `internal-docs/audits/BT17/BT17-031-040.md` | No |
+| BT17-031–040 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-031-040.md` | Yes |
 | BT17-041–050 | Luna assigned | `internal-docs/audits/BT17/BT17-041-050.md` | No |
 | BT17-051–060 | Luna assigned | `internal-docs/audits/BT17/BT17-051-060.md` | No |
 | BT17-061–070 | Luna assigned | `internal-docs/audits/BT17/BT17-061-070.md` | No |
@@ -95,14 +95,24 @@ feasible natural originating event.
 | BT17-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play bounce triggers the hand-add watcher and security move; legal evolution and deletion/Tamer flows cover the remaining clauses (`1d6b620ba`). |
 | BT17-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A public attack proves Tamer-suspension draw and a natural security battle observes the inherited opponent-security DP reduction (`b1bef3155`). |
 | BT17-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production turn runners prove both start-of-main security branches with Leon placement; legal Bibimon and Pulsemon-text stacks cover the static identity (`e9c1076e0`). |
+| BT17-031 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural cost-2 Option use supplements reveal/add and legal Renamon-family stack proof for the inherited Security Attack reduction (`9fb154581`). |
+| BT17-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Legal and blocked Rika flows plus natural inherited Option use prove the conditional play and watcher boundaries (`fa3c5f4ce`). |
+| BT17-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A yellow-Tamer attack and natural security battle prove the +3000 DP cost and inherited security-Digimon -3000 DP (`c6eadd4b2`). |
+| BT17-034 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the watcher to actual card trash from own security; normal-check and security-to-hand cases distinguish true trash from relocation (`5875b1a80`). |
+| BT17-035 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected Option OR filtering, uncapped Plug-In cost, and multi-color eligibility while preserving color requirements; natural evolution proves reduced payment (`f66e6d0ce`). |
+| BT17-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added and typed the effect-only security-trash event; a natural End of Attack cost drives the Leon-stack free evolution (`824d64441`, `da9026c33`). |
+| BT17-037 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A real Option deletes a red/yellow Tamer and naturally drives Marcus placement from trash to security on a legal stack (`b8834c559`). |
+| BT17-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected consumable Option OR filters, uncapped Plug-In and yellow cost-5 branches; legal and color-illegal natural uses cover the boundary (`349b9204b`). |
+| BT17-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural opponent Option return proves the leave-play replacement, Tamer cost, and persistence on a legal evolution stack (`f4736e59c`). |
+| BT17-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production turns prove both exact-three end-turn branches and attack tail; a real opponent attack proves inherited security-removal -8000 DP (`c5042eb3f`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 30
-- Corrected: 6
-- Provisional: 30
+- Integrated card audits: 40
+- Corrected: 10
+- Provisional: 40
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 22
