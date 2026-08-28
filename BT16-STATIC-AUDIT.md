@@ -33,7 +33,7 @@ collection-complete claim is valid.
 | BT16-051–060 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-051-060.md` | Yes |
 | BT16-061–070 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-061-070.md` | Yes |
 | BT16-071–080 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-071-080.md` | Yes |
-| BT16-081–090 | Luna assigned | `internal-docs/audits/BT16/BT16-081-090.md` | No |
+| BT16-081–090 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-081-090.md` | Yes |
 | BT16-091–100 | Luna assigned | `internal-docs/audits/BT16/BT16-091-100.md` | No |
 | BT16-101–102 | Luna assigned | `internal-docs/audits/BT16/BT16-101-102.md` | No |
 
@@ -150,14 +150,24 @@ feasible natural originating event.
 | BT16-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the reaction to effect-deletion provenance; Q2665 unrestricted own/opponent low-level deletion and natural trash play match the runtime (`b83d10df2`). |
 | BT16-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Shared-use timing, hand/trash play, source-stack gate, scaled level cap, Alliance, and natural end-turn deletion are covered (`a33d6b508`). |
 | BT16-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2666–Q2667 exact-three overlap, natural attack, opponent-effect leave prevention/security cost, and battle-deletion recovery-to-three are covered (`08c037da9`). |
+| BT16-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the All Turns watcher to effect deletions; natural evolution pays its own deletion cost, deletes the opponent target, and trashes security (`bca8751be`). |
+| BT16-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2668–Q2671, a natural breeding move, exact reveal selection/remainder, once-per-turn timing, and optional hatch match the direct IR (`c0b437098`). |
+| BT16-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the mandatory return/delete processing condition to abort the later breeding play when unpaid; Q2672–Q2674 and natural turn progression cover the full sequence (`421c2f7ae`). |
+| BT16-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected optional play binding and one-shot delayed return to the played Hawkmon/Salamon; Q2675–Q2676 and natural opponent-turn progression are covered (`ab818f866`). |
+| BT16-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected optional play binding and one-shot delayed return to the played Veemon/Wormmon; Q2677–Q2678/Q4254 and DNA-dependent behavior are covered (`da81d1150`). |
+| BT16-086 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Removed redundant post-Mind-Link placement and scoped inherited self-play to the host stack; Q2679, natural Mind Link, keywords, and end-turn self-play are proved (`fd753287d`). |
+| BT16-087 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Removed redundant post-Mind-Link placement and scoped inherited self-play to the host stack; Q2680, natural SoC/X Antibody link, keywords, and self-play are covered (`46a040c4f`). |
+| BT16-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected optional play binding and one-shot delayed return to the played Armadillomon/Patamon; Q2681–Q2682 and DNA gating are covered (`00047e6eb`). |
+| BT16-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2683/Q5534–Q5535, natural play-cost replacement, effect-deletion revival, and one-shot opponent-turn delayed deletion match the IR (`d6497aa4d`). |
+| BT16-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2684–Q2688, natural start-turn memory, exact compound costs, optional breeding play for three, and Overflow boundaries are covered (`6e0e85f97`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 80
-- Corrected: 17
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 24
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 0
