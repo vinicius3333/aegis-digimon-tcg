@@ -35,7 +35,7 @@ collection-complete claim is valid.
 | BT17-071–080 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-071-080.md` | Yes |
 | BT17-081–090 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-081-090.md` | Yes |
 | BT17-091–100 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-091-100.md` | Yes |
-| BT17-101–102 | Luna assigned | `internal-docs/audits/BT17/BT17-101-102.md` | No |
+| BT17-101–102 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-101-102.md` | Yes |
 
 ## Score model
 
@@ -165,16 +165,20 @@ feasible natural originating event.
 | BT17-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal, public Delay activation, exact host-top-card security placement, and Security repeat prove the full Option flow (`52371181d`). |
 | BT17-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main, Tamer deletion and return origins, public Delay evolution into ShineGreymon, and Security prove both watcher branches (`1f7e49a3b`, `467f6f68e`). |
 | BT17-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected stack-aware Clock exclusion; natural Security, opponent-effect replacement, opponent-turn end, and four-clock start-turn win prove all clauses (`6eaebaf3c`, `d8c65a86c`). |
+| BT17-101 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected Trash-origin DNA targeting and added opponent-seat memory semantics; natural attack/security behavior exists, but the corrected DNA and seat-aware paths lack natural behavior-driving source proof (`42521bb18`). |
+| BT17-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added the Agumon alternate route and effective dynamic stack names; legal evolution, Koromon boost, independent deletion, Tamer play, and hatch fallback have natural proof (`1babf1d33`, `baf11410f`, `c53c801f5`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 100
-- Corrected: 30
-- Provisional: 100
+- Integrated card audits: 102
+- Corrected: 32
+- Provisional: 102
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 1 (`BT17-095` durable Delay DNA source binding)
+- Blocked or ambiguous: 2 (`BT17-095` durable Delay DNA source binding; `BT17-101` natural source-proof gap for corrected DNA/opponent-seat memory paths)
 - Remaining unassigned: 0
 
-BT17 static re-audit is in progress.
+BT17 static card-by-card coverage is recorded. The collection remains open for
+the two scored limitations above and all deliberately deferred execution gates;
+no collection-complete or 10/10 claim is made.
