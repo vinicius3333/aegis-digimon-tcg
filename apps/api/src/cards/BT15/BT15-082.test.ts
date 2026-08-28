@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type Seat } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
+import "../index.js";
 import "./BT15-082.js";
 import { compiled } from "./BT15-082.js";
 
@@ -34,7 +36,7 @@ function makeSource(permanentId = "PERM#sora", onBattleArea = true): CardSource 
       nameEn: "Sora Takenouchi",
       kinds: ["Tamer"],
       colors: ["Red"],
-      playCost: 2,
+      playCost: 4,
       dp: undefined,
       evoCosts: [],
       maxCountInDeck: 4,
@@ -75,14 +77,18 @@ function makeContext(recorder: { calls: Call[] }, source: CardSource, memory = 3
 }
 
 describe("BT15-082 Sora Takenouchi", () => {
-  it("excludes Sea Animal cards from both the trigger and play filters", () => {
+  it("matches the catalog identity and excludes Sea Animal cards from both filters", () => {
+    expect(getCardDefinition("BT15-082")).toMatchObject({
+      nameEn: "Sora Takenouchi",
+      colors: ["Red"],
+      kinds: ["Tamer"],
+      playCost: 4,
+    });
     const watcher = compiled.effects?.[1]?.actions?.[0] as any;
-    expect(watcher.sourceFilter.nameOrTrait).toEqual(
-      expect.arrayContaining([{ tokens: ["Sea Animal"], match: "trait", negate: true }]),
-    );
-    expect(watcher.actions[0].target.filter.nameOrTrait).toEqual(
-      expect.arrayContaining([{ tokens: ["Sea Animal"], match: "trait", negate: true }]),
-    );
+    expect(watcher.sourceFilter.excludeNameOrTrait).toEqual([{ tokens: ["Sea Animal"], match: "trait" }]);
+    expect(watcher.actions[0].target.filter.excludeNameOrTrait).toEqual([
+      { tokens: ["Sea Animal"], match: "trait" },
+    ]);
   });
   const module = getEffectModule("BT15-082");
 
@@ -193,5 +199,34 @@ describe("BT15-082 Sora Takenouchi", () => {
       expect(call!.args[0]).toEqual(["INST#BT15-082"]);
       expect((call!.args[1] as { payCost: boolean }).payCost).toBe(false);
     });
+  });
+
+  it("naturally returns a red Digimon from trash and free-plays a bird under the security-scaled DP cap", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-082", as: "sora" }],
+          hand: [
+            { card: "BT15-088", as: "wings" },
+            { card: "BT15-008", as: "bird" },
+          ],
+          trash: [{ card: "BT1-012", as: "returnedRed" }],
+          deck: ["BT1-001", "BT1-001"],
+        },
+        1: { security: ["BT1-001", "BT1-001", "BT1-001"], deck: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wings").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("bird").topCard.cardId === "BT15-008");
+
+    expect(s.state.memory).toBe(8);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("returnedRed").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("sora").instanceId)).toBe(true);
+    expect(s.perm("bird").topCard.cardId).toBe("BT15-008");
   });
 });
