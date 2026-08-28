@@ -25,12 +25,12 @@ collection-complete claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT17-001–010 | Luna assigned | `internal-docs/audits/BT17/BT17-001-010.md` | No |
+| BT17-001–010 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-001-010.md` | Yes |
 | BT17-011–020 | Luna assigned | `internal-docs/audits/BT17/BT17-011-020.md` | No |
 | BT17-021–030 | Luna assigned | `internal-docs/audits/BT17/BT17-021-030.md` | No |
 | BT17-031–040 | Luna assigned | `internal-docs/audits/BT17/BT17-031-040.md` | No |
 | BT17-041–050 | Luna assigned | `internal-docs/audits/BT17/BT17-041-050.md` | No |
-| BT17-051–060 | Unassigned | `internal-docs/audits/BT17/BT17-051-060.md` | No |
+| BT17-051–060 | Luna assigned | `internal-docs/audits/BT17/BT17-051-060.md` | No |
 | BT17-061–070 | Unassigned | `internal-docs/audits/BT17/BT17-061-070.md` | No |
 | BT17-071–080 | Unassigned | `internal-docs/audits/BT17/BT17-071-080.md` | No |
 | BT17-081–090 | Unassigned | `internal-docs/audits/BT17/BT17-081-090.md` | No |
@@ -65,16 +65,26 @@ feasible natural originating event.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT17-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A legal Agumon stack naturally attacks, pays one memory, deletes the exact 3000-DP boundary, and preserves a higher-DP target/no-target payment negative (`04068ae99`). |
+| BT17-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2702 simultaneous and separate stack plays prove source-zone/controller filters and once-per-turn draw frequency with normal/opponent-play negatives (`9af7d1343`). |
+| BT17-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2703 Tamer placement, kind/host/turn negatives, and repeated-placement frequency trace through the inherited self-bound watcher (`4883e66d0`). |
+| BT17-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Legal Argomon and non-Argomon green stacks prove the opponent-turn inherited Blocker name condition (`dd9b9c89d`). |
+| BT17-005 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Legal black Unidentified and non-Unidentified stacks prove the deletion snapshot trait gate and inherited memory gain (`84d4b8f9e`). |
+| BT17-006 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2704–Q2705, natural Tamer placement, legal SoC trash evolution, and wrong-kind/wrong-host negatives prove the inherited watcher and requirement enforcement (`a90918c50`). |
+| BT17-007 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2706–Q2709, natural main-phase recovery, legal end-turn DNA, exact partner/result selectors, and non-DNA rejection are covered (`c528b2e29`). |
+| BT17-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2710–Q2714, natural Calumon/Takato trigger, delete/no-delete branches, and inherited numeric DP-ceiling increase at nonpositive memory are covered (`f1093d57c`). |
+| BT17-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2715–Q2717 exact dual reveal filters/remainder and a natural inherited battle-deletion Tamer play are proved with legal Hybrid fixtures (`615804154`). |
+| BT17-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2718–Q2722, natural delete/fallback branches, legal evolution, and inherited numeric deletion-ceiling increase match the direct IR (`024ea314d`). |
 
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 50
-- Integrated card audits: 0
+- Assigned: 60
+- Integrated card audits: 10
 - Corrected: 0
-- Provisional: 0
+- Provisional: 10
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 52
+- Remaining unassigned: 42
 
 BT17 static re-audit is in progress.
