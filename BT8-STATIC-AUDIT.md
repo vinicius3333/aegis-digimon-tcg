@@ -29,12 +29,12 @@ claim is valid.
 | BT8-031–040 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-031-040.md` | Yes |
 | BT8-041–050 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-041-050.md` | Yes |
 | BT8-051–060 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-051-060.md` | Yes |
-| BT8-061–070 | Luna in progress | `internal-docs/audits/BT8/BT8-061-070.md` | No |
-| BT8-071–080 | Luna in progress | `internal-docs/audits/BT8/BT8-071-080.md` | No |
-| BT8-081–090 | Luna in progress | `internal-docs/audits/BT8/BT8-081-090.md` | No |
-| BT8-091–100 | Queued | `internal-docs/audits/BT8/BT8-091-100.md` | No |
-| BT8-101–110 | Queued | `internal-docs/audits/BT8/BT8-101-110.md` | No |
-| BT8-111–112 | Queued | `internal-docs/audits/BT8/BT8-111-112.md` | No |
+| BT8-061–070 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-061-070.md` | Yes |
+| BT8-071–080 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-071-080.md` | Yes |
+| BT8-081–090 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-081-090.md` | Yes |
+| BT8-091–100 | Luna in progress | `internal-docs/audits/BT8/BT8-091-100.md` | No |
+| BT8-101–110 | Luna in progress | `internal-docs/audits/BT8/BT8-101-110.md` | No |
+| BT8-111–112 | Luna in progress | `internal-docs/audits/BT8/BT8-111-112.md` | No |
 
 ## Score model
 
@@ -120,16 +120,46 @@ other component and is never rounded up.
 | BT8-058 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-051-060.md` |
 | BT8-059 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-051-060.md` |
 | BT8-060 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-051-060.md` |
+| BT8-061 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-061-070.md` |
+| BT8-062 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-061-070.md` |
+| BT8-063 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-061-070.md` |
+| BT8-064 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-061-070.md` |
+| BT8-065 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT8-061-070.md` |
+| BT8-066 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT8-061-070.md` |
+| BT8-067 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-061-070.md` |
+| BT8-068 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-061-070.md` |
+| BT8-069 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT8-061-070.md` |
+| BT8-070 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-061-070.md` |
+| BT8-071 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-071-080.md` |
+| BT8-072 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-071-080.md` |
+| BT8-073 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-071-080.md` |
+| BT8-074 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-071-080.md` |
+| BT8-075 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-071-080.md` |
+| BT8-076 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-071-080.md` |
+| BT8-077 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-071-080.md` |
+| BT8-078 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-071-080.md` |
+| BT8-079 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-071-080.md` |
+| BT8-080 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-071-080.md` |
+| BT8-081 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT8-081-090.md` |
+| BT8-082 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
+| BT8-083 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
+| BT8-084 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
+| BT8-085 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
+| BT8-086 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
+| BT8-087 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
+| BT8-088 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
+| BT8-089 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
+| BT8-090 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 90
-- Integrated card audits: 60
-- Corrected: 6
-- Provisional: 60
+- Assigned: 112
+- Integrated card audits: 90
+- Corrected: 10
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 22
+- Remaining unassigned: 0
 
 BT8 static re-audit remains open.
