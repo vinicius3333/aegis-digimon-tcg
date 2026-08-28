@@ -53,7 +53,6 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onDeletionOf",
           sourceFilter: {
-            controllerDefault: "mine",
             excludeSelf: true,
             kind: ["Digimon"],
           },
