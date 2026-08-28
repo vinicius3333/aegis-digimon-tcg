@@ -21,7 +21,7 @@ provisional and capped at 8/10.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT19-001–010 | Luna prepared and coordinator-reviewed | `internal-docs/audits/BT19/BT19-001-010.md` | No |
+| BT19-001–010 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-001-010.md` | Yes |
 | BT19-011–020 | Luna prepared; coordinator review pending | `internal-docs/audits/BT19/BT19-011-020.md` | No |
 | BT19-021–030 | Luna assigned | `internal-docs/audits/BT19/BT19-021-030.md` | No |
 | BT19-031–040 | Luna assigned | `internal-docs/audits/BT19/BT19-031-040.md` | No |
@@ -45,14 +45,24 @@ applicable non-gate component rather than being rounded up.
 
 | Card | Catalog/rules | IR trace | Behavioral proof | Peer and stack proof | Executed delivery gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT19-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attacks prove matching hand placement, draw, optional decline, inherited-source binding, and once-per-turn (`b80127651`). |
+| BT19-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent attacks prove the self-return cost, level snapshot, decline, and Q3058 Decode ordering on a legal blue stack (`85aaf971d`). |
+| BT19-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A production turn proves Plug-In return naturally; the otherwise unoriginable repeat window is supplemental once-per-turn evidence only (`19cba4bc0`). |
+| BT19-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Live continuous state proves another-green-Digimon, self-exclusion, owner-turn duration, and aura removal (`ace820a84`). |
+| BT19-005 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Live continuous state proves opponent-Digimon presence, host-only Reboot, opponent-turn duration, and Tamer exclusion (`2302175c8`). |
+| BT19-006 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production effect deletion and a natural battle prove the non-battle cause plus exact purple level-3 trash return filters (`844ef1801`). |
+| BT19-007 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production turns, legal evolution, and natural attacks prove named support, memory boundary, numeric DP-ceiling increase, and relative-ceiling exclusion (`0ddcbda2c`). |
+| BT19-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play plus production deletion prove legal OmniShoutmon evolution, Q3062 rejection, reveal/Tamer/Save ordering, and inherited Rush (`4d11fd476`). |
+| BT19-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolutions and attacks prove exact Takato play, Tamer-count boundary, numeric DP-ceiling increase, and relative-ceiling exclusion (`a0d1a705d`). |
+| BT19-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public DigiXros and production deletion/return prove four exact materials, reduction, trait-filtered stack placement, decline, and Q3067 departure (`572ff93db`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 70
-- Integrated card audits: 0
+- Integrated card audits: 10
 - Corrected: 0
-- Provisional: 0
+- Provisional: 10
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 32
