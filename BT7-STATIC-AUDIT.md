@@ -25,7 +25,7 @@ claim is valid.
 | --- | --- | --- | --- |
 | BT7-001–010 | Luna in progress | `internal-docs/audits/BT7/BT7-001-010.md` | No |
 | BT7-011–020 | Luna in progress | `internal-docs/audits/BT7/BT7-011-020.md` | No |
-| BT7-021–030 | Luna in progress | `internal-docs/audits/BT7/BT7-021-030.md` | No |
+| BT7-021–030 | Static audit delivered | `internal-docs/audits/BT7/BT7-021-030.md` | Yes |
 | BT7-031–040 | Queued | `internal-docs/audits/BT7/BT7-031-040.md` | No |
 | BT7-041–050 | Queued | `internal-docs/audits/BT7/BT7-041-050.md` | No |
 | BT7-051–060 | Queued | `internal-docs/audits/BT7/BT7-051-060.md` | No |
@@ -60,14 +60,24 @@ other component and is never rounded up.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT7-021 Kumamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blue-Tamer alternate evolution, cost-two stack transition, and bottom-source trash boundary |
+| BT7-022 KendoGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Blue-Tamer alternate evolution plus Hybrid-or-Koji stack-conditioned Jamming duration |
+| BT7-023 Korikakumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Tamer evolution metadata and one shared source-less target for attack-or-block restriction |
+| BT7-024 DaiPenmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Source-less-opponent draw scaling and live Hybrid-stack level-three attack restriction |
+| BT7-025 Beowolfmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected verified self-reducer registration plus Tamer-source cost reduction and bound Hybrid bounce |
+| BT7-026 WereGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exclusive Tamer/no-Tamer On Play branches and inherited main-phase once-per-turn unsuspend watcher |
+| BT7-027 Whamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional level-three source-stack free play followed by gated blue-hand bottom placement |
+| BT7-028 KingWhamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Level-three-or-Whamon source-stack free play and opponent level-four return/source teardown watcher |
+| BT7-029 MagnaGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected decline-aborts-dependent-bounce behavior with shared dual-trigger once-per-turn identity |
+| BT7-030 AncientMegatheriummon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Per-Hybrid bottom-source trash scaling, post-action source-less draw, and bounded On Deletion free play |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 30
-- Integrated card audits: 0
-- Corrected: 0
-- Provisional: 0
+- Integrated card audits: 10
+- Corrected: 3
+- Provisional: 10
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 82
