@@ -55,6 +55,61 @@ describe("BT18-023 Lanamon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("naturally places the revealed Aqua/Sea Animal card under a blue Digimon when chosen", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-030", as: "host" }],
+          hand: [{ card: "BT18-023", as: "lanamon" }],
+          deck: [{ card: "BT1-033", as: "aqua" }, { card: "BT1-009" }, { card: "BT1-010" }],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lanamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").stack.some(({ instanceId }) => instanceId === s.inst("aqua").instanceId));
+
+    expect(s.perm("host").stack.some(({ instanceId }) => instanceId === s.inst("aqua").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("aqua").instanceId)).toBe(false);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("naturally resolves the reveal after evolving from Calmaramon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-024", as: "calmaramon" }],
+          hand: [{ card: "BT18-023", as: "lanamon" }],
+          deck: [
+            { card: "BT1-009" },
+            { card: "BT1-033", as: "aqua" },
+            { card: "BT1-010" },
+            { card: "BT1-011" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("calmaramon").permanentId,
+        instanceId: s.inst("lanamon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("calmaramon").topCard.cardId === "BT18-023");
+
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("aqua").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
   it("digivolves from Calmaramon for 0 and preserves the source stack", async () => {
     const s = setupEngine({
       0: {
