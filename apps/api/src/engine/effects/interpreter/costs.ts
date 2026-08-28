@@ -3,12 +3,13 @@
 import { MEMORY_MIN } from "../../MemoryGauge.js";
 import { requireOpponentAsk } from "../../decisions/decisionApi.js";
 import type { EffectContext } from "../EffectContext.js";
+import { canAttemptDigivolve, runDigivolve } from "./actions/digivolve.js";
 import { definitionMatches } from "./matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "./matching/permanent.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose, zoneList } from "./targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets, topInstanceIds } from "./targeting/permanents.js";
 import { CardKind, getCardDefinition, isDigimon, isTamer } from "@aegis/shared";
-import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
+import type { Action, Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // Cost payment
@@ -49,6 +50,17 @@ function permanentTopReturnCostCandidates(ctx: EffectContext, target: Target): P
  */
 export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "raw") return false;
+  if (cost.kind === "digivolve") {
+    if (cost.target === undefined || cost.into === undefined) return false;
+    return canAttemptDigivolve(ctx, {
+      kind: "Digivolve",
+      target: cost.target,
+      into: cost.into,
+      from: cost.from ?? ["hand", "trash"],
+      payCost: true,
+      ...(cost.costReduction === undefined ? {} : { costDelta: -cost.costReduction }),
+    });
+  }
   if (cost.kind === "trash" && cost.target?.from?.includes("hand") && cost.target.from.includes("digivolutionCards")) {
     const filter = { ...cost.target.filter, zone: undefined };
     const candidates = candidateLooseInstances(ctx, { ...cost.target, filter }, ["hand", "digivolutionCards"]);
@@ -410,6 +422,21 @@ export async function payCost(
     case "attack":
     case "digivolveSelf":
       return false;
+    case "digivolve": {
+      if (cost.target === undefined || cost.into === undefined) return false;
+      const action: Extract<Action, { kind: "Digivolve" }> = {
+        kind: "Digivolve",
+        target: cost.target,
+        into: cost.into,
+        from: cost.from ?? ["hand", "trash"],
+        payCost: true,
+        ...(cost.costReduction === undefined ? {} : { costDelta: -cost.costReduction }),
+      };
+      await runDigivolve(ctx, action);
+      const paid = ctx.lastDigivolveResult === true;
+      if (paid && out) out.paidCount = 1;
+      return paid;
+    }
     case "reveal": {
       if (cost.target === undefined) return false;
       const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
