@@ -19,6 +19,7 @@ export const compiled: CompiledCard = {
               colors: ["Purple", "Yellow"],
             },
             count: 1,
+            fromSelectionRef: "rhihimonHost",
           },
           into: {
             filter: {
@@ -54,6 +55,7 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
             host: "target",
+            bindHostAs: "rhihimonHost",
           },
           additionalCosts: [
             {
@@ -80,7 +82,7 @@ export const compiled: CompiledCard = {
               },
               destination: "digivolutionStack",
               position: "bottom",
-              host: "target",
+              host: { filter: { boundRef: "rhihimonHost" }, count: 1 },
             },
           ],
           raw: "By placing 1 [Loweemon] and 1 [KaiserLeomon] from your trash under 1 of your purple or yellow Tamers, digivolve that Tamer into this card from your hand.",
