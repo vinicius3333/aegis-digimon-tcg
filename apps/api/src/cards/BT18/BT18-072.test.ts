@@ -197,7 +197,7 @@ describe("BT18-072 AncientBeetlemon", () => {
         0: {
           battleArea: [
             { card: "BT18-072", as: "ancient", dp: 5000, suspended: true },
-            { card: "BT18-067", as: "otherHost", under: ["BT18-063"] },
+            { card: "BT18-067", as: "otherHost", suspended: true, under: ["BT18-063"] },
           ],
         },
         1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 7000 }] },
