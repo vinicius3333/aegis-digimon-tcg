@@ -46,6 +46,37 @@ describe("BT15-006", () => {
     expect(s.state.players[0]!.hand).toHaveLength(3);
   });
 
+  it("draws through the natural attack deletion origin", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", dp: 1000, suspended: true, under: ["BT15-006"] }],
+          hand: [{ card: "BT10-012", as: "level5" }],
+          deck: [
+            { card: "BT1-001", as: "firstDraw" },
+            { card: "BT1-002", as: "secondDraw" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 0);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("level5").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+  });
+
   it("draws nothing when the cost is declined or no level 5 Digimon is available", async () => {
     for (const autoAcceptOptional of [false, true]) {
       const s = setupEngine(
