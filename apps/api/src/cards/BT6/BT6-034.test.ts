@@ -7,7 +7,10 @@ describe("BT6-034 Wizardmon", () => {
   it("gains 1 memory when its host removes a card from your security", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT6-041", under: ["BT6-034"], as: "host" }], security: ["BT1-001"] },
+        0: {
+          battleArea: [{ card: "BT6-041", under: ["BT6-031", "BT6-034"], as: "host" }],
+          security: ["BT1-001"],
+        },
         1: { battleArea: ["BT6-016"], security: ["BT1-010"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
