@@ -27,6 +27,8 @@ describe("BT19-101 ZeedMillenniummon", () => {
               to: "deckTop",
               target: { filter: { zone: "trash", controller: "opponent", kind: ["Digimon"] }, count: 1 },
             },
+            optional: true,
+            abortOnDecline: true,
           },
         ],
       })),
@@ -50,7 +52,7 @@ describe("BT19-101 ZeedMillenniummon", () => {
           battleArea: [{ card: "BT1-009", as: "target" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 16;
 
@@ -74,7 +76,7 @@ describe("BT19-101 ZeedMillenniummon", () => {
           battleArea: [{ card: "BT1-009", as: "target" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 2;
 
@@ -104,7 +106,7 @@ describe("BT19-101 ZeedMillenniummon", () => {
           battleArea: [{ card: "BT1-009", as: "target" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
@@ -139,6 +141,50 @@ describe("BT19-101 ZeedMillenniummon", () => {
 
     expect(s.perm("zeed").isSuspended).toBe(false);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("zeed"), "beAffected", "Digimon")).toBe(true);
+  });
+
+  it("allows the optional By-return clause to decline without paying or deleting", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT19-101", as: "zeed" }] },
+        1: {
+          trash: [{ card: "BT19-075", as: "cost" }],
+          deck: [{ card: "BT1-010", as: "sentinel" }],
+          battleArea: [{ card: "BT1-009", as: "target" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 16;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zeed").instanceId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-101"));
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT19-075"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("aborts the optional processing condition before prompting when no return target exists", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT19-101", as: "zeed" }] },
+        1: {
+          trash: [{ card: "BT19-075", as: "cost" }],
+          deck: [{ card: "BT1-010", as: "sentinel" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 16;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zeed").instanceId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-101"));
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT19-075"]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
   });
 
 });

@@ -7,7 +7,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // no digivolution cards (condition on both Restrict actions).
 // [On Play]/[When Digivolving]/[When Attacking]: cost = return 1 Digimon card from
 // opponent's TRASH to top of deck; effect = return 1 of their Digimon (from battle area)
-// to bottom of deck. KB Q3185 confirms can't-be-suspended + Overclock combo.
+// to bottom of deck. The "By returning" processing condition is optional under CR 15-7-1;
+// abortOnDecline prevents the dependent bottom-deck return when its cost is declined.
+// KB Q3185 confirms can't-be-suspended + Overclock combo.
 // digivolutionRequirement: must digivolve from MoonMillenniummon (name match).
 const compiled: CompiledCard = {
   effects: [
@@ -48,6 +50,8 @@ const compiled: CompiledCard = {
             to: "deckTop",
             raw: "By returning 1 Digimon card from your opponent's trash to the top of the deck",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
@@ -78,6 +82,8 @@ const compiled: CompiledCard = {
             to: "deckTop",
             raw: "By returning 1 Digimon card from your opponent's trash to the top of the deck",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
@@ -108,6 +114,8 @@ const compiled: CompiledCard = {
             to: "deckTop",
             raw: "By returning 1 Digimon card from your opponent's trash to the top of the deck",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
