@@ -27,27 +27,41 @@ describe("BT14-080", () => {
         },
       ],
     }));
-  it("trashes three opposing deck cards and grants Security Attack +1 at the ten-card thresholds", async () => {
+  it("naturally digivolves, mills once across triggers, and grants Security Attack +1", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-080", as: "source" }], trash: Array(10).fill("BT1-001") },
+        0: {
+          battleArea: [{ card: "BT14-079", as: "base" }],
+          hand: [{ card: "BT14-080", as: "source" }],
+          trash: Array(10).fill("BT1-001"),
+          deck: ["BT1-010"],
+        },
         1: { deck: ["BT1-002", "BT1-003", "BT1-004", "BT1-005"], trash: Array(10).fill("BT1-006") },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { memory: 10, autoSelectCards: true, autoAcceptOptional: true },
     );
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("source").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT14-080" && s.state.players[1]!.trash.length === 13);
+    expect(s.perm("base").topCard?.cardId).toBe("BT14-080");
+    expect(s.state.players[1]!.trash.length).toBe(13);
+
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("source").permanentId,
+        attackerPermanentId: s.perm("base").permanentId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[1]!.trash.length >= 13 &&
-        observe(s.engine).keywordAmount(s.perm("source"), "SecurityAttack") === 1,
+        s.state.players[1]!.trash.length === 13 &&
+        observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack") === 1,
     );
-    expect(s.state.players[1]!.trash.length).toBeGreaterThanOrEqual(13);
-    expect(observe(s.engine).keywordAmount(s.perm("source"), "SecurityAttack")).toBe(1);
+    expect(s.state.players[1]!.trash.length).toBe(13);
+    expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(1);
   });
 });
