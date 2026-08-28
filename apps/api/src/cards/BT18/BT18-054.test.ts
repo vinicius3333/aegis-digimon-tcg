@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-054.js";
@@ -80,13 +79,21 @@ describe("BT18-054 AncientKazemon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT18-054", as: "ancient", under: ["BT1-030", "BT18-048"] }] },
+        1: { battleArea: [{ card: "EX3-045", as: "attacker", dp: 13000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
     const hybridId = s.perm("ancient").stack.find(({ cardId }) => cardId === "BT18-048")!.instanceId;
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("ancient").permanentId], "byRule")).toBe(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("ancient").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === hybridId));
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === hybridId)).toBe(true);

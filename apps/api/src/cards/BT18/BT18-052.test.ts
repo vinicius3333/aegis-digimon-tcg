@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -16,7 +15,7 @@ describe("BT18-052 CannonBeemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-052", as: "cannon" }],
+          hand: [{ card: "BT18-052", as: "cannon" }],
           security: [
             { card: "BT1-001", faceUp: true },
             { card: "BT1-002", faceUp: true },
@@ -28,10 +27,13 @@ describe("BT18-052 CannonBeemon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    expect(observe(s.engine).hasEffectiveTrait(s.perm("cannon"), "Insectoid")).toBe(true);
-    await advance(s.engine).fireForInstance(EffectTiming.OnPlay, s.perm("cannon").topCard!);
-    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cannon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").stack.length === 2);
 
+    expect(observe(s.engine).hasEffectiveTrait(s.perm("cannon"), "Insectoid")).toBe(true);
     expect(s.perm("target").topCard?.cardId).toBe("BT1-010");
     expect(s.perm("target").stack).toHaveLength(2);
     assertNoLoudGap(s);
@@ -93,7 +95,10 @@ describe("BT18-052 CannonBeemon", () => {
       {
         0: { battleArea: [{ card: "BT1-060", as: "host", under: ["BT18-052"] }] },
         1: {
-          battleArea: [{ card: "BT1-030", as: "target", suspended: true }],
+          battleArea: [
+            { card: "BT1-030", as: "first", suspended: true },
+            { card: "BT1-030", as: "second", suspended: true },
+          ],
           security: [
             { card: "BT1-001", as: "top" },
             { card: "BT1-002", as: "bottom" },
@@ -108,15 +113,21 @@ describe("BT18-052 CannonBeemon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("first").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("top").instanceId);
 
-    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("second").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.state.players[1]!.security).toHaveLength(1);
     assertNoLoudGap(s);
   });
