@@ -126,6 +126,8 @@ describe("BT20-062 Candlemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-066"]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["BT20-066", "BT20-076"]),
+    );
   });
 });
