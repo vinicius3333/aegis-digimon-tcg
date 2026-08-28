@@ -1,11 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-030.js";
 import "./index.js";
 
 describe("BT17-030", () => {
+  it("matches the catalog identity and Bibimon alternate evolution route", () => {
+    expect(getCardDefinition("BT17-030")).toMatchObject({
+      nameEn: "Pulsemon",
+      colors: ["Yellow", "Green"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [
+        { color: "Yellow", level: 2, memoryCost: 1 },
+        { color: "Green", level: 2, memoryCost: 1 },
+      ],
+    });
+    expect(matchingAlternateDigivolutionRequirement("BT17-030", "BT17-003")).toMatchObject({
+      cost: 0,
+      isAlternate: true,
+    });
+  });
+
   it("gains memory by placing Leon Alexander under itself", () => {
     expect(compiled.effects?.[0]?.actions?.[0]).toMatchObject({
       kind: "GainMemory",
@@ -38,18 +58,20 @@ describe("BT17-030", () => {
       {
         0: {
           battleArea: [{ card: "BT17-030", as: "pulsemon" }],
-          hand: [{ card: "BT17-086", as: "leon" }],
+          hand: [{ card: "BT17-086", as: "leon" }, { card: "BT17-029", as: "mainAction" }],
+          deck: ["BT1-011"],
           security: 3,
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
+    s.state.memory = 3;
     const leonId = s.inst("leon").instanceId;
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("pulsemon"));
+    await s.ready();
+    await advance(s.engine).runTurn(0);
 
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(4);
     expect(s.perm("pulsemon").stack.map((card) => card.instanceId)).toEqual([leonId]);
   });
 
@@ -58,7 +80,7 @@ describe("BT17-030", () => {
       {
         0: {
           battleArea: [{ card: "BT17-030", as: "pulsemon" }],
-          hand: [{ card: "BT17-086", as: "leon" }],
+          hand: [{ card: "BT17-086", as: "leon" }, { card: "BT17-029", as: "mainAction" }],
           deck: [{ card: "BT1-011", as: "recovered" }],
           security: 2,
         },
@@ -67,7 +89,9 @@ describe("BT17-030", () => {
     );
     const recoveredId = s.inst("recovered").instanceId;
 
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("pulsemon"));
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === recoveredId));
 
     expect(s.state.players[0]!.security).toHaveLength(3);
