@@ -24,11 +24,11 @@ collection-complete claim is valid.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT12-001–010 | Luna in progress | `internal-docs/audits/BT12/BT12-001-010.md` | No |
-| BT12-011–020 | Luna in progress | `internal-docs/audits/BT12/BT12-011-020.md` | No |
-| BT12-021–030 | Luna in progress | `internal-docs/audits/BT12/BT12-021-030.md` | No |
+| BT12-011–020 | Coordinator follow-up | `internal-docs/audits/BT12/BT12-011-020.md` | No |
+| BT12-021–030 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-021-030.md` | Yes |
 | BT12-031–040 | Queued | `internal-docs/audits/BT12/BT12-031-040.md` | No |
-| BT12-041–050 | Queued | `internal-docs/audits/BT12/BT12-041-050.md` | No |
-| BT12-051–060 | Queued | `internal-docs/audits/BT12/BT12-051-060.md` | No |
+| BT12-041–050 | Luna in progress | `internal-docs/audits/BT12/BT12-041-050.md` | No |
+| BT12-051–060 | Luna in progress | `internal-docs/audits/BT12/BT12-051-060.md` | No |
 | BT12-061–070 | Queued | `internal-docs/audits/BT12/BT12-061-070.md` | No |
 | BT12-071–080 | Queued | `internal-docs/audits/BT12/BT12-071-080.md` | No |
 | BT12-081–090 | Queued | `internal-docs/audits/BT12/BT12-081-090.md` | No |
@@ -61,14 +61,24 @@ other component and is never rounded up.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT12-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; no new correction |
+| BT12-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; corrected IR history `fcb09798b`, `1e3097730` |
+| BT12-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; no new correction |
+| BT12-024 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; no new correction |
+| BT12-025 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
+| BT12-026 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
+| BT12-027 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
+| BT12-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
+| BT12-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
+| BT12-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 30
-- Integrated card audits: 0
+- Integrated card audits: 10
 - Corrected: 0
-- Provisional: 0
+- Provisional: 10
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 82
