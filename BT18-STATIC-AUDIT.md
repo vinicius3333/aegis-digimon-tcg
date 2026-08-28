@@ -21,7 +21,7 @@ provisional and capped at 8/10.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT18-001–010 | Luna assigned | `internal-docs/audits/BT18/BT18-001-010.md` | No |
+| BT18-001–010 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-001-010.md` | Yes |
 | BT18-011–020 | Luna assigned | `internal-docs/audits/BT18/BT18-011-020.md` | No |
 | BT18-021–030 | Luna assigned | `internal-docs/audits/BT18/BT18-021-030.md` | No |
 | BT18-031–040 | Luna assigned | `internal-docs/audits/BT18/BT18-031-040.md` | No |
@@ -45,14 +45,24 @@ applicable non-gate component rather than being rounded up.
 
 | Card | Catalog/rules | IR trace | Behavioral proof | Peer and stack proof | Executed delivery gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT18-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A legal red stack and two natural attacks prove the exact DP deletion, Tamer condition, and once-per-turn boundary (`2325e63ad`). |
+| BT18-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A legal blue host observes the self-excluding other-blue-Digimon +1000 DP aura appear and disappear (`2b3dded8b`). |
+| BT18-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A legal yellow stack and repeated natural attacks prove the Tamer-gated -2000 DP effect and once-per-turn boundary (`65e6ccd55`). |
+| BT18-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production turn flow proves accepted and declined start-main security exchange branches on a legal green host (`a0020656d`). |
+| BT18-005 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added an exact self/field watcher filter; unrelated and repeated natural battle deletions prove source scope and once-per-turn draw (`df1547cfb`). |
+| BT18-006 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural losing battle on a legal purple stack proves distinct opposing Digimon/Tamer color scaling and the no-source boundary (`ec9004503`). |
+| BT18-007 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, Pagumon alternate evolution, reveal-category boundary, and inherited Retaliation use legal red/purple fixtures (`2951918c7`). |
+| BT18-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves the 2000-DP deletion ceiling, and legal red evolution preserves the source stack (`54d347540`). |
+| BT18-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent Digimon deletion proves non-Tamer memory gain is blocked while shared capability paths preserve Tamer and dual-kind exceptions (`430e48ab0`). |
+| BT18-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Digimon- and Tamer-to-Hybrid evolution plus a non-Hybrid negative prove the owned-source watcher and once-per-turn memory gain (`16d8f49e6`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 70
-- Integrated card audits: 0
-- Corrected: 0
-- Provisional: 0
+- Integrated card audits: 10
+- Corrected: 1
+- Provisional: 10
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 32
