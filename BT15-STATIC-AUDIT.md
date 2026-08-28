@@ -31,7 +31,7 @@ collection-complete claim is valid.
 | BT15-021–030 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-021-030.md` | Yes |
 | BT15-031–040 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-031-040.md` | Yes |
 | BT15-041–050 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-041-050.md` | Yes |
-| BT15-051–060 | Luna assigned | `internal-docs/audits/BT15/BT15-051-060.md` | No |
+| BT15-051–060 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-051-060.md` | Yes |
 | BT15-061–070 | Luna assigned | `internal-docs/audits/BT15/BT15-061-070.md` | No |
 | BT15-071–080 | Luna assigned | `internal-docs/audits/BT15/BT15-071-080.md` | No |
 | BT15-081–090 | Unassigned | `internal-docs/audits/BT15/BT15-081-090.md` | No |
@@ -115,14 +115,24 @@ behavior.
 | BT15-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public effect origins, printed boundaries, peer comparison, and legal stack proof |
 | BT15-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Missing Blast Digivolve marker correction, Counter timing, immunity, and stack proof `65b095536` |
 | BT15-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2529–Q2533 reveal and natural Dark Masters breeding-play proof |
+| BT15-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural X Antibody evolution, suspended-opponent scaling, negative stack gate, and inherited DP proof |
+| BT15-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | White-only evolution restriction correction plus natural return and Dark Masters end-step proof `0f0eeffae` |
+| BT15-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution/start-main suspension, Piercing, and opponent Digimon-effect immunity proof |
+| BT15-054 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | X Antibody trait-gate correction plus natural paired suspension and breeding watcher proof `d431af36c` |
+| BT15-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inherited Reboot correction, both reveal-category boundaries, and opponent Active-phase proof `d919a3cf1` |
+| BT15-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Self-anchored suspension watcher correction, cost ceiling, start-main placement, and immunity proof `1675cb0b4` |
+| BT15-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Missing named deletion-effect library correction and natural battle-deletion play proof `83a8504e0` |
+| BT15-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Self/cost inherited watcher correction, DigiPolice stack, suspension, restriction, and Blocker proof `685c7a815` |
+| BT15-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inherited Reboot correction plus natural Marvin placement, De-Digivolve floor, and Active-phase proof `8fe64f85d` |
+| BT15-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Blocker and reveal-scoped Omnimon alias corrections plus natural reveal/evolution/attack proof `74f816e3f` |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 50
-- Corrected: 5
-- Provisional: 50
+- Integrated card audits: 60
+- Corrected: 13
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 22
@@ -132,3 +142,5 @@ BT15 static re-audit is in progress.
 Process note: the BT15-039 worker accidentally performed one metadata-only
 pre-push amend (`e34ca8bdb` to `fab5fa267`). The trees and messages are
 identical, no force push occurred, and the range report records the violation.
+The BT15-060 worker also accidentally invoked `git diff --check` once; it
+produced no output and earns no gate credit. No other prohibited gate ran.
