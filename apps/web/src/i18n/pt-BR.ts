@@ -437,6 +437,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.securityDestroyedDetail": "Descartada por efeito, sem verificação",
   "overlay.trashedFromSecurity": "Descartada da segurança",
   "overlay.recovery": "Recovery +{count}",
+  "overlay.securityGain": "Segurança +{count}",
   "overlay.recoveryYou": "Sua segurança aumentou",
   "overlay.recoveryOpp": "A segurança do oponente aumentou",
   "overlay.liveDp": "DP atual",

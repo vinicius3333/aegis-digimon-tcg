@@ -74,7 +74,8 @@ function EffectNoticeBody({
   );
 }
 
-function RecoveryNoticeBody({ amount, mine }: { amount: number; mine: boolean }) {
+/** The security-increase call-out, shared by ＜Recovery＞ and any other effect stacking a card there. */
+function SecurityGainNoticeBody({ amount, mine, recovery }: { amount: number; mine: boolean; recovery: boolean }) {
   const { t } = useTranslation();
   return (
     <>
@@ -83,7 +84,9 @@ function RecoveryNoticeBody({ amount, mine }: { amount: number; mine: boolean })
       </span>
       <div className="match-notice__copy">
         <span className="match-notice__label">{t(mine ? "overlay.recoveryYou" : "overlay.recoveryOpp")}</span>
-        <strong className="match-notice__title">{t("overlay.recovery", { count: amount })}</strong>
+        <strong className="match-notice__title">
+          {t(recovery ? "overlay.recovery" : "overlay.securityGain", { count: amount })}
+        </strong>
       </div>
     </>
   );
@@ -150,8 +153,12 @@ function NoticeView({
           description={body.description}
           isInherited={body.isInherited}
         />
-      ) : body.variant === "recovery" ? (
-        <RecoveryNoticeBody amount={body.amount} mine={notice.side === "you"} />
+      ) : body.variant === "recovery" || body.variant === "securityGain" ? (
+        <SecurityGainNoticeBody
+          amount={body.amount}
+          mine={notice.side === "you"}
+          recovery={body.variant === "recovery"}
+        />
       ) : body.variant === "keyword" ? (
         <KeywordNoticeBody keyword={body.keyword} cardId={body.cardId} />
       ) : (

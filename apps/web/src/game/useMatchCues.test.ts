@@ -982,3 +982,83 @@ describe("the figure a shield shows", () => {
     expect(result.current.heldSecurityCounts.get(0)).toBeUndefined();
   });
 });
+
+describe("security gains", () => {
+  function boardWithSecurity(you: number, opp: number): GameState {
+    return {
+      players: [
+        { battleArea: [], trash: [], hand: [], securityCount: you },
+        { battleArea: [], trash: [], hand: [], securityCount: opp },
+      ],
+    } as unknown as GameState;
+  }
+
+  /** The same hook, with the board as a second input so a patch can land between batches. */
+  function renderCuesOverGrowingBoard(initialState: GameState) {
+    return renderHook(
+      ({ events, state }: { events: readonly ServerEvent[]; state: GameState }) =>
+        useMatchCues({
+          events,
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { events: [] as readonly ServerEvent[], state: initialState } },
+    );
+  }
+
+  it("flies the card onto the stack and announces a growth an effect caused", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    rerender({ events: [], state: boardWithSecurity(6, 5) });
+    await advance(0);
+    expect(result.current.securityFlights.has(VIEWER)).toBe(true);
+    expect(result.current.notices).toHaveLength(1);
+    expect(result.current.notices[0]).toMatchObject({ side: "you", body: { variant: "securityGain", amount: 1 } });
+
+    await advance(TIMINGS.securityFlight);
+    expect(result.current.securityFlights.has(VIEWER)).toBe(false);
+  });
+
+  it("announces the opponent's growth on the opponent's side", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    rerender({ events: [], state: boardWithSecurity(5, 7) });
+    await advance(0);
+    expect(result.current.securityFlights.has(1)).toBe(true);
+    expect(result.current.notices[0]).toMatchObject({ side: "opp", body: { variant: "securityGain", amount: 2 } });
+  });
+
+  it("leaves a growth a recovery announced to the recovery", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    rerender({
+      events: [{ kind: "securityRecovered", seat: VIEWER, amount: 1 }],
+      state: boardWithSecurity(6, 5),
+    });
+    await advance(0);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toEqual(["recovery"]);
+  });
+
+  it("says nothing when the stack shrinks", async () => {
+    const { result, rerender } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+
+    rerender({ events: [], state: boardWithSecurity(4, 5) });
+    await advance(0);
+    expect(result.current.securityFlights.size).toBe(0);
+    expect(result.current.notices).toEqual([]);
+  });
+
+  it("treats the dealt opening stack as a baseline, not a growth", async () => {
+    const { result } = renderCuesOverGrowingBoard(boardWithSecurity(5, 5));
+    await advance(0);
+    expect(result.current.securityFlights.size).toBe(0);
+    expect(result.current.notices).toEqual([]);
+  });
+});

@@ -431,6 +431,7 @@ export const en = {
   "overlay.securityDestroyedDetail": "Trashed by an effect, unchecked",
   "overlay.trashedFromSecurity": "Trashed from security",
   "overlay.recovery": "Recovery +{count}",
+  "overlay.securityGain": "Security +{count}",
   "overlay.recoveryYou": "Your security increased",
   "overlay.recoveryOpp": "Opponent's security increased",
   "overlay.liveDp": "Live DP",
