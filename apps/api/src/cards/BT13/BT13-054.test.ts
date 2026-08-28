@@ -18,7 +18,7 @@ describe("BT13-054 Lilamon", () => {
           payCost: false,
           optional: true,
           target: {
-            filter: { controller: "mine", nameOrTrait: [{ match: "name", tokens: ["Yoshino Fujieda"] }] },
+            filter: { controller: "mine", nameOrTrait: [{ match: "nameExact", tokens: ["Yoshino Fujieda"] }] },
             count: 1,
           },
         },
@@ -60,7 +60,7 @@ describe("BT13-054 Lilamon", () => {
     expect(declined.state.players[0]!.hand).toHaveLength(1);
 
     const wrong = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-054", as: "lila" }], hand: ["BT13-098"] } },
+      { 0: { battleArea: [{ card: "BT13-054", as: "lila" }], hand: ["ST24-14"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await wrong.ready();

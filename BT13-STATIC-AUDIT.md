@@ -28,8 +28,8 @@ collection-complete claim is valid.
 | BT13-021–030 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-021-030.md` | Yes |
 | BT13-031–040 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-031-040.md` | Yes |
 | BT13-041–050 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-041-050.md` | Yes |
-| BT13-051–060 | Luna assigned | `internal-docs/audits/BT13/BT13-051-060.md` | No |
-| BT13-061–070 | Luna assigned | `internal-docs/audits/BT13/BT13-061-070.md` | No |
+| BT13-051–060 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-051-060.md` | Yes |
+| BT13-061–070 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-061-070.md` | Yes |
 | BT13-071–080 | Luna assigned | `internal-docs/audits/BT13/BT13-071-080.md` | No |
 | BT13-081–090 | Unassigned | `internal-docs/audits/BT13/BT13-081-090.md` | No |
 | BT13-091–100 | Unassigned | `internal-docs/audits/BT13/BT13-091-100.md` | No |
@@ -111,14 +111,34 @@ other component and is never rounded up.
 | BT13-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; reveal groups, trait exclusions, and inherited aura source |
 | BT13-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Yoshino correction and ST24-14 boundary `026b6cda1` |
 | BT13-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; suspend cost, Fairy evolution, and inherited reduction source |
+| BT13-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Piercing and inherited trait/exception source |
+| BT13-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Battle-area opponent condition and breeding boundary `0b4a35396` |
+| BT13-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; independent lock target and inherited reduction source |
+| BT13-054 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Yoshino correction and ST24-14 boundary `61ed79948` |
+| BT13-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact bracket selectors and inherited source correction `d0b846b79` |
+| BT13-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Green/Royal Knight OR routes and shared Once Per Turn source `1aa50198b` |
+| BT13-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Opponent source gate `7a75bfbd0`; optional processing correction `b71402198` |
+| BT13-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Leopardmon correction `8c71d2a04`; three timing windows `e32990ae4` |
+| BT13-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact DNA matcher `e38fc7521`; duration and natural OPT boundaries |
+| BT13-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Real Burst correction `71fd59eb7`; battle-area scaling boundaries `f90c611fc` |
+| BT13-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; opponent-turn reveal/add/bottom boundaries |
+| BT13-062 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Chuumon correction `83115fa53`; optional instance proof `b9f60027d` |
+| BT13-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; live X Antibody inherited DP boundary |
+| BT13-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2306 deleted-source threshold source `a508ef088` |
+| BT13-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Q2307 cross-controller replacement and De-Digivolve stack |
+| BT13-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; live X Antibody inherited DP boundary |
+| BT13-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct Jamming and inherited Reboot phase source |
+| BT13-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon play and alternate evolution boundaries |
+| BT13-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Sukamon play, replacement, and evolution boundaries |
+| BT13-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon play and alternate evolution boundaries |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 80
-- Integrated card audits: 50
-- Corrected: 15
-- Provisional: 50
+- Integrated card audits: 70
+- Corrected: 23
+- Provisional: 70
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 32
