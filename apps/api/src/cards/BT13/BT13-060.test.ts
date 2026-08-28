@@ -49,7 +49,7 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
           scaling: {
             per: 2,
             unit: "cards",
-            filter: { controller: "opponent", suspended: true, kind: ["Digimon", "Tamer"] },
+            filter: { controller: "opponent", zone: "battleArea", suspended: true, kind: ["Digimon", "Tamer"] },
           },
         },
       ],
@@ -122,5 +122,56 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
         alternateRequirementIndex: 0,
       }),
     ).toMatchObject({ ok: false });
+  });
+
+  it("rejects Rosemon (X Antibody) as the exact Rosemon Burst Digivolve host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT15-054", as: "roseX" }, { card: "BT13-100", as: "yoshino" }],
+        hand: [{ card: "BT13-060", as: "burst" }],
+      },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("roseX").permanentId,
+        instanceId: s.inst("burst").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("roseX").topCard?.cardId).toBe("BT15-054");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("burst").instanceId)).toBe(true);
+  });
+
+  it("does not count a suspended opponent breeding Digimon for attack security scaling", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-060", as: "attacker" }] },
+      1: { breeding: { card: "BT1-015", as: "breedingOpponent", suspended: true }, security: ["BT1-001"] },
+    });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("attacker"));
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("scales attack security trash from a combined battle-area Digimon and Tamer pair", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-060", as: "attacker" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-015", as: "suspendedDigimon", suspended: true },
+          { card: "BT13-100", as: "suspendedTamer", suspended: true },
+        ],
+        security: ["BT1-001", "BT1-002"],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("attacker"));
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });

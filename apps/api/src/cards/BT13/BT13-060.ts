@@ -29,6 +29,7 @@ export const compiled: CompiledCard = {
             per: 2,
             filter: {
               controller: "opponent",
+              zone: "battleArea",
               suspended: true,
               kind: ["Digimon", "Tamer"],
             },
