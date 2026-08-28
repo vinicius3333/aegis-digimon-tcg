@@ -531,6 +531,8 @@ export interface GameAccess {
     permanentId: string,
     printedKinds?: readonly import("@aegis/shared").CardKind[],
   ): import("@aegis/shared").CardKind[];
+  /** A permanent's effective name set, including dynamic aliases from its digivolution stack. */
+  effectiveNames?(permanent: Permanent): string[];
   /** Effective printed-plus-granted colors used by Option color requirements. */
   effectiveColors?(permanent: Permanent): import("@aegis/shared").CardColor[];
   /** Current DP including active continuous modifiers during effect recomputation. */

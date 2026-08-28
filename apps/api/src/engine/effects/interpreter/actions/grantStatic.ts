@@ -7,7 +7,7 @@ import { COLOR_MAP, PROTECTION_STRING_TOKEN_MAP, PROTECTION_TOKEN_MAP } from "..
 import { DefinitionFacts, definitionMatches, parseCopyEffectsFilterText } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
-import { CardColor, CardKind } from "@aegis/shared";
+import { CardColor, CardKind, effectiveStaticNames } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
 
 export async function runGrantStaticAction(ctx: EffectContext, action: Action): Promise<boolean> {
@@ -22,7 +22,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           if (current === undefined) return [];
           const names = Array.from(current.stack).flatMap((card) => {
             const definition = ctx.game.definitionOf(card);
-            return (definition.level ?? 99) <= 3 ? (definition.nameEn ? [definition.nameEn] : []) : [];
+            return (definition.level ?? 99) <= 3 ? effectiveStaticNames(definition) : [];
           });
           return [...new Set(names)];
         },
