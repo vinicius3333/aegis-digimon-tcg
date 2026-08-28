@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -17,9 +17,9 @@ const compiled: CompiledCard = {
               controller: "opponent",
             },
             count: 1,
+            upTo: true,
+            chooser: "opponent",
           },
-          optional: true,
-          controller: "opponent",
         },
         {
           kind: "SecurityManipulation",
@@ -54,9 +54,9 @@ const compiled: CompiledCard = {
               controller: "opponent",
             },
             count: 1,
+            upTo: true,
+            chooser: "opponent",
           },
-          optional: true,
-          controller: "opponent",
         },
         {
           kind: "SecurityManipulation",
@@ -115,7 +115,7 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Lucemon"],
+      namesExact: ["Lucemon"],
       cost: 6,
       isAlternate: true,
     },
@@ -123,4 +123,3 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-082", compiled);
-export { compiled };

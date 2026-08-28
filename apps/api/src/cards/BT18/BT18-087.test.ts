@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-087.js";
 
 describe("BT18-087 Owen Dreadnought", () => {
@@ -18,18 +17,33 @@ describe("BT18-087 Owen Dreadnought", () => {
     expect(compiled.effects[2]).toMatchObject({ trigger: "Security", isSecurity: true });
   });
 
-  it("sets memory to 3 at the start of your turn when memory is 2 or less", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT18-087", as: "owen" }] } });
+  it("sets memory to 3 at the natural start of your turn when memory is 2 or less", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT18-087", as: "owen" }], hand: [{ card: "BT1-010" }] },
+      1: { deck: ["BT1-001"] },
+    });
     s.state.memory = 2;
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("owen"));
+    s.state.turnSeat = 0;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    for (let i = 0; i < 500 && !mainPhase.isOpen; i++) await Promise.resolve();
 
     expect(s.state.memory).toBe(3);
+    s.engine.applyIntent(0, { type: "endPhase" });
+    await turn;
   });
 
-  it("suspends itself to delete an opposing Digimon at 4000 DP or less after security removal", async () => {
+  it("suspends itself to delete an opposing Digimon at 4000 DP or less after a natural security attack", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-087", as: "owen" }] },
+        0: {
+          battleArea: [
+            { card: "BT18-087", as: "owen" },
+            { card: "BT1-060", as: "attacker" },
+          ],
+        },
         1: {
           battleArea: [
             { card: "BT1-010", as: "low", dp: 4000 },
@@ -38,19 +52,38 @@ describe("BT18-087 Owen Dreadnought", () => {
           security: ["BT1-001"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
+    const lowId = s.perm("low").permanentId;
+    preferInstanceIds.push(lowId);
+    s.state.turnSeat = 0;
+    s.state.memory = 1;
     await s.ready();
-    await advance(s.engine).verb.trashFromSecurity(1, 1);
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("owen").isSuspended && !s.state.players[1]!.battleArea.some((perm) => perm.permanentId === lowId));
 
     expect(s.perm("owen").isSuspended).toBe(true);
     expect(() => s.perm("low")).toThrow();
     expect(s.perm("high")).toBeDefined();
   });
 
-  it("plays itself without cost from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT18-087", as: "owen", faceUp: true }] } });
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("owen"));
+  it("naturally plays itself without cost from security", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT18-087", as: "owen", faceUp: true }] },
+      1: { battleArea: [{ card: "BT1-060", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("owen").instanceId));
 
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("owen").instanceId)).toBe(
       true,
