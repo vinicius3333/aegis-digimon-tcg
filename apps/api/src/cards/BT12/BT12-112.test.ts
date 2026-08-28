@@ -34,6 +34,16 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
       { materials: [{ traits: ["Xros Heart", "Blue Flare"], differentCardNumbers: true }], count: "infinity" },
     ]);
     expect(card.effects.some((effect) => effect.trigger === "Static")).toBe(true);
+    const yourTurn = card.effects.find((effect) => effect.trigger === "YourTurn");
+    expect(yourTurn?.actions).toEqual([
+      expect.objectContaining({
+        kind: "DisableSecurityEffect",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        sourceKind: "option",
+        scope: "seat",
+        duration: "forTheTurn",
+      }),
+    ]);
   });
 
   it("registers the printed On Play, opponent-action, and turn security-lock effects", () => {
@@ -127,11 +137,18 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
   });
 });
 
-it("suppresses Option Security effects for every opposing attacker", async () => {
+it("suppresses opponent Option Security effects only for source-owner attackers", async () => {
   const s = setupEngine({
-    0: { battleArea: [{ card: BT12_112, as: "x7" }] },
+    0: {
+      battleArea: [
+        { card: BT12_112, as: "x7" },
+        { card: "BT1-009", as: "owner-attacker" },
+      ],
+    },
     1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
   });
   await s.ready();
-  expect(observe(s.engine).suppressesSecurityEffect(s.perm("attacker"), "BT12-101")).toBe(true);
+  const security = observe(s.engine);
+  expect(security.suppressesSecurityEffect(s.perm("owner-attacker"), "BT12-101")).toBe(true);
+  expect(security.suppressesSecurityEffect(s.perm("attacker"), "BT12-101")).toBe(false);
 });
