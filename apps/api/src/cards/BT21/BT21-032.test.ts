@@ -58,7 +58,7 @@ describe("BT21-032 compiled implementation", () => {
       }),
     ]);
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["DemiVeemon"], cost: 0, isAlternate: true },
+      { namesExact: ["DemiVeemon"], cost: 0, isAlternate: true },
       { level: 2, traits: ["Hero"], cost: 0, isAlternate: true },
     ]);
   });
