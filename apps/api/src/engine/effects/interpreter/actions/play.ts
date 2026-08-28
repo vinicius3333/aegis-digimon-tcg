@@ -736,7 +736,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const chosenCard = pfzCandidates.find((card) => card.instanceId === pfzChosen[0]);
           const requirement = chosenCard === undefined ? undefined : digiXrosRequirementFor(chosenCard.cardId)?.[0];
           if (requirement !== undefined) {
-            const materialCandidates = action.digiXrosMaterialsFrom
+            const allMaterialCandidates = action.digiXrosMaterialsFrom
               .flatMap((zone) =>
                 zone === "battleArea"
                   ? Array.from(ctx.game.player(ctx.source.ownerSeat).battleArea).flatMap((permanent) =>
@@ -754,10 +754,23 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                   : looseCardsInZone(ctx, ctx.source.ownerSeat, zone),
               )
               .filter((card) => card.instanceId !== pfzChosen[0]);
+            // Keep the selection prompt faithful to the chosen DigiXros recipe.  The normal
+            // hand-play path filters each candidate before prompting; cards assembled from
+            // another loose zone need the same guard or an auto-selection can consume invalid
+            // cards and silently fall back to a non-DigiXros play.
+            const materialCandidates = allMaterialCandidates.filter((candidate) =>
+              materialsSatisfyRecipe(
+                [ctx.game.definitionOf({ cardId: candidate.cardId } as never)],
+                requirement.materials,
+              ),
+            );
+            const materialCap =
+              requirement.maxMaterials ??
+              (requirement.materials.length === 1 ? materialCandidates.length : requirement.materials.length);
             const selected = await ctx.ask.selectCards(ctx, {
               candidates: materialCandidates.map((card) => card.instanceId),
               min: 0,
-              max: requirement.materials.length,
+              max: materialCap,
             });
             const selectedDefinitions = selected.map((id) => {
               const definition = ctx.game.definitionOf(materialCandidates.find((card) => card.instanceId === id)!);
