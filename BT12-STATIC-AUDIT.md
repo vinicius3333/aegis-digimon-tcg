@@ -28,7 +28,7 @@ collection-complete claim is valid.
 | BT12-021–030 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-021-030.md` | Yes |
 | BT12-031–040 | Luna in progress | `internal-docs/audits/BT12/BT12-031-040.md` | No |
 | BT12-041–050 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-041-050.md` | Yes |
-| BT12-051–060 | Coordinator follow-up | `internal-docs/audits/BT12/BT12-051-060.md` | No |
+| BT12-051–060 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-051-060.md` | Yes |
 | BT12-061–070 | Queued | `internal-docs/audits/BT12/BT12-061-070.md` | No |
 | BT12-071–080 | Luna in progress | `internal-docs/audits/BT12/BT12-071-080.md` | No |
 | BT12-081–090 | Luna in progress | `internal-docs/audits/BT12/BT12-081-090.md` | No |
@@ -101,14 +101,24 @@ other component and is never rounded up.
 | BT12-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; atomic return/draw drift documented |
 | BT12-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; no new correction |
 | BT12-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; DNA replacement drift documented |
+| BT12-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; Save sequencing drift documented |
+| BT12-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; exact no-effect record |
+| BT12-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; normalized battle trigger documented |
+| BT12-054 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; generated count override documented |
+| BT12-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; DNA/source-filter drift documented |
+| BT12-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; no new correction |
+| BT12-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; all-target/restriction drift documented |
+| BT12-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; no new correction |
+| BT12-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; no new correction |
+| BT12-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-051-060.md`; inherited Save gate drift documented |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 80
-- Integrated card audits: 40
+- Integrated card audits: 50
 - Corrected: 1
-- Provisional: 40
+- Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 32
