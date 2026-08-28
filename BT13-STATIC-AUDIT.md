@@ -1,6 +1,6 @@
 # BT13 Static Card Implementation Re-audit
 
-Status: static card-by-card pass in progress; execution gates deferred
+Status: static card-by-card pass exhausted; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -33,8 +33,8 @@ collection-complete claim is valid.
 | BT13-071–080 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-071-080.md` | Yes |
 | BT13-081–090 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-081-090.md` | Yes |
 | BT13-091–100 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-091-100.md` | Yes |
-| BT13-101–110 | Luna assigned | `internal-docs/audits/BT13/BT13-101-110.md` | No |
-| BT13-111–112 | Luna assigned | `internal-docs/audits/BT13/BT13-111-112.md` | No |
+| BT13-101–110 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-101-110.md` | Yes |
+| BT13-111–112 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-111-112.md` | Yes |
 
 ## Score model
 
@@ -161,16 +161,30 @@ other component and is never rounded up.
 | BT13-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Kudamon/Kentaurosmon correction and live security/Main proof; threshold boundary partial |
 | BT13-099 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Live treated-as-Digimon positive case; suspension and high-security negatives remain partial |
 | BT13-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Optional suspend cost correction and natural qualifying evolution accept/decline proof |
+| BT13-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Both-color watcher, optional suspend processing, and natural decline proof |
+| BT13-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Opponent hand-trash decline receipt and effect-play versus ordinary-play boundary |
+| BT13-103 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Belphemon cost replacement and end-of-opponent-turn branch proof |
+| BT13-104 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Marcus target and real near-name negative proof |
+| BT13-105 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Main post-return hand scaling and independent Security return proof |
+| BT13-106 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Direct security-trash provenance and combined-security threshold proof |
+| BT13-107 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Leopard Mode top-card detachment, Q2359/Q2360, DP-bearing egg, and decline proof `baa281c39` |
+| BT13-108 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural granted-aura host, opponent-turn suspension, cost boundary, and Option immunity proof |
+| BT13-109 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Sleep Mode target with legal and illegal evolution-stack boundaries |
+| BT13-110 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact King Drasil host and mandatory post-Delay Royal Knight play proof |
+| BT13-111 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Battle-area reducer gate, combined-trash calculation, and breeding-only boundary `6a44faefb` |
+| BT13-112 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Distinct playable Royal Knights, restriction boundary, ordered breeding cleanup, and Rush proof `9a67b9602` |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 100
-- Corrected: 40
-- Provisional: 100
+- Integrated card audits: 112
+- Corrected: 47
+- Provisional: 112
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 0
 
-BT13 static re-audit is in progress.
+BT13's static card-by-card source pass is exhausted. Execution gates remain
+deferred, so every score is provisional and no collection-complete or 10/10
+claim is made.
