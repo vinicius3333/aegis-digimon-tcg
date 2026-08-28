@@ -1,6 +1,6 @@
 # BT12 Static Card Implementation Re-audit
 
-Status: static card-by-card pass in progress; execution gates deferred
+Status: static card-by-card inspection complete; execution gates deferred and collection verification open
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -34,7 +34,7 @@ collection-complete claim is valid.
 | BT12-081–090 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-081-090.md` | Yes |
 | BT12-091–100 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-091-100.md` | Yes |
 | BT12-101–110 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-101-110.md` | Yes |
-| BT12-111–112 | Luna in progress | `internal-docs/audits/BT12/BT12-111-112.md` | No |
+| BT12-111–112 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-111-112.md` | Yes |
 
 ## Score model
 
@@ -171,16 +171,21 @@ other component and is never rounded up.
 | BT12-108 | 2/2 | 0/2 | 2/2 | 2/2 | 0/2 | 6/10 provisional | `BT12-101-110.md`; empty IR plus handwritten relational runtime limitation |
 | BT12-109 | 2/2 | 0/2 | 2/2 | 2/2 | 0/2 | 6/10 provisional | `BT12-101-110.md`; raw generated digivolution relation and handwritten runtime limitation |
 | BT12-110 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-101-110.md`; ported to compiled IR in `0c607dc7e` |
+| BT12-111 | 1/2 | 0/2 | 1/2 | 1/2 | 0/2 | 3/10 provisional | `BT12-111-112.md`; malformed `xD7` contract token, empty IR, handwritten runtime, and proof gaps retained |
+| BT12-112 | 1/2 | 2/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-111-112.md`; compiled port `e8c3d8aae`; Security scope normalized in `0a3fb7f14`; Q2848 catalog ambiguity retained |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 110
-- Corrected: 13
-- Provisional: 110
+- Integrated card audits: 112
+- Corrected: 14
+- Provisional: 112
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 15
+- Blocked or ambiguous: 17
 - Remaining unassigned: 0
 
-BT12 static re-audit is in progress.
+BT12's static card-by-card inspection covers all 112 catalog cards. The
+collection remains open: every execution-gate component is 0/2, unresolved
+runtime limitations and ambiguities remain visible, and no 10/10 or
+collection-complete claim is made.
