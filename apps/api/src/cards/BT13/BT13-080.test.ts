@@ -22,7 +22,10 @@ describe("BT13-080 ProtoGizmon", () => {
       amount: 2,
       cost: {
         kind: "deleteOwn",
-        target: { filter: { controller: "mine", kind: ["Digimon"], zone: "breeding", levels: [2] }, count: 1 },
+        target: {
+          filter: { controller: "mine", kind: ["Digimon", "DigiEgg"], zone: "breeding", levels: [2] },
+          count: 1,
+        },
       },
     });
   });
@@ -64,6 +67,27 @@ describe("BT13-080 ProtoGizmon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"));
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+  });
+
+  it("reduces the hand play cost by deleting a level-2 Digi-Egg in breeding", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-080", as: "proto" }],
+          breeding: { card: "BT1-001", as: "egg" },
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("proto").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-080"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-080")).toBe(true);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.memory).toBe(0);
   });
 
   it("keeps its permanent no-digivolution restriction active", async () => {

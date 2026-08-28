@@ -34,7 +34,7 @@ export const compiled: CompiledCard = {
                 target: {
                   filter: {
                     controller: "mine",
-                    kind: ["Digimon"],
+                    kind: ["Digimon", "DigiEgg"],
                     zone: "breeding",
                     levels: [2],
                   },
