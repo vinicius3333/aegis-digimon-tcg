@@ -1,6 +1,8 @@
-import { dnaDigivolutionRequirementsFor } from "@aegis/shared";
+import { dnaDigivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-059.js";
+import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-059 Examon", () => {
@@ -77,5 +79,32 @@ describe("BT13-059 Examon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-059"));
     const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT13-059")!;
     expect(result.isSuspended).toBe(false);
+  });
+
+  it("rejects DNA materials whose names only extend Slayerdramon or Breakdramon", () => {
+    const evolving = getCardDefinition("BT13-059")!;
+    const slayer = getCardDefinition("BT20-027")!;
+    const breaker = getCardDefinition("BT1-026")!;
+
+    expect(dnaDigivolveCostFor(evolving, [{ ...slayer, nameEn: "Slayerdramon (X Antibody)" }, breaker])).toBeUndefined();
+    expect(dnaDigivolveCostFor(evolving, [slayer, { ...breaker, nameEn: "Breakdramon: X Antibody" }])).toBeUndefined();
+  });
+
+  it("resolves the inherited optional modal when an opponent Digimon becomes suspended", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-059", as: "examon" }] },
+        1: { battleArea: [{ card: "BT1-015", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenSuspended", {
+      subjectPermanentId: s.perm("opponent").permanentId,
+    });
+
+    expect(s.decisions.some((decision) => decision.req.kind === "chooseOption")).toBe(true);
+    expect(s.perm("opponent").isSuspended).toBe(true);
   });
 });
