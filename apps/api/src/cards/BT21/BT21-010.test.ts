@@ -8,14 +8,14 @@ import "../index.js";
 describe("BT21-010 Gammamon", () => {
   it("encodes both alternate requirements, the Arts Digivolve gate, and inherited DP", () => {
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Gurimon"], cost: 0, isAlternate: true },
+      { namesExact: ["Gurimon"], cost: 0, isAlternate: true },
       { level: 2, traits: ["Hero"], cost: 0, isAlternate: true },
     ]);
     const arts = compiled.effects.find((effect) => !effect.isInherited)?.actions[0];
     expect(arts).toMatchObject({
       kind: "Digivolve",
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-      into: { nameOrTrait: [{ tokens: ["Siriusmon"], match: "name" }] },
+      into: { nameOrTrait: [{ tokens: ["Siriusmon"], match: "nameExact" }] },
       payCost: true,
       from: ["hand"],
       costOverride: 4,
