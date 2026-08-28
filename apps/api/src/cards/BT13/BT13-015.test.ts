@@ -70,6 +70,37 @@ describe("BT13-015 RizeGreymon", () => {
     expect(s.state.memory).toBe(7);
   });
 
+  it("does not play the near-name Marcus Damon & Agumon Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-012", as: "geo" }],
+          hand: [
+            { card: "BT13-015", as: "rize" },
+            { card: "AD1-021", as: "nearMarcus" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("geo").permanentId,
+        instanceId: s.inst("rize").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("geo").topCard.cardId === "BT13-015");
+    await settle();
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nearMarcus").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-021")).toHaveLength(0);
+  });
+
   it("may decline to play Marcus Damon when digivolving", async () => {
     const s = setupEngine(
       {
