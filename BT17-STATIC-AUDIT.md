@@ -32,7 +32,7 @@ collection-complete claim is valid.
 | BT17-041–050 | Luna assigned | `internal-docs/audits/BT17/BT17-041-050.md` | No |
 | BT17-051–060 | Luna assigned | `internal-docs/audits/BT17/BT17-051-060.md` | No |
 | BT17-061–070 | Luna assigned | `internal-docs/audits/BT17/BT17-061-070.md` | No |
-| BT17-071–080 | Unassigned | `internal-docs/audits/BT17/BT17-071-080.md` | No |
+| BT17-071–080 | Luna assigned | `internal-docs/audits/BT17/BT17-071-080.md` | No |
 | BT17-081–090 | Unassigned | `internal-docs/audits/BT17/BT17-081-090.md` | No |
 | BT17-091–100 | Unassigned | `internal-docs/audits/BT17/BT17-091-100.md` | No |
 | BT17-101–102 | Unassigned | `internal-docs/audits/BT17/BT17-101-102.md` | No |
@@ -89,12 +89,12 @@ feasible natural originating event.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 70
+- Assigned: 80
 - Integrated card audits: 20
 - Corrected: 2
 - Provisional: 20
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 32
+- Remaining unassigned: 22
 
 BT17 static re-audit is in progress.
