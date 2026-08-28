@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-092.js";
@@ -61,7 +60,7 @@ describe("BT18-092 Zenith", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("zenith"));
+    await advance(s.engine).runTurn(0);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("vemmon").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
@@ -100,9 +99,21 @@ describe("BT18-092 Zenith", () => {
     expect(s.perm("target").topCard?.cardId).toBe("BT1-009");
   });
 
-  it("plays itself without cost from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT18-092", as: "zenith", faceUp: true }] } });
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("zenith"));
+  it("plays itself without cost from security through a real opponent attack and security check", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT18-092", as: "zenith" }] },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+    });
+    await s.ready();
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zenith").instanceId));
 
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("zenith").instanceId),
