@@ -1,4 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { whenDigivolving } from "../../engine/effects/builders.js";
