@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-012.js";
 import "./BT18-014.js";
@@ -97,7 +95,6 @@ describe("BT18-012 Grumblemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstId));
-    await advance(s.engine).fireForInstance(EffectTiming.OnUseAttack, s.perm("host").topCard!);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(secondId);
   });
 });

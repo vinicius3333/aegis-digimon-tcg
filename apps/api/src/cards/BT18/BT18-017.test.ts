@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-017.js";
@@ -75,17 +74,21 @@ describe("BT18-017 AncientVolcanomon", () => {
 
   it("may return a level 4 or lower red Digimon from its stack when it leaves", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT18-017", as: "ancient", under: ["BT18-011"] }] } },
+      {
+        0: { battleArea: [{ card: "BT18-017", as: "ancient", under: ["BT18-011"], dp: 12000 }] },
+        1: { battleArea: [{ card: "BT1-030", as: "defender", dp: 13000 }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     const materialId = s.perm("ancient").stack[0]!.instanceId;
-    s.perm("ancient").baseDP = 0;
-    s.perm("ancient").currentDP = 0;
-
-    await (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
-      EffectTiming.OnStartMainPhase,
-    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ancient").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === materialId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === materialId)).toBe(true);
@@ -94,17 +97,21 @@ describe("BT18-017 AncientVolcanomon", () => {
 
   it("may play a level 4 or lower red Digimon from its stack without paying the cost when it leaves", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT18-017", as: "ancient", under: ["BT18-011"] }] } },
+      {
+        0: { battleArea: [{ card: "BT18-017", as: "ancient", under: ["BT18-011"], dp: 12000 }] },
+        1: { battleArea: [{ card: "BT1-030", as: "defender", dp: 13000 }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
     await s.ready();
     const materialId = s.perm("ancient").stack[0]!.instanceId;
-    s.perm("ancient").baseDP = 0;
-    s.perm("ancient").currentDP = 0;
-
-    await (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
-      EffectTiming.OnStartMainPhase,
-    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ancient").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === materialId),
     );
