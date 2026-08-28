@@ -30,7 +30,7 @@ provisional and capped at 8/10.
 | BT18-061–070 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-061-070.md` | Yes |
 | BT18-071–080 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-071-080.md` | Yes |
 | BT18-081–090 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-081-090.md` | Yes |
-| BT18-091–100 | Luna assigned | `internal-docs/audits/BT18/BT18-091-100.md` | No |
+| BT18-091–100 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-091-100.md` | Yes |
 | BT18-101–102 | Luna assigned | `internal-docs/audits/BT18/BT18-101-102.md` | No |
 
 ## Score model
@@ -135,14 +135,24 @@ applicable non-gate component rather than being rounded up.
 | BT18-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Bound start-main placement under this Tamer and gated inherited attack to Hybrid/Ten Warriors; natural turns, security, eligible attack, and non-Hybrid negative prove it (`477eb5329`, `7fdb6b260`). |
 | BT18-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural main-phase payment, Security self-play, attack-source trash, and conditional draw cover the card (`95b9972d2`). |
 | BT18-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural main-phase payment, Security self-play, battle deletion, and inherited-effect Tamer selection cover the card (`133c95db5`). |
+| BT18-091 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural main-phase payment, Security check, Raid target switch, decline, and once-per-turn inherited Tamer play replace injected timing proof (`4b0d793bc`). |
+| BT18-092 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Bound the two-Vemmon return cost to the attacking stack; natural turn, attack, Security, successful payment, and no-stack negative prove the paths (`47dfb10f1`, `ec0cabbb6`). |
+| BT18-093 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural turn progression covers both memory thresholds and both valid hand-cost categories; a natural Security check proves self-play (`f190cb879`). |
+| BT18-094 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Security, main-phase payment, inherited attack return, and decline use a legal Hybrid/Tamer stack (`414609221`). |
+| BT18-095 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added distinct Hybrid names, five-card Tamer threshold, and exact EmperorGreymon destination; natural five-card and duplicate/four-card cases prove it (`2e4f6ae71`). |
+| BT18-096 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected battle-area Tamer placement under exact Susanoomon with assignable-color validation and actual moved-count scaling; natural four-color and duplicate-color cases prove it (`f692b48a3`). |
+| BT18-097 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added distinct Hybrid names, five-card Tamer threshold, exact MagnaGarurumon destination, and natural Security proof (`37b6769db`). |
+| BT18-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Scoped the Main cost to top security; natural direct-security trash, deletion, DP reduction, Security deletion, and Recovery prove the sequence (`02030c42d`). |
+| BT18-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Separated target-switch Delay arming from the payload and gated arbitrary Delay actions; natural Raid, activation, keyword grants, and Security play prove the flow (`d7d82bcf4`). |
+| BT18-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected breeding scope, exact Main Lucemon, any opposing Option target, and typed reduced-cost nested digivolution; natural Main, Delay, boundary, and Security flows prove it (`8d622dd1c`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 90
-- Corrected: 20
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 27
+- Provisional: 100
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 5 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps; `BT18-041` catalog/KB DNA mismatch)
 - Remaining unassigned: 0
