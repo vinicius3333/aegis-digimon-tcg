@@ -36,7 +36,11 @@ describe("BT20-021 Jesmon GX", () => {
         {
           kind: "Trash",
           target: { filter: { controller: "opponent", zone: "security", position: "top" } },
-          scaling: { per: 2, unit: "digivolutionCards" },
+          scaling: {
+            per: 2,
+            unit: "digivolutionCards",
+            filter: { nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }] },
+          },
         },
       ],
     });
