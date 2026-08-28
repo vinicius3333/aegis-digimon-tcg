@@ -23,6 +23,7 @@ const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: {
+            sameTarget: true,
             filter: {
               controllerDefault: "opponent",
               kind: ["Digimon"],
