@@ -1,6 +1,5 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-063.js";
 import "./index.js";
@@ -70,13 +69,29 @@ describe("BT20-063 Ghostmon", () => {
       const s = setupEngine({
         0: {
           battleArea: [
-            under ? { card: "BT20-068", under: ["BT20-063"], as: "subject" } : { card: "BT20-063", as: "subject" },
+            under
+              ? { card: "BT20-068", under: ["BT20-063"], suspended: true, as: "subject" }
+              : { card: "BT20-063", suspended: true, as: "subject" },
           ],
         },
+        1: { battleArea: [{ card: "BT20-076", as: "attacker" }] },
       });
       s.state.memory = 0;
+      const subjectId = s.perm("subject").permanentId;
+      s.state.turnSeat = 1;
       await s.ready();
-      await advance(s.engine).verb.deletePermanent([s.perm("subject").permanentId], "byEffect");
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: subjectId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === subjectId) &&
+          s.state.memory === expected,
+      );
       expect(s.state.memory).toBe(expected);
     }
   });
