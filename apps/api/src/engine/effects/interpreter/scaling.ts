@@ -207,6 +207,9 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
         raw = countMatching(ctx, filter);
       }
       break;
+    case "placedCards":
+      raw = ctx.placedUnderInstanceIdsThisEffect?.length ?? 0;
+      break;
     case "colors":
       raw = countColors(ctx, filter);
       break;

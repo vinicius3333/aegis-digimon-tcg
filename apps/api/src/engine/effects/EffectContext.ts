@@ -1922,6 +1922,8 @@ export interface EffectContext {
   lastMemoryGainAmount?: number;
   /** Loose card instances moved by the immediately preceding PlaceUnder action. */
   lastPlacedUnderInstanceIds?: string[];
+  /** Loose card instances moved by all PlaceUnder actions in this effect resolution. */
+  placedUnderInstanceIdsThisEffect?: string[];
   /**
    * The permanent ids resolved by the most recent primary-target action in this effect
    * resolution. Written after each `resolvePermanentTargets` call for a non-sameTarget target;
