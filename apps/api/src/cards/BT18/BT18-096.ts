@@ -53,7 +53,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Susanoomon"],
-                match: "name",
+                match: "nameExact",
               },
             ],
           },
@@ -70,24 +70,24 @@ const compiled: CompiledCard = {
               filter: {
                 differentColors: true,
                 controller: "mine",
+                zone: "battleArea",
                 kind: ["Tamer"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Susanoomon"],
-                    match: "name",
-                  },
-                ],
               },
               count: 4,
               upTo: true,
             },
+            targetIsPermanent: true,
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
             raw: "by placing up to 4 of your Tamers with different colors under 1 of your [Susanoomon] as its bottom digivolution cards",
             underFilter: {
               controller: "mine",
+              kind: ["Digimon"],
               nameOrTrait: [
                 {
                   tokens: ["Susanoomon"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },

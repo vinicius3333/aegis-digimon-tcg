@@ -12,7 +12,23 @@ describe("BT18-096 Lord of Devastation and Rebirth", () => {
       trigger: "Main",
       actions: [
         { kind: "Digivolve", payCost: false },
-        { kind: "GainMemory", amount: 1, scaling: { usePaidCount: true } },
+        {
+          kind: "GainMemory",
+          amount: 1,
+          scaling: { usePaidCount: true },
+          cost: {
+            targetIsPermanent: true,
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
+            target: { filter: { controller: "mine", zone: "battleArea", kind: ["Tamer"], differentColors: true } },
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Susanoomon"], match: "nameExact" }],
+            },
+          },
+        },
       ],
     });
     expect(compiled.effects[2]).toMatchObject({
@@ -26,19 +42,21 @@ describe("BT18-096 Lord of Devastation and Rebirth", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT18-102", as: "susanoomon" }],
+          battleArea: [
+            { card: "BT18-102", as: "susanoomon" },
+            { card: "BT18-088", as: "redYellowTamer" },
+            { card: "BT18-089", as: "redBlueTamer" },
+            { card: "BT18-090", as: "redGreenTamer" },
+            { card: "BT18-092", as: "blackTamer" },
+          ],
           hand: [
             { card: "BT18-096", as: "option" },
-            { card: "BT1-085", as: "redTamer" },
-            { card: "BT1-086", as: "blueTamer" },
-            { card: "BT1-087", as: "yellowTamer" },
-            { card: "BT1-088", as: "greenTamer" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 4;
+    s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
@@ -46,6 +64,33 @@ describe("BT18-096 Lord of Devastation and Rebirth", () => {
 
     expect(s.perm("susanoomon").stack).toHaveLength(4);
     expect(s.state.memory).toBe(8);
+  });
+
+  it("excludes a duplicate single-color Tamer while retaining assignable colors", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-102", as: "susanoomon" },
+            { card: "BT1-085", as: "redTamerA" },
+            { card: "BT1-085", as: "redTamerB" },
+            { card: "BT1-086", as: "blueTamer" },
+            { card: "BT1-087", as: "yellowTamer" },
+          ],
+          hand: [{ card: "BT18-096", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("susanoomon").stack.length === 3);
+
+    expect(s.perm("susanoomon").stack).toHaveLength(3);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("redTamerB").permanentId)).toBe(true);
+    expect(s.state.memory).toBe(7);
   });
 
   it("naturally executes Security by playing an inherited-effect Tamer and returning this Option to hand", async () => {
