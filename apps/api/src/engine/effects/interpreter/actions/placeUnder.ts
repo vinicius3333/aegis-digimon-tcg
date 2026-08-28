@@ -143,8 +143,9 @@ export async function runPlaceUnder(
     return;
   }
   // "Place [a battle-area permanent A] under another permanent B" (the cross-select
-  // IPlacePermanentToDigivolutionCards form): relocate the whole permanent-with-stack through
-  // the shared effect relocation primitive, preserving its stack and leaving the battle area.
+  // IPlacePermanentToDigivolutionCards form): relocate the whole permanent through the shared
+  // effect relocation primitive, preserving its stack unless shedOwnCards requests the
+  // DigiXros-style source shedding required by the printed effect.
   if (action.targetIsPermanent) {
     const levelCeilingTarget =
       action.scaling?.levelCeilingAdd !== undefined && action.target.filter.levelComparison?.value !== undefined

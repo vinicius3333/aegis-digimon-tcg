@@ -131,6 +131,7 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
     expect(whenDigivolving?.actions[0]).toMatchObject({
       kind: "PlaceUnder",
       targetIsPermanent: true,
+      shedOwnCards: true,
       scaling: { per: 1, unit: "colors", levelCeilingAdd: 1 },
     });
   });
@@ -146,13 +147,14 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
       1: {
         battleArea: [
           { card: "BT12-087", as: "destination" },
-          { card: "BT12-010", as: "target" },
+          { card: "BT12-010", as: "target", under: ["BT12-009"] },
         ],
       },
     }, { autoSelectCards: true });
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("arrester"));
     expect(s.perm("destination").stack.map(({ cardId }) => cardId)).toContain("BT12-010");
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-010")).toBe(false);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT12-009");
   });
 
   it("limits the Save alternate evolution to red, black, or purple level 4 cards", () => {
