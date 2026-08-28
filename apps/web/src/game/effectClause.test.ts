@@ -313,6 +313,17 @@ describe("effectClauseForTiming", () => {
     expect(clause).not.toContain("RevealAdd");
   });
 
+  it("replaces a generated all-count delete summary with Destromon's printed clause", () => {
+    const clause = playerFacingEffectClause({
+      cardId: "P-094",
+      timing: "OnPlay",
+      description: "[OnPlay] Delete all target(s)",
+    });
+
+    expect(clause).toContain("Delete your opponent's Digimon and Tamers with a total play cost of 3");
+    expect(clause).not.toContain("target(s)");
+  });
+
   it("shows the printed text when a watcher arrives named only by the event it watches", () => {
     const clause = playerFacingEffectClause({
       cardId: "AD1-017",
