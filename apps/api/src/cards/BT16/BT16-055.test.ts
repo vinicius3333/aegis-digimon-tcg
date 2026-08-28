@@ -57,6 +57,8 @@ describe("BT16-055", () => {
     });
     await settle(() => observe(s.engine).hasKeyword(s.perm("ally"), "Reboot"));
 
+    expect(observe(s.engine).isRestricted(s.perm("ally"), "dpImmune")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("ally"), "cantBeDeDigivolved")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Reboot")).toBe(true);
   });
