@@ -9,6 +9,8 @@ import type { Filter } from "./filter.js";
 export type FilterKeyword = Keyword;
 
 export interface CardPredicates {
+  /** Exact card-number match, used when printed text says "this card" rather than a name family. */
+  cardId?: string;
   /**
    * Restricts the match to token permanents (`true`) or excludes them (`false`). Absent ⇒ tokens
    * match on the same terms as printed cards.

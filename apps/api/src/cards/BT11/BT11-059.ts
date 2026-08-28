@@ -11,7 +11,8 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldDigivolve",
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
-          into: { nameOrTrait: [{ tokens: ["RustTyrannomon"], match: "name" }] },
+          // "this card" is the BT11-059 printing, not every RustTyrannomon card number.
+          into: { cardId: "BT11-059" },
           actions: [
             {
               kind: "Replacement",
