@@ -21,8 +21,8 @@ provisional and capped at 8/10.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT20-001–010 | Luna prepared; coordinator review ready | `internal-docs/audits/BT20/BT20-001-010.md` | No |
-| BT20-011–020 | Luna prepared; chronological integration waits for BT20-001–010 | `internal-docs/audits/BT20/BT20-011-020.md` | No |
+| BT20-001–010 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-001-010.md` | Yes |
+| BT20-011–020 | Luna prepared; coordinator review ready | `internal-docs/audits/BT20/BT20-011-020.md` | No |
 | BT20-021–030 | Luna assigned | `internal-docs/audits/BT20/BT20-021-030.md` | No |
 | BT20-031–040 | Luna assigned | `internal-docs/audits/BT20/BT20-031-040.md` | No |
 | BT20-041–050 | Luna assigned | `internal-docs/audits/BT20/BT20-041-050.md` | No |
@@ -45,16 +45,26 @@ applicable non-gate component rather than being rounded up.
 
 | Card | Catalog/rules | IR trace | Behavioral proof | Peer and stack proof | Executed delivery gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT20-001 | 2/2 | 2/2 | 2/2 | 1/2 | 0/2 | 7/10 provisional | Natural continuous boundaries prove the four-source and turn-scope clauses; the fixture stack is not fully catalog-legal (`cc3e0f987`). |
+| BT20-002 | 2/2 | 2/2 | 2/2 | 1/2 | 0/2 | 7/10 provisional | Natural attacks prove draw and trigger boundaries, but the negative cross-color stack is not catalog-legal (`cc3e0f987`). |
+| BT20-003 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | End-turn behavior is manually fired and current host fixtures are synthetic despite correct placement/gating structure (`cc3e0f987`). |
+| BT20-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural ACCEL play drives a legal reduced-cost Pinamon-to-Liamon evolution and negative boundary (`cc3e0f987`). |
+| BT20-005 | 2/2 | 2/2 | 2/2 | 1/2 | 0/2 | 7/10 provisional | Natural attacks distinguish pre-existing face-up security for Jamming, but the behavior stack is cross-color (`cc3e0f987`). |
+| BT20-006 | 2/2 | 2/2 | 2/2 | 1/2 | 0/2 | 7/10 provisional | Natural battle deletion proves Ghost recovery and exclusion, while the inherited host stack is not fully legal (`cc3e0f987`). |
+| BT20-007 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Start-main payment/decline uses direct timing; the legal inherited stack and DP scope remain observable (`cc3e0f987`). |
+| BT20-008 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Start-main name/trait payment uses direct timing; the legal inherited aura scope is observable (`cc3e0f987`). |
+| BT20-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural purple play drives a legal reduced-cost Free evolution and inherited turn boundary (`cc3e0f987`). |
+| BT20-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public evolutions prove battle-area-only Ginryumon reduction and inherited DP on a legal stack (`cc3e0f987`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 60
-- Integrated card audits: 0
+- Integrated card audits: 10
 - Corrected: 0
-- Provisional: 0
+- Provisional: 10
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 0
+- Blocked or ambiguous: 7 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008` source/stack-proof gaps)
 - Remaining unassigned: 42
 
 BT20 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
