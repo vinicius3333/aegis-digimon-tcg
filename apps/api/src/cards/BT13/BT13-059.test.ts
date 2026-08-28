@@ -1,4 +1,4 @@
-import { dnaDigivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { dnaDigivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-059.js";
 import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
@@ -90,21 +90,28 @@ describe("BT13-059 Examon", () => {
     expect(dnaDigivolveCostFor(evolving, [slayer, { ...breaker, nameEn: "Breakdramon: X Antibody" }])).toBeUndefined();
   });
 
-  it("resolves the inherited optional modal when an opponent Digimon becomes suspended", async () => {
+  it("resolves the All Turns optional modal from the natural On Play suspension event", async () => {
+    const preferredTargets: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-059", as: "examon" }] },
+        0: { battleArea: [{ card: "BT13-059", as: "examon" }, { card: "BT1-015", as: "ally", suspended: true }] },
         1: { battleArea: [{ card: "BT1-015", as: "opponent" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds: preferredTargets,
+        preferOptionIndex: 1,
+      },
     );
+    preferredTargets.push(s.perm("ally").permanentId);
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenSuspended", {
-      subjectPermanentId: s.perm("opponent").permanentId,
-    });
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("examon"));
 
     expect(s.decisions.some((decision) => decision.req.kind === "chooseOption")).toBe(true);
     expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.perm("ally").isSuspended).toBe(false);
   });
 });
