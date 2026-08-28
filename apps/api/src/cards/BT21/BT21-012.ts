@@ -47,6 +47,7 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           underFilter: {
+            lastPlayed: true,
             controllerDefault: "mine",
             kind: ["Tamer"],
           },
