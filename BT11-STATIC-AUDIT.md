@@ -30,10 +30,10 @@ claim is valid.
 | BT11-021–030 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-021-030.md` | Yes |
 | BT11-031–040 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-031-040.md` | Yes |
 | BT11-041–050 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-041-050.md` | Yes |
-| BT11-051–060 | Luna in progress | `internal-docs/audits/BT11/BT11-051-060.md` | No |
+| BT11-051–060 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-051-060.md` | Yes |
 | BT11-061–070 | Luna in progress | `internal-docs/audits/BT11/BT11-061-070.md` | No |
 | BT11-071–080 | Luna in progress | `internal-docs/audits/BT11/BT11-071-080.md` | No |
-| BT11-081–090 | Queued | `internal-docs/audits/BT11/BT11-081-090.md` | No |
+| BT11-081–090 | Luna in progress | `internal-docs/audits/BT11/BT11-081-090.md` | No |
 | BT11-091–100 | Queued | `internal-docs/audits/BT11/BT11-091-100.md` | No |
 | BT11-101–110 | Queued | `internal-docs/audits/BT11/BT11-101-110.md` | No |
 | BT11-111–112 | Queued | `internal-docs/audits/BT11/BT11-111-112.md` | No |
@@ -112,16 +112,26 @@ other component and is never rounded up.
 | BT11-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed vanilla card |
 | BT11-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
 | BT11-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed vanilla card |
+| BT11-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed vanilla card |
+| BT11-054 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected universal Leomon Rule alias |
+| BT11-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected inherited self-deletion gate |
+| BT11-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Strengthened under-budget reveal proof |
+| BT11-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected executable if-you-do gate |
+| BT11-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected X Antibody trait match |
+| BT11-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected exact card-number destination gate |
+| BT11-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 80
-- Integrated card audits: 50
-- Corrected: 5
-- Provisional: 50
+- Assigned: 90
+- Integrated card audits: 60
+- Corrected: 10
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 32
+- Remaining unassigned: 22
 
 BT11 static re-audit remains open.
