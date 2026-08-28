@@ -41,8 +41,9 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "top",
             host: "self",
+            optional: true,
           },
-          optional: false,
+          abortOnDecline: true,
         },
         {
           kind: "GrantImmunity",
@@ -93,8 +94,9 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "top",
             host: "self",
+            optional: true,
           },
-          optional: false,
+          abortOnDecline: true,
         },
         {
           kind: "GrantImmunity",
