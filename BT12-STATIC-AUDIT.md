@@ -24,14 +24,14 @@ collection-complete claim is valid.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT12-001–010 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-001-010.md` | Yes |
-| BT12-011–020 | Coordinator follow-up | `internal-docs/audits/BT12/BT12-011-020.md` | No |
+| BT12-011–020 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-011-020.md` | Yes |
 | BT12-021–030 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-021-030.md` | Yes |
 | BT12-031–040 | Luna in progress | `internal-docs/audits/BT12/BT12-031-040.md` | No |
-| BT12-041–050 | Luna in progress | `internal-docs/audits/BT12/BT12-041-050.md` | No |
-| BT12-051–060 | Luna in progress | `internal-docs/audits/BT12/BT12-051-060.md` | No |
+| BT12-041–050 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-041-050.md` | Yes |
+| BT12-051–060 | Coordinator follow-up | `internal-docs/audits/BT12/BT12-051-060.md` | No |
 | BT12-061–070 | Queued | `internal-docs/audits/BT12/BT12-061-070.md` | No |
-| BT12-071–080 | Queued | `internal-docs/audits/BT12/BT12-071-080.md` | No |
-| BT12-081–090 | Queued | `internal-docs/audits/BT12/BT12-081-090.md` | No |
+| BT12-071–080 | Luna in progress | `internal-docs/audits/BT12/BT12-071-080.md` | No |
+| BT12-081–090 | Luna in progress | `internal-docs/audits/BT12/BT12-081-090.md` | No |
 | BT12-091–100 | Queued | `internal-docs/audits/BT12/BT12-091-100.md` | No |
 | BT12-101–110 | Queued | `internal-docs/audits/BT12/BT12-101-110.md` | No |
 | BT12-111–112 | Queued | `internal-docs/audits/BT12/BT12-111-112.md` | No |
@@ -71,6 +71,16 @@ other component and is never rounded up.
 | BT12-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-001-010.md`; snapshot drift documented |
 | BT12-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-001-010.md`; snapshot drift documented |
 | BT12-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-001-010.md`; no new correction |
+| BT12-011 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-011-020.md`; Save sequencing override documented |
+| BT12-012 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-011-020.md`; suspended play and Tamer cost override documented |
+| BT12-013 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-011-020.md`; no new correction |
+| BT12-014 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-011-020.md`; deletion budget override documented |
+| BT12-015 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-011-020.md`; handwritten `effectsForTiming` limitation |
+| BT12-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-011-020.md`; Q2147 proof strengthened in `68e448949` |
+| BT12-017 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-011-020.md`; mutually exclusive deletion branches documented |
+| BT12-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-011-020.md`; structured fallback documented |
+| BT12-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-011-020.md`; no new correction |
+| BT12-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-011-020.md`; exact no-effect record |
 | BT12-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; no new correction |
 | BT12-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; corrected IR history `fcb09798b`, `1e3097730` |
 | BT12-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; no new correction |
@@ -81,16 +91,26 @@ other component and is never rounded up.
 | BT12-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
 | BT12-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
 | BT12-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-021-030.md`; snapshot override documented |
+| BT12-041 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; repeat/DP-zero/Save drift documented |
+| BT12-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; no new correction |
+| BT12-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; Security DP drift documented |
+| BT12-044 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; scaling-unit drift documented |
+| BT12-045 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; reveal filter drift documented |
+| BT12-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; exact no-effect record |
+| BT12-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; no new correction |
+| BT12-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; atomic return/draw drift documented |
+| BT12-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; no new correction |
+| BT12-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-041-050.md`; DNA replacement drift documented |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 30
-- Integrated card audits: 20
-- Corrected: 0
-- Provisional: 20
+- Assigned: 80
+- Integrated card audits: 40
+- Corrected: 1
+- Provisional: 40
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 0
-- Remaining unassigned: 82
+- Blocked or ambiguous: 1
+- Remaining unassigned: 32
 
 BT12 static re-audit is in progress.
