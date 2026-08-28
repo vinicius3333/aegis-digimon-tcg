@@ -9,7 +9,7 @@ const playFromStack = {
       controller: "mine",
       zone: "digivolutionCards",
       kind: ["Digimon"],
-      hostFilter: { controller: "mine", kind: ["Digimon"] },
+      hostFilter: { boundRef: "chosenHost" },
     },
     count: 2,
     upTo: true,
@@ -20,10 +20,23 @@ const playFromStack = {
   raw: "Play up to 2 Digimon cards from one of your Digimon's digivolution cards without paying their memory costs.",
 };
 
+const selectStackHost = {
+  kind: "SelectBind",
+  target: {
+    filter: {
+      controller: "mine",
+      kind: ["Digimon"],
+      digivolutionCards: "hasAny",
+    },
+    count: 1,
+    bindAs: "chosenHost",
+  },
+};
+
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "Main", actions: [playFromStack] },
-    { trigger: "Security", isSecurity: true, actions: [playFromStack] },
+    { trigger: "Main", actions: [selectStackHost, playFromStack] },
+    { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
   ],
   coverage: "full",
   residual: [],
