@@ -35,6 +35,25 @@ describe("BT17-057 Chaosdramon", () => {
     });
   });
 
+  it("requires a named level-5 Cyborg material and grants trash DigiXros with a black Tamer", () => {
+    expect(compiled.digiXrosRequirement).toEqual([
+      {
+        materials: [{ names: ["Machinedramon"], traits: ["Cyborg"] }],
+        count: 1,
+      },
+    ]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      actions: [
+        {
+          kind: "GrantStatic",
+          grant: "digixrosFromTrash",
+          condition: { kind: "youHave", filter: { kind: ["Tamer"], colors: ["Black"] } },
+        },
+      ],
+    });
+  });
+
   it("places a qualifying trash card underneath before deleting within budget", async () => {
     const s = setupEngine(
       {
@@ -45,7 +64,7 @@ describe("BT17-057 Chaosdramon", () => {
         1: {
           battleArea: [
             { card: "BT17-052", as: "costThree" },
-            { card: "BT17-054", as: "costFour" },
+            { card: "BT17-054", as: "costFive" },
           ],
         },
       },
@@ -57,17 +76,18 @@ describe("BT17-057 Chaosdramon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaosdramon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     const chaosdramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT17-057")!;
     expect(chaosdramon.stack.at(0)?.instanceId).toBe(placedSourceId);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-054")).toBe(true);
   });
 
   it("trashes two qualifying sources from itself to prevent opponent-effect deletion", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT17-057", under: ["BT17-052", "BT17-056", "BT17-055"], as: "chaosdramon" }],
+          battleArea: [{ card: "BT17-057", under: ["BT17-052", "BT17-054", "BT17-055"], as: "chaosdramon" }],
           hand: [{ card: "BT17-052", as: "unrelatedHandCard" }],
         },
       },
