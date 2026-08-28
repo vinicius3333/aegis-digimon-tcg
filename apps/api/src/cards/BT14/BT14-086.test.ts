@@ -54,7 +54,13 @@ describe("BT14-086", () => {
   it("naturally Mind Links Satsuki under an eligible Numemon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT14-058", as: "numemon" }], hand: [{ card: "BT14-086", as: "satsuki" }] },
+        0: {
+          battleArea: [
+            { card: "BT14-058", as: "numemon" },
+            { card: "BT14-074", as: "unrelated" },
+          ],
+          hand: [{ card: "BT14-086", as: "satsuki" }],
+        },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
@@ -67,6 +73,10 @@ describe("BT14-086", () => {
     expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: satsuki.topCard!.instanceId, effectKey: effects[0]!.effectKey })).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-086"));
     expect(s.perm("numemon").stack.some((card) => card.cardId === "BT14-086")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("numemon"), "Jamming")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("numemon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("unrelated"), "Jamming")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("unrelated"), "Reboot")).toBe(false);
   });
 
   it("naturally plays Satsuki from this host's own stack at end of all turns", async () => {
