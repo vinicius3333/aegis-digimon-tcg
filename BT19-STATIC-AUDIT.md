@@ -27,7 +27,7 @@ provisional and capped at 8/10.
 | BT19-031–040 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-031-040.md` | Yes |
 | BT19-041–050 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-041-050.md` | Yes |
 | BT19-051–060 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-051-060.md` | Yes |
-| BT19-061–070 | Luna assigned | `internal-docs/audits/BT19/BT19-061-070.md` | No |
+| BT19-061–070 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-061-070.md` | Yes |
 | BT19-071–080 | Luna prepared; chronological review pending | `internal-docs/audits/BT19/BT19-071-080.md` | No |
 | BT19-081–090 | Luna assigned | `internal-docs/audits/BT19/BT19-081-090.md` | No |
 | BT19-091–100 | Luna assigned | `internal-docs/audits/BT19/BT19-091-100.md` | No |
@@ -105,16 +105,26 @@ applicable non-gate component rather than being rounded up.
 | BT19-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion proves executable Save while live legal hosts preserve printed and inherited Blocker scope (`09e2bfa8e`). |
 | BT19-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion proves executable Save without a trash copy while live hosts preserve Retaliation and inherited Reboot (`09e2bfa8e`). |
 | BT19-060 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected exact Ryo Akiyama matching, but the card's source proof remains structural and never naturally exercises evolution or Tamer count (`789c6d09b`). |
+| BT19-061 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | A natural legal stack proves inherited Collision scope, but reveal, deletion placement, and DigiXros-only alias behavior remain structural (`89cdcc7c8`). |
+| BT19-062 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | End-turn attack, effect-placed Option cost, and inherited Collision have structural evidence only (`89cdcc7c8`). |
+| BT19-063 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Restored the missing DeadlyAxemon shared DigiXros slot; Material Save, De-Digivolve, deletion, and play clauses remain structural (`c74395a0f`). |
+| BT19-064 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected both unsuspend costs to accept either player's effect-placed Option; no natural behavior source covers the ACE contract (`2319d84b2`). |
+| BT19-065 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected the up-to-five distinct-number Cyborg/Composite DigiXros recipe; deletion, trash play, and redirect remain structural (`300699646`). |
+| BT19-066 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Optional hand trash/draw, inherited Blocker, and Pagumon route are traced structurally without natural behavior (`89cdcc7c8`). |
+| BT19-067 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Own-Tamer count, purple Tamer trash play, and inherited Retaliation have structural evidence only (`89cdcc7c8`). |
+| BT19-068 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Reveal, Nene Amano play-then-Save ordering, Rule trait, and DigiXros remain structurally proven (`89cdcc7c8`). |
+| BT19-069 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | All three optional cost timings, opposing level target, and inherited Blocker remain structural (`89cdcc7c8`). |
+| BT19-070 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected the up-to-three distinct-number level-4 Composite DigiXros recipe; ordered deletion behavior remains structural (`7db1428ee`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 60
-- Corrected: 15
-- Provisional: 60
+- Integrated card audits: 70
+- Corrected: 19
+- Provisional: 70
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 38 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`–`BT19-054`, `BT19-057`, `BT19-060` source-proof gaps)
+- Blocked or ambiguous: 48 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`–`BT19-054`, `BT19-057`, `BT19-060`–`BT19-070` source-proof gaps)
 - Remaining unassigned: 0
 
 Operational disclosure: the BT19-041–050 worker accidentally ran one isolated
