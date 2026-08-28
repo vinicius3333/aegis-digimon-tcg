@@ -713,7 +713,7 @@ export function lateBt12Module(cardId: string): EffectModule {
             if (target) await ctx.fx.deletePermanent([target], "byEffect");
             const shoutmon = await choosePermanent(
               ctx,
-              myPermanents(ctx, source, (d) => d.nameEn.includes("Shoutmon X7: Superior Mode")),
+              myPermanents(ctx, source, (d) => d.nameEn === "Shoutmon X7: Superior Mode"),
             );
             if (shoutmon) {
               await ctx.fx.unsuspend([shoutmon]);
