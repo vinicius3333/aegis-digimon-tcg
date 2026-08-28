@@ -36,6 +36,7 @@ const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+          allowCostWithoutTarget: true,
         },
         {
           kind: "Draw",
