@@ -48,12 +48,9 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                zone: "digivolutionCards",
-                hostFilter: {
-                  controller: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Leopardmon: Leopard Mode"], match: "nameExact" }],
-                },
+                zone: "battleArea",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Leopardmon: Leopard Mode"], match: "nameExact" }],
               },
               count: 1,
               topCardOnly: true,

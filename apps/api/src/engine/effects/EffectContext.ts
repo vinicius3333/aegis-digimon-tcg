@@ -975,9 +975,14 @@ export interface Primitives {
   /**
    * Return cards to their owners' hands. Async because a permanent bounce consults the
    * leave-the-battle-area PREVENT reactions first (a "would leave" reaction voids hand
-   * bounce too, not just deletion); a prevented permanent is left in play.
+   * bounce too, not just deletion); a prevented permanent is left in play. When
+   * `detachPermanentTop` is set, each id names a permanent's visible top card and only that
+   * card returns while its underlying stack card is promoted in place.
    */
-  returnToHand(instanceIds: string[], opts?: { silent?: boolean; byEffectSeat?: Seat }): Promise<CardInstance[]>;
+  returnToHand(
+    instanceIds: string[],
+    opts?: { silent?: boolean; byEffectSeat?: Seat; detachPermanentTop?: boolean },
+  ): Promise<CardInstance[]>;
   returnToDeck(
     instanceIds: string[],
     opts?: {

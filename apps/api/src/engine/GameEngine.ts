@@ -4142,7 +4142,7 @@ export class GameEngine {
     return this.state.players.some((p) => p?.lost === true) && !this.state.gameOver;
   }
 
-  /** A Digimon stack peeled by an effect until its new top has no Digimon DP (BT26-060 Q7082). */
+  /** A Digimon stack peeled by an effect until its new top is an invalid no-DP remnant (BT26-060 Q7082). */
   private anyInvalidNoDpStackTop(): boolean {
     return this.battleAreaPermanents().some((permanent) => permanent.invalidNoDpStackTop);
   }

@@ -486,6 +486,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     subTriggers.dropPermanent(permanentId);
   };
 
+  /**
+   * A stack peeled by an effect is checked as the position it came from, not as a newly played
+   * card. Non-Digimon tops are invalid, and an ordinary no-DP Digi-Egg is invalid as well; a
+   * DP-bearing Digi-Egg (Mother D-Reaper, for example) remains a legal promoted top.
+   */
+  const promotedTopNeedsInvalidRuleTrash = (definition: CardDefinition): boolean => {
+    const isDigimon = definition.kinds.includes(CardKind.Digimon);
+    const isDigiEgg = definition.kinds.includes(CardKind.DigiEgg);
+    return !isDigimon && (!isDigiEgg || (definition.dp ?? 0) <= 0);
+  };
+
   /** Whether the engine is currently re-firing persistent effects (see PrimitivesEngine). */
   const continuousPass = (): boolean => engine.inContinuousPass?.() ?? false;
   /** `{ continuous: true }` while re-firing persistent effects, else undefined. */
@@ -3447,7 +3458,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * for permanents, plus loose-card bounces). A permanent id is not accepted here; pass
    * the permanent's instance ids — if the instance is a permanent's TOP card the whole
    * permanent is bounced (top + stack + linked all return to the owner's hand, the
-   * source HandBounce). Returns the instances moved to hand.
+   * source HandBounce). `detachPermanentTop` is the one deliberate exception: the visible
+   * top returns while a stack card is promoted in place. Returns the instances moved to hand.
    */
   /**
    * Drop the instanceIds whose battle-area permanent a "would leave the battle area"
@@ -3542,10 +3554,141 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     }
   };
 
-  const returnToHand = async (
+  /**
+   * Return only the visible top card of each selected stacked permanent. This is deliberately
+   * distinct from a normal permanent bounce: the position remains in the battle area, so the
+   * normal `wouldBeReturned` pre-move window is preserved but `whenLeavesPlay` is not emitted
+   * while the underlying card is promoted. Bounce prevention still sees the detached top through
+   * the common return filter before any stack mutation (BT13-107 Q2359/Q2360).
+   */
+  const detachPermanentTopsToHand = async (
     instanceIds: string[],
     opts?: { silent?: boolean; byEffectSeat?: Seat },
   ): Promise<CardInstance[]> => {
+    instanceIds = filterLockedStackReturns(instanceIds, opts?.byEffectSeat ?? effectSeatStack.at(-1));
+    instanceIds = await filterBouncePrevented(instanceIds);
+    // Preserve the ordinary pre-move bounce reaction window. A replacement may move the
+    // selected top card into another permanent, so bind each selection to its original permanent
+    // and revalidate that identity before detaching. Unlike a whole-permanent bounce, the
+    // successful detachment below deliberately does NOT fire `whenLeavesPlay`.
+    const targetedPermanentByInstance = new Map<string, string>();
+    if (engine.fireSubTrigger) {
+      for (const instanceId of instanceIds) {
+        let foundPermanent: Permanent | undefined;
+        for (const owner of state.players) {
+          foundPermanent = owner.battleArea.find(
+            (candidate) => candidate.topCard?.instanceId === instanceId && candidate.stack.length > 0,
+          );
+          if (foundPermanent !== undefined) break;
+        }
+        if (foundPermanent === undefined) continue;
+        targetedPermanentByInstance.set(instanceId, foundPermanent.permanentId);
+        await engine.fireSubTrigger("wouldBeReturned", {
+          subjectPermanentId: foundPermanent.permanentId,
+          returnDestination: "hand",
+        });
+      }
+    }
+    instanceIds = instanceIds.filter((instanceId) => {
+      const targetedPermanentId = targetedPermanentByInstance.get(instanceId);
+      if (targetedPermanentId === undefined) return true;
+      const permanent = access.permanentById(targetedPermanentId);
+      return permanent?.topCard?.instanceId === instanceId && permanent.stack.length > 0;
+    });
+    const moved: CardInstance[] = [];
+    const movedToHand: CardInstance[] = [];
+
+    for (const instanceId of instanceIds) {
+      let permanent: Permanent | undefined;
+      for (const owner of state.players) {
+        permanent = owner.battleArea.find(
+          (candidate) => candidate.topCard?.instanceId === instanceId && candidate.stack.length > 0,
+        );
+        if (permanent !== undefined) break;
+      }
+      if (permanent === undefined || permanent.topCard === undefined) continue;
+      const detached = permanent.topCard;
+      const promoted = popFromStack(permanent);
+      if (promoted === undefined) continue;
+
+      setTopCard(permanent, promoted);
+      promoted.faceUp = true;
+      const promotedDefinition = requireCardDefinition(promoted.cardId);
+      permanent.baseDP =
+        promotedDefinition.kinds.includes(CardKind.Digimon) || promotedDefinition.kinds.includes(CardKind.DigiEgg)
+          ? promotedDefinition.dp
+          : 0;
+      permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(promotedDefinition);
+      dropPermanentLedgers(permanent.permanentId);
+      ledger.recomputeDP(state, permanent.permanentId);
+      // Re-arm effects and restrictions from the promoted card before the next decision or rule
+      // check observes the permanent (the same refresh boundary used by addSecurity detachment).
+      await engine.recomputeContinuousEffects?.();
+
+      detached.faceUp = true;
+      const detachedDefinition = requireCardDefinition(detached.cardId);
+      if (detachedDefinition.isToken === true) {
+        // A token leaves the field successfully for cost accounting, then ceases to exist.
+        ledger.dropSourceInstances(state, [detached.instanceId]);
+        moved.push(detached);
+        continue;
+      }
+      if (detachedDefinition.kinds.includes(CardKind.DigiEgg)) {
+        detached.faceUp = false;
+        insertCard(player(detached.ownerSeat), Zone.EggDeck, detached);
+        ledger.dropSourceInstances(state, [detached.instanceId]);
+        moved.push(detached);
+        continue;
+      }
+      insertCard(player(detached.ownerSeat), Zone.Hand, detached);
+      ledger.dropSourceInstances(state, [detached.instanceId]);
+      moved.push(detached);
+      movedToHand.push(detached);
+    }
+
+    // The detached card itself left the field, even though the permanent did not. This keeps
+    // Overflow and hand-addition semantics aligned with a normal return while intentionally
+    // omitting the permanent leave event above.
+    applyOverflow(engine.memory, moved, state.turnSeat);
+    if (movedToHand.length > 0) {
+      engine.emit({
+        kind: "cardsMoved",
+        instanceIds: movedToHand.map((card) => card.instanceId),
+        from: Zone.BattleArea,
+        to: Zone.Hand,
+      });
+      await engine.recomputeContinuousEffects?.();
+      if (opts?.silent !== true) {
+        const recipientSeats = new Set(movedToHand.map((card) => card.ownerSeat));
+        for (const seat of recipientSeats) {
+          const addedToHand = {
+            instanceIds: movedToHand.filter((card) => card.ownerSeat === seat).map((card) => card.instanceId),
+            byEffect: currentHandAddProvenance(),
+          };
+          await engine.fireSubTrigger?.("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: seat, addedToHand });
+          await engine.fireSubTrigger?.("whenEffectAddsToHand", { effectAddedToHandSeat: seat, addedToHand });
+        }
+        const returnedDigimon = movedToHand.filter((card) =>
+          requireCardDefinition(card.cardId).kinds.includes(CardKind.Digimon),
+        );
+        for (const seat of new Set(returnedDigimon.map((card) => card.ownerSeat))) {
+          await engine.fireSubTrigger?.("whenDigimonReturnsToHand", {
+            returnedDigimonToHandSeat: seat,
+            returnedDigimonToHandInstanceIds: returnedDigimon
+              .filter((card) => card.ownerSeat === seat)
+              .map((card) => card.instanceId),
+          });
+        }
+      }
+    }
+    return moved;
+  };
+
+  const returnToHand = async (
+    instanceIds: string[],
+    opts?: { silent?: boolean; byEffectSeat?: Seat; detachPermanentTop?: boolean },
+  ): Promise<CardInstance[]> => {
+    if (opts?.detachPermanentTop === true) return detachPermanentTopsToHand(instanceIds, opts);
     instanceIds = filterLockedStackReturns(instanceIds, opts?.byEffectSeat ?? effectSeatStack.at(-1));
     instanceIds = await filterBouncePrevented(instanceIds);
     // Bind each battle-area target to the permanent identity selected by the return effect.
@@ -3874,9 +4017,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         setTopCard(permanent, promoted);
         promoted.faceUp = true;
         const promotedDefinition = requireCardDefinition(promoted.cardId);
-        permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
-        permanent.invalidNoDpStackTop =
-          !promotedDefinition.kinds.includes(CardKind.Digimon) && !promotedDefinition.kinds.includes(CardKind.DigiEgg);
+        permanent.baseDP =
+          promotedDefinition.kinds.includes(CardKind.Digimon) || promotedDefinition.kinds.includes(CardKind.DigiEgg)
+            ? promotedDefinition.dp
+            : 0;
+        permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(promotedDefinition);
         ledger.recomputeDP(state, permanent.permanentId);
         for (const card of removable) movedById.set(card.instanceId, card);
       }
