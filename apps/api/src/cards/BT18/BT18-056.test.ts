@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-056.js";
+import "./BT18-008.js";
 
 describe("BT18-056 TigerVespamon", () => {
   it("scales its suspension by security count and grants Piercing, Reboot, and unsuspend prevention", async () => {
@@ -106,20 +106,38 @@ describe("BT18-056 TigerVespamon", () => {
         0: {
           battleArea: [
             { card: "BT18-056", as: "tiger", suspended: true },
-            { card: "BT1-030", as: "friendly" },
+            { card: "BT1-081", as: "friendly" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-030", as: "opponent" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-030", as: "firstOpponent" },
+            { card: "BT1-030", as: "secondOpponent" },
+          ],
+        },
       },
       { autoAcceptOptional: true },
     );
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("opponent").permanentId], "byBattle")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("friendly").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("firstOpponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("tiger").isSuspended);
     expect(s.perm("tiger").isSuspended).toBe(false);
 
-    s.perm("tiger").isSuspended = true;
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("friendly").permanentId], "byBattle")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("tiger").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("secondOpponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-030"));
     expect(s.perm("tiger").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
@@ -127,14 +145,24 @@ describe("BT18-056 TigerVespamon", () => {
   it("does not unsuspend when another Digimon is deleted by an effect", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT18-056", as: "tiger", suspended: true }] },
-        1: { battleArea: [{ card: "BT1-030", as: "opponent" }] },
+        0: {
+          battleArea: [
+            { card: "BT18-056", as: "tiger", suspended: true },
+            { card: "BT1-030", as: "friendly", dp: 1000 },
+          ],
+        },
+        1: { hand: [{ card: "BT18-008", as: "deletingGoblimon" }] },
       },
       { autoAcceptOptional: true },
     );
+    s.state.turnSeat = 1;
+    s.state.memory = -10;
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("opponent").permanentId], "byEffect")).toBe(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deletingGoblimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT1-030"));
     expect(s.perm("tiger").isSuspended).toBe(true);
     assertNoLoudGap(s);
   });
