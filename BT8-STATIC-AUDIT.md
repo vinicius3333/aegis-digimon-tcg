@@ -26,12 +26,12 @@ claim is valid.
 | BT8-001–010 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-001-010.md` | Yes |
 | BT8-011–020 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-011-020.md` | Yes |
 | BT8-021–030 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-021-030.md` | Yes |
-| BT8-031–040 | Luna in progress | `internal-docs/audits/BT8/BT8-031-040.md` | No |
-| BT8-041–050 | Luna in progress | `internal-docs/audits/BT8/BT8-041-050.md` | No |
-| BT8-051–060 | Luna in progress | `internal-docs/audits/BT8/BT8-051-060.md` | No |
-| BT8-061–070 | Queued | `internal-docs/audits/BT8/BT8-061-070.md` | No |
-| BT8-071–080 | Queued | `internal-docs/audits/BT8/BT8-071-080.md` | No |
-| BT8-081–090 | Queued | `internal-docs/audits/BT8/BT8-081-090.md` | No |
+| BT8-031–040 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-031-040.md` | Yes |
+| BT8-041–050 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-041-050.md` | Yes |
+| BT8-051–060 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-051-060.md` | Yes |
+| BT8-061–070 | Luna in progress | `internal-docs/audits/BT8/BT8-061-070.md` | No |
+| BT8-071–080 | Luna in progress | `internal-docs/audits/BT8/BT8-071-080.md` | No |
+| BT8-081–090 | Luna in progress | `internal-docs/audits/BT8/BT8-081-090.md` | No |
 | BT8-091–100 | Queued | `internal-docs/audits/BT8/BT8-091-100.md` | No |
 | BT8-101–110 | Queued | `internal-docs/audits/BT8/BT8-101-110.md` | No |
 | BT8-111–112 | Queued | `internal-docs/audits/BT8/BT8-111-112.md` | No |
@@ -90,16 +90,46 @@ other component and is never rounded up.
 | BT8-028 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-021-030.md` |
 | BT8-029 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT8-021-030.md` |
 | BT8-030 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-021-030.md` |
+| BT8-031 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-031-040.md` |
+| BT8-032 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-031-040.md` |
+| BT8-033 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-031-040.md` |
+| BT8-034 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-031-040.md` |
+| BT8-035 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-031-040.md` |
+| BT8-036 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-031-040.md` |
+| BT8-037 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-031-040.md` |
+| BT8-038 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-031-040.md` |
+| BT8-039 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-031-040.md` |
+| BT8-040 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-031-040.md` |
+| BT8-041 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-041-050.md` |
+| BT8-042 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-041-050.md` |
+| BT8-043 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-041-050.md` |
+| BT8-044 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-041-050.md` |
+| BT8-045 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-041-050.md` |
+| BT8-046 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-041-050.md` |
+| BT8-047 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-041-050.md` |
+| BT8-048 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-041-050.md` |
+| BT8-049 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-041-050.md` |
+| BT8-050 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-041-050.md` |
+| BT8-051 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT8-051-060.md` |
+| BT8-052 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-051-060.md` |
+| BT8-053 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT8-051-060.md` |
+| BT8-054 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-051-060.md` |
+| BT8-055 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-051-060.md` |
+| BT8-056 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-051-060.md` |
+| BT8-057 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-051-060.md` |
+| BT8-058 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-051-060.md` |
+| BT8-059 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-051-060.md` |
+| BT8-060 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-051-060.md` |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 60
-- Integrated card audits: 30
-- Corrected: 4
-- Provisional: 30
+- Assigned: 90
+- Integrated card audits: 60
+- Corrected: 6
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 52
+- Remaining unassigned: 22
 
 BT8 static re-audit remains open.
