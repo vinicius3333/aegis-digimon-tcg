@@ -1216,6 +1216,9 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       count: 2,
     },
   ],
+  // BT19-063: [DigiXros -2] [SkullKnightmon] x [DeadlyAxemon]. The generated aggregate retained
+  // only the first named slot, so the server could not accept the complete printed recipe.
+  "BT19-063": [{ materials: [{ names: ["SkullKnightmon"] }, { names: ["DeadlyAxemon"] }], count: 2 }],
   // BT19-065: [DigiXros -1] 5 Lv.5-or-lower [Cyborg]/[Composite] Digimon cards with different
   // card numbers. The generated parser retained unrelated header tokens as traits and dropped
   // the five-card cap, while also encoding 1 as the requirement's material-count field.
