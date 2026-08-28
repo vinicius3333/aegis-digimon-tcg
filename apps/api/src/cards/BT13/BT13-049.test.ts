@@ -27,7 +27,7 @@ describe("BT13-049 Lalamon", () => {
                 ],
               },
             },
-            { count: 1, to: "hand", filter: { nameOrTrait: [{ match: "name", tokens: ["Yoshino Fujieda"] }] } },
+            { count: 1, to: "hand", filter: { nameOrTrait: [{ match: "nameExact", tokens: ["Yoshino Fujieda"] }] } },
           ],
         },
       ],
@@ -75,6 +75,27 @@ describe("BT13-049 Lalamon", () => {
       [s.inst("vegetation").instanceId, s.inst("yoshino").instanceId].sort(),
     );
     expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(s.inst("nonmatch").instanceId);
+  });
+
+  it("does not treat a longer Yoshino name as the exact Yoshino Fujieda Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-049", as: "lalamon" }],
+          deck: [
+            { card: "BT13-050", as: "vegetation" },
+            { card: "ST24-14", as: "long-yoshino" },
+            { card: "BT13-047", as: "nonmatch" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("lalamon"));
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("vegetation").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
   it("reduces its host's digivolution cost by 1 with an own green Tamer", async () => {
