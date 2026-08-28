@@ -23,8 +23,8 @@ provisional and capped at 8/10.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT18-001–010 | Luna assigned | `internal-docs/audits/BT18/BT18-001-010.md` | No |
-| BT18-011–020 | Unassigned | `internal-docs/audits/BT18/BT18-011-020.md` | No |
-| BT18-021–030 | Unassigned | `internal-docs/audits/BT18/BT18-021-030.md` | No |
+| BT18-011–020 | Luna assigned | `internal-docs/audits/BT18/BT18-011-020.md` | No |
+| BT18-021–030 | Luna assigned | `internal-docs/audits/BT18/BT18-021-030.md` | No |
 | BT18-031–040 | Unassigned | `internal-docs/audits/BT18/BT18-031-040.md` | No |
 | BT18-041–050 | Unassigned | `internal-docs/audits/BT18/BT18-041-050.md` | No |
 | BT18-051–060 | Unassigned | `internal-docs/audits/BT18/BT18-051-060.md` | No |
@@ -50,12 +50,12 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 10
+- Assigned: 30
 - Integrated card audits: 0
 - Corrected: 0
 - Provisional: 0
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 92
+- Remaining unassigned: 72
 
 BT18 static preparation is in progress; chronological integration remains blocked on BT17 static coverage.

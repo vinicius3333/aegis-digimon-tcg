@@ -87,9 +87,7 @@ describe("BT18-007 Gazimon", () => {
 
   it("grants executable inherited Retaliation to its host", async () => {
     const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT15-011", dp: 4000, as: "host", under: ["BT2-007", "BT18-007"] }],
-      },
+      0: { battleArea: [{ card: "BT1-030", dp: 3000, as: "host", under: ["BT18-007"] }] },
       1: { battleArea: [{ card: "BT1-030", dp: 4000, suspended: true, as: "defender" }] },
     });
     const defenderId = s.perm("defender").permanentId;
