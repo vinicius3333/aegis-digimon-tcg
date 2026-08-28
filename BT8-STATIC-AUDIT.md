@@ -32,9 +32,9 @@ claim is valid.
 | BT8-061–070 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-061-070.md` | Yes |
 | BT8-071–080 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-071-080.md` | Yes |
 | BT8-081–090 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-081-090.md` | Yes |
-| BT8-091–100 | Luna in progress | `internal-docs/audits/BT8/BT8-091-100.md` | No |
-| BT8-101–110 | Luna in progress | `internal-docs/audits/BT8/BT8-101-110.md` | No |
-| BT8-111–112 | Luna in progress | `internal-docs/audits/BT8/BT8-111-112.md` | No |
+| BT8-091–100 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-091-100.md` | Yes |
+| BT8-101–110 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-101-110.md` | Yes |
+| BT8-111–112 | Coordinator reviewed | `internal-docs/audits/BT8/BT8-111-112.md` | Yes |
 
 ## Score model
 
@@ -150,16 +150,39 @@ other component and is never rounded up.
 | BT8-088 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
 | BT8-089 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
 | BT8-090 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-081-090.md` |
+| BT8-091 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-091-100.md` |
+| BT8-092 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-091-100.md` |
+| BT8-093 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-091-100.md` |
+| BT8-094 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-091-100.md` |
+| BT8-095 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-091-100.md` |
+| BT8-096 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-091-100.md` |
+| BT8-097 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-091-100.md` |
+| BT8-098 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-091-100.md` |
+| BT8-099 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-091-100.md` |
+| BT8-100 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-091-100.md` |
+| BT8-101 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-101-110.md` |
+| BT8-102 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT8-101-110.md` |
+| BT8-103 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-101-110.md` |
+| BT8-104 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-101-110.md` |
+| BT8-105 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT8-101-110.md` |
+| BT8-106 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-101-110.md` |
+| BT8-107 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT8-101-110.md` |
+| BT8-108 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-101-110.md` |
+| BT8-109 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-101-110.md` |
+| BT8-110 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-101-110.md` |
+| BT8-111 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT8-111-112.md` |
+| BT8-112 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT8-111-112.md` |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 90
-- Corrected: 10
-- Provisional: 90
+- Integrated card audits: 112
+- Corrected: 14
+- Provisional: 112
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
 
-BT8 static re-audit remains open.
+BT8 static card-by-card coverage is complete, but the collection remains open
+because every execution gate is deferred and no card is verified 10/10.
