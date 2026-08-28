@@ -168,4 +168,65 @@ describe("BT13-080 ProtoGizmon", () => {
       expect.arrayContaining(["BT13-080", "BT13-086"]),
     );
   });
+
+  it("does not return the Gizmon cards when the optional return wrapper is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-080", as: "proto" }],
+          trash: [{ card: "BT13-086", as: "xt" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("proto").permanentId]);
+    await settle();
+
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT13-080", "BT13-086"]),
+    );
+  });
+
+  it("can accept the return cost and decline the nested Gizmon: AT play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-080", as: "proto" }],
+          trash: [{ card: "BT13-083", as: "at" }, { card: "BT13-086", as: "xt" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("proto").permanentId]);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const wrapperDecisionId = s.state.pendingDecision!.decisionId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: wrapperDecisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== wrapperDecisionId,
+    );
+    const nestedDecisionId = s.state.pendingDecision!.decisionId;
+    expect(nestedDecisionId).not.toBe(wrapperDecisionId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: nestedDecisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await deletion;
+
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083")).toBe(false);
+  });
 });
