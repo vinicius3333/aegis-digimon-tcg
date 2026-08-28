@@ -31,10 +31,10 @@ claim is valid.
 | BT7-051–060 | Static audit delivered | `internal-docs/audits/BT7/BT7-051-060.md` | Yes |
 | BT7-061–070 | Luna in progress | `internal-docs/audits/BT7/BT7-061-070.md` | No |
 | BT7-071–080 | Static audit delivered | `internal-docs/audits/BT7/BT7-071-080.md` | Yes |
-| BT7-081–090 | Luna in progress | `internal-docs/audits/BT7/BT7-081-090.md` | No |
+| BT7-081–090 | Static audit delivered | `internal-docs/audits/BT7/BT7-081-090.md` | Yes |
 | BT7-091–100 | Queued | `internal-docs/audits/BT7/BT7-091-100.md` | No |
 | BT7-101–110 | Static audit delivered | `internal-docs/audits/BT7/BT7-101-110.md` | Yes |
-| BT7-111–112 | Queued | `internal-docs/audits/BT7/BT7-111-112.md` | No |
+| BT7-111–112 | Luna in progress | `internal-docs/audits/BT7/BT7-111-112.md` | No |
 
 ## Score model
 
@@ -130,6 +130,16 @@ other component and is never rounded up.
 | BT7-078 AncientSphinxmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Dynamic last-deleted-level target bound and bounded purple Hybrid On Deletion play |
 | BT7-079 Cherubimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected mandatory Then deletion after optional Tamer play plus per-Tamer On Deletion free plays |
 | BT7-080 Neemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited-effect Tamer On Play boundary and Tamer-stack deletion watcher with once-per-turn play |
+| BT7-081 Bokomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Hybrid/Ten-Warriors trait-substring reveal and once-per-turn Tamer-evolution memory gain |
+| BT7-082 Sistermon Blanc (Awakened) | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact Sistermon Blanc and hand/trash placement boundaries plus deletion recovery union |
+| BT7-083 Sistermon Ciel (Awakened) | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact Sistermon Ciel placement with dependent play-cost deletion and recovery union |
+| BT7-084 Eosmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact Eosmon targets for other-self DP aura and bounded On Deletion free play |
+| BT7-085 Takuya Kanbara | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Hybrid/name modes and optional exact-one EmperorGreymon evolution after five-card placement |
+| BT7-086 Tommy Himi | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bottom-three source trash, persistent no-source attack/block restriction, and lifted historical limit |
+| BT7-087 Koji Minamoto | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected Hybrid/name modes and optional exact-one MagnaGarurumon evolution after five-card placement |
+| BT7-088 Zoe Orimoto | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected trait-substring security search, conditional recovery, shuffle, and Security Digimon DP bonus |
+| BT7-089 J.P. Shibayama | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Self-scoped green Tamer evolution reducer and inherited all-turns Piercing boundary |
+| BT7-090 Kota Domoto | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected X-Antibody trait-substring reveal with start-turn memory and Security self-play |
 | BT7-101 Thunder Laser | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Hybrid-or-Ten-Warriors in-play gate, opponent suspension, and Security hand return |
 | BT7-102 Dino Memory Boost! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Main suspension, Option battle-area placement, delayed memory gain, and same-turn gate |
 | BT7-103 Mugen | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected same-target unsuspend restriction after suspension through opponent next turn |
@@ -144,12 +154,12 @@ other component and is never rounded up.
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 100
-- Integrated card audits: 80
-- Corrected: 19
-- Provisional: 80
+- Assigned: 102
+- Integrated card audits: 90
+- Corrected: 27
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 12
+- Remaining unassigned: 10
 
 BT7 static re-audit remains open.
