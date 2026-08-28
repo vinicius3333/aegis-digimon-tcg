@@ -125,9 +125,7 @@ describe("BT14-017", () => {
       { autoSelectCards: true },
     );
     s.state.turnSeat = 1;
-    // Leave at least one memory after Goldramon's printed play cost so Dinorexmon's
-    // opponent-relative restriction is still active while its On Play creates tokens.
-    s.state.memory = 14;
+    s.state.memory = 13;
     await s.ready();
     // Natural hand play drives Goldramon's own On Play effect, proving the token restriction
     // through the same entry path used by the game rather than manually injecting On Play.
