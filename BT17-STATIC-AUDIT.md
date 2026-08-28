@@ -27,7 +27,7 @@ collection-complete claim is valid.
 | --- | --- | --- | --- |
 | BT17-001–010 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-001-010.md` | Yes |
 | BT17-011–020 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-011-020.md` | Yes |
-| BT17-021–030 | Luna assigned | `internal-docs/audits/BT17/BT17-021-030.md` | No |
+| BT17-021–030 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-021-030.md` | Yes |
 | BT17-031–040 | Luna assigned | `internal-docs/audits/BT17/BT17-031-040.md` | No |
 | BT17-041–050 | Luna assigned | `internal-docs/audits/BT17/BT17-041-050.md` | No |
 | BT17-051–060 | Luna assigned | `internal-docs/audits/BT17/BT17-051-060.md` | No |
@@ -85,14 +85,24 @@ feasible natural originating event.
 | BT17-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural attack counter window proves Blast Digivolution on a Gallantmon stack; aggregate-DP deletion and 20-card trash scaling prove both remaining clauses (`e9b8ecb7f`). |
 | BT17-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A complete turn proves the Matt-conditioned draw and a legal two-material end-turn DNA stack proves the inherited evolution requirement (`d30c454c0`). |
 | BT17-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal and inherited attack flows prove dual-category selection, bottom-deck remainder, reduced-cost Tamer play, and the Security-only negative boundary (`955a83bc5`). |
+| BT17-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the named Seasarmon placement filter so the legal level-4 card is eligible; natural play/stack proof covers placement, draw, and inherited Jamming memory (`fe17fed19`). |
+| BT17-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected Tamer-onto legality to preserve the printed yellow base color; legal/illegal Tamer cases, AncientGarurumon evolution, and delayed deletion use real stacks (`2d86c351b`). |
+| BT17-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural yellow-Tamer and Lobomon evolution paths plus a real attack prove the reduced Hybrid evolution and inherited draw boundaries (`4097dfe16`). |
+| BT17-024 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play and legal evolution flows prove level-3 blue placement, draw sequencing, and observable Jamming grant (`2963d8f60`). |
+| BT17-025 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected delayed return binding to the effect-played Digimon; natural evolution/play and a complete opponent turn prove the return, inherited bounce, and Dark Animal trait (`4b37e1b8a`, `0bb898bab`). |
+| BT17-026 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the hand effect with a bound Koji host, routed Hybrid placements, and runtime virtual base; public activation proves one legal stack and exact cost (`d8d38b784`). |
+| BT17-027 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution covers both modal branches and a public attack proves the Omnimon-stack inherited unsuspend (`fb910f079`). |
+| BT17-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play bounce triggers the hand-add watcher and security move; legal evolution and deletion/Tamer flows cover the remaining clauses (`1d6b620ba`). |
+| BT17-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A public attack proves Tamer-suspension draw and a natural security battle observes the inherited opponent-security DP reduction (`b1bef3155`). |
+| BT17-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production turn runners prove both start-of-main security branches with Leon placement; legal Bibimon and Pulsemon-text stacks cover the static identity (`e9c1076e0`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 20
-- Corrected: 2
-- Provisional: 20
+- Integrated card audits: 30
+- Corrected: 6
+- Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 22
