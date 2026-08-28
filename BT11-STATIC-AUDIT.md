@@ -28,11 +28,11 @@ claim is valid.
 | BT11-001–010 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-001-010.md` | Yes |
 | BT11-011–020 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-011-020.md` | Yes |
 | BT11-021–030 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-021-030.md` | Yes |
-| BT11-031–040 | Luna in progress | `internal-docs/audits/BT11/BT11-031-040.md` | No |
-| BT11-041–050 | Luna in progress | `internal-docs/audits/BT11/BT11-041-050.md` | No |
+| BT11-031–040 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-031-040.md` | Yes |
+| BT11-041–050 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-041-050.md` | Yes |
 | BT11-051–060 | Luna in progress | `internal-docs/audits/BT11/BT11-051-060.md` | No |
-| BT11-061–070 | Queued | `internal-docs/audits/BT11/BT11-061-070.md` | No |
-| BT11-071–080 | Queued | `internal-docs/audits/BT11/BT11-071-080.md` | No |
+| BT11-061–070 | Luna in progress | `internal-docs/audits/BT11/BT11-061-070.md` | No |
+| BT11-071–080 | Luna in progress | `internal-docs/audits/BT11/BT11-071-080.md` | No |
 | BT11-081–090 | Queued | `internal-docs/audits/BT11/BT11-081-090.md` | No |
 | BT11-091–100 | Queued | `internal-docs/audits/BT11/BT11-091-100.md` | No |
 | BT11-101–110 | Queued | `internal-docs/audits/BT11/BT11-101-110.md` | No |
@@ -92,16 +92,36 @@ other component and is never rounded up.
 | BT11-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
 | BT11-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; generated snapshot drift documented |
 | BT11-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected universal aliases and bottom placement |
+| BT11-031 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; non-material snapshot normalization drift |
+| BT11-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-034 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-035 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-037 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-041 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no new correction |
+| BT11-044 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-045 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed vanilla card |
+| BT11-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 60
-- Integrated card audits: 30
+- Assigned: 80
+- Integrated card audits: 50
 - Corrected: 5
-- Provisional: 30
+- Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 52
+- Remaining unassigned: 32
 
 BT11 static re-audit remains open.
