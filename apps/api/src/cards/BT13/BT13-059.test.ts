@@ -94,7 +94,13 @@ describe("BT13-059 Examon", () => {
     const preferredTargets: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-059", as: "examon" }, { card: "BT1-015", as: "ally", suspended: true }] },
+        0: {
+          battleArea: [
+            { card: "BT13-059", as: "examon" },
+            { card: "BT1-015", as: "ally", suspended: true },
+            { card: "BT1-015", as: "allySecond", suspended: true },
+          ],
+        },
         1: {
           battleArea: [
             { card: "BT1-015", as: "firstTarget" },
@@ -121,6 +127,7 @@ describe("BT13-059 Examon", () => {
     expect(chooseOptionCount()).toBe(1);
     expect(s.perm("firstTarget").isSuspended).toBe(true);
     expect(s.perm("ally").isSuspended).toBe(false);
+    expect(s.perm("allySecond").isSuspended).toBe(true);
 
     await advance(s.engine).verb.unsuspend([s.perm("opponent").permanentId]);
     expect(s.perm("opponent").isSuspended).toBe(false);
@@ -135,5 +142,6 @@ describe("BT13-059 Examon", () => {
 
     expect(chooseOptionCount()).toBe(1);
     expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.perm("allySecond").isSuspended).toBe(true);
   });
 });
