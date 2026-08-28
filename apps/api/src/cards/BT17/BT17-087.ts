@@ -8,7 +8,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "GrantStatic",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "mine",
@@ -20,6 +20,13 @@ export const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            bindAs: "marcusTarget",
+          },
+        },
+        {
+          kind: "GrantStatic",
+          target: {
+            fromSelectionRef: "marcusTarget",
           },
           grant: "kinds",
           tokens: ["Digimon"],
@@ -28,16 +35,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SetBaseDP",
           target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Marcus Damon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
+            fromSelectionRef: "marcusTarget",
           },
           value: 3000,
           duration: "untilOpponentTurnEnd",
@@ -45,16 +43,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Marcus Damon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
+            fromSelectionRef: "marcusTarget",
           },
           restriction: "digivolve",
           duration: "untilOpponentTurnEnd",
@@ -62,16 +51,7 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Marcus Damon"],
-                  match: "name",
-                },
-              ],
-            },
-            count: 1,
+            fromSelectionRef: "marcusTarget",
           },
           keyword: {
             keyword: "Blocker",
