@@ -15,7 +15,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // and underFilter to King Drasil_7D6 (controller:mine). The text says "place this card
 // as the bottom digivolution card of your [King Drasil_7D6] in the breeding area."
 // The inherited play must likewise source only this Omekamon's own stack; the generic
-// {from:["digivolutionCards"]} path scans every stack and can play an opponent's card.
+// {from:["digivolutionCards"]} path scans every stack and can play a matching card from another
+// own stack.
 export const compiled: CompiledCard = {
   effects: [
     {
