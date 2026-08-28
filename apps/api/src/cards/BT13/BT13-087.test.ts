@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-087.js";
 
@@ -77,14 +75,15 @@ describe("BT13-087 Dynasmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT13-087", as: "dynasmon" }],
+          hand: [{ card: "BT13-087", as: "dynasmon" }],
           deck: ["BT18-034", "BT13-017", "BT1-001", "BT1-002"],
         },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dynasmon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT18-034"));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT18-034", "BT13-017"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
