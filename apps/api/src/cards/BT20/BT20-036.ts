@@ -120,19 +120,23 @@ export const compiled: CompiledCard = {
           },
           payCost: true,
           optional: true,
+          bindResultAs: "dnaDigivolvedByThisEffect",
         },
         {
           kind: "Attack",
           target: {
             filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
+              boundRef: "dnaDigivolvedByThisEffect",
             },
             count: 1,
           },
           withoutSuspending: false,
           optional: true,
-          condition: { kind: "ifThisEffectActed", raw: "the DNA digivolved Digimon" },
+          condition: {
+            kind: "bindingExists",
+            ref: "dnaDigivolvedByThisEffect",
+            raw: "the DNA digivolved Digimon",
+          },
         },
       ],
     },
