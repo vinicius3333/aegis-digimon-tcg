@@ -1,6 +1,6 @@
 # BT18 Static Card Implementation Re-audit
 
-Status: static card-by-card audit in progress; BT17 static coverage recorded; execution gates deferred
+Status: BT18 static coverage recorded; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -31,7 +31,7 @@ provisional and capped at 8/10.
 | BT18-071–080 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-071-080.md` | Yes |
 | BT18-081–090 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-081-090.md` | Yes |
 | BT18-091–100 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-091-100.md` | Yes |
-| BT18-101–102 | Luna assigned | `internal-docs/audits/BT18/BT18-101-102.md` | No |
+| BT18-101–102 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-101-102.md` | Yes |
 
 ## Score model
 
@@ -145,16 +145,18 @@ applicable non-gate component rather than being rounded up.
 | BT18-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Scoped the Main cost to top security; natural direct-security trash, deletion, DP reduction, Security deletion, and Recovery prove the sequence (`02030c42d`). |
 | BT18-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Separated target-switch Delay arming from the payload and gated arbitrary Delay actions; natural Raid, activation, keyword grants, and Security play prove the flow (`d7d82bcf4`). |
 | BT18-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected breeding scope, exact Main Lucemon, any opposing Option target, and typed reduced-cost nested digivolution; natural Main, Delay, boundary, and Security flows prove it (`8d622dd1c`). |
+| BT18-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected exact Larva/Chaos Mode references and optional empty-breeding processing; natural evolution, decline, occupied-breeding, and end-of-turn flows prove both branches (`1e5113116`). |
+| BT18-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected source-stack color scaling, Tamer-only bottom-security placement, actual moved-count scaling, and exact Tamer requirements while preserving Rule aliases; natural evolution, attacks, Blast, and cross-stack negatives prove it (`1e5113116`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 100
-- Corrected: 27
-- Provisional: 100
+- Integrated card audits: 102
+- Corrected: 29
+- Provisional: 102
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 5 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps; `BT18-041` catalog/KB DNA mismatch)
 - Remaining unassigned: 0
 
-BT18 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
+BT18 static coverage is recorded. Scores remain provisional because execution gates were intentionally deferred.
