@@ -37,7 +37,6 @@ export const compiled: CompiledCard = {
         { kind: "SubTrigger", event: "whenPlayed", actions: [mindLink] },
         { kind: "SubTrigger", event: "whenOneOfYoursDigivolves", actions: [mindLink] },
       ],
-      isInherited: true,
     },
     {
       trigger: "AllTurns",
@@ -80,7 +79,7 @@ export const compiled: CompiledCard = {
         {
           kind: "PlayWithoutCost",
           target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "name" }] }, count: 1 },
-          from: ["digivolutionCards"],
+          fromOwnDigivolutionStack: true,
           payCost: false,
           optional: true,
         },

@@ -7,6 +7,8 @@ import "./index.js";
 // A3 for BT20-089 (Code Cracker Fang & Hacker Judge — Purple/Black Tamer).
 //
 // [Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.
+// [All Turns] When any of your Digimon are played or digivolve, you may Mind Link
+//   to 1 of your Digimon with [Pulsemon] text or SoC/SEEKERS trait.
 // [Inherited — All Turns] This Digimon with [Pulsemon] text or SoC/SEEKERS trait
 //   gains ＜Alliance＞, ＜Piercing＞ and ＜Barrier＞.
 // [Inherited — End of All Turns] Play 1 [Eiji Nagasumi] from this Digimon's
@@ -65,6 +67,20 @@ describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
       grant: "name",
       tokens: ["Eiji Nagasumi", "Leon Alexander"],
       duration: "permanent",
+    });
+  });
+
+  it("keeps Mind Link as a regular Tamer watcher and scopes inherited Eiji play to this stack", () => {
+    const mindLinkEffect = compiled.effects.find(
+      (effect) => effect.trigger === "AllTurns" && effect.actions.some((action) => action.kind === "SubTrigger"),
+    );
+    expect(mindLinkEffect).not.toHaveProperty("isInherited");
+
+    const inheritedPlay = compiled.effects.find((effect) => effect.trigger === "EndOfAllTurns");
+    expect(inheritedPlay?.actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      fromOwnDigivolutionStack: true,
+      payCost: false,
     });
   });
 
