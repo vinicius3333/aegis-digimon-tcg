@@ -25,6 +25,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               excludeSelf: true,
+              zone: "battleArea",
               kind: ["Digimon"],
             },
             unit: "cards",
@@ -50,6 +51,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               excludeSelf: true,
+              zone: "battleArea",
               kind: ["Digimon"],
             },
             unit: "cards",
@@ -76,6 +78,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               excludeSelf: true,
+              zone: "battleArea",
               kind: ["Digimon"],
               nameOrTrait: [
                 {
