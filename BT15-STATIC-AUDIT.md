@@ -26,9 +26,9 @@ collection-complete claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT15-001–010 | Luna assigned | `internal-docs/audits/BT15/BT15-001-010.md` | No |
-| BT15-011–020 | Luna assigned | `internal-docs/audits/BT15/BT15-011-020.md` | No |
-| BT15-021–030 | Luna assigned | `internal-docs/audits/BT15/BT15-021-030.md` | No |
+| BT15-001–010 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-001-010.md` | Yes |
+| BT15-011–020 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-011-020.md` | Yes |
+| BT15-021–030 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-021-030.md` | Yes |
 | BT15-031–040 | Unassigned | `internal-docs/audits/BT15/BT15-031-040.md` | No |
 | BT15-041–050 | Unassigned | `internal-docs/audits/BT15/BT15-041-050.md` | No |
 | BT15-051–060 | Unassigned | `internal-docs/audits/BT15/BT15-051-060.md` | No |
@@ -65,14 +65,44 @@ behavior.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT15-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle deletion and legal inherited return stack proof |
+| BT15-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public hand-add origin, turn duration, provenance, and legal stack proof |
+| BT15-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attacks prove both Security ends, decline, and Once Per Turn |
+| BT15-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural end-turn attack, suspension boundary, and Insectoid stack proof |
+| BT15-005 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Any-controller unsuspend filter correction and natural opponent-phase proof `703db853f` |
+| BT15-006 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion-origin proof with the printed trait and stack boundaries |
+| BT15-007 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public entry origins, legal evolution stack, and inherited behavior proof |
+| BT15-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Legal stack fixture plus printed effect boundaries and peer comparison |
+| BT15-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Legal stack fixture plus printed effect boundaries and peer comparison |
+| BT15-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Legal stack fixture plus printed effect boundaries and peer comparison |
+| BT15-011 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public On Play reveal/trash, zero-hit, Blocker, and evolution proof |
+| BT15-012 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public-origin effect proof with legal evolution and inherited stack coverage |
+| BT15-013 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry/deletion behavior and legal red stack proof |
+| BT15-014 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Catalog-to-IR clause trace with behavioral boundaries and peer proof |
+| BT15-015 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural public timing origin and legal evolution-stack proof |
+| BT15-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Catalog-to-IR clause trace with behavioral boundaries and peer proof |
+| BT15-017 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural public timing origin and legal evolution-stack proof |
+| BT15-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural public timing origin and legal evolution-stack proof |
+| BT15-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural public timing origin and legal evolution-stack proof |
+| BT15-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public behavior origin, blue evolution route, and inherited stack proof |
+| BT15-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public reveal/attack origins and equal, fewer, and greater source-count boundaries |
+| BT15-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Effect-play versus normal-play origins, duration, Jamming, and legal stack proof |
+| BT15-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public On Play source trash, empty-stack memory boundary, and legal evolution |
+| BT15-024 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Optional public behavior branches and legal Garurumon stack proof |
+| BT15-025 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public behavior boundaries and legal blue evolution-stack proof |
+| BT15-026 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | ACE catalog trace, public Counter/Overflow behavior, and legal stack proof |
+| BT15-027 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public source-trash behavior, target boundaries, and legal evolution proof |
+| BT15-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public behavior origin, target boundary coverage, and legal blue stack proof |
+| BT15-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public behavior origin, legal predecessor stack, and inherited proof |
+| BT15-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public play/deletion origins, all-target source boundaries, Blocker, and legal stacks |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 30
-- Integrated card audits: 0
-- Corrected: 0
-- Provisional: 0
+- Integrated card audits: 30
+- Corrected: 1
+- Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 72
