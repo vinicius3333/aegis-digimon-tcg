@@ -25,7 +25,7 @@ provisional and capped at 8/10.
 | BT20-011–020 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-011-020.md` | Yes |
 | BT20-021–030 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-021-030.md` | Yes |
 | BT20-031–040 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-031-040.md` | Yes |
-| BT20-041–050 | Luna assigned | `internal-docs/audits/BT20/BT20-041-050.md` | No |
+| BT20-041–050 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-041-050.md` | Yes |
 | BT20-051–060 | Luna assigned | `internal-docs/audits/BT20/BT20-051-060.md` | No |
 | BT20-061–070 | Luna assigned | `internal-docs/audits/BT20/BT20-061-070.md` | No |
 | BT20-071–080 | Luna assigned | `internal-docs/audits/BT20/BT20-071-080.md` | No |
@@ -85,16 +85,26 @@ applicable non-gate component rather than being rounded up.
 | BT20-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle/breeding evolutions prove zone-scoped reduction; natural combat proves inherited Piercing (`1fdfbef5a`). |
 | BT20-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution prove one-target suspension and natural combat proves inherited Piercing (`1fdfbef5a`). |
 | BT20-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural qualifying play drives reduced Groundramon evolution; Raid and inherited DP are behavior-driven (`1fdfbef5a`). |
+| BT20-041 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play and inherited attack prove the main effects, but the When Digivolving origin remains structural (`da5e3f48a`). |
+| BT20-042 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play and inherited battle deletion prove the main effects; When Digivolving and DNA eligibility remain observational (`da5e3f48a`). |
+| BT20-043 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural reduced play proves the entry sequence, but the end-turn DNA origin is manually fired (`da5e3f48a`). |
+| BT20-044 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play and resident/inherited battle watchers are covered, while When Digivolving remains unproved naturally (`da5e3f48a`). |
+| BT20-045 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Blast DNA and either-player suspension prove the tied-highest return and once-per-turn unsuspend (`da5e3f48a`). |
+| BT20-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle/breeding evolution attempts prove the zone-scoped reduction; a legal inherited host proves all-turn DP (`da5e3f48a`). |
+| BT20-047 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural combat proves Blocker, but Reboot relies on direct active-phase seam invocation (`da5e3f48a`). |
+| BT20-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal/evolution paths prove both selectors, alternate evolution, and opponent-turn inherited DP (`da5e3f48a`). |
+| BT20-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution and an opponent attack prove exact targeting and the player-attack restriction (`da5e3f48a`). |
+| BT20-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution proves next-face-down security handling, but End of Attack is manually fired (`da5e3f48a`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 100
-- Integrated card audits: 40
+- Integrated card audits: 50
 - Corrected: 6
-- Provisional: 40
+- Provisional: 50
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 23 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037` source/stack-proof gaps)
+- Blocked or ambiguous: 29 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037`, `BT20-041`–`BT20-044`, `BT20-047`, and `BT20-050` source/stack-proof gaps)
 - Remaining unassigned: 2
 
 BT20 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
