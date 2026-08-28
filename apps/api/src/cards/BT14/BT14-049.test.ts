@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT14-049.js";
@@ -85,5 +86,10 @@ describe("BT14-049", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
     expect(s.state.players[1]!.deck.some((card) => card.cardId === "BT14-042")).toBe(true);
+
+    s.state.turnSeat = 0;
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("base").permanentId], "byEffect")).toBe(1);
+    expect(s.state.memory).toBe(-3);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT14-049")).toBe(true);
   });
 });
