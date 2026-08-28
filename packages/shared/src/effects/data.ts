@@ -1388,6 +1388,22 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       count: 2,
     },
   ],
+  // BT19-070: [DigiXros -1] 3 Lv.4 [Composite] Digimon cards with different card numbers. The
+  // generated parser omitted the level/different-number predicates and the three-card cap.
+  "BT19-070": [
+    {
+      materials: [
+        {
+          kind: ["Digimon"],
+          levelComparison: { op: "eq", value: 4 },
+          nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
+          differentCardNumbers: true,
+        },
+      ],
+      count: 1,
+      maxMaterials: 3,
+    },
+  ],
 };
 
 /**
