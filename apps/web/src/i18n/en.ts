@@ -123,6 +123,8 @@ export const en = {
   "lobby.playersHuman": "2 (human)",
   "lobby.identity": "Identity",
   "lobby.playVsBot": "Play vs Bot",
+  "lobby.botDeck": "Bot's deck",
+  "lobby.botDeckRandom": "Random",
   "lobby.enterQueue": "Enter queue",
   "lobby.create": "Create",
   "lobby.join": "Join",

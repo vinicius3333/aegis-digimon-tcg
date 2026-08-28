@@ -202,6 +202,7 @@ export function AegisClient({
   });
   const [startMode, setStartMode] = useState<StartMode>("casual");
   const [roomCode, setRoomCode] = useState<string>();
+  const [botDeckId, setBotDeckId] = useState<string>();
   const [playerMenuOpen, setPlayerMenuOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const screen = route.screen;
@@ -307,9 +308,10 @@ export function AegisClient({
                 navigateScreen("deck");
               }}
               onNav={navigateScreen}
-              onStart={(mode, code) => {
+              onStart={(mode, code, requestedBotDeckId) => {
                 setStartMode(mode);
                 setRoomCode(code);
+                setBotDeckId(requestedBotDeckId);
                 navigateScreen("game");
               }}
             />
@@ -355,6 +357,7 @@ export function AegisClient({
               identityAvatarUrl={effectivePlayer.avatarUrl}
               startMode={startMode}
               roomCode={roomCode}
+              botDeckId={botDeckId}
               signedIn={!!account}
               onExit={navigateScreen}
             />

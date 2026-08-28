@@ -126,6 +126,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "lobby.playersHuman": "2 (humanos)",
   "lobby.identity": "Identidade",
   "lobby.playVsBot": "Jogar contra o bot",
+  "lobby.botDeck": "Deck do bot",
+  "lobby.botDeckRandom": "Aleatório",
   "lobby.enterQueue": "Entrar na fila",
   "lobby.create": "Criar",
   "lobby.join": "Entrar",
