@@ -5599,8 +5599,9 @@ export class GameEngine {
    * List `seat`'s currently-activatable [Counter] effects (§11-3-1), one entry per
    * (source instance, effect) pair. Mirrors `syncActivatableEffects` but scoped to
    * one (defending) seat and `EffectTiming.OnCounterTiming` rather than the turn
-   * player and `ACTIVATE_TIMING`. Bound into `CombatController`'s `counterEligible`
-   * hook so `runCounterWindow` can skip the round trip when nothing is eligible.
+   * player and `ACTIVATE_TIMING`. Both battle-area Counter effects and explicit
+   * `[Hand][Counter]` effects are eligible. Bound into `CombatController`'s
+   * `counterEligible` hook so `runCounterWindow` can skip the round trip when nothing is eligible.
    */
   private counterEligibleSources(seat: Seat): { instanceId: string; effectKey: string; description: string }[] {
     const player = this.state.players[seat];
@@ -5621,6 +5622,19 @@ export class GameEngine {
               description: effect.description,
             });
           }
+        }
+      }
+    }
+    for (const instance of player.hand) {
+      const source = this.cardSourceOf(instance);
+      for (const effect of effectsOf(EffectTiming.OnCounterTiming, source)) {
+        const ctx = this.buildEffectContext(source, {});
+        if (canTrigger(effect, ctx, this.tracker) && canActivate(effect, ctx, this.tracker)) {
+          entries.push({
+            instanceId: instance.instanceId,
+            effectKey: effect.effectKey,
+            description: effect.description,
+          });
         }
       }
     }

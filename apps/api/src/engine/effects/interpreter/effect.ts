@@ -8,6 +8,7 @@ import {
   breeding,
   colorWaiverStatic,
   digivolveCostStatic,
+  handCounter,
   inTrash,
   onAddHand,
   onDiscardSecurity,
@@ -319,6 +320,7 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
   // trigger with every ordinary activated ability, so it cannot be routed by builder
   // selection alone.
   if (effect.isFromTrash && effect.trigger !== "Main") return inTrash;
+  if (effect.trigger === "Counter" && effect.isFromHand) return handCounter;
   switch (effect.trigger) {
     case "OnPlay":
       return onPlay;

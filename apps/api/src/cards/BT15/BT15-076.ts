@@ -9,7 +9,27 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Counter",
-      actions: [],
+      actions: [
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            cardId: "BT15-076",
+            kind: ["Digimon"],
+          },
+          from: ["hand"],
+          source: "triggerSource",
+          payCost: false,
+          optional: true,
+        },
+      ],
       isFromHand: true,
     },
     {
