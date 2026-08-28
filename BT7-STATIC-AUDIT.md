@@ -23,12 +23,12 @@ claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT7-001–010 | Luna in progress | `internal-docs/audits/BT7/BT7-001-010.md` | No |
+| BT7-001–010 | Static audit delivered | `internal-docs/audits/BT7/BT7-001-010.md` | Yes |
 | BT7-011–020 | Static audit delivered | `internal-docs/audits/BT7/BT7-011-020.md` | Yes |
 | BT7-021–030 | Static audit delivered | `internal-docs/audits/BT7/BT7-021-030.md` | Yes |
-| BT7-031–040 | Queued | `internal-docs/audits/BT7/BT7-031-040.md` | No |
-| BT7-041–050 | Queued | `internal-docs/audits/BT7/BT7-041-050.md` | No |
-| BT7-051–060 | Queued | `internal-docs/audits/BT7/BT7-051-060.md` | No |
+| BT7-031–040 | Luna in progress | `internal-docs/audits/BT7/BT7-031-040.md` | No |
+| BT7-041–050 | Luna in progress | `internal-docs/audits/BT7/BT7-041-050.md` | No |
+| BT7-051–060 | Luna in progress | `internal-docs/audits/BT7/BT7-051-060.md` | No |
 | BT7-061–070 | Queued | `internal-docs/audits/BT7/BT7-061-070.md` | No |
 | BT7-071–080 | Queued | `internal-docs/audits/BT7/BT7-071-080.md` | No |
 | BT7-081–090 | Queued | `internal-docs/audits/BT7/BT7-081-090.md` | No |
@@ -60,6 +60,16 @@ other component and is never rounded up.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT7-001 Kapurimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Own-Tamer battle-area gate, any Tamer color, owner-turn duration, and legal red inherited stack |
+| BT7-002 Bukamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Source-stack-only Digimon play watcher with owner-turn and once-per-turn boundaries |
+| BT7-003 Pusurimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Self-source Digi-Burst discard watcher, one opposing target, and for-the-turn DP reduction |
+| BT7-004 Koromon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected host-only attack scope plus top-or-bottom single-card reveal placement |
+| BT7-005 Dorimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected own-effect placement provenance with self host and once-per-turn draw boundaries |
+| BT7-006 Kokomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional three-card reveal, mandatory one-Tamer trash after acceptance, and bottom remainder |
+| BT7-007 ToyAgumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Effectless full-coverage registration and ordinary red level-two evolution evidence |
+| BT7-008 Flamemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact Susanoomon/Takuya names, Hybrid trait branch, and inherited optional Takuya play |
+| BT7-009 Huckmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Sistermon substring-name reveal-all effect with bottom remainder and inherited once-per-turn scope |
+| BT7-010 Tuskmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | One-own-Digimon +2000 DP When Digivolving target and for-the-turn duration |
 | BT7-011 BurningGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Red-Tamer alternate evolution and Hybrid-or-Takuya-conditioned 4000-DP deletion |
 | BT7-012 Brachiomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Effectless full-coverage registration and ordinary red level-four evolution evidence |
 | BT7-013 MetalGreymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exclusive Tamer/no-Tamer On Play branches and inherited once-per-turn opponent-deletion watcher |
@@ -84,12 +94,12 @@ other component and is never rounded up.
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 30
-- Integrated card audits: 20
-- Corrected: 4
-- Provisional: 20
+- Assigned: 60
+- Integrated card audits: 30
+- Corrected: 7
+- Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 82
+- Remaining unassigned: 52
 
 BT7 static re-audit remains open.
