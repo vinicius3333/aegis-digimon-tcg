@@ -68,4 +68,43 @@ describe("BT13-064 PawnChessmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-035"), 3000);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-035")).toBe(true);
   });
+
+  it("raises the playable ceiling to level 5 at eight trashed Chessmon cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-064", as: "pawn" }],
+          hand: [{ card: "BT13-042", as: "bishop" }],
+          trash: Array.from({ length: 8 }, () => "BT13-035"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("pawn").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-042"));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-042")).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT13-042")).toBe(false);
+  });
+
+  it("keeps the playable ceiling at level 3 below eight trashed Chessmon cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-064", as: "pawn" }],
+          hand: [{ card: "BT13-042", as: "bishop" }],
+          trash: Array.from({ length: 6 }, () => "BT13-035"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("pawn").permanentId]);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT13-042")).toBe(true);
+  });
 });
