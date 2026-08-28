@@ -7,11 +7,19 @@ import "./BT11-111.js";
 describe("BT11-111 Galacticmon", () => {
   it("models all printed effects, including the Vemmon leave-play replacement", () => {
     expect(getCardDefinition("BT11-111")!.effectText).toContain("8 or more [Vemmon]");
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Snatchmon"], cost: 9, isAlternate: true }]);
     expect(compiled.effects).toHaveLength(3);
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({
+      kind: "PlaceUnder",
+      underFilter: { isSelfRef: true },
+      position: "bottom",
+      optional: true,
+    });
     expect(compiled.effects[0]?.actions[1]).toMatchObject({
       kind: "Delete",
       condition: { kind: "selfDigivolutionStackCountAtLeast", count: 8 },
     });
+    expect(compiled.effects[0]?.actions[1]).not.toHaveProperty("optional");
     expect(compiled.effects[1]?.actions[0]).toMatchObject({
       kind: "Replacement",
       event: "wouldLeavePlay",
@@ -19,7 +27,9 @@ describe("BT11-111 Galacticmon", () => {
       actions: [
         {
           cost: {
+            kind: "return",
             target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }, from: ["digivolutionCards"] },
+            to: "deckBottom",
           },
         },
       ],
