@@ -1,6 +1,5 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-068.js";
 import "./index.js";
@@ -105,10 +104,25 @@ describe("BT20-068 Bakemon", () => {
   });
 
   it("gains 1 memory only when Bakemon is inherited under the deleted host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-069", under: ["BT20-068"], as: "host" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-072", under: ["BT20-068"], suspended: true, as: "host" }] },
+      1: { battleArea: [{ card: "BT20-076", as: "attacker" }] },
+    });
     s.state.memory = 0;
+    const hostId = s.perm("host").permanentId;
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) && s.state.memory === 1,
+    );
     expect(s.state.memory).toBe(1);
   });
 });
