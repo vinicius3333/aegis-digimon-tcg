@@ -1,6 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { irNode } from "../../engine/testkit/irNode.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { GRANTED_EFFECT_LIBRARY } from "../../engine/effects/interpreter/grantedEffects.js";
 import { compiled } from "./BT13-094.js";
 
@@ -16,7 +18,7 @@ describe("BT13-094 BT13-094", () => {
           payCost: false,
           optional: true,
           target: {
-            filter: { kind: ["Digimon"], nameOrTrait: [{ match: "name", tokens: ["Biyomon"] }] },
+            filter: { kind: ["Digimon"], nameOrTrait: [{ match: "nameExact", tokens: ["Biyomon"] }] },
             count: 1,
           },
         },
@@ -68,5 +70,22 @@ describe("BT13-094 BT13-094", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT13-094", as: "card" }] } });
     await s.ready();
     expect(s.perm("card").topCard?.cardId).toBe("BT13-094");
+  });
+
+  it("grants the deletion play to one own Digimon and plays an exact Biyomon from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-094", as: "kristy" }, { card: "BT13-008", as: "recipient" }],
+          hand: [{ card: "BT1-012", as: "biyomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("kristy"));
+    await advance(s.engine).verb.deletePermanent([s.perm("recipient").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-012"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-012")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("biyomon").instanceId)).toBe(false);
   });
 });
