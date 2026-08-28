@@ -3,7 +3,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-081.js";
 
 describe("BT18-081 Rhihimon", () => {
-  it("proves the hand-only two-material Tamer digivolution and all printed clauses", () => {
+  it("proves the hand-only exact-name two-material Tamer digivolution and all printed clauses", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]).toMatchObject({
@@ -20,13 +20,19 @@ describe("BT18-081 Rhihimon", () => {
             filter: { kind: ["Tamer"], colors: ["Purple", "Yellow"] },
             fromSelectionRef: "rhihimonHost",
           },
-          cost: { kind: "place", bindHostAs: "rhihimonHost" },
+          cost: {
+            kind: "place",
+            bindHostAs: "rhihimonHost",
+            target: {
+              filter: { zone: "trash", nameOrTrait: [{ tokens: ["Loweemon"], match: "nameExact" }] },
+            },
+          },
           additionalCosts: [
             {
               kind: "place",
               host: { filter: { boundRef: "rhihimonHost" }, count: 1 },
               target: {
-                filter: { zone: "trash", nameOrTrait: [{ tokens: ["KaiserLeomon"], match: "name" }] },
+                filter: { zone: "trash", nameOrTrait: [{ tokens: ["KaiserLeomon"], match: "nameExact" }] },
                 count: 1,
               },
             },
