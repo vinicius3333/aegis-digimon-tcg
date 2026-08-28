@@ -22,9 +22,13 @@ describe("BT19-002 Puyoyomon", () => {
     s.state.turnSeat = 1;
 
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => (s.state.players[1] as PlayerState).hand.length > 0);
 
     expect((s.state.players[0] as PlayerState).deck.map((card) => card.cardId)).toEqual(["BT1-033"]);
@@ -47,9 +51,13 @@ describe("BT19-002 Puyoyomon", () => {
     s.state.turnSeat = 1;
 
     await s.ready();
-    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false, 20);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
@@ -75,9 +83,13 @@ describe("BT19-002 Puyoyomon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
-      attackerPermanentId: s.perm("attacker").permanentId,
-    });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => (s.state.players[1] as PlayerState).hand.length > 0);
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-019"]);
