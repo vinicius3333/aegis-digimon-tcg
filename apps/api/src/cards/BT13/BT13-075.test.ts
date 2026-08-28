@@ -25,6 +25,7 @@ describe("BT13-075 BT13-075", () => {
               destination: "digivolutionStack",
               position: "bottom",
               host: "self",
+              optional: true,
               target: {
                 filter: {
                   zone: "trash",
@@ -34,7 +35,6 @@ describe("BT13-075 BT13-075", () => {
                 },
                 count: 1,
                 from: ["trash"],
-                optional: true,
               },
             },
           },
