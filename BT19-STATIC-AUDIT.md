@@ -25,11 +25,11 @@ provisional and capped at 8/10.
 | BT19-011–020 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-011-020.md` | Yes |
 | BT19-021–030 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-021-030.md` | Yes |
 | BT19-031–040 | Luna assigned | `internal-docs/audits/BT19/BT19-031-040.md` | No |
-| BT19-041–050 | Luna assigned | `internal-docs/audits/BT19/BT19-041-050.md` | No |
+| BT19-041–050 | Luna prepared; chronological review pending | `internal-docs/audits/BT19/BT19-041-050.md` | No |
 | BT19-051–060 | Luna assigned | `internal-docs/audits/BT19/BT19-051-060.md` | No |
 | BT19-061–070 | Luna assigned | `internal-docs/audits/BT19/BT19-061-070.md` | No |
 | BT19-071–080 | Luna assigned | `internal-docs/audits/BT19/BT19-071-080.md` | No |
-| BT19-081–090 | Unassigned | `internal-docs/audits/BT19/BT19-081-090.md` | No |
+| BT19-081–090 | Luna assigned | `internal-docs/audits/BT19/BT19-081-090.md` | No |
 | BT19-091–100 | Unassigned | `internal-docs/audits/BT19/BT19-091-100.md` | No |
 | BT19-101–102 | Unassigned | `internal-docs/audits/BT19/BT19-101-102.md` | No |
 
@@ -79,12 +79,12 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 80
+- Assigned: 90
 - Integrated card audits: 30
 - Corrected: 8
 - Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 16 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-030` source-proof gaps; excludes fully proved `BT19-022`)
-- Remaining unassigned: 22
+- Remaining unassigned: 12
 
 BT19 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
