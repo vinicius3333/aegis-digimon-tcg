@@ -29,7 +29,7 @@ provisional and capped at 8/10.
 | BT18-051–060 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-051-060.md` | Yes |
 | BT18-061–070 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-061-070.md` | Yes |
 | BT18-071–080 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-071-080.md` | Yes |
-| BT18-081–090 | Luna assigned | `internal-docs/audits/BT18/BT18-081-090.md` | No |
+| BT18-081–090 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-081-090.md` | Yes |
 | BT18-091–100 | Luna assigned | `internal-docs/audits/BT18/BT18-091-100.md` | No |
 | BT18-101–102 | Luna assigned | `internal-docs/audits/BT18/BT18-101-102.md` | No |
 
@@ -125,14 +125,24 @@ applicable non-gate component rather than being rounded up.
 | BT18-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution, attack evolution, opponent-turn duration, and inherited deletion use legal Hybrid and Tamer stacks (`b8196e381`, `588cd4d2c`). |
 | BT18-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry, three-color scaling, End of Attack cost/deletion, and inherited Retaliation replace structural-only evidence (`91bfbef8b`). |
 | BT18-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution and inherited battle prove both ordered deletions, color/cost boundaries, and Retaliation (`ed435bb52`). |
+| BT18-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected exact material names and bound both placements plus the hand evolution to one selected Tamer; public activation proves the compound path (`05f63ad5a`). |
+| BT18-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Routed the optional deletion target choice to the opponent and required exact Lucemon evolution; natural play/evolution cover both choice branches and the leave replacement (`b8742604d`). |
+| BT18-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the unqualified Collision aura from own-side to all Digimon; live targets on both sides prove the DP-relative boundary (`864f0aa27`). |
+| BT18-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected distinct DigiXros alternatives and own-stack leave source; natural DigiXros, entry deletion, opponent removal, and slot negative prove the behavior (`924662e11`, `2090cf83f`). |
+| BT18-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural exact Zanbamon evolution with four opponent-trash colors proves cost, DP, and Security Attack scaling (`54747f621`). |
+| BT18-086 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected exact Security-play name and the 0-DP aura target while retaining substring Lucemon presence; natural security, deletion, breeding, and variant-negative flows prove the paths (`9abada61f`, `bbeb53a5a`). |
+| BT18-087 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural turn start, opponent-security removal, DP boundary, suspension cost, and Security self-play cover the existing implementation (`833834a54`). |
+| BT18-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Bound start-main placement under this Tamer and gated inherited attack to Hybrid/Ten Warriors; natural turns, security, eligible attack, and non-Hybrid negative prove it (`477eb5329`, `7fdb6b260`). |
+| BT18-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural main-phase payment, Security self-play, attack-source trash, and conditional draw cover the card (`95b9972d2`). |
+| BT18-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural main-phase payment, Security self-play, battle deletion, and inherited-effect Tamer selection cover the card (`133c95db5`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 80
-- Corrected: 14
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 20
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 5 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps; `BT18-041` catalog/KB DNA mismatch)
 - Remaining unassigned: 0
