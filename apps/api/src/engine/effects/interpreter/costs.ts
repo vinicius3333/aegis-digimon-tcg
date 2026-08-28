@@ -1804,6 +1804,7 @@ export async function payCost(
         if (placedIds.size !== orderedPicked.length || orderedPicked.some((instanceId) => !placedIds.has(instanceId))) {
           return false;
         }
+        ctx.lastPlacedUnderInstanceIds = [...orderedPicked];
         if (cost.bindHostAs !== undefined) {
           ctx.selections ??= new Map();
           ctx.selections.set(cost.bindHostAs, hostPermId);
@@ -1902,6 +1903,7 @@ export async function payCost(
         belowTop: false,
         faceUp: cost.faceDown !== true,
       });
+      ctx.lastPlacedUnderInstanceIds = [...orderedChosen];
       if (cost.storeAs !== undefined && chosen.length > 0) {
         const pickedCard = candidates.find((c) => c.instanceId === chosen[0]);
         const level = pickedCard !== undefined ? ctx.game.definitionOf(pickedCard as never).level : undefined;

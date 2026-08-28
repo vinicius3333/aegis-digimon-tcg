@@ -1921,9 +1921,11 @@ export interface EffectContext {
    * real destination id, so the relocation itself can't run yet). The engine reads this list once the
    * played permanent is created and performs the deferred `relocatePermanent` calls then (mirrors the
    * BT10-093 cross-permanent reducer's `pendingPlayReducerPlacements` queue). Undefined / empty =>
-   * no self-reducer requested a relocation this play.
+   * no self-reducer requested a relocation this play. `shedOwnCards` relocates only the source
+   * permanent's top card and trashes the rest of its stack (BT15-102 places battle-area top cards
+   * per KB Q2599); without it the whole permanent moves under the played card (BT12-112).
    */
-  pendingSelfReducerRelocations?: string[];
+  pendingSelfReducerRelocations?: (string | { permanentId: string; shedOwnCards?: boolean })[];
   /** Loose card instance ids committed under the card being played once its permanent exists. */
   pendingSelfReducerPlacements?: string[];
   /**
