@@ -62,16 +62,15 @@ describe("BT13-084 Astamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT13-084", as: "astamon" },
-            { card: "BT13-083", as: "cost" },
-          ],
-          hand: [{ card: "BT13-088", as: "sleep" }],
+          battleArea: [{ card: "BT13-083", as: "cost" }],
+          hand: [{ card: "BT13-084", as: "astamon" }, { card: "BT13-088", as: "sleep" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("astamon"));
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("astamon").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("astamon").topCard?.cardId === "BT13-088");
     expect(s.perm("astamon").topCard?.cardId).toBe("BT13-088");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-083")).toBe(true);
