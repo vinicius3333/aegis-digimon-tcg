@@ -13,7 +13,7 @@ import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../e
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-085.js";
-import "./BT7-112.js";
+import { compiled } from "./BT7-112.js";
 
 // BT7-112 (Susanoomon)
 // Chosen KB clauses:
@@ -124,6 +124,23 @@ describe("BT7-112 (Susanoomon)", () => {
 
   it("is registered", () => {
     expect(module, "BT7-112 must self-register on import").toBeDefined();
+  });
+
+  it("encodes the hand-only Tamer alternate digivolution placement path", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      {
+        cost: 7,
+        isAlternate: true,
+        baseIsTamer: true,
+        sourceZones: ["hand"],
+        placementCost: {
+          count: 10,
+          from: ["hand", "trash"],
+          kinds: ["Tamer"],
+          traits: ["Hybrid"],
+        },
+      },
+    ]);
   });
 
   it("routes [When Digivolving] delete to WhenDigivolving, not to OnPlay", () => {
