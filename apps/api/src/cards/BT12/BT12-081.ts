@@ -14,7 +14,13 @@ if (whenDigivolving !== undefined) {
     payCost: true,
     costDelta: -3,
     optional: true,
-    condition: { kind: "selfDigivolutionCountAtLeast", value: 4 },
+    condition: {
+      kind: "allOf",
+      conditions: [
+        { kind: "selfDigivolutionCountAtLeast", value: 4 },
+        { kind: "ifThisEffectDidNotAct" },
+      ],
+    },
   };
 }
 const saveRequirement = compiled.digivolutionRequirement?.find((requirement) => requirement.traits?.includes("Save"));
