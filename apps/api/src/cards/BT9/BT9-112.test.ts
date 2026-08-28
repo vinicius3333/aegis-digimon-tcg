@@ -120,6 +120,38 @@ describe("BT9-112 ＜when played＞ cost reduction (-3 per opponent Digimon/Tame
     expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT7-062")).toHaveLength(2);
   });
 
+  it("when digivolving from a legal level-6 base, de-digivolves then deletes resulting level 4 or lower", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-068", as: "base" }],
+          hand: [{ card: BT9_112, as: "evolving" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT9-078", as: "fallsToLevel4", under: ["BT7-062"] },
+            { card: "BT9-078", as: "staysLevel5" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT9-078");
+    expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT9-078")).toHaveLength(1);
+    expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT7-062")).toHaveLength(1);
+  });
+
   it("at the end of the opponent's turn deletes every Digimon tied for lowest play cost", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: BT9_112, as: "deathX" }] },
