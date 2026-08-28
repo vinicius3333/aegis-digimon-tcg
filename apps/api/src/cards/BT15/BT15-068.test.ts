@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { GameEngine } from "../../engine/GameEngine.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT15-068.js";
 // Self-register every card module so the engine drives the REGISTERED BT15-068 IR.
 import "../index.js";
 
@@ -18,6 +19,55 @@ import "../index.js";
  */
 
 describe("A3 BT15-068 — granted '[On Deletion] Lose 1 memory.'", () => {
+  it("watches only effect-played opponent Digimon in the battle area", () =>
+    expect(compiled.effects?.[1]).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+            zone: "battleArea",
+            byEffect: true,
+          },
+        },
+      ],
+    }));
+
+  it("gains memory when a natural effect plays an opponent Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-078", as: "attacker", under: ["BT15-068", "BT15-072"] }],
+          security: ["BT1-001"],
+        },
+        1: {
+          trash: [{ card: "BT1-009", as: "playedByEffect" }],
+          security: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("playedByEffect").instanceId)).toBe(
+      true,
+    );
+  });
+
   it("POSITIVE: deleting the granted opponent Digimon costs 1 memory", async () => {
     const s = setupEngine(
       {
