@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-030.js";
+import "./BT18-008.js";
 
 describe("BT18-030 Candlemon", () => {
   it("reveals three and adds a matching Witchelny card while returning the rest to deck bottom", async () => {
@@ -77,6 +78,31 @@ describe("BT18-030 Candlemon", () => {
     }
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("naturally protects the inherited host from an opponent's deletion effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-036", dp: 1000, as: "host", under: ["BT18-030"] }],
+          security: ["BT1-048", "BT1-056"],
+        },
+        1: { hand: [{ card: "BT18-008", as: "goblimon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const hostId = s.perm("host").permanentId;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("goblimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT18-008"));
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 
