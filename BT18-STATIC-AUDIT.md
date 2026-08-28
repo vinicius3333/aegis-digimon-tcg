@@ -27,7 +27,7 @@ provisional and capped at 8/10.
 | BT18-031–040 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-031-040.md` | Yes |
 | BT18-041–050 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-041-050.md` | Yes |
 | BT18-051–060 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-051-060.md` | Yes |
-| BT18-061–070 | Luna assigned | `internal-docs/audits/BT18/BT18-061-070.md` | No |
+| BT18-061–070 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-061-070.md` | Yes |
 | BT18-071–080 | Luna assigned | `internal-docs/audits/BT18/BT18-071-080.md` | No |
 | BT18-081–090 | Luna assigned | `internal-docs/audits/BT18/BT18-081-090.md` | No |
 | BT18-091–100 | Luna assigned | `internal-docs/audits/BT18/BT18-091-100.md` | No |
@@ -105,14 +105,24 @@ applicable non-gate component rather than being rounded up.
 | BT18-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves Knightmon-text discard, draw, refusal/no-candidate behavior, while a legal stack proves inherited DP (`5fc1144b2`). |
 | BT18-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Digimon/Tamer memory sources and battle deletion prove player scope, Tamer exception, and immediate restriction removal (`1389ea589`). |
 | BT18-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves both reveal dispositions and remainder; legal Vemmon-text evolutions prove inherited reduction, frequency, host and turn boundaries (`a68e6a4a6`). |
+| BT18-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal and opponent-turn flow prove union placement, refusal, own-stack Tamer play, frequency, and Machine-only Collision (`4d91b3208`). |
+| BT18-062 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry and completed opponent turn prove Knightmon-text payment, refusal, deletion protection, duration, and inherited DP (`0ccfc6d62`). |
+| BT18-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural named evolution, attack-driven Hybrid evolution, protection, and opponent/own leave flows prove alternate routes and own-stack inherited Tamer play (`1834e7b03`). |
+| BT18-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution and completed opponent turn prove return protection, hand/deck scope, expiration, named route, and inherited DP (`21044c951`). |
+| BT18-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public DigiXros and real turn ends prove trash materials, non-Vemmon gate, placement/refusal, four-source evolution, and inherited return/unsuspend/Blocker (`200d9ef51`). |
+| BT18-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution proves exact hand/trash Hybrid placement and last-placed On Play activation, refusal/exclusion, alternate route, and inherited DP (`8d89dcd9d`). |
+| BT18-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and both alternate evolutions prove De-Digivolve targeting, stack isolation, and top/inherited Blocker (`7cf6d0118`). |
+| BT18-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added any-deck controller scope; real decisions prove own/opponent reveal-five and chosen top/bottom return while preserving Blocker (`6f5fbec94`). |
+| BT18-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production opponent-turn flow proves forced player attack; live inherited-text matching now recognizes bracketed Knightmon references and grants host-only DP (`a731be3b2`, `a3cd02512`). |
+| BT18-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added exact Beetlemon/MetalKabuterimon material names; public hand activation, same-name negative, Collision, target switch, and natural inherited attack prove the contract (`24ec4bff8`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 60
-- Corrected: 6
-- Provisional: 60
+- Integrated card audits: 70
+- Corrected: 9
+- Provisional: 70
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 5 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps; `BT18-041` catalog/KB DNA mismatch)
 - Remaining unassigned: 0
