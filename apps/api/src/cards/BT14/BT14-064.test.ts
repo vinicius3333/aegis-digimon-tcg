@@ -42,7 +42,7 @@ describe("BT14-064", () => {
       {
         0: {
           battleArea: [
-            { card: "BT14-064", as: "source", under: ["BT14-061"] },
+            { card: "BT14-067", as: "source", under: ["BT14-064"] },
             { card: "BT14-055", as: "deleted" },
           ],
           deck: ["BT14-056", "BT1-001", "BT1-002"],
