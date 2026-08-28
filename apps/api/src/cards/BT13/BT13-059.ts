@@ -120,10 +120,10 @@ export const compiled: CompiledCard = {
       cost: 4,
       materials: [
         {
-          names: ["Slayerdramon"],
+          namesExact: ["Slayerdramon"],
         },
         {
-          names: ["Breakdramon"],
+          namesExact: ["Breakdramon"],
         },
       ],
     },

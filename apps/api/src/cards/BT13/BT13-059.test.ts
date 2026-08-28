@@ -1,3 +1,4 @@
+import { dnaDigivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-059.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,7 +8,10 @@ describe("BT13-059 Examon", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.dnaDigivolveRequirement).toContainEqual(
-      expect.objectContaining({ cost: 4, materials: [{ names: ["Slayerdramon"] }, { names: ["Breakdramon"] }] }),
+      expect.objectContaining({
+        cost: 4,
+        materials: [{ namesExact: ["Slayerdramon"] }, { namesExact: ["Breakdramon"] }],
+      }),
     );
     expect(compiled.effects[0]).toMatchObject({
       trigger: "OnPlay",
@@ -49,5 +53,29 @@ describe("BT13-059 Examon", () => {
     });
     await settle(() => s.perm("target").isSuspended, 3000);
     expect(s.perm("target").isSuspended).toBe(true);
+  });
+
+  it("uses exact named DNA materials and enters unsuspended", async () => {
+    expect(dnaDigivolutionRequirementsFor("BT13-059")).toEqual([
+      { cost: 4, materials: [{ namesExact: ["Slayerdramon"] }, { namesExact: ["Breakdramon"] }] },
+    ]);
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-027", as: "slayer" }, { card: "BT1-026", as: "breaker" }],
+        hand: [{ card: "BT13-059", as: "examon" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("slayer").permanentId, s.perm("breaker").permanentId],
+        instanceId: s.inst("examon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-059"));
+    const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT13-059")!;
+    expect(result.isSuspended).toBe(false);
   });
 });
