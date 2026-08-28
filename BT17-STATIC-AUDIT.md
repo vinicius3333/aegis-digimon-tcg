@@ -31,7 +31,7 @@ collection-complete claim is valid.
 | BT17-031–040 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-031-040.md` | Yes |
 | BT17-041–050 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-041-050.md` | Yes |
 | BT17-051–060 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-051-060.md` | Yes |
-| BT17-061–070 | Luna assigned | `internal-docs/audits/BT17/BT17-061-070.md` | No |
+| BT17-061–070 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-061-070.md` | Yes |
 | BT17-071–080 | Luna assigned | `internal-docs/audits/BT17/BT17-071-080.md` | No |
 | BT17-081–090 | Luna assigned | `internal-docs/audits/BT17/BT17-081-090.md` | No |
 | BT17-091–100 | Luna assigned | `internal-docs/audits/BT17/BT17-091-100.md` | No |
@@ -125,14 +125,24 @@ feasible natural originating event.
 | BT17-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal/placement and attack End of Attack prove own-stack Machine play while preserving the GroundLocomon host (`9d964d1e9`). |
 | BT17-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution places Doomsday Clock and creates two tokens; two opponent attacks prove redirect and its once-per-turn boundary (`351041b9f`). |
 | BT17-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural hand play proves trash-based cost reduction/bottom-deck movement, exact 15-cost deletion budget, keywords, and unsuspended-target attack permission (`672038d4d`). |
+| BT17-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves own-Digimon cost and level-4 deletion boundary; a losing battle on a real stack proves inherited Retaliation (`504420d75`). |
+| BT17-062 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attacks independently prove Kosuke and opposing level-6 conditions, exact-cost Dorugoramon evolution, negatives, and inherited Reboot (`8ea1ac5e9`). |
+| BT17-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Legal Hippo and non-Hippo evolutions prove draw/trash ordering and the Murmukusmon branch; a battle proves inherited Retaliation (`117d70013`). |
+| BT17-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the no-source attack condition and exact defender binding; natural positive and sourced-target negative attacks prove Q2816 behavior (`23aa9a436`). |
+| BT17-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected trash replacement to prevent only after successful free evolution and normalized Reboot; natural accept/no-source cases prove the deletion boundary (`bddc1acb7`). |
+| BT17-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Darcmon evolution proves free level-3 Purple/Yellow play and decline/ineligible boundaries; legal stacks prove both Blocker clauses (`489fdf241`). |
+| BT17-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural replacement accept/decline and a real inherited attack prove source evolution, chosen-own deletion, and opposing level boundary (`f85bbada3`). |
+| BT17-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Effect deletion and battle negative prove cause gating; a real attack proves Dark Masters placement/DP gain and natural reveal proves treated levels (`a4ff71e97`). |
+| BT17-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the inherited turn threshold to the shared minimum-memory primitive; natural plays, complete turns, deletion boundary, and delayed return prove all clauses (`4d755b0c2`). |
+| BT17-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution prove Dark Masters placement and level deletion; a public attack returns seven trash cards, routes the Digi-Egg, and unsuspends (`fa14c9126`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 60
-- Corrected: 12
-- Provisional: 60
+- Integrated card audits: 70
+- Corrected: 15
+- Provisional: 70
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
