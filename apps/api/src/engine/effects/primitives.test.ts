@@ -616,6 +616,34 @@ describe("primitives: trash / delete / suspend", () => {
     expect(h.state.players[1]!.security).toHaveLength(0);
   });
 
+  it("trashFromSecurity names the trashed cards and their seat on the movement event", async () => {
+    const h = harness({
+      board: {
+        1: {
+          security: [
+            { card: OPTION, as: "top" },
+            { card: TAMER, as: "bottom" },
+          ],
+        },
+      },
+    });
+    const topId = h.s.inst("top").instanceId;
+    const bottomId = h.s.inst("bottom").instanceId;
+
+    await h.fx.trashFromSecurity(1, 2, { fromTop: true });
+
+    // The event is broadcast before the state patch that lands the cards in the trash,
+    // so it must carry the now-public identities itself for the client's trash scene.
+    expect(h.events).toContainEqual({
+      kind: "cardsMoved",
+      instanceIds: [topId, bottomId],
+      from: "security",
+      to: "trash",
+      cardIds: [OPTION, TAMER],
+      seat: 1,
+    });
+  });
+
   it("trashFromSecurity removes an explicitly selected card from anywhere in security", async () => {
     const h = harness({
       board: {

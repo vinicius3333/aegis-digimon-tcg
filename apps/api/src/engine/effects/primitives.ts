@@ -2641,6 +2641,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         instanceIds: moved.map((c) => c.instanceId),
         from: Zone.Security,
         to: Zone.Trash,
+        // The cards are face-up in a public trash the moment this is emitted, so their
+        // identities are public. Carried on the event because it is broadcast before
+        // the state patch lands them in the trash a client could look them up in.
+        cardIds: moved.map((c) => c.cardId),
+        seat,
       });
       // SubTrigger bus: a resolving EFFECT removed cards from `seat`'s security stack
       // attack-driven security check, which routes through its own seam. The payload names

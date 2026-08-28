@@ -322,12 +322,14 @@ export interface SecurityDestruction {
 
 /**
  * The security cards this batch of events had trashed by an effect, in the order the
- * stacks lost them. `cardsMoved` names only instance ids and no seat, so both come from
- * the caller's index of the board the movement has already landed on — the cards are in
- * the trash, which is public, so every one of them resolves.
+ * stacks lost them. The event itself carries the identities and the seat (the cards
+ * are face-up in a public trash the moment it is emitted); an event predating that
+ * enrichment falls back to the caller's index of the board the movement landed on.
  *
- * A card whose identity the index cannot name is dropped rather than drawn as an
- * anonymous back: a scene that cannot say WHICH card was lost is worse than none.
+ * The fallback matters because the event is broadcast before the state patch that
+ * puts the card in the trash, so the index can be one patch behind. A card neither
+ * the event nor the index can name is dropped rather than drawn as an anonymous
+ * back: a scene that cannot say WHICH card was lost is worse than none.
  */
 export function securityDestructionsFromEvents(
   events: readonly ServerEvent[],
@@ -336,12 +338,12 @@ export function securityDestructionsFromEvents(
   const destroyed: SecurityDestruction[] = [];
   for (const event of events) {
     if (event.kind !== "cardsMoved" || event.from !== SECURITY_ZONE || event.to !== TRASH_ZONE) continue;
-    for (const instanceId of event.instanceIds) {
-      const cardId = lookup.cardId(instanceId);
-      const seat = lookup.seat(instanceId);
-      if (cardId === undefined || seat === undefined) continue;
+    event.instanceIds.forEach((instanceId, index) => {
+      const cardId = event.cardIds?.[index] ?? lookup.cardId(instanceId);
+      const seat = event.seat ?? lookup.seat(instanceId);
+      if (cardId === undefined || seat === undefined) return;
       destroyed.push({ cardId, seat });
-    }
+    });
   }
   return destroyed;
 }
