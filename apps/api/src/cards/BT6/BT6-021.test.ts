@@ -3,9 +3,9 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT6-021.js";
 
-describe("BT6-021 Tinkermon", () => {
+describe("BT6-021 ModokiBetamon", () => {
   it("blocks opponent memory gain except from Tamer effects", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-021", as: "tinkermon" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-021", as: "modoki" }] } });
     await s.ready();
 
     expect(observe(s.engine).canGainMemoryFromEffect(1, ["Digimon"])).toBe(false);
