@@ -281,9 +281,38 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           return false;
         }
         const cap = action.target.count === "all" ? matching.length : Math.min(action.target.count, matching.length);
-        // KB Q4860: play 3 (or as many as possible up to the cap) — a mandatory as-many-as-possible
-        // selection, NOT an "up to" partial. Take the first `cap` matching stack cards.
-        const chosenOwn = matching.slice(0, cap).map((c) => c.instanceId);
+        // Named own-stack targets need the same exact-name semantics as loose-card targeting.
+        // This matters for BT7-063: its On Play target is up-to by name, while its deletion
+        // replacement requires both names when both are present (Q1623).
+        const requiredNamesExact = action.target.requiredNamesExact ?? [];
+        const requiredNamesExactUpTo = action.target.requiredNamesExactUpTo ?? [];
+        const namedSelection = (names: string[], requireAll: boolean) => {
+          const selected: typeof matching = [];
+          const used = new Set<string>();
+          for (const requiredName of names) {
+            const candidate = matching.find((card) => {
+              if (used.has(card.instanceId)) return false;
+              const definition = ctx.game.definitionOf({ cardId: card.cardId } as never);
+              return definition.nameEn === requiredName;
+            });
+            if (candidate === undefined) {
+              if (requireAll) return [];
+              continue;
+            }
+            used.add(candidate.instanceId);
+            selected.push(candidate);
+          }
+          return selected;
+        };
+        // A required exact set is all-or-none; an up-to set takes one of each available name.
+        // With neither field, preserve the normal mandatory as-many-as-possible selection.
+        const selectedNamed =
+          requiredNamesExact.length > 0
+            ? namedSelection(requiredNamesExact, true)
+            : requiredNamesExactUpTo.length > 0
+              ? namedSelection(requiredNamesExactUpTo, false)
+              : undefined;
+        const chosenOwn = (selectedNamed ?? matching.slice(0, cap)).slice(0, cap).map((c) => c.instanceId);
         if (chosenOwn.length > 0) {
           const played = await ctx.fx.playInstances(chosenOwn, {
             payCost: action.payCost,
