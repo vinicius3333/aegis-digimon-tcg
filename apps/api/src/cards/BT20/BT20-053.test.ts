@@ -38,6 +38,7 @@ describe("BT20-053 Grademon", () => {
         immuneFrom: "opponentDigimonEffects",
         duration: "untilOpponentTurnEnd",
         condition: { kind: "duringAttack" },
+        target: { sameTarget: true },
       });
     }
   });
