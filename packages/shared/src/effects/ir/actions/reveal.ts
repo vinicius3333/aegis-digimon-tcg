@@ -13,6 +13,8 @@ export interface HandRevealAddAction extends ActionBase {
 
 export interface RevealAddAction extends ActionBase {
   kind: "RevealAdd";
+  /** Whose deck is revealed; omitted means the source owner's deck. */
+  controller?: Controller;
   revealCount: number;
   /**
    * A "digivolve into 1 revealed card" branch that runs before the add dispositions. When
