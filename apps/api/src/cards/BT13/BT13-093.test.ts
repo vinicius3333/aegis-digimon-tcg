@@ -28,7 +28,7 @@ describe("BT13-093 Omekamon", () => {
       underFilter: {
         controller: "mine",
         zone: "breeding",
-        nameOrTrait: [{ match: "name", tokens: ["King Drasil_7D6"] }],
+        nameOrTrait: [{ match: "nameExact", tokens: ["King Drasil_7D6"] }],
       },
       position: "bottom",
     });
@@ -41,5 +41,22 @@ describe("BT13-093 Omekamon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("omeka"));
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-001");
+  });
+
+  it("places one Royal Knight from hand under the exact breeding-area King Drasil", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-093", as: "omeka" }],
+          breeding: { card: "BT13-007", as: "drasil" },
+          hand: [{ card: "BT13-040", as: "royal" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("omeka"));
+    await settle(() => s.perm("drasil").stack.some((card) => card.instanceId === s.inst("royal").instanceId));
+    expect(s.perm("drasil").stack.some((card) => card.instanceId === s.inst("royal").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royal").instanceId)).toBe(false);
   });
 });
