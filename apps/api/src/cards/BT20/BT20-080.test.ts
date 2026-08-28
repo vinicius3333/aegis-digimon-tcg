@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-080.js";
+import "./index.js";
 
 describe("BT20-080 Fenriloogamon", () => {
   it("has Scapegoat and may play a level 4 or lower SoC/SEEKERS Digimon from trash on digivolving", () => {
@@ -68,5 +70,55 @@ describe("BT20-080 Fenriloogamon", () => {
         },
       ],
     });
+  });
+
+  it("naturally plays a qualifying SoC/SEEKERS Digimon from trash after digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-071", as: "host" }],
+          hand: [{ card: "BT20-080", as: "fenri" }],
+          trash: [{ card: "BT20-032", as: "seekers" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("fenri").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-032"));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["BT20-080", "BT20-032"]),
+    );
+  });
+
+  it("accepts the alternate Soloogarmon route by name without requiring SEEKERS", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-079", as: "soloogarmon" }],
+          hand: [{ card: "BT20-080", as: "fenri" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("soloogarmon").permanentId,
+        instanceId: s.inst("fenri").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea[0]?.topCard.cardId === "BT20-080");
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-080");
   });
 });
