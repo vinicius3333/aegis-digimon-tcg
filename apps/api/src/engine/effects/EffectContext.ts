@@ -1922,7 +1922,10 @@ export interface EffectContext {
   lastMemoryGainAmount?: number;
   /** Loose card instances moved by the immediately preceding PlaceUnder action. */
   lastPlacedUnderInstanceIds?: string[];
-  /** Loose card instances moved by all PlaceUnder actions in this effect resolution. */
+  /**
+   * Loose card instances moved by all PlaceUnder actions in this effect resolution. Reset at the
+   * action-bearing runEffect boundary; nested resolutions restore their caller's accumulator.
+   */
   placedUnderInstanceIdsThisEffect?: string[];
   /**
    * The permanent ids resolved by the most recent primary-target action in this effect

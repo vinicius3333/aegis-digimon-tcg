@@ -59,7 +59,7 @@ describe("BT9-067 Raidenmon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.memory === 1 && s.perm("base").stack.length === 1);
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT9-042"]);
+    await settle(() => s.state.memory === 1 && s.perm("base").stack.length === 2);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT9-042", "BT9-065"]);
   });
 });
