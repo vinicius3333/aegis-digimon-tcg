@@ -334,7 +334,8 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
         const hostFilter = matchedFilter?.hostFilter;
         if ((zone === "digivolutionCards" || zone === "linked") && hostFilter && cand.hostPermanentId) {
           if (hostFilter.sourceRef === "triggerSubject") {
-            if (cand.hostPermanentId !== ctx.trigger.subjectPermanentId) continue;
+            const triggerSubjectId = ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId;
+            if (cand.hostPermanentId !== triggerSubjectId) continue;
           } else if (hostFilter.isSelfRef === true) {
             const self = ctx.source.permanent();
             if (self === undefined || self.permanentId !== cand.hostPermanentId) continue;
