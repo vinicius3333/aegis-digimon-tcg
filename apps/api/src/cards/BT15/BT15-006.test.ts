@@ -24,7 +24,7 @@ describe("BT15-006", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-006"] }],
+          battleArea: [{ card: "BT10-071", as: "host", under: ["BT15-006"] }],
           hand: [
             { card: "BT10-012", as: "level5" },
             { card: "BT10-074", as: "level4" },
@@ -50,7 +50,7 @@ describe("BT15-006", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-009", as: "host", dp: 1000, suspended: true, under: ["BT15-006"] }],
+          battleArea: [{ card: "BT10-071", as: "host", dp: 1000, suspended: true, under: ["BT15-006"] }],
           hand: [{ card: "BT10-012", as: "level5" }],
           deck: [
             { card: "BT1-001", as: "firstDraw" },
@@ -82,7 +82,7 @@ describe("BT15-006", () => {
       const s = setupEngine(
         {
           0: {
-            battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-006"] }],
+            battleArea: [{ card: "BT10-071", as: "host", under: ["BT15-006"] }],
             hand: [{ card: autoAcceptOptional ? "BT10-074" : "BT10-012", as: "candidate" }],
             deck: [
               { card: "BT1-001", as: "firstDraw" },
