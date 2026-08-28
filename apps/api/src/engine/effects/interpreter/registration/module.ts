@@ -189,7 +189,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
                 // The Delay trash is itself valid processing. A condition on the bullet is
                 // checked only after paying it (BT24-098 Q5710), so an armed Delay remains
                 // activatable even when its conditional payload currently does nothing.
-                (hasArmedDelay || canActivateEffect(ctx, effect))
+                (armedDelayAction !== undefined ? hasArmedDelay : canActivateEffect(ctx, effect))
               );
             },
             resolve: async (ctx) => {
