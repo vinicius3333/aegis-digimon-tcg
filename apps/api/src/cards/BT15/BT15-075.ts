@@ -42,6 +42,7 @@ const compiled: CompiledCard = {
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
+              kind: ["Tamer"],
               nameOrTrait: [
                 {
                   tokens: ["SoC"],
@@ -89,6 +90,7 @@ const compiled: CompiledCard = {
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
+              kind: ["Tamer"],
               nameOrTrait: [
                 {
                   tokens: ["SoC"],
