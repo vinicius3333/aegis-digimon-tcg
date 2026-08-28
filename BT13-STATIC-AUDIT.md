@@ -31,7 +31,7 @@ collection-complete claim is valid.
 | BT13-051–060 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-051-060.md` | Yes |
 | BT13-061–070 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-061-070.md` | Yes |
 | BT13-071–080 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-071-080.md` | Yes |
-| BT13-081–090 | Luna assigned | `internal-docs/audits/BT13/BT13-081-090.md` | No |
+| BT13-081–090 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-081-090.md` | Yes |
 | BT13-091–100 | Luna assigned | `internal-docs/audits/BT13/BT13-091-100.md` | No |
 | BT13-101–110 | Luna assigned | `internal-docs/audits/BT13/BT13-101-110.md` | No |
 | BT13-111–112 | Unassigned | `internal-docs/audits/BT13/BT13-111-112.md` | No |
@@ -141,14 +141,24 @@ other component and is never rounded up.
 | BT13-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Empty-hand draw/trash ordering and same-turn inherited OPT proof |
 | BT13-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Retaliation grant and outside-battle deletion boundaries |
 | BT13-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Breeding kind, CostGatedBlock, exact target, and independent decline corrections |
+| BT13-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play, On Deletion, and inherited end-of-turn proof |
+| BT13-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Outside-battle versus by-battle deletion boundary proof |
+| BT13-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact identities, CostGatedBlock, ordered bottom-deck return, and independent decline corrections |
+| BT13-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Real On Play processing and inherited hand-trash proof |
+| BT13-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Ravemon correction and natural attack/deletion proof |
+| BT13-086 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact identity and mandatory Akihiro corrections; reducer/restriction execution remains structural |
+| BT13-087 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Royal Knight play and four-card reveal/add/trash proof |
+| BT13-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Rage Mode, CR 15-7 optional processing, restriction, immunity, and attack proof |
+| BT13-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact identities, natural delayed play, deletion play, and Burst boundary proof |
+| BT13-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Battle-area scaling, source-inclusive count, breeding exclusion, and Once Per Turn proof |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 110
-- Integrated card audits: 80
-- Corrected: 27
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 33
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 2
