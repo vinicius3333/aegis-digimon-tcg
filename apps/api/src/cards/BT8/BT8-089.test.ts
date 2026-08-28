@@ -33,6 +33,34 @@ describe("BT8-089 Cody Hida", () => {
     expect(s.perm("target").currentDP).toBe(before - 2000);
   });
 
+  it("does not count colors that exist only on the attacking Digimon's evolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT8-089", as: "cody" },
+            { card: "BT1-015", as: "attacker", under: ["BT10-059"] },
+          ],
+        },
+        1: { security: ["BT8-034"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+
+    expect(s.perm("cody").isSuspended).toBe(false);
+  });
+
   it("gains 1 memory at the start of its main phase when a yellow Digimon is in play", async () => {
     const s = setupEngine({
       0: {

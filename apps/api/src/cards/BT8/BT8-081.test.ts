@@ -3,11 +3,21 @@ import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT8-081.js";
 import "./BT8-081.js";
 import "../BT7/BT7-040.js";
 import "../BT4/BT4-012.js";
 
 describe("BT8-081 Rasenmon Fury Mode", () => {
+  it("marks the End of Attack Rasenmon evolution as requirement-free", () => {
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({
+      kind: "Digivolve",
+      ignoreReqs: true,
+      payCost: false,
+      optional: true,
+    });
+  });
+
   it("digivolves into Rasenmon from hand for free at the end of its attack", async () => {
     const s = setupEngine(
       {
