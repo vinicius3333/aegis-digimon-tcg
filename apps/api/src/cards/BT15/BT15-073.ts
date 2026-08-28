@@ -8,26 +8,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "Main",
-      actions: [
-        {
-          kind: "Draw",
-          controller: "mine",
-          amount: 1,
-        },
-        {
-          kind: "Trash",
-          target: {
-            filter: {
-              controller: "mine",
-              zone: "hand",
-            },
-            count: 1,
-          },
-        },
-      ],
-    },
-    {
       trigger: "WhenDigivolving",
       actions: [
         {
