@@ -25,7 +25,7 @@ provisional and capped at 8/10.
 | BT19-011–020 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-011-020.md` | Yes |
 | BT19-021–030 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-021-030.md` | Yes |
 | BT19-031–040 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-031-040.md` | Yes |
-| BT19-041–050 | Luna prepared; chronological review pending | `internal-docs/audits/BT19/BT19-041-050.md` | No |
+| BT19-041–050 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-041-050.md` | Yes |
 | BT19-051–060 | Luna assigned | `internal-docs/audits/BT19/BT19-051-060.md` | No |
 | BT19-061–070 | Luna assigned | `internal-docs/audits/BT19/BT19-061-070.md` | No |
 | BT19-071–080 | Luna assigned | `internal-docs/audits/BT19/BT19-071-080.md` | No |
@@ -85,16 +85,30 @@ applicable non-gate component rather than being rounded up.
 | BT19-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural deletion proves source placement; both entry timings remain injected and inherited Piercing is structural (`b9190c9d3`). |
 | BT19-039 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Aligned When Digivolving optional security-cost abort semantics; natural Recovery is covered, but entry/security watcher origins remain injected (`05068ec53`). |
 | BT19-040 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | A real Option use proves token creation, while digivolution and remaining watcher/boundary cases retain injected or structural seams (`1a6972f64`). |
+| BT19-041 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution and leave/Recovery ordering supply partial proof; positive entry cost, target, and duration branches remain manually fired (`b6bb687ae`). |
+| BT19-042 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Gated both +6000 DP follow-ups on the Dynasmon/X Antibody stack condition; positive timings remain injected (`1a4eba93e`). |
+| BT19-043 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural leave prevention proves atomic security payment and frequency; end-turn opponent-choice branches remain injected (`b6bb687ae`). |
+| BT19-044 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected exact Henry Wong/Calumon matching with a paired-name negative; start-main and inherited attack timings remain injected (`567d12701`). |
+| BT19-045 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public evolution and live Security/stack state prove Royal Base reduction, breeding exclusion, and both DP grants (`b6bb687ae`). |
+| BT19-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution and real turns prove suspension, independent Data lock, target boundaries, and duration (`b6bb687ae`). |
+| BT19-047 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural deletion proves Save; free On Play evolution remains injected and inherited Blocker is structural (`b6bb687ae`). |
+| BT19-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public evolution and natural effect/battle departures prove face-up Security DP, all-target Royal Base replacement, cause boundary, and Rule trait (`b6bb687ae`). |
+| BT19-049 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public evolution proves exact Henry play and 0/1/2-Tamer boundaries; decline and inherited attack/frequency remain injected (`b6bb687ae`). |
+| BT19-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public evolution and inherited DP state are covered, while both positive entry trigger clauses use controlled timing (`b6bb687ae`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 90
-- Integrated card audits: 40
-- Corrected: 10
-- Provisional: 40
+- Integrated card audits: 50
+- Corrected: 12
+- Provisional: 50
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 25 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-040` source-proof gaps; excludes fully proved `BT19-022` and `BT19-032`)
+- Blocked or ambiguous: 32 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019`, `BT19-021`, `BT19-023`–`BT19-031`, `BT19-033`–`BT19-044`, `BT19-047`, `BT19-049`, `BT19-050` source-proof gaps; excludes fully proved `BT19-022`, `BT19-032`, `BT19-045`, `BT19-046`, and `BT19-048`)
 - Remaining unassigned: 12
+
+Operational disclosure: the BT19-041–050 worker accidentally ran one isolated
+`git diff --check` against the BT19-042/044 changed files. It was not used as a
+delivery gate, was not repeated, and all Executed delivery gates remain `0/2`.
 
 BT19 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
