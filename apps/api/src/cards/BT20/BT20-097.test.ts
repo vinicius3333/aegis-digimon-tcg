@@ -23,11 +23,14 @@ describe("BT20-097 The Apostle of Doom Descends!", () => {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["DexDorugoramon"], match: "name" }],
+            nameOrTrait: [{ tokens: ["DexDorugoramon"], match: "nameExact" }],
           },
           actions: [
             {
               kind: "PlayWithoutCost",
+              target: {
+                filter: { nameOrTrait: [{ tokens: ["DeathXmon"], match: "nameExact" }] },
+              },
               from: ["trash"],
               optional: true,
               abortOnDecline: true,
@@ -39,7 +42,7 @@ describe("BT20-097 The Apostle of Doom Descends!", () => {
                     kind: ["Digimon"],
                     zone: "digivolutionCards",
                     hostFilter: { isTriggerSource: true },
-                    nameOrTrait: [{ tokens: ["Dorumon"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Dorumon"], match: "nameExact" }],
                   },
                 },
               },
@@ -47,6 +50,9 @@ describe("BT20-097 The Apostle of Doom Descends!", () => {
           ],
         },
       ],
+    });
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Dorumon"], match: "nameExact" }] } } }],
     });
   });
 });
