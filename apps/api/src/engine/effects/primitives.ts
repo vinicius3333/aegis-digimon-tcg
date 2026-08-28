@@ -833,7 +833,6 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       breeding?: boolean;
       costDelta?: number;
       suppressOnPlayEffects?: boolean;
-      allOrNone?: boolean;
       effectSourceCardId?: string;
       playedByDecode?: boolean;
       digiXrosMaterialInstanceIds?: string[];
@@ -846,27 +845,6 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // BEFORE removal, so the whenPlayed fire can set playedFromZone for the
     // `fromDigivolution` sourceFilter gate (BT20-028 KB Q4321).
     const originByInstance = new Map(instanceIds.map((id) => [id, looseZoneOfInstance(state, id)]));
-    // Q2367: Omnimon's "one of each ... different names" effect is transactional. Validate the
-    // complete selected batch before moving any card, so a play restriction or malformed
-    // candidate cannot leave a partial set in the battle area.
-    if (opts?.allOrNone === true) {
-      const canPlayAll = instanceIds.every((instanceId) => {
-        const owner = ownerSeatOfLoose(state, instanceId);
-        if (owner === undefined) return false;
-        const ownerPlayer = player(owner);
-        const peek = peekLooseInstance(state, instanceId);
-        if (peek === undefined) return false;
-        const definition = requireCardDefinition(peek.cardId);
-        if (opts.breeding) {
-          if (!(definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.DigiEgg))) return false;
-          if (ownerPlayer.breeding !== undefined) return false;
-        }
-        if (!isPermanentKind(definition)) return false;
-        const effectSeat = effectSeatStack.at(-1) ?? ownerPlayer.seat;
-        return !continuous.isPlayBlocked(effectSeat, definition, "play", true, originByInstance.get(instanceId));
-      });
-      if (!canPlayAll) return [];
-    }
     for (const instanceId of instanceIds) {
       const owner = ownerSeatOfLoose(state, instanceId);
       if (owner === undefined) continue;

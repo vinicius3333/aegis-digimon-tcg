@@ -3,7 +3,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Q2366/Q2367: the second modal branch selects one card of each distinct name from
-// the breeding-area stacks and must play every selected card or none of them.
+// the breeding-area stacks and plays every card that can be played.
 const modalEffect = () => ({
   kind: "Modal",
   optional: true,
@@ -26,7 +26,6 @@ const modalEffect = () => ({
         },
         from: ["digivolutionCards"],
         payCost: false,
-        allOrNone: true,
         bindResultAs: "playedRoyalKnights",
       },
       {

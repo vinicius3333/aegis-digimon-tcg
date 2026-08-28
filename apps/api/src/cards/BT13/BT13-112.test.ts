@@ -89,18 +89,29 @@ describe("BT13-112 Omnimon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Rush")).toBe(true);
   });
 
-  it("plays no Royal Knight when one otherwise eligible distinct name is blocked (Q2367)", async () => {
+  it("plays every playable distinct Royal Knight, then cleans up blocked stack cards (Q2367)", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [{ card: "BT13-112", as: "omnimon" }],
-          breeding: { card: "BT13-007", as: "drasil", under: ["BT13-040", "BT13-111"] },
+          breeding: {
+            card: "BT13-007",
+            as: "drasil",
+            under: [
+              { card: "BT13-040", as: "blockedMagnamon" },
+              { card: "BT13-111", as: "playableGallantmon" },
+            ],
+          },
         },
       },
       { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
     );
-    // A restriction that blocks the 7000-DP Magnamon but permits 13000-DP Gallantmon creates a
-    // genuine partial-candidate boundary; Q2367 requires the entire selected batch to abort.
+    const blockedId = s.inst("blockedMagnamon").instanceId;
+    const playableId = s.inst("playableGallantmon").instanceId;
+    const hostId = s.perm("drasil").topCard!.instanceId;
+    // A restriction that blocks the 7000-DP Magnamon but permits the 13000-DP Gallantmon means
+    // Magnamon is not a card that can be played. Q2367 therefore requires the playable Gallantmon
+    // to enter, followed by the printed cleanup of the breeding host and remaining stack.
     advance(s.engine).ledgers.continuous.addPlayProhibition(
       0,
       1,
@@ -113,11 +124,33 @@ describe("BT13-112 Omnimon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-112"));
 
-    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT13-007");
-    expect(s.state.players[0]!.breeding?.stack.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT13-040", "BT13-111"]),
+    expect(s.state.players[0]!.breeding?.topCard).toBeUndefined();
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.instanceId === playableId)).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === blockedId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === hostId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === blockedId)).toBe(true);
+
+    const playableIndex = s.events.findIndex(
+      (event) => event.kind === "cardPlayed" && event.cardId === "BT13-111" && event.seat === 0,
     );
-    expect(s.state.players[0]!.battleArea.filter((p) => ["BT13-040", "BT13-111"].includes(p.topCard?.cardId ?? ""))).toHaveLength(0);
+    const cleanupIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" &&
+        event.from === "breeding" &&
+        event.to === "trash" &&
+        event.instanceIds.includes(blockedId),
+    );
+    expect(playableIndex).toBeGreaterThanOrEqual(0);
+    expect(cleanupIndex).toBeGreaterThan(playableIndex);
+    expect(s.events[cleanupIndex]).toMatchObject({
+      kind: "cardsMoved",
+      from: "breeding",
+      to: "trash",
+      instanceIds: expect.arrayContaining([hostId, blockedId]),
+    });
+    expect((s.events[cleanupIndex] as { instanceIds: string[] }).instanceIds).toHaveLength(2);
+    expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("playableGallantmon"), "Rush")).toBe(true);
   });
 
   it("allows declining the optional modal effect", async () => {
