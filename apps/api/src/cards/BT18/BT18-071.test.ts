@@ -59,7 +59,13 @@ describe("BT18-071 ShadowSeraphimon", () => {
       residual: [],
       digivolutionRequirement: [
         { names: ["Seraphimon"], cost: 1, isAlternate: true },
-        { names: ["Sephirothmon"], traits: ["Mercurymon"], cost: 4, isAlternate: true },
+        {
+          namesExact: ["Sephirothmon"],
+          minNameStackCount: 1,
+          minNameStackNames: ["Mercurymon"],
+          cost: 4,
+          isAlternate: true,
+        },
       ],
     });
   });
@@ -115,6 +121,58 @@ describe("BT18-071 ShadowSeraphimon", () => {
     expect(s.perm("target").topCard!.cardId).toBe("BT1-030");
     expect(observe(s.engine).hasKeyword(s.perm("seraphimon"), "Blocker")).toBe(true);
     assertNoLoudGap(s);
+  });
+
+  it("naturally evolves from Sephirothmon only when a Mercurymon card is in its stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-066", as: "sephirothmon", under: ["BT18-064"] }],
+          hand: [{ card: "BT18-071", as: "shadow" }],
+        },
+        1: { battleArea: [{ card: "BT1-060", as: "target", under: ["BT1-030", "BT1-032", "BT1-009"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sephirothmon").permanentId,
+        instanceId: s.inst("shadow").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sephirothmon").topCard?.cardId === "BT18-071");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("sephirothmon").stack.map(({ cardId }) => cardId)).toEqual(["BT18-064", "BT18-066"]);
+    expect(s.perm("target").stack).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("rejects the Sephirothmon alternate route when no Mercurymon card is in the stack", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT18-066", as: "sephirothmon" }],
+        hand: [{ card: "BT18-071", as: "shadow" }],
+      },
+    });
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sephirothmon").permanentId,
+        instanceId: s.inst("shadow").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("sephirothmon").topCard?.cardId).toBe("BT18-066");
+    expect(s.state.memory).toBe(4);
   });
 
   it("naturally Blast Digivolves from hand in the opponent's attack and resolves the counter timing", async () => {
