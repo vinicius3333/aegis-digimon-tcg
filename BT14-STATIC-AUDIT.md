@@ -28,7 +28,7 @@ collection-complete claim is valid.
 | BT14-001–010 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-001-010.md` | Yes |
 | BT14-011–020 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-011-020.md` | Yes |
 | BT14-021–030 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-021-030.md` | Yes |
-| BT14-031–040 | Luna assigned | `internal-docs/audits/BT14/BT14-031-040.md` | No |
+| BT14-031–040 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-031-040.md` | Yes |
 | BT14-041–050 | Luna assigned | `internal-docs/audits/BT14/BT14-041-050.md` | No |
 | BT14-051–060 | Luna assigned | `internal-docs/audits/BT14/BT14-051-060.md` | No |
 | BT14-061–070 | Unassigned | `internal-docs/audits/BT14/BT14-061-070.md` | No |
@@ -94,14 +94,24 @@ behavior.
 | BT14-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Blocker, source-triggered battle protection, Security, and Retaliation proof |
 | BT14-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Errata diagnostic correction and equal-count/pooled-trash proof `c29f00cf1` |
 | BT14-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2400–Q2404 routing, recovery, and both evolution-color proofs |
+| BT14-031 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural inherited attack, DP duration, and Once Per Turn stack proof |
+| BT14-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2405/Q2406 security transfer, optional placement, and inherited deletion proof |
+| BT14-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural turn-machine start-main evolution, shuffle, ordering, and security-add proof |
+| BT14-034 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Security battle/deferred play and inherited deletion-stack proof |
+| BT14-035 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Barrier acceptance/refusal and legal Patamon evolution proof |
+| BT14-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public evolution plus natural inherited attack/Once Per Turn proof |
+| BT14-037 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2411/Q2412 recovery scaling, Blast Digivolve, and Overflow proof |
+| BT14-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2413 Security ordering, alternate evolution, and both deletion-placement paths |
+| BT14-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Alternate evolution, placement cost, Armor Purge, and inherited Security Attack proof |
+| BT14-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Tamer placement/play distinction, free level-3 play, and Once Per Turn proof |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 60
-- Integrated card audits: 30
+- Integrated card audits: 40
 - Corrected: 2
-- Provisional: 30
+- Provisional: 40
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 42
