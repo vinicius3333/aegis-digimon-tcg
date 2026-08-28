@@ -32,7 +32,7 @@ claim is valid.
 | BT7-061–070 | Luna in progress | `internal-docs/audits/BT7/BT7-061-070.md` | No |
 | BT7-071–080 | Static audit delivered | `internal-docs/audits/BT7/BT7-071-080.md` | Yes |
 | BT7-081–090 | Static audit delivered | `internal-docs/audits/BT7/BT7-081-090.md` | Yes |
-| BT7-091–100 | Queued | `internal-docs/audits/BT7/BT7-091-100.md` | No |
+| BT7-091–100 | Luna in progress | `internal-docs/audits/BT7/BT7-091-100.md` | No |
 | BT7-101–110 | Static audit delivered | `internal-docs/audits/BT7/BT7-101-110.md` | Yes |
 | BT7-111–112 | Luna in progress | `internal-docs/audits/BT7/BT7-111-112.md` | No |
 
@@ -154,12 +154,12 @@ other component and is never rounded up.
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 102
+- Assigned: 112
 - Integrated card audits: 90
 - Corrected: 27
 - Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 10
+- Remaining unassigned: 0
 
 BT7 static re-audit remains open.
