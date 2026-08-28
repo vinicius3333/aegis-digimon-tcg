@@ -51,7 +51,15 @@ describe("BT18-076 Loweemon", () => {
               event: "wouldLeavePlay",
               leaveCause: "otherThanYourEffect",
               sourceFilter: { isSelfRef: true },
-              actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false, optional: true }],
+              actions: [
+                {
+                  kind: "PlayWithoutCost",
+                  from: ["digivolutionCards"],
+                  fromOwnDigivolutionStack: true,
+                  payCost: false,
+                  optional: true,
+                },
+              ],
             },
           ],
         },
@@ -181,6 +189,37 @@ describe("BT18-076 Loweemon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-094")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("does not play an eligible Tamer from another own Digimon's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-080", as: "host", dp: 5000, suspended: true, under: ["BT18-076"] },
+            { card: "BT18-080", as: "otherHost", under: ["BT18-094", "BT18-076"] },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const hostId = s.perm("host").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT18-080"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-094")).toBe(false);
+    expect(s.perm("otherHost").stack.map(({ cardId }) => cardId)).toEqual(["BT18-094", "BT18-076"]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT18-080")).toBe(true);
     assertNoLoudGap(s);
   });
 });
