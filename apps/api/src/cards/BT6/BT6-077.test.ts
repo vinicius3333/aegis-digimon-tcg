@@ -56,7 +56,10 @@ describe("BT6-077 [All Turns] color grant — also treated as black (KB Q1466)",
     const s = setup(
       {
         0: {
-          battleArea: [{ card: "BT6-077", as: "rebellimon" }],
+          battleArea: [
+            { card: "BT6-074", as: "decoy" },
+            { card: "BT6-077", as: "rebellimon" },
+          ],
           hand: [{ card: "BT6-068", as: "cost" }],
         },
       },
@@ -69,5 +72,26 @@ describe("BT6-077 [All Turns] color grant — also treated as black (KB Q1466)",
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(observe(s.engine).hasKeyword(s.perm("rebellimon"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("rebellimon"), "Retaliation")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("decoy"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("decoy"), "Retaliation")).toBe(false);
+  });
+
+  it("grants neither keyword when the optional hand-trash condition is declined", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT6-077", as: "rebellimon" }],
+          hand: [{ card: "BT6-068", as: "cost" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("rebellimon"));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("cost").instanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("rebellimon"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("rebellimon"), "Retaliation")).toBe(false);
   });
 });
