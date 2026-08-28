@@ -577,14 +577,14 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   ],
   // BT18-102 (Susanoomon): "[Digivolve] Takuya Kanbara / Koji Minamoto: Cost 6 (if this Digimon
   // has 10 or more [Hybrid]-trait cards in its digivolution stack)". The effects.json entry has the
-  // `names` gate but lacks `requiredDigivolutionCardCount` and `incompatibleWithBlastDigivolve`
+  // substring `names` gate but lacks `requiredDigivolutionCardCount` and `incompatibleWithBlastDigivolve`
   // (KB Q3055/Q3056). Override here so the server's digivolve-legality validator enforces the
   // 10-[Hybrid] stack count gate and excludes this path from Blast Digivolve candidates.
   "BT18-102": [
     {
       cost: 6,
       isAlternate: true,
-      names: ["Takuya Kanbara", "Koji Minamoto"],
+      namesExact: ["Takuya Kanbara", "Koji Minamoto"],
       requiredDigivolutionCardCount: { trait: "Hybrid", min: 10 },
       incompatibleWithBlastDigivolve: true,
     },

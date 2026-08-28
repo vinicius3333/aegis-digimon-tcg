@@ -104,7 +104,7 @@ describe("BT18-102 Susanoomon", () => {
   it("requires ten Hybrid cards under Takuya/Koji and excludes that alternate path from Blast Digivolve", () => {
     expect(compiled.digivolutionRequirement).toEqual([
       {
-        names: ["Takuya Kanbara", "Koji Minamoto"],
+        namesExact: ["Takuya Kanbara", "Koji Minamoto"],
         cost: 6,
         isAlternate: true,
         requiredDigivolutionCardCount: { trait: "Hybrid", min: 10 },
@@ -159,6 +159,9 @@ describe("BT18-102 Susanoomon", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 10;
+    expect(observe(s.engine).effectiveNames(s.perm("takuyaKoji"))).toEqual(
+      expect.arrayContaining(["takuya kanbara & koji minamoto", "takuya kanbara", "koji minamoto"]),
+    );
 
     expect(
       s.engine.applyIntent(0, {
