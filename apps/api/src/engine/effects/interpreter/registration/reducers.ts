@@ -5,8 +5,8 @@ import { evaluateCondition } from "../conditions.js";
 import { payCost } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { scaleFactor } from "../scaling.js";
-import { candidateLooseInstances, zoneList } from "../targeting/loose.js";
-import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { candidateLooseInstances } from "../targeting/loose.js";
+import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { definitionMatches } from "../matching/definition.js";
 import type { Action, CardEffect, Condition, Cost, Permanent, Scaling, ZoneRef } from "@aegis/shared";
@@ -123,6 +123,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT21-026", // scaling: self play cost -2 per opposing Digimon
   "BT25-096", // trash the bottom face-down card under a Tamer -> Option use cost -2 (Q6456)
   "EX10-061", // place one of each face-up Dark Masters name from security -> -4 each (Q5783/Q5784)
+  "BT15-102", // place up to 3 distinct Dark Masters names from trash/battle-area top -> -4 each (Q2599/Q6241)
   "BT22-041", // condition: total cards in both security stacks <= 6 -> self play cost -6
   "BT11-096", // condition: you have a red Tamer -> Option use cost -1
   "BT11-099", // condition: you have a blue Tamer -> Option use cost -1
@@ -148,6 +149,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
  */
 /** A sourceFilter that gates which PLAYED card a wouldBePlayed reaction watches. */
 type SourceFilter = {
+  isSelfRef?: boolean;
   names?: unknown;
   nameOrTrait?: unknown;
   traits?: unknown;
@@ -266,17 +268,25 @@ export function collectWouldBePlayedSelfReducers(cardId: string, effects: readon
             (item as { mode?: string }).mode === "reduceCost",
         ) as Record<string, unknown> | undefined;
         if (inner === undefined) continue;
+        const placementCost =
+          a.cost?.kind === "place"
+            ? a.cost
+            : (inner.cost as Cost | undefined)?.kind === "place"
+              ? (inner.cost as Cost)
+              : undefined;
         if (
-          a.cost?.kind === "place" &&
-          a.cost.target !== undefined &&
-          a.cost.underFilter?.isSelfRef === true &&
+          placementCost !== undefined &&
+          placementCost.target !== undefined &&
+          (a.sourceFilter?.isSelfRef === true ||
+            placementCost.host === "self" ||
+            placementCost.underFilter?.isSelfRef === true) &&
           typeof inner.amountPerPlaced === "number"
         ) {
           out.push({
             amount: 0,
             amountPerPaid: inner.amountPerPlaced,
-            cost: a.cost,
-            raw: a.cost.raw ?? a.raw ?? "Place cards under this card to reduce its play cost.",
+            cost: placementCost,
+            raw: placementCost.raw ?? a.raw ?? "Place cards under this card to reduce its play cost.",
           });
           continue;
         }
@@ -484,33 +494,97 @@ export async function applyWouldBePlayedSelfReducer(
       reducer.amountPerPaid !== undefined &&
       reducer.cost.kind === "place" &&
       reducer.cost.target !== undefined &&
-      reducer.cost.underFilter?.isSelfRef === true
+      (reducer.cost.host === "self" || reducer.cost.underFilter?.isSelfRef === true)
     ) {
-      const zones = zoneList(reducer.cost.target.filter.zone ?? "security");
-      const candidates = candidateLooseInstances(ctx, reducer.cost.target, zones);
-      const byName = new Map<string, typeof candidates>();
-      for (const candidate of candidates) {
-        const name = (ctx.game.definitionOf(candidate as never).nameEn ?? candidate.cardId).toLowerCase();
-        byName.set(name, [...(byName.get(name) ?? []), candidate]);
+      const target = reducer.cost.target;
+      const declaredZones = [
+        ...(target.from ?? []),
+        ...((Array.isArray(target.filter.zone) ? target.filter.zone : [target.filter.zone]).filter(
+          (zone): zone is string => typeof zone === "string",
+        ) ?? []),
+      ];
+      const sourceZones = new Set(
+        declaredZones.flatMap((zone) => (zone === "trashOrBattleArea" ? ["trash", "battleArea"] : [zone])),
+      );
+      const candidateFilter = { ...target.filter, zone: undefined };
+      const candidates: { instanceId: string; cardId: string; permanentId?: string }[] = [];
+      if (sourceZones.has("trash")) {
+        candidates.push(
+          ...candidateLooseInstances(
+            ctx,
+            { ...target, filter: { ...candidateFilter, zone: "trash" } },
+            ["trash"],
+          ),
+        );
       }
-      if (byName.size === 0) return;
-      const chosen: string[] = [];
-      for (const group of byName.values()) {
-        const instanceId =
-          group.length === 1
-            ? group[0]!.instanceId
-            : (
-                await ctx.ask.selectCards(ctx, {
-                  candidates: group.map((candidate) => candidate.instanceId),
-                  min: 1,
-                  max: 1,
-                })
-              )[0];
-        if (instanceId === undefined) return;
-        chosen.push(instanceId);
+      if (sourceZones.has("battleArea")) {
+        for (const permanent of candidatePermanents(ctx, {
+          ...target,
+          filter: { ...candidateFilter, zone: "battleArea" },
+        })) {
+          if (permanent.topCard !== undefined) {
+            candidates.push({
+              instanceId: permanent.topCard.instanceId,
+              cardId: permanent.topCard.cardId,
+              permanentId: permanent.permanentId,
+            });
+          }
+        }
       }
-      ctx.pendingSelfReducerPlacements = [...(ctx.pendingSelfReducerPlacements ?? []), ...chosen];
-      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + chosen.length * reducer.amountPerPaid;
+      const looseZones = [...sourceZones].filter((zone) => zone !== "trash" && zone !== "battleArea") as ZoneRef[];
+      if (looseZones.length > 0) {
+        candidates.push(...candidateLooseInstances(ctx, { ...target, filter: candidateFilter }, looseZones));
+      }
+      if (candidates.length === 0) return;
+
+      const maxPlacements = typeof target.count === "number" ? target.count : candidates.length;
+      const minimumPerPick = target.upTo === true ? 0 : 1;
+      const chosenInstanceIds = new Set<string>();
+      const chosenPermanentIds = new Set<string>();
+      const chosenNames = new Set<string>();
+      const chosenPlacements: string[] = [];
+      const chosenRelocations: { permanentId: string; shedOwnCards?: boolean }[] = [];
+      for (let pick = 0; pick < maxPlacements; pick += 1) {
+        const available = candidates.filter((candidate) => {
+          if (chosenInstanceIds.has(candidate.instanceId)) return false;
+          if (candidate.permanentId !== undefined && chosenPermanentIds.has(candidate.permanentId)) return false;
+          const name = (ctx.game.definitionOf(candidate as never).nameEn ?? candidate.cardId).toLowerCase();
+          return !chosenNames.has(name);
+        });
+        if (available.length === 0) break;
+        const [chosenId] = await ctx.ask.selectCards(ctx, {
+          candidates: available.map(({ instanceId }) => instanceId),
+          min: minimumPerPick,
+          max: 1,
+          visibleCards: available.map(({ instanceId, cardId }) => ({ instanceId, cardId })),
+        });
+        if (chosenId === undefined) break;
+        const selected = available.find(({ instanceId }) => instanceId === chosenId);
+        if (selected === undefined) return;
+        const name = (ctx.game.definitionOf(selected as never).nameEn ?? selected.cardId).toLowerCase();
+        chosenNames.add(name);
+        chosenInstanceIds.add(selected.instanceId);
+        if (selected.permanentId !== undefined) {
+          chosenPermanentIds.add(selected.permanentId);
+          chosenRelocations.push({ permanentId: selected.permanentId, shedOwnCards: true });
+        } else {
+          chosenPlacements.push(selected.instanceId);
+        }
+      }
+      if (chosenPlacements.length > 0) {
+        ctx.pendingSelfReducerPlacements = [
+          ...(ctx.pendingSelfReducerPlacements ?? []),
+          ...chosenPlacements,
+        ];
+      }
+      if (chosenRelocations.length > 0) {
+        ctx.pendingSelfReducerRelocations = [
+          ...(ctx.pendingSelfReducerRelocations ?? []),
+          ...chosenRelocations,
+        ];
+      }
+      const placedCount = chosenPlacements.length + chosenRelocations.length;
+      ctx.playCostDelta = (ctx.playCostDelta ?? 0) + placedCount * reducer.amountPerPaid;
       return;
     }
     if (await payCost(ctx, reducer.cost)) {
