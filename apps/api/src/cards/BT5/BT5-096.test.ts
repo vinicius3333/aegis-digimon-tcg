@@ -6,40 +6,12 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-096.js";
 
 describe("BT5-096 Supreme Cannon", () => {
-  it("binds mutually exclusive branches and explicitly trashes their sources before returning them", () => {
+  it("uses mutually exclusive normal and upgraded return branches", () => {
     const main = runtimeCompiledCard("BT5-096")!.effects.find((effect) => effect.trigger === "Main")!;
-    expect(main.actions.map((action) => action.kind)).toEqual([
-      "SelectBind",
-      "TrashDigivolution",
-      "Return",
-      "SelectBind",
-      "TrashDigivolution",
-      "Return",
-    ]);
-    expect(main.actions[0]).toMatchObject({
-      target: { count: "all", bindAs: "normalReturnTargets" },
-      condition: { kind: "youHaveNone" },
-    });
-    expect(main.actions[1]).toMatchObject({
-      target: { count: "all", fromSelectionRef: "normalReturnTargets" },
-      amount: 99,
-    });
-    expect(main.actions[2]).toMatchObject({
-      target: { count: "all", fromSelectionRef: "normalReturnTargets" },
-      to: "hand",
-    });
-    expect(main.actions[3]).toMatchObject({
-      target: { count: "all", bindAs: "upgradedReturnTargets" },
-      condition: { kind: "youHave" },
-    });
-    expect(main.actions[4]).toMatchObject({
-      target: { count: "all", fromSelectionRef: "upgradedReturnTargets" },
-      amount: 99,
-    });
-    expect(main.actions[5]).toMatchObject({
-      target: { count: "all", fromSelectionRef: "upgradedReturnTargets" },
-      to: "hand",
-    });
+    expect(main.actions).toHaveLength(2);
+    expect(main.actions[0]).toMatchObject({ kind: "Return", condition: { kind: "youHaveNone" } });
+    expect(main.actions[1]).toMatchObject({ kind: "Return", condition: { kind: "youHave" } });
+    expect(main.actions.every((action) => action.kind === "Return" && action.target.count === "all")).toBe(true);
   });
 
   it("returns all 3000-DP-or-less opponents and trashes their sources", async () => {

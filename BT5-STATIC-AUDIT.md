@@ -138,7 +138,7 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 | BT5-093 Tai Kamiya & Matt Ishida | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opposing level-6 start-turn memory gate plus owner-turn Omnimon Security Attack aura |
 | BT5-094 Rowdy Rocker | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional red level-4-or-lower bottom-source placement with draw only after placement |
 | BT5-095 Transcendent Sword | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Mutually exclusive 11,000/15,000 deletion thresholds with printed name exclusions |
-| BT5-096 Supreme Cannon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected plural bound target sets with explicit source trash before both DP-threshold returns |
+| BT5-096 Supreme Cannon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Mutually exclusive DP-threshold returns with Q1399 rule-teardown source handling |
 | BT5-097 Absolute Blast | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bottom-source trash followed by independently selected sourceless deck-bottom return |
 | BT5-098 Meteor Shower | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional free play of one yellow Starmon-name Digimon from hand |
 | BT5-099 Spiral Masquerade | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Repeat-per-own-Digimon -3,000 DP scaling on one opposing target |
@@ -163,7 +163,7 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 - Catalog cards: 112
 - Assigned: 112
 - Integrated card audits: 112
-- Corrected: 7
+- Corrected: 6
 - Provisional: 112
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
