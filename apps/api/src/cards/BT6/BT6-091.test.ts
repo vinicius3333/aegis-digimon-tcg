@@ -14,6 +14,15 @@ describe("BT6-091 Sora Takenouchi & Mimi Tachikawa", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("does not gain memory when the opponent has a level 4 or lower Digimon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT6-091", as: "tamer" }] }, 1: { battleArea: ["BT1-009"] } });
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tamer"));
+
+    expect(s.state.memory).toBe(0);
+  });
+
   it("may suspend when an own purple Digimon attacks to draw 1 then trash 1", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
