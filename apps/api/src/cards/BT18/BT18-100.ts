@@ -16,6 +16,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            targetBreeding: true,
           },
           into: {
             controller: "mine",
