@@ -60,6 +60,33 @@ describe("BT18-029 AncientMermaimon", () => {
     expect(cards.some((card) => card.cardId === "BT18-022")).toBe(true);
   });
 
+  it("naturally returns an opposing level 4 when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-027", as: "base" }],
+          hand: [{ card: "BT18-029", as: "ancient" }],
+        },
+        1: { battleArea: [{ card: "BT1-032", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const targetId = s.perm("target").topCard!.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ancient").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === targetId));
+
+    expect(s.state.players[1]!.hand.some(({ instanceId }) => instanceId === targetId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.instanceId === targetId)).toBe(false);
+  });
+
   it("DigiXroses with distinct Lanamon and Calmaramon slots for 2 less each", async () => {
     expect(compiled.digiXrosRequirement).toEqual([
       { materials: [{ names: ["Lanamon"] }, { names: ["Calmaramon"] }], count: 2 },
