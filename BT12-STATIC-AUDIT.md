@@ -33,8 +33,8 @@ collection-complete claim is valid.
 | BT12-071–080 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-071-080.md` | Yes |
 | BT12-081–090 | Luna in progress | `internal-docs/audits/BT12/BT12-081-090.md` | No |
 | BT12-091–100 | Luna in progress | `internal-docs/audits/BT12/BT12-091-100.md` | No |
-| BT12-101–110 | Luna in progress | `internal-docs/audits/BT12/BT12-101-110.md` | No |
-| BT12-111–112 | Queued | `internal-docs/audits/BT12/BT12-111-112.md` | No |
+| BT12-101–110 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-101-110.md` | Yes |
+| BT12-111–112 | Luna in progress | `internal-docs/audits/BT12/BT12-111-112.md` | No |
 
 ## Score model
 
@@ -141,16 +141,26 @@ other component and is never rounded up.
 | BT12-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; no new correction |
 | BT12-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; exact no-effect record |
 | BT12-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-071-080.md`; reveal near-match proof `e871250a4` |
+| BT12-101 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-101-110.md`; handwritten timing fallback retained |
+| BT12-102 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-101-110.md`; source-stack shedding corrected in `3e5928ec5` |
+| BT12-103 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-101-110.md`; direct threshold repair documented |
+| BT12-104 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-101-110.md`; no new correction |
+| BT12-105 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-101-110.md`; no new correction |
+| BT12-106 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-101-110.md`; dynamic restriction corrected in `8a70cd6e3`; later-entrant proof remains structural |
+| BT12-107 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-101-110.md`; no new correction |
+| BT12-108 | 2/2 | 0/2 | 2/2 | 2/2 | 0/2 | 6/10 provisional | `BT12-101-110.md`; empty IR plus handwritten relational runtime limitation |
+| BT12-109 | 2/2 | 0/2 | 2/2 | 2/2 | 0/2 | 6/10 provisional | `BT12-101-110.md`; raw generated digivolution relation and handwritten runtime limitation |
+| BT12-110 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-101-110.md`; ported to compiled IR in `0c607dc7e` |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 110
-- Integrated card audits: 80
-- Corrected: 2
-- Provisional: 80
+- Assigned: 112
+- Integrated card audits: 90
+- Corrected: 5
+- Provisional: 90
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 1
-- Remaining unassigned: 2
+- Blocked or ambiguous: 5
+- Remaining unassigned: 0
 
 BT12 static re-audit is in progress.
