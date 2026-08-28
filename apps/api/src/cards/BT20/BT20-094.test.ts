@@ -24,12 +24,12 @@ describe("BT20-094 Emperor Dragon of Calamity", () => {
           optional: true,
           target: {
             filter: {
-              nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" }],
               zone: "digivolutionCards",
               hostFilter: {
                 controller: "mine",
                 kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["Imperialdramon: Fighter Mode"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Imperialdramon: Fighter Mode"], match: "nameExact" }],
               },
             },
           },
