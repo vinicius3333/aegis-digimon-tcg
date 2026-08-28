@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -9,7 +8,7 @@ describe("BT19-007 Guilmon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT19-007", as: "guilmon" }, { card: support }] } });
     s.state.memory = 0;
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("guilmon"));
+    await advance(s.engine).runTurn(0);
 
     expect(s.state.memory).toBe(1);
   });
@@ -18,7 +17,7 @@ describe("BT19-007 Guilmon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT19-007", as: "guilmon" }, { card: "BT19-081" }] } });
     s.state.memory = 0;
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("guilmon"));
+    await advance(s.engine).runTurn(0);
 
     expect(s.state.memory).toBe(0);
   });
@@ -30,16 +29,23 @@ describe("BT19-007 Guilmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT19-015", as: "host", under: ["BT19-012", "BT19-010", "BT19-007"] }],
+          battleArea: [{ card: "BT19-012", as: "base", under: ["BT19-007"] }],
+          hand: [{ card: "BT19-015", as: "host" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 9000 }] },
       },
       { autoSelectCards: true },
     );
-    s.state.memory = memory;
-    await advance(s.engine).recompute();
+    s.state.memory = memory + 4;
+    await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("host").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0, 20);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(deletesTarget ? 0 : 1);
@@ -56,7 +62,13 @@ describe("BT19-007 Guilmon", () => {
     s.state.memory = -1;
     await advance(s.engine).recompute();
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false, 20);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
