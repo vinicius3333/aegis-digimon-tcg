@@ -18,7 +18,7 @@ describe("BT14-084", () => {
       actions: [{ kind: "PlayWithoutCost", payCost: false }],
     }));
 
-  it("naturally returns the top security card, adds a yellow Vaccine card, and pays by suspending", async () => {
+  it("naturally replaces the top security card and separately suspends to gain memory", async () => {
     const s = setupEngine(
       {
         0: {
@@ -35,5 +35,6 @@ describe("BT14-084", () => {
     expect(s.perm("tk").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("topSecurity").instanceId)).toBe(true);
     expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("vaccine").instanceId);
+    expect(s.state.memory).toBe(8);
   });
 });
