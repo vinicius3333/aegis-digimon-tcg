@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { setupEngine } from "../../engine/testkit/harness.js";
-import { advance } from "../../engine/testkit/index.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-097.js";
 
 describe("BT18-097 Dark to Light, Thunder to Gunfire", () => {
@@ -22,7 +20,7 @@ describe("BT18-097 Dark to Light, Thunder to Gunfire", () => {
           payCost: false,
           from: ["hand", "trash"],
           ignoreRequirements: true,
-          into: { nameOrTrait: [{ tokens: ["MagnaGarurumon"], match: "name" }] },
+          into: { nameOrTrait: [{ tokens: ["MagnaGarurumon"], match: "nameExact" }] },
         },
       ],
     });
@@ -83,15 +81,24 @@ describe("BT18-097 Dark to Light, Thunder to Gunfire", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("magna").instanceId)).toBe(true);
   });
 
-  it("executes Security by playing an inherited-effect Tamer and returning this Option to hand", async () => {
+  it("executes Security by playing an inherited-effect Tamer and returning this Option to hand through a real security check", async () => {
     const s = setupEngine(
       {
-        0: { security: [{ card: "BT18-097", as: "option", faceUp: true }], hand: [{ card: "BT18-088", as: "tamer" }] },
+        0: { security: [{ card: "BT18-097", as: "option" }], hand: [{ card: "BT18-088", as: "tamer" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("tamer").instanceId));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("tamer").instanceId)).toBe(
       true,
     );
