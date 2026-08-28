@@ -1,6 +1,6 @@
 # BT15 Static Card Implementation Re-audit
 
-Status: static card-by-card pass in progress; execution gates deferred
+Status: static card-by-card coverage complete; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -36,7 +36,7 @@ collection-complete claim is valid.
 | BT15-071–080 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-071-080.md` | Yes |
 | BT15-081–090 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-081-090.md` | Yes |
 | BT15-091–100 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-091-100.md` | Yes |
-| BT15-101–102 | Luna assigned | `internal-docs/audits/BT15/BT15-101-102.md` | No |
+| BT15-101–102 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-101-102.md` | Yes |
 
 ## Score model
 
@@ -165,22 +165,28 @@ behavior.
 | BT15-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural own-deletion cost, optional Myotismon play, self-placement, and no-cost negative proof |
 | BT15-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Mandatory hand-trash cost correction plus stored-level deletion and Myotismon draw proof `2f47b813f` |
 | BT15-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main and Leviamon X digivolution origins prove both level deletions and trash return |
+| BT15-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Missing self-suspend deletion prevention and alternate Gabumon evolution correction with natural positive/negative deletion proof `09aacd357` |
+| BT15-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Mixed trash/battle-area reducer, top-card shedding, and last-placed On Play corrections with natural play/end-turn proof `d7c021d93` |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 100
-- Corrected: 33
-- Provisional: 100
+- Integrated card audits: 102
+- Corrected: 35
+- Provisional: 102
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
 
-BT15 static re-audit is in progress.
+BT15 static card-by-card coverage is complete. Execution gates remain
+deferred, so no collection-complete or 10/10 claim is made.
 
 Process note: the BT15-039 worker accidentally performed one metadata-only
 pre-push amend (`e34ca8bdb` to `fab5fa267`). The trees and messages are
 identical, no force push occurred, and the range report records the violation.
 The BT15-060 worker also accidentally invoked `git diff --check` once; it
-produced no output and earns no gate credit. No other prohibited gate ran.
+produced no output and earns no gate credit. The BT15-101–102 worker likewise
+accidentally invoked `git diff --check` once during a read-only consistency
+review; it produced no output and earns no gate credit. No other prohibited
+gate ran.
