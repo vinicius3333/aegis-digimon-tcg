@@ -29,8 +29,8 @@ collection-complete claim is valid.
 | BT14-011–020 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-011-020.md` | Yes |
 | BT14-021–030 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-021-030.md` | Yes |
 | BT14-031–040 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-031-040.md` | Yes |
-| BT14-041–050 | Luna assigned | `internal-docs/audits/BT14/BT14-041-050.md` | No |
-| BT14-051–060 | Luna assigned | `internal-docs/audits/BT14/BT14-051-060.md` | No |
+| BT14-041–050 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-041-050.md` | Yes |
+| BT14-051–060 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-051-060.md` | Yes |
 | BT14-061–070 | Unassigned | `internal-docs/audits/BT14/BT14-061-070.md` | No |
 | BT14-071–080 | Unassigned | `internal-docs/audits/BT14/BT14-071-080.md` | No |
 | BT14-081–090 | Unassigned | `internal-docs/audits/BT14/BT14-081-090.md` | No |
@@ -104,14 +104,34 @@ behavior.
 | BT14-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2413 Security ordering, alternate evolution, and both deletion-placement paths |
 | BT14-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Alternate evolution, placement cost, Armor Purge, and inherited Security Attack proof |
 | BT14-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Tamer placement/play distinction, free level-3 play, and Once Per Turn proof |
+| BT14-041 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2414 natural recovery/add-security origin, DP reduction, and Security Attack proof |
+| BT14-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, suspend cost, exact reveal, and decline proof |
+| BT14-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2415 natural suspend-cost payment with and without a target |
+| BT14-044 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural start-main aura, suspension penalty, and inherited evolution reduction proof |
+| BT14-045 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural losing Security battle proves Jamming survival |
+| BT14-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Tamer play reduction/Once Per Turn and inherited evolution proof |
+| BT14-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Q2416 restriction installation and opposing unsuspend-phase proof |
+| BT14-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural higher-DP attack evolution plus inherited Leomon DP proof |
+| BT14-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Counter/Blast Digivolve, bottom-deck effect, and Overflow proof |
+| BT14-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and opposing unsuspend-phase restriction proof |
+| BT14-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent-turn end window, suspend cost, reveal, and decline proof |
+| BT14-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Legal Leomon stack, natural suspension, and inherited DP proof |
+| BT14-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Digimon/Tamer event-filter correction and natural Tamer suspension proof `2889861c8` |
+| BT14-054 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Optional effect/mandatory attack correction and natural end-turn attack proof `c60169a23` |
+| BT14-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural inherited Blocker declaration and redirection proof |
+| BT14-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Leave-cause prevention correction plus natural reveal/replacement proof `2cbf62d48` |
+| BT14-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural inherited Blocker and existing Save/PlaceUnder proof |
+| BT14-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play/evolution placement, Rush, and inherited Blocker proof |
+| BT14-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Missing Save placement correction plus natural Retaliation/Save proof `0925a97b6` |
+| BT14-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural traited-Tamer attack play and inherited leave-play replacement proof |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 60
-- Integrated card audits: 40
-- Corrected: 2
-- Provisional: 40
+- Integrated card audits: 60
+- Corrected: 6
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 42
