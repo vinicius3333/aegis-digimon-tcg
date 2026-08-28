@@ -614,14 +614,13 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
       traits: ["Night Claw", "Light Fang"],
     },
   ],
-  // BT19-101 (ZeedMillenniummon): "[Digivolve]MoonMillenniummon: Cost 2". The printed name is
-  // NOT bracketed, so the text parser cannot extract the name gate and emits a gateless entry
-  // that would match any base of any level. Gate it on the base name explicitly.
+  // BT19-101 (ZeedMillenniummon): "[Digivolve][MoonMillenniummon]: Cost 2". The generated
+  // record was gateless; preserve the bracketed exact-name gate explicitly.
   "BT19-101": [
     {
       cost: 2,
       isAlternate: true,
-      names: ["MoonMillenniummon"],
+      namesExact: ["MoonMillenniummon"],
     },
   ],
   // BT22-063/067 may evolve from their named CS Tamers only while their owner has at most
