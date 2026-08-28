@@ -83,6 +83,8 @@ export interface DigivolveAction extends ActionBase {
   ignoreDigivolutionRequirements?: boolean;
   /** Ignore only the level requirement, preserving the action's explicit filters. */
   ignoreLevelRequirement?: boolean;
+  /** Allow a printed optional digivolution branch to activate and end cleanly with no target. */
+  allowNoTarget?: boolean;
   /** The card digivolved into must share a color with the chosen base. */
   colorsMatchDigivolvingSource?: boolean;
   /** Destination name must include the selected base permanent's name (EX4-072). */
