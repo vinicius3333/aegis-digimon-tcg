@@ -967,12 +967,21 @@ export function effectClauseForTiming(effectText: string | undefined, timing: st
   return effectText.slice(group.start, end).trim();
 }
 
-/** Select the matching printed clause across a card's main, inherited, and Security text boxes. */
-export function cardEffectClauseForTiming(cardId: string, timing: string | undefined): string | undefined {
+/**
+ * Select the matching printed clause across a card's main, inherited, and Security text
+ * boxes. A timing bracket can appear in more than one box, so when the caller knows the
+ * resolving effect is inherited, the inherited box is searched first.
+ */
+export function cardEffectClauseForTiming(
+  cardId: string,
+  timing: string | undefined,
+  isInherited = false,
+): string | undefined {
   const definition = getCardDefinition(cardId);
-  const texts = [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText].filter(
-    (text): text is string => Boolean(text),
-  );
+  const boxes = isInherited
+    ? [definition?.inheritedEffectText, definition?.effectText, definition?.securityEffectText]
+    : [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText];
+  const texts = boxes.filter((text): text is string => Boolean(text));
   const label = timing ? TIMING_LABELS[timing] : undefined;
   const matching = label ? texts.find((text) => new RegExp(`\\[${escapeRegExp(label)}\\]`).test(text)) : undefined;
   if (matching === undefined && timing !== undefined) {
@@ -989,8 +998,12 @@ export function cardEffectClauseForTiming(cardId: string, timing: string | undef
 }
 
 /** The printed clause to surface for a resolved effect, or undefined when there is nothing worth showing. */
-export function resolvedEffectClause(cardId: string, timing: string | undefined): string | undefined {
-  const clause = cardEffectClauseForTiming(cardId, timing);
+export function resolvedEffectClause(
+  cardId: string,
+  timing: string | undefined,
+  isInherited = false,
+): string | undefined {
+  const clause = cardEffectClauseForTiming(cardId, timing, isInherited);
   const trimmed = clause?.trim();
   if (!trimmed) return undefined;
   // A bare "[On Play] [When Digivolving]" header with no body carries nothing to read.
@@ -1095,10 +1108,12 @@ export function playerFacingEffectClause({
   cardId,
   timing,
   description,
+  isInherited,
 }: {
   cardId: string;
   timing: string | undefined;
   description: string | undefined;
+  isInherited?: boolean;
 }): string | undefined {
   const supplied = description?.trim();
   if (supplied && !isInternalEffectDescription(supplied)) {
@@ -1109,7 +1124,7 @@ export function playerFacingEffectClause({
   // Without timing provenance, choosing the first printed text box can attribute a
   // main effect to an inherited decision. Prefer showing nothing over a wrong clause.
   if (timing === undefined) return undefined;
-  return resolvedEffectClause(cardId, timing);
+  return resolvedEffectClause(cardId, timing, isInherited === true);
 }
 
 /**

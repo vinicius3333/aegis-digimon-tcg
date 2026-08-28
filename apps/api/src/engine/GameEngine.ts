@@ -2533,6 +2533,7 @@ export class GameEngine {
       effectKey: `subtrigger/${sub.id}/${sub.description}`,
       description: subTriggerDescriptionFor(sub, ctx),
       timing: sub.event,
+      ...(sub.isInheritedSource === true ? { isInherited: true } : {}),
       // `securityChecked` closes the check AFTER these bodies have run, so the client needs
       // this to hold the announcement until the checked card's reveal has been shown.
       ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
@@ -3832,6 +3833,7 @@ export class GameEngine {
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
           timing: EffectTiming[timing],
+          ...(collected.effect.isInherited ? { isInherited: true } : {}),
           // `securityChecked` closes the check AFTER these effects have resolved, so the
           // client needs this to hold the announcement until the reveal has been shown.
           ...(this.securityCheckDepth > 0 ? { duringSecurityCheck: true } : {}),
@@ -3845,6 +3847,7 @@ export class GameEngine {
           effectKey: collected.effect.effectKey,
           description: collected.effect.description,
           timing: EffectTiming[timing],
+          ...(collected.effect.isInherited ? { isInherited: true } : {}),
         });
       },
     };

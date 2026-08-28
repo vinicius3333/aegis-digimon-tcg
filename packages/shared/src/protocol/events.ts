@@ -150,6 +150,11 @@ export type ServerEvent =
       description: string;
       timing?: string;
       /**
+       * The clause lives in the source card's inherited text box. Some timings appear in
+       * both text boxes, so without this the client can only guess which box to quote.
+       */
+      isInherited?: boolean;
+      /**
        * The effect fired while a security check was resolving. `securityChecked` closes
        * the check and so is emitted AFTER these effects; the flag lets the client hold
        * what they announce until the checked card's reveal has actually been shown.
@@ -167,6 +172,8 @@ export type ServerEvent =
       effectKey: string;
       description: string;
       timing?: string;
+      /** The clause lives in the source card's inherited text box (see `effectTriggered`). */
+      isInherited?: boolean;
     }
   | { kind: "cardsMoved"; instanceIds: string[]; from: string; to: string } // generic zone movement for the log
   | { kind: "turnEnded"; endingSeat: Seat; nextSeat: Seat; turnCount: number } // turn transition overlay
