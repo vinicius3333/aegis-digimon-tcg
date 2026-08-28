@@ -111,8 +111,9 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 zone: "battleArea",
-                controllerDefault: "either",
+                controllerDefault: "any",
                 kind: ["Option"],
+                placedInBattleAreaByEffect: true,
               },
               count: 1,
             },
@@ -142,8 +143,9 @@ const compiled: CompiledCard = {
             target: {
               filter: {
                 zone: "battleArea",
-                controllerDefault: "either",
+                controllerDefault: "any",
                 kind: ["Option"],
+                placedInBattleAreaByEffect: true,
               },
               count: 1,
             },
