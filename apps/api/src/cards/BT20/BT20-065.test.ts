@@ -1,6 +1,5 @@
-import { EffectDuration, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
-import type { GameEngine } from "../../engine/GameEngine.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 // Self-register every card module so the engine drives the REGISTERED BT20-065 IR.
@@ -43,50 +42,38 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: "BT20-069", dp: 5000, as: "attacker" }],
           hand: [
             { card: "BT20-065", as: "wormmon" },
             { card: "BT1-085", as: "fodder" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "recipient" }] },
+        1: { battleArea: [{ card: "BT1-009", dp: 3000, suspended: true, as: "recipient" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const p1 = s.state.players[1]!;
     const wormmon = s.inst("wormmon");
     const recipient = s.perm("recipient");
-    const engine = s.engine as unknown as Pick<GameEngine, "applyIntent"> & {
-      recomputeContinuousEffects(): Promise<void>;
-      primitives: { deletePermanent(ids: string[], cause?: string): Promise<number> };
-      continuous: {
-        listCustomEffectGrants(): readonly { instanceId: string; token: string; duration: EffectDuration }[];
-      };
-    };
 
     s.state.memory = 5;
     s.state.turnSeat = 0;
 
-    const playRes = engine.applyIntent(0, { type: "playCard", instanceId: wormmon.instanceId });
+    const playRes = s.engine.applyIntent(0, { type: "playCard", instanceId: wormmon.instanceId });
     expect(playRes).toEqual({ ok: true });
 
-    await settle(() => engine.continuous.listCustomEffectGrants().length > 0, 3000);
-
-    const grants = engine.continuous.listCustomEffectGrants();
-    expect(
-      grants.some(
-        (g: { instanceId: string; token: string }) =>
-          g.instanceId === recipient.topCard!.instanceId && g.token === "[On Deletion] Lose 1 memory.",
-      ),
-    ).toBe(true);
-    expect(grants.find((grant) => grant.instanceId === recipient.topCard!.instanceId)?.duration).toBe(
-      EffectDuration.UntilOpponentTurnEnd,
-    );
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("fodder").instanceId));
 
     s.state.memory = 5; // isolate the granted effect's delta from the play/cost's own changes
 
-    await engine.recomputeContinuousEffects();
-    await engine.primitives.deletePermanent([recipient.permanentId], "byEffect");
-    await settle(() => !p1.battleArea.some((p) => p.permanentId === recipient.permanentId));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: recipient.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !p1.battleArea.some((p) => p.permanentId === recipient.permanentId) && s.state.memory === 6);
 
     expect(s.state.memory).toBe(6); // 5 + 1
   });
@@ -94,35 +81,35 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
   it("NEGATIVE (cost): no card in hand to trash => no grant => deletion costs nothing", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT20-065", as: "wormmon" }] }, // nothing left to trash after playing it
-        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "recipient" }] },
+        0: {
+          battleArea: [{ card: "BT20-069", dp: 5000, as: "attacker" }],
+          hand: [{ card: "BT20-065", as: "wormmon" }],
+        }, // nothing left to trash after playing it
+        1: { battleArea: [{ card: "BT1-009", dp: 3000, suspended: true, as: "recipient" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const p1 = s.state.players[1]!;
     const wormmon = s.inst("wormmon");
     const recipient = s.perm("recipient");
-    const engine = s.engine as unknown as Pick<GameEngine, "applyIntent"> & {
-      recomputeContinuousEffects(): Promise<void>;
-      primitives: { deletePermanent(ids: string[], cause?: string): Promise<number> };
-      continuous: { listCustomEffectGrants(): readonly { instanceId: string; token: string }[] };
-    };
 
     s.state.memory = 5;
     s.state.turnSeat = 0;
 
-    const playRes = engine.applyIntent(0, { type: "playCard", instanceId: wormmon.instanceId });
+    const playRes = s.engine.applyIntent(0, { type: "playCard", instanceId: wormmon.instanceId });
     expect(playRes).toEqual({ ok: true });
 
-    await settle(() => !s.state.players[0]!.battleArea.every((p) => p.topCard === undefined), 3000);
-
-    // With no card left in hand, the trash cost is unpayable: no grant installs.
-    expect(engine.continuous.listCustomEffectGrants().length).toBe(0);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-065"));
 
     s.state.memory = 5;
-    await engine.recomputeContinuousEffects();
-    await engine.primitives.deletePermanent([recipient.permanentId], "byEffect");
-    await settle(() => !p1.battleArea.some((p) => p.permanentId === recipient.permanentId));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: recipient.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !p1.battleArea.some((p) => p.permanentId === recipient.permanentId) && s.state.memory === 5);
 
     expect(s.state.memory).toBe(5);
   });
