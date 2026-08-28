@@ -1,9 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT7-058.js";
 
 describe("BT7-058 SkullKnightmon", () => {
+  it("limits the inherited Security Attack bonus to this Knightmon or Bagramon host", () => {
+    expect(runtimeCompiledCard("BT7-058")?.effects[1]).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: { kind: "selfHasNameContaining", names: ["Knightmon", "Bagramon"] },
+        },
+      ],
+    });
+  });
+
   it("places a DeadlyAxemon under itself, trashes its sources, and digivolves into DarkKnightmon for free", async () => {
     const s = setupEngine(
       {
