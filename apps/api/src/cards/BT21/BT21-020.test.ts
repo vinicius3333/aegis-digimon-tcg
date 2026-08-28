@@ -30,7 +30,7 @@ describe("BT21-020 Aldamon", () => {
           into: { zone: "hand", controllerDefault: "mine" },
           condition: {
             kind: "selfDigivolutionStackMatchesFilter",
-            filter: { nameOrTrait: [{ tokens: ["Agunimon", "BurningGreymon"], match: "name" }] },
+            filter: { nameOrTrait: [{ tokens: ["Agunimon", "BurningGreymon"], match: "nameExact" }] },
           },
           actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
         },
