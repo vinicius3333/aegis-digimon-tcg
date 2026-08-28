@@ -459,6 +459,10 @@ export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequ
  * the CLIENT (digivolve-target highlighting + cost labels) read ONE source of truth.
  */
 export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequirement[]> = {
+  // BT18-101's bracketed [Lucemon: Chaos Mode] source is an exact card name;
+  // retain that exactness in the shared legality/highlighting source while the generated
+  // effects.json record remains read-only and historically used a substring `names` gate.
+  "BT18-101": [{ namesExact: ["Lucemon: Chaos Mode"], cost: 6, isAlternate: true }],
   // BT12-012: the Takuya clause treats that Tamer as a level 3 red Digimon, so it uses
   // Agunimon's ordinary red Lv.3 cost 2. The generated record incorrectly assigned cost 0.
   "BT12-012": [
@@ -573,14 +577,14 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   ],
   // BT18-102 (Susanoomon): "[Digivolve] Takuya Kanbara / Koji Minamoto: Cost 6 (if this Digimon
   // has 10 or more [Hybrid]-trait cards in its digivolution stack)". The effects.json entry has the
-  // `names` gate but lacks `requiredDigivolutionCardCount` and `incompatibleWithBlastDigivolve`
+  // substring `names` gate but lacks `requiredDigivolutionCardCount` and `incompatibleWithBlastDigivolve`
   // (KB Q3055/Q3056). Override here so the server's digivolve-legality validator enforces the
   // 10-[Hybrid] stack count gate and excludes this path from Blast Digivolve candidates.
   "BT18-102": [
     {
       cost: 6,
       isAlternate: true,
-      names: ["Takuya Kanbara", "Koji Minamoto"],
+      namesExact: ["Takuya Kanbara", "Koji Minamoto"],
       requiredDigivolutionCardCount: { trait: "Hybrid", min: 10 },
       incompatibleWithBlastDigivolve: true,
     },
