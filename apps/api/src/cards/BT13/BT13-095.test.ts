@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-095.js";
@@ -40,6 +39,7 @@ describe("BT13-095 Marcus Damon", () => {
         kind: "youHave",
         filter: {
           controllerDefault: "mine",
+          zone: "battleArea",
           kind: ["Digimon"],
           nameOrTrait: [{ match: "name", tokens: ["Agumon", "Greymon"] }],
         },
@@ -47,21 +47,54 @@ describe("BT13-095 Marcus Damon", () => {
     });
   });
 
-  it("suspends on play and weakens an opposing Digimon", async () => {
+  it("suspends through a natural play, weakens an opposing Digimon, and gains memory", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT13-095", as: "marcus" },
-            { card: "BT13-008", as: "agumon" },
-          ],
+          battleArea: [{ card: "BT13-008", as: "agumon" }],
+          hand: [{ card: "BT13-095", as: "marcus" }],
         },
         1: { battleArea: [{ card: "BT1-012", as: "target", dp: 5000 }] },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("marcus"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("marcus").isSuspended);
     expect(s.perm("target").currentDP).toBe(2000);
+    expect(s.state.memory).toBe(6);
+  });
+
+  it("gains memory with no opposing Digimon when a battle-area Agumon is present (Q2341)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-008", as: "agumon" }],
+          hand: [{ card: "BT13-095", as: "marcus" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 6);
+    expect(s.perm("marcus").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(6);
+  });
+
+  it("does not count a breeding-only Agumon for the suspension memory clause", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT13-008", as: "breeding-agumon" },
+          hand: [{ card: "BT13-095", as: "marcus" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("marcus").isSuspended);
+    expect(s.state.memory).toBe(5);
   });
 });
