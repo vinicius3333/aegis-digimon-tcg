@@ -1,0 +1,106 @@
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT21-003.js";
+import "../index.js";
+
+describe("BT21-003 Yokomon", () => {
+  it("encodes the inherited once-per-turn trigger for one of your played WG Digimon", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenPlayed",
+            sourceFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["WG"], match: "trait" }],
+            },
+            actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+          },
+        ],
+      }),
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
+  it("draws when a WG Digimon is played beside a realistic Yokomon evolution stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT21-034", as: "host", under: ["BT21-003", "BT21-033"] },
+          { card: "BT21-048", as: "playedWG" },
+        ],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("playedWG").permanentId,
+    });
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT21-003", "BT21-033"]);
+    expect(s.perm("host").topCard.cardId).toBe("BT21-034");
+  });
+
+  it.each([
+    ["a non-WG Digimon", { seat: 0, card: "BT1-009" }],
+    ["an opponent WG Digimon", { seat: 1, card: "BT21-048" }],
+    ["a WG Option", { seat: 0, card: "BT21-095" }],
+  ])("does not draw for %s", async (_label, subject) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT21-034", as: "host", under: ["BT21-003"] },
+          ...(subject.seat === 0 ? [{ card: subject.card, as: "subject" }] : []),
+        ],
+        deck: [{ card: "BT1-001", as: "top" }],
+      },
+      1: {
+        battleArea: subject.seat === 1 ? [{ card: subject.card, as: "subject" }] : [],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("subject").permanentId,
+    });
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("draws only once when multiple WG Digimon are played in the same turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT21-034", as: "host", under: ["BT21-003"] },
+          { card: "BT21-048", as: "firstWG" },
+          { card: "BT21-033", as: "secondWG" },
+        ],
+        deck: [
+          { card: "BT1-001", as: "firstDraw" },
+          { card: "BT1-002", as: "secondDraw" },
+        ],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("firstWG").permanentId,
+    });
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("secondWG").permanentId,
+    });
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+});

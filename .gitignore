@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Vite
+apps/web/dist/
+.vite/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Test / coverage
+coverage/
+.nyc_output/
+aegis-accounts.sqlite*
+
+# UI review screenshots (tools/ui-review.mjs)
+ui-review/
+
+# Generated card-audit reports
+docs/audits/
+internal-docs/audits/
+internal-docs/card-audits/

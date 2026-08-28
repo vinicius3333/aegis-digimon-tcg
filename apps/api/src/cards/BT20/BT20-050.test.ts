@@ -1,0 +1,71 @@
+import { EffectTiming } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT20-050.js";
+import "./index.js";
+
+describe("BT20-050 HoverEspimon", () => {
+  it("flips the next face-down opposing security card when digivolving", () => {
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
+      actions: [{ kind: "SecurityManipulation", op: "flipFaceUp", controller: "opponent" }],
+    });
+  });
+
+  it("draws once at end of attack and grants inherited +1000 DP", () => {
+    expect(compiled.effects.find((effect) => effect.trigger === "EndOfAttack")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+    });
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "AllTurns",
+      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }],
+    });
+  });
+
+  it("uses the Cyborg route for 2 and flips the next face-down security card", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-046", as: "base" }], hand: [{ card: "BT20-050", as: "hover" }] },
+      1: { security: [{ card: "BT1-009", faceUp: true }, "BT1-010", "BT1-011"] },
+    });
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hover").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT20-050");
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.security.map((card) => card.faceUp)).toEqual([true, true, false]);
+  });
+
+  it("draws exactly once across repeated end-of-attack windows in one turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-050", as: "hover" }],
+        deck: [
+          { card: "BT1-009", as: "first" },
+          { card: "BT1-010", as: "second" },
+        ],
+      },
+    });
+    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("hover"));
+    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("hover"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("first").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("second").instanceId]);
+  });
+
+  it("grants its inherited host +1000 DP on both players' turns", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT20-052", dp: 7000, under: ["BT20-050"], as: "host" }] },
+    });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(8000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(8000);
+  });
+});

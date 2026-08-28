@@ -1,0 +1,115 @@
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT20-040.js";
+import "./index.js";
+
+describe("BT20-040 Coredramon", () => {
+  it("reacts to blue Digimon with Dracomon or Examon in their text and optionally reduces Groundramon evolution", () => {
+    expect(compiled.effects.find((entry) => entry.trigger === "Static")?.keywords).toEqual([
+      { keyword: "Raid", raw: "＜Raid＞" },
+    ]);
+    const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn" && !entry.isInherited);
+    expect(effect).toMatchObject({
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            colors: ["Blue"],
+            nameOrTrait: [{ tokens: ["Dracomon", "Examon"], match: "text" }],
+          },
+          actions: [
+            {
+              kind: "Digivolve",
+              from: ["hand"],
+              reduceCost: 2,
+              payCost: true,
+              useAlternateCost: true,
+              optional: true,
+              into: { nameOrTrait: [{ tokens: ["Groundramon"], match: "name" }] },
+            },
+          ],
+        },
+      ],
+    });
+    expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }],
+    });
+  });
+
+  it("evolves for 2 less only after a qualifying blue full-text Digimon is played", async () => {
+    const matching = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-040", as: "coredramon" }],
+          hand: [
+            { card: "BT20-023", as: "played" },
+            { card: "BT20-042", as: "groundramon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    matching.state.memory = 10;
+    await matching.ready();
+    expect(
+      matching.engine.applyIntent(0, { type: "playCard", instanceId: matching.inst("played").instanceId }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => matching.perm("coredramon").topCard.cardId === "BT20-042");
+    expect(matching.state.memory).toBe(4);
+
+    const nonmatching = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-040", as: "coredramon" }],
+          hand: [
+            { card: "BT20-024", as: "played" },
+            { card: "BT20-042", as: "groundramon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    nonmatching.state.memory = 10;
+    await nonmatching.ready();
+    expect(
+      nonmatching.engine.applyIntent(0, { type: "playCard", instanceId: nonmatching.inst("played").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => nonmatching.state.players[0]!.battleArea.length === 2);
+    expect(nonmatching.perm("coredramon").topCard.cardId).toBe("BT20-040");
+  });
+
+  it("uses Raid and grants its inherited host +2000 DP only on its controller's turn", async () => {
+    const raid = setupEngine({
+      0: { battleArea: [{ card: "BT20-040", dp: 5000, as: "coredramon" }] },
+      1: {
+        battleArea: [{ card: "BT20-010", dp: 1000, as: "raidTarget" }],
+        security: ["BT20-001"],
+      },
+    });
+    expect(
+      raid.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: raid.perm("coredramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => raid.state.players[1]!.battleArea.length === 0);
+    expect(raid.state.players[1]!.security).toHaveLength(1);
+
+    const inherited = setupEngine({
+      0: { battleArea: [{ card: "BT20-042", dp: 7000, under: ["BT20-040"], as: "host" }] },
+    });
+    await inherited.ready();
+    expect(inherited.perm("host").currentDP).toBe(9000);
+    inherited.state.turnSeat = 1;
+    await advance(inherited.engine).recompute();
+    expect(inherited.perm("host").currentDP).toBe(7000);
+  });
+});

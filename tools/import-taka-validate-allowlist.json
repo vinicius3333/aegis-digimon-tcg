@@ -1,0 +1,62 @@
+[
+  {
+    "cardId": "BT26-083",
+    "field": "effectText",
+    "reason": "Junomon: Hysteric Mode — committed text carries the <Recovery +3> reminder clause '(Place the top 3 cards of your deck as your top security card.)' present in the source at import time; the current community-DB snapshot has since trimmed that reminder. Wording-only community-DB drift, not an import defect."
+  },
+  {
+    "cardId": "BT26-103",
+    "field": "effectText",
+    "reason": "Jupitermon: Wrath Mode — same <Recovery +2> reminder-clause drift as BT26-083: the source has since trimmed '(Place the top 2 cards of your deck as your top security card.)'. Wording-only."
+  },
+  {
+    "cardId": "P-240",
+    "field": "effectText",
+    "reason": "Imported (2026-06-14) before the importer read the 'assembly' header field on 2026-08-05; source now reconstructs with a leading '[Assembly -6] ...' header ours lacks. The committed record still needs the same header backfill."
+  },
+  {
+    "cardId": "EX12-016",
+    "field": "effectText",
+    "reason": "Verified 2026-08-06: the missing '[Assembly -2] ...' header was added to cards.json. This entry stays because the source ALSO drops the printed <Security A. +1> keyword and rewords 'their Digimon' to 'your opponent's Digimon' — a genuine source regression, not adopted. Committed text is correct; source is wrong here."
+  },
+  {
+    "cardId": "EX12-037",
+    "field": "effectText",
+    "reason": "Verified 2026-08-06: backfilled the missing '[DNA Digivolve] ...' header. Kept diffing because the source's own dnaDigivolve field glues '[Digivolve] ... Cost 5 [DNA Digivolve] ...' with a space instead of a newline (a scrape defect verified against the raw fixture row — sibling cards EX12-044/-017 store the same two headers newline-separated). Repaired the missing newline rather than reproducing the source's run-on line; the resulting text is intentionally not byte-identical to the source reconstruction."
+  },
+  {
+    "cardId": "EX12-048",
+    "field": "playCost",
+    "reason": "Verified 2026-08-06: confirmed known-bad — the community DB's playCost (13) is implausible for a Lv.6 card and internally inconsistent with the rest of this card's record. Not adopted; committed value (5) stands."
+  },
+  {
+    "cardId": "EX12-048",
+    "field": "dp",
+    "reason": "Verified 2026-08-06: confirmed known-bad, same suspect record as playCost above. Source dp=13000 not adopted; committed value (12000) stands."
+  },
+  {
+    "cardId": "EX12-048",
+    "field": "effectText",
+    "reason": "Verified 2026-08-06: backfilled the missing '[Assembly -6] ...' header text (descriptive, not numeric). Kept diffing because the source's digivolve cost ('Cost 4') sits in the same suspect numeric cluster as this card's known-bad playCost/dp above; not adopted alongside them. Committed 'Cost 3' stands until the record can be independently verified."
+  },
+  {
+    "cardId": "EX12-052",
+    "field": "effectText",
+    "reason": "DUAL card: Digimon-side header/body record was verified on 2026-08-06 (the nameEn/dualEffect/optionEffect/optionColorRequirements gaps were fixed). The source wording variant in the [When Digivolving][When Attacking][Counter] clause is not adopted: official Q6836 confirms that after accepting the +3000 DP clause, the selected Digimon must battle if possible, matching the committed 'gets +3000 DP ... then it may battle' sequencing and the audited executable IR."
+  },
+  {
+    "cardId": "EX12-069",
+    "field": "securityEffectText",
+    "reason": "Wording divergence in the play-without-cost clause: committed text says 'play cost 5 or lower', source says 'level 5 or lower'. Not adopted: sibling card EX12-074 (same [Security] template, untouched by this diff) still reads 'play cost 5 or lower [Shambala] trait card', which is strong internal evidence the source reworded these two rather than that ours was wrong."
+  },
+  {
+    "cardId": "EX12-072",
+    "field": "securityEffectText",
+    "reason": "Same 'play cost' vs 'level' wording divergence as EX12-069, same reasoning (EX12-074 sibling precedent). Not adopted."
+  },
+  {
+    "cardId": "EX12-077",
+    "field": "effectText",
+    "reason": "Verified 2026-08-06: backfilled the missing '[DNA Digivolve] ...' header, repairing the same missing-newline scrape defect as EX12-037 (source glues 'Cost 5 [DNA Digivolve]' with a space, not a newline). Resulting text is intentionally not byte-identical to the source reconstruction."
+  }
+]

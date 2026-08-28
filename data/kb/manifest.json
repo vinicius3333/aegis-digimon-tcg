@@ -1,0 +1,75 @@
+{
+  "errata": {
+    "url": "https://world.digimoncard.com/rule/errata_card/",
+    "count": 91,
+    "cached": false,
+    "fetchedAt": "2026-08-19T00:03:57.578Z"
+  },
+  "banlist": {
+    "url": "https://world.digimoncard.com/rule/restriction_card/",
+    "events": 64,
+    "current": 54,
+    "cached": false,
+    "fetchedAt": "2026-08-19T00:04:00.621Z"
+  },
+  "qa": {
+    "url": "https://world.digimoncard.com/rule/?card_no=<card_no>",
+    "cardsScanned": 4375,
+    "cardsWithRulings": 2617,
+    "lastFetched": 2617,
+    "fetchedAt": "2026-08-19T00:38:16.560Z",
+    "failed": [
+      "P-053",
+      "P-054",
+      "P-055",
+      "P-056",
+      "P-057",
+      "P-058",
+      "P-059",
+      "P-060",
+      "P-061",
+      "P-062",
+      "P-063",
+      "P-064",
+      "P-065",
+      "P-066",
+      "P-067",
+      "P-068",
+      "P-069",
+      "P-070",
+      "P-071",
+      "P-072",
+      "P-073",
+      "P-074",
+      "P-075",
+      "P-076",
+      "P-077",
+      "P-078",
+      "P-079",
+      "P-080",
+      "P-081",
+      "P-082",
+      "P-083",
+      "P-084",
+      "P-085",
+      "P-086",
+      "P-087",
+      "P-088",
+      "P-089",
+      "P-090",
+      "P-091",
+      "P-092",
+      "P-093",
+      "P-094"
+    ]
+  },
+  "rules": {
+    "sources": [
+      "https://world.digimoncard.com/rule/pdf/general_rule.pdf",
+      "https://world.digimoncard.com/rule/pdf/manual.pdf",
+      "https://world.digimoncard.com/rule/pdf/glossary.pdf"
+    ],
+    "chunks": 363,
+    "fetchedAt": "2026-05-31T03:50:43.526Z"
+  }
+}

@@ -1,0 +1,78 @@
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT9/BT9-017.js";
+import "./EX2-073.js";
+
+describe("EX2-073 Gallantmon: Crimson Mode", () => {
+  it("deletes every opposing Digimon tied for highest DP when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX2-011", as: "base" }], hand: [{ card: "EX2-073", as: "evolution" }] },
+        1: { battleArea: ["EX2-029", "EX2-043", "EX2-019"] },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["EX2-043", "EX2-019"]);
+  });
+
+  it("uses the Gallantmon X line to reach 10 cards in trash and remove 2 security before the check", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-017", as: "gallantmonX", under: ["EX2-011"] }],
+          hand: [{ card: "EX2-073", as: "crimsonMode" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT2-047", as: "highestA", dp: 10000 },
+            { card: "BT2-047", as: "highestB", dp: 10000 },
+            { card: "BT1-010", as: "lower", dp: 4000 },
+          ],
+          trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008"],
+          security: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
+          deck: ["BT1-014"],
+        },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    const highestIds = [s.perm("highestA").topCard.instanceId, s.perm("highestB").topCard.instanceId];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gallantmonX").permanentId,
+        instanceId: s.inst("crimsonMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      highestIds.every((instanceId) => s.state.players[1]!.trash.some((card) => card.instanceId === instanceId)),
+    );
+    expect(s.state.players[1]!.trash).toHaveLength(10);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gallantmonX").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+    );
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-010"]);
+  });
+});

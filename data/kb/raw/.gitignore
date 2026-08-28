@@ -1,0 +1,3 @@
+# Cached raw scrape responses — large, regenerable, not reviewed. Ignore all but this file.
+*
+!.gitignore

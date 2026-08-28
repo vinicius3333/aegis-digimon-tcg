@@ -1,0 +1,90 @@
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT24-007.js";
+import "../index.js";
+
+describe("BT24-007 Tsunomon", () => {
+  it("plays one level 4+ Demon/Titan Digimon from trash with a 2-cost reduction", () => {
+    const effect = compiled.effects[0]!;
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(effect).toMatchObject({ trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn" });
+    expect(effect.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenHandTrashed",
+      fireCondition: { kind: "triggerHandTrashedSeat", seat: "mine" },
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          fromTriggerHandTrash: true,
+          payCost: true,
+          reduceCostBy: 2,
+          optional: true,
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "trash",
+              kind: ["Digimon"],
+              levelComparison: { op: "gte", value: 4 },
+              nameOrTrait: [
+                { tokens: ["Demon"], match: "trait" },
+                { tokens: ["Titan"], match: "trait" },
+              ],
+            },
+            count: 1,
+          },
+        },
+      ],
+    });
+  });
+
+  it("plays only the qualifying Titan trashed by the triggering action", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-008", as: "host", under: ["BT24-007"] }],
+          hand: [{ card: "BT24-045", as: "triggeringTarget" }],
+          trash: [{ card: "BT24-045", as: "unrelatedTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    await advance(s.engine).verb.trash([s.inst("triggeringTarget").instanceId], 0);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("triggeringTarget").instanceId,
+      ),
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("triggeringTarget").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("unrelatedTarget").instanceId);
+    expect(s.state.memory).toBe(8);
+  });
+
+  it("does not play an unrelated trash card when the triggering discard is ineligible", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-008", as: "host", under: ["BT24-007"] }],
+          hand: [{ card: "BT24-042", as: "levelThreeDemon" }],
+          trash: [{ card: "BT24-045", as: "unrelatedTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    await advance(s.engine).verb.trash([s.inst("levelThreeDemon").instanceId], 0);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("unrelatedTarget").instanceId);
+    expect(s.state.memory).toBe(10);
+  });
+});

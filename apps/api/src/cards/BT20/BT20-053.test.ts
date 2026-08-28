@@ -1,0 +1,162 @@
+import { EffectTiming } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT20-053.js";
+import "./index.js";
+
+describe("BT20-053 Grademon", () => {
+  it("may play Dorumon or Ryudamon into an empty breeding area on play and digivolving", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[0]).toMatchObject({
+        kind: "PlayWithoutCost",
+        breeding: true,
+        requiresEmpty: "breedingArea",
+        from: ["hand"],
+        payCost: false,
+        optional: true,
+        target: {
+          filter: { controller: "mine", nameOrTrait: [{ tokens: ["Dorumon", "Ryudamon"], match: "name" }] },
+          count: 1,
+        },
+      });
+    }
+  });
+
+  it("grants one own Digimon +5000 DP and immunity during an attack until the opponent's turn ends", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions ?? [];
+      expect(actions.find((action) => action.kind === "ModifyDP")).toMatchObject({
+        kind: "ModifyDP",
+        amount: 5000,
+        duration: "untilOpponentTurnEnd",
+        condition: { kind: "duringAttack" },
+      });
+      expect(actions.find((action) => action.kind === "GrantImmunity")).toMatchObject({
+        kind: "GrantImmunity",
+        immuneFrom: "opponentDigimonEffects",
+        duration: "untilOpponentTurnEnd",
+        condition: { kind: "duringAttack" },
+      });
+    }
+  });
+
+  it("can redirect one opposing attack to this Digimon once per opponent turn", () => {
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "OpponentsTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [{ kind: "RedirectAttack", optional: true, target: { filter: { isSelfRef: true }, isSelf: true } }],
+        },
+      ],
+    });
+  });
+
+  it("plays Dorumon or Ryudamon free into empty breeding on both entry timings", async () => {
+    for (const mode of ["play", "digivolve"] as const) {
+      const rookie = mode === "play" ? "BT20-048" : "BT20-010";
+      const s = setupEngine(
+        {
+          0: {
+            ...(mode === "play" ? {} : { battleArea: [{ card: "BT20-051", as: "base" }] }),
+            hand: [
+              { card: "BT20-053", as: "grademon" },
+              { card: rookie, as: "rookie" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = mode === "play" ? 7 : 3;
+      const result =
+        mode === "play"
+          ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grademon").instanceId })
+          : s.engine.applyIntent(0, {
+              type: "digivolve",
+              permanentId: s.perm("base").permanentId,
+              instanceId: s.inst("grademon").instanceId,
+              useAlternateCost: true,
+            });
+      expect(result).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.breeding?.topCard.cardId === rookie);
+      expect(s.state.players[0]!.breeding?.topCard.cardId).toBe(rookie);
+      expect(s.state.memory).toBe(0);
+    }
+  });
+
+  it("Q4721 grants +5000 DP and Digimon-effect immunity during an opponent attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-047", dp: 2000, as: "ally" },
+            { card: "BT20-053", as: "grademon" },
+          ],
+          breeding: { card: "BT20-048" },
+          security: ["BT20-047"],
+        },
+        1: { battleArea: [{ card: "BT20-047", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("ally").permanentId);
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("grademon"), {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    expect(s.perm("ally").currentDP).toBe(7000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("ally"), "beAffected", "Digimon")).toBe(true);
+  });
+
+  it("redirects only the first of two opposing attacks to its inherited host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-056", under: ["BT20-053"], dp: 10000, as: "host" }],
+          security: ["BT20-047"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-047", dp: 1000, as: "first" },
+            { card: "BT20-047", dp: 1000, as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("first").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("first").instanceId));
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("second").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-056")).toBe(true);
+  });
+});

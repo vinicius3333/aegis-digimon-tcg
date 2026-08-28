@@ -1,0 +1,176 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100%;
+  height: 100%;
+  background: var(--ds-bg);
+}
+
+body {
+  color: var(--ds-fg);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-text-base);
+  line-height: var(--ds-leading-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  color: inherit;
+  font: inherit;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+:focus-visible {
+  border-radius: var(--ds-radius-sm);
+  outline: 2px solid var(--ds-focus-color);
+  outline-offset: 2px;
+  box-shadow: var(--ds-focus-ring);
+}
+
+::selection {
+  color: var(--ds-accent);
+  background: var(--ds-accent-surface);
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ds-border-strong);
+  border-radius: var(--ds-radius-pill);
+  transition: background var(--ds-motion-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ds-fg-muted);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes aegis-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes aegis-pop {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes aegis-rise {
+  from {
+    transform: translateY(var(--ds-space-3));
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes aegis-flip {
+  from {
+    transform: rotateY(90deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes aegis-dash {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
+@keyframes aegis-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes aegis-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(3%, -4%, 0) scale(1.08);
+  }
+  66% {
+    transform: translate3d(-3%, 3%, 0) scale(0.96);
+  }
+}
+
+@keyframes aegis-sheen {
+  from {
+    background-position: -180% 0;
+  }
+  to {
+    background-position: 180% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .aegis-motion-decorative,
+  #cursor-particles {
+    display: none !important;
+  }
+}
+
+button,
+[role="button"] {
+  min-height: var(--ds-touch-target);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  min-height: var(--ds-touch-target);
+}

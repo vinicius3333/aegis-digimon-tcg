@@ -1,0 +1,534 @@
+import { ArraySchema } from "@colyseus/schema";
+import {
+  CardInstance,
+  Permanent,
+  Phase,
+  CardKind,
+  EffectTiming,
+  Zone,
+  digiXrosRequirementFor,
+  type CardColor,
+  type CardDefinition,
+  type DigiXrosMaterial,
+  type DigiXrosRequirement,
+  digiXrosTrashNameAllowanceFor,
+  type GameState,
+  type PlayerState,
+  type Seat,
+} from "@aegis/shared";
+import { cardHasTrait, definitionOf, dpOf, isDigimon } from "../cards/cardData.js";
+import { extractCardAt, placePermanent as appendPermanent, setTopCard } from "../state/access.js";
+import { digiXrosZoneExpanderFor } from "../digiXros/zoneExpanders.js";
+import {
+  allowsDigiXrosMaterialsFromTrash,
+  allowsExtraDigiXrosMaterials,
+  matchNameOrTrait,
+} from "../effects/interpreter.js";
+
+/**
+ * cost block ~670-700).
+ *
+ * A card that carries a `digiXrosRequirement` may be played by placing the named material cards
+ * under it — "When you would play this card, you may place specified cards from your hand/battle
+ * area under it. Each placed card reduces the play cost." The play cost is reduced by
+ *
+ * Default material source zones are the player's HAND and the top cards of the player's BATTLE-AREA
+ * Digimon. The TRASH and the cards UNDER the player's TAMERS are legal sources only while a
+ * zone-expander Tamer (BT19-079 / BT19-087 / EX4-062) is active — the player suspends those Tamers
+ * as the activation cost (the `expanderPermanentIds` in the plan), unlocking up to the expander's
+ * per-zone maximum.
+ *
+ * The whole declaration (which materials, which Tamers to suspend) is carried in the intent and the
+ * server validates it atomically — the engine never trusts a client cost, only the chosen pieces.
+ */
+
+/** A DigiXros play declaration (the `digiXros` field of a playCard intent), narrowed for this action. */
+export interface DigiXrosPlanInput {
+  materialInstanceIds: string[];
+  expanderPermanentIds?: string[];
+}
+
+export interface DigiXrosIntent {
+  type: "playCard";
+  instanceId: string;
+  targetSlot?: number;
+  digiXros: DigiXrosPlanInput;
+}
+
+export type DigiXrosRejection =
+  | "not-your-turn"
+  | "wrong-phase"
+  | "decision-pending"
+  | "game-over"
+  | "no-such-player"
+  | "card-not-in-zone"
+  | "not-playable-kind"
+  | "not-digixros" // the played card has no DigiXros requirement
+  | "no-materials" // a DigiXros declaration must place at least one material
+  | "invalid-material" // a chosen material is in an illegal zone, or does not satisfy any recipe slot
+  | "invalid-expander" // a chosen expander Tamer is not a controllable expander for this play
+  | "insufficient-memory";
+
+/** Where a chosen DigiXros material currently sits (drives how it is placed under the new card). */
+type MaterialSource = "hand" | "field" | "trash" | "underTamer";
+
+interface ResolvedMaterial {
+  instanceId: string;
+  source: MaterialSource;
+  definition: CardDefinition;
+  /** When source === "field": the battle-area permanent that is relocated whole. */
+  fieldPermanentId?: string;
+}
+
+export type DigiXrosCheck =
+  | { ok: false; reason: DigiXrosRejection }
+  | {
+      ok: true;
+      instance: CardInstance;
+      instanceIndex: number;
+      definition: CardDefinition;
+      requirement: DigiXrosRequirement;
+      materials: ResolvedMaterial[];
+      expanderPermanentIds: string[];
+      cost: number;
+    };
+
+export interface DigiXrosDeps {
+  maxAffordable(state: GameState, seat: Seat): number;
+  payMemory(state: GameState, seat: Seat, cost: number): void;
+  /** Apply continuous play-cost modifiers to the printed cost (before the DigiXros reduction). */
+  adjustedPlayCost?(state: GameState, seat: Seat, definition: CardDefinition, base: number): number;
+  /** Resolve pay-time effects on the card after the DigiXros material reduction is known. */
+  finalizePlayCost?(
+    state: GameState,
+    seat: Seat,
+    instance: CardInstance,
+    definition: CardDefinition,
+    baseCost: number,
+  ): Promise<number>;
+  /**
+   * Returns DigiXros-only granted name aliases for a material card instance (KB Q3068/Q3105/Q3119).
+   * These are names the card is "also treated as [X] for a DigiXros" — valid ONLY in material
+   * slot matching, not for any other name check. When omitted, no extra aliases are consulted.
+   */
+  digiXrosNamesOf?(instanceId: string): string[];
+  /** Whether this field permanent may replace exactly one otherwise-required DigiXros slot. */
+  canSubstituteMaterial?(permanentId: string): boolean;
+  nextPermanentId(): string;
+  /** Fire On Play for the placed permanent through the effect stack.
+   *  `materialCount` carries the number of DigiXros materials used, threaded into the trigger
+   *  payload so a `digiXrosCount` condition can gate on "DigiXrosing with N or more cards". */
+  fireTiming(
+    state: GameState,
+    seat: Seat,
+    timing: EffectTiming,
+    sourceInstanceId: string,
+    materialCount?: number,
+  ): Promise<void>;
+  /** Place loose cards (hand / trash / under-Tamer) under a permanent as bottom digivolution cards. */
+  placeUnder(targetPermanentId: string, instanceIds: string[]): Promise<unknown>;
+  /** Place costs committed while the played permanent did not yet exist. */
+  placePendingDigivolution?(playedInstanceId: string, permanentId: string): Promise<void>;
+  /** Move a whole battle-area permanent under another as digivolution cards. */
+  relocatePermanent(
+    destPermanentId: string,
+    sourcePermanentId: string,
+    opts?: { belowTop?: boolean; shedOwnCards?: boolean },
+  ): boolean;
+  /** Suspend an expander Tamer (the activation cost of unlocking its source zones). */
+  suspendPermanent(permanentId: string): Promise<void>;
+  emit?: (event: { kind: string; [k: string]: unknown }) => void;
+}
+
+export interface DigiXrosOutcome {
+  cardId: string;
+  instanceId: string;
+  permanentId: string;
+  cost: number;
+  materialInstanceIds: string[];
+}
+
+/** Validate a DigiXros play declaration. Pure: mutates nothing. */
+export function validateDigiXros(
+  state: GameState,
+  seat: Seat,
+  intent: DigiXrosIntent,
+  deps: Pick<DigiXrosDeps, "maxAffordable" | "adjustedPlayCost" | "digiXrosNamesOf" | "canSubstituteMaterial">,
+): DigiXrosCheck {
+  if (state.gameOver) return { ok: false, reason: "game-over" };
+  if (state.pendingDecision !== undefined) return { ok: false, reason: "decision-pending" };
+  if (state.turnSeat !== seat) return { ok: false, reason: "not-your-turn" };
+  if (state.phase !== Phase.Main) return { ok: false, reason: "wrong-phase" };
+
+  const player = state.players[seat];
+  if (player === undefined) return { ok: false, reason: "no-such-player" };
+
+  const instanceIndex = player.hand.findIndex((c) => c.instanceId === intent.instanceId);
+  const instance = player.hand[instanceIndex];
+  if (instance === undefined) return { ok: false, reason: "card-not-in-zone" };
+
+  const definition = definitionOf(instance.cardId);
+  if (!definition.kinds.includes(CardKind.Digimon)) return { ok: false, reason: "not-playable-kind" };
+  const requirement = digiXrosRequirementFor(instance.cardId)?.[0];
+  if (requirement === undefined) return { ok: false, reason: "not-digixros" };
+
+  const materialIds = intent.digiXros.materialInstanceIds;
+  if (materialIds.length === 0) return { ok: false, reason: "no-materials" };
+
+  // Resolve the chosen expander Tamers and aggregate the unlocked per-zone maxima. Each Tamer
+  // is a separately paid effect, so multiple copies add their quotas (EX10-064 Q5178/Q5179).
+  // An expander must be an unsuspended Tamer this seat controls whose
+  // trait gate accepts the card being played.
+  //
+  // AllowDigiXrosMaterialsFromTrash (CAP-C-14, BT21-030): the played card's own IR declares that
+  // trash is a valid material source, so trash is unrestricted regardless of expander Tamers.
+  let underTamerMax = allowsExtraDigiXrosMaterials(instance.cardId) ? 1 : 0;
+  const intrinsicTrashNames = digiXrosTrashNameAllowanceFor(instance.cardId);
+  const intrinsicTrashAllowed =
+    intrinsicTrashNames !== undefined &&
+    player.battleArea.every((permanent) => {
+      if (permanent.topCard === undefined) return true;
+      const materialDefinition = definitionOf(permanent.topCard.cardId);
+      return (
+        !materialDefinition.kinds.includes(CardKind.Digimon) || intrinsicTrashNames.includes(materialDefinition.nameEn)
+      );
+    });
+  let trashMax = allowsDigiXrosMaterialsFromTrash(instance.cardId) || intrinsicTrashAllowed ? Infinity : 0;
+  if (allowsExtraDigiXrosMaterials(instance.cardId)) trashMax = 1;
+  const expanderPermanentIds = intent.digiXros.expanderPermanentIds ?? [];
+  for (const permanentId of expanderPermanentIds) {
+    const perm = player.battleArea.find((p) => p.permanentId === permanentId);
+    if (perm === undefined || perm.topCard === undefined || perm.isSuspended) {
+      return { ok: false, reason: "invalid-expander" };
+    }
+    const expander = digiXrosZoneExpanderFor(perm.topCard.cardId);
+    if (expander === undefined || !expander.appliesTo(definition)) {
+      return { ok: false, reason: "invalid-expander" };
+    }
+    underTamerMax += expander.underTamerMax;
+    trashMax += expander.trashMax;
+  }
+
+  // Resolve each chosen material to its source zone, gated by the unlocked maxima.
+  const materials: ResolvedMaterial[] = [];
+  let trashUsed = 0;
+  let underTamerUsed = 0;
+  for (const materialId of materialIds) {
+    if (materialId === instance.instanceId) return { ok: false, reason: "invalid-material" };
+    const resolved = resolveMaterial(player, materialId);
+    if (resolved === undefined) return { ok: false, reason: "invalid-material" };
+    if (resolved.source === "trash") {
+      trashUsed += 1;
+      if (trashUsed > trashMax) return { ok: false, reason: "invalid-material" };
+    }
+    if (resolved.source === "underTamer") {
+      underTamerUsed += 1;
+      if (underTamerUsed > underTamerMax) return { ok: false, reason: "invalid-material" };
+    }
+    materials.push(resolved);
+  }
+
+  // `maxMaterials` caps a recipe that explicitly forbids "one of each" alternative (KB ruling,
+  // e.g. EX6-025 Q3732: place 1 [A], 1 [B], or 1 [C] — NOT more than one). Absent = unbounded,
+  // preserving the default single-slot "place N of [trait]" form (e.g. "[Bagra Army] x2").
+  if (requirement.maxMaterials !== undefined && materials.length > requirement.maxMaterials) {
+    return { ok: false, reason: "invalid-material" };
+  }
+
+  // Each material must satisfy a DISTINCT recipe slot (one per DigiXrosConditionElement). A
+  // single-slot recipe (e.g. "[Bagra Army] x2") instead lets every material satisfy that one slot.
+  // DigiXros-only name aliases (KB Q3068/Q3105/Q3119) are consulted per-material via `digiXrosNamesOf`.
+  const digiXrosNamesAt =
+    deps.digiXrosNamesOf !== undefined ? (i: number) => deps.digiXrosNamesOf!(materials[i]!.instanceId) : undefined;
+  const canSubstituteAt = (index: number): boolean => {
+    const permanentId = materials[index]?.fieldPermanentId;
+    return permanentId !== undefined && deps.canSubstituteMaterial?.(permanentId) === true;
+  };
+  if (
+    !materialsSatisfyRecipe(
+      materials.map((m) => m.definition),
+      requirement.materials,
+      digiXrosNamesAt,
+      canSubstituteAt,
+    )
+  ) {
+    return { ok: false, reason: "invalid-material" };
+  }
+
+  const printed = normalizeCost(definition.playCost);
+  const base = deps.adjustedPlayCost ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed)) : printed;
+  // When count is "∞", any number of matching materials is accepted; the per-material cost
+  // reduction is supplied by `costReduction` (default 1 when absent). When count is a number,
+  // `count` itself is the per-material reduction (legacy field semantics).
+  const perMaterialReduction = requirement.count === "∞" ? (requirement.costReduction ?? 1) : requirement.count;
+  const cost = Math.max(0, base - materials.length * perMaterialReduction);
+  if (deps.maxAffordable(state, seat) < cost) return { ok: false, reason: "insufficient-memory" };
+
+  return { ok: true, instance, instanceIndex, definition, requirement, materials, expanderPermanentIds, cost };
+}
+
+/** Apply a validated DigiXros play. */
+export async function applyDigiXros(
+  state: GameState,
+  seat: Seat,
+  intent: DigiXrosIntent,
+  deps: DigiXrosDeps,
+): Promise<{ ok: false; reason: DigiXrosRejection } | { ok: true; outcome: DigiXrosOutcome }> {
+  const check = validateDigiXros(state, seat, intent, deps);
+  if (!check.ok) return check;
+
+  const { definition, materials, expanderPermanentIds } = check;
+  const cost = deps.finalizePlayCost
+    ? await deps.finalizePlayCost(state, seat, check.instance, definition, check.cost)
+    : check.cost;
+  const player = state.players[seat]!;
+
+  // (1) Pay the activation cost: suspend the chosen expander Tamers.
+  for (const permanentId of expanderPermanentIds) {
+    await deps.suspendPermanent(permanentId);
+  }
+
+  // (2) Pay the (reduced) memory cost.
+  if (cost > 0) {
+    const memoryBefore = state.memory;
+    deps.payMemory(state, seat, cost);
+    deps.emit?.({ kind: "memoryChanged", from: memoryBefore, to: state.memory, reason: "playCard" });
+  }
+
+  // (3) Remove the played card from hand and place it as a new battle-area permanent.
+  const playIndex = player.hand.findIndex((c) => c.instanceId === check.instance.instanceId);
+  if (playIndex < 0) return { ok: false, reason: "card-not-in-zone" };
+  const instance = extractCardAt(player, Zone.Hand, playIndex);
+  if (instance === undefined) return { ok: false, reason: "card-not-in-zone" };
+  instance.faceUp = true;
+
+  const permanent = placePermanent(deps, player, instance, definition);
+  permanent.enterFieldTurnCount = state.turnCount;
+  // A DigiXros is a play with materials (§7-2-2-7), so the mechanic rides on `cardPlayed`
+  // rather than being re-derived client-side from the card's printed DigiXros requirement —
+  // that heuristic said "this card CAN be DigiXros'd", not "this play WAS one".
+  deps.emit?.({
+    kind: "cardPlayed",
+    seat,
+    cardId: instance.cardId,
+    permanentId: permanent.permanentId,
+    mechanic: "digiXros",
+  });
+
+  // (4) Place each material under the new permanent. A battle-area material contributes only its
+  //     TOP card — §7-2-2-7 removes it from the battle area, so anything under it is trashed
+  //     (`shedOwnCards`). A hand / trash / under-Tamer material is a single loose card already.
+  const placedIds: string[] = [];
+  for (const material of materials) {
+    if (material.source === "field" && material.fieldPermanentId !== undefined) {
+      deps.relocatePermanent(permanent.permanentId, material.fieldPermanentId, { shedOwnCards: true });
+    } else {
+      await deps.placeUnder(permanent.permanentId, [material.instanceId]);
+    }
+    placedIds.push(material.instanceId);
+  }
+  await deps.placePendingDigivolution?.(instance.instanceId, permanent.permanentId);
+
+  // (5) Fire On Play, carrying the material count so `digiXrosCount` conditions can gate on it.
+  await deps.fireTiming(state, seat, EffectTiming.OnPlay, instance.instanceId, materials.length);
+
+  return {
+    ok: true,
+    outcome: {
+      cardId: instance.cardId,
+      instanceId: instance.instanceId,
+      permanentId: permanent.permanentId,
+      cost,
+      materialInstanceIds: placedIds,
+    },
+  };
+}
+
+// --- pure helpers ---
+
+export function normalizeCost(playCost: number): number {
+  return playCost < 0 ? 0 : playCost;
+}
+
+/** Locate a chosen material in `player`'s zones and report how it is sourced (or undefined). */
+function resolveMaterial(player: PlayerState, instanceId: string): ResolvedMaterial | undefined {
+  const inHand = player.hand.find((c) => c.instanceId === instanceId);
+  if (inHand !== undefined) {
+    return { instanceId, source: "hand", definition: definitionOf(inHand.cardId) };
+  }
+  // Battle-area Digimon top card (the whole permanent becomes a digivolution stack).
+  for (const perm of player.battleArea) {
+    if (perm.topCard?.instanceId === instanceId) {
+      const def = definitionOf(perm.topCard.cardId);
+      if (perm.inBreeding) return undefined;
+      return { instanceId, source: "field", definition: def, fieldPermanentId: perm.permanentId };
+    }
+  }
+  const inTrash = player.trash.find((c) => c.instanceId === instanceId);
+  if (inTrash !== undefined) {
+    return { instanceId, source: "trash", definition: definitionOf(inTrash.cardId) };
+  }
+  // A card under one of the player's Tamers.
+  for (const perm of player.battleArea) {
+    if (perm.topCard === undefined || !definitionOf(perm.topCard.cardId).kinds.includes(CardKind.Tamer)) {
+      continue;
+    }
+    const under = perm.stack.find((c) => c.instanceId === instanceId);
+    if (under !== undefined) {
+      return { instanceId, source: "underTamer", definition: definitionOf(under.cardId) };
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Whether a material's definition satisfies a single recipe slot (name AND color AND level gates).
+ * `digiXrosNames` carries additional name aliases granted to this material specifically for
+ * DigiXros matching (the "also treated as [X] for a DigiXros" grant, KB Q3068/Q3105/Q3119).
+ */
+function materialMatchesSlot(def: CardDefinition, slot: DigiXrosMaterial, digiXrosNames?: string[]): boolean {
+  // Named DigiXros slots may explicitly name non-Digimon cards (BT19-102 names a Tamer).
+  // Unnamed/trait-only slots stay Digimon-only so unrelated Tamers and Options cannot leak in.
+  if (!isDigimon(def) && !(slot.names?.some((name) => def.nameEn.toLowerCase() === name.toLowerCase()) ?? false)) {
+    return false;
+  }
+  if (slot.names && slot.names.length > 0) {
+    const allNames = digiXrosNames && digiXrosNames.length > 0 ? [def.nameEn, ...digiXrosNames] : [def.nameEn];
+    // Plain DigiXros recipe slots are printed card names (`[Greymon]`), not
+    // "contains [Greymon]" filters. Match the card's printed/DigiXros-alias names
+    // exactly; substring matching is represented explicitly by nameOrTrait/name.
+    if (!slot.names.some((n) => allNames.some((name) => name.toLowerCase() === n.toLowerCase()))) return false;
+  }
+  if (slot.traits && slot.traits.length > 0) {
+    if (!slot.traits.some((t) => cardHasTrait(def, t))) return false;
+  }
+  if (slot.traitContains && slot.traitContains.length > 0) {
+    const traits = def.types ?? [];
+    if (
+      !slot.traitContains.some((token) => traits.some((trait) => trait.toLowerCase().includes(token.toLowerCase())))
+    ) {
+      return false;
+    }
+  }
+  if (slot.colors && slot.colors.length > 0) {
+    if (!slot.colors.some((c) => def.colors.includes(c as CardColor))) return false;
+  }
+  // Name-OR-trait disjunction ("[Greymon] in name OR [Dragon] trait"): qualify on any ref (union),
+  // reusing the engine's shared name/trait/text matcher (BT19-065, BT21-030).
+  if (slot.nameOrTrait && slot.nameOrTrait.length > 0) {
+    if (!slot.nameOrTrait.some((ref) => matchNameOrTrait(def, ref))) return false;
+  }
+  // Printed text slots (BT12-011/074/075: "1 Digimon card with ＜Save＞ in its text")
+  // are structural recipe predicates, not unconstrained description text. Match them
+  // through the same full-card-text union used by other "in its text" filters.
+  if (slot.texts && slot.texts.length > 0) {
+    if (!matchNameOrTrait(def, { tokens: slot.texts, match: "text" })) return false;
+  }
+  if (slot.level !== undefined && def.level !== slot.level) return false;
+  if (slot.levelMin !== undefined && (def.level === undefined || def.level < slot.levelMin)) return false;
+  if (slot.levelMax !== undefined && (def.level === undefined || def.level > slot.levelMax)) return false;
+  // Static level comparison ("Lv.5 or lower"/"Lv.6 or higher"): a level-less material never matches.
+  if (slot.levelComparison !== undefined) {
+    const { op, value } = slot.levelComparison;
+    if (def.level === undefined) return false;
+    if (op === "lte" && !(def.level <= value)) return false;
+    if (op === "gte" && !(def.level >= value)) return false;
+    if (op === "eq" && def.level !== value) return false;
+  }
+  // A desc-only slot (no structured predicate) cannot be matched precisely — reject so we never
+  // accept an unconstrained material (the in-scope cards all carry structured name/color slots).
+  const hasStructured =
+    (slot.names?.length ?? 0) > 0 ||
+    (slot.traits?.length ?? 0) > 0 ||
+    (slot.traitContains?.length ?? 0) > 0 ||
+    (slot.colors?.length ?? 0) > 0 ||
+    (slot.nameOrTrait?.length ?? 0) > 0 ||
+    (slot.texts?.length ?? 0) > 0 ||
+    slot.level !== undefined ||
+    slot.levelMin !== undefined ||
+    slot.levelMax !== undefined ||
+    slot.levelComparison !== undefined;
+  return hasStructured;
+}
+
+/**
+ * Whether `materials` can be assigned to the recipe `slots`. Each material must match a DISTINCT
+ * slot (one per DigiXrosConditionElement). A single-slot recipe is the exception: every material
+ * must satisfy that one slot (the "place N of [trait]" form).
+ *
+ * `digiXrosNamesAt` is an optional per-index lookup for name aliases granted to a material only
+ * in the DigiXros context (KB Q3068/Q3105/Q3119: "also treated as [X] for a DigiXros").
+ */
+export function materialsSatisfyRecipe(
+  materials: CardDefinition[],
+  slots: DigiXrosMaterial[],
+  digiXrosNamesAt?: (index: number) => string[],
+  canSubstituteAt?: (index: number) => boolean,
+): boolean {
+  if (materials.length === 0) return false;
+  if (slots.length === 1) {
+    const slot = slots[0]!;
+    const mismatches = materials.reduce(
+      (count, material, index) => count + (materialMatchesSlot(material, slot, digiXrosNamesAt?.(index)) ? 0 : 1),
+      0,
+    );
+    if (mismatches > 1) return false;
+    if (mismatches === 1) {
+      const mismatchIndex = materials.findIndex(
+        (material, index) => !materialMatchesSlot(material, slot, digiXrosNamesAt?.(index)),
+      );
+      if (mismatchIndex < 0 || canSubstituteAt?.(mismatchIndex) !== true) return false;
+    }
+    // "with different card numbers" (BT19-065, BT21-030, EX3-013): no two placed materials may
+    // share a printed card number (cardId).
+    if (slot.differentCardNumbers === true) {
+      const ids = materials.map((m) => m.cardId);
+      if (new Set(ids).size !== ids.length) return false;
+    }
+    if (slot.differentNames === true) {
+      const names = materials.map((material) => material.nameEn.toLowerCase());
+      if (new Set(names).size !== names.length) return false;
+    }
+    return true;
+  }
+  if (materials.length > slots.length) return false;
+  // Bipartite matching: assign each material to a distinct satisfying slot (backtracking; sizes are
+  // tiny — at most a handful of slots/materials).
+  const usedSlots = new Array<boolean>(slots.length).fill(false);
+  const assign = (i: number, substitutionUsed: boolean): boolean => {
+    if (i === materials.length) return true;
+    for (let s = 0; s < slots.length; s++) {
+      if (usedSlots[s]) continue;
+      const matches = materialMatchesSlot(materials[i]!, slots[s]!, digiXrosNamesAt?.(i));
+      const substitutes = !matches && !substitutionUsed && canSubstituteAt?.(i) === true;
+      if (!matches && !substitutes) continue;
+      usedSlots[s] = true;
+      if (assign(i + 1, substitutionUsed || substitutes)) return true;
+      usedSlots[s] = false;
+    }
+    return false;
+  };
+  return assign(0, false);
+}
+
+/** Build a fresh battle-area Permanent for a hand card being played (shared with Assembly). */
+export function placePermanent(
+  deps: Pick<DigiXrosDeps, "nextPermanentId">,
+  player: PlayerState,
+  instance: CardInstance,
+  definition: CardDefinition,
+): Permanent {
+  const permanent = new Permanent();
+  permanent.permanentId = deps.nextPermanentId();
+  permanent.controllerSeat = player.seat;
+  setTopCard(permanent, instance);
+  permanent.stack = new ArraySchema<CardInstance>();
+  permanent.linked = new ArraySchema<CardInstance>();
+  const dp = dpOf(definition);
+  permanent.baseDP = dp;
+  permanent.currentDP = dp;
+  permanent.isSuspended = false;
+  permanent.inBreeding = false;
+  appendPermanent(player, permanent);
+  return permanent;
+}

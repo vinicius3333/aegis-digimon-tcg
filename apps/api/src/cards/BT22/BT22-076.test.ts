@@ -1,0 +1,47 @@
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT22-076.js";
+
+describe("BT22-076 ShinMonzaemon", () => {
+  it("reduces only Ver.1 digivolutions into ShinMonzaemon", () => {
+    const replacement = compiled.effects.find((entry) => entry.trigger === "Static")?.actions[0] as any;
+    expect(replacement).toMatchObject({
+      event: "wouldDigivolve",
+      into: { nameOrTrait: [{ tokens: ["ShinMonzaemon"], match: "name" }] },
+      actions: [{ mode: "reduceCost", amount: 2 }],
+    });
+    expect(compiled.digivolutionRequirement).toContainEqual({ level: 5, traits: ["DM"], cost: 5, isAlternate: true });
+  });
+
+  it("places either player's qualifying Digimon into security after trashing the bottom face-down card", () => {
+    for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
+      expect(compiled.effects.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
+        kind: "SecurityManipulation",
+        source: {
+          filter: { controllerDefault: "any", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },
+          count: 1,
+        },
+        cost: {
+          kind: "trash",
+          target: { filter: { isSelfRef: true, faceDown: true, position: "bottom" }, isSelf: true },
+        },
+      });
+    }
+  });
+
+  it("stacks the Ver.1 self-reduction with the printed public evolution cost", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-038", as: "monzaemon" }], hand: [{ card: "BT22-076", as: "shin" }] },
+    });
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("monzaemon").permanentId,
+        instanceId: s.inst("shin").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("monzaemon").topCard?.cardId === "BT22-076");
+    expect(s.state.memory).toBe(7);
+  });
+});

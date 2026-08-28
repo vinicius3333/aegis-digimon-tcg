@@ -1,0 +1,26 @@
+// Card modules for this set.
+import "./AD1-001.js";
+import "./AD1-002.js";
+import "./AD1-003.js";
+import "./AD1-004.js";
+import "./AD1-005.js";
+import "./AD1-006.js";
+import "./AD1-007.js";
+import "./AD1-008.js";
+import "./AD1-009.js";
+import "./AD1-010.js";
+import "./AD1-011.js";
+import "./AD1-012.js";
+import "./AD1-013.js";
+import "./AD1-014.js";
+import "./AD1-015.js";
+import "./AD1-016.js";
+import "./AD1-017.js";
+import "./AD1-018.js";
+import "./AD1-019.js";
+import "./AD1-020.js";
+import "./AD1-021.js";
+import "./AD1-022.js";
+import "./AD1-023.js";
+import "./AD1-024.js";
+import "./AD1-025.js";

@@ -1,0 +1,110 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+// Behavior is executed by the shared interpreter; this file only carries the IR and
+// registers it. To override with a hand-written module, delete the AUTO-GENERATED
+// header line above and replace the body — the generator will then preserve this file.
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [{ tokens: ["Elizamon", "Owen Dreadnought"], match: "nameExact" }],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [{ tokens: ["Owen Dreadnought"], match: "nameExact" }],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
+              },
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      actions: [
+        {
+          kind: "Digivolve",
+          requiresDelayArmed: true,
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            or: [
+              { nameOrTrait: [{ tokens: ["Reptile"], match: "trait" }] },
+              {
+                and: [
+                  { nameOrTrait: [{ tokens: ["Dragonkin"], match: "trait" }] },
+                  { nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] },
+                ],
+              },
+            ],
+          },
+          from: ["hand"],
+          reduceCost: 3,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "ActivateMain",
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("BT24-089", compiled);

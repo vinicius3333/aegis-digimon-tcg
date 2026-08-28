@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify Card Implementation"
+  short_description: "Audit one card through behavior and evidence"
+  default_prompt: "Use $verify-card-implementation to audit and verify a card implementation end to end."

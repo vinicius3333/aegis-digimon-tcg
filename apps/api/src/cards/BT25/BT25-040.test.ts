@@ -1,0 +1,187 @@
+import { describe, expect, it } from "vitest";
+import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled as BT25_040 } from "./BT25-040.js";
+import "../index.js";
+
+describe("BT25-040 MagnaAngemon", () => {
+  it("fires its security-trash play effect only for direct effect trashing", () => {
+    const effect = BT25_040.effects?.find((entry) => entry.trigger === "OnDiscardSecurity");
+    expect(effect?.actions?.[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      payCost: false,
+      optional: true,
+      target: {
+        filter: {
+          zone: "hand",
+          controller: "mine",
+          levelComparison: { op: "lte", value: 4 },
+          nameOrTrait: [{ tokens: ["Angel", "Iliad"], match: "trait" }],
+        },
+      },
+    });
+    expect(
+      BT25_040.effects?.some((entry) => entry.trigger === "Static" && entry.actions?.[0]?.kind === "PlayWithoutCost"),
+    ).toBe(false);
+  });
+
+  it("models the On Play and When Digivolving DP clauses as optional top-or-bottom costs", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      const action = BT25_040.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0];
+      expect(action).toMatchObject({
+        kind: "ModifyDP",
+        amount: -8000,
+        duration: "untilOpponentTurnEnd",
+        cost: {
+          kind: "trash",
+          target: { filter: { controller: "mine", zone: "security" }, count: 1 },
+          raw: "By trashing your top or bottom security card",
+        },
+        optional: true,
+        abortOnDecline: true,
+      });
+    }
+  });
+
+  it("scopes the inherited DP trigger to removal from its own security stack", () => {
+    const effect = BT25_040.effects?.find((entry) => entry.trigger === "AllTurns");
+    const watcher = effect?.actions?.[0] as { event?: string; sourceFilter?: unknown; actions?: unknown[] };
+    expect(watcher.event).toBe("whenSecurityRemoved");
+    expect(watcher.sourceFilter).toEqual({ controller: "mine" });
+    expect(watcher.actions?.[0]).toMatchObject({
+      kind: "ModifyDP",
+      amount: -4000,
+      duration: "forTheTurn",
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+    });
+  });
+
+  it("requires and pays the top-or-bottom security cost for On Play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-040", as: "magna" }],
+          security: [
+            { card: "BT1-010", as: "securityTop" },
+            { card: "BT1-020", as: "securityBottom" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 12000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").currentDP !== 12000);
+
+    expect(s.perm("opponent").currentDP).toBe(4000);
+    expect(player.security).toHaveLength(1);
+    expect(player.trash.some((card) => card.instanceId === s.inst("securityTop").instanceId)).toBe(true);
+  });
+
+  it("does not resolve the mandatory DP effect when its security cost is unpayable", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-040", as: "magna" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 12000 }] },
+      },
+      { autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-040"));
+
+    expect(s.perm("opponent").currentDP).toBe(12000);
+    expect(s.decisions.some((decision) => decision.req.kind === "chooseOption")).toBe(false);
+  });
+
+  it("may decline the security cost without applying the DP reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-040", as: "magna" }],
+          security: [{ card: "BT1-010", as: "security" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 12000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT25-040"));
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("opponent").currentDP).toBe(12000);
+  });
+
+  it("resolves the same accepted security cost on digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-040", as: "magna", under: ["BT1-009"] }],
+          security: [{ card: "BT1-010", as: "securityTop" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 12000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+
+    await s.ready();
+    const fire = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("magna"));
+    await settle(() => s.decisions.some((decision) => decision.req.kind === "chooseOption"));
+    await fire;
+
+    expect(s.perm("opponent").currentDP).toBe(4000);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("may play a level-4 Angel or Iliad card when an effect directly trashes it from security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-040", as: "magna" }],
+          hand: [{ card: "BT10-035", as: "angel" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.trash([s.inst("magna").instanceId], 0);
+    await settle(() => s.perm("angel").topCard?.cardId === "BT10-035");
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.perm("angel").topCard?.cardId).toBe("BT10-035");
+  });
+
+  it("applies the inherited DP reduction only for own security removal and once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: ["BT25-040"] }],
+          security: ["BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 10000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    expect(s.perm("opponent").currentDP).toBe(10000);
+
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    expect(s.perm("opponent").currentDP).toBe(6000);
+
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    expect(s.perm("opponent").currentDP).toBe(6000);
+  });
+});

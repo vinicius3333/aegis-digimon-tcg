@@ -1,0 +1,108 @@
+# Served behind the host's dedicated edge Caddy (stagecast infra/Caddyfile.edge),
+# which owns :80/:443 and terminates TLS for aegis-digi.online. This site is
+# plain HTTP on :80 so it does not auto-HTTPS-redirect into a loop behind the edge.
+# The API upstreams, with the health checking that makes three processes an improvement in
+# availability rather than a reduction. Without it Caddy keeps routing to a stopped process and
+# returns 502 for its share of the traffic; with it a failing process is taken out of rotation
+# within a few seconds and the request is retried on a sibling.
+#
+# The per-process `/pN` routes below get none of this on purpose: a room lives on one process,
+# and there is nothing to fail over to.
+(api_upstreams) {
+	reverse_proxy api:2567 api2:2567 api3:2567 {
+		lb_policy least_conn
+		lb_retries 2
+		lb_try_duration 5s
+		health_uri /health
+		health_interval 5s
+		health_timeout 2s
+		health_status 2xx
+		fail_duration 15s
+	}
+}
+
+:80 {
+	encode gzip
+
+	# One route per API process. Colyseus hands the client the public address of the process
+	# that owns its room (`/p1`, `/p2`, `/p3`), so these paths must reach that process and no
+	# other — a seat reservation is worthless on a sibling. handle_path strips the prefix, so
+	# the process sees the URL it issued.
+	handle_path /p1/* {
+		reverse_proxy api:2567
+	}
+	handle_path /p2/* {
+		reverse_proxy api2:2567
+	}
+	handle_path /p3/* {
+		reverse_proxy api3:2567
+	}
+
+	@ws {
+		header Connection *Upgrade*
+		header Upgrade *websocket*
+	}
+	handle @ws {
+		import api_upstreams
+	}
+	handle /health {
+		import api_upstreams
+	}
+	handle /bot/* {
+		import api_upstreams
+	}
+	handle /room/* {
+		import api_upstreams
+	}
+	handle /matchmake/* {
+		import api_upstreams
+	}
+	handle /auth/* {
+		import api_upstreams
+	}
+	handle /account/* {
+		import api_upstreams
+	}
+	handle /bug-reports* {
+		reverse_proxy api:2567
+	}
+	@tournament_api {
+		path /tournaments*
+		not header Accept *text/html*
+	}
+	handle @tournament_api {
+		import api_upstreams
+	}
+
+	# Recovery endpoint for clients that retained HTML from an older release.
+	# It clears only the caller's HTTP cache; cookies and local storage are preserved.
+	handle /reset-web-cache {
+		header Clear-Site-Data "\"cache\""
+		header Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+		redir * / 303
+	}
+
+	@versioned_assets path_regexp versioned_assets /assets/.+-[A-Za-z0-9_-]+\.[A-Za-z0-9]+$
+	handle @versioned_assets {
+		header Cache-Control "public, max-age=31536000, immutable"
+		root * /usr/share/caddy
+		file_server
+	}
+
+	@html path / /index.html
+	handle @html {
+		header Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+		header Pragma "no-cache"
+		header Expires "0"
+		root * /usr/share/caddy
+		rewrite * /index.html
+		file_server
+	}
+
+	handle {
+		header Cache-Control "no-cache, must-revalidate, max-age=0"
+		root * /usr/share/caddy
+		try_files {path} /index.html
+		file_server
+	}
+}

@@ -1,0 +1,76 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const selfLinkScale = {
+  per: 1,
+  unit: "linkCards",
+  filter: { controller: "mine", kind: ["Digimon"], isSelfRef: true },
+};
+
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "SecurityAttack", amount: 1, raw: "＜Security A. +1＞" }],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Link", amount: 2, raw: "＜Link +2＞" }],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Maquinamon"], match: "nameExact" }],
+            },
+            count: 3,
+            upTo: true,
+            source: "thisDigimon",
+          },
+          from: ["hand", "trash", "digivolutionCards"],
+          payCost: false,
+          optional: true,
+          condition: { kind: "isDnaDigivolving", raw: "If DNA digivolving" },
+        },
+      ],
+    },
+    {
+      trigger: "EndOfOpponentsTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "RepeatPerCount",
+          countSource: "linkCount",
+          countScaling: selfLinkScale,
+          action: { kind: "trashSecurityTop", controller: "opponent", count: 1 },
+        },
+        {
+          kind: "RepeatPerCount",
+          countSource: "linkCount",
+          countScaling: selfLinkScale,
+          action: {
+            kind: "Return",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            to: "deckBottom",
+          },
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("EX11-073", compiled);

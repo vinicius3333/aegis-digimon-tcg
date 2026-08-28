@@ -1,0 +1,225 @@
+.home-page {
+  display: flex;
+  height: calc(100% - var(--ds-nav-height-wide));
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* The footer sinks to the bottom of the viewport on its own margin, so the hero
+   sits at the top of the page instead of being centred in the leftover height. */
+.home-hero {
+  display: flex;
+  width: min(100%, 1080px);
+  flex-direction: column;
+  margin-inline: auto;
+  padding-inline: var(--ds-gutter-desktop);
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-5);
+  padding-block: var(--ds-space-12) var(--ds-space-10);
+  text-align: center;
+}
+
+.home-hero h1 {
+  max-width: 18ch;
+  margin: 0;
+  color: var(--ds-fg);
+  font: 900 clamp(2rem, 4.6vw, 3.5rem) / var(--ds-leading-tight) var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.home-hero__lede {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-lg);
+  line-height: var(--ds-leading-body);
+}
+
+.home-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-3);
+  margin-top: var(--ds-space-2);
+}
+
+.home-hero__actions .aegis-button {
+  padding-inline: var(--ds-space-8);
+}
+
+.home-hero__note {
+  margin: 0;
+  color: var(--ds-fg-disabled);
+  font-size: var(--ds-text-sm);
+}
+
+.home-signin,
+.home-page > .aegis-beta-banner {
+  width: min(100%, 760px);
+  margin-inline: auto;
+}
+
+.home-signin {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-4);
+  margin-bottom: var(--ds-space-6);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+}
+
+.home-signin > svg {
+  flex: none;
+  color: var(--ds-accent);
+}
+
+.home-signin p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-body);
+}
+
+.home-signin strong {
+  color: var(--ds-fg);
+}
+
+.home-signin .aegis-button {
+  flex: none;
+}
+
+.home-footer {
+  margin-top: auto;
+  padding: var(--ds-space-5) var(--ds-gutter-desktop) var(--ds-space-6);
+  border-top: 1px solid var(--ds-border-soft);
+  background: var(--ds-surface-muted);
+}
+
+.home-footer__links {
+  display: flex;
+  width: min(100%, 1080px);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-2) var(--ds-space-5);
+  margin: 0 auto var(--ds-space-3);
+}
+
+.home-footer__links > a,
+.home-footer__links > button {
+  display: flex;
+  min-height: var(--ds-touch-target);
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: 0;
+  color: var(--ds-fg-secondary);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  text-decoration: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.home-footer__links > a:hover,
+.home-footer__links > button:hover {
+  color: var(--ds-accent);
+}
+
+.home-footer > p {
+  width: min(100%, 1080px);
+  margin: 0 auto;
+  color: var(--ds-fg-disabled);
+  font-size: var(--ds-text-xs);
+  line-height: 1.6;
+}
+
+@media (max-width: 959px) {
+  .home-page {
+    height: 100%;
+    padding-bottom: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom));
+  }
+
+  .home-hero {
+    padding-inline: var(--ds-gutter-tablet);
+  }
+
+  .home-signin,
+  .home-page > .aegis-beta-banner {
+    width: calc(100% - 2 * var(--ds-gutter-tablet));
+  }
+
+  .home-footer {
+    padding-inline: var(--ds-gutter-tablet);
+  }
+}
+
+@media (max-width: 599px) {
+  .home-signin,
+  .home-page > .aegis-beta-banner {
+    width: calc(100% - 2 * var(--ds-gutter-phone));
+  }
+
+  .home-hero {
+    padding-inline: var(--ds-gutter-phone);
+    gap: var(--ds-space-4);
+    padding-block: var(--ds-space-8) var(--ds-space-6);
+  }
+
+  .home-hero h1 {
+    max-width: 14ch;
+  }
+
+  .home-hero__lede {
+    max-width: 34ch;
+    font-size: var(--ds-text-sm);
+  }
+
+  .home-hero__actions {
+    width: min(100%, 300px);
+    flex-direction: column;
+    gap: var(--ds-space-2);
+  }
+
+  .home-hero__actions .aegis-button {
+    width: 100%;
+  }
+
+  .home-hero__note {
+    font-size: var(--ds-text-xs);
+  }
+
+  .home-signin {
+    flex-wrap: wrap;
+  }
+
+  .home-signin p {
+    flex-basis: calc(100% - 26px - var(--ds-space-4));
+    font-size: var(--ds-text-xs);
+  }
+
+  .home-signin .aegis-button {
+    width: 100%;
+  }
+
+  .home-footer {
+    padding-inline: var(--ds-gutter-phone);
+  }
+
+  .home-footer__links {
+    justify-content: center;
+    gap: var(--ds-space-2) var(--ds-space-4);
+  }
+
+  .home-footer > p {
+    text-align: center;
+  }
+}

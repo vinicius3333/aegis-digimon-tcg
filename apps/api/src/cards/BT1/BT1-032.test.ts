@@ -1,0 +1,48 @@
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "./BT1-032.js";
+
+describe("BT1-032 Frigimon", () => {
+  it("has Jamming", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-032", as: "digimon" }] } });
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(s.perm("digimon"), "Jamming")).toBe(true);
+  });
+
+  it("survives a battle against a stronger Security Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-032", as: "attacker" }] },
+      1: { security: ["BT1-081"] },
+    });
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
+  });
+
+  it("can still be deleted by a stronger Digimon in an ordinary battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-032", as: "attacker" }] },
+      1: { battleArea: [{ card: "BT1-081", as: "defender", suspended: true }] },
+    });
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
+  });
+});

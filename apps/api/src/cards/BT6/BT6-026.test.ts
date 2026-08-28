@@ -1,0 +1,26 @@
+import { describe, it, expect } from "vitest";
+import type { PlayerState } from "@aegis/shared";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT6-026.js";
+describe("BT6-026 Dragomon", () => {
+  it("returns a level 4 source-less opposing Digimon to hand", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-010", as: "base" }], hand: [{ card: "BT6-026", as: "evolving" }] },
+        1: { battleArea: [{ card: "BT2-024", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const opp = s.state.players[1] as PlayerState;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opp.battleArea.length === 0);
+    expect(opp.hand.some((c) => c.cardId === "BT2-024")).toBe(true);
+  });
+});

@@ -1,0 +1,270 @@
+/* Dev-only layout for the board showcase page. The board pieces themselves are
+   styled by game.css; everything here is scaffolding around them. */
+
+.board-showcase {
+  min-height: 100%;
+  padding: 1.5rem 1.5rem 6rem;
+  color: var(--ds-fg);
+  overflow-y: auto;
+}
+
+.board-showcase__intro {
+  max-width: 60rem;
+  margin-bottom: 2rem;
+}
+
+.board-showcase__title {
+  margin: 0 0 0.4rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.board-showcase__lead {
+  margin: 0;
+  color: var(--ds-fg-muted);
+}
+
+.board-showcase__section {
+  padding: 1.2rem 0 2rem;
+  border-top: 1px solid var(--ds-border);
+  scroll-margin-top: 1rem;
+}
+
+.board-showcase__section-title {
+  margin: 0 0 0.2rem;
+  font-family: var(--ds-font-mono);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ds-accent);
+}
+
+.board-showcase__section-note {
+  margin: 0 0 1.2rem;
+  font-size: 0.85rem;
+  color: var(--ds-fg-muted);
+}
+
+.board-showcase__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem 2.5rem;
+  align-items: flex-end;
+}
+
+.board-showcase__row--stacked {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.board-showcase__case {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.board-showcase__case-label {
+  font-family: var(--ds-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ds-fg-muted);
+}
+
+/* Overlays and banners position themselves against the board; each gets its own
+   framed stage here so absolute coordinates land inside the case. */
+.board-showcase__stage {
+  position: relative;
+  overflow: hidden;
+  border: 1px dashed var(--ds-border-strong);
+  border-radius: 0.75rem;
+  background: var(--ds-game-surface, var(--ds-surface));
+}
+
+/* The eroding borders are held part-way through their sweep here: a live panel
+   finishes the ring exactly as it disappears, which would leave the showcase
+   with nothing to look at. */
+.board-showcase .side-panel__erode,
+.board-showcase .match-notice__erode {
+  animation-delay: -1200ms;
+  animation-play-state: paused;
+}
+
+/* Same trick for the bursts and the centre-screen showcase: a live burst ends
+   invisible, so each one is wound to its brightest frame and paused. */
+.board-showcase .battle-burst__core,
+.board-showcase .battle-burst__rays i,
+.board-showcase .battle-burst__ring,
+.board-showcase .game-breeding-slot--lit::before {
+  animation-delay: -200ms;
+  animation-play-state: paused;
+}
+
+.board-showcase .battle-showcase {
+  position: absolute;
+  animation: none;
+}
+
+.board-showcase .battle-showcase__frame {
+  animation-delay: -160ms;
+  animation-play-state: paused;
+}
+
+/* The shield break and the security-effect branch are held mid-sequence for the same
+   reason: both end on an empty frame in a match. */
+.board-showcase .game-security-shield--armed,
+.board-showcase .game-security-shield__shards i,
+.board-showcase .battle-edge-flash {
+  animation-delay: -120ms;
+  animation-play-state: paused;
+}
+
+.board-showcase .battle-security-branch {
+  position: absolute;
+  animation-delay: -600ms;
+  animation-play-state: paused;
+}
+
+/* The count pops on mount here, where nothing has changed to earn it. */
+.board-showcase .game-security-shield__count {
+  animation: none;
+}
+
+/* The memory arc draws itself and fades: held part-drawn here, since a match sees
+   it in flight rather than at rest. */
+.board-showcase .game-memory-arc path {
+  animation-delay: -300ms;
+  animation-play-state: paused;
+}
+
+/* The banner's words slide through and end off-screen, so the held frame needs the
+   text pinned as well as the band. */
+.board-showcase .game-turn-banner span {
+  animation: none;
+}
+
+/* The claw sweeps through and ends invisible, so the gallery holds it mid-swipe
+   the way a match sees it — a negative delay parks it inside the animation. */
+.board-showcase .game-claw__tine {
+  animation-delay: -140ms;
+  animation-play-state: paused;
+}
+
+/* Both halves of a DP pulse end faded out, so both are pinned part-way through. */
+.board-showcase .game-dp-pulse i,
+.board-showcase .game-dp-pulse em {
+  animation-delay: -260ms;
+  animation-play-state: paused;
+}
+
+/* The prediction arc fades in and stays, but the gallery renders it from a fixed
+   prop rather than a live drag: hold it at full strength. */
+.board-showcase .game-memory-prediction,
+.board-showcase .game-memory-prediction__marker {
+  animation: none;
+  opacity: 1;
+}
+
+/* The phase card wipes shut at the end of its own keyframes; the held frame
+   needs it pinned open. Its own inline `animation: none` covers the label. */
+.board-showcase .game-phase-banner span {
+  animation: none;
+}
+
+/* The result splash settles rather than loops, so it is simply shown at rest. */
+.board-showcase .game-result,
+.board-showcase .game-result__title {
+  animation: none;
+}
+
+/* The fate pill hangs above the card's top edge, which in the gallery's tight
+   rows would otherwise land on the section note. */
+#showcase-fate-badges .board-showcase__row {
+  padding-top: 1.6rem;
+}
+
+/* Slice 9: the same freeze trick for the pieces that end on an empty frame in a
+   match — the cut-in fades out, the shatter throws its shards away, the
+   activation glows and settles, the arrow's flashes finish lit, the riffle and
+   the landing bounce both return to rest. */
+.board-showcase .game-cut-in,
+.board-showcase .game-cut-in__bands i,
+.board-showcase .game-cut-in__card,
+.board-showcase .game-cut-in__word {
+  animation-delay: -300ms;
+  animation-play-state: paused;
+}
+
+.board-showcase .game-cut-in {
+  position: absolute;
+}
+
+.board-showcase .game-card-shatter__shard {
+  animation-delay: -260ms;
+  animation-play-state: paused;
+}
+
+.board-showcase .game-permanent--effect-source,
+.board-showcase .game-effect-source-spark,
+.board-showcase .game-pile--effect-source .game-pile__top,
+.board-showcase .game-hand-card--effect-source,
+.board-showcase .game-pile--riffling .game-pile__layer,
+.board-showcase .game-card-landing,
+.board-showcase .game-card-dust,
+.board-showcase .game-security-shield--landing {
+  animation-delay: -140ms;
+  animation-play-state: paused;
+}
+
+/* The arrow's opening flashes end lit, which is the state worth screenshotting. */
+.board-showcase .game-attack-arrow--tracking .game-attack-arrow__stroke,
+.board-showcase .game-attack-arrow--tracking .game-attack-arrow__head,
+.board-showcase .game-security-shield__attack-label {
+  animation: none;
+}
+
+/* The attack label hangs below and to either side of the shield's point, which
+   the stage would otherwise clip. */
+#showcase-security-chrome .board-showcase__stage {
+  overflow: visible;
+}
+
+.board-showcase .game-security-shield-wrap {
+  margin-bottom: 1rem;
+}
+
+/* The log drawer is fixed to the viewport in a match; here it sits in its stage. */
+.board-showcase .play-log,
+.board-showcase .opponent-permanent-inspector {
+  position: absolute;
+  animation: none;
+}
+
+/* The security-battle outcome ends on an empty frame in a match: the shards are
+   gone and the loser has faded, so the beat is held part-way through. */
+.board-showcase .battle-clash__shatter,
+.board-showcase .battle-clash__card[data-fate="spent"] .battle-clash__art,
+.board-showcase .battle-clash__card[data-fate="beaten"],
+.board-showcase .battle-clash__card[data-fate="stands"] {
+  animation-delay: -2100ms;
+  animation-play-state: paused;
+}
+
+/* The claw is only a quarter of a second long, so it is held mid-slash rather than
+   at the same point in the scene as the fades around it. */
+.board-showcase .battle-clash__card[data-fate="beaten"] .game-claw__tine {
+  animation-delay: -125ms;
+  animation-play-state: paused;
+}
+
+/* The clash scene itself fades out at the end of its own timeline. */
+.board-showcase .battle-clash {
+  animation: none;
+}
+
+/* The card blow-up is fixed to the viewport in a match; here it sits in its stage. */
+.board-showcase .card-zoom {
+  position: absolute;
+  animation: none;
+}

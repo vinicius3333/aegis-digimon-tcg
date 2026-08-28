@@ -1,0 +1,131 @@
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT20-066.js";
+import "./index.js";
+
+describe("BT20-066 Stingmon", () => {
+  it("deletes one opposing level 3 Digimon on play and digivolving", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[0]).toMatchObject({
+        kind: "Delete",
+        target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 },
+      });
+    }
+  });
+
+  it("optionally DNA digivolves two own Digimon into a qualifying card from hand during its turn", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
+        actions: [
+          { kind: "Delete" },
+          {
+            kind: "DnaDigivolve",
+            materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2 },
+            into: {
+              zone: "hand",
+              nameOrTrait: [
+                { tokens: ["Imperialdramon"], match: "name" },
+                { tokens: ["Free"], match: "trait" },
+              ],
+            },
+            payCost: true,
+            condition: { kind: "isYourTurn" },
+            optional: true,
+          },
+        ],
+      });
+    }
+  });
+
+  it("inherits Retaliation", () => {
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "Static",
+      keywords: [{ keyword: "Retaliation" }],
+    });
+  });
+
+  it("publishes the printed stats and purple/red evolution routes", () => {
+    expect(getCardDefinition("BT20-066")).toMatchObject({
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [
+        { color: "Purple", level: 3, memoryCost: 2 },
+        { color: "Red", level: 3, memoryCost: 2 },
+      ],
+    });
+  });
+
+  it("on play deletes level 3, then DNA digivolves exact materials into Imperialdramon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-074", as: "dinobeemon" },
+            { card: "BT20-016", as: "paildramon" },
+          ],
+          hand: [
+            { card: "BT20-066", as: "stingmon" },
+            { card: "BT20-076", as: "imperialdramon" },
+          ],
+          deck: ["BT20-047"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT20-061", as: "level3" },
+            { card: "BT20-059", as: "large" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("stingmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-076"));
+    const imperialdramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-076")!;
+    expect(imperialdramon.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT20-074", "BT20-016"]));
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-059"]);
+  });
+
+  it("deletes level 3 on the opponent's turn but does not offer the DNA branch", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-061", as: "base" },
+          { card: "BT20-074", as: "material" },
+        ],
+        hand: [
+          { card: "BT20-066", as: "stingmon" },
+          { card: "BT20-076", as: "imperialdramon" },
+        ],
+        deck: ["BT20-047"],
+      },
+      1: { battleArea: [{ card: "BT20-061", as: "level3" }] },
+    });
+    s.state.turnSeat = 1;
+    await advance(s.engine).verb.digivolveFromInstance(s.perm("base").permanentId, s.inst("stingmon").instanceId, {
+      payCost: false,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT20-076");
+  });
+
+  it("grants inherited Retaliation only from underneath a host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-074", under: ["BT20-066"], as: "host" },
+          { card: "BT20-066", as: "standalone" },
+        ],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("standalone"), "Retaliation")).toBe(false);
+  });
+});

@@ -1,0 +1,90 @@
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./index.js";
+import { compiled } from "./BT20-012.js";
+
+describe("BT20-012 Ginryumon", () => {
+  it("optionally digivolves from hand while attacking and carries both alternate requirements", () => {
+    expect(compiled.effects.find((entry) => !entry.isInherited)).toMatchObject({
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Digivolve",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          into: {
+            nameOrTrait: [
+              { tokens: ["Hisyaryumon"], match: "name" },
+              { tokens: ["Chronicle"], match: "trait" },
+            ],
+          },
+          from: ["hand"],
+          payCost: true,
+          useAlternateCost: true,
+          optional: true,
+        },
+      ],
+    });
+    expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      actions: [{ kind: "ModifyDP", amount: 2000 }],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Ryudamon"], cost: 2, isAlternate: true },
+      { level: 3, traits: ["Chronicle"], cost: 2, isAlternate: true },
+    ]);
+  });
+
+  it("observably pays the alternate cost to evolve into Hisyaryumon while attacking", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-012", as: "ginryumon", under: ["BT20-010"] }],
+          hand: [{ card: "BT20-015", as: "hisyaryumon" }],
+        },
+        1: { security: ["BT20-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ginryumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ginryumon").topCard.cardId === "BT20-015");
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("ginryumon").stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-012", "BT20-010"]),
+    );
+
+    const nonMatch = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-012", as: "ginryumon" }], hand: ["BT20-011"] },
+        1: { security: ["BT20-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    nonMatch.state.memory = 5;
+    expect(
+      nonMatch.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: nonMatch.perm("ginryumon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 20);
+    expect(nonMatch.perm("ginryumon").topCard.cardId).toBe("BT20-012");
+  });
+
+  it("observably grants its inherited host +2000 DP only during its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT20-015", dp: 7000, as: "host", under: ["BT20-012"] }] } });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(9000);
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("host").currentDP).toBe(7000);
+  });
+});

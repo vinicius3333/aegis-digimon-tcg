@@ -1,0 +1,215 @@
+/* Bug reporting: the floating entry point and the report modal. Layout only —
+   colors, spacing and radii come from the design tokens the rest of the client uses. */
+
+.bug-report-button {
+  display: inline-flex;
+  min-height: var(--ds-touch-target);
+  gap: var(--ds-space-2);
+  align-items: center;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-brand-interactive-strong);
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  color: var(--ds-brand-on-ink-muted);
+  font: inherit;
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color var(--ds-motion-fast),
+    background var(--ds-motion-fast),
+    border-color var(--ds-motion-fast);
+}
+
+.bug-report-button:hover {
+  border-color: var(--ds-brand-accent-soft);
+  background: var(--ds-brand-interactive);
+  color: var(--ds-brand-on-ink);
+}
+
+/* The mobile bar has room for the icon only; the label would crowd out the player name. */
+.aegis-mobile-bar__actions {
+  display: flex;
+  /* Sit with the player chip on the right rather than floating mid-bar. */
+  margin-left: auto;
+  margin-right: var(--ds-space-2);
+  align-items: center;
+}
+
+.aegis-mobile-bar .bug-report-button {
+  min-width: 40px;
+  min-height: 40px;
+  justify-content: center;
+  padding: 0;
+}
+
+.aegis-mobile-bar .bug-report-button > span {
+  display: none;
+}
+
+.bug-report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+  width: min(560px, 92vw);
+  max-height: 86vh;
+  overflow-y: auto;
+}
+
+.bug-report__head h2 {
+  margin: 0;
+  color: var(--ds-fg);
+}
+
+.bug-report__head p {
+  margin: var(--ds-space-1) 0 0;
+  color: var(--ds-fg-muted);
+  font-size: 0.9rem;
+}
+
+.bug-report__rules {
+  margin: var(--ds-space-2) 0 0;
+  padding-left: var(--ds-space-4);
+  color: var(--ds-fg-muted);
+  font-size: 0.78rem;
+}
+
+.bug-report__rules li + li {
+  margin-top: 2px;
+}
+
+.bug-report__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+}
+
+.bug-report__combobox {
+  position: relative;
+}
+
+.bug-report__suggestions {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  left: 0;
+  max-height: 240px;
+  margin: var(--ds-space-1) 0 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-raised);
+  list-style: none;
+  box-shadow: var(--ds-shadow-lg);
+}
+
+.bug-report__suggestion {
+  display: flex;
+  gap: var(--ds-space-2);
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 0;
+  background: transparent;
+  color: var(--ds-fg);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bug-report__suggestion[data-active] {
+  background: var(--ds-accent-surface);
+}
+
+.bug-report__suggestion span {
+  color: var(--ds-fg-muted);
+  font-family: var(--ds-font-mono);
+}
+
+.bug-report__hint {
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font-size: 0.78rem;
+}
+
+.bug-report__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bug-report__chip {
+  display: inline-flex;
+  gap: var(--ds-space-2);
+  align-items: center;
+  padding: 2px var(--ds-space-2);
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+  color: var(--ds-fg-secondary);
+  font-size: 0.78rem;
+}
+
+.bug-report__chip button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ds-fg-muted);
+  cursor: pointer;
+}
+
+.bug-report__description textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+
+/* Sending leads the row, so it also leads the tab order; `row-reverse` keeps it on
+   the right, the end of the row the reader scans towards. */
+.bug-report__actions {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: var(--ds-space-2);
+  justify-content: flex-start;
+}
+
+@media (width < 600px) {
+  /* The dialog layer is absolutely positioned, so on a scrolled page the report was
+     anchored mid-document and cut off at both ends. On a phone it is a sheet on the
+     viewport, with the actions pinned above the fold of its own scroll. */
+  .aegis-dialog-layer:has(.bug-report) {
+    position: fixed;
+    align-items: end;
+    padding: 0;
+  }
+
+  /* `.aegis-dialog` also carries a padding and a max-height; the sheet wins by
+     naming both classes rather than by load order. */
+  .aegis-dialog.bug-report {
+    width: 100%;
+    max-height: 92dvh;
+    /* No bottom padding of its own: the pinned actions carry it, so nothing scrolls
+       into the strip below them. */
+    padding: var(--ds-space-4) var(--ds-space-4) 0;
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0;
+  }
+
+  .bug-report__actions {
+    position: sticky;
+    bottom: 0;
+    padding: var(--ds-space-3) 0 max(var(--ds-space-3), env(safe-area-inset-bottom));
+    border-top: 1px solid var(--ds-border);
+    background: var(--ds-surface-raised);
+  }
+
+  .bug-report__actions > button {
+    flex: 1;
+    min-height: var(--ds-touch-target);
+  }
+}

@@ -1,0 +1,6734 @@
+.game-layout {
+  background:
+    linear-gradient(135deg, transparent 0 67%, rgb(7 95 247 / 4%) 67% 67.2%, transparent 67.2%), var(--ds-game-bg);
+}
+
+.game-board {
+  min-width: 0;
+  color: var(--ds-fg);
+  background: var(--ds-game-surface);
+}
+
+.game-sidebar {
+  background: var(--ds-game-surface) !important;
+  box-shadow: -8px 0 28px rgb(28 67 127 / 8%);
+}
+
+.game-field,
+.game-player-dock {
+  border-color: var(--ds-border) !important;
+}
+
+.game-battle-zones > div:first-child,
+.game-battle-zones > div:last-child {
+  margin: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-game-border);
+  border-radius: var(--ds-radius-md);
+  background:
+    linear-gradient(135deg, transparent 0 72%, rgb(7 95 247 / 4%) 72% 72.4%, transparent 72.4%),
+    var(--ds-game-surface-soft);
+}
+
+.game-mobile-turn,
+.game-mobile-surrender,
+.game-mobile-bug {
+  display: none;
+}
+
+/* The board's left edge, not its right: the opponent digivolves and plays into
+   the right half of the field, and a feed anchored over it hid the very move it
+   was narrating. */
+.opponent-action-feed {
+  position: absolute;
+  z-index: calc(var(--ds-z-toast) - 3);
+  top: calc(7.5rem + env(safe-area-inset-top, 0px));
+  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
+  width: min(22rem, calc(100% - var(--ds-space-8)));
+  pointer-events: none;
+}
+.opponent-action-feed__current,
+.opponent-action-feed__trail-item {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--ds-space-3);
+  align-items: center;
+  color: var(--ds-fg);
+  text-align: left;
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 36%, var(--ds-border));
+  border-radius: var(--ds-radius-md);
+  background: color-mix(in srgb, var(--ds-surface) 96%, var(--ds-danger));
+  box-shadow: var(--ds-shadow-lg);
+}
+.opponent-action-feed__current {
+  position: relative;
+  min-height: 3.5rem;
+  padding: var(--ds-space-3);
+  font: inherit;
+  pointer-events: none;
+  animation: aegis-rise 180ms ease-out;
+}
+/* The feed itself is see-through so it never blocks the board; only what a
+   player can actually press takes the pointer back. */
+.opponent-action-feed button {
+  pointer-events: auto;
+}
+.opponent-action-feed__aside {
+  display: grid;
+  gap: var(--ds-space-1);
+  align-self: start;
+  justify-items: end;
+}
+.opponent-action-feed__history {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  color: var(--ds-fg-muted);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface);
+  cursor: pointer;
+  place-items: center;
+}
+.opponent-action-feed__history:hover {
+  color: var(--ds-fg);
+  border-color: color-mix(in srgb, var(--ds-danger) 62%, var(--ds-border));
+}
+.opponent-action-feed__history:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+.opponent-action-feed__icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  color: var(--ds-danger);
+  border-radius: var(--ds-radius-sm);
+  background: color-mix(in srgb, var(--ds-danger) 12%, var(--ds-surface));
+}
+.opponent-action-feed__copy {
+  min-width: 0;
+}
+.opponent-action-feed__copy strong,
+.opponent-action-feed__copy small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.opponent-action-feed__copy strong {
+  font-size: var(--ds-text-sm);
+  line-height: 1.25;
+}
+.opponent-action-feed__copy small {
+  display: -webkit-box;
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.opponent-action-feed__pending {
+  align-self: start;
+  padding: 2px var(--ds-space-2);
+  color: var(--ds-danger);
+  font: 700 0.625rem var(--ds-font-mono);
+  white-space: nowrap;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ds-danger) 10%, var(--ds-surface));
+}
+.opponent-action-feed__trail {
+  position: absolute;
+  inset: 0;
+}
+.opponent-action-feed__trail-item {
+  position: absolute;
+  right: var(--ds-space-2);
+  bottom: calc(100% + var(--ds-space-2));
+  left: var(--ds-space-2);
+  min-height: 2.5rem;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  grid-template-columns: minmax(0, 1fr);
+  opacity: 0.72;
+  transform: scale(0.97);
+}
+.opponent-action-feed__trail-item[data-depth="2"] {
+  bottom: calc(100% + 3.25rem);
+  opacity: 0.48;
+  transform: scale(0.94);
+}
+.opponent-action-feed__trail-item .opponent-action-feed__copy small {
+  display: none;
+}
+
+/* The play log drawer (`PlayLog.cs` inside `SideBar.cs`): it slides out of the
+   board's right edge and back into it, rather than opening as a centred sheet. */
+.play-log {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  display: flex;
+  flex-direction: column;
+  width: min(24rem, calc(100% - var(--ds-space-6)));
+  max-height: 100dvh;
+  padding: var(--ds-space-5);
+  overflow: hidden;
+  border-radius: 18px 0 0 18px;
+  transform: none;
+  animation: battle-log-slide-in var(--t-log-sidebar, 160ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-log-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.play-log__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+}
+.play-log__header span {
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.play-log__header h2 {
+  margin: 2px 0 0;
+  color: var(--ds-fg);
+  font: 800 var(--ds-text-xl) var(--ds-font-display);
+}
+.play-log__list {
+  display: grid;
+  gap: var(--ds-space-2);
+  align-content: start;
+  margin-top: var(--ds-space-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.play-log__empty {
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+}
+.play-log__line {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr);
+  gap: var(--ds-space-2);
+  align-items: start;
+}
+.play-log__line > span {
+  width: 6px;
+  height: 6px;
+  margin-top: 0.45rem;
+  border-radius: 50%;
+  background: var(--ds-fg-disabled);
+}
+.play-log__line[data-kind="you"] > span {
+  background: var(--ds-accent);
+}
+.play-log__line[data-kind="opp"] > span {
+  background: var(--ds-danger);
+}
+.play-log__line p {
+  margin: 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+  line-height: 1.4;
+}
+
+/* A named card is a link into its own art, so a player can check what just hit
+   them without leaving the board. Every surface that names a card uses this one
+   affordance: the play log, the notices, the side panels and the prompts. */
+.card-link {
+  padding: 0;
+  color: var(--ds-accent);
+  font: inherit;
+  text-align: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.card-link:hover,
+.card-link:focus-visible {
+  color: var(--ds-fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-log {
+    animation: none;
+  }
+}
+
+.card-action-sheet {
+  display: none;
+}
+
+/* The card blow-up is reachable from the play log on every layout, so its base
+   styling lives here rather than only inside the touch layer below. It grows into
+   place on the reference client's own 0.12s magnify. */
+.card-zoom {
+  position: fixed;
+  z-index: calc(var(--ds-z-dialog) + 1);
+  inset: 0;
+  display: grid;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-6);
+  grid-template-rows: minmax(0, 1fr) auto;
+  place-items: center;
+  background: rgb(4 14 31 / 88%);
+  backdrop-filter: blur(8px);
+  animation: battle-card-magnify var(--t-card-magnify, 120ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-card-magnify {
+  from {
+    opacity: 0;
+    scale: 0.88;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.mulligan-sheet {
+  width: min(100%, 1080px);
+  padding: var(--ds-space-6);
+  color: var(--ds-brand-on-ink);
+  text-align: center;
+}
+
+.mulligan-badge {
+  margin-bottom: var(--ds-space-3);
+}
+.mulligan-title {
+  margin: 0 0 var(--ds-space-1);
+  font-family: var(--ds-font-display);
+  font-size: 1.875rem;
+  font-weight: 800;
+}
+.mulligan-detail {
+  margin: 0 0 var(--ds-space-6);
+  color: var(--ds-brand-on-ink-muted);
+  font-size: var(--ds-text-sm);
+}
+.mulligan-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--ds-space-4);
+  /* The spacing scale has no step 7 — an invalid var() collapsed this to zero
+     and glued the action buttons to the cards. */
+  margin-bottom: var(--ds-space-8);
+}
+.mulligan-card {
+  flex: none;
+  animation: aegis-pop 360ms ease-out both;
+}
+/* Every choice row lists the affirmative action first, and the reading order the
+   player scans follows the axis: right to left in a row, top to bottom stacked.
+   `row-reverse` puts the leading action on the right without reordering the DOM,
+   so the tab order and the visual order both start at the affirmative. */
+.game-actions-row {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: var(--ds-space-3);
+}
+.mulligan-actions {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  gap: var(--ds-space-3);
+}
+.combat-prompt {
+  max-width: calc(100% - var(--ds-space-6));
+}
+.decision-overlay__heading {
+  min-width: 0;
+  flex: 1;
+}
+.decision-overlay__view-board {
+  flex: none;
+}
+.decision-board-return {
+  position: fixed;
+  /* Keep the pending decision's only exit away from mobile browser chrome and
+     below the opponent bar so it remains reachable while inspecting the board. */
+  z-index: calc(var(--ds-z-toast) - 1);
+  top: calc(env(safe-area-inset-top, 0px) + 4rem);
+  right: var(--ds-space-4);
+  bottom: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-2);
+  color: var(--ds-fg);
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-lg);
+  animation: aegis-rise 180ms ease-out;
+}
+.decision-board-return__status {
+  padding-left: var(--ds-space-2);
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+}
+
+/* --- Mulligan parity ------------------------------------------------------ */
+
+.mulligan-turn-order {
+  margin: 0 0 var(--ds-space-2);
+  color: var(--battle-cyan);
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-sm);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* --- Decision dialog: desktop sizing -------------------------------------- */
+
+.decision-overlay__subtitle {
+  margin: 0 0 var(--ds-space-3);
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+
+.decision-overlay__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Past six options the grid would grow taller than the sheet. One row that
+   scrolls sideways keeps every card the same size, and the track stays visible
+   so it is obvious there is more to the right. */
+.decision-overlay__grid--scroll {
+  flex-wrap: nowrap;
+  padding-bottom: var(--ds-space-3);
+  overflow-x: auto;
+  scrollbar-color: var(--ds-accent) var(--ds-surface-muted);
+  scrollbar-width: thin;
+}
+.decision-overlay__grid--scroll > * {
+  flex: none;
+}
+.decision-overlay__grid--scroll::-webkit-scrollbar {
+  height: 10px;
+}
+.decision-overlay__grid--scroll::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+}
+.decision-overlay__grid--scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--ds-accent);
+}
+
+.decision-overlay__order-card {
+  position: relative;
+  flex: none;
+}
+.decision-overlay__order-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  display: grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.35rem;
+  color: var(--ds-brand-on-ink);
+  border: 2px solid var(--ds-surface);
+  border-radius: 999px;
+  background: var(--battle-amber);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+  box-shadow: var(--ds-shadow-sm);
+}
+.decision-overlay__order-row {
+  outline: 2px solid var(--battle-amber);
+  outline-offset: -2px;
+}
+
+/* --- Trigger chooser ------------------------------------------------------ */
+
+.trigger-chooser {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-4);
+}
+.trigger-chooser__option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2);
+  color: var(--ds-fg);
+  border: 1.5px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-muted);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 120ms,
+    border-color 120ms;
+}
+.trigger-chooser__option--chosen {
+  border-color: var(--ds-accent);
+  background: var(--ds-accent-surface);
+}
+.trigger-chooser__card {
+  position: relative;
+  display: block;
+}
+/* The clause rides the bottom of its own card, the way the reference client
+   labels each pending effect, so the card and its text read as one choice. */
+.trigger-chooser__summary {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 0.3rem 0.4rem;
+  color: var(--ds-brand-on-ink);
+  border-radius: 0 0 0.5rem 0.5rem;
+  background: rgb(15 23 42 / 82%);
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.trigger-chooser__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 14rem;
+}
+.trigger-chooser__source {
+  color: var(--battle-cyan);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.trigger-chooser__name {
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+
+/* --- Board-mode decision prompts ------------------------------------------ */
+
+/* The rail sits on the left half, clear of the notice column that anchors to the
+   bottom-left corner, and of the side panels on the right. */
+.board-prompt {
+  position: absolute;
+  top: 50%;
+  left: var(--ds-space-4);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  width: min(19rem, 42vw);
+  max-height: min(28rem, 82%);
+  padding: var(--ds-space-4);
+  color: var(--ds-fg);
+  border: 2px solid var(--ds-accent);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-lg);
+  translate: 0 -50%;
+  animation: battle-board-prompt-in var(--t-board-prompt-in, 200ms) ease-out both;
+}
+@keyframes battle-board-prompt-in {
+  from {
+    opacity: 0;
+    translate: -16px -50%;
+  }
+  to {
+    opacity: 1;
+    translate: 0 -50%;
+  }
+}
+/* The same prompt as a bottom sheet, which is what a phone in portrait gets: the
+   rail's slide is sideways and its resting offset is a vertical centring, neither
+   of which survives being anchored above the hand. */
+@keyframes battle-board-sheet-in {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+.board-prompt__back {
+  align-self: flex-start;
+}
+.board-prompt__eyebrow {
+  margin: 0;
+  color: var(--ds-accent);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.board-prompt__text {
+  margin: 0;
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-base);
+  font-weight: 700;
+  line-height: 1.35;
+}
+/* Only the printed clause scrolls: the prompt and its actions must never be
+   pushed out of the rail, because they are the decision's only exit. */
+.board-prompt__clause {
+  margin: 0;
+  max-height: 7rem;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  overflow-y: auto;
+  color: var(--ds-fg-secondary);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-muted);
+  font-size: var(--ds-text-xs);
+  line-height: 1.5;
+}
+.board-prompt__detail {
+  margin: 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+}
+.board-prompt__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-2);
+}
+/* The affirmative is amber and the refusal blue, matching the reference client's
+   Use / Not use pair, which players read by color before they read the words. */
+.board-prompt__use.aegis-button {
+  color: var(--ds-brand-ink);
+  border-color: var(--battle-amber);
+  background: var(--battle-amber);
+}
+.board-prompt__decline.aegis-button {
+  color: var(--battle-cyan);
+  border-color: var(--battle-cyan);
+}
+
+.board-opponent-pill {
+  position: absolute;
+  top: 5.5rem;
+  left: 50%;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-4);
+  color: var(--ds-brand-on-ink);
+  border-radius: 999px;
+  background: rgb(15 23 42 / 88%);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  box-shadow: var(--ds-shadow-lg);
+  translate: -50% 0;
+  /* Its own keyframes, not battle-board-prompt-in: that one fills to `translate:
+     0 -50%`, which would cancel the horizontal centring above for good. */
+  animation: aegis-opponent-pill-in var(--t-board-prompt-in, 200ms) ease-out both;
+}
+@keyframes aegis-opponent-pill-in {
+  from {
+    opacity: 0;
+    translate: -50% -8px;
+  }
+  to {
+    opacity: 1;
+    translate: -50% 0;
+  }
+}
+.board-opponent-pill__dots {
+  display: flex;
+  gap: 3px;
+}
+.board-opponent-pill__dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--battle-cyan);
+  animation: aegis-pill-dot 1s ease-in-out infinite;
+}
+.board-opponent-pill__dots i:nth-child(2) {
+  animation-delay: 160ms;
+}
+.board-opponent-pill__dots i:nth-child(3) {
+  animation-delay: 320ms;
+}
+@keyframes aegis-pill-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.waiting-dialog {
+  width: min(100%, 460px);
+  padding: 36px;
+  text-align: center;
+}
+.waiting-dialog__spinner {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 18px;
+  border: 3px solid var(--ds-border);
+  border-top-color: var(--ds-accent);
+  border-radius: 50%;
+  animation: aegis-spin 900ms linear infinite;
+}
+.waiting-dialog__error {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  place-items: center;
+  color: var(--ds-danger);
+  border-radius: 50%;
+  background: var(--ds-danger-surface);
+}
+.waiting-dialog h2 {
+  margin: 0 0 var(--ds-space-2);
+  color: var(--ds-fg);
+  font: 800 var(--ds-text-2xl)/1.2 var(--ds-font-display);
+}
+.waiting-dialog p {
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+  line-height: 1.55;
+}
+.game-over-dialog {
+  width: min(100%, 440px);
+  max-width: calc(100% - var(--ds-space-6));
+  padding: 40px var(--ds-space-8);
+  text-align: center;
+}
+
+.recovery-toast {
+  position: fixed;
+  z-index: var(--ds-z-toast);
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  color: var(--ds-fg);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 45%, var(--ds-border));
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-lg);
+  pointer-events: none;
+  animation: aegis-pop 180ms ease-out;
+}
+.recovery-toast--you {
+  transform: translateY(-50%);
+}
+.recovery-toast--opp {
+  transform: translate(-100%, -50%);
+}
+.recovery-toast > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: var(--ds-success);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ds-success) 12%, var(--ds-surface));
+}
+.recovery-toast strong,
+.recovery-toast small {
+  display: block;
+}
+.recovery-toast strong {
+  font-size: var(--ds-text-sm);
+}
+.recovery-toast small {
+  margin-top: 1px;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+}
+
+.opponent-permanent-inspector {
+  position: fixed;
+  z-index: calc(var(--ds-z-toast) - 1);
+  width: 420px;
+  max-height: calc(100dvh - 24px);
+  padding: var(--ds-space-4);
+  overflow: hidden auto;
+  color: var(--ds-fg);
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-summary);
+  pointer-events: auto;
+  animation: aegis-pop 140ms ease-out;
+}
+.opponent-permanent-inspector header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  padding-bottom: var(--ds-space-3);
+  border-bottom: 1px solid var(--ds-border);
+}
+.opponent-permanent-inspector header strong,
+.opponent-permanent-inspector header span {
+  display: block;
+}
+.opponent-permanent-inspector header strong {
+  font-family: var(--ds-font-display);
+  font-size: var(--ds-text-lg);
+}
+.opponent-permanent-inspector header span {
+  margin-top: 2px;
+  color: var(--ds-fg-muted);
+  font: 600 var(--ds-text-xs) var(--ds-font-mono);
+}
+.opponent-permanent-inspector__effect {
+  padding: var(--ds-space-3) 0;
+}
+.opponent-permanent-inspector__effect > span {
+  color: var(--ds-fg-muted);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.opponent-permanent-inspector p {
+  margin: var(--ds-space-1) 0 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-xs);
+  line-height: 1.45;
+  white-space: pre-line;
+}
+.opponent-permanent-inspector__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  padding-top: var(--ds-space-3);
+  border-top: 1px solid var(--ds-border);
+}
+.opponent-permanent-inspector__stack > div {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-muted);
+}
+.opponent-permanent-inspector__stack > div > div:last-child {
+  min-width: 0;
+}
+.opponent-permanent-inspector__stack strong,
+.opponent-permanent-inspector__stack span {
+  display: block;
+}
+.opponent-permanent-inspector__stack strong {
+  font-size: var(--ds-text-xs);
+}
+.opponent-permanent-inspector__stack span {
+  color: var(--ds-fg-muted);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+}
+.opponent-permanent-inspector__stack p {
+  overflow-wrap: anywhere;
+}
+
+/* A wide board (many Digimon in play) scrolls sideways inside its own row. The
+   field clips its overflow, so without this the outer cards were unreachable. */
+.game-battle-row {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.game-memory-gauge__side {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* The memory gauge is a row of numbered coins. The track is a size container, so
+   the coins drop their digits by how much room the gauge itself has rather than by
+   viewport width — the same rules then hold on a phone and in a squeezed column. */
+.game-memory-gauge__track {
+  position: relative;
+  display: flex;
+  /* Grow into the space the labels leave, up to the width 21 full-size coins want.
+     The track must be sized by the layout, not by its contents: `container-type`
+     contains its inline size, so a content-derived basis would collapse to zero. */
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 940px;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2px, 0.55vw, 6px);
+  /* Named, because the arc and the marker glow are placed over the row of chips
+     the padding leaves — the content box, not this padding box. */
+  --memory-track-pad-x: clamp(10px, 1.6vw, 22px);
+  --memory-track-pad-y: clamp(6px, 0.9vw, 12px);
+  padding: var(--memory-track-pad-y) var(--memory-track-pad-x);
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  box-shadow: var(--ds-shadow-sm);
+  container-type: inline-size;
+}
+
+.game-memory-coin {
+  /* The coins share the track evenly and stop growing at full size, so the row
+     stays centred instead of stretching into ovals on a wide board. */
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 38px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-family: var(--ds-font-mono);
+  font-size: clamp(9px, 1.15vw, 15px);
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    background 220ms,
+    color 220ms,
+    box-shadow 220ms,
+    transform 220ms;
+}
+
+/* The marker is the readout: it never shrinks below a legible three characters
+   ("+10"), and it sits above its neighbours so its ring is not clipped. */
+.game-memory-coin--marker {
+  flex: 1.25 1 0;
+  min-width: 26px;
+  max-width: 46px;
+  z-index: 1;
+  font-size: clamp(11px, 1.3vw, 17px);
+}
+
+.game-memory-gauge--compact .game-memory-gauge__track {
+  flex: 1;
+  gap: 2px;
+  --memory-track-pad-x: 7px;
+  --memory-track-pad-y: 4px;
+}
+
+.game-memory-gauge--compact .game-memory-coin {
+  max-width: 24px;
+  font-size: clamp(7px, 1.7vw, 11px);
+}
+.game-memory-gauge--compact .game-memory-coin--marker {
+  min-width: 22px;
+  max-width: 28px;
+  font-size: clamp(9px, 2vw, 13px);
+}
+
+/* Below these widths a coin is narrower than its own digits, so the numbering
+   thins out to the multiples of five and finally to the marker alone. The coins
+   themselves stay: the filled run is what reads the gauge at a glance. */
+@container (width < 460px) {
+  .game-memory-coin:not(.game-memory-coin--marker, .game-memory-coin--five) .game-memory-coin__n {
+    display: none;
+  }
+}
+
+@container (width < 300px) {
+  .game-memory-coin:not(.game-memory-coin--marker) .game-memory-coin__n {
+    display: none;
+  }
+}
+
+/* A short board leaves the rails taller than the field they sit in, so they
+   scroll rather than hiding whichever pile falls off the bottom. */
+.game-pile-column {
+  overflow: hidden auto;
+  scrollbar-width: thin;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opponent-action-feed__current,
+  .opponent-action-feed__trail-item {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ============================================================================
+   Battle-board look & feel — a theme layer that restyles the match screen after the
+   reference client: split teal/red battlefield, hexagonal memory gauge with a
+   lit marker, circular end-turn orb, security shields, oversized fanned hand
+   with cyan "playable" glow, navy dialogs, and full-width turn banners.
+   Class hooks live in GameScreen/boardPieces; everything visual lives here.
+   ========================================================================= */
+
+/* The battle-board palette lives on :root because match overlays portal into
+   #aegis-stage, outside .game-layout — a scoped custom property would be
+   undefined there and silently invalidate any declaration using it. The
+   names are namespaced, so nothing outside the match screen reads them. */
+:root {
+  --battle-field-opp-a: #05303f;
+  --battle-field-opp-b: #0d6274;
+  --battle-field-you-a: #d3560f;
+  --battle-field-you-b: #8a1e02;
+  /* Memory chips follow the design system: the viewer's half carries the
+     accent, the opponent's half a quiet slate; both sit on the fixed dark
+     band, so the values only need contrast against it and white digits. */
+  --battle-memory-you: var(--ds-accent, #075ff7);
+  --battle-memory-opp: #47536b;
+  --battle-memory-zero: #f4f6fa;
+  --battle-memory-zero-ink: #23324d;
+  --battle-marker: #8fc1ff;
+  /* The yellow the reference client keeps under the chip memory currently sits on. */
+  --battle-memory-glow: #ffd45e;
+  --battle-cyan: #27d6e8;
+  --battle-attack: #ff2d1f;
+  --battle-attack-glow: rgb(255 64 32 / 35%);
+  /* The declared attack is a bright cyan beam, as in the reference client — the
+     one hue neither player's half of the board uses, which is why it survives the
+     red field a red arrow used to disappear into. An effect keeps its own amber
+     vocabulary. Both are cased in near-black: the beam crosses card art of every
+     possible brightness. */
+  --battle-arrow-attack: #79e7ff;
+  --battle-arrow-attack-glow: rgb(39 214 232 / 60%);
+  --battle-arrow-effect: #ffa63d;
+  --battle-arrow-effect-glow: rgb(240 138 36 / 55%);
+  --battle-arrow-casing: rgb(3 8 20 / 88%);
+  --battle-panel: #101b30;
+  --battle-panel-border: #3b5c9e;
+  /* The amber the reference client numbers ordered picks and offers "Use" in. */
+  --battle-amber: #f08a24;
+  /* The pink the reference client calls named mechanics out in ("DigiXros!"). */
+  --battle-keyword: #e91e78;
+  --battle-header-grad: linear-gradient(180deg, #2b57a8 0%, #16336e 55%, #102450 100%);
+}
+
+/* --- Desktop header controls (the sidebar's former match-level actions) --- */
+
+.game-topbar-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.game-topbar-button {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  color: var(--ds-foreground-muted);
+  cursor: pointer;
+  border: 1.5px solid var(--ds-border-strong);
+  border-radius: 50%;
+  background: var(--ds-surface);
+  transition:
+    color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.game-topbar-button:hover {
+  color: var(--ds-primary);
+  border-color: var(--ds-primary);
+  box-shadow: 0 0 10px var(--ds-primary-light);
+}
+
+.game-topbar-button--danger:hover {
+  color: var(--ds-danger);
+  border-color: var(--ds-danger);
+  box-shadow: 0 0 10px var(--ds-danger-light);
+}
+
+/* --- Match log ticker (desktop's slim replacement for the sidebar log) ---- */
+
+/* The running log stays in the DOM as an invisible text region — assistive
+   tech and tests read the turn/memory status and every log line from it — but
+   sighted players open the history sheet from the header's log button instead
+   of a floating overlay. */
+.game-log-ticker {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Name plates -------------------------------------------------------- */
+
+.game-name-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 9rem;
+  padding: 0.3rem 1.4rem;
+  color: #fff !important;
+  letter-spacing: 0.04em;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 999px;
+  background: rgb(3 6 10 / 88%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
+}
+
+/* --- Memory band, gauge and end-turn orb -------------------------------- */
+
+/* The band is a flex row — gauge stretching, orb in flow at the right — so the
+   chips shrink instead of ever sliding under the orb, whatever the width. */
+.game-memory-band {
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 0;
+  background: linear-gradient(180deg, #0d1a30 0%, #071224 100%);
+  border-top: 1px solid rgb(255 255 255 / 10%);
+  border-bottom: 1px solid rgb(255 255 255 / 6%);
+  box-shadow: 0 4px 18px rgb(7 21 43 / 35%);
+}
+
+.game-memory-band .game-memory-gauge {
+  flex: 1;
+}
+
+.game-memory-gauge {
+  position: relative;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0 0.6rem;
+}
+
+.game-memory-gauge__phase {
+  flex-shrink: 0;
+  min-width: 5.2rem;
+  padding: 0.22rem 0.9rem;
+  font-family: var(--ds-font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--battle-marker);
+  text-align: center;
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--battle-marker) 55%, transparent);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 6%);
+}
+
+.game-memory-gauge__track {
+  position: relative;
+  gap: 0.14rem;
+  --memory-track-pad-x: 0.5rem;
+  --memory-track-pad-y: 0.2rem;
+  padding: var(--memory-track-pad-y) var(--memory-track-pad-x);
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* The arc and the glow are laid over the chips rather than inside them: a chip is
+   clipped to its hexagon, which would cut both off at its own edges. Their
+   geometry is percentages of the track's content box (memoryArc.ts), so the
+   inset here must match the track's own padding. */
+/* Sized explicitly rather than by `inset`: an SVG is a replaced element, so with
+   `height: auto` it would take its intrinsic square ratio and paint far outside
+   the band. The box is the track's content box, which is the row of chips the
+   percentages in memoryArc.ts are measured against. */
+.game-memory-arc {
+  position: absolute;
+  top: var(--memory-track-pad-y);
+  left: var(--memory-track-pad-x);
+  z-index: 2;
+  width: calc(100% - var(--memory-track-pad-x) * 2);
+  height: calc(100% - var(--memory-track-pad-y) * 2);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.game-memory-arc path {
+  fill: none;
+  stroke: var(--battle-attack);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 5px var(--battle-attack-glow));
+  animation: battle-memory-arc var(--t-memory-arc, 520ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+/* Drawn on, then gone: the arc says where memory came from, not where it is. */
+@keyframes battle-memory-arc {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 1;
+  }
+  62% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+/* Hexagonal chips, numbered outward from zero on both sides. They share the
+   track evenly (the base rule higher up caps their width), so the row shrinks
+   with the board instead of sliding under the end-turn orb. */
+.game-memory-coin {
+  position: relative;
+  display: grid;
+  flex: 1 1 0;
+  aspect-ratio: 0.92;
+  min-width: 0;
+  place-items: center;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
+}
+
+.game-memory-coin__n {
+  font-family: var(--ds-font-mono);
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
+}
+
+/* The current value is told three ways, none of them blurred: the chip is bigger
+   than its neighbours, it wears a crisp ring in the marker colour, and it carries
+   one tight shadow to lift it off the band. The pop plays once, when the class
+   lands on the chip memory just moved to. */
+.game-memory-coin--marker {
+  --memory-marker-ring: 2px;
+  z-index: 1;
+  transform: scale(1.22);
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 65%)) brightness(1.06);
+  animation: battle-marker-pop var(--t-memory-marker-pop, 300ms) ease-out both;
+}
+
+/* The ring is the chip's own hexagon painted one step larger, with the chip's fill
+   laid back over it: a band that follows the hexagon exactly instead of a glow
+   bleeding past its edges. Both halves are clipped by the chip, so nothing leaks. */
+.game-memory-coin--marker::before,
+.game-memory-coin--marker::after {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  content: "";
+}
+
+.game-memory-coin--marker::before {
+  background: var(--battle-memory-glow);
+  animation: battle-marker-ring var(--t-memory-glow, 1600ms) ease-in-out infinite;
+}
+
+.game-memory-coin--marker::after {
+  /* The chip's own side colour, whichever half of the gauge it sits on. */
+  inset: var(--memory-marker-ring);
+  background: inherit;
+}
+
+/* The digits are painted after both ring layers rather than under them. */
+.game-memory-coin--marker .game-memory-coin__n {
+  position: relative;
+  z-index: 1;
+}
+
+.game-memory-gauge--compact .game-memory-coin--marker {
+  --memory-marker-ring: 1.5px;
+}
+
+@keyframes battle-marker-ring {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.66;
+  }
+}
+
+@keyframes battle-marker-pop {
+  0% {
+    transform: scale(1);
+  }
+  55% {
+    transform: scale(1.4);
+  }
+  100% {
+    transform: scale(1.22);
+  }
+}
+
+/* The reference client lights every tab the memory value travelled across for the length of the
+   marker move (MemoryObject.cs:96-102). The per-chip delay is set inline so the
+   sweep runs outward in the direction memory actually moved. */
+.game-memory-coin--swept {
+  animation: battle-memory-sweep var(--t-memory-sweep, 120ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-memory-sweep {
+  0% {
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
+  }
+  45% {
+    filter: drop-shadow(0 0 8px var(--battle-marker)) brightness(1.45);
+  }
+  100% {
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
+  }
+}
+
+.game-memory-gauge--compact .game-memory-coin {
+  flex-basis: 1.4rem;
+}
+
+.game-memory-gauge--compact .game-memory-coin__n {
+  font-size: 0.62rem;
+}
+
+/* The unsuspend step sweeps the board; the phase pill breathes with it rather
+   than inventing a second source for the same moment (the cue drives both). */
+.game-memory-gauge__phase--sweeping {
+  animation: battle-phase-sweep var(--t-memory-glow, 1600ms) ease-in-out infinite;
+}
+
+@keyframes battle-phase-sweep {
+  0%,
+  100% {
+    color: var(--battle-marker);
+    box-shadow: none;
+  }
+  50% {
+    color: #fff;
+    box-shadow: 0 0 14px color-mix(in srgb, var(--battle-marker) 65%, transparent);
+  }
+}
+
+.game-memory-gauge--compact .game-memory-gauge__phase {
+  min-width: 3.6rem;
+  font-size: 0.6rem;
+}
+
+/* The circular turn button rides the band's right edge, like the reference
+   client's End Turn orb. */
+.game-end-turn-orb {
+  /* The turning ring is positioned against the orb itself, so the orb has to be
+     the containing block — otherwise the ring escapes to the nearest positioned
+     ancestor and paints a circle the size of the page. */
+  position: relative;
+  z-index: 6;
+  flex-shrink: 0;
+  width: 5.4rem;
+  height: 5.4rem;
+  /* Taller than the band on purpose: the negative margins let the orb overhang
+     both edges (the reference client's orb rides the divider the same way). */
+  margin: -0.9rem 0.9rem;
+  padding: 0.4rem;
+  font-family: var(--ds-font-sans);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid color-mix(in srgb, var(--battle-marker) 85%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 32%, #17263e 0%, #0a1322 68%, #060b14 100%);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 16px color-mix(in srgb, var(--battle-marker) 45%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+  transition:
+    box-shadow 180ms,
+    filter 180ms;
+}
+
+.game-end-turn-orb:hover:not(:disabled) {
+  filter: brightness(1.2);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 24px color-mix(in srgb, var(--battle-marker) 75%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+}
+
+.game-end-turn-orb--waiting,
+.game-end-turn-orb:disabled {
+  font-size: 0.68rem;
+  cursor: default;
+  border-color: rgb(120 135 165 / 55%);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 10px rgb(120 135 165 / 30%),
+    0 4px 14px rgb(0 0 0 / 55%);
+}
+
+/* The breeding face of the same control: amber, because ending the breeding step
+   is a different decision from ending the turn. */
+.game-end-turn-orb--breeding {
+  border-color: color-mix(in srgb, var(--battle-amber) 90%, transparent);
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 20px color-mix(in srgb, var(--battle-amber) 55%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+}
+
+.game-end-turn-orb--breeding:hover:not(:disabled) {
+  box-shadow:
+    0 0 0 3px rgb(3 6 10 / 80%),
+    0 0 28px color-mix(in srgb, var(--battle-amber) 80%, transparent),
+    0 4px 14px rgb(0 0 0 / 55%);
+}
+
+/* --- Breeding step ------------------------------------------------------- */
+
+/* The field dims behind the dock, so the only lit things are the raising slot,
+   the hand that digivolves into it and the turn control on the memory band.
+   It sits under the band (z 5) and far under every notice, panel and dialog. */
+/* Pointer input off, for the play surfaces only: the header, the log and surrender are
+   outside it. `cursor: progress` is the whole of its appearance — the security scene
+   itself is what says why the board stopped answering. */
+.game-input-lock {
+  position: absolute;
+  z-index: 9;
+  inset: 0;
+  cursor: progress;
+}
+
+.game-breeding-mode {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: rgb(4 9 18 / 62%);
+  animation: battle-breeding-dim var(--t-dialog-in, 180ms) ease-out both;
+}
+
+@keyframes battle-breeding-dim {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The egg deck is the hatch button during the breeding step, so it wears the same
+   amber ring the board uses for "this is the thing to press". */
+.game-egg-deck--hatchable .game-pile__top {
+  outline: 2px solid var(--battle-amber);
+  outline-offset: 4px;
+  animation: aegis-pulse 1.2s ease-in-out infinite;
+}
+
+/* The guidance the breeding dialog used to carry, now a line under the dock. It
+   never takes a pointer event — every breeding action is on the board itself. */
+.game-breeding-hint {
+  margin: 0;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  color: var(--ds-foreground-muted);
+  pointer-events: none;
+}
+
+.game-breeding-slot--focus .game-breeding-slot__box {
+  outline: 2px solid var(--battle-amber);
+  outline-offset: 5px;
+  box-shadow:
+    0 0 0 4px rgb(240 138 36 / 16%),
+    0 0 22px color-mix(in srgb, var(--battle-amber) 55%, transparent);
+}
+
+/* --- Drag intents -------------------------------------------------------- */
+
+/* Every area that would accept the card in the air wears the same accent ring.
+   The ring is an outline rather than a border because these boxes set their
+   borders inline, and inline styles outrank a stylesheet. */
+[data-drop][data-drag-intent] {
+  border-radius: 12px;
+  outline: 2px solid var(--battle-amber);
+  outline-offset: 4px;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--battle-amber) 45%, transparent);
+}
+
+/* The name of what releasing would do, floated above the ghost and clear of the
+   finger holding it. */
+.game-drag-intent {
+  position: fixed;
+  z-index: 10000;
+  padding: 0.26rem 0.9rem;
+  font-family: var(--ds-font-sans);
+  font-size: 0.84rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--drag-intent-ink, #12a150);
+  white-space: nowrap;
+  pointer-events: none;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 45%);
+  translate: -50% -50%;
+}
+
+.game-drag-intent[data-intent="play"] {
+  --drag-intent-ink: #12a150;
+}
+
+.game-drag-intent[data-intent="evolve"] {
+  --drag-intent-ink: #e0562c;
+}
+
+.game-drag-intent[data-intent="breeding"] {
+  --drag-intent-ink: #2f6fe0;
+}
+
+.game-drag-intent[data-intent="use"] {
+  --drag-intent-ink: #b56410;
+}
+
+.game-drag-intent[data-intent="attack"] {
+  --drag-intent-ink: var(--battle-attack);
+}
+
+/* --- Security shields ---------------------------------------------------- */
+
+.game-security-shield {
+  position: relative;
+  display: grid;
+  width: 4.1rem;
+  aspect-ratio: 0.86;
+  place-items: center;
+  clip-path: polygon(6% 0%, 94% 0%, 100% 14%, 100% 58%, 50% 100%, 0% 58%, 0% 14%);
+  filter: drop-shadow(0 3px 8px rgb(0 0 0 / 55%));
+  transition: filter 200ms;
+}
+
+.game-security-shield--opp {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 18%) 0%, transparent 40%),
+    linear-gradient(180deg, #2c7de8 0%, #123f8f 100%);
+}
+
+.game-security-shield--you {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 18%) 0%, transparent 40%),
+    linear-gradient(180deg, #e8542c 0%, #8f1c12 100%);
+}
+
+.game-security-shield--glow {
+  filter: drop-shadow(0 0 10px var(--battle-marker)) drop-shadow(0 3px 8px rgb(0 0 0 / 55%));
+  animation: aegis-pulse 1.2s ease-in-out infinite;
+}
+
+.game-security-shield__count {
+  position: relative;
+  z-index: 3;
+  font-family: var(--ds-font-mono);
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow:
+    0 2px 0 rgb(0 0 0 / 45%),
+    0 0 10px rgb(0 0 0 / 35%);
+}
+
+.game-security-shield__label {
+  display: none;
+}
+
+/* --- Hand: oversized fan clipped at the screen's bottom edge ------------- */
+
+.game-hand-dock {
+  overflow: visible;
+}
+
+.game-hand {
+  margin-bottom: -1.7rem;
+}
+
+.game-hand-card {
+  position: relative;
+  border-radius: 0.7rem;
+}
+
+.game-hand-card--playable {
+  box-shadow:
+    0 0 0 2.5px var(--battle-cyan),
+    0 0 14px rgb(39 214 232 / 65%);
+}
+
+/* --- Board-mode hand selection -------------------------------------------- */
+
+/* A card that cannot be picked stays readable but visibly out of the running,
+   so the cyan glow above reads as "this one counts". */
+.game-hand-card--unpickable {
+  opacity: 0.45;
+  filter: grayscale(0.7);
+}
+.game-hand-card--picked {
+  box-shadow:
+    0 0 0 3px var(--battle-amber),
+    0 0 18px rgb(240 138 36 / 55%);
+}
+.game-hand-card__pick-badge {
+  position: absolute;
+  top: -0.4rem;
+  right: -0.4rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.35rem;
+  color: var(--ds-brand-on-ink);
+  border: 2px solid var(--ds-surface);
+  border-radius: 999px;
+  background: var(--battle-amber);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+  font-weight: 800;
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.game-hand-card--drawn {
+  /* The dock's inline transform carries the fan, so the slide-in animates the
+     independent `translate` property instead of fighting it.
+     the reference client drops the new hand card into its slot from 70px over 80ms Ease.OutBack
+     (CardObjectController.cs:696); 120ms is the readable web compromise. */
+  animation: battle-hand-draw var(--t-hand-draw, 120ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes battle-hand-draw {
+  from {
+    translate: 0 70px;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+/* --- Draw: card back flying from a deck pile to its hand ------------------ */
+
+/* The board sets the launch point and the trip vector; the element is mounted
+   for one animation and unmounted by GameScreen when the beat ends. */
+.game-draw-flight {
+  position: absolute;
+  z-index: 62;
+  width: 30px;
+  height: 42px;
+  pointer-events: none;
+  border: 1px solid var(--ds-border-strong);
+  border-radius: 5px;
+  background: linear-gradient(150deg, var(--ds-surface-muted), var(--ds-surface));
+  box-shadow: 0 4px 12px rgb(0 0 0 / 45%);
+  animation: battle-draw-flight var(--t-draw-flight, 340ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-draw-flight {
+  0% {
+    transform: translate(0, 0) scale(0.85);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--battle-flight-dx), var(--battle-flight-dy)) scale(1.05);
+    opacity: 0;
+  }
+}
+
+/* --- Card entering the battle area --------------------------------------- */
+
+.game-card-enter {
+  animation: battle-card-enter var(--t-card-enter, 320ms) ease-out both;
+}
+
+@keyframes battle-card-enter {
+  from {
+    scale: 0.86;
+    opacity: 0.35;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+.game-card-sparkles {
+  position: absolute;
+  inset: -22% -8% 45%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.game-card-sparkle {
+  position: absolute;
+  width: 0.55rem;
+  aspect-ratio: 1;
+  opacity: 0;
+  background: var(--battle-marker, #ffd23e);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  filter: drop-shadow(0 0 5px rgb(255 210 62 / 85%));
+  animation: battle-card-sparkle var(--t-card-sparkle, 900ms) ease-out both;
+}
+
+/* The five stars sit on an arc over the card, popping outward from the centre. */
+.game-card-sparkle:nth-child(1) {
+  top: 30%;
+  left: 4%;
+  animation-delay: 180ms;
+}
+
+.game-card-sparkle:nth-child(2) {
+  top: 8%;
+  left: 26%;
+  animation-delay: 90ms;
+}
+
+.game-card-sparkle:nth-child(3) {
+  top: 0%;
+  left: 50%;
+}
+
+.game-card-sparkle:nth-child(4) {
+  top: 8%;
+  left: 74%;
+  animation-delay: 90ms;
+}
+
+.game-card-sparkle:nth-child(5) {
+  top: 30%;
+  left: 96%;
+  animation-delay: 180ms;
+}
+
+@keyframes battle-card-sparkle {
+  0% {
+    scale: 0.2;
+    opacity: 0;
+  }
+  30% {
+    scale: 1.2;
+    opacity: 1;
+  }
+  60% {
+    scale: 1;
+    opacity: 0.9;
+  }
+  100% {
+    scale: 0.45;
+    translate: 0 -35%;
+    opacity: 0;
+  }
+}
+
+/* --- Colour-keyed burst ---------------------------------------------------
+   One component for every landing, coloured by the moment rather than by the
+   element it sits behind (battle-animation-spec.md, "Effect colour vocabulary"):
+   an arrival takes the card's own colour, an evolution burns red into orange, a
+   hatch opens white into blue. The two tones arrive as custom properties from
+   `burstPalette`, so the vocabulary has one home in TypeScript. */
+
+.battle-burst {
+  position: absolute;
+  z-index: 0;
+  inset: -28%;
+  display: block;
+  pointer-events: none;
+}
+
+.battle-burst__core {
+  position: absolute;
+  inset: 24%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--battle-burst-base) 0%, transparent 68%);
+  animation: battle-burst-core var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-burst__rays {
+  position: absolute;
+  inset: 0;
+}
+
+/* Eight rays on a 45° wheel, each grown lengthwise from the centre and then
+   rotated into its spoke — the scale runs before the transform, so the ray
+   stretches along its own axis rather than along the board's. */
+.battle-burst__rays i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5%;
+  height: 46%;
+  margin-left: -2.5%;
+  background: linear-gradient(180deg, var(--battle-burst-base) 0%, transparent 100%);
+  transform: rotate(var(--battle-burst-ray, 0deg));
+  transform-origin: 50% 0;
+  animation: battle-burst-ray var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-burst__ring {
+  position: absolute;
+  inset: 20%;
+  border: 2px solid var(--battle-burst-edge);
+  border-radius: 50%;
+  animation: battle-burst-ring var(--t-card-burst, 800ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-burst__ring--late {
+  border-color: var(--battle-burst-base);
+  animation-delay: 140ms;
+}
+
+/* An evolution reads as arcs rather than closed rings: two sides of each ring
+   are dropped and the pair counter-rotates. */
+.battle-burst--evolve .battle-burst__ring {
+  border-width: 3px;
+  border-inline-color: transparent;
+  animation-name: battle-burst-arc;
+}
+
+.battle-burst--evolve .battle-burst__ring--late {
+  animation-name: battle-burst-arc-reverse;
+}
+
+.battle-burst--hatch .battle-burst__core {
+  background: radial-gradient(circle, var(--battle-burst-base) 0%, var(--battle-burst-edge) 38%, transparent 72%);
+}
+
+/* The flying card back is a thumbnail, so the starburst reaches well past it to
+   read as an arrival rather than a speck. */
+.battle-burst--draw {
+  inset: -90%;
+}
+
+.battle-burst--draw .battle-burst__core,
+.battle-burst--draw .battle-burst__rays i,
+.battle-burst--draw .battle-burst__ring {
+  animation-duration: var(--t-draw-burst, 600ms);
+}
+
+@keyframes battle-burst-core {
+  0% {
+    scale: 0.3;
+    opacity: 0;
+  }
+  25% {
+    scale: 1.1;
+    opacity: 0.85;
+  }
+  100% {
+    scale: 1.35;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-ray {
+  0% {
+    scale: 1 0;
+    opacity: 0;
+  }
+  25% {
+    scale: 1 1;
+    opacity: 0.95;
+  }
+  100% {
+    scale: 1 0.3;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-ring {
+  0% {
+    scale: 0.25;
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    scale: 1.5;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-arc {
+  0% {
+    rotate: -60deg;
+    scale: 0.3;
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    rotate: 40deg;
+    scale: 1.55;
+    opacity: 0;
+  }
+}
+
+@keyframes battle-burst-arc-reverse {
+  0% {
+    rotate: 70deg;
+    scale: 0.3;
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    rotate: -30deg;
+    scale: 1.4;
+    opacity: 0;
+  }
+}
+
+/* --- Hatching and breeding-slot spotlight --------------------------------- */
+
+.game-breeding-slot {
+  position: relative;
+}
+
+.game-breeding-slot__burst {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* The reference client darkens everything around the egg and opens a white
+   starburst behind it, so the hatch reads even on a busy board. */
+.game-breeding-slot--lit[data-burst="hatch"]::before {
+  position: absolute;
+  z-index: 0;
+  inset: -26%;
+  background: radial-gradient(circle, rgb(4 8 18 / 80%) 28%, transparent 70%);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  animation: battle-hatch-vignette var(--t-card-burst, 800ms) ease-out both;
+}
+
+.game-breeding-slot--lit[data-burst="evolve"]::before {
+  position: absolute;
+  z-index: 0;
+  inset: -20%;
+  background: radial-gradient(circle, rgb(240 138 36 / 35%) 22%, transparent 68%);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  animation: battle-hatch-vignette var(--t-card-burst, 800ms) ease-out both;
+}
+
+@keyframes battle-hatch-vignette {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* --- Turn-start draw starburst -------------------------------------------- */
+
+/* Sized to the flying card back so the burst opens exactly where it landed. */
+.game-draw-burst {
+  position: absolute;
+  z-index: 62;
+  width: 30px;
+  height: 42px;
+  pointer-events: none;
+}
+
+/* Left where a permanent was deleted: the board has already dropped the card, so the
+   burst is placed from the position it last held. */
+.game-delete-burst {
+  position: absolute;
+  z-index: 62;
+  width: 96px;
+  height: 96px;
+  pointer-events: none;
+}
+
+/* --- Centre-screen zone showcase ------------------------------------------
+   Sits above the board-mode decision rail and below the dialogs: it is the
+   opponent's moment, and no decision of the viewer's is ever waiting under it. */
+
+.battle-showcase {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 1);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  animation: battle-showcase-fade var(--t-showcase-out, 160ms) cubic-bezier(0.32, 0, 0.67, 0)
+    var(--t-showcase-out-at, 1660ms) both;
+}
+
+.battle-showcase__frame {
+  position: relative;
+  display: flex;
+  margin: 0;
+  gap: var(--ds-space-2);
+  flex-direction: column;
+  align-items: center;
+  animation: battle-showcase-in var(--t-showcase-in, 160ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.battle-showcase__halo {
+  position: absolute;
+  z-index: 0;
+  inset: 8% 0 22%;
+  pointer-events: none;
+}
+
+.battle-showcase__art {
+  position: relative;
+  z-index: 1;
+  border-radius: var(--ds-radius-sm);
+  filter: drop-shadow(0 22px 44px rgb(4 8 18 / 70%));
+}
+
+.battle-showcase__caption {
+  position: relative;
+  z-index: 1;
+  padding: 0.25rem 0.85rem;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 999px;
+  background: var(--battle-panel);
+  box-shadow: 0 2px 12px rgb(6 12 28 / 45%);
+}
+
+@keyframes battle-showcase-in {
+  from {
+    scale: 0.78;
+    opacity: 0;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+@keyframes battle-showcase-fade {
+  from {
+    scale: 1;
+    opacity: 1;
+  }
+  to {
+    scale: 1.06;
+    opacity: 0;
+  }
+}
+
+/* --- Security attack: lunge, shield hit, arrow double shot ---------------- */
+
+/* The attacker leans at the shield it declared on. `translate` is used rather
+   than `transform` so the permanent's inline highlight offset still applies. */
+.game-permanent-lunge--up {
+  animation: battle-lunge-up var(--t-attack-lunge, 240ms) ease-out both;
+}
+
+.game-permanent-lunge--down {
+  animation: battle-lunge-down var(--t-attack-lunge, 240ms) ease-out both;
+}
+
+@keyframes battle-lunge-up {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -14px;
+  }
+}
+
+@keyframes battle-lunge-down {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 14px;
+  }
+}
+
+/* The reference client shatters the security glass pane on every check; the web port reads that
+   as a white flash plus a short shake on the shield badge. */
+.game-security-shield--hit {
+  animation: battle-security-hit var(--t-security-hit, 350ms) ease-out both;
+}
+
+@keyframes battle-security-hit {
+  0% {
+    filter: brightness(3.2);
+    translate: 0 0;
+  }
+  20% {
+    translate: -4px 0;
+  }
+  40% {
+    filter: brightness(1.9);
+    translate: 4px 0;
+  }
+  60% {
+    translate: -3px 0;
+  }
+  80% {
+    translate: 2px 0;
+  }
+  100% {
+    filter: brightness(1);
+    translate: 0 0;
+  }
+}
+
+/* --- Shield break --------------------------------------------------------
+   The reference client arms the defender's security glass at declaration (the blue
+   material, AttackProcess.cs:134) and shatters the pane on the check itself
+   (SecurityBreakGlass, ≈250 ms). The web port reads that as: the shield pulses blue,
+   its face breaks into shards that fly apart, and the light washes in from the
+   defender's edge of the screen. */
+
+.game-security-shield--armed {
+  animation: battle-security-arm var(--t-security-arm, 120ms) ease-in-out both;
+}
+
+@keyframes battle-security-arm {
+  0%,
+  100% {
+    filter: drop-shadow(0 3px 8px rgb(0 0 0 / 55%));
+  }
+  55% {
+    filter: drop-shadow(0 0 14px var(--battle-cyan)) brightness(1.5);
+  }
+}
+
+/* The blue pane burst, drawn behind the shards it throws. */
+.game-security-shield__burst {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  inset: 0;
+  pointer-events: none;
+}
+
+.game-security-shield__shards {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  inset: 0;
+  pointer-events: none;
+}
+
+.game-security-shield__shards i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 34%;
+  height: 34%;
+  background: linear-gradient(140deg, rgb(255 255 255 / 92%) 0%, var(--battle-cyan) 55%, rgb(18 63 143 / 90%) 100%);
+  clip-path: polygon(50% 0%, 100% 64%, 16% 100%);
+  animation: battle-shield-shard var(--t-shield-break, 250ms) cubic-bezier(0.32, 0, 0.67, 0) both;
+}
+
+/* The shield's burst is unmounted with the break phase, which is far shorter
+   than the generic card-landing burst: on that clock it was cut off a third of
+   the way through and popped away at its brightest. It runs on the shatter's. */
+.game-security-shield__burst .battle-burst__core,
+.game-security-shield__burst .battle-burst__rays i,
+.game-security-shield__burst .battle-burst__ring {
+  animation-duration: var(--t-shield-break, 250ms);
+}
+
+@keyframes battle-shield-shard {
+  0% {
+    translate: -50% -50%;
+    rotate: 0deg;
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    translate: calc(-50% + var(--shard-x, 0px)) calc(-50% + var(--shard-y, 0px));
+    rotate: var(--shard-spin, 90deg);
+    opacity: 0;
+    scale: 0.35;
+  }
+}
+
+/* The count is re-keyed on every change, so the pop restarts whenever security moves —
+   a check spending one, a recovery giving one back. */
+.game-security-shield__count {
+  animation: battle-security-count-pop var(--t-security-count-pop, 300ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes battle-security-count-pop {
+  0% {
+    scale: 1.6;
+    filter: brightness(2.4);
+  }
+  62% {
+    scale: 0.93;
+  }
+  100% {
+    scale: 1;
+    filter: brightness(1);
+  }
+}
+
+/* The defender's edge of the board lights up as their shield breaks, which is what makes
+   an attack on the opponent's security read differently from one on the viewer's. */
+.battle-edge-flash {
+  position: absolute;
+  z-index: 63;
+  inset: 0;
+  pointer-events: none;
+  animation: battle-edge-flash var(--t-shield-flash, 320ms) ease-out both;
+}
+
+.battle-edge-flash--you {
+  background: linear-gradient(0deg, rgb(232 84 44 / 55%) 0%, rgb(232 84 44 / 12%) 18%, transparent 34%);
+}
+
+.battle-edge-flash--opp {
+  background: linear-gradient(180deg, rgb(44 125 232 / 55%) 0%, rgb(44 125 232 / 12%) 18%, transparent 34%);
+}
+
+@keyframes battle-edge-flash {
+  0% {
+    opacity: 0;
+  }
+  28% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* --- Security-effect branch ----------------------------------------------
+   A revealed card that resolves an effect leaves the centre and holds on the half of
+   the screen the side panels do not occupy, so its effect notice (mirrored to the same
+   half by `noticeAnchor`) reads next to the card that raised it. */
+
+.battle-security-branch {
+  /* How far above the board's middle the card holds. A short viewport cannot spend
+     8rem above centre without pushing the card off the top edge, so the lift is a
+     property the narrow blocks retune rather than a number baked into the keyframe. */
+  --security-branch-lift: 8rem;
+
+  position: absolute;
+  top: 50%;
+  z-index: calc(var(--ds-z-dialog) - 5);
+  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
+  pointer-events: none;
+  animation: battle-security-branch var(--t-security-branch, 1340ms) ease-out both;
+}
+
+.battle-security-branch__frame {
+  display: grid;
+  margin: 0;
+  padding: 0.45rem;
+  gap: 0.3rem;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 0.7rem;
+  background: var(--battle-panel);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 55%);
+  justify-items: center;
+}
+
+.battle-security-branch__caption {
+  max-width: 9rem;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+@keyframes battle-security-branch {
+  0% {
+    translate: -2.5rem calc(-50% - var(--security-branch-lift));
+    opacity: 0;
+    scale: 0.72;
+  }
+  11.3% {
+    translate: 0 calc(-50% - var(--security-branch-lift));
+    opacity: 1;
+    scale: 1;
+  }
+  88.7% {
+    translate: 0 calc(-50% - var(--security-branch-lift));
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    translate: 0 calc(-50% - var(--security-branch-lift) - 2.5rem);
+    opacity: 0;
+    scale: 0.82;
+  }
+}
+
+/* --- Summoning sickness ring ---------------------------------------------
+   Gold stars orbiting an ellipse over a permanent that entered this turn and cannot
+   attack yet. The truth is `Permanent.summoningSick`, projected by the server; the ring
+   only draws it. Each star's resting position along the ellipse is set inline, so with
+   the orbit stopped the ring still reads as a ring. */
+
+.game-summoning-ring {
+  position: absolute;
+  top: -26%;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: 34%;
+  pointer-events: none;
+}
+
+.game-summoning-ring i {
+  position: absolute;
+  inset: 0;
+  width: 9px;
+  height: 9px;
+  margin: auto;
+  background: radial-gradient(circle, #fff5cc 0%, #f4c53a 60%, rgb(244 197 58 / 0%) 78%);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  filter: drop-shadow(0 0 4px rgb(244 197 58 / 70%));
+  offset-path: ellipse(46% 40% at 50% 50%);
+  offset-rotate: 0deg;
+  animation: battle-summoning-orbit var(--t-summoning-orbit, 4200ms) linear infinite;
+  animation-delay: calc(-1 * var(--star-index, 0) * var(--t-summoning-orbit, 4200ms) / 6);
+}
+
+@keyframes battle-summoning-orbit {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+
+/* The beam is drawn three times over: a soft coloured glow, a dark casing, and the
+   bright core that carries the head. The widths are properties rather than SVG
+   attributes so one breakpoint retunes all three — a pointer screen sits far
+   enough away that the phone-sized arrow reads as a hairline over card art. */
+.game-attack-arrow {
+  --arrow-core-width: 6;
+  --arrow-casing-width: 10;
+  --arrow-glow-width: 14;
+}
+
+.game-attack-arrow__stroke--core {
+  stroke-width: var(--arrow-core-width);
+}
+
+.game-attack-arrow__stroke--casing {
+  stroke-width: var(--arrow-casing-width);
+}
+
+.game-attack-arrow__stroke--glow {
+  stroke-width: var(--arrow-glow-width);
+  filter: drop-shadow(0 0 6px var(--battle-arrow-attack-glow));
+}
+
+.game-attack-arrow--effect .game-attack-arrow__stroke--glow {
+  filter: drop-shadow(0 0 6px var(--battle-arrow-effect-glow));
+}
+
+/* TargetArrow.cs:118-157 — the arrow extends over 85ms, holds 70ms, and repeats
+   once before it locks on. `pathLength` is normalised to 100 in the SVG. */
+.game-attack-arrow__stroke {
+  animation: battle-arrow-extend var(--t-attack-arrow, 380ms) linear both;
+}
+
+.game-attack-arrow__head {
+  animation: battle-arrow-head var(--t-attack-arrow, 380ms) step-end both;
+}
+
+@keyframes battle-arrow-extend {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  22.4%,
+  40.8% {
+    stroke-dashoffset: 0;
+  }
+  40.9% {
+    stroke-dashoffset: 100;
+  }
+  63.2%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes battle-arrow-head {
+  0% {
+    opacity: 0;
+  }
+  22.4% {
+    opacity: 1;
+  }
+  40.9% {
+    opacity: 0;
+  }
+  63.2% {
+    opacity: 1;
+  }
+}
+
+/* --- Turn banner --------------------------------------------------------- */
+
+.game-turn-banner {
+  position: absolute;
+  top: 24%;
+  right: 0;
+  left: 0;
+  z-index: 71;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.1rem 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* A translucent band the board still reads through, opening from the middle,
+     with the words sliding through it. */
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--battle-banner-tint) 16%,
+    var(--battle-banner-tint) 84%,
+    transparent 100%
+  );
+  border-top: 1px solid rgb(255 255 255 / 30%);
+  border-bottom: 1px solid rgb(255 255 255 / 30%);
+  /* The reference client's banner is ~620ms end to end (ShowTurnPlayerObject.cs: 300ms hold plus
+     the in/out clips). 1s keeps it readable in a browser without stalling. */
+  animation: battle-banner var(--t-turn-banner, 620ms) ease-in-out both;
+}
+
+.game-turn-banner span {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-shadow:
+    0 2px 0 rgb(11 13 16 / 55%),
+    0 0 18px rgb(11 13 16 / 45%);
+  animation: battle-banner-text var(--t-turn-banner, 620ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The reference client's two exact band colours (ShowTurnPlayerObject.cs:24, :31),
+   taken down to the translucency the band is read through. */
+.game-turn-banner--opp {
+  --battle-banner-tint: rgb(255 131 121 / 62%);
+}
+
+.game-turn-banner--you {
+  --battle-banner-tint: rgb(121 153 255 / 62%);
+}
+
+@keyframes battle-banner {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 46% 0 46%);
+  }
+  18%,
+  82% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(0 46% 0 46%);
+  }
+}
+
+/* The words travel through the band rather than sitting in it. */
+@keyframes battle-banner-text {
+  0% {
+    opacity: 0;
+    transform: translateX(-16vw);
+  }
+  26%,
+  70% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(16vw);
+  }
+}
+
+/* --- Dialogs: navy panel with a gradient header bar ----------------------- */
+
+/* Every navy surface in the match carries the same ink. These panels are navy
+   whichever theme the app is in, so the tokens their contents read cannot follow
+   the theme — light-theme surfaces inside them would be white cards on navy, and
+   the light theme's accent (#075ff7, tuned for white) reads 3.0:1 against this
+   panel, which is where the outlined secondary buttons, the primary badges and
+   the play-log card links were failing. The dark theme's values are the ones
+   that belong here, so the whole ramp comes from there. */
+.game-modal__panel,
+.mulligan-sheet,
+.combat-prompt {
+  --ds-fg: #eaf1ff;
+  --ds-fg-secondary: #c6d4ef;
+  --ds-fg-muted: #9fb0d0;
+  --ds-fg-disabled: #5c6f92;
+  --ds-surface: #16233c;
+  --ds-surface-raised: #1b2a47;
+  --ds-surface-muted: #1e2d4a;
+  --ds-border: #334770;
+  --ds-border-strong: #46608f;
+  --ds-accent: #60a5fa;
+  --ds-accent-hover: #93c5fd;
+  --ds-accent-active: #bfdbfe;
+  --ds-accent-surface: rgb(59 130 246 / 15%);
+  --ds-on-accent: #07101f;
+  --ds-focus-color: #60a5fa;
+  /* The semantic ramp for the same reason: the light theme's success, warning and
+     danger are near-black inks meant for white cards (2.4–2.6:1 here), and their
+     surfaces are pale chips that would punch holes in the panel. */
+  --ds-success: #4ade80;
+  --ds-success-hover: #86efac;
+  --ds-success-active: #bbf7d0;
+  --ds-success-surface: rgb(34 197 94 / 15%);
+  --ds-success-border: rgb(74 222 128 / 52%);
+  --ds-on-success: #04160a;
+  --ds-warning: #fbbf24;
+  --ds-warning-hover: #fcd34d;
+  --ds-warning-active: #fde68a;
+  --ds-warning-surface: rgb(245 158 11 / 15%);
+  --ds-warning-border: rgb(251 191 36 / 52%);
+  --ds-on-warning: #211502;
+  --ds-danger: #f87171;
+  --ds-danger-hover: #fca5a5;
+  --ds-danger-active: #fecaca;
+  --ds-danger-surface: rgb(239 68 68 / 15%);
+  --ds-danger-border: rgb(248 113 113 / 52%);
+  --ds-on-danger: #190707;
+  --ds-info: #60a5fa;
+  --ds-info-surface: rgb(59 130 246 / 15%);
+  --ds-info-border: rgb(96 165 250 / 52%);
+}
+
+.game-modal__panel {
+  /* Above every board fixture (memory band, orb, log ticker, flights): the
+     panels portal into #aegis-stage and carry only a small inline z-index.
+     (--ds-z-modal does not exist in tokens.css — the dialog tier is the one.) */
+  z-index: var(--ds-z-dialog) !important;
+  color: var(--ds-fg);
+  border: 1px solid var(--battle-panel-border) !important;
+  border-radius: 0.6rem;
+  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%) !important;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 60%),
+    0 18px 60px rgb(0 0 0 / 65%) !important;
+  animation: battle-dialog-in var(--t-dialog-in, 180ms) ease-out both;
+}
+
+/* Inline flow sheets (mulligan) and floating combat prompts render inside the
+   board, where the memory band and orb carry their own z-indexes — lift them
+   into the overlay layer so board chrome can never paint across them.
+
+   The mulligan sheet also needed the panel itself: only its title carried a dark
+   bar, so the badge, the turn-order line and the detail paragraph sat on nothing
+   but the scrim, and over a light --ds-bg that scrim resolves to mid grey and the
+   text fell under 4.5:1. */
+.mulligan-sheet {
+  position: relative;
+  z-index: 90;
+  color: var(--ds-fg);
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 0.6rem;
+  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 60%),
+    0 18px 60px rgb(0 0 0 / 65%);
+}
+
+.combat-prompt {
+  z-index: 90 !important;
+  color: var(--ds-fg);
+  background: linear-gradient(180deg, #14213c 0%, var(--battle-panel) 30%, #0c1526 100%) !important;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 60%),
+    0 18px 60px rgb(0 0 0 / 65%) !important;
+}
+
+@keyframes battle-dialog-in {
+  from {
+    translate: 0 0.75rem;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+.decision-overlay__heading,
+.mulligan-title {
+  padding: 0.7rem 1.2rem;
+  margin: -0.2rem -0.2rem 0.6rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  border-bottom: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: var(--battle-header-grad);
+}
+
+/* --- Timed side panels ---------------------------------------------- */
+
+/* Two columns down the board's edges: the opponent's movements stack down the
+   left, under the opponent action feed, and the viewer's up from the bottom
+   right, so a glance at the column says whose cards moved. The opponent's column
+   is on the left because the right half of the field is where the opponent plays
+   and digivolves — a panel there covered the move it was reporting. Both sit
+   above the board chrome but under --ds-z-dialog, so a decision overlay always
+   wins. */
+.side-panel-stack {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 5);
+  right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
+  display: flex;
+  width: min(20rem, calc(100% - var(--ds-space-8)));
+  gap: var(--ds-space-2);
+  pointer-events: none;
+}
+
+/* The left anchor is carried on the [data-side] selector so it outranks the
+   narrower blocks below, which only move the shared right edge inboard. */
+.side-panel-stack[data-side="opp"] {
+  top: calc(13.5rem + env(safe-area-inset-top, 0px));
+  right: auto;
+  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
+  flex-direction: column;
+}
+
+/* Grows upward from just above the hand dock, so a panel never covers the hand. */
+.side-panel-stack[data-side="you"] {
+  bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+  flex-direction: column-reverse;
+}
+
+.side-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 0.65rem;
+  background: var(--battle-panel);
+  box-shadow: 0 10px 28px rgb(4 14 31 / 55%);
+  pointer-events: auto;
+  /* The reference client's SelectCommandPanel open clip runs 0.233 s. */
+  animation: side-panel-in var(--t-side-panel-in, 230ms) ease-out;
+}
+
+/* The clock the player can see: a ring that erodes clockwise over the fixed
+   reading time the panel was opened with. */
+.side-panel__erode,
+.match-notice__erode {
+  position: absolute;
+  z-index: 2;
+  padding: 2px;
+  border-radius: inherit;
+  inset: 0;
+  background: conic-gradient(from 0deg, var(--battle-cyan) var(--erode-angle), transparent 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: panel-erode linear forwards;
+}
+
+.side-panel__header {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  padding: 0.42rem 0.5rem 0.42rem 0.8rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--ds-space-2);
+  align-items: center;
+  background: var(--battle-header-grad);
+}
+
+.side-panel__title {
+  overflow: hidden;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-panel__owner {
+  font-size: 0.78rem;
+  color: rgb(255 255 255 / 62%);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.side-panel__close,
+.match-notice__close {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  font-size: 0.95rem;
+  line-height: 1;
+  color: #fff;
+  border: 0;
+  border-radius: 0.25rem;
+  background: rgb(255 255 255 / 12%);
+  cursor: pointer;
+  place-items: center;
+}
+
+.side-panel__close:hover,
+.match-notice__close:hover {
+  background: rgb(255 255 255 / 24%);
+}
+
+/* After the shared rule so the panel's larger chrome wins, while the notices
+   this file also draws keep the compact button. */
+.side-panel__close {
+  width: 1.7rem;
+  height: 1.7rem;
+  font-size: 1.2rem;
+}
+
+.side-panel__cards {
+  display: flex;
+  padding: 0.6rem;
+  margin: 0;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  list-style: none;
+}
+
+.side-panel__card {
+  display: grid;
+  width: 4.875rem;
+  gap: 0.2rem;
+  justify-items: center;
+}
+
+.side-panel__art {
+  position: relative;
+  line-height: 0;
+}
+
+/* The panel used to be art alone, so a deleted card had no readable name. */
+.side-panel__name {
+  overflow-wrap: anywhere;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* The panel is navy, so the link tints towards white rather than down into it. */
+button.side-panel__name {
+  color: color-mix(in srgb, #fff 45%, var(--ds-accent));
+}
+
+button.side-panel__name:hover,
+button.side-panel__name:focus-visible {
+  color: #fff;
+}
+
+/* The reference client numbers each card in the panel with a blue circle at its top-left. */
+.side-panel__badge {
+  position: absolute;
+  top: -0.3rem;
+  left: -0.3rem;
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 50%;
+  background: #2b57a8;
+  place-items: center;
+}
+
+/* --- Framed notices -------------------------------------------------- */
+
+/* Anchored to the corner belonging to whoever caused the moment: the viewer's
+   effects bottom-left, the opponent's top-right, and anything a security card
+   raised in the middle of the half the side panels do not occupy. */
+.match-notice-stack {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 4);
+  display: flex;
+  width: min(19rem, calc(100% - var(--ds-space-8)));
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  pointer-events: none;
+}
+
+.match-notice-stack[data-anchor$="-left"] {
+  left: max(var(--ds-space-4), env(safe-area-inset-left, 0px));
+}
+
+.match-notice-stack[data-anchor$="-right"] {
+  right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
+}
+
+.match-notice-stack[data-anchor^="top-"] {
+  top: calc(9.5rem + env(safe-area-inset-top, 0px));
+}
+
+.match-notice-stack[data-anchor^="middle-"] {
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.match-notice-stack[data-anchor^="bottom-"] {
+  bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+  flex-direction: column-reverse;
+}
+
+/* The reference client frames a notice with bracketed corners rather than a full
+   box, which is what keeps a large panel from reading as a dialog. */
+.match-notice {
+  position: relative;
+  display: grid;
+  padding: 0.55rem 2rem 0.55rem 0.55rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+  border-radius: 0.45rem;
+  background: linear-gradient(180deg, rgb(20 40 76 / 96%) 0%, rgb(10 20 40 / 96%) 100%);
+  box-shadow: 0 12px 30px rgb(4 14 31 / 55%);
+  pointer-events: auto;
+  animation: match-notice-in var(--t-notice-in, 200ms) ease-out;
+}
+
+.match-notice::before,
+.match-notice::after {
+  position: absolute;
+  width: 0.85rem;
+  height: 0.85rem;
+  content: "";
+  border: 2px solid var(--battle-marker);
+  pointer-events: none;
+}
+
+.match-notice::before {
+  top: 0;
+  left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 0.45rem 0 0;
+}
+
+.match-notice::after {
+  right: 0;
+  bottom: 0;
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0 0 0.45rem;
+}
+
+.match-notice[data-variant="rejection"]::before,
+.match-notice[data-variant="rejection"]::after {
+  border-color: var(--battle-attack);
+}
+
+.match-notice__icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  color: #fff;
+  background: rgb(255 255 255 / 10%);
+  place-items: center;
+}
+
+.match-notice[data-variant="rejection"] .match-notice__icon {
+  color: #ffd7d2;
+  background: rgb(255 45 31 / 22%);
+}
+
+.match-notice__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.match-notice__label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--battle-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.match-notice[data-variant="rejection"] .match-notice__label {
+  color: #ff9a90;
+}
+
+.match-notice__title {
+  font-family: var(--ds-font-display);
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+.match-notice__text {
+  overflow-y: auto;
+  max-height: 7rem;
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: rgb(226 236 255 / 82%);
+}
+
+/* A named mechanic announces itself in the reference client's pink pill, next to
+   the card that did it. */
+.match-notice[data-variant="keyword"]::before,
+.match-notice[data-variant="keyword"]::after {
+  border-color: var(--battle-keyword);
+}
+
+.match-notice__keyword {
+  align-self: flex-start;
+  padding: 0.2rem 0.75rem;
+  font-family: var(--ds-font-display);
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff6fae 0%, var(--battle-keyword) 100%);
+  box-shadow: 0 4px 14px rgb(233 30 120 / 45%);
+}
+
+.match-notice[data-variant="keyword"] .match-notice__label {
+  color: #ffb4d5;
+}
+
+.match-notice__erode {
+  padding: 1px;
+  opacity: 0.8;
+}
+
+.match-notice__close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+}
+
+/* The attack call-out: a glance at the attacker while the arc and lunge play. */
+.attack-announcement {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 5);
+  top: calc(9.5rem + env(safe-area-inset-top, 0px));
+  left: 50%;
+  display: flex;
+  padding: 0.3rem 0.7rem 0.3rem 0.35rem;
+  gap: var(--ds-space-2);
+  align-items: center;
+  border: 1px solid var(--battle-attack);
+  border-radius: 0.5rem;
+  background: var(--battle-panel);
+  box-shadow: 0 0 18px var(--battle-attack-glow);
+  pointer-events: none;
+  translate: -50% 0;
+  /* Centred by a translate, so its entrance can only fade — a keyframe that also
+     owned `translate` would fight the centring. */
+  animation: attack-announcement-in var(--t-attack-announce-in, 140ms) ease-out;
+}
+
+.attack-announcement__copy {
+  font-size: 0.8rem;
+  color: #fff;
+}
+
+/* Registered so the erosion angle interpolates; an unregistered custom property
+   would jump from full ring to empty with nothing in between. */
+@property --erode-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 360deg;
+}
+
+@keyframes panel-erode {
+  from {
+    --erode-angle: 360deg;
+  }
+  to {
+    --erode-angle: 0deg;
+  }
+}
+
+@keyframes side-panel-in {
+  from {
+    translate: 0.5rem 0;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+@keyframes match-notice-in {
+  from {
+    translate: -0.5rem 0;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+@keyframes attack-announcement-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --- Security clash ------------------------------------------------------ */
+
+/* The reference client resolves a security check centre-stage: the attacking Digimon
+   faces the revealed card, their DP is compared, then the outcome plays between
+   them. The beats below are the ones ./securityClash.ts publishes, so the two
+   must be retimed together:
+     0ms      attacker slides in from its own half        (150ms)
+     150ms    revealed card plays the 233ms EnterSecurity clip
+     383ms    both hold, readable                         (900ms)
+     1283ms   outcome beat, per resolution                (350ms)
+     1633ms   scene fades out                             (160ms)
+   Everything from 1283ms on is a separate, skippable queue step: a click through
+   the scene takes the board back at the outcome rather than at the fade.
+
+   A check the server has not closed yet holds at `data-resolution="pending"`: the
+   entrance plays, the cards stay up, and nothing that belongs to the outcome is
+   applied. When the close finally lands, the scene sets `--t-clash-outcome-at` to
+   zero, so the outcome beat and the fade after it run from that moment rather than
+   from a clock that started at the reveal. */
+.battle-clash {
+  position: absolute;
+  z-index: calc(var(--ds-z-dialog) - 5);
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  /* The board underneath is bright card art on a coloured field, and the scene has
+     to win against it. The dim travels with the scene's own fade, and the layer
+     stays pointer-transparent, so nothing under it stops being clickable. */
+  background: radial-gradient(ellipse at center, rgb(4 8 20 / 74%) 0%, rgb(4 8 20 / 58%) 55%, rgb(4 8 20 / 28%) 100%);
+  animation: battle-clash-in var(--t-clash-enter, 150ms) linear both;
+}
+
+/* The exit is its own animation rather than the tail of one long scene keyframe, so a
+   scene that held through a still-resolving check leaves on the outcome it was given
+   instead of on the clock it was mounted at. */
+.battle-clash:not([data-resolution="pending"]) {
+  animation:
+    battle-clash-in var(--t-clash-enter, 150ms) linear both,
+    battle-clash-out var(--t-clash-exit, 160ms) linear
+      calc(var(--t-clash-outcome-at, 1283ms) + var(--t-clash-outcome, 350ms)) both;
+}
+
+.battle-clash__badge {
+  display: flex;
+  margin: 0;
+  padding: 0.2rem 0.7rem;
+  gap: var(--ds-space-2);
+  align-items: center;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 999px;
+  background: var(--battle-panel);
+  box-shadow: 0 2px 12px rgb(6 12 28 / 45%);
+}
+
+.battle-clash__stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1);
+  align-items: center;
+}
+
+.battle-clash__card {
+  display: flex;
+  margin: 0;
+  gap: var(--ds-space-3);
+  align-items: center;
+}
+
+.battle-clash__art {
+  overflow: hidden;
+  border-radius: var(--ds-radius-sm);
+  box-shadow:
+    0 0 0 2px rgb(255 255 255 / 22%),
+    0 12px 34px rgb(4 8 20 / 75%);
+}
+
+.battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
+  animation: battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.battle-clash__card[data-role="attacker"][data-side="opp"] .battle-clash__art {
+  animation: battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+/* The reference client's YourEnterSecurityCard.anim (233ms): the card grows from
+   almost nothing, arcs left, and burns off a white-out — it never flips. */
+.battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation: battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both;
+}
+
+.battle-clash[data-resolution="effect"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-glow var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash[data-resolution="trashed"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-fall var(--t-clash-outcome, 350ms) cubic-bezier(0.32, 0, 0.67, 0) var(--t-clash-outcome-at, 1283ms)
+      both;
+}
+
+/* A battle resolution shakes both cards, so each entrance keeps its own first
+   animation and appends the impact rather than being replaced by it. */
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="revealed"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="you"] .battle-clash__art {
+  animation:
+    battle-clash-enter-you var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-role="attacker"][data-side="opp"] .battle-clash__art {
+  animation:
+    battle-clash-enter-opp var(--t-clash-enter, 150ms) cubic-bezier(0.33, 1, 0.68, 1) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash__caption {
+  display: flex;
+  width: 13rem;
+  flex-direction: column;
+  gap: 0.1rem;
+  color: #fff;
+  text-shadow: 0 1px 5px rgb(4 8 20 / 95%);
+}
+
+.battle-clash__role {
+  font-size: 0.76rem;
+  color: var(--battle-marker);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.battle-clash__name {
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.battle-clash__dp {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--battle-cyan);
+  font-variant-numeric: tabular-nums;
+}
+
+.battle-clash__mark {
+  position: relative;
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 900;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  place-items: center;
+  border: 2px solid var(--battle-attack);
+  border-radius: 50%;
+  background: var(--battle-panel);
+  box-shadow: 0 0 16px var(--battle-attack-glow);
+}
+
+/* The clash burst: only a battle resolution has two Digimon actually trading blows. */
+.battle-clash__flash {
+  position: absolute;
+  inset: -0.6rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 255 255 / 90%) 0%, var(--battle-attack) 45%, transparent 70%);
+  animation: battle-clash-burst var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+.battle-clash__outcome {
+  margin: 0;
+  padding: 0.3rem 1rem;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  border: 1px solid var(--battle-panel-border);
+  border-radius: 0.5rem;
+  background: var(--battle-panel);
+  box-shadow: 0 4px 18px rgb(4 8 20 / 70%);
+}
+
+@keyframes battle-clash-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes battle-clash-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes battle-clash-enter-you {
+  from {
+    transform: translateY(70px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes battle-clash-enter-opp {
+  from {
+    transform: translateY(-70px) scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes battle-security-reveal {
+  0% {
+    transform: translate(0, 42px) scale(0.08);
+    filter: brightness(6);
+  }
+  50% {
+    transform: translate(-18px, 33px) scale(0.55);
+    filter: brightness(3);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* The reference client's BattleEffect: a 250ms claw slash plus a short shake,
+   then a 100ms settle before the objects are destroyed. */
+@keyframes battle-clash-impact {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  20% {
+    transform: translate(-6px, 2px) scale(1.05);
+  }
+  45% {
+    transform: translate(5px, -3px) scale(1.05);
+  }
+  70% {
+    transform: translate(-3px, 1px) scale(1.02);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes battle-clash-burst {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  30% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes battle-clash-glow {
+  0% {
+    transform: translate(0, 0) scale(1);
+    filter: brightness(1);
+  }
+  40% {
+    transform: translate(0, 0) scale(1.06);
+    filter: brightness(1.5) drop-shadow(0 0 14px var(--battle-cyan));
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes battle-clash-fall {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    filter: brightness(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 24px) scale(0.94) rotate(5deg);
+    filter: brightness(0.6) grayscale(1);
+    opacity: 0.35;
+  }
+}
+
+@media (width <= 780px) {
+  .side-panel-stack {
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    width: min(14rem, calc(100% - var(--ds-space-4)));
+  }
+  .side-panel-stack[data-side="opp"] {
+    top: calc(11.5rem + env(safe-area-inset-top, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+  }
+  .side-panel-stack[data-side="you"] {
+    bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
+  }
+  .match-notice-stack {
+    width: min(14rem, calc(100% - var(--ds-space-4)));
+  }
+  .match-notice-stack[data-anchor^="bottom-"] {
+    bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* --- Responsive ---------------------------------------------------------- */
+
+/* After every base rule on purpose: these blocks share the base selectors'
+   specificity, so the narrow-viewport overrides only win by coming later. */
+
+/* Split-screen and small laptop widths: the board keeps its desktop shape, but
+   every fixed-width piece of chrome gives ground so the field stays whole. */
+@media (width < 1240px) {
+  .game-sidebar {
+    width: 248px !important;
+  }
+  .game-pile-column {
+    width: 104px !important;
+  }
+  /* Content-sized, so the egg pile and the raising slot are never cut off. */
+  .game-breeding-dock {
+    width: auto !important;
+  }
+  .game-hand-dock {
+    padding-right: var(--ds-space-3) !important;
+    padding-left: var(--ds-space-3) !important;
+  }
+  .game-memory-gauge {
+    gap: var(--ds-space-3) !important;
+    padding: 0 var(--ds-space-3) !important;
+  }
+  .game-memory-gauge__side {
+    display: none;
+  }
+  .game-memory-gauge__track {
+    --memory-track-pad-x: 14px;
+    --memory-track-pad-y: 10px;
+    padding: var(--memory-track-pad-y) var(--memory-track-pad-x) !important;
+  }
+}
+
+@media (width < 960px) {
+  /* A smaller orb leaves the compact gauge its full chip row. */
+  .game-end-turn-orb {
+    width: 4.2rem;
+    height: 4.2rem;
+    margin: -0.6rem 0.6rem;
+    font-size: 0.64rem;
+  }
+
+  /* Rows instead of a column: the strip is the `auto` track, so the board above it
+     absorbs a short viewport rather than pushing the actions past the bottom edge. */
+  .game-layout {
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: hidden !important;
+  }
+  .game-board {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .game-field {
+    min-height: 0;
+  }
+  /* Visible overflow: a picked-up hand card lifts above the dock, and clipping it
+     there cut the card in half. Painting over the field costs the layout nothing. */
+  .game-player-dock {
+    min-height: 0;
+    overflow: visible;
+  }
+  /* The drag hint and the viewer's own name repeat what the board already shows,
+     and cost the dock two lines it needs for the hand. */
+  .game-action-bar--idle {
+    display: none !important;
+  }
+  .game-breeding-dock {
+    padding: var(--ds-space-1) var(--ds-space-2) !important;
+  }
+  .game-breeding-dock > div:first-child {
+    font-size: 0.5rem;
+  }
+  .game-sidebar {
+    width: 100% !important;
+    height: clamp(6.5rem, 16dvh, 9.5rem);
+    max-height: none;
+    flex-direction: row !important;
+    border-top: 1px solid var(--ds-border);
+    border-left: 0 !important;
+  }
+  /* The row is the only place the log and the actions live at this size, so it
+     scrolls sideways instead of clipping whatever does not fit, and each panel
+     scrolls on its own rather than cutting its last line in half. */
+  .game-sidebar {
+    overflow: auto hidden !important;
+  }
+  .game-sidebar > div {
+    min-width: 170px;
+    padding: var(--ds-space-2) var(--ds-space-3) !important;
+    overflow: hidden auto;
+    border-right: 1px solid var(--ds-border);
+    border-bottom: 0 !important;
+  }
+  /* The turn panel has to fit the strip whole: it is the one panel whose content
+     cannot be scrolled to without hiding the phase the player is in. Its width is
+     set by the five phase chips. */
+  .game-sidebar > div:first-child {
+    min-width: 220px;
+  }
+  .game-sidebar > div:first-child > div:first-child {
+    margin-bottom: var(--ds-space-1) !important;
+  }
+  .game-sidebar > div:first-child > div:nth-child(2) > div {
+    padding: 4px 1px !important;
+    font-size: 8.5px !important;
+  }
+  /* Side by side, so the strip costs one button's height instead of two. */
+  .game-sidebar > div:nth-child(2) {
+    min-width: 250px;
+    flex-direction: row !important;
+    align-items: center;
+    gap: var(--ds-space-2) !important;
+  }
+  .game-sidebar > div:nth-child(2) > div {
+    display: none;
+  }
+  .game-sidebar > div:nth-child(2) > button {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+  }
+  /* The log scrolls; the fade tells the reader the last line continues below. */
+  .game-sidebar > div:nth-child(3) {
+    flex: 1;
+    min-width: 190px;
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent);
+  }
+  /* Surrender needs no column of its own. */
+  .game-sidebar > div:last-child {
+    min-width: 0;
+    flex: 0 0 auto;
+  }
+  /* Side by side on the strip: stacked, the two buttons are taller than it is. */
+  .game-sidebar__footer {
+    flex-direction: row !important;
+  }
+  .game-sidebar__footer > button {
+    flex: 1;
+    min-width: 0;
+  }
+  /* The rails hold compact piles at this size, so they need only the pile width. */
+  .game-pile-column {
+    width: 72px !important;
+    padding: var(--ds-space-2) !important;
+  }
+
+  /* The mulligan becomes a full-screen takeover: below this width the sheet is
+     wider than the board, and a translucent scrim left the opening hand reading
+     as part of the board behind it. */
+  .mulligan-scrim {
+    background: var(--ds-brand-ink) !important;
+  }
+  .mulligan-sheet {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    padding: max(var(--ds-space-4), env(safe-area-inset-top)) var(--ds-space-3)
+      max(var(--ds-space-4), env(safe-area-inset-bottom));
+    /* Without minmax(0, …) the column takes the widest item's max-content, and the
+       detail paragraph pushed past the sheet's padding instead of wrapping. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    align-content: start;
+    overflow: hidden;
+    /* The takeover scrim is already the opaque ink the panel would provide, so
+       the sheet drops the framing and keeps only the panel's ink tokens. */
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .mulligan-badge {
+    margin-bottom: var(--ds-space-2);
+    justify-self: center;
+  }
+  .mulligan-title {
+    font-size: 1.55rem;
+  }
+  .mulligan-detail {
+    margin-bottom: var(--ds-space-3);
+    font-size: var(--ds-text-xs);
+  }
+  /* The opening hand wraps onto as many rows as it needs, so the whole hand is
+     visible at once — a horizontal scroll hid two of the five cards behind an
+     edge the player had no reason to expect. */
+  .mulligan-cards {
+    min-height: 0;
+    margin-bottom: var(--ds-space-3);
+    padding: var(--ds-space-1) 0;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    gap: var(--ds-space-2);
+    overflow: hidden auto;
+    overscroll-behavior-y: contain;
+  }
+  .mulligan-card {
+    flex: 0 1 calc((100% - var(--ds-space-2) * 4) / 5);
+    max-width: 168px;
+  }
+  .mulligan-card > div {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  .mulligan-actions {
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid rgb(255 255 255 / 18%);
+  }
+  .mulligan-actions > button {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* The phone block: portrait, plus a phone on its side. A landscape phone is
+   ~800px wide, so width alone would leave it in the pointer layout; the
+   landscape block further down re-lays the board for the short viewport and
+   only needs these touch surfaces — sheets, zoom, confirmations — to exist. */
+@media (width < 600px), (height < 520px) and (orientation: landscape) {
+  /* The board is the whole screen here, so the rail takes only what the prompt
+     and its actions need; the printed clause keeps its own short scroll. */
+  .board-prompt {
+    width: min(15rem, 46vw);
+    max-height: 92%;
+    padding: var(--ds-space-3);
+    gap: var(--ds-space-1);
+  }
+  .board-prompt__text {
+    font-size: var(--ds-text-sm);
+  }
+  .board-prompt__clause {
+    max-height: 4.5rem;
+  }
+  .board-opponent-pill {
+    top: 3.5rem;
+    padding: var(--ds-space-1) var(--ds-space-3);
+    font-size: var(--ds-text-xs);
+  }
+
+  .battle-clash__art > div {
+    width: 78px !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  /* The end-turn orb shares the band with 21 chips; at phone widths it gives
+     most of its diameter back so the gauge keeps every chip on screen. */
+  .game-end-turn-orb {
+    width: 3.4rem;
+    height: 3.4rem;
+    padding: 0.2rem;
+    margin: -0.5rem 0.5rem;
+    font-size: 0.56rem;
+  }
+  .game-end-turn-orb--waiting,
+  .game-end-turn-orb:disabled {
+    font-size: 0.5rem;
+  }
+  .game-name-plate {
+    min-width: 0;
+    padding: 0.2rem 0.8rem;
+  }
+  .opponent-permanent-inspector {
+    display: none;
+  }
+  /* Three per row keeps each card big enough to read at phone widths. */
+  .mulligan-card {
+    flex: 0 1 calc((100% - var(--ds-space-2) * 2) / 3);
+    max-width: 128px;
+  }
+  /* The centre-stage card is sized by the viewport rather than by the 190px the
+     component asks for, so a narrow screen scales it instead of cropping it. */
+  .battle-showcase__art > div {
+    width: min(190px, 46vw) !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  .combat-prompt {
+    position: fixed !important;
+    right: var(--ds-space-3) !important;
+    bottom: max(var(--ds-space-3), env(safe-area-inset-bottom)) !important;
+    left: var(--ds-space-3) !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: calc(100dvh - var(--ds-space-6)) !important;
+    padding: var(--ds-space-4) !important;
+    overflow-y: auto;
+    transform: none !important;
+  }
+  .game-over-dialog {
+    max-height: calc(100dvh - var(--ds-space-6));
+    padding: var(--ds-space-6) var(--ds-space-4) !important;
+    overflow-y: auto;
+  }
+  .card-inspector-dialog,
+  .trash-viewer-dialog {
+    width: calc(100% - var(--ds-space-6)) !important;
+    max-width: none !important;
+    max-height: calc(100dvh - var(--ds-space-6)) !important;
+    padding: var(--ds-space-4) !important;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .card-inspector-dialog > div:first-child,
+  .trash-viewer-dialog > div:first-child {
+    width: 100%;
+    min-width: 0 !important;
+    max-height: 52dvh;
+  }
+  .card-inspector-dialog > div:last-child,
+  .trash-viewer-dialog > div:last-child {
+    width: 100%;
+  }
+  /* Mobile board metrics. The rail width matches the compact pile (42px card +
+     column padding) that boardPieces renders when `compact` is set.
+
+     On :root, not on .game-layout: the board-mode rail and the other match
+     overlays portal into #aegis-stage, a sibling of the layout, and a metric
+     scoped to the layout is undefined there — the `var()` in the rail's own
+     `bottom` resolved to nothing, `bottom` fell back to `auto` and the stage's
+     clip took the pending decision's only exit off the screen. */
+  :root {
+    --game-rail: 3.5rem;
+    --game-sidebar-h: 3.25rem;
+    --hand-card-width: clamp(4.75rem, 21vw, 5.75rem);
+    --game-hand-h: calc(var(--hand-card-width) * 1.4 + var(--ds-space-2));
+  }
+  .game-layout {
+    height: 100dvh !important;
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: hidden !important;
+    background: var(--ds-brand-ink);
+  }
+  .game-board {
+    min-height: 0;
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    flex: 1 1 auto !important;
+    overflow: hidden;
+    background: var(--ds-game-surface) !important;
+  }
+  .game-opponent-bar {
+    min-height: 56px;
+    padding: var(--ds-space-2) var(--ds-space-3) !important;
+    border-bottom: 0 !important;
+    background: var(--ds-brand-ink) !important;
+  }
+  /* One column per control the bar actually holds: with fewer, the last one wrapped
+     onto a second row and the header changed height as the match went on. */
+  .game-opponent-bar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    gap: var(--ds-space-2);
+  }
+  .game-opponent-identity > div:last-child > div:first-child {
+    color: var(--ds-brand-on-ink) !important;
+  }
+  .game-opponent-identity > div:last-child > div:last-child {
+    display: none !important;
+  }
+  .game-opponent-hand {
+    display: none !important;
+  }
+  .game-mobile-turn {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    color: var(--ds-brand-on-ink);
+    font-size: 0.625rem;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .game-mobile-turn strong {
+    font-family: var(--ds-font-display);
+  }
+  .game-mobile-turn span {
+    color: var(--ds-accent);
+    font-weight: 700;
+  }
+  /* Both match controls are square icons: the surrender label was as wide as the
+     word it happened to be translated into, and the header shifted around it. */
+  .game-mobile-surrender,
+  .game-mobile-bug {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    color: var(--ds-brand-on-ink);
+    border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 42%, transparent);
+    border-radius: var(--ds-radius-sm);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
+  }
+  .game-opponent-bar > div:last-child > div {
+    width: 22px !important;
+    height: 32px !important;
+    margin-left: -17px !important;
+  }
+  .opponent-action-feed {
+    top: calc(6.75rem + env(safe-area-inset-top, 0px));
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    width: auto;
+  }
+  .opponent-action-feed__current {
+    min-height: 3.25rem;
+    padding: var(--ds-space-2) var(--ds-space-3);
+    gap: var(--ds-space-2);
+  }
+  .opponent-action-feed__copy strong {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .opponent-action-feed__trail-item {
+    right: var(--ds-space-3);
+    left: var(--ds-space-3);
+  }
+  .match-history-sheet__list {
+    max-height: calc(78dvh - 6rem);
+  }
+  /* The reveal panel is how a phone reads a flipped security card, and at 11rem
+     its heading was cut to "Cart…". It spans the screen instead. */
+  .side-panel-stack,
+  .match-notice-stack {
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    width: auto;
+  }
+  /* The opponent's column is left-anchored at pointer widths; here it spans like
+     the rest, so the left anchor it carries has to be spent back. */
+  .side-panel-stack[data-side="opp"] {
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+  }
+  .game-field {
+    width: 100%;
+    min-height: 0;
+    display: grid !important;
+    grid-template-columns: var(--game-rail) minmax(0, 1fr) var(--game-rail);
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    background: var(--ds-game-surface-strong);
+  }
+
+  /* The shield is wider than the rail it rides in, so both counters used to hang
+     off the screen edges with a slice of the chevron cut away. */
+  .game-security-shield {
+    width: 3rem;
+  }
+  .game-security-shield__count {
+    font-size: 1.4rem;
+  }
+
+  /* Rails hold the compact piles at their real (prop-driven) size — no transform
+     scaling, so their layout boxes match what is painted and nothing is clipped. */
+  .game-pile-column {
+    width: auto !important;
+    min-width: 0;
+    padding: var(--ds-space-2) var(--ds-space-1) !important;
+    gap: var(--ds-space-1) !important;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  .game-pile-column > div {
+    gap: var(--ds-space-2) !important;
+  }
+  .game-pile-column > div[style*="flex: 1"] {
+    display: none;
+  }
+
+  .game-battle-zones {
+    min-width: 0;
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+  .game-battle-zones > div {
+    min-width: 0;
+    min-height: 0 !important;
+    gap: var(--ds-space-2) !important;
+    padding: var(--ds-space-1) var(--ds-space-2) !important;
+  }
+  .game-battle-zones > div:first-child,
+  .game-battle-zones > div:last-child {
+    margin: 3px;
+    justify-content: flex-start !important;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    border: 1px solid var(--ds-game-border);
+    border-radius: var(--ds-radius-sm);
+    background: var(--ds-game-surface-soft);
+  }
+  .game-battle-zones > div:first-child > div,
+  .game-battle-zones > div:last-child > div {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    touch-action: pan-x !important;
+  }
+  .game-battle-zones > div:nth-child(2) {
+    display: block;
+    padding: 0 !important;
+    overflow: visible;
+  }
+
+  .game-player-dock {
+    display: grid !important;
+    max-height: none;
+    flex: none;
+    grid-template-rows: auto auto;
+    overflow: hidden;
+  }
+  .game-breeding-dock {
+    display: grid !important;
+    width: 100% !important;
+    height: auto;
+    padding: var(--ds-space-2) var(--ds-space-3) !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--ds-space-3);
+    align-items: center;
+    overflow: hidden;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--ds-border);
+  }
+  .game-breeding-dock > div:first-child {
+    width: auto;
+    min-width: 0;
+    writing-mode: vertical-rl;
+    rotate: 180deg;
+    font-size: 0.5rem;
+    text-align: center;
+  }
+  .game-breeding-dock > div:last-child {
+    min-width: 0;
+    flex: none !important;
+    justify-content: flex-start;
+    gap: var(--ds-space-4) !important;
+  }
+
+  /* The dock sits in the board's `auto` track, and an `auto` track next to an
+     `fr` one only ever gets its min-content height. Without a floor of its own
+     the hand — whose sideways overflow makes its min-content near zero — was
+     squeezed and its bottom edge disappeared under the action strip. */
+  .game-hand-dock {
+    min-width: 0 !important;
+    height: auto;
+    min-height: calc(var(--game-hand-h) + var(--ds-space-3));
+    padding: 2px var(--ds-space-2) max(4px, env(safe-area-inset-bottom)) !important;
+    overflow: hidden;
+  }
+  /* The idle bar only repeats the viewer's own name and hand count, both of which
+     are already on screen. Drop it and give the room to the hand. */
+  .game-action-bar--idle {
+    display: none !important;
+  }
+  /* Below the whole dialog tier: on the toast tier the bar kept its band at the
+     bottom of the screen even while a bottom sheet was open there, and it was
+     the sheet's own action row it painted over. */
+  .game-action-bar--contextual {
+    position: fixed;
+    z-index: calc(var(--ds-z-dialog) - 6);
+    right: var(--ds-space-2);
+    bottom: max(var(--ds-space-2), env(safe-area-inset-bottom));
+    left: var(--ds-space-2);
+    min-height: 56px;
+    max-height: 132px;
+    padding: var(--ds-space-2) !important;
+    flex-wrap: wrap;
+    overflow: auto;
+    color: var(--ds-fg);
+    border: 1px solid var(--ds-border-strong);
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-surface);
+    box-shadow: var(--ds-shadow-lg);
+  }
+
+  /* The row is sized to the card plus its own padding, and the padding needs
+     !important to beat the inline fan-room padding — the desktop arc it reserves
+     is disabled here, and it pushed the card tops past the clipped row. */
+  .game-player-dock [data-testid="hand"] {
+    height: var(--game-hand-h) !important;
+    padding: 0 var(--ds-space-2) var(--ds-space-2) !important;
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-accent) var(--ds-surface-muted);
+  }
+  /* Whole cards, side by side: the row scrolls, so burying a card under its
+     neighbour bought no room and left the overlapped edge tapping the wrong card. */
+  .game-player-dock [data-testid="hand"] > div {
+    flex: 0 0 auto;
+    margin-left: var(--ds-space-1) !important;
+    transform: none !important;
+    scroll-snap-align: center;
+    touch-action: pan-x !important;
+  }
+  .game-player-dock [data-testid="hand"] > div:first-child {
+    margin-left: 0 !important;
+  }
+  .game-player-dock [data-testid="hand"] > div > div {
+    width: var(--hand-card-width) !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+
+  /* height: auto overrides the tablet strip's 16dvh clamp — only the action row
+     survives on a phone, and the clamp left a dead ink band under it. */
+  .game-sidebar {
+    width: 100% !important;
+    height: auto;
+    max-height: none;
+    flex: none !important;
+    overflow: hidden !important;
+    border-top: 1px solid var(--ds-border);
+    background: var(--ds-brand-ink) !important;
+  }
+  .game-sidebar > div:first-child,
+  .game-sidebar > div:nth-child(3),
+  .game-sidebar > div:last-child {
+    display: none;
+  }
+  /* With no action to offer, the strip was a dead ink band across the bottom of
+     the phone; the board takes the room back until an action shows up. */
+  .game-sidebar > div:nth-child(2):not(:has(button)) {
+    display: none !important;
+  }
+  .game-sidebar > div:nth-child(2) {
+    width: 100%;
+    min-width: 0;
+    height: var(--game-sidebar-h);
+    padding: var(--ds-space-2) !important;
+    flex-direction: row !important;
+    align-items: stretch;
+    gap: var(--ds-space-2) !important;
+    border: 0 !important;
+  }
+  .game-sidebar > div:nth-child(2) > div {
+    display: none;
+  }
+  .game-sidebar > div:nth-child(2) > button {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .game-breeding-dock::-webkit-scrollbar,
+  .game-battle-zones > div::-webkit-scrollbar,
+  .game-player-dock [data-testid="hand"]::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  .game-breeding-dock::-webkit-scrollbar-thumb,
+  .game-battle-zones > div::-webkit-scrollbar-thumb,
+  .game-player-dock [data-testid="hand"]::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--ds-accent);
+  }
+  .game-breeding-dock::-webkit-scrollbar-track,
+  .game-battle-zones > div::-webkit-scrollbar-track,
+  .game-player-dock [data-testid="hand"]::-webkit-scrollbar-track {
+    background: var(--ds-surface-muted);
+  }
+
+  /* Field-card actions as a bottom sheet: the card stays visible next to the
+     actions, so a tap target on the board is never hidden behind the menu. */
+  .card-action-sheet {
+    position: fixed;
+    z-index: var(--ds-z-dialog);
+    inset: 0;
+    display: grid;
+    align-items: end;
+    background: rgb(4 14 31 / 62%);
+    backdrop-filter: blur(4px);
+    animation: aegis-fadeIn 140ms ease-out;
+  }
+  .card-action-sheet__panel {
+    width: 100%;
+    max-height: 82dvh;
+    padding: var(--ds-space-2) var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-bottom));
+    overflow-y: auto;
+    border-top: 1px solid var(--ds-border-strong);
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0;
+    background: var(--ds-surface);
+    box-shadow: 0 -12px 40px rgb(4 14 31 / 45%);
+  }
+  .card-action-sheet__grip {
+    width: 2.25rem;
+    height: 4px;
+    margin: 0 auto var(--ds-space-3);
+    border-radius: 999px;
+    background: var(--ds-border-strong);
+  }
+  .card-action-sheet__body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--ds-space-4);
+    align-items: start;
+  }
+  /* The card is the sheet's tallest element, and it is a button — the old rule
+     still aimed at a `div` and had stopped matching, so nothing capped the card
+     and the sheet ran off the bottom of the screen. Height, not width, is what
+     has to fit. */
+  .card-action-sheet__body > .card-action-sheet__zoom {
+    width: auto;
+    height: min(30dvh, 12rem);
+    aspect-ratio: 5 / 7;
+    filter: drop-shadow(0 10px 22px rgb(0 0 0 / 32%));
+  }
+  /* The card art carries its own width and would paint past the box above. */
+  .card-action-sheet__body > .card-action-sheet__zoom > * {
+    width: auto !important;
+    height: 100% !important;
+    aspect-ratio: 5 / 7;
+  }
+  .card-action-sheet__info {
+    display: grid;
+    min-width: 0;
+    gap: var(--ds-space-2);
+    align-content: start;
+  }
+  .card-action-sheet__info > strong {
+    color: var(--ds-fg);
+    font-family: var(--ds-font-display);
+    font-size: var(--ds-text-base);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+  .card-action-sheet__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-1) var(--ds-space-2);
+  }
+  .card-action-sheet__stats > span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    padding: 2px var(--ds-space-2);
+    color: var(--ds-fg-secondary);
+    font: 700 var(--ds-text-xs) var(--ds-font-mono);
+    border-radius: var(--ds-radius-sm);
+    background: var(--ds-surface-muted);
+  }
+  .card-action-sheet__stats > span[data-state="suspended"] {
+    color: var(--ds-warning);
+    background: var(--ds-warning-surface, var(--ds-surface-muted));
+  }
+  .card-action-sheet__stats em {
+    font-style: normal;
+    font-weight: 800;
+  }
+  .card-action-sheet__stats em[data-sign="up"] {
+    color: var(--ds-success);
+  }
+  .card-action-sheet__stats em[data-sign="down"] {
+    color: var(--ds-danger);
+  }
+  .card-action-sheet__keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-1);
+  }
+  .card-action-sheet__keywords > span {
+    padding: 2px var(--ds-space-2);
+    color: var(--ds-accent);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border: 1px solid color-mix(in srgb, var(--ds-accent) 38%, transparent);
+    border-radius: 999px;
+  }
+  .card-action-sheet__stack {
+    display: grid;
+    gap: var(--ds-space-2);
+    margin-top: var(--ds-space-3);
+    padding-top: var(--ds-space-3);
+    border-top: 1px solid var(--ds-border);
+  }
+  .card-action-sheet__stack > div > span {
+    color: var(--ds-fg-muted);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .card-action-sheet__stack > div > div {
+    display: flex;
+    gap: var(--ds-space-2);
+    margin-top: var(--ds-space-1);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+  .card-action-sheet__zoom {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .card-action-sheet__stack > div > button {
+    width: 54px;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+  }
+  .card-action-sheet__stack figcaption {
+    margin-top: 2px;
+    overflow: hidden;
+    color: var(--ds-fg-muted);
+    font-size: 0.5625rem;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Trash: one scrollable row of every card, each tappable to enlarge. */
+  .trash-sheet__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--ds-space-2);
+    margin-bottom: var(--ds-space-3);
+  }
+  .trash-sheet__header > strong {
+    color: var(--ds-fg);
+    font-family: var(--ds-font-display);
+    font-size: var(--ds-text-base);
+  }
+  .trash-sheet__header > span {
+    color: var(--ds-fg-muted);
+    font: 600 var(--ds-text-xs) var(--ds-font-mono);
+  }
+  .trash-sheet__empty {
+    margin: var(--ds-space-6) 0;
+    color: var(--ds-fg-disabled);
+    font: var(--ds-text-xs) var(--ds-font-mono);
+    text-align: center;
+  }
+  .trash-sheet__row {
+    display: flex;
+    gap: var(--ds-space-3);
+    margin: 0 calc(var(--ds-space-4) * -1) var(--ds-space-3);
+    padding: 0 var(--ds-space-4) var(--ds-space-2);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-accent) var(--ds-surface-muted);
+  }
+  .trash-sheet__row > button {
+    width: 96px;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+    scroll-snap-align: center;
+  }
+  .trash-sheet__row figcaption {
+    margin-top: var(--ds-space-1);
+    overflow: hidden;
+    color: var(--ds-fg-muted);
+    font-size: 0.625rem;
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Every centred dialog on the match screen becomes a bottom sheet: anchored to
+     the bottom edge, full width, and scrolling inside itself. The panels size
+     themselves with inline widths for desktop, so these have to outrank them. */
+  .game-modal,
+  /* `Dialog` portals into its own centring layer, so the scrim class never reaches
+     it; match on the panel inside instead. */
+  .aegis-dialog-layer:has(.game-modal__panel) {
+    position: fixed !important;
+    z-index: var(--ds-z-dialog);
+    inset: 0 !important;
+    display: flex !important;
+    padding: 0 !important;
+    align-items: flex-end !important;
+    justify-content: stretch !important;
+    place-items: end stretch !important;
+  }
+  .game-modal__panel {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    max-height: 86dvh !important;
+    margin: 0 !important;
+    padding: var(--ds-space-4) var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    border-width: 1px 0 0 !important;
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0 !important;
+    box-shadow: 0 -12px 40px rgb(4 14 31 / 45%) !important;
+  }
+  /* A bare panel carries no scrim of its own, so it pins itself to the viewport. */
+  .game-modal__panel--bare {
+    position: fixed !important;
+    z-index: var(--ds-z-dialog);
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    top: auto !important;
+    transform: none !important;
+  }
+  /* Inline flex rows inside these panels default to min-width:auto, so long text
+     refused to wrap and pushed the panel past the viewport. */
+  .game-modal__panel > div {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+  .game-modal__panel > div > div {
+    min-width: 0;
+  }
+  /* Buttons default to min-width:auto too, so a long label kept a two-button row
+     wider than the sheet instead of shrinking or wrapping onto a second line. */
+  .game-modal__panel button {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .game-modal__panel button > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .decision-overlay__header {
+    align-items: flex-start !important;
+  }
+  .decision-overlay__view-board {
+    width: 100%;
+    min-height: 44px;
+  }
+  /* DecisionOverlay is portalled into document.body. Anchor it below the fixed
+     opponent row; bottom-anchored controls can sit underneath iOS browser chrome. */
+  .decision-board-return {
+    top: calc(env(safe-area-inset-top, 0px) + 4rem);
+    right: var(--ds-space-2);
+    bottom: auto;
+    left: var(--ds-space-2);
+  }
+  .decision-board-return > button {
+    min-height: 44px;
+    flex: 1;
+  }
+  .action-confirmation > div:first-child {
+    flex-wrap: nowrap !important;
+    align-items: flex-start !important;
+  }
+  .action-confirmation > div:first-child > div:first-child {
+    width: 78px !important;
+    height: auto !important;
+    flex: 0 0 auto;
+    aspect-ratio: 5 / 7;
+  }
+  .action-confirmation > div:last-child {
+    flex-wrap: wrap;
+  }
+  .action-confirmation > div:last-child > button {
+    min-height: 44px;
+    flex: 1 1 8rem;
+  }
+
+  /* Card blow-up, above the sheet that opened it. */
+  .card-zoom {
+    position: fixed;
+    z-index: calc(var(--ds-z-dialog) + 1);
+    inset: 0;
+    display: grid;
+    padding: max(var(--ds-space-4), env(safe-area-inset-top)) var(--ds-space-4)
+      max(var(--ds-space-4), env(safe-area-inset-bottom));
+    gap: var(--ds-space-4);
+    grid-template-rows: minmax(0, 1fr) auto;
+    place-items: center;
+    background: rgb(4 14 31 / 88%);
+    backdrop-filter: blur(8px);
+    animation: aegis-fadeIn 140ms ease-out;
+  }
+  .card-zoom > div:first-child {
+    width: min(84vw, 22rem) !important;
+    height: auto !important;
+    max-height: 100%;
+    aspect-ratio: 5 / 7;
+    filter: drop-shadow(0 20px 40px rgb(0 0 0 / 55%));
+  }
+  .card-zoom > button {
+    min-height: 44px;
+    padding: var(--ds-space-2) var(--ds-space-6);
+    color: var(--ds-brand-on-ink);
+    font-size: var(--ds-text-sm);
+    font-weight: 700;
+    border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 40%, transparent);
+    border-radius: var(--ds-radius-md);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 10%, transparent);
+  }
+  .card-action-sheet__actions {
+    display: grid;
+    min-width: 0;
+    gap: var(--ds-space-2);
+  }
+  /* Full-width actions (hand card, trash) sit under the body rather than beside it. */
+  .card-action-sheet__body + .card-action-sheet__actions {
+    margin-top: var(--ds-space-3);
+  }
+  .card-action-sheet__actions > button {
+    width: 100%;
+    min-height: 44px;
+    max-height: none;
+    height: auto;
+    padding-block: var(--ds-space-3);
+    line-height: 1.25;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .card-action-sheet__actions > button > * {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (width < 600px) and (height < 650px) and (orientation: portrait) {
+  .game-opponent-bar {
+    min-height: 0;
+  }
+  .game-sidebar > div:nth-child(2) > button {
+    min-height: 44px;
+  }
+  .opponent-action-feed {
+    top: calc(3.75rem + env(safe-area-inset-top, 0px));
+  }
+  .opponent-action-feed__trail {
+    display: none;
+  }
+  .opponent-action-feed__copy strong,
+  .opponent-action-feed__copy small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -webkit-line-clamp: 1;
+  }
+}
+
+/* Phone portrait. Both floating stacks span the width here (a capped column cut
+   the panel headings), so they can no longer be told apart by which side they sit
+   on: each gets a band of its own down the screen instead, notices hugging the
+   edge and the card panels inboard of them, and neither may grow into the other. */
+@media (width < 600px) and (orientation: portrait) {
+  /* Portrait board metrics, retuned against a 393x852 screen.
+
+     The rail is half a rem wider than the 42px pile it holds: a full deck is
+     drawn as six depth layers, each offset further down-right than the last, and
+     at 3.5rem those layers — and the opponent's raising slot beside them — ran
+     into the screen edge with nowhere to be clipped but off it.
+
+     The hand card grows from 21vw to 25vw — readable at arm's length, and still
+     more than three cards across the row before it has to be scrolled. The
+     dock is an `auto` track, so the field above it gives up the height. */
+  :root {
+    --game-rail: 4rem;
+    --hand-card-width: clamp(5.5rem, 25vw, 7rem);
+  }
+
+  /* One row for the hand and nothing else, so nothing the dock holds can push
+     the cards past its bottom edge, where the board's overflow cut them off.
+     The track may grow past the card: the row scrolls sideways, and a classic
+     scrollbar takes its height out of the content box — pinned to the card's
+     own height, the bar pushed the card tops out of the row instead. */
+  .game-hand-dock {
+    display: grid;
+    grid-template-rows: minmax(var(--game-hand-h), auto);
+    align-content: center;
+  }
+  .game-player-dock [data-testid="hand"] {
+    height: auto !important;
+    min-height: var(--game-hand-h) !important;
+  }
+  /* The desktop fan hangs below the dock on a negative margin so its arc reaches
+     the screen edge. There is no arc here, so the row was only hanging its
+     bottom edge into the action strip. */
+  .game-player-dock [data-testid="hand"] {
+    margin: 0 !important;
+  }
+
+  /* The rotated caption spends a whole column of a 393px screen to name what the
+     egg pile and the raising slot under it already show. Without it the band is
+     one row, and the height it gives back goes to the hand. */
+  .game-breeding-dock {
+    padding: var(--ds-space-1) var(--ds-space-3) !important;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .game-breeding-dock > div:first-child {
+    display: none;
+  }
+
+  /* Only three of the six depth layers: each sits 2.6px further down-right than
+     the last, and six of them reach past the rail and off the screen. Three
+     still read as a stack. */
+  .game-pile__layer:nth-child(n + 4) {
+    display: none;
+  }
+  /* The pile a finger opens is the 42px card wide and nothing more, which is
+     under the touch minimum on the horizontal axis. The rail has the room. */
+  .game-pile-column :has(> .game-pile),
+  .game-breeding-dock :has(> .game-pile) {
+    min-width: 44px;
+  }
+  /* The three depth layers still hang 7.8px below the pile's own box, and being
+     positioned they paint over anything in flow after them — at the compact 2px
+     gap that was the top of the caption's letters. */
+  .game-pile + span {
+    margin-top: 6px;
+  }
+  /* Both are painted outside the card they belong to, which is fine mid-board and
+     off the screen at the right edge of it: the arc is pulled inside the card's
+     own box and each star is centred on its point instead of starting there. */
+  .game-card-sparkles {
+    inset: -18% 0 45%;
+  }
+  .game-card-sparkle {
+    translate: -50% 0;
+  }
+
+  /* The opening hand centred its rows inside the `fr` track it sits in, which
+     opened ~130px between the copy explaining the mulligan and the cards it is
+     about. */
+  .mulligan-cards {
+    align-content: start;
+  }
+
+  .match-notice-stack,
+  .side-panel-stack {
+    max-height: 7rem;
+    overflow: hidden;
+  }
+  /* A card panel is one thumbnail tall plus its heading, so its band has to be
+     deeper than a notice's band of text. 9rem is the most the two bands can each
+     take before they meet in the middle of a tall phone. */
+  .side-panel-stack {
+    max-height: 9rem;
+  }
+  .side-panel-stack[data-side="opp"] {
+    top: calc(17rem + env(safe-area-inset-top, 0px));
+  }
+  .side-panel-stack[data-side="you"] {
+    bottom: calc(17rem + env(safe-area-inset-bottom, 0px));
+  }
+  /* The same band as the viewer's panels. A notice takes its taps rather than
+     letting them through, and at the tablet block's 9rem it was sitting on the
+     egg deck and the raising slot — the two pieces the breeding step is about. */
+  .match-notice-stack[data-anchor^="bottom-"] {
+    bottom: calc(17rem + env(safe-area-inset-bottom, 0px));
+  }
+  /* Below the opponent's feed, which starts at 6.75rem and is 3.25rem tall here:
+     at the base 9.5rem the feed painted over the call-out naming the attacker. */
+  .match-notice-stack[data-anchor^="top-"] {
+    top: calc(10.5rem + env(safe-area-inset-top, 0px));
+  }
+  .attack-announcement {
+    top: calc(10.5rem + env(safe-area-inset-top, 0px));
+  }
+
+  /* The board-mode rail becomes a bottom sheet above the hand: as a left rail it
+     covered the half of the field the prompt is asking the player to read, and the
+     cards a hand selection picks are in the dock right under it either way.
+     It outranks the notice and panel stacks because it is the pending decision's
+     only exit — nothing transient may land on top of its buttons. */
+  .board-prompt {
+    top: auto;
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    bottom: calc(var(--game-hand-h) + 10rem + env(safe-area-inset-bottom, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    z-index: calc(var(--ds-z-dialog) - 3);
+    width: auto;
+    max-height: 38dvh;
+    overflow-y: auto;
+    translate: none;
+    animation-name: battle-board-sheet-in;
+  }
+  /* Side by side: the sheet spends width it has and height it does not. */
+  .board-prompt__actions {
+    flex-direction: row-reverse;
+    flex-wrap: wrap;
+  }
+  .board-prompt__actions > button {
+    flex: 1 1 8rem;
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  /* Sized by the button it holds. At 3.25rem the row left a 36px content box for
+     a control the touch rules floor at 44px, and the sidebar's own clip took the
+     missing 8px off the bottom of the breeding step's only action. */
+  .game-sidebar > div:nth-child(2) {
+    height: auto;
+    min-height: calc(44px + var(--ds-space-2) * 2);
+  }
+
+  /* Both dismiss buttons float over the board and are the only early way out of
+     a notice or a reveal panel, so each keeps its compact chip — the chrome has
+     no room for a 44px one — and carries a 44px target behind it.
+
+     The notice's target grows down and left from the corner the chip sits in
+     rather than around it: the stack clips to its own band, and a target centred
+     on a chip that close to the top edge would have lost a quarter of itself. */
+  .match-notice__close::after {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.35rem;
+    width: 44px;
+    height: 44px;
+    content: "";
+  }
+  .side-panel__close {
+    position: relative;
+  }
+  .side-panel__close::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: "";
+    translate: -50% -50%;
+  }
+
+  /* The memory band is one row, across the whole screen.
+
+     Between the two rails the band had 262px of a 393px screen, and the phase
+     pill took a third of that before the 21 chips were laid out — each came out
+     3px wide, a dotted line with no gauge left in it. The band bleeds over the
+     rails instead, which is what the clip margin on the zones allows: the rails
+     hold piles, not field, so nothing is covered.
+
+     `display: block` (from the phone block above) also dropped the end-turn orb
+     onto a second line, which cost the two battle rows another 32px of height. */
+  .game-battle-zones {
+    overflow: clip;
+    overflow-clip-margin: var(--game-rail);
+  }
+  .game-battle-zones > div:nth-child(2) {
+    display: flex;
+    align-items: center;
+    margin-inline: calc(var(--game-rail) * -1);
+  }
+  /* The phase is already printed in the status bar over the board, and its pill
+     is wider than a fifth of the chips it was crowding out. */
+  .game-memory-gauge__phase {
+    display: none;
+  }
+  /* Overrides the split-screen block's own `!important` padding. */
+  .game-memory-gauge {
+    gap: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* The orb's overhang rides the band's divider on a desktop board. Here the
+     band is barely taller than the orb, so the half-rem hanging below it was
+     the slice of the circle the player saw cut off: it sits inside instead. */
+  .game-end-turn-orb {
+    margin: 0 0.25rem;
+  }
+}
+
+/* Keyed on width alone: a landscape phone is ~844px wide and fits all three
+   mulligan actions in one row, where 390px does not — the two labels that answer
+   the mulligan kept their width and the peek button was painted underneath them.
+   It takes a line of its own instead (it is last in the DOM, so it wraps). */
+@media (width < 600px) {
+  .mulligan-actions {
+    flex-wrap: wrap;
+  }
+  .mulligan-actions > button:last-child {
+    flex-basis: 100%;
+  }
+}
+
+/* Landscape phone. Keyed on the short viewport, not on width: a phone on its
+   side is ~800px wide and used to land in the tablet layout, which assumes a
+   tall screen — the fanned hand ate half of it, the board fell off the bottom
+   edge and the action strip collapsed to nothing. GameScreen's
+   NARROW_LAYOUT_QUERY carries the same condition, so the touch sheets and the
+   strip come along with these rules. */
+@media (height < 520px) and (orientation: landscape) {
+  :root {
+    --game-rail: 6.25rem;
+    --hand-card-width: 3.5rem;
+    --game-hand-h: calc(var(--hand-card-width) * 1.4 + var(--ds-space-1));
+  }
+  .game-layout {
+    height: 100dvh !important;
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr);
+    /* `auto`, so the strip's own `display: none` collapses the column whenever
+       there is no action to offer. */
+    grid-template-columns: minmax(0, 1fr) auto;
+    overflow: hidden !important;
+    background: var(--ds-brand-ink);
+  }
+  .game-board {
+    min-height: 0;
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    flex: 1 1 auto !important;
+    overflow: hidden;
+    background: var(--ds-game-surface) !important;
+  }
+  .game-opponent-bar {
+    min-height: 44px;
+    padding: var(--ds-space-1) var(--ds-space-3) !important;
+    border-bottom: 0 !important;
+    background: var(--ds-brand-ink) !important;
+  }
+  .game-opponent-identity > div:last-child > div:last-child {
+    display: none !important;
+  }
+  .game-opponent-hand {
+    display: none !important;
+  }
+  /* One column per control the bar holds, same as portrait: the turn readout and
+     both match controls are base-hidden, and only a touch layout brings them back. */
+  .game-opponent-bar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    gap: var(--ds-space-2);
+  }
+  .game-mobile-turn {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    color: var(--ds-brand-on-ink);
+    font-size: 0.625rem;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .game-mobile-turn strong {
+    font-family: var(--ds-font-display);
+  }
+  .game-mobile-turn span {
+    color: var(--ds-accent);
+    font-weight: 700;
+  }
+  .game-mobile-surrender,
+  .game-mobile-bug {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    min-height: 40px;
+    padding: 0;
+    color: var(--ds-brand-on-ink);
+    border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 42%, transparent);
+    border-radius: var(--ds-radius-sm);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
+  }
+  .game-field {
+    width: 100%;
+    min-height: 0;
+    display: grid !important;
+    grid-template-columns: var(--game-rail) minmax(0, 1fr) var(--game-rail);
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    background: var(--ds-game-surface-strong);
+  }
+  .game-pile-column {
+    width: auto !important;
+    min-width: 0;
+    padding: var(--ds-space-1) !important;
+    gap: var(--ds-space-1) !important;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  .game-pile-column > div[style*="flex: 1"] {
+    display: none;
+  }
+  /* Two piles per row rather than one per line: the rail is what runs out of
+     height here, and the board has width to spare. */
+  .game-pile-column > div {
+    flex-direction: row !important;
+    justify-content: center;
+    gap: var(--ds-space-2) !important;
+  }
+  .game-security-shield {
+    width: 2.75rem;
+  }
+  .game-security-shield__count {
+    font-size: 1.3rem;
+  }
+  .game-battle-zones {
+    min-width: 0;
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+  .game-battle-zones > div {
+    min-width: 0;
+    min-height: 0 !important;
+    gap: var(--ds-space-2) !important;
+    padding: var(--ds-space-1) var(--ds-space-2) !important;
+  }
+  .game-battle-zones > div:first-child,
+  .game-battle-zones > div:last-child {
+    align-items: center;
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+  .game-battle-zones > div:first-child > div,
+  .game-battle-zones > div:last-child > div {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    touch-action: pan-x !important;
+  }
+  /* The band keeps its flex row here: stacked (as portrait leaves it) the orb
+     drops below the gauge and costs the battle rows another 30px. */
+  .game-battle-zones > div:nth-child(2) {
+    display: flex;
+    align-items: center;
+    padding: 0 !important;
+    overflow: visible;
+  }
+  /* Every pixel the band gives up goes to the two battle rows, which have to
+     hold a compact Digimon (106px) between them. */
+  .game-memory-gauge__track {
+    --memory-track-pad-x: 10px;
+    --memory-track-pad-y: 5px;
+    padding: var(--memory-track-pad-y) var(--memory-track-pad-x) !important;
+  }
+  /* 2.75rem is 44px: the orb is the turn's only control and has to stay a finger
+     wide. The extra overhang keeps the band exactly as tall as it was, so the two
+     battle rows lose nothing to it. */
+  .game-end-turn-orb {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: -0.375rem 0.35rem;
+    padding: 0.15rem;
+    font-size: 0.46rem;
+  }
+  .game-end-turn-orb--waiting,
+  .game-end-turn-orb:disabled {
+    font-size: 0.46rem;
+  }
+
+  /* Breeding beside the hand, not above it: stacked, the two bands left the
+     field with nothing on a 390px-tall screen. */
+  .game-player-dock {
+    display: grid !important;
+    max-height: none;
+    flex: none;
+    grid-template-columns: auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+  .game-breeding-dock {
+    width: auto !important;
+    height: auto;
+    padding: var(--ds-space-1) var(--ds-space-2) !important;
+    display: grid !important;
+    grid-template-columns: auto;
+    gap: var(--ds-space-2);
+    align-items: center;
+    overflow: hidden;
+    border-right: 1px solid var(--ds-border) !important;
+    border-bottom: 0 !important;
+  }
+  /* The sideways "breeding area" caption is ~110px of writing-mode text, which
+     is height this layout has to spend on the battle rows. The slots keep their
+     own captions. */
+  .game-breeding-dock > div:first-child {
+    display: none;
+  }
+  .game-breeding-dock > div:last-child {
+    min-width: 0;
+    flex: none !important;
+    justify-content: flex-start;
+    gap: var(--ds-space-2) !important;
+  }
+  .game-hand-dock {
+    min-width: 0 !important;
+    height: auto;
+    min-height: calc(var(--game-hand-h) + var(--ds-space-2));
+    padding: 2px var(--ds-space-2) max(2px, env(safe-area-inset-bottom)) !important;
+    overflow: hidden;
+  }
+  .game-action-bar--idle {
+    display: none !important;
+  }
+  .game-player-dock [data-testid="hand"] {
+    height: var(--game-hand-h) !important;
+    padding: 0 var(--ds-space-1) !important;
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-accent) var(--ds-surface-muted);
+  }
+  .game-player-dock [data-testid="hand"] > div {
+    flex: 0 0 auto;
+    margin-left: var(--ds-space-1) !important;
+    transform: none !important;
+    scroll-snap-align: center;
+    touch-action: pan-x !important;
+  }
+  .game-player-dock [data-testid="hand"] > div:first-child {
+    margin-left: 0 !important;
+  }
+  .game-player-dock [data-testid="hand"] > div > div {
+    width: var(--hand-card-width) !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+
+  /* The strip becomes the right-hand column: vertical room is what this layout
+     is short of, and the board has width to spare. */
+  .game-sidebar {
+    width: auto !important;
+    height: 100dvh;
+    max-height: none;
+    flex: none !important;
+    flex-direction: column !important;
+    overflow: hidden;
+    border-top: 0 !important;
+    border-left: 1px solid var(--ds-border);
+    background: var(--ds-brand-ink) !important;
+  }
+  .game-sidebar > div:first-child,
+  .game-sidebar > div:nth-child(3),
+  .game-sidebar > div:last-child {
+    display: none;
+  }
+  .game-sidebar > div:nth-child(2):not(:has(button)) {
+    display: none !important;
+  }
+  .game-sidebar > div:nth-child(2) {
+    width: 9rem;
+    min-width: 0;
+    height: 100dvh;
+    padding: var(--ds-space-2) !important;
+    flex-direction: column !important;
+    align-items: stretch;
+    gap: var(--ds-space-2) !important;
+    overflow-y: auto;
+    border: 0 !important;
+  }
+  .game-sidebar > div:nth-child(2) > div {
+    display: none;
+  }
+  .game-sidebar > div:nth-child(2) > button {
+    min-width: 0;
+    flex: 0 0 auto;
+    min-height: 44px;
+  }
+
+  /* Fixed panels measure themselves against the board, which is no longer the
+     whole viewport once the strip takes a column. */
+  .game-action-bar--contextual {
+    position: fixed;
+    z-index: calc(var(--ds-z-dialog) - 6);
+    right: var(--ds-space-2);
+    bottom: max(var(--ds-space-2), env(safe-area-inset-bottom));
+    left: var(--ds-space-2);
+    min-height: 48px;
+    max-height: 40dvh;
+    padding: var(--ds-space-2) !important;
+    flex-wrap: wrap;
+    overflow: auto;
+    color: var(--ds-fg);
+    border: 1px solid var(--ds-border-strong);
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-surface);
+    box-shadow: var(--ds-shadow-lg);
+  }
+  .opponent-action-feed {
+    top: calc(3.25rem + env(safe-area-inset-top, 0px));
+    right: auto;
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    width: min(20rem, 45vw);
+  }
+  .opponent-action-feed__trail {
+    display: none;
+  }
+  .side-panel-stack,
+  .match-notice-stack {
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    left: auto;
+    width: min(22rem, 45vw);
+  }
+  .side-panel-stack[data-side="opp"] {
+    top: calc(3.75rem + env(safe-area-inset-top, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+  }
+  .side-panel-stack[data-side="you"] {
+    bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+  }
+  .match-notice-stack[data-anchor$="-left"] {
+    right: auto;
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+  }
+  .match-notice-stack[data-anchor^="bottom-"] {
+    bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+  }
+  /* The band with the memory gauge and the turn orb sits at the middle of a 390px
+     screen, which is where the default 9.5rem put the opponent's notices. They ride
+     under the header instead, in the right column the opponent's feed and panels
+     leave free. */
+  .match-notice-stack[data-anchor^="top-"] {
+    top: calc(3.25rem + env(safe-area-inset-top, 0px));
+  }
+  /* Same reason, and the attack call-out is centred, so it cannot dodge the band
+     sideways: it takes the top-left corner for the length of the arc. */
+  .attack-announcement {
+    top: calc(3.25rem + env(safe-area-inset-top, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    translate: none;
+  }
+  /* 8rem above the middle of a 390px board puts the branch card's top edge off the
+     screen. A smaller card and a shorter lift keep the whole of it in view; it still
+     crosses the band, which is a two-second centre-stage beat like the clash. */
+  .battle-security-branch {
+    --security-branch-lift: 2.5rem;
+  }
+  .battle-security-branch__frame > div {
+    width: 92px !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  /* The showcase card is scaled by the short side here: 46vw of an 844px-wide
+     landscape phone is wider than the screen is tall. */
+  .battle-showcase__art > div {
+    width: auto !important;
+    height: min(58dvh, 266px) !important;
+    aspect-ratio: 5 / 7;
+  }
+  /* Sheets and dialogs: a 390px-tall screen leaves no room for the phone
+     portrait sizes, so the card shrinks and the panel scrolls. */
+  .card-action-sheet__panel {
+    max-height: 92dvh;
+    padding: var(--ds-space-2) var(--ds-space-4) max(var(--ds-space-2), env(safe-area-inset-bottom));
+  }
+  .card-action-sheet__body > .card-action-sheet__zoom {
+    width: auto;
+    height: min(46dvh, 10rem);
+    aspect-ratio: 5 / 7;
+  }
+  .card-action-sheet__body > .card-action-sheet__zoom > * {
+    width: auto !important;
+    height: 100% !important;
+    aspect-ratio: 5 / 7;
+  }
+  .card-action-sheet__actions > button {
+    min-height: 40px;
+    padding-block: var(--ds-space-2);
+  }
+  /* A 390px-tall screen cannot spare the portrait sheet's air: the same dialog
+     shrinks its padding, heading and buttons so the board stays partly visible
+     behind it. */
+  .game-modal__panel,
+  .game-over-dialog,
+  .combat-prompt {
+    max-height: calc(100dvh - var(--ds-space-4)) !important;
+    padding: var(--ds-space-3) var(--ds-space-4) max(var(--ds-space-3), env(safe-area-inset-bottom)) !important;
+    overflow-y: auto;
+  }
+  /* The phase badge only repeats what the header already reads out, and the
+     display-size heading plus the portrait air is most of what makes this sheet
+     swallow the board. */
+  .game-modal__panel > .aegis-badge {
+    display: none !important;
+  }
+  .game-modal__panel > h2 {
+    margin: 0 0 var(--ds-space-1) !important;
+    font-size: var(--ds-text-lg) !important;
+  }
+  .game-modal__panel > p {
+    margin: 0 0 var(--ds-space-3) !important;
+    font-size: var(--ds-text-sm) !important;
+  }
+  .game-modal__panel button {
+    min-height: 40px;
+    padding-block: var(--ds-space-2);
+  }
+  /* Classed action rows are rows already; the unclassed one is an inline-styled
+     column, and stacked full-width buttons are what is left of the height.
+     `row-reverse`, like every other choice row: the affirmative action leads the
+     DOM and has to end up on the right. */
+  .game-modal__panel > div:last-child:not([class]) {
+    flex-direction: row-reverse !important;
+    flex-wrap: wrap;
+  }
+  .game-modal__panel > div:last-child:not([class]) > button {
+    flex: 1 1 10rem;
+  }
+  /* The result dialog leads with a medallion and a display-size verdict; on a
+     short screen that pushed its own buttons off the bottom. The verdict still
+     reads, the medallion is decoration. */
+  .game-over-dialog > div:first-child {
+    display: none !important;
+  }
+  .game-over-dialog > h1 {
+    margin: 0 0 var(--ds-space-1) !important;
+    font-size: var(--ds-text-2xl) !important;
+  }
+  .game-over-dialog > p {
+    margin: 0 0 var(--ds-space-3) !important;
+  }
+  .mulligan-card {
+    max-width: 84px;
+  }
+}
+
+/* Pointer widths keep the full-size hand (132px cards), whose fanned row is ~75px
+   taller than the compact one the narrower blocks use. The base 11rem left the
+   viewer's panels and notices sitting on the top of that fan on a 900px-tall
+   laptop; 13rem clears the row at every height the desktop layout is used at.
+   Last in the responsive run so it outranks the blocks above without reaching
+   the narrow viewports they own. */
+@media (width >= 960px) {
+  .side-panel-stack[data-side="you"] {
+    bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
+  }
+  .match-notice-stack[data-anchor^="bottom-"] {
+    bottom: calc(13rem + env(safe-area-inset-bottom, 0px));
+  }
+  /* A pointer screen is looked at from further away and carries a much longer
+     board, so the phone-sized arc reads as a hairline across it. */
+  .game-attack-arrow {
+    --arrow-core-width: 9;
+    --arrow-casing-width: 14.5;
+    --arrow-glow-width: 22;
+  }
+}
+
+/* --- Reduced motion ------------------------------------------------------ */
+
+/* Last in the file so it outranks the battle-board rules above, which share its
+   specificity. The entrances are decoration only: without them every element
+   still renders in its resting state and the sparkles stay invisible. */
+@media (prefers-reduced-motion: reduce) {
+  .game-card-enter,
+  .game-card-sparkle,
+  .game-hand-card--drawn,
+  .game-memory-coin--marker,
+  .game-memory-coin--marker::before,
+  .game-memory-coin--swept,
+  .game-draw-flight,
+  .game-permanent-lunge--up,
+  .game-permanent-lunge--down,
+  .game-security-shield--hit,
+  .game-attack-arrow__stroke,
+  .game-attack-arrow__head,
+  .battle-clash,
+  .battle-clash__art,
+  .game-turn-banner,
+  .game-turn-banner span,
+  .game-memory-gauge__phase--sweeping,
+  .game-breeding-mode,
+  .side-panel,
+  .match-notice,
+  .attack-announcement,
+  .board-prompt,
+  .board-opponent-pill,
+  .game-modal__panel {
+    animation: none;
+  }
+
+  /* The prompt is the only route to answering the decision, so it appears at
+     once and stays for its whole life; only the pulsing dots are decoration. */
+  .board-opponent-pill__dots i {
+    animation: none;
+    opacity: 1;
+  }
+
+  /* The eroding ring is the visible half of a clock the queue still runs in full:
+     the border simply shows spent rather than draining, and the panel stays for
+     its whole reading time. */
+  .side-panel__erode,
+  .match-notice__erode {
+    animation: none;
+    opacity: 0.45;
+  }
+
+  /* The stroke animation is what draws the arrow in; without it the dash must
+     be closed by hand or the path would never paint. */
+  .game-attack-arrow__stroke {
+    stroke-dashoffset: 0;
+  }
+
+  /* The flying card back exists only for its trip: with no motion it would just
+     park over the board until its timer removes it. */
+  .game-draw-flight {
+    display: none;
+  }
+
+  /* The clash burst is a pure motion flourish; the scene still reads without it. */
+  .battle-clash__flash {
+    display: none;
+  }
+
+  /* The shield break is pure motion: the count and the clash carry the information. */
+  .game-security-shield--armed,
+  .game-security-shield__count {
+    animation: none;
+  }
+
+  .game-security-shield__shards,
+  .battle-edge-flash {
+    display: none;
+  }
+
+  /* The branch card carries the revealed card, so it keeps its full reading time and
+     only loses the slide — which is also why its resting offset is restated here. */
+  .battle-security-branch {
+    translate: 0 calc(-50% - var(--security-branch-lift));
+    animation: none;
+  }
+
+  /* Stopping the orbit leaves each star at the resting point set inline, so the ring
+     still says "this Digimon cannot attack yet". */
+  .game-summoning-ring i {
+    animation: none;
+  }
+
+  /* The arc traces a move that has already happened; the marker says where memory
+     landed, so with no motion there is nothing for the trace to add. */
+  .game-memory-arc {
+    display: none;
+  }
+
+  /* Every burst is pure motion with nothing to read, so it is dropped rather
+     than frozen — the side panel and the effect notice carry the information.
+     The queue skips the same cues in drain mode, so nothing is left mid-state. */
+  .battle-burst,
+  .game-draw-burst,
+  .game-delete-burst,
+  .game-breeding-slot--lit::before {
+    display: none;
+  }
+
+  /* The showcase is text-free motion; the queue never enqueues it under reduced
+     motion, and this covers the showcase page rendering one statically. */
+  .battle-showcase,
+  .battle-showcase__frame {
+    animation: none;
+  }
+
+  /* CardMini sets its suspend rotation inline, so only !important can reach it. */
+  [data-state="suspended"],
+  [data-state="active"] {
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   the reference client feedback port — pending fate, prediction, spotlight, impact, result
+   ========================================================================== */
+
+/* --- Restriction (debuff) chips ------------------------------------------ */
+
+/* The blanket "can't ..." locks an effect has imposed, worn along the card's
+   bottom edge for as long as the restriction holds — the standing counterpart to
+   the one-off freeze jolt. Danger-toned so they never read as a granted keyword,
+   which wears the light chips along the top edge. */
+.game-restriction-badges {
+  position: absolute;
+  bottom: -0.5rem;
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+  justify-content: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.game-restriction-badge {
+  display: inline-flex;
+  gap: 0.15rem;
+  align-items: center;
+  padding: 0.06rem 0.25rem;
+  font-family: var(--ds-font-sans);
+  font-size: 0.5rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ds-on-danger);
+  background: var(--ds-danger);
+  border-radius: 0.3rem;
+  box-shadow:
+    0 0 0 1px rgb(6 10 18 / 55%),
+    0 1px 4px rgb(0 0 0 / 40%);
+}
+
+.game-restriction-badge i {
+  font-style: normal;
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+/* --- Pending-fate badge -------------------------------------------------- */
+
+/* The reference client stacks its fate pills above the card's top edge in a
+   left-aligned column. Only one fate is ever open at a time here, so a single
+   pill sits in that column's place. */
+.game-fate-badge {
+  --fate-tint: rgb(47 164 255);
+
+  position: absolute;
+  top: -1.55rem;
+  left: -0.35rem;
+  z-index: 5;
+  display: inline-flex;
+  gap: 0.2rem;
+  align-items: center;
+  padding: 0.1rem 0.4rem;
+  font-family: var(--ds-font-sans);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  color: #10131c;
+  background: var(--fate-tint);
+  border-radius: 0.35rem;
+  box-shadow:
+    0 0 0 1px rgb(6 10 18 / 55%),
+    0 2px 6px rgb(0 0 0 / 45%);
+  animation: battle-fate-badge var(--t-fate-badge-in, 180ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.game-fate-badge i {
+  font-style: normal;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+/* The reference client's three pill colours: magenta for a deletion, blue for a
+   move, white for a digivolution. */
+.game-fate-badge--danger {
+  --fate-tint: rgb(255 109 233);
+}
+
+.game-fate-badge--neutral {
+  --fate-tint: rgb(47 164 255);
+}
+
+.game-fate-badge--good {
+  --fate-tint: rgb(255 255 255);
+}
+
+@keyframes battle-fate-badge {
+  0% {
+    opacity: 0;
+    transform: translateY(0.35rem) scale(0.82);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --- Blocker shield ------------------------------------------------------ */
+
+/* The one keyword the board is asked about every turn, so it gets a corner of
+   its own instead of a slot in the keyword strip. */
+.game-blocker-badge {
+  position: absolute;
+  top: -0.45rem;
+  right: -0.45rem;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 30%, #4d8ce6, #1e4f9c);
+  box-shadow:
+    0 0 0 1.5px rgb(6 10 18 / 70%),
+    0 0 8px rgb(77 140 230 / 55%);
+}
+
+.game-blocker-badge svg {
+  width: 0.72rem;
+  height: 0.72rem;
+  fill: #fff;
+}
+
+/* --- Card shake ---------------------------------------------------------- */
+
+/* The reference client's `DOShakePosition(0.25s, strength 8, vibrato 30,
+   fadeOut)`: a two-axis jitter that decays to nothing rather than a clean
+   left-right wobble. Used by a refused play and by a lost battle alike. */
+.game-permanent-shake,
+.game-hand-card--shake {
+  animation: battle-card-shake var(--t-card-shake, 250ms) linear both;
+}
+
+/* An attack or block lock landing on a permanent: the reference client's own
+   `FreezePermanentEffect` shake, 0.2 s, with a cold flash so the jolt reads as a
+   lock rather than as a refusal (which is the plain shake above). */
+.game-permanent-freeze {
+  animation:
+    battle-card-shake var(--t-freeze-shake, 200ms) linear both,
+    battle-permanent-freeze var(--t-freeze-shake, 200ms) ease-out both;
+}
+
+@keyframes battle-permanent-freeze {
+  0%,
+  100% {
+    filter: none;
+  }
+  45% {
+    filter: brightness(1.15) saturate(0.4) drop-shadow(0 0 12px var(--battle-cyan));
+  }
+}
+
+@keyframes battle-card-shake {
+  0% {
+    translate: 0 0;
+  }
+
+  12% {
+    translate: -7px 4px;
+  }
+
+  25% {
+    translate: 6px -5px;
+  }
+
+  37% {
+    translate: -5px -4px;
+  }
+
+  50% {
+    translate: 4px 4px;
+  }
+
+  62% {
+    translate: -3px 2px;
+  }
+
+  75% {
+    translate: 2px -2px;
+  }
+
+  87% {
+    translate: -1px 1px;
+  }
+
+  100% {
+    translate: 0 0;
+  }
+}
+
+/* --- Field battle ghost --------------------------------------------------- */
+
+/* A battle loser's stand-in: the board has already dropped the permanent, so its
+   card is held where it stood while the arrow, the lunge and the claw play out.
+   `translate` animations (lunge, shake) compose with the left/top placement. */
+.game-field-clash-ghost {
+  position: absolute;
+  z-index: 61;
+  pointer-events: none;
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+/* --- Combat claw --------------------------------------------------------- */
+
+/* Three tapered gashes raked from the top-left corner down through the card, in
+   the quarter second the reference client's masked claw sprite takes to cross
+   it. Clipped to the card, so the claw appears out of the corner rather than
+   flying in over the board. */
+.game-claw {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 9px;
+}
+
+.game-claw svg {
+  width: 100%;
+  height: 100%;
+}
+
+.game-claw__tine {
+  fill: none;
+  stroke: rgb(255 246 240 / 92%);
+  stroke-width: 5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgb(255 120 90 / 85%));
+  /* Ease.InCubic — the swipe accelerates into the card. */
+  animation: battle-claw var(--t-claw-slash, 250ms) cubic-bezier(0.55, 0.055, 0.675, 0.19) both;
+  animation-delay: calc(var(--claw-index) * 24ms);
+}
+
+@keyframes battle-claw {
+  0% {
+    opacity: 0;
+    stroke-dasharray: 0 260;
+    stroke-dashoffset: 0;
+  }
+
+  22% {
+    opacity: 1;
+  }
+
+  70% {
+    stroke-dasharray: 120 260;
+    stroke-dashoffset: -60;
+  }
+
+  100% {
+    opacity: 0;
+    stroke-dasharray: 0 260;
+    stroke-dashoffset: -260;
+  }
+}
+
+/* --- DP pulse ------------------------------------------------------------ */
+
+/* Warm gold rising on a buff, red falling on a debuff, and the changed figure
+   riding out with the particles. A debuff that takes the Digimon to nothing
+   holds four times as long (the reference client's 0.1s → 0.4s stretch), which
+   is carried in `--dp-pulse-hold` by the component. */
+.game-dp-pulse {
+  --dp-tint: rgb(253 162 65);
+  --dp-rise: -26px;
+
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.game-dp-pulse--debuff,
+.game-dp-pulse--debuffFatal {
+  --dp-tint: rgb(255 86 86);
+  --dp-rise: 26px;
+}
+
+.game-dp-pulse i {
+  position: absolute;
+  bottom: 38%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--dp-tint);
+  box-shadow: 0 0 8px var(--dp-tint);
+  animation: battle-dp-particle var(--t-dp-pulse, 520ms) ease-out both;
+  animation-delay: calc(var(--dp-particle-index) * 26ms);
+}
+
+.game-dp-pulse em {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  font-family: var(--ds-font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-style: normal;
+  color: var(--dp-tint);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 75%);
+  translate: -50% 0;
+  animation: battle-dp-figure calc(var(--t-dp-pulse, 520ms) + var(--dp-pulse-hold, 100ms)) ease-out both;
+}
+
+@keyframes battle-dp-particle {
+  0% {
+    opacity: 0;
+    translate: calc(var(--dp-particle-x) - 50%) 0;
+    scale: 0.5;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    translate: calc(var(--dp-particle-x) - 50%) var(--dp-rise);
+    scale: 1.15;
+  }
+}
+
+@keyframes battle-dp-figure {
+  0% {
+    opacity: 0;
+    translate: -50% 0;
+    scale: 0.7;
+  }
+
+  22% {
+    opacity: 1;
+    scale: 1.15;
+  }
+
+  70% {
+    opacity: 1;
+    scale: 1;
+  }
+
+  100% {
+    opacity: 0;
+    translate: -50% calc(var(--dp-rise) * 0.5);
+  }
+}
+
+/* --- Memory prediction --------------------------------------------------- */
+
+/* Where memory would land if the held card were played. It shares the real
+   arc's shape but hangs UNDER the chips and is dashed, so the two are never
+   read as one line when a card is picked up while a change is still fading. */
+.game-memory-prediction {
+  position: absolute;
+  top: var(--memory-track-pad-y);
+  left: var(--memory-track-pad-x);
+  z-index: 3;
+  width: calc(100% - var(--memory-track-pad-x) * 2);
+  height: calc(100% - var(--memory-track-pad-y) * 2);
+  overflow: visible;
+  pointer-events: none;
+  animation: battle-memory-prediction var(--t-memory-prediction, 200ms) ease-out both;
+}
+
+.game-memory-prediction path {
+  fill: none;
+  /* The reference client's prediction gradient, taken down to a dimmer dashed
+     stroke so it cannot be mistaken for the solid arc a real change draws. */
+  stroke: rgb(255 61 61 / 62%);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 4 4;
+}
+
+.game-memory-prediction__marker {
+  position: absolute;
+  top: calc(var(--memory-track-pad-y) * -0.35);
+  z-index: 3;
+  width: 0.36rem;
+  height: 0.36rem;
+  pointer-events: none;
+  background: rgb(255 61 61 / 90%);
+  border-radius: 50%;
+  box-shadow: 0 0 7px rgb(183 33 0 / 85%);
+  translate: -50% 0;
+  animation: battle-memory-prediction var(--t-memory-prediction, 200ms) ease-out both;
+}
+
+@keyframes battle-memory-prediction {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+/* --- Targeting spotlight ------------------------------------------------- */
+
+/* The board goes dark around exactly the cards the server offered. It draws
+   only: the lit cards underneath are the things that have to stay clickable, so
+   nothing here ever takes a pointer event. */
+.game-spotlight {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  animation: battle-spotlight-in var(--t-spotlight-in, 220ms) ease-out both;
+}
+
+.game-spotlight__scrim {
+  fill: rgb(3 7 14 / 68%);
+}
+
+.game-spotlight__ring {
+  fill: none;
+  stroke: var(--battle-amber);
+  stroke-width: 2;
+  animation: battle-spotlight-ring var(--t-spotlight-pulse, 1600ms) ease-in-out infinite;
+}
+
+@keyframes battle-spotlight-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes battle-spotlight-ring {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* --- Phase banner -------------------------------------------------------- */
+
+/* "Breeding Phase" / "Main Phase", wiped open and shut on the vertical blind the
+   reference client uses — 0.233s open, 0.3s held, 0.233s shut. */
+.game-phase-banner {
+  position: absolute;
+  top: 8%;
+  right: 0;
+  left: 0;
+  z-index: 70;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.game-phase-banner span {
+  padding: 0.34rem 2.4rem;
+  font-family: var(--ds-font-display);
+  font-size: clamp(0.95rem, 2.2vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: rgb(0 0 0 / 92%);
+  border-radius: 0.2rem;
+  animation: battle-phase-banner var(--t-phase-banner, 766ms) ease-in-out both;
+}
+
+@keyframes battle-phase-banner {
+  0% {
+    opacity: 0;
+    scale: 1 0;
+  }
+
+  15% {
+    opacity: 1;
+    scale: 1 0.8;
+  }
+
+  30%,
+  70% {
+    opacity: 1;
+    scale: 1 1;
+  }
+
+  85% {
+    scale: 1 0.2;
+  }
+
+  100% {
+    opacity: 0;
+    scale: 1 0;
+  }
+}
+
+/* --- Turn control ring and cover ----------------------------------------- */
+
+/* A ring turning slowly around the control for as long as it is the thing the
+   player is meant to press. */
+.game-end-turn-orb__ring {
+  position: absolute;
+  inset: -0.32rem;
+  pointer-events: none;
+  border: 2px dashed rgb(255 102 102 / 72%);
+  border-radius: 50%;
+  animation: battle-turn-ring var(--t-turn-control-pulse, 3200ms) linear infinite;
+}
+
+/* The cover is a debounce, not a state: it must not read as "your turn ended",
+   so the control only dims a little while it refuses a second click. */
+.game-end-turn-orb--covered {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.game-end-turn-orb--covered .game-end-turn-orb__ring {
+  opacity: 0.25;
+  animation-play-state: paused;
+}
+
+@keyframes battle-turn-ring {
+  0% {
+    rotate: 0deg;
+  }
+
+  100% {
+    rotate: 360deg;
+  }
+}
+
+/* --- Result splash ------------------------------------------------------- */
+
+/* The whole screen, the way the reference client ends a match: the board goes
+   dark behind it, one enormous word scales and lights up, and then everything
+   settles and stops moving. */
+.game-result {
+  --result-tint: rgb(255 214 102);
+
+  position: absolute;
+  inset: 0;
+  z-index: 96;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  overflow: auto;
+  background: rgb(0 0 0 / 82%);
+  animation: battle-result-in var(--t-result-splash-in, 520ms) ease-out both;
+}
+
+.game-result--loss {
+  --result-tint: rgb(255 108 108);
+}
+
+.game-result--draw {
+  --result-tint: rgb(178 190 214);
+}
+
+/* The light behind the word, which the settled state keeps at a low glow. */
+.game-result__rays {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(60% 45% at 50% 38%, color-mix(in srgb, var(--result-tint) 26%, transparent), transparent);
+}
+
+.game-result__panel {
+  position: relative;
+  width: min(30rem, 100%);
+  text-align: center;
+}
+
+.game-result__eyebrow {
+  margin: 0 0 0.3rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgb(226 232 240 / 62%);
+}
+
+.game-result__title {
+  margin: 0 0 0.5rem;
+  font-family: var(--ds-font-display);
+  font-size: clamp(3rem, 12vw, 6.5rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--result-tint);
+  text-shadow:
+    0 0 28px color-mix(in srgb, var(--result-tint) 55%, transparent),
+    0 4px 0 rgb(0 0 0 / 45%);
+  animation: battle-result-title var(--t-result-splash-in, 520ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.game-result__reason {
+  margin: 0 0 1.4rem;
+  font-size: 0.9rem;
+  color: rgb(226 232 240 / 82%);
+}
+
+.game-result__stats {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.4rem;
+}
+
+.game-result__stat {
+  flex: 1;
+  padding: 0.6rem 0.4rem;
+  background: rgb(255 255 255 / 7%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 0.7rem;
+}
+
+.game-result__stat-value {
+  display: block;
+  font-family: var(--ds-font-mono);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.game-result__stat-label {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.66rem;
+  color: rgb(226 232 240 / 62%);
+}
+
+@keyframes battle-result-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes battle-result-title {
+  0% {
+    opacity: 0;
+    scale: 1.5;
+    filter: blur(8px);
+  }
+
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    scale: 1;
+    filter: blur(0);
+  }
+}
+
+/* --- Reduced motion ------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Every badge, banner and splash below carries something to read, so it
+     appears at once and holds rather than being dropped. */
+  .game-fate-badge,
+  .game-phase-banner span,
+  .game-memory-prediction,
+  .game-memory-prediction__marker,
+  .game-spotlight,
+  .game-spotlight__ring,
+  .game-result,
+  .game-result__title {
+    opacity: 1;
+    scale: 1;
+    filter: none;
+    animation: none;
+  }
+
+  /* A shake, a claw and a DP burst are motion with nothing to read: the notice
+     and the refreshed figure on the card already say what happened. */
+  .game-permanent-shake,
+  .game-permanent-freeze,
+  .game-hand-card--shake {
+    animation: none;
+  }
+
+  .game-claw,
+  .game-dp-pulse i {
+    display: none;
+  }
+
+  /* The figure is the half of the pulse that carries the number, so it stays. */
+  .game-dp-pulse em {
+    opacity: 1;
+    animation: none;
+  }
+
+  .game-end-turn-orb__ring {
+    animation: none;
+  }
+}
+
+/* The same pill inside the decision dialog, where a picked target is actually
+   looked at: bottom-right of its tile, clear of the order badge and the live
+   DP/suspended label on the other corners. */
+.decision-overlay__fate {
+  top: auto;
+  right: 0.35rem;
+  bottom: 2rem;
+  left: auto;
+}
+
+/* ============================================================================
+   Slice 9 — readability polish ported from the reference client: the cut-in,
+   the permanent inspector's computed state, per-zone effect activations, the
+   persistent target arrow, security-stack chrome, deck thickness and riffle,
+   the deletion shatter and the landing bounce.
+   ========================================================================= */
+
+/* --- Digivolution cut-in (`EvolutionEffectObject.cs`) --------------------- */
+
+.game-cut-in {
+  position: fixed;
+  z-index: calc(var(--ds-z-dialog) + 2);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: rgb(3 8 20 / 72%);
+  pointer-events: none;
+  animation: battle-cut-in var(--t-cut-in, 1450ms) linear both;
+}
+
+.game-cut-in--digiXros {
+  animation:
+    battle-cut-in var(--t-cut-in-xros, 2000ms) linear both,
+    battle-cut-in-shake var(--t-cut-in-wipe, 180ms) ease-in-out 6;
+}
+
+.game-cut-in--dna {
+  animation: battle-cut-in var(--t-cut-in-dna, 1650ms) linear both;
+}
+
+/* The longest tier, and the only one that keeps glowing while it holds. */
+.game-cut-in--burst {
+  animation:
+    battle-cut-in var(--t-cut-in-burst, 2700ms) linear both,
+    battle-cut-in-burst-glow var(--t-cut-in-xros, 2000ms) ease-in-out infinite;
+}
+
+@keyframes battle-cut-in-burst-glow {
+  0%,
+  100% {
+    background: rgb(3 8 20 / 72%);
+  }
+  50% {
+    background: rgb(24 10 4 / 82%);
+  }
+}
+
+/* The two merged sources, held either side of the result they became. */
+.game-cut-in__source {
+  position: absolute;
+  top: 50%;
+  opacity: 0.85;
+  translate: 0 -50%;
+}
+
+.game-cut-in__source[data-slot="left"] {
+  right: calc(100% - 1rem);
+  rotate: -8deg;
+}
+
+.game-cut-in__source[data-slot="right"] {
+  left: calc(100% - 1rem);
+  rotate: 8deg;
+}
+
+@keyframes battle-cut-in {
+  0% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes battle-cut-in-shake {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: -7px 3px;
+  }
+  75% {
+    translate: 7px -3px;
+  }
+}
+
+/* The colour band sweeping behind the card, one strip per index. */
+.game-cut-in__bands {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.game-cut-in__bands i {
+  position: absolute;
+  left: -30%;
+  width: 160%;
+  height: calc(11% + var(--cut-in-band) * 3%);
+  top: calc(22% + var(--cut-in-band) * 15%);
+  background: linear-gradient(90deg, transparent, var(--cut-in-base), var(--cut-in-edge), transparent);
+  opacity: 0.72;
+  animation: battle-cut-in-band var(--t-cut-in, 1450ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--cut-in-band) * 60ms);
+}
+
+@keyframes battle-cut-in-band {
+  0% {
+    transform: translateX(-70%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(70%) skewX(-18deg);
+  }
+}
+
+.game-cut-in__card {
+  position: relative;
+  filter: drop-shadow(0 22px 46px rgb(0 0 0 / 60%));
+  animation: battle-cut-in-card var(--t-cut-in-wipe, 180ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes battle-cut-in-card {
+  from {
+    opacity: 0;
+    scale: 0.7;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.game-cut-in__word {
+  position: absolute;
+  bottom: 16%;
+  color: var(--ds-brand-on-ink, #fff);
+  font: 900 clamp(1.8rem, 7vw, 4rem) / 1 var(--ds-font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 22px var(--cut-in-edge),
+    0 6px 18px rgb(0 0 0 / 70%);
+  animation: battle-cut-in-word var(--t-cut-in-wipe, 180ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--t-cut-in-wipe, 180ms);
+}
+
+@keyframes battle-cut-in-word {
+  from {
+    opacity: 0;
+    letter-spacing: 0.4em;
+  }
+  to {
+    opacity: 1;
+    letter-spacing: 0.12em;
+  }
+}
+
+/* --- Per-zone effect activation (`Effects.cs:204-460`) -------------------- */
+
+/* A permanent's own effect: it glows where it stands and throws one spark. */
+.game-permanent--effect-source {
+  animation: battle-effect-source-glow var(--t-effect-source-hold, 480ms) ease-out both;
+}
+
+@keyframes battle-effect-source-glow {
+  0%,
+  100% {
+    filter: none;
+  }
+  40% {
+    filter: drop-shadow(0 0 14px var(--battle-arrow-effect)) brightness(1.25);
+  }
+}
+
+.game-effect-source-spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff, var(--battle-arrow-effect) 60%, transparent 70%);
+  pointer-events: none;
+  animation: battle-effect-source-spark var(--t-effect-source-hold, 480ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-effect-source-spark {
+  0% {
+    opacity: 0;
+    scale: 0.2;
+  }
+  35% {
+    opacity: 1;
+    scale: 1.6;
+  }
+  100% {
+    opacity: 0;
+    scale: 2.6;
+    translate: 0 -26px;
+  }
+}
+
+/* The trash throws its top card up with an orange outline and a punch. */
+.game-pile--effect-source .game-pile__top {
+  outline: 2px solid var(--battle-arrow-effect);
+  outline-offset: 2px;
+  border-radius: 8px;
+  animation: battle-effect-trash-rise var(--t-effect-trash-rise, 320ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes battle-effect-trash-rise {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  55% {
+    transform: translateY(-26px) scale(1.35);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* An Option rises out of the hand fan instead. */
+.game-hand-card--effect-source {
+  z-index: 60;
+  outline: 2px solid var(--battle-arrow-effect);
+  outline-offset: 2px;
+  border-radius: 10px;
+  animation: battle-effect-hand-rise var(--t-effect-hand-rise, 260ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes battle-effect-hand-rise {
+  0% {
+    translate: 0 0;
+    scale: 1;
+  }
+  60% {
+    translate: 0 -38px;
+    scale: 1.3;
+  }
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+/* --- Persistent target arrow (`TargetArrow.cs`) --------------------------- */
+
+/* Two quick flashes as it extends, then it simply stays up while the caller
+   re-solves its endpoints frame by frame. */
+.game-attack-arrow--tracking .game-attack-arrow__stroke {
+  stroke-dashoffset: 0;
+  animation: battle-arrow-flash var(--t-arrow-flash, 85ms) steps(1, end) 4;
+}
+
+.game-attack-arrow--tracking .game-attack-arrow__head {
+  animation: battle-arrow-flash var(--t-arrow-flash, 85ms) steps(1, end) 4;
+}
+
+@keyframes battle-arrow-flash {
+  0%,
+  49% {
+    opacity: 0.15;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* --- Security-stack chrome (`SecurityObject.cs`) -------------------------- */
+
+.game-security-shield__face-up {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  color: var(--battle-memory-glow);
+  font-size: 11px;
+  line-height: 1;
+  text-shadow: 0 0 6px rgb(0 0 0 / 70%);
+}
+
+.game-security-shield-wrap {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.game-security-shield__attack-label {
+  position: absolute;
+  bottom: -0.9rem;
+  left: 50%;
+  padding: 1px 7px;
+  color: var(--ds-brand-on-ink, #fff);
+  font: 800 9px/1.5 var(--ds-font-mono);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: var(--battle-attack);
+  translate: -50% 0;
+  animation: battle-arrow-flash var(--t-arrow-flash, 85ms) steps(1, end) 2;
+}
+
+.game-security-shield--landing {
+  animation: battle-security-flight var(--t-security-flight, 200ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes battle-security-flight {
+  0% {
+    rotate: -220deg;
+    scale: 0.4;
+  }
+  100% {
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+
+/* --- Deck thickness and riffle (`Player.cs:406-458, 295-325`) ------------- */
+
+.game-pile--riffling .game-pile__layer {
+  animation: battle-deck-riffle var(--t-deck-riffle, 180ms) ease-in-out both;
+}
+
+.game-pile--riffling .game-pile__layer:nth-child(even) {
+  animation-direction: reverse;
+}
+
+@keyframes battle-deck-riffle {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  50% {
+    translate: -4px -2px;
+    rotate: -3deg;
+  }
+}
+
+/* --- Deletion shatter (`Effects.cs:1693-1788`) ---------------------------- */
+
+.game-card-shatter {
+  position: relative;
+  display: block;
+}
+
+.game-card-shatter__shard {
+  position: absolute;
+  inset: 0;
+  display: block;
+  animation: battle-card-shatter var(--t-card-shatter, 520ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+  animation-delay: var(--shard-delay, 0ms);
+}
+
+@keyframes battle-card-shatter {
+  0% {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: var(--shard-x, 0) var(--shard-y, 0);
+    rotate: var(--shard-spin, 90deg);
+    scale: 0.7;
+  }
+}
+
+.game-card-shatter__burst {
+  position: absolute;
+  inset: -20%;
+}
+
+/* --- Landing bounce and dust (`Effects.cs:533-608`) ----------------------- */
+
+.game-card-landing {
+  animation: battle-card-landing var(--t-landing-bounce, 100ms) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes battle-card-landing {
+  0% {
+    translate: 0 -14px;
+    scale: 1.06;
+  }
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+.game-card-dust {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 78%;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgb(255 255 255 / 55%), transparent 70%);
+  pointer-events: none;
+  translate: -50% 0;
+  animation: battle-card-dust var(--t-landing-dust, 420ms) ease-out both;
+  animation-delay: var(--t-landing-bounce, 100ms);
+}
+
+@keyframes battle-card-dust {
+  0% {
+    opacity: 0.85;
+    scale: 0.5 0.7;
+  }
+  100% {
+    opacity: 0;
+    scale: 1.6 1.1;
+  }
+}
+
+/* --- Permanent inspector's computed state (`PermanentDetail.cs`) ---------- */
+
+.opponent-permanent-inspector header span em {
+  margin-left: 0.4rem;
+  font-style: normal;
+  font-weight: 800;
+}
+.opponent-permanent-inspector header span em[data-direction="up"] {
+  color: var(--ds-success, #2f9e63);
+}
+.opponent-permanent-inspector header span em[data-direction="down"] {
+  color: var(--ds-danger, #d33);
+}
+.opponent-permanent-inspector__base {
+  margin: 0.15rem 0 0;
+  color: var(--ds-fg-muted);
+  font-family: var(--ds-font-mono);
+  font-size: 10.5px;
+}
+.opponent-permanent-inspector__keywords {
+  margin-top: 0.5rem;
+}
+.opponent-permanent-inspector__keywords > span {
+  color: var(--ds-fg-muted);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.opponent-permanent-inspector__keywords ul,
+.stack-viewer-state__keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.opponent-permanent-inspector__keywords li,
+.stack-viewer-state__keywords li {
+  padding: 1px 7px;
+  color: var(--ds-fg-secondary);
+  font-size: 10.5px;
+  font-weight: 700;
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+}
+/* A keyword an effect granted is marked apart from one printed on the card. */
+.opponent-permanent-inspector__keywords li[data-granted],
+.stack-viewer-state__keywords li[data-granted] {
+  color: var(--battle-arrow-effect);
+  border-color: var(--battle-arrow-effect);
+}
+.opponent-permanent-inspector__keywords li[data-empty],
+.stack-viewer-state__keywords li[data-empty] {
+  color: var(--ds-fg-disabled);
+  border-style: dashed;
+}
+/* The imposed "can't ..." locks, kept visibly apart from the keyword pills above:
+   those say what the position gained, these say what it lost. */
+.opponent-permanent-inspector__restrictions,
+.stack-viewer-state__restrictions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.opponent-permanent-inspector__restrictions li,
+.stack-viewer-state__restrictions li {
+  padding: 1px 7px;
+  color: var(--ds-on-danger);
+  font-size: 10.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: var(--ds-danger);
+}
+.opponent-permanent-inspector__fate,
+.stack-viewer-state__fate {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin: 0.5rem 0 0;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 999px;
+  width: fit-content;
+}
+.opponent-permanent-inspector__fate[data-tone="danger"],
+.stack-viewer-state__fate[data-tone="danger"] {
+  color: #fff;
+  background: var(--battle-keyword);
+}
+.opponent-permanent-inspector__fate[data-tone="neutral"],
+.stack-viewer-state__fate[data-tone="neutral"] {
+  color: #fff;
+  background: var(--battle-memory-you);
+}
+.opponent-permanent-inspector__fate[data-tone="good"],
+.stack-viewer-state__fate[data-tone="good"] {
+  color: var(--ds-fg);
+  background: var(--battle-memory-zero);
+}
+
+.stack-viewer-state {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--ds-border);
+}
+.stack-viewer-state__dp {
+  margin: 0;
+  color: var(--ds-fg);
+  font-family: var(--ds-font-mono);
+  font-size: 11px;
+}
+.stack-viewer-state__dp strong {
+  font-size: 15px;
+}
+.stack-viewer-state__dp em {
+  margin-left: 0.35rem;
+  font-style: normal;
+  font-weight: 800;
+}
+.stack-viewer-state__dp em[data-direction="up"] {
+  color: var(--ds-success, #2f9e63);
+}
+.stack-viewer-state__dp em[data-direction="down"] {
+  color: var(--ds-danger, #d33);
+}
+.stack-viewer-state__base {
+  margin: 0.1rem 0 0;
+  color: var(--ds-fg-muted);
+  font-family: var(--ds-font-mono);
+  font-size: 10px;
+}
+
+/* --- Reduced motion ------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  /* The cut-in is spectacle with nothing to read: it never plays at all. */
+  .game-cut-in {
+    display: none;
+  }
+
+  /* Everything else here appears at rest rather than animating into place. */
+  .game-permanent--effect-source,
+  .game-pile--effect-source .game-pile__top,
+  .game-hand-card--effect-source,
+  .game-security-shield--landing,
+  .game-pile--riffling .game-pile__layer,
+  .game-card-landing,
+  .game-attack-arrow--tracking .game-attack-arrow__stroke,
+  .game-attack-arrow--tracking .game-attack-arrow__head,
+  .game-security-shield__attack-label,
+  .card-zoom {
+    animation: none;
+  }
+
+  .game-effect-source-spark,
+  .game-card-dust,
+  .game-card-shatter__shard {
+    display: none;
+  }
+}
+
+/* --- Security battle outcome (`Effects.cs:1942-2030, 2033-2164`) ---------- */
+
+/* The checked card is spent whatever the battle decided, so it breaks apart into
+   its own art where it stood; the claw rakes only the side the server named. */
+/* The card, its shards and its claw share one positioned box. */
+.battle-clash__frame {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.battle-clash__shatter {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+  /* Held invisible until the outcome beat, so the shards do not sit over the card
+     while the two of them are still being read. `forwards` rather than `both`: the
+     backwards fill would light them up through the whole delay. */
+  opacity: 0;
+  animation: battle-clash-shatter-in var(--t-clash-outcome, 350ms) steps(1, end) var(--t-clash-outcome-at, 1283ms)
+    forwards;
+  /* The shards break on the outcome beat's clock rather than the longer one a field
+     deletion uses: the scene starts fading when the beat ends, so anything still in
+     flight would simply be cut off. The stagger that starts the last shard is already
+     taken out of this number. */
+  --t-card-shatter: var(--t-clash-shatter, 260ms);
+}
+
+@keyframes battle-clash-shatter-in {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The card underneath goes as its shards leave. The whole chain is restated because
+   the revealed card already carries its entrance and its impact on this element, and
+   an `animation` shorthand replaces rather than adds to them. */
+.battle-clash[data-resolution="battle"] .battle-clash__card[data-spent="true"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-impact var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+/* A card the check simply trashes breaks apart the same way, so a security card
+   leaving play always reads as a deletion. It takes no impact, and it breaks instead
+   of falling: the shatter replaces the `battle-clash-fall` the resolution otherwise
+   carries, which is why the chain is restated here. */
+.battle-clash[data-resolution="trashed"] .battle-clash__card[data-spent="true"] .battle-clash__art {
+  animation:
+    battle-security-reveal var(--t-clash-reveal, 233ms) ease-out var(--t-clash-enter, 150ms) both,
+    battle-clash-spent var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+@keyframes battle-clash-spent {
+  0% {
+    opacity: 1;
+  }
+  18% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The beaten side dims behind its claw; the side that stands is lit for a beat. */
+.battle-clash__card[data-fate="beaten"] {
+  animation: battle-clash-beaten var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+@keyframes battle-clash-beaten {
+  0% {
+    filter: none;
+  }
+  40% {
+    filter: brightness(0.6) saturate(0.5);
+  }
+  100% {
+    filter: brightness(0.45) saturate(0.35);
+  }
+}
+
+.battle-clash__card[data-fate="stands"] {
+  animation: battle-clash-stands var(--t-clash-outcome, 350ms) ease-out var(--t-clash-outcome-at, 1283ms) both;
+}
+
+@keyframes battle-clash-stands {
+  0%,
+  100% {
+    filter: none;
+    scale: 1;
+  }
+  45% {
+    filter: brightness(1.25) drop-shadow(0 0 16px var(--battle-cyan));
+    scale: 1.08;
+  }
+}
+
+/* The claw waits for the outcome beat. Its own per-tine stagger is kept, so the
+   three gashes still land one behind the other. */
+.battle-clash__card[data-fate="beaten"] .game-claw__tine {
+  animation-delay: calc(var(--t-clash-outcome-at, 1283ms) + var(--claw-index) * 24ms);
+}
+
+/* The loser is knocked about under its claw (`Effects.cs:2143` shakes every loser
+   for the same 0.25 s the claw takes to land). */
+.battle-clash__card[data-fate="beaten"] .battle-clash__frame {
+  animation: battle-clash-hit var(--t-clash-outcome, 350ms) linear var(--t-clash-outcome-at, 1283ms) both;
+}
+
+/* Percentages of the 350ms outcome beat: the shake is the reference client's 0.25s
+   (`--t-card-shake`, so 71%) and the rest is its 0.1s settle. They have to be restated
+   whenever `clashOutcome` moves — `timings.test.ts` pins the 71% to the two numbers. */
+@keyframes battle-clash-hit {
+  0%,
+  71%,
+  100% {
+    translate: 0 0;
+  }
+  14% {
+    translate: -6px 3px;
+  }
+  29% {
+    translate: 5px -3px;
+  }
+  43% {
+    translate: -4px -2px;
+  }
+  57% {
+    translate: 2px 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The outcome label already says how the check resolved, so the beat is dropped
+     rather than flashed past. */
+  .battle-clash__shatter,
+  .battle-clash__card[data-fate="beaten"] .game-claw {
+    display: none;
+  }
+
+  .battle-clash[data-resolution="battle"] .battle-clash__card[data-spent="true"] .battle-clash__art,
+  .battle-clash[data-resolution="trashed"] .battle-clash__card[data-spent="true"] .battle-clash__art,
+  .battle-clash__card[data-fate="beaten"],
+  .battle-clash__card[data-fate="beaten"] .battle-clash__frame,
+  .battle-clash__card[data-fate="stands"] {
+    animation: none;
+  }
+}

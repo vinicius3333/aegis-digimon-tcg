@@ -1,0 +1,142 @@
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT20-019.js";
+import "./index.js";
+
+describe("BT20-019 Jesmon (X Antibody)", () => {
+  it("keeps the post-condition attack independent and gates only the temporary immunity", () => {
+    const whenDigivolving = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
+    expect(whenDigivolving?.actions[0]).toMatchObject({
+      kind: "GrantStatic",
+      grant: { immuneToOpponentEffects: true },
+      duration: "forTheTurn",
+      condition: { kind: "selfDigivolutionStackHasTrait" },
+    });
+    expect(whenDigivolving?.actions[1]).toMatchObject({ kind: "Attack", optional: true });
+    const yourTurn = compiled.effects.find((entry) => entry.trigger === "YourTurn" && !entry.isInherited);
+    expect(yourTurn).toMatchObject({
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            count: "all",
+            filter: {
+              nameOrTrait: [
+                { tokens: ["Sistermon"], match: "name" },
+                { tokens: ["Royal Knight"], match: "trait" },
+              ],
+            },
+          },
+        },
+        { kind: "GrantCanAttackUnsuspended", target: { count: "all" } },
+      ],
+    });
+    expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
+      actions: [
+        { condition: { kind: "selfHasName", names: ["Jesmon GX"] } },
+        { condition: { kind: "selfHasName", names: ["Jesmon GX"] } },
+      ],
+    });
+  });
+
+  it("grants temporary opponent-effect immunity when Jesmon is in the evolved stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-017", as: "jesmon" },
+            { card: "BT20-010", as: "ally" },
+          ],
+          hand: [{ card: "BT20-019", as: "xAntibody" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("jesmon").permanentId,
+        instanceId: s.inst("xAntibody").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("jesmon").topCard.cardId === "BT20-019");
+    expect(
+      ["jesmon", "ally"].some((alias) =>
+        observe(s.engine).isRestrictedByEffect(s.perm(alias), "beAffected", "Digimon"),
+      ),
+    ).toBe(true);
+    expect(s.perm("jesmon").isSuspended).toBe(false);
+  });
+
+  it("still allows the post-then attack when the stack condition is false", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-014", as: "savior" }],
+          hand: [{ card: "BT20-019", as: "xAntibody" }],
+        },
+        1: { security: ["BT20-001", "BT20-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("savior").permanentId,
+        instanceId: s.inst("xAntibody").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("savior").isSuspended);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("savior"), "beAffected", "Digimon")).toBe(false);
+    expect(s.perm("savior").isSuspended).toBe(true);
+  });
+
+  it("on your turn grants Piercing and unsuspended-target attacks only to Sistermon and Royal Knights", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-019", as: "source" },
+          { card: "BT20-084", as: "sistermon" },
+          { card: "BT20-017", as: "royalKnight" },
+          { card: "BT20-010", as: "nonMatch" },
+        ],
+      },
+    });
+    await s.ready();
+    for (const alias of ["source", "sistermon", "royalKnight"]) {
+      expect(observe(s.engine).hasPierce(s.perm(alias))).toBe(true);
+      expect(observe(s.engine).canAttackUnsuspended(s.perm(alias))).toBe(true);
+    }
+    expect(observe(s.engine).hasPierce(s.perm("nonMatch"))).toBe(false);
+    expect(observe(s.engine).canAttackUnsuspended(s.perm("nonMatch"))).toBe(false);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).hasPierce(s.perm("sistermon"))).toBe(false);
+    expect(observe(s.engine).canAttackUnsuspended(s.perm("royalKnight"))).toBe(false);
+  });
+
+  it("under Jesmon GX grants both abilities to every allied Digimon on your turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-021", as: "gx", under: ["BT20-019"] },
+          { card: "BT20-010", as: "ally" },
+        ],
+      },
+    });
+    await s.ready();
+    for (const alias of ["gx", "ally"]) {
+      expect(observe(s.engine).hasPierce(s.perm(alias))).toBe(true);
+      expect(observe(s.engine).canAttackUnsuspended(s.perm(alias))).toBe(true);
+    }
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(observe(s.engine).hasPierce(s.perm("ally"))).toBe(false);
+    expect(observe(s.engine).canAttackUnsuspended(s.perm("ally"))).toBe(false);
+  });
+});

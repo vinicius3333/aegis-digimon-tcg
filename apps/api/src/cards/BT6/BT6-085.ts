@@ -1,0 +1,59 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
+              nameOrTrait: [
+                {
+                  tokens: ["Eosmon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 1000,
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  ruleText: ["You can include up to 50 copies of cards with this card's card number in your deck."],
+};
+
+registerIrCard("BT6-085", compiled);

@@ -1,0 +1,47 @@
+import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
+import { compiled } from "./BT14-053.js";
+
+describe("BT14-053", () => {
+  it("suspends an opposing Digimon or Tamer on digivolution and attack", () => {
+    for (const trigger of ["WhenDigivolving", "WhenAttacking"])
+      expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
+        kind: "Suspend",
+        target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] } },
+      });
+  });
+  it("once per turn may unsuspend itself when your effect suspends something", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [{
+        kind: "SubTrigger",
+        event: "whenEffectSuspends",
+        sourceFilter: { kind: ["Digimon", "Tamer"] },
+        actions: [{ kind: "Unsuspend" }],
+      }],
+    }));
+
+  it("naturally suspends an opposing Tamer and unsuspends itself when that effect resolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-049", as: "base", suspended: true }],
+          hand: [{ card: "BT14-053", as: "rosemon" }],
+        },
+        1: { battleArea: [{ card: "BT14-086", as: "target" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rosemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended && !s.perm("base").isSuspended);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("base").isSuspended).toBe(false);
+  });
+});

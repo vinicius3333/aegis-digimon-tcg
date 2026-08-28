@@ -1,0 +1,42 @@
+{
+  "name": "aegis",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Aegis - a server-authoritative Digimon-style trading card game (React + PixiJS client, Colyseus API).",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently -n shared,api,web -c blue,green,magenta \"pnpm --filter @aegis/shared dev\" \"pnpm --filter @aegis/api dev\" \"pnpm --filter @aegis/web dev\"",
+    "build": "pnpm --filter @aegis/shared build && concurrently -n api,web -c green,magenta \"pnpm --filter @aegis/api build\" \"pnpm --filter @aegis/web build\"",
+    "typecheck": "pnpm --filter @aegis/shared build && pnpm -r typecheck",
+    "test": "pnpm -r --workspace-concurrency=1 test",
+    "test:tools": "node --test tools/*.test.mjs",
+    "ci": "pnpm -r typecheck && pnpm test:tools && pnpm test",
+    "lint": "oxlint .",
+    "lint:cards": "oxlint apps/api/src/cards",
+    "lint:files": "oxlint",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "format:cards": "oxfmt apps/api/src/cards",
+    "format:cards:check": "oxfmt --check apps/api/src/cards",
+    "format:files": "oxfmt",
+    "format:files:check": "oxfmt --check",
+    "check:style": "pnpm lint && pnpm format:check",
+    "check:cards:style": "pnpm lint:cards && pnpm format:cards:check",
+    "start": "pnpm --filter @aegis/api start",
+    "clean": "pnpm -r exec rm -rf dist",
+    "check:release": "node tools/check-release.mjs",
+    "release:sync": "node tools/sync-release-artifacts.mjs",
+    "check:commits": "node tools/check-commit-messages.mjs",
+    "release:prepare": "node tools/prepare-release.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.0",
+    "oxfmt": "^0.63.0",
+    "oxlint": "^1.78.0",
+    "typescript": "~5.8.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.30.1"
+}

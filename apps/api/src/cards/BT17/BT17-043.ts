@@ -1,0 +1,70 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+// Behavior is executed by the shared interpreter; this file only carries the IR and
+// registers it. To override with a hand-written module, delete the AUTO-GENERATED
+// header line above and replace the body — the generator will then preserve this file.
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            byEffect: true,
+            orFilters: [
+              { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon", "Lopmon"], match: "name" }] },
+              { kind: ["Tamer"], colors: ["Green"] },
+            ],
+          },
+          actions: [
+            {
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          effect: {
+            kind: "modifyDP",
+            amount: 1000,
+          },
+          while: {
+            kind: "selfIsSuspended",
+            raw: "this Digimon is suspended",
+          },
+        },
+      ],
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("BT17-043", compiled);

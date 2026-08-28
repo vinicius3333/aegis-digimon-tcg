@@ -1,0 +1,139 @@
+import { EffectTiming } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT21-021.js";
+import "../index.js";
+
+describe("BT21-021 OmniShoutmon", () => {
+  it("exposes complete effect coverage with no residual clauses", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual ?? []).toEqual([]);
+    expect(compiled.effects).toBeDefined();
+  });
+
+  it("preserves the registered effect triggers and action boundaries", () => {
+    expect(compiled.effects.every((effect) => typeof effect.trigger === "string")).toBe(true);
+    for (const effect of compiled.effects) {
+      expect(Array.isArray(effect.actions)).toBe(true);
+      for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
+    }
+  });
+
+  it("verifies End of Attack play/delete, On Deletion Save flow, DigiXros identity, and Xros Heart-gated Rush", () => {
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      actions: [{ kind: "GrantStatic", grant: "name", tokens: ["Shoutmon"] }],
+    });
+    expect(
+      compiled.effects.some((effect) => effect.keywords?.some((keyword) => keyword.keyword === "SecurityAttack")),
+    ).toBe(false);
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "EndOfAttack",
+        actions: [
+          expect.objectContaining({
+            kind: "PlayWithoutCost",
+            from: ["hand"],
+            payCost: true,
+            costReduction: 5,
+            optional: true,
+          }),
+          expect.objectContaining({
+            kind: "Delete",
+            condition: { kind: "ifThisEffectActed", raw: "you did" },
+          }),
+        ],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "OnDeletion",
+        actions: [
+          expect.objectContaining({ kind: "PlaceUnder" }),
+          expect.objectContaining({ kind: "PlaceUnder", underFilter: { controller: "mine", kind: ["Tamer"] } }),
+        ],
+      }),
+    );
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      actions: [
+        {
+          kind: "GainKeyword",
+          keyword: { keyword: "Rush" },
+          condition: { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] } },
+        },
+      ],
+    });
+    expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ names: ["Shoutmon"] }], count: 2 }]);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Shoutmon"], cost: 4, isAlternate: true },
+      { level: 4, traits: ["Xros Heart", "Hero"], cost: 3, isAlternate: true },
+    ]);
+  });
+
+  it("saves a qualifying Xros Heart card and itself under a Tamer on deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-021", as: "omnishoutmon" },
+            { card: "BT21-083", as: "tamer" },
+          ],
+          trash: [{ card: "BT21-011", as: "savedCard" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("omnishoutmon").permanentId], "byEffect");
+    await settle(() => s.perm("tamer").stack.length >= 2);
+
+    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT21-021", "BT21-011"]));
+  });
+
+  it("plays an eligible trait card at cost reduced by 5", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-021", as: "omni" },
+            { card: "BT21-083", as: "tamer" },
+          ],
+          hand: [{ card: "BT10-007", as: "dondokomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("omni"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-007"));
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not delete itself when the play is declined or no eligible card exists", async () => {
+    for (const [card, options] of [
+      ["BT21-011", { autoDeclineOptional: true }],
+      ["BT1-009", { autoAcceptOptional: true, autoSelectCards: true }],
+    ] as const) {
+      const s = setupEngine({ 0: { battleArea: [{ card: "BT21-021", as: "omni" }], hand: [{ card }] } }, options);
+      await s.ready();
+      await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("omni"));
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-021")).toBe(true);
+    }
+  });
+
+  it("grants inherited Rush only to an Xros Heart host", async () => {
+    const xros = setupEngine({ 0: { battleArea: [{ card: "BT21-011", as: "host", under: ["BT21-021"] }] } });
+    await xros.ready();
+    expect(observe(xros.engine).hasKeyword(xros.perm("host"), "Rush")).toBe(true);
+
+    const other = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT21-021"] }] } });
+    await other.ready();
+    expect(observe(other.engine).hasKeyword(other.perm("host"), "Rush")).toBe(false);
+  });
+});

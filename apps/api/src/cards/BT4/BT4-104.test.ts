@@ -1,0 +1,29 @@
+import { describe, it, expect } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT4-104.js";
+describe("BT4-104 Blinding Ray", () => {
+  it("trashes security and gains two memory", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: ["BT4-044"], security: ["BT4-033"], hand: [{ card: "BT4-104", as: "option" }] } },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 0 && s.state.memory === 3);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("gains two memory even with an empty security stack", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: ["BT4-044"], hand: [{ card: "BT4-104", as: "option" }] } },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 3);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+});

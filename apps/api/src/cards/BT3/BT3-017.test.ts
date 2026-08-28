@@ -1,0 +1,51 @@
+import { EffectTiming } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT3-017.js";
+
+describe("BT3-017 Valkyrimon", () => {
+  it("deletes an opposing Digimon at the 4000 DP limit when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-002", as: "base" }], hand: [{ card: "BT3-017", as: "evolving" }] },
+        1: { battleArea: ["BT2-024"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("deletes an opposing Digimon at the 4000 DP limit when attacking", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT3-017", as: "source" }] },
+        1: { battleArea: [{ card: "BT2-024", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("does not delete a Digimon above 4000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT3-017", as: "source" }] },
+        1: { battleArea: [{ card: "BT3-017", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+});

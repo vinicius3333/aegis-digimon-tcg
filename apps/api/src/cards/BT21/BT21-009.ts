@@ -1,0 +1,72 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+// Behavior is executed by the shared interpreter; this file only carries the IR and
+// registers it. To override with a hand-written module, delete the AUTO-GENERATED
+// header line above and replace the body — the generator will then preserve this file.
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [],
+      isLinked: true,
+      keywords: [{ keyword: "Raid", raw: "＜Raid＞" }],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
+                    {
+                      tokens: ["Haru Shinkai"],
+                      match: "name",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              condition: {
+                kind: "permanentCount",
+                seat: "mine",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Tamer"],
+                },
+                op: "lte",
+                value: 1,
+                raw: "you have 1 or fewer Tamers",
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
+  digivolutionRequirement: [
+    {
+      level: 2,
+      traits: ["Appmon", "Hero"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
+};
+
+registerIrCard("BT21-009", compiled);

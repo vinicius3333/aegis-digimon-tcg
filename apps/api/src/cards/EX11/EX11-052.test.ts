@@ -1,0 +1,97 @@
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { assertNoLoudGap, setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
+
+const cardId = "EX11-052";
+
+describe("EX11-052 HeavyMetaldramon", () => {
+  it("preserves the printed card, trait evolution, unsuspended deletion, trash play, and leave reaction", () => {
+    expect(getCardDefinition(cardId)).toMatchObject({
+      nameEn: "HeavyMetaldramon",
+      colors: ["Purple", "Red"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      evoCosts: [
+        { color: "Purple", level: 5, memoryCost: 5 },
+        { color: "Red", level: 5, memoryCost: 5 },
+      ],
+      types: ["Evil Dragon", "LIBERATOR"],
+    });
+    const compiled = runtimeCompiledCard(cardId)!;
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, traits: ["Dark Dragon", "Evil Dragon"], cost: 3, isAlternate: true },
+    ]);
+    expect(digivolutionRequirementsFor(cardId)).toEqual(compiled.digivolutionRequirement);
+    for (const trigger of ["OnPlay", "WhenDigivolving", "EndOfAttack"]) {
+      expect(compiled.effects.find((candidate) => candidate.trigger === trigger)?.actions).toMatchObject([
+        { kind: "Trash", target: { filter: { zone: "hand" }, count: 2 } },
+        { kind: "Delete", target: { filter: { controller: "opponent", unsuspended: true } } },
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          condition: { kind: "zoneCount", op: "lte", value: 4 },
+          optional: true,
+        },
+      ]);
+    }
+    expect(compiled.effects.find(({ trigger }) => trigger === "AllTurns")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          condition: { kind: "zoneCount", op: "lte", value: 4 },
+          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
+        },
+      ],
+    });
+  });
+
+  it("trashes 2, deletes only an unsuspended opponent, then plays an eligible card from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: ["BT1-001", "BT1-002"],
+          trash: [{ card: "EX11-049", as: "punkmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "ready" },
+            { card: "BT1-009", as: "suspended", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map((card) => card.permanentId)).toEqual([s.perm("suspended").permanentId]);
+    expect(s.state.players[0]!.battleArea.some((card) => card.topCard.cardId === "EX11-049")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("trashes only 1 opponent security when multiple own Dark Dragons leave in one turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: cardId, as: "source" },
+          { card: "EX11-049", as: "first" },
+          { card: "EX11-049", as: "second" },
+        ],
+      },
+      1: { security: ["BT1-001", "BT1-002"] },
+    });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("first").permanentId]);
+    await advance(s.engine).verb.deletePermanent([s.perm("second").permanentId]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+});

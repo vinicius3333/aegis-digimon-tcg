@@ -1,0 +1,68 @@
+import { describe, it, expect } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT7-096.js";
+describe("BT7-096 Starlight Velocity", () => {
+  it("binds one host stack and preserves the Tamer-or-Hybrid target union", () => {
+    const main = runtimeCompiledCard("BT7-096")?.effects.find((effect) => effect.trigger === "Main");
+    expect(main).toMatchObject({
+      actions: [
+        {
+          kind: "SelectBind",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasAny" },
+            count: 1,
+            bindAs: "chosenHost",
+          },
+        },
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "digivolutionCards",
+              kind: ["Tamer"],
+              hostFilter: { boundRef: "chosenHost" },
+            },
+            orFilters: [
+              {
+                controller: "mine",
+                zone: "digivolutionCards",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Hybrid"], match: "traitContains" }],
+                hostFilter: { boundRef: "chosenHost" },
+              },
+            ],
+            count: 1,
+          },
+        },
+      ],
+    });
+    expect(runtimeCompiledCard("BT7-096")?.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { nameOrTrait: [{ tokens: ["Koji Minamoto"], match: "nameExact" }] } },
+        },
+      ],
+    });
+  });
+
+  it("plays a card from a digivolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-018", as: "host", under: ["BT7-019"] }],
+          hand: [{ card: "BT7-096", as: "option" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    expect(s.state.players[0]!.battleArea.length).toBe(2);
+  });
+});

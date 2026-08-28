@@ -1,0 +1,762 @@
+{
+  "BT23-049": [
+    {
+      "level": 2,
+      "traits": ["CS"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT24-018": [
+    {
+      "namesExact": ["Lamiamon"],
+      "cost": 6,
+      "isAlternate": true,
+      "controllerControls": {
+        "kind": ["Tamer"],
+        "namesExact": ["Owen Dreadnought"],
+        "min": 1
+      }
+    }
+  ],
+  "BT24-028": [
+    {
+      "level": 4,
+      "traitSubstrings": ["Aqua"],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": ["Sea Animal"],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": ["TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT24-030": [
+    {
+      "level": 5,
+      "traitSubstrings": ["Aqua"],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 5,
+      "traits": ["Sea Animal"],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 5,
+      "traits": ["TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT24-074": [
+    {
+      "level": 4,
+      "traitSubstrings": ["Aqua"],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": ["Sea Animal"],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": ["TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT24-078": [
+    {
+      "namesExact": ["Creepymon"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT25-045": [
+    {
+      "level": 2,
+      "traits": ["Appmon"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-008": [
+    {
+      "level": 2,
+      "traits": ["Shambala", "TS"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-009": [
+    {
+      "level": 2,
+      "traits": ["TS"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-010": [
+    {
+      "level": 2,
+      "traits": ["Appmon"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-011": [
+    {
+      "level": 3,
+      "traits": ["TS"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-012": [
+    {
+      "level": 3,
+      "traits": ["Shambala"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-013": [
+    {
+      "level": 3,
+      "traits": ["Shambala", "TS"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-014": [
+    {
+      "level": 4,
+      "traits": ["Shambala"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-015": [
+    {
+      "level": 4,
+      "traits": ["TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-016": [
+    {
+      "level": 5,
+      "traits": ["TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-017": [
+    {
+      "level": 5,
+      "traits": ["Shambala", "TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-018": [
+    {
+      "level": 2,
+      "traits": ["DS"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-019": [
+    {
+      "level": 2,
+      "traits": ["Appmon"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-020": [
+    {
+      "level": 3,
+      "traits": ["DS"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-021": [
+    {
+      "level": 3,
+      "traits": ["TS"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-022": [
+    {
+      "level": 3,
+      "traits": ["TS"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-023": [
+    {
+      "level": 3,
+      "traits": ["DM"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-024": [
+    {
+      "level": 2,
+      "traits": ["WG"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-025": [
+    {
+      "level": 2,
+      "traits": ["Glowing Dawn"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-026": [
+    {
+      "level": 3,
+      "traits": ["Glowing Dawn"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-027": [
+    {
+      "level": 3,
+      "traits": ["WG"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-029": [
+    {
+      "names": ["Aegiomon"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-030": [
+    {
+      "level": 4,
+      "traits": ["TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-031": [
+    {
+      "level": 4,
+      "traits": ["Glowing Dawn"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-032": [
+    {
+      "names": ["Ceresmon"],
+      "basePlayCost": 12,
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-033": [
+    {
+      "level": 5,
+      "traits": ["TS"],
+      "cost": 4,
+      "isAlternate": true
+    }
+  ],
+  "BT26-034": [
+    {
+      "level": 2,
+      "traits": ["TS"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-035": [
+    {
+      "level": 2,
+      "traits": ["NSp"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-036": [
+    {
+      "level": 2,
+      "traits": ["DATA SQUAD"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-038": [
+    {
+      "level": 3,
+      "traits": ["TS"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-039": [
+    {
+      "level": 3,
+      "traits": ["DATA SQUAD"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-040": [
+    {
+      "level": 3,
+      "traits": ["DM"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-041": [
+    {
+      "level": 3,
+      "traits": ["Larva", "Insectoid", "NSp"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-042": [
+    {
+      "level": 4,
+      "traits": ["TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-043": [
+    {
+      "level": 4,
+      "traits": ["DM"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-044": [
+    {
+      "level": 4,
+      "traits": ["DATA SQUAD"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-045": [
+    {
+      "level": 5,
+      "traits": ["Insectoid", "TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-046": [
+    {
+      "level": 5,
+      "traits": ["TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-047": [
+    {
+      "level": 5,
+      "traits": ["Insectoid", "TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-048": [
+    {
+      "level": 5,
+      "traits": ["DM"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-049": [
+    {
+      "names": ["Lilamon"],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 5,
+      "traits": ["DATA SQUAD"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-050": [
+    {
+      "level": 6,
+      "traits": ["DATA SQUAD"],
+      "cost": 5,
+      "isAlternate": true
+    }
+  ],
+  "BT26-051": [
+    {
+      "level": 2,
+      "traits": ["Appmon"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-052": [
+    {
+      "level": 2,
+      "traits": ["Glowing Dawn"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-053": [
+    {
+      "level": 3,
+      "traits": ["Glowing Dawn"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-054": [
+    {
+      "level": 4,
+      "traits": ["CS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-055": [
+    {
+      "level": 4,
+      "traits": ["DM"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-056": [
+    {
+      "names": ["Cerberusmon"],
+      "cost": 1,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": ["TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-057": [
+    {
+      "level": 4,
+      "traits": ["Glowing Dawn"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-058": [
+    {
+      "level": 5,
+      "traits": ["CS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-059": [
+    {
+      "level": 5,
+      "traits": ["TS"],
+      "cost": 4,
+      "isAlternate": true
+    }
+  ],
+  "BT26-060": [
+    {
+      "level": 6,
+      "texts": ["Chronomon"],
+      "cost": 5,
+      "isAlternate": true
+    },
+    {
+      "names": ["Giant Slayer"],
+      "cost": 5,
+      "isAlternate": true
+    }
+  ],
+  "BT26-061": [
+    {
+      "level": 2,
+      "traits": ["Glowing Dawn"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-062": [
+    {
+      "level": 2,
+      "traits": ["NSo"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-063": [
+    {
+      "level": 2,
+      "traits": ["Appmon"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-064": [
+    {
+      "level": 2,
+      "traits": ["TS"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-065": [
+    {
+      "level": 2,
+      "traits": ["DATA SQUAD"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-066": [
+    {
+      "level": 2,
+      "traits": ["TS"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-067": [
+    {
+      "level": 3,
+      "traits": ["TS"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-068": [
+    {
+      "level": 3,
+      "traits": ["TS"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-069": [
+    {
+      "level": 3,
+      "traits": ["TS"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-070": [
+    {
+      "level": 3,
+      "traits": ["Glowing Dawn"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-071": [
+    {
+      "level": 3,
+      "traits": ["NSo"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-072": [
+    {
+      "level": 3,
+      "traits": ["DATA SQUAD"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-073": [
+    {
+      "names": ["Aegiomon"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-074": [
+    {
+      "level": 4,
+      "traits": ["TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-075": [
+    {
+      "level": 4,
+      "traits": ["Glowing Dawn"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-076": [
+    {
+      "level": 4,
+      "traits": ["DATA SQUAD"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-077": [
+    {
+      "level": 5,
+      "traits": ["DM"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-078": [
+    {
+      "level": 5,
+      "traits": ["TS"],
+      "cost": 5,
+      "isAlternate": true
+    }
+  ],
+  "BT26-079": [
+    {
+      "names": ["Plutomon"],
+      "cost": 1,
+      "isAlternate": true
+    },
+    {
+      "level": 5,
+      "traits": ["TS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-080": [
+    {
+      "names": ["Bacchusmon"],
+      "basePlayCost": 12,
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
+  "BT26-081": [
+    {
+      "names": ["Minervamon"],
+      "cost": 2,
+      "isAlternate": true
+    },
+    {
+      "level": 5,
+      "traits": ["TS"],
+      "cost": 4,
+      "isAlternate": true
+    }
+  ],
+  "BT26-082": [
+    {
+      "names": ["Crowmon"],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "level": 5,
+      "traits": ["DATA SQUAD"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "BT26-083": [
+    {
+      "level": 6,
+      "traits": ["TS"],
+      "cost": 4,
+      "isAlternate": true
+    }
+  ],
+  "BT26-084": [
+    {
+      "level": 2,
+      "traits": ["Appmon"],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ],
+  "BT26-103": [
+    {
+      "level": 6,
+      "traits": ["Olympos XII"],
+      "cost": 5,
+      "isAlternate": true
+    }
+  ],
+  "EX12-028": [
+    {
+      "level": 4,
+      "traits": ["DS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
+  "EX6-044": [
+    {
+      "level": 5,
+      "traits": ["Legend-Arms"],
+      "cost": 4,
+      "isAlternate": true
+    }
+  ],
+  "EX9-043": [
+    {
+      "level": 4,
+      "names": ["Tyrannomon"],
+      "cost": 3,
+      "isAlternate": true
+    },
+    {
+      "traits": ["DM"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ]
+}

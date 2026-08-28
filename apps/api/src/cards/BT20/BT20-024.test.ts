@@ -1,0 +1,83 @@
+import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT20-024.js";
+import "./index.js";
+
+describe("BT20-024 Seadramon (X Antibody)", () => {
+  it("returns a level 3 Digimon and conditionally restricts a Tamer on both entry triggers", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects.find((entry) => entry.trigger === trigger)).toMatchObject({
+        actions: [
+          {
+            kind: "Return",
+            target: { filter: { controller: "opponent", kind: ["Digimon"], levels: [3] }, count: 1 },
+            to: "deckBottom",
+          },
+          {
+            kind: "Restrict",
+            target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: 1 },
+            restriction: "suspend",
+            duration: "untilOpponentTurnEnd",
+            condition: {
+              kind: "selfDigivolutionStackHasTrait",
+              filter: {
+                nameOrTrait: [
+                  { tokens: ["Seadramon"], match: "name" },
+                  { tokens: ["X Antibody"], match: "trait" },
+                ],
+              },
+            },
+          },
+        ],
+      });
+    }
+    expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Draw", condition: { op: "lte", value: 7 } }],
+    });
+  });
+
+  it("returns only the level-3 target to deck bottom and locks a Tamer when the source stack qualifies", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-024", as: "seadramonX", under: ["BT15-025"] }] },
+        1: {
+          battleArea: [
+            { card: "BT20-022", as: "level3" },
+            { card: "BT20-023", as: "level4" },
+            { card: "BT20-087", as: "tamer" },
+          ],
+          deck: ["BT20-001"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("level3").permanentId, s.perm("tamer").permanentId);
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("seadramonX"));
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT20-022")).toBe(false);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT20-022");
+    expect(s.perm("level4")).toBeDefined();
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).verb.suspend([s.perm("tamer").permanentId], 0);
+    expect(s.perm("tamer").isSuspended).toBe(false);
+  });
+
+  it("inherits Draw 1 once at the inclusive seven-card hand boundary", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT20-026", as: "host", under: ["BT20-024"] }],
+        hand: Array.from({ length: 7 }, () => "BT20-001"),
+        deck: ["BT20-003", "BT20-004"],
+      },
+    });
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+  });
+});

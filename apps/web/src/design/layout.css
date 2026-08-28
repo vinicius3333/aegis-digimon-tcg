@@ -1,0 +1,97 @@
+/* Breakpoints are canonical here because CSS variables cannot drive media
+   conditions: narrow <600, medium 600–959, compact 960–1279, wide >=1280. */
+
+.aegis-app-viewport {
+  position: fixed;
+  inset: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(135deg, transparent 0 72%, rgb(7 95 247 / 3%) 72% 72.2%, transparent 72.2%),
+    radial-gradient(circle at 68% 8%, rgb(72 151 255 / 10%), transparent 24%), var(--ds-bg);
+}
+
+.aegis-app-viewport::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  opacity: 0.55;
+  background-image:
+    linear-gradient(30deg, transparent 49.6%, rgb(82 113 161 / 7%) 49.8% 50.2%, transparent 50.4%),
+    linear-gradient(150deg, transparent 49.6%, rgb(82 113 161 / 5%) 49.8% 50.2%, transparent 50.4%);
+  background-position:
+    0 0,
+    90px 52px;
+  background-size: 180px 104px;
+  mask-image: linear-gradient(to bottom right, rgb(0 0 0 / 35%), transparent 44%);
+}
+
+.aegis-content-container {
+  width: min(100%, var(--ds-container-max));
+  margin-inline: auto;
+  padding-inline: var(--ds-gutter-phone);
+}
+
+.aegis-page-scroll {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.aegis-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aegis-stack-gap, var(--ds-space-4));
+}
+
+.aegis-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--aegis-cluster-gap, var(--ds-space-3));
+}
+
+.aegis-responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--ds-panel-min)), 1fr));
+  gap: var(--aegis-grid-gap, var(--ds-space-4));
+}
+
+.aegis-only-narrow {
+  display: initial;
+}
+
+.aegis-only-wide {
+  display: none !important;
+}
+
+.aegis-safe-bottom {
+  padding-bottom: max(var(--ds-space-4), env(safe-area-inset-bottom));
+}
+
+@media (min-width: 600px) {
+  .aegis-content-container {
+    padding-inline: var(--ds-gutter-tablet);
+  }
+}
+
+@media (min-width: 960px) {
+  .aegis-content-container {
+    padding-inline: var(--ds-gutter-desktop);
+  }
+
+  .aegis-only-narrow {
+    display: none !important;
+  }
+
+  .aegis-only-wide {
+    display: initial !important;
+  }
+}

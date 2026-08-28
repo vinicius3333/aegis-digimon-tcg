@@ -1,0 +1,430 @@
+{
+  "collection": "BT9",
+  "generatedAt": "2026-08-19",
+  "decks": [
+    {
+      "id": "bt9-dgo-2022-10-01-1-gaiomon",
+      "revision": 1,
+      "name": "BT9 Gaiomon",
+      "archetype": "Gaiomon",
+      "collection": "BT9",
+      "formatBlock": "BT9",
+      "colors": ["Red", "Black", "White"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "2022 Regionals",
+        "date": "2022-10-01",
+        "region": "europe",
+        "placement": 1,
+        "player": "Undisclosed"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT5-007",
+          "name": "Agumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-008",
+          "name": "Agumon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-009",
+          "name": "Agumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT8-064",
+          "name": "Greymon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT4-011",
+          "name": "Agunimon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-012",
+          "name": "Greymon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST1-07",
+          "name": "Greymon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT8-067",
+          "name": "MetalGreymon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-015",
+          "name": "MetalGreymon (X Antibody)",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-072",
+          "name": "MetalGreymon: Alterous Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT8-070",
+          "name": "BlackWarGreymon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-068",
+          "name": "Gaiomon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT1-025",
+          "name": "WarGreymon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT5-086",
+          "name": "Omnimon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT5-111",
+          "name": "Omnimon X (Anti-body)",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT1-085",
+          "name": "Tai Kamiya",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT9-092",
+          "name": "Cool Boy",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT9-103",
+          "name": "Kongou",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-035",
+          "name": "Red Memory Boost!",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT9-001",
+          "name": "Koromon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt9-dgo-2022-10-01-2-security-control",
+      "revision": 1,
+      "name": "BT9 Security Control",
+      "archetype": "Security Control",
+      "collection": "BT9",
+      "formatBlock": "BT9",
+      "colors": ["Purple", "Yellow", "Red", "Black"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "2022 Regionals",
+        "date": "2022-10-01",
+        "region": "europe",
+        "placement": 2,
+        "player": "Undisclosed"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT9-072",
+          "name": "Salamon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT2-034",
+          "name": "Salamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-034",
+          "name": "Salamon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-076",
+          "name": "Maycrackmon: Vicious Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT1-060",
+          "name": "MagnaAngemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST10-13",
+          "name": "Junomon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-015",
+          "name": "AvengeKidmon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-112",
+          "name": "DeathXmon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX2-073",
+          "name": "Gallantmon: Crimson Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT3-096",
+          "name": "Mimi Tachikawa",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT4-097",
+          "name": "Kari Kamiya",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT7-107",
+          "name": "Calling From the Darkness",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT8-109",
+          "name": "Flame Hellscythe",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT1-107",
+          "name": "Holy Wave",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT2-098",
+          "name": "EDEN's Javelin",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT6-100",
+          "name": "Reinforcing Memory Boost!",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT6-101",
+          "name": "Wyvern's Breath",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "ST10-14",
+          "name": "Chaos Degradation",
+          "qty": 4,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT3-003",
+          "name": "Upamon",
+          "qty": 1,
+          "type": "DigiEgg"
+        },
+        {
+          "cardId": "EX2-003",
+          "name": "Viximon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt9-dgo-2022-10-01-3-metalgarurumon",
+      "revision": 2,
+      "name": "BT9 MetalGarurumon",
+      "archetype": "MetalGarurumon",
+      "collection": "BT9",
+      "formatBlock": "BT9",
+      "colors": ["Blue", "White", "Red"],
+      "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: P-008 and EX1-021 were reduced to 1; the freed slots reinforce the existing Gabumon lines.",
+      "tournament": {
+        "name": "2022 Regionals",
+        "date": "2022-10-01",
+        "region": "europe",
+        "placement": 3,
+        "player": "Undisclosed"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT5-020",
+          "name": "Gabumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-020",
+          "name": "Gabumon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX1-011",
+          "name": "Gabumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST8-02",
+          "name": "Gabumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT5-024",
+          "name": "Garurumon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-024",
+          "name": "Garurumon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-007",
+          "name": "Garurumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-028",
+          "name": "WereGarurumon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-008",
+          "name": "WereGarurumon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-073",
+          "name": "WereGarurumon: Sagittarius Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-031",
+          "name": "MetalGarurumon (X Antibody)",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX1-021",
+          "name": "MetalGarurumon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT5-086",
+          "name": "Omnimon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-085",
+          "name": "Matt Ishida & Sora Takenouchi",
+          "qty": 1,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT8-086",
+          "name": "Hiro Amanokawa",
+          "qty": 1,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT9-092",
+          "name": "Cool Boy",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "P-036",
+          "name": "Blue Memory Boost!",
+          "qty": 3,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT3-097",
+          "name": "A Delicate Plan",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT9-109",
+          "name": "X Antibody",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT5-002",
+          "name": "Tsunomon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    }
+  ]
+}

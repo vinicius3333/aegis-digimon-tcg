@@ -1,0 +1,107 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Social", "Tool", "Game"],
+                  match: "trait",
+                },
+              ],
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
+            },
+            count: 1,
+            // The printed source is "your trash or this Digimon's digivolution cards".
+            // Keep the host-qualified branch for the stack half and add a trash-capable
+            // equivalent branch; source:thisDigimon narrows only hosted candidates.
+            orFilters: [
+              {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Social", "Tool", "Game"], match: "trait" }],
+                hasLinkRequirement: true,
+              },
+            ],
+            source: "thisDigimon",
+          },
+          from: ["trash", "digivolutionCards"],
+          costDelta: -1,
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          on: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  playCostLte: 4,
+                },
+                count: 1,
+              },
+            },
+          ],
+          raw: "When this Digimon gets linked, delete 1 of your opponent's Digimon with a play cost of 4 or less",
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Static",
+      isLinked: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Restrict",
+              target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
+              restriction: "unsuspend",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
+    {
+      names: ["Offmon", "Hackmon"],
+      cost: 0,
+    },
+  ],
+};
+
+registerIrCard("BT25-070", compiled);

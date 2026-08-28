@@ -1,0 +1,217 @@
+.deck-list-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  min-height: 280px;
+  overflow: hidden;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: none;
+}
+
+.deck-list-card.is-active {
+  border-color: var(--ds-primary);
+}
+
+.deck-list-card__selector {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.deck-list-card:has(.deck-list-card__selector:focus-visible) {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.deck-list-card__cover,
+.deck-list-card__body {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.deck-list-card__cover {
+  display: grid;
+  width: 190px;
+  place-items: center;
+  overflow: hidden;
+  border-right: 1px solid var(--ds-border);
+  background: var(--ds-brand-ink) !important;
+}
+
+.deck-list-card__cover img {
+  width: 154px !important;
+  height: 216px !important;
+  object-fit: cover !important;
+}
+
+.deck-list-card__body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--ds-space-8);
+}
+
+.deck-list-card__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+}
+
+.deck-list-card__identity {
+  min-width: 0;
+}
+
+.deck-list-card__identity h3 {
+  overflow: hidden;
+  margin: 0;
+  color: var(--ds-foreground);
+  font: 700 var(--ds-text-2xl)/1.2 var(--ds-font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deck-list-card__counts {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-1);
+}
+
+.deck-list-card__counts span {
+  color: var(--ds-foreground-muted);
+  font: var(--ds-text-xs)/1.3 var(--ds-font-mono);
+}
+
+.deck-list-card__counts span.is-legal {
+  color: var(--ds-success);
+}
+
+.deck-list-card__blurb {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: var(--ds-space-3) 0 var(--ds-space-4);
+  color: var(--ds-foreground-secondary);
+  font-size: var(--ds-text-sm);
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.deck-list-card__violation {
+  margin-bottom: var(--ds-space-2);
+  color: var(--ds-danger);
+  font-size: var(--ds-text-xs);
+  line-height: 1.4;
+}
+
+.deck-list-card__pair-violation {
+  margin-bottom: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  color: var(--ds-danger);
+  border: 1px solid var(--ds-danger-border);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-danger-surface);
+  font-size: var(--ds-text-xs);
+  line-height: 1.5;
+}
+
+.deck-list-card__pair-violation div {
+  margin-top: var(--ds-space-1);
+}
+
+.deck-list-card__actions {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.deck-list-card.is-compact {
+  grid-template-columns: 84px minmax(0, 1fr);
+  min-height: 124px;
+  border-radius: var(--ds-radius-sm);
+}
+
+.deck-list-card.is-compact .deck-list-card__cover {
+  width: 84px;
+}
+
+.deck-list-card.is-compact .deck-list-card__cover img {
+  width: 72px !important;
+  height: 101px !important;
+}
+
+.deck-list-card.is-compact .deck-list-card__body {
+  padding: var(--ds-space-4);
+}
+
+.deck-list-card.is-compact .deck-list-card__identity h3 {
+  font-size: var(--ds-text-lg);
+}
+
+.deck-list-card.is-compact .deck-list-card__blurb {
+  margin: var(--ds-space-2) 0 0;
+  font-size: var(--ds-text-xs);
+  -webkit-line-clamp: 1;
+}
+
+.deck-list-card.is-compact .deck-list-card__violation,
+.deck-list-card.is-compact .deck-list-card__pair-violation {
+  margin-top: var(--ds-space-2);
+  margin-bottom: 0;
+}
+
+@media (width < 600px) {
+  .deck-list-card {
+    grid-template-columns: 116px minmax(0, 1fr);
+    min-height: 190px;
+  }
+
+  .deck-list-card__cover {
+    width: 116px;
+  }
+
+  .deck-list-card__cover img {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .deck-list-card__body {
+    padding: var(--ds-space-4);
+  }
+
+  .deck-list-card__identity h3 {
+    font-size: var(--ds-text-lg);
+  }
+
+  .deck-list-card.is-compact {
+    grid-template-columns: 72px minmax(0, 1fr);
+    min-height: 108px;
+  }
+
+  .deck-list-card.is-compact .deck-list-card__cover {
+    width: 72px;
+  }
+
+  .deck-list-card.is-compact .deck-list-card__cover img {
+    width: 64px !important;
+    height: 90px !important;
+  }
+
+  /* A phone-width body cannot hold "Edit" and "Make active" side by side, and the
+     card clips its overflow, so the second action must drop to its own line. */
+  .deck-list-card__actions {
+    flex-wrap: wrap;
+  }
+}

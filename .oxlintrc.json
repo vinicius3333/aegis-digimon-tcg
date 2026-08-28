@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "pedantic": "off",
+    "style": "off",
+    "restriction": "off"
+  },
+  "rules": {
+    "no-debugger": "error",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "typescript/no-explicit-any": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["apps/api/src/cards/**/*.test.ts"],
+      "rules": {
+        "vitest/valid-expect": "warn",
+        "vitest/valid-describe-callback": "warn",
+        "vitest/no-conditional-expect": "warn",
+        "vitest/require-to-throw-message": "warn",
+        "eslint/no-unsafe-optional-chaining": "warn"
+      }
+    },
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "rules": {
+        "no-unused-vars": "warn",
+        "vitest/valid-expect": "warn",
+        "vitest/valid-describe-callback": "warn",
+        "vitest/no-conditional-expect": "warn",
+        "vitest/require-to-throw-message": "warn",
+        "vitest/require-mock-type-parameters": "warn",
+        "vitest/expect-expect": "warn",
+        "vitest/valid-title": "warn"
+      }
+    }
+  ],
+  "ignorePatterns": ["**/dist/**", "**/coverage/**", "**/node_modules/**"]
+}

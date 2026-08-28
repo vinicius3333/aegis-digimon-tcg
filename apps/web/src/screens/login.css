@@ -1,0 +1,271 @@
+.login-page {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow-y: auto;
+  color: var(--ds-brand-on-ink);
+  background: var(--ds-brand-ink);
+}
+
+.login-page::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(circle at 78% 12%, rgb(120 170 255 / 14%), transparent 50%),
+    radial-gradient(circle at 12% 88%, rgb(7 95 247 / 12%), transparent 45%);
+}
+
+.login-page > * {
+  position: relative;
+}
+
+.login-page__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-4) var(--ds-gutter-desktop);
+}
+
+.login-page__brand {
+  display: grid;
+  min-height: var(--ds-touch-target);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.login-page__brand .aegis-logo__wordmark {
+  color: var(--ds-brand-on-ink) !important;
+}
+.login-page__brand .aegis-logo__subtitle {
+  color: var(--ds-brand-subtitle) !important;
+}
+
+.login-page__back {
+  display: flex;
+  min-height: var(--ds-touch-target);
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: 0 var(--ds-space-4);
+  color: var(--ds-brand-nav);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  border: 1px solid var(--ds-brand-interactive-strong);
+  border-radius: var(--ds-radius-md);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color var(--ds-motion-fast),
+    background var(--ds-motion-fast);
+}
+
+.login-page__back:hover {
+  color: var(--ds-brand-on-ink);
+  background: var(--ds-brand-interactive);
+}
+
+.login-page__body {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  padding: var(--ds-space-6) var(--ds-gutter-phone) var(--ds-space-12);
+}
+
+.login-card {
+  display: flex;
+  width: min(440px, 100%);
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--ds-fg);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 35%);
+}
+
+.login-card__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-8) var(--ds-space-8) var(--ds-space-6);
+  text-align: center;
+}
+
+.login-card__head img {
+  display: block;
+  object-fit: contain;
+}
+
+.login-card__head h1 {
+  margin: var(--ds-space-2) 0 0;
+  color: var(--ds-fg);
+  font: 900 var(--ds-text-2xl)/1.1 var(--ds-font-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.login-card__head p {
+  max-width: 34ch;
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-body);
+}
+
+.login-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  padding: 0 var(--ds-space-8) var(--ds-space-6);
+}
+
+.login-discord,
+.login-guest {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  padding: 0 var(--ds-space-6);
+  font-family: var(--ds-font-body);
+  font-size: var(--ds-text-base);
+  font-weight: 700;
+  border-radius: var(--ds-radius-md);
+  cursor: pointer;
+  transition:
+    background var(--ds-motion-fast),
+    border-color var(--ds-motion-fast),
+    color var(--ds-motion-fast);
+}
+
+.login-discord {
+  color: #ffffff;
+  border: 0;
+  background: #5865f2;
+}
+
+.login-discord:hover:not(:disabled) {
+  background: #4752c4;
+}
+
+.login-discord:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.login-guest {
+  min-height: 50px;
+  color: var(--ds-fg);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  border: 1px solid var(--ds-border);
+  background: var(--ds-surface);
+}
+
+.login-guest:hover {
+  color: var(--ds-accent);
+  border-color: var(--ds-accent);
+}
+
+.login-discord:focus-visible,
+.login-guest:focus-visible,
+.login-page__back:focus-visible,
+.login-page__brand:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.login-card__status {
+  margin: 0;
+  color: var(--ds-accent);
+  font: var(--ds-text-xs)/1.4 var(--ds-font-mono);
+  text-align: center;
+}
+
+.login-card__divider {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+}
+
+.login-card__divider::before,
+.login-card__divider::after {
+  flex: 1;
+  height: 1px;
+  content: "";
+  background: var(--ds-border-soft);
+}
+
+.login-card__divider span {
+  color: var(--ds-fg-disabled);
+  font: var(--ds-text-xs)/1 var(--ds-font-mono);
+  letter-spacing: 0.1em;
+}
+
+.login-card__note {
+  margin: 0;
+  color: var(--ds-fg-disabled);
+  font-size: var(--ds-text-xs);
+  line-height: var(--ds-leading-body);
+  text-align: center;
+}
+
+.login-card__benefits {
+  display: grid;
+  gap: var(--ds-space-2);
+  margin: 0;
+  padding: var(--ds-space-5) var(--ds-space-8) var(--ds-space-6);
+  list-style: none;
+  border-top: 1px solid var(--ds-border-soft);
+  background: var(--ds-bg);
+}
+
+.login-card__benefits li {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-xs);
+}
+
+.login-card__benefits svg {
+  flex: none;
+  color: var(--ds-accent);
+}
+
+.login-page__legal {
+  padding: 0 var(--ds-gutter-phone) var(--ds-space-6);
+  text-align: center;
+}
+
+.login-page__legal p {
+  margin: 0;
+  color: var(--ds-brand-subtitle);
+  font-size: var(--ds-text-xs);
+  line-height: var(--ds-leading-body);
+}
+
+@media (min-width: 600px) {
+  .login-page__body,
+  .login-page__legal {
+    padding-inline: var(--ds-gutter-tablet);
+  }
+}
+
+@media (max-width: 599px) {
+  .login-page__bar {
+    padding-inline: var(--ds-gutter-phone);
+  }
+
+  .login-card__head,
+  .login-card__actions,
+  .login-card__benefits {
+    padding-inline: var(--ds-space-5);
+  }
+}

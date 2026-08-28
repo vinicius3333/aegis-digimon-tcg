@@ -1,0 +1,153 @@
+import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT21-041.js";
+import "../index.js";
+
+describe("BT21-041 compiled implementation", () => {
+  it("exposes complete effect coverage with no residual clauses", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual ?? []).toEqual([]);
+    expect(compiled.effects).toBeDefined();
+  });
+
+  it("preserves the registered effect triggers and action boundaries", () => {
+    expect(compiled.effects.every((effect) => typeof effect.trigger === "string")).toBe(true);
+    for (const effect of compiled.effects) {
+      expect(Array.isArray(effect.actions)).toBe(true);
+      for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
+    }
+  });
+
+  it("preserves the Appmon link requirement and linked Security Digimon DP reduction", () => {
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 1 }]);
+    const linkedTurn = compiled.effects.find((effect) => effect.trigger === "YourTurn" && effect.isLinked);
+    expect(linkedTurn?.actions).toEqual([
+      {
+        kind: "ModifySecurityDP",
+        controller: "opponent",
+        amount: -3000,
+        duration: "permanent",
+      },
+    ]);
+  });
+
+  it("plays Calendamon from Security without paying its cost", async () => {
+    const s = setupEngine(
+      { 0: { security: [{ card: "BT21-041", as: "calendamon", faceUp: true }] } },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("calendamon"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("calendamon").instanceId),
+    );
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("calendamon").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("plays from Security after the battle finishes in a real security check", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-032", as: "attacker", dp: 2000 }] },
+      1: { security: [{ card: "BT21-041", as: "calendamon" }] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-041"));
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("links to an Appmon for 1, grants 2000 DP, and reduces only opposing Security Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-018", as: "host" }],
+        hand: [{ card: "BT21-041", as: "calendamon" }],
+      },
+      1: { security: ["BT1-009"] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    const baseDp = s.perm("host").currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("calendamon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.cardId === "BT21-041"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").currentDP).toBe(baseDp + 2000);
+    expect(observe(s.engine).securityDp(1)).toBe(-3000);
+    expect(observe(s.engine).securityDp(0)).toBe(0);
+  });
+
+  it("does not reduce Security Digimon on the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-018", as: "host", linked: ["BT21-041"] }] },
+      1: { security: ["BT1-009"] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(observe(s.engine).securityDp(1)).toBe(0);
+  });
+
+  it("rejects linking to a non-Appmon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "nonAppmon" }],
+        hand: [{ card: "BT21-041", as: "calendamon" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("calendamon").instanceId,
+        targetPermanentId: s.perm("nonAppmon").permanentId,
+      }),
+    ).toEqual({ ok: false, reason: "link-requirement-unmet" });
+  });
+
+  it("evolves from a level-2 Appmon for 0", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT21-005", as: "appmonEgg" },
+        hand: [{ card: "BT21-041", as: "calendamon" }],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("appmonEgg").permanentId,
+        instanceId: s.inst("calendamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("appmonEgg").topCard.cardId === "BT21-041");
+
+    expect(s.state.memory).toBe(1);
+  });
+});

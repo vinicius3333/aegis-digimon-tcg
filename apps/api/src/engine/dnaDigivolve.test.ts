@@ -1,0 +1,89 @@
+import { describe, it, expect } from "vitest";
+import type { PlayerState } from "@aegis/shared";
+// Importing the cards root barrel self-registers every compiled-IR card module so the
+// engine can resolve BT20-011's OnPlay DnaDigivolve and the BT12-030 result definition.
+import "../cards/index.js";
+import { setupEngine, settle, assertNoLoudGap } from "./testkit/harness.js";
+
+/**
+ * Phase A3 — DNA-digivolve (Jogress) behavioral oracle for SYS-01 (advanced-mechanics).
+ *
+ * Drives a REAL DnaDigivolve card (BT20-011 ExVeemon) through the real GameEngine and
+ * asserts the actual MERGE: two material Digimon are consumed and a single new permanent
+ * whose top card is the named `into` result (BT12-030 Imperialdramon: Dragon Mode) appears.
+ * "No error thrown" is not proof — this asserts the observable state transition.
+ *
+ * IR-faithfulness (RESEARCH Pitfall 5 / Assumption A2): BT20-011's OnPlay IR is
+ *   Delete(opponent Digimon <=3000 DP) then DnaDigivolve(2 of your Digimon -> a Digimon
+ *   card in hand with [Imperialdramon] in name OR the [Free] trait, payCost).
+ * This matches the documented behavior oracle exactly — documented behavior CanSelectCardCondition gates the DNA
+ * target on `IsDigimon && (CardTraits.Contains("Free") || ContainsCardName("Imperialdramon"))
+ * && CanPlayJogress(true)` and calls DNADigivolvePermanentsIntoHandOrTrashCard(payCost:true,
+ * isHand:true). The compiled `into` filter {name:"Imperialdramon" OR trait:"Free"} reproduces
+ * that condition; the printed text ("into a Digimon card with [Imperialdramon] in its name or
+ * the [Free] trait in the hand") confirms the named result is faithful, NOT a runtime record
+ * mismodel. (The "named into" candidates BT16-091/097 were REJECTED: their documented behavior / printed text
+ * say "into a Digimon card in your hand" — generic — so their named `into` is a mismodel.)
+ */
+
+describe("A3 DnaDigivolve (Jogress) — two materials merge into the named result", () => {
+  it("BT20-011 [On Play] DNA-digivolves 2 of your Digimon into BT12-030 (Imperialdramon)", async () => {
+    // Two material Digimon (Paildramon, Lv.5 Blue/Green) on my battle area. They are laid
+    // BEFORE BT20-011 is played, so they are the first two `mine Digimon` candidates the
+    // material pick sees. Their Lv.5 Blue/Green top cards satisfy BT12-030's printed
+    // digivolve cost (Blue/Green Lv.5 -> cost 4), so `payCost: true` resolves.
+    //
+    // The DNA result in hand: Imperialdramon: Dragon Mode — carries BOTH [Imperialdramon] in
+    // its name AND the [Free] trait, so it satisfies BT20-011's `into` filter either way.
+    // BT20-011 ExVeemon itself is the OnPlay source. Cost 4 to play; DNA cost 4 to merge.
+    // Both hand cards are laid face-down, matching how a card sits in hand pre-reveal.
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-028", dp: 8000, as: "materialA" },
+            { card: "BT12-028", dp: 8000, as: "materialB" },
+          ],
+          hand: [
+            { card: "BT12-030", faceUp: false, as: "result" },
+            { card: "BT20-011", faceUp: false, as: "source" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8; // play (4) + DNA digivolve (4)
+    const p0 = s.state.players[0] as PlayerState;
+    const materialAId = s.perm("materialA").permanentId;
+    const materialATopId = s.perm("materialA").topCard?.instanceId;
+    const materialBId = s.perm("materialB").permanentId;
+    const materialBTopId = s.perm("materialB").topCard?.instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+
+    // The merge produces a single new permanent whose top card is the named result.
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT12-030"));
+
+    const merged = p0.battleArea.find((p) => p.topCard?.cardId === "BT12-030");
+    expect(merged, "the named DNA result BT12-030 must be on my battle area").toBeDefined();
+
+    // Both material permanents are consumed by the merge (their ids are gone).
+    expect(p0.battleArea.some((p) => p.permanentId === materialAId)).toBe(false);
+    expect(p0.battleArea.some((p) => p.permanentId === materialBId)).toBe(false);
+
+    // The materials' top-card instances are no longer the top of any battle-area permanent —
+    // they were pulled off the field and stacked under the merged result.
+    const topInstanceIds = p0.battleArea.map((p) => p.topCard?.instanceId);
+    expect(topInstanceIds).not.toContain(materialATopId);
+    expect(topInstanceIds).not.toContain(materialBTopId);
+
+    // Both materials' top cards are now carried under the merged permanent (the DNA stack).
+    const stackInstanceIds = merged!.stack.map((c) => c.instanceId);
+    expect(stackInstanceIds).toContain(materialATopId);
+    expect(stackInstanceIds).toContain(materialBTopId);
+
+    assertNoLoudGap(s);
+  });
+});
