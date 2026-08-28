@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-075.js";
+import "./BT13-077.js";
 
 describe("BT13-075 BT13-075", () => {
   it("has complete compiled coverage and no residual gaps", () => {
@@ -15,9 +16,10 @@ describe("BT13-075 BT13-075", () => {
           {
             kind: "Restrict",
             target: { filter: { controller: "opponent", kind: ["Digimon"], playCostGte: 10 }, count: "all" },
+            whileMatchesTargetFilter: true,
             restriction: "attackPlayers",
             duration: "untilOpponentTurnEnd",
-            optional: false,
+            abortOnDecline: true,
             cost: {
               kind: "place",
               destination: "digivolutionStack",
@@ -32,6 +34,7 @@ describe("BT13-075 BT13-075", () => {
                 },
                 count: 1,
                 from: ["trash"],
+                optional: true,
               },
             },
           },
@@ -48,7 +51,7 @@ describe("BT13-075 BT13-075", () => {
           kind: "Replacement",
           event: "wouldLeavePlay",
           mode: "prevent",
-          leaveCause: "otherThanYourEffect",
+          leaveCause: "byEffect",
           sourceFilter: { isSelfRef: true },
           actions: [],
           cost: {
@@ -90,6 +93,59 @@ describe("BT13-075 BT13-075", () => {
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "attackPlayers")).toBe(true);
   });
 
+  it("does not install the restriction when the optional placement cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-075", as: "alphamon" }], trash: ["BT9-055"] },
+        1: { battleArea: [{ card: "BT13-077", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("alphamon"));
+
+    expect(s.perm("alphamon").stack.map((card) => card.cardId)).not.toContain("BT9-055");
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "attackPlayers")).toBe(false);
+  });
+
+  it("keeps a cost-9 opponent restricted after it digivolves into a cost-13 Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-075", as: "alphamon" }], trash: ["BT9-055"] },
+        1: {
+          battleArea: [{ card: "EX8-052", as: "lowCost" }],
+          hand: [{ card: "BT13-077", as: "highCost" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("alphamon"));
+    expect(observe(s.engine).isRestricted(s.perm("lowCost"), "attackPlayers")).toBe(false);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("lowCost").permanentId,
+        instanceId: s.inst("highCost").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("lowCost").topCard?.cardId === "BT13-077");
+
+    expect(s.perm("lowCost").topCard?.cardId).toBe("BT13-077");
+    expect(observe(s.engine).isRestricted(s.perm("lowCost"), "attackPlayers")).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("lowCost").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+  });
+
   it("returns a qualifying source to the deck and prevents an opposing effect removal", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT13-075", as: "alphamon", under: ["BT9-055"] }] },
@@ -107,5 +163,32 @@ describe("BT13-075 BT13-075", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toContain("BT9-055");
+  });
+
+  it("also prevents an own-effect removal but not a battle deletion", async () => {
+    const ownEffect = setupEngine({
+      0: { battleArea: [{ card: "BT13-075", as: "alphamon", under: ["BT9-055"] }] },
+      1: { deck: ["BT1-001"] },
+    });
+    await ownEffect.ready();
+    const ownHostId = ownEffect.perm("alphamon").permanentId;
+    advance(ownEffect.engine).verb.enterEffectResolution(0, ["Digimon"]);
+    try {
+      await advance(ownEffect.engine).verb.deletePermanent([ownHostId], "byEffect");
+    } finally {
+      advance(ownEffect.engine).verb.leaveEffectResolution();
+    }
+    expect(ownEffect.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === ownHostId)).toBe(true);
+    expect(ownEffect.state.players[0]!.deck.map((card) => card.cardId)).toContain("BT9-055");
+
+    const battle = setupEngine({
+      0: { battleArea: [{ card: "BT13-075", as: "alphamon", under: ["BT9-055"] }] },
+      1: { deck: ["BT1-001"] },
+    });
+    await battle.ready();
+    const battleHostId = battle.perm("alphamon").permanentId;
+    await advance(battle.engine).verb.deletePermanent([battleHostId], "byBattle");
+    expect(battle.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === battleHostId)).toBe(false);
+    expect(battle.state.players[0]!.deck.map((card) => card.cardId)).not.toContain("BT9-055");
   });
 });
