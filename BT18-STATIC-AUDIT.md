@@ -22,7 +22,7 @@ provisional and capped at 8/10.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT18-001–010 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-001-010.md` | Yes |
-| BT18-011–020 | Luna assigned | `internal-docs/audits/BT18/BT18-011-020.md` | No |
+| BT18-011–020 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-011-020.md` | Yes |
 | BT18-021–030 | Luna assigned | `internal-docs/audits/BT18/BT18-021-030.md` | No |
 | BT18-031–040 | Luna assigned | `internal-docs/audits/BT18/BT18-031-040.md` | No |
 | BT18-041–050 | Luna assigned | `internal-docs/audits/BT18/BT18-041-050.md` | No |
@@ -55,16 +55,26 @@ applicable non-gate component rather than being rounded up.
 | BT18-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves the 2000-DP deletion ceiling, and legal red evolution preserves the source stack (`54d347540`). |
 | BT18-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent Digimon deletion proves non-Tamer memory gain is blocked while shared capability paths preserve Tamer and dual-kind exceptions (`430e48ab0`). |
 | BT18-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Digimon- and Tamer-to-Hybrid evolution plus a non-Hybrid negative prove the owned-source watcher and once-per-turn memory gain (`16d8f49e6`). |
+| BT18-011 | 2/2 | 2/2 | 2/2 | 1/2 | 0/2 | 7/10 provisional | Natural BurningGreymon evolution proves return/decline and inherited-Tamer filtering, but no exact Ten Warriors peer target is separately exercised (`2707bb73f`). |
+| BT18-012 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play, Gigasmon evolution, DP boundaries, and inherited attack are covered; a natural same-turn second attack is absent (`849688dae`). |
+| BT18-013 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and both evolution routes prove trash cost/return, decline, mixed traits, Raid, and inherited Retaliation (`0bb87db9c`). |
+| BT18-014 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/evolution proves Rush and a real attack proves the deletion boundary; no natural same-turn reattack proves frequency (`f168b9df4`). |
+| BT18-015 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution, attack, cost decline, lowest-DP selection, inherited Security Attack, and losing-battle DNA use legal Kimeramon/Machinedramon stacks (`66afdbbe1`). |
+| BT18-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural red evolution proves Blitz/cost and a natural attack proves the opponent-turn DP duration (`822f1c041`). |
+| BT18-017 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry, tied-lowest deletion, both losing-battle replacement branches, and public DigiXros are covered; optional refusal remains unproved (`c9265a94d`). |
+| BT18-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural legal Takuya evolution and repeated attacks prove color scaling, optional attack, requirement boundary, unsuspend, and once-per-turn bonus (`059adc110`). |
+| BT18-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, public DNA, decline, DigiXros distinct slots, and complete/incomplete losing-battle recovery prove the preserved hand-authored DNA requirement (`613ebe053`). |
+| BT18-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural blue evolution and live observation prove the self-bound Aquatic Rule trait and stack preservation (`af6e46ff3`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 70
-- Integrated card audits: 10
+- Integrated card audits: 20
 - Corrected: 1
-- Provisional: 10
+- Provisional: 20
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 0
+- Blocked or ambiguous: 4 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps)
 - Remaining unassigned: 32
 
 BT18 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
