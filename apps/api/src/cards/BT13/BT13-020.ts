@@ -14,7 +14,7 @@ const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Tamer"],
-            nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }],
+            nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }],
           },
           actions: [
             {
@@ -30,7 +30,11 @@ const compiled: CompiledCard = {
         {
           kind: "PlayWithoutCost",
           target: {
-            filter: { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }] },
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }],
+            },
             count: 1,
           },
           from: ["hand"],
@@ -55,7 +59,14 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ names: ["ShineGreymon", "Marcus Damon"], cost: 0, isAlternate: true }],
+  digivolutionRequirement: [
+    {
+      namesExact: ["ShineGreymon"],
+      cost: 0,
+      isAlternate: true,
+      burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
+    },
+  ],
 };
 
 registerIrCard("BT13-020", compiled);
