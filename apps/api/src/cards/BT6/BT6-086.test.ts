@@ -22,7 +22,7 @@ describe("BT6-086 Eosmon", () => {
         },
         1: { battleArea: [{ card: "BT6-075", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("first").instanceId, s.inst("second").instanceId, s.perm("target").permanentId);
     const targetInstanceId = s.perm("target").topCard.instanceId;
@@ -35,11 +35,29 @@ describe("BT6-086 Eosmon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+
+    const orderDecision = s.decisions.at(-1)!.req;
+    expect(orderDecision.options?.visibleCards).toEqual(
+      expect.arrayContaining([
+        { instanceId: s.inst("first").instanceId, cardId: "BT6-085" },
+        { instanceId: s.inst("second").instanceId, cardId: "BT6-085" },
+      ]),
+    );
+    const order = [s.inst("second").instanceId, s.inst("first").instanceId];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: orderDecision.decisionId,
+        response: { kind: "orderCards", order },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]),
     );
+    expect(s.perm("base").stack.indexOf(s.inst("second"))).toBeLessThan(s.perm("base").stack.indexOf(s.inst("first")));
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId)).toBe(true);
   });
 

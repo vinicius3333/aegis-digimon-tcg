@@ -14,6 +14,9 @@ const STATIC_NAME_ALIASES_BY_CARD_ID: Record<string, string[]> = {
   // Special rule text is phrased "Also treat as if name is...", outside the
   // generic "this card is also treated" parser. KB Q759: applies in every zone.
   "ST12-13": ["Sistermon Noir"],
+  // BT6-084's Q1470 erratum makes the alias universal even though the committed
+  // catalog effect text predates the standardized (Rule) wording.
+  "BT6-084": ["Sistermon Noir"],
   // The committed BT11-009 text predates standardized `(Rule) Name:` wording.
   // Q2054 confirms both aliases apply unconditionally in every zone.
   "BT11-009": ["Shoutmon", "Starmons"],
