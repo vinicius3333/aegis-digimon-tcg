@@ -1,6 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-022.js";
@@ -44,25 +42,6 @@ describe("BT18-022 Kumamon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT18-022", as: "kumamon" }] } });
     await s.ready();
     expect(observe(s.engine).hasEffectiveTrait(s.perm("kumamon"), "Ice-Snow")).toBe(true);
-  });
-
-  it("trashes the bottom 2 digivolution cards when digivolving", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT18-022", as: "kumamon" }] },
-        1: { battleArea: [{ card: "BT1-030", as: "target", under: ["BT1-001", "BT1-003", "BT1-004"] }] },
-      },
-      { autoSelectCards: true },
-    );
-    const bottomIds = s
-      .perm("target")
-      .stack.slice(0, 2)
-      .map((card) => card.instanceId);
-
-    await advance(s.engine).fireForInstance(EffectTiming.WhenDigivolving, s.perm("kumamon").topCard!);
-
-    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT1-004"]);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(bottomIds));
   });
 
   it("naturally trashes the bottom 2 cards on a legal Tommy Himi evolution", async () => {
@@ -151,39 +130,14 @@ describe("BT18-022 Kumamon", () => {
     expect(s.perm("penguinmon").stack.at(-1)?.cardId).toBe("BT18-021");
   });
 
-  it("plays an inherited-effect Tamer only from its own host stack when the host leaves", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "BT1-060", as: "host", under: ["BT18-089", "BT18-022"] },
-            { card: "BT1-030", as: "other", under: ["BT18-090"] },
-          ],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    const ownTamerId = s.perm("host").stack.find((card) => card.cardId === "BT18-089")!.instanceId;
-    s.perm("host").baseDP = 0;
-    s.perm("host").currentDP = 0;
-
-    await (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
-      EffectTiming.OnStartMainPhase,
-    );
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ownTamerId),
-    );
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ownTamerId)).toBe(true);
-    expect(s.perm("other").stack.map((card) => card.cardId)).toContain("BT18-090");
-  });
-
   it("naturally offers the inherited Tamer play when an opponent deletes the host in battle", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-060", as: "host", suspended: true, under: ["BT18-089", "BT18-022"] }],
+          battleArea: [
+            { card: "BT1-060", as: "host", suspended: true, under: ["BT18-089", "BT18-022"] },
+            { card: "BT1-030", as: "other", under: ["BT18-090"] },
+          ],
         },
         1: { battleArea: [{ card: "BT1-030", as: "attacker" }] },
       },
@@ -206,5 +160,6 @@ describe("BT18-022 Kumamon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ownTamerId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT18-022")).toBe(true);
+    expect(s.perm("other").stack.map((card) => card.cardId)).toContain("BT18-090");
   });
 });
