@@ -34,7 +34,7 @@ collection-complete claim is valid.
 | BT16-061–070 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-061-070.md` | Yes |
 | BT16-071–080 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-071-080.md` | Yes |
 | BT16-081–090 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-081-090.md` | Yes |
-| BT16-091–100 | Luna assigned | `internal-docs/audits/BT16/BT16-091-100.md` | No |
+| BT16-091–100 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-091-100.md` | Yes |
 | BT16-101–102 | Luna assigned | `internal-docs/audits/BT16/BT16-101-102.md` | No |
 
 Process note: during BT16-011 inspection, the worker accidentally invoked one
@@ -160,14 +160,24 @@ feasible natural originating event.
 | BT16-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected optional play binding and one-shot delayed return to the played Armadillomon/Patamon; Q2681–Q2682 and DNA gating are covered (`00047e6eb`). |
 | BT16-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2683/Q5534–Q5535, natural play-cost replacement, effect-deletion revival, and one-shot opponent-turn delayed deletion match the IR (`d6497aa4d`). |
 | BT16-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2684–Q2688, natural start-turn memory, exact compound costs, optional breeding play for three, and Overflow boundaries are covered (`6e0e85f97`). |
+| BT16-091 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Errata/Q2664/Q2689–Q2691 and the paired DNA-result follow-up map to compiled IR, but the colocated proof remains structural-only (`539f06364`). |
+| BT16-092 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2692–Q2693, optional ExVeemon/Stingmon play, DNA-result protection/Blocker, and Security return have a natural public-play path (`e433f60e6`). |
+| BT16-093 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected the inert raw DP restriction to opponent-effect-only `dpImmune`; color waiver/evolution/security clauses trace cleanly, but behavior proof is structural-only (`205f81364`). |
+| BT16-094 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected union reveal count, Trial battle-area placement, and modal availability; Main/Delay/Security IR is traced, but behavior proof is structural-only (`2c91668a0`). |
+| BT16-095 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural public Option use proves two-target suspension, all lowest-DP ties to deck bottom, and own +3000 duration (`571e4a337`). |
+| BT16-096 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural public Option use proves D-Brigade/DigiPolice reveal/add, deck-top remainder, self-placement, and Delay peer semantics (`5c54552ea`). |
+| BT16-097 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected shared DNA result binding for the ordered Recovery condition; Q2694–Q2695 and natural play/DNA/Recovery behavior are covered (`46906e0c6`). |
+| BT16-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2696 conditional first deletion and unconditional lowest-play-cost tied deletion are proved through natural public Option use (`02548f20a`). |
+| BT16-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal/add/trash/self-placement proves the SoC Main path; Delay reduction maps to the direct scoped runtime despite generated-snapshot drift (`d72450b11`). |
+| BT16-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2697, Pulsemon color waiver, optional security payment/cost reduction, level deletion, and security-bottom placement have natural public-play proof (`687a390fe`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 90
-- Corrected: 24
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 27
+- Provisional: 100
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 0
