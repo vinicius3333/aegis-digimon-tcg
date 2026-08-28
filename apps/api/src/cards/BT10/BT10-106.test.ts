@@ -1,8 +1,24 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-106.js";
 
 describe("BT10-106 Justice Kick", () => {
+  it("returns itself after optionally playing a black Tamer from Security", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT10-106", as: "option", faceUp: true }], hand: [{ card: "BT10-092", as: "tamer" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-092")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
   it("deletes an opponent Digimon up to the play cost of the Justimon it played", async () => {
     const s = setupEngine(
       {
