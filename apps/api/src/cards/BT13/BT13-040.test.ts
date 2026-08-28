@@ -1,10 +1,26 @@
 import { describe, expect, it } from "vitest";
+import { definitionOf } from "../../engine/cards/cardData.js";
 import { compiled } from "./BT13-040.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT13-040 Magnamon", () => {
+  it("keeps both bracketed Veemon references exact", () => {
+    const play = compiled.effects[1]!.actions[0] as unknown as {
+      actions: [{ target: { filter: { or: [{ nameOrTrait: [{ tokens: string[]; match: string }] }] } } }];
+    };
+    const branches = play.actions[0].target.filter.or;
+    const handReference = branches[0]!.nameOrTrait[0]!;
+    const stackReference = branches[1]!.nameOrTrait[0]!;
+
+    expect(handReference).toEqual({ tokens: ["Veemon"], match: "nameExact" });
+    expect(stackReference).toEqual({ tokens: ["Veemon"], match: "nameExact" });
+    expect(matchNameOrTrait(definitionOf("BT12-021"), handReference as never)).toBe(true);
+    expect(matchNameOrTrait(definitionOf("BT12-022"), handReference as never)).toBe(false);
+  });
+
   it("keeps Blocker and replaces leaving play with draw plus optional Veemon play", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -30,10 +46,10 @@ describe("BT13-040 Magnamon", () => {
                 filter: {
                   controller: "mine",
                   or: [
-                    { zone: "hand", nameOrTrait: [{ match: "name", tokens: ["Veemon"] }] },
+                    { zone: "hand", nameOrTrait: [{ match: "nameExact", tokens: ["Veemon"] }] },
                     {
                       zone: "digivolutionCards",
-                      nameOrTrait: [{ match: "name", tokens: ["Veemon"] }],
+                      nameOrTrait: [{ match: "nameExact", tokens: ["Veemon"] }],
                       hostFilter: { isSelfRef: true },
                     },
                   ],
@@ -190,6 +206,21 @@ describe("BT13-040 Magnamon", () => {
       await settle(() => s.perm("base").topCard.cardId === "BT13-040");
       expect(s.state.memory).toBe(expectedMemory);
     }
+  });
+
+  it("requires the exact Veemon name for its alternate evolution", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Veemon"], cost: 3, isAlternate: true }]);
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-022", as: "exveemon" }], hand: [{ card: "BT13-040", as: "magna" }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("exveemon").permanentId,
+        instanceId: s.inst("magna").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
   });
 
   it("rejects the alternate evolution from a non-Veemon", () => {
