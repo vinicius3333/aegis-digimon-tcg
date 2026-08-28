@@ -36,6 +36,7 @@ const compiled: CompiledCard = {
               count: 1,
               from: ["hand"],
             },
+            destination: "battleArea",
             raw: "By placing 1 Option card with the [Device] trait from your hand in the battle area",
           },
           optional: true,
@@ -47,50 +48,64 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              controller: "mine",
-              zone: "battleArea",
-              kind: ["Option"],
-              nameOrTrait: [
-                {
-                  tokens: ["Device"],
-                  match: "trait",
-                },
-              ],
-            },
-            count: 4,
-          },
+          kind: "CostGatedBlock",
           cost: {
-            kind: "suspend",
-            target: {
-              filter: {
-                isSelfRef: true,
-              },
-              count: 1,
-              isSelf: true,
-            },
-            raw: "By suspending this Tamer",
-          },
-        },
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Cyberdramon"],
-                  match: "name",
+            kind: "compound",
+            costs: [
+              {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
                 },
-              ],
-            },
-            count: 1,
+                raw: "By suspending this Tamer",
+              },
+              {
+                kind: "deleteOwn",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    zone: "battleArea",
+                    kind: ["Option"],
+                    nameOrTrait: [
+                      {
+                        tokens: ["Device"],
+                        match: "trait",
+                      },
+                    ],
+                  },
+                  count: 4,
+                },
+                raw: "and trashing 4 Option cards with the [Device] trait in the battle area",
+              },
+            ],
+            raw: "By suspending this Tamer and trashing 4 Option cards with the [Device] trait in the battle area",
           },
-          from: ["hand", "trash"],
-          payCost: false,
           optional: true,
+          abortOnDecline: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
+                    {
+                      tokens: ["Cyberdramon"],
+                      match: "nameExact",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["hand", "trash"],
+              payCost: false,
+              optional: true,
+            },
+          ],
         },
       ],
     },
