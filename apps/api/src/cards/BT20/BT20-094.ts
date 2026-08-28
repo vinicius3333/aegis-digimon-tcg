@@ -77,9 +77,9 @@ export const compiled: CompiledCard = {
               hostFilter: {
                 controller: "mine",
                 kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["Imperialdramon: Fighter Mode"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Imperialdramon: Fighter Mode"], match: "nameExact" }],
               },
-              nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }],
+              nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" }],
             },
             count: 1,
           },
