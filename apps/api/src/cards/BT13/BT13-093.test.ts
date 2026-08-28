@@ -54,8 +54,11 @@ describe("BT13-093 Omekamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("omeka"));
+    const omekaPermanentId = s.perm("omeka").permanentId;
+    const omekaTopInstanceId = s.perm("omeka").topCard.instanceId;
+    expect(await advance(s.engine).verb.deletePermanent([omekaPermanentId])).toBe(1);
     await settle(() => s.perm("drasil").stack.some((card) => card.instanceId === s.inst("royal").instanceId));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === omekaTopInstanceId)).toBe(true);
     expect(s.perm("drasil").stack.some((card) => card.instanceId === s.inst("royal").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royal").instanceId)).toBe(false);
   });
