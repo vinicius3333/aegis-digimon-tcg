@@ -3,7 +3,12 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const raidAndBoost = [
-  { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+  {
+    kind: "Trash",
+    target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+    optional: true,
+    abortOnDecline: true,
+  },
   {
     kind: "ModifyDP",
     target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, bindAs: "soloogarmonTarget" },
