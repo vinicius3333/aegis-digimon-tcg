@@ -631,6 +631,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     engine.memory.setMemory(value, "setMemory");
   };
 
+  const setMemoryForSeat: Primitives["setMemoryForSeat"] = (seat, value): void => {
+    engine.memory.setMemoryForSeat(seat, value, "setMemory");
+  };
+
   // --- DP / keywords / cost (duration-scoped) --------------------------------
 
   const modifyDP: Primitives["modifyDP"] = (permanentId, delta, duration, opts): void => {
@@ -5253,6 +5257,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     isTimingEffectDisabled,
     declareWinner,
     setMemory,
+    setMemoryForSeat,
     setTurnEndMinMemory: (seat: Seat, minimum: number) => engine.memory.setTurnEndMinMemory?.(seat, minimum),
     modifyDP,
     modifyPlayerDP,

@@ -616,6 +616,8 @@ export interface Primitives {
   isTimingEffectDisabled?(permanentId: string, timing: DisableTiming): boolean;
   declareWinner(seat: Seat): void;
   setMemory(v: number): void;
+  /** Raise/set a specific seat's memory from that seat's perspective when the action targets it. */
+  setMemoryForSeat?(seat: Seat, value: number): void;
   /** Raise the active turn-end threshold for this effect's controller (BT14-081). */
   setTurnEndMinMemory?(seat: Seat, minimum: number): void;
   modifyDP(
