@@ -107,7 +107,13 @@ export async function runHandRevealAdd(
  */
 export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, { kind: "RevealAdd" }>): Promise<void> {
   ctx.lastEffectActed = false;
-  const seat = ctx.source.ownerSeat;
+  let seat = ctx.source.ownerSeat;
+  if (action.controller === "opponent") {
+    seat = ctx.game.opponentOf(ctx.source.ownerSeat);
+  } else if (action.controller === "any") {
+    const choice = await ctx.ask.chooseOption(ctx, ["Your deck", "Opponent's deck"]);
+    seat = choice === 0 ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
+  }
   if (action.trackCount !== undefined) {
     ctx.namedCounts ??= new Map();
     ctx.namedCounts.set(action.trackCount, 0);
