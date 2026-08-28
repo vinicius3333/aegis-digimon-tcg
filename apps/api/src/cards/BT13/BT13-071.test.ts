@@ -1,8 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-071.js";
+import "./BT13-058.js";
 
 describe("BT13-071 Giromon", () => {
   it("keeps Blocker and inherited opponent-turn security trash", () => {
@@ -28,18 +28,53 @@ describe("BT13-071 Giromon", () => {
     });
   });
 
-  it("trashes the opponent's top security when an inherited Digimon becomes suspended", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", under: ["BT13-071"], as: "host" }] },
-      1: { security: ["BT1-001"] },
-    });
-    await s.ready();
+  it("naturally trashes once when two opposing Leopardmon effects suspend two hosts", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", under: ["BT13-071"], as: "host" },
+            { card: "BT1-010", as: "secondTarget" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT13-056", as: "firstLeopardmon" },
+            { card: "BT13-056", as: "secondLeopardmon" },
+          ],
+          hand: [{ card: "BT13-058", as: "firstMode" }, { card: "BT13-058", as: "secondMode" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 1;
-    await advance(s.engine).fireForPermanent(EffectTiming.None, s.perm("host"));
-    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
-    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("host").permanentId });
-    await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.state.players[1]!.security).toHaveLength(0);
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("firstLeopardmon").permanentId,
+        instanceId: s.inst("firstMode").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("secondTarget").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("secondLeopardmon").permanentId,
+        instanceId: s.inst("secondMode").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("secondTarget").isSuspended);
+    expect(s.perm("secondTarget").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-001"]);
   });
 });
