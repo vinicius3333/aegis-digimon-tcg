@@ -28,7 +28,15 @@ describe("BT20-100 The Last Guardian", () => {
           event: "wouldLeavePlay",
           mode: "prevent",
           sourceFilter: { nameOrTrait: [{ tokens: ["Omnimon"], match: "name" }] },
-          target: { filter: { useTriggerSource: true }, count: 1 },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              isTriggerSource: true,
+              nameOrTrait: [{ tokens: ["Omnimon"], match: "name" }],
+            },
+            count: 1,
+          },
           actions: [],
         },
       ],

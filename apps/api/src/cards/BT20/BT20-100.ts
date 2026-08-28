@@ -86,7 +86,15 @@ export const compiled: CompiledCard = {
           },
           target: {
             filter: {
-              useTriggerSource: true,
+              controller: "mine",
+              kind: ["Digimon"],
+              isTriggerSource: true,
+              nameOrTrait: [
+                {
+                  tokens: ["Omnimon"],
+                  match: "name",
+                },
+              ],
             },
             count: 1,
           },
