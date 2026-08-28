@@ -23,7 +23,7 @@ provisional and capped at 8/10.
 | --- | --- | --- | --- |
 | BT20-001–010 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-001-010.md` | Yes |
 | BT20-011–020 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-011-020.md` | Yes |
-| BT20-021–030 | Luna assigned | `internal-docs/audits/BT20/BT20-021-030.md` | No |
+| BT20-021–030 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-021-030.md` | Yes |
 | BT20-031–040 | Luna assigned | `internal-docs/audits/BT20/BT20-031-040.md` | No |
 | BT20-041–050 | Luna assigned | `internal-docs/audits/BT20/BT20-041-050.md` | No |
 | BT20-051–060 | Luna assigned | `internal-docs/audits/BT20/BT20-051-060.md` | No |
@@ -65,16 +65,26 @@ applicable non-gate component rather than being rounded up.
 | BT20-018 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected either-stack Security removal direction; the central security/inherited clauses still use explicit subtrigger timing (`36a33e645`). |
 | BT20-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Jesmon evolution proves independent immunity/attack branches, auras, exact peers, and legal inherited stack (`175a52725`). |
 | BT20-020 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected opponent-stack Security removal direction; restriction and watcher proof retain explicit timing seams (`dc63d9aa3`). |
+| BT20-021 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected Royal Knight stack scaling to include Option cards; entry/attack behavior remains manually timed (`c62d1538a`). |
+| BT20-022 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Battle protection and inherited draw state are observable after manually fired entry/attack timings (`b910cfb4f`). |
+| BT20-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural green Dracomon-text play drives reduced Wingdramon evolution; Jamming and inherited DP boundaries are observable (`b910cfb4f`). |
+| BT20-024 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Return, stack-gated Tamer lock, and inherited draw are observed through manually fired entry/attack timings (`b910cfb4f`). |
+| BT20-025 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 7/10 provisional | Entry deletion is manually fired and no natural Examon DNA path proves the field-only alias/level treatment (`b910cfb4f`). |
+| BT20-026 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry return/restriction is manually fired; the inherited attack-target restriction uses a natural attack (`b910cfb4f`). |
+| BT20-027 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural deletion/prevention behavior is covered, but the feasible Security-removal watcher remains injected (`b910cfb4f`). |
+| BT20-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural digivolution and stack-source play prove the watcher, condition boundary, De-Digivolve, and keywords (`b910cfb4f`). |
+| BT20-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected Pulsemon name-only matching with legal SEEKERS positive/text-only negative; inherited timing remains injected (`adb60c364`). |
+| BT20-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves independent reveal selectors and bottoming; live stack state proves inherited-only Barrier (`b910cfb4f`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 20
-- Corrected: 2
-- Provisional: 20
+- Integrated card audits: 30
+- Corrected: 4
+- Provisional: 30
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 10 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020` source/stack-proof gaps)
+- Blocked or ambiguous: 17 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029` source/stack-proof gaps)
 - Remaining unassigned: 22
 
 BT20 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
