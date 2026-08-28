@@ -37,4 +37,23 @@ describe("BT8-049 Namakemon", () => {
       }),
     ).not.toEqual({ ok: true });
   });
+
+  it("digivolves from a green level-3 Digimon for 2 memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-064", as: "base" }], hand: [{ card: "BT8-049", as: "evolving" }] },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT8-049");
+
+    expect(s.perm("base").topCard.cardId).toBe("BT8-049");
+    expect(s.state.memory).toBe(1);
+  });
 });
