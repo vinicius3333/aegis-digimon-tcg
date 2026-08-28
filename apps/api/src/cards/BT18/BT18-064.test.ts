@@ -79,4 +79,30 @@ describe("BT18-064 Mercurymon", () => {
     expect(s.perm("other").currentDP).toBe(5000);
     assertNoLoudGap(s);
   });
+
+  it("allows a return effect after the natural opponent-turn expiration", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT18-064", as: "mercurymon" }] },
+        1: { deck: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mercurymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT18-064"));
+    const instanceId = s.inst("mercurymon").instanceId;
+    expect(observe(s.engine).isRestricted(s.perm("mercurymon"), "beReturned")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = -4;
+    await advance(s.engine).runTurn(1);
+
+    expect(observe(s.engine).isRestricted(s.perm("mercurymon"), "beReturned")).toBe(false);
+    await advance(s.engine).verb.returnToHand([instanceId]);
+    expect(s.state.players[0]!.hand.some(({ instanceId: id }) => id === instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
 });

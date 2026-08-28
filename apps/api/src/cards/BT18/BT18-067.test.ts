@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT18-067.js";
 import "./BT18-067.js";
 
 describe("BT18-067 MetalKabuterimon", () => {
   it("de-digivolves one opponent card on play and has Blocker", async () => {
+    expect(compiled.effects.slice(0, 2)).toMatchObject([
+      { trigger: "Static", keywords: [{ keyword: "Blocker" }] },
+      { trigger: "OnPlay", actions: [{ kind: "DeDigivolve", amount: 1 }] },
+    ]);
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT18-067", as: "metalKabuterimon" }] },
