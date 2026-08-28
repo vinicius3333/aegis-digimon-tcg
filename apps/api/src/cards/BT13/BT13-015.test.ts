@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { compiled } from "./BT13-015.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -6,6 +7,41 @@ import "./BT13-008.js";
 import "./BT13-015.js";
 
 describe("BT13-015 RizeGreymon", () => {
+  it("uses exact bracketed names for its GeoGreymon evolution and Marcus Damon references", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["GeoGreymon"], cost: 3, isAlternate: true },
+    ]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] } } }],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "AllTurns",
+      actions: [
+        {
+          actions: [
+            {
+              actions: [{ source: { filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] } } }],
+            },
+          ],
+        },
+      ],
+    });
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [
+        {
+          actions: [
+            {
+              actions: [{ source: { filter: { nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }] } } }],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it("digivolves from GeoGreymon for 3 and may play Marcus Damon from hand for free", async () => {
     const s = setupEngine(
       {
