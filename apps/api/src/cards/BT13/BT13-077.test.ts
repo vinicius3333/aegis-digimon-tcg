@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-077.js";
 import "./BT13-011.js";
+import "./BT13-058.js";
 
 describe("BT13-077 Craniamon", () => {
   it("grants Blocker and opponent-Digimon effect immunity through the opponent's turn", () => {
@@ -75,5 +76,86 @@ describe("BT13-077 Craniamon", () => {
     await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("craniamon"));
 
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
+  });
+
+  it("allows declining the optional end-of-opponent-turn forced attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-077", as: "craniamon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("craniamon"));
+
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(false);
+  });
+
+  it("keeps When Digivolving immunity against a real opposing Digimon effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-052", as: "base" }], hand: [{ card: "BT13-077", as: "craniamon" }] },
+        1: { battleArea: [{ card: "BT13-056", as: "leopard" }], hand: [{ card: "BT13-058", as: "mode" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("craniamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT13-077");
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("leopard").permanentId,
+        instanceId: s.inst("mode").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("leopard").topCard?.cardId === "BT13-058");
+
+    expect(s.perm("base").isSuspended).toBe(false);
+  });
+
+  it("uses Blocker in a real opponent attack block window", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-077", as: "blocker" }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [s.perm("blocker").permanentId],
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "declareBlock",
+        blockerPermanentId: s.perm("blocker").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blocked"));
+    expect(s.perm("blocker").isSuspended).toBe(true);
   });
 });
