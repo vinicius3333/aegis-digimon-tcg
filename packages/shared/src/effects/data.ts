@@ -480,11 +480,12 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { level: 4, traitSubstrings: ["Aqua", "Sea Animal"], cost: 3, isAlternate: true },
     { level: 4, traits: ["TS"], cost: 3, isAlternate: true },
   ],
-  // BT19-102: the Nene path requires a Shademon card already under that Tamer.
+  // BT19-102: the bracketed [Luminamon]/[Nene Amano] paths are exact names; the Nene path
+  // also requires the exact [Shademon] name under that Tamer (minNameStackNames is exact).
   "BT19-102": [
-    { names: ["Luminamon"], cost: 2, isAlternate: true },
+    { namesExact: ["Luminamon"], cost: 2, isAlternate: true },
     {
-      names: ["Nene Amano"],
+      namesExact: ["Nene Amano"],
       cost: 3,
       isAlternate: true,
       minNameStackCount: 1,
