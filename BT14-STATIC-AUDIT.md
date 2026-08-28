@@ -1,6 +1,6 @@
 # BT14 Static Card Implementation Re-audit
 
-Status: static card-by-card pass in progress; execution gates deferred
+Status: static card-by-card coverage 102/102; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -34,8 +34,8 @@ collection-complete claim is valid.
 | BT14-061–070 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-061-070.md` | Yes |
 | BT14-071–080 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-071-080.md` | Yes |
 | BT14-081–090 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-081-090.md` | Yes |
-| BT14-091–100 | Luna assigned | `internal-docs/audits/BT14/BT14-091-100.md` | No |
-| BT14-101–102 | Luna assigned | `internal-docs/audits/BT14/BT14-101-102.md` | No |
+| BT14-091–100 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-091-100.md` | Yes |
+| BT14-101–102 | Coordinator reviewed | `internal-docs/audits/BT14/BT14-101-102.md` | Yes |
 
 ## Score model
 
@@ -154,16 +154,29 @@ behavior.
 | BT14-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attack watcher/non-white filter correction and breeding/Security proof `170afbb01` |
 | BT14-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural no-Greymon/Greymon deletion branches and Security ActivateMain proof |
 | BT14-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Tai waiver, Courage stack/evolution, and Security self-return proof |
+| BT14-091 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural pooled source trash, inclusive erratum boundary, and Security proof |
+| BT14-092 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Chosen-stack snapshot, three-target restriction, exclusion, and Security proof |
+| BT14-093 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security search/evolution/recovery and Security Patamon proof |
+| BT14-094 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural DP and Angemon-cost modal branches plus Security proof |
+| BT14-095 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural granted suspension-memory watcher and Security proof |
+| BT14-096 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Independent-target correction plus natural distinct-target/Security proof `312685ed0` |
+| BT14-097 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural free Sukamon evolution and Security identity transformation proof |
+| BT14-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural De-Digivolve, exact-three return, deletion budget, and Security proof |
+| BT14-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural mill, Devimon Security Attack, attack checks, and Security proof |
+| BT14-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural effect-origin self hand trash/draw, Main deletion, and Security proof |
+| BT14-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural conditional hand evolution, Raid attack, and attack-keyword proof |
+| BT14-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural modal deletion, self placement/hatch, and inherited Security proof |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 90
-- Corrected: 16
-- Provisional: 90
+- Integrated card audits: 102
+- Corrected: 17
+- Provisional: 102
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
 
-BT14 static re-audit is in progress.
+BT14 has static card-by-card coverage for all 102 cards. Execution gates remain
+deferred, every score is provisional, and no collection-complete claim is made.
