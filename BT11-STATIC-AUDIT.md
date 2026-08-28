@@ -33,7 +33,7 @@ claim is valid.
 | BT11-051–060 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-051-060.md` | Yes |
 | BT11-061–070 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-061-070.md` | Yes |
 | BT11-071–080 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-071-080.md` | Yes |
-| BT11-081–090 | Luna in progress | `internal-docs/audits/BT11/BT11-081-090.md` | No |
+| BT11-081–090 | Coordinator reviewed | `internal-docs/audits/BT11/BT11-081-090.md` | Yes |
 | BT11-091–100 | Luna in progress | `internal-docs/audits/BT11/BT11-091-100.md` | No |
 | BT11-101–110 | Luna in progress | `internal-docs/audits/BT11/BT11-101-110.md` | No |
 | BT11-111–112 | Queued | `internal-docs/audits/BT11/BT11-111-112.md` | No |
@@ -142,14 +142,24 @@ other component and is never rounded up.
 | BT11-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
 | BT11-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
 | BT11-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; metadata drift documented |
+| BT11-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected source-stack trash cost binding |
+| BT11-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Strengthened discarded-card return proof |
+| BT11-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Strengthened both cross-color stack paths |
+| BT11-086 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
+| BT11-087 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected moved-Digimon trigger binding; strengthened negative proof |
+| BT11-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed whole-permanent placement semantics |
+| BT11-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected Sea Animal exclusion; strengthened effect-play negative |
+| BT11-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reviewed; no correction |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 110
-- Integrated card audits: 80
-- Corrected: 13
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 16
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 2
