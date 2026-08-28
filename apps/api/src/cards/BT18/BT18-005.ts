@@ -13,6 +13,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
+          sourceFilter: {
+            isSelfRef: true,
+            zone: "battleArea",
+          },
           actions: [
             {
               kind: "Draw",
