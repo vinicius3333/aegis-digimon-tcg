@@ -22,7 +22,11 @@ describe("BT18-088 Takuya Kanbara & Koji Minamoto", () => {
         trigger: "EndOfYourTurn",
         isInherited: true,
         frequency: "OncePerTurn",
-        actions: [{ kind: "Attack", attackPlayer: true }],
+        actions: [{
+          kind: "Attack",
+          attackPlayer: true,
+          condition: { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }] } },
+        }],
       },
     ]);
   });
@@ -87,5 +91,18 @@ describe("BT18-088 Takuya Kanbara & Koji Minamoto", () => {
     await advance(s.engine).runTurn(0);
 
     expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("does not grant the inherited end-of-turn attack to a non-Hybrid host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-060", as: "host", under: ["BT18-088"] }] },
+      1: { security: ["BT1-001"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
