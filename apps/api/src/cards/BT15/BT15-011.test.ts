@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -26,7 +25,7 @@ describe("BT15-011", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-011", as: "tyrannomon" }],
+          hand: [{ card: "BT15-011", as: "tyrannomon" }],
           deck: [
             { card: "BT14-071", as: "socDigimon" },
             { card: "BT14-087", as: "socTamer" },
@@ -39,7 +38,10 @@ describe("BT15-011", () => {
     );
     const hits = [s.inst("socDigimon").instanceId, s.inst("socTamer").instanceId];
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tyrannomon"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tyrannomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 2);
 
     expect([
@@ -57,19 +59,50 @@ describe("BT15-011", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-011", as: "tyrannomon" }],
-          hand: [{ card: "BT1-009", as: "kept" }],
+          hand: [
+            { card: "BT15-011", as: "tyrannomon" },
+            { card: "BT1-009", as: "kept" },
+          ],
           deck: ["BT1-009", "BT12-092", "BT1-097", "BT1-001"],
         },
       },
       { autoSelectCards: true, autoOrderCards: true },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tyrannomon"));
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tyrannomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 4);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("reaches Tyrannomon through its legal red level-3 evolution route", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "base" }],
+          hand: [{ card: "BT15-011", as: "tyrannomon" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("tyrannomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT15-011");
+
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").stack).toHaveLength(2);
   });
 
   it("can suspend to block an opposing player attack", async () => {
