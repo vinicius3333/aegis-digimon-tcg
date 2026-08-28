@@ -22,10 +22,10 @@ The re-audit intentionally does not execute tests, typecheck, lint, formatting, 
 | BT5-051–060 | Static audit delivered | `internal-docs/audits/BT5/BT5-051-060.md` | Yes |
 | BT5-061–070 | Static audit delivered | `internal-docs/audits/BT5/BT5-061-070.md` | Yes |
 | BT5-071–080 | Static audit delivered | `internal-docs/audits/BT5/BT5-071-080.md` | Yes |
-| BT5-081–090 | Luna in progress | `internal-docs/audits/BT5/BT5-081-090.md` | No |
+| BT5-081–090 | Static audit delivered | `internal-docs/audits/BT5/BT5-081-090.md` | Yes |
 | BT5-091–100 | Luna in progress | `internal-docs/audits/BT5/BT5-091-100.md` | No |
 | BT5-101–110 | Luna in progress | `internal-docs/audits/BT5/BT5-101-110.md` | No |
-| BT5-111–112 | Queued for Luna | `internal-docs/audits/BT5/BT5-111-112.md` | No |
+| BT5-111–112 | Luna in progress | `internal-docs/audits/BT5/BT5-111-112.md` | No |
 
 ## Score model
 
@@ -123,6 +123,16 @@ This static pass can award at most provisional 8/10 because component 5 is delib
 | BT5-078 Jokermon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional own-trash purple level-3 free play with per-play On Play suppression |
 | BT5-079 BlackWarGrowlmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Digi-Burst 3 free play plus inherited once-per-turn delete-to-unsuspend cost |
 | BT5-080 Zanbamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Static Retaliation registration and losing-battle deletion proof |
+| BT5-081 ChaosGallantmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Delete-by-cost evolution effect and once-per-turn suppressed-On-Play trash revival |
+| BT5-082 Tactimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | One-or-all ordered modal branches with up-to-three level-3 deletion |
+| BT5-083 Megidramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Both-player mill and Tamer-gated level-6 Gallantmon-name free play |
+| BT5-084 Diaboromon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional legal-evolution Diaboromon Token play with full token identity |
+| BT5-085 Armageddemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact Diaboromon sacrifice reduction, Rush, and all-turn level-7 evolution lock |
+| BT5-086 Omnimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Separate Blitz/unsuspend timings and opponent-effect leave-play replacement cost |
+| BT5-087 Omnimon Zwart | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Mill/up-to-two trash plays and level-6-source return-to-delete attack cost |
+| BT5-088 Sora Takenouchi & Joe Kido | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected up-to-two bottom-source trash with blue-attack and suspension gates |
+| BT5-089 Izzy Izumi & Mimi Tachikawa | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Level-5 green attack reveal/digivolve staging with remainder timing and refusal |
+| BT5-090 Arata Sanada | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Unidentified-trash memory gate and exact Diaboromon evolution token watcher |
 
 Detailed clause traces and deferred commands will be recorded in the integrated range reports under `internal-docs/audits/BT5/`.
 
@@ -130,9 +140,9 @@ Detailed clause traces and deferred commands will be recorded in the integrated 
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 80
-- Corrected: 3
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 4
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 1
 - Remaining unassigned: 0
