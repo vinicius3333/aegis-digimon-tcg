@@ -32,7 +32,7 @@ collection-complete claim is valid.
 | BT12-061–070 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-061-070.md` | Yes |
 | BT12-071–080 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-071-080.md` | Yes |
 | BT12-081–090 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-081-090.md` | Yes |
-| BT12-091–100 | Luna in progress | `internal-docs/audits/BT12/BT12-091-100.md` | No |
+| BT12-091–100 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-091-100.md` | Yes |
 | BT12-101–110 | Coordinator reviewed | `internal-docs/audits/BT12/BT12-101-110.md` | Yes |
 | BT12-111–112 | Luna in progress | `internal-docs/audits/BT12/BT12-111-112.md` | No |
 
@@ -151,6 +151,16 @@ other component and is never rounded up.
 | BT12-088 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-081-090.md`; handwritten inherited Security trigger retained |
 | BT12-089 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-081-090.md`; empty IR plus handwritten placement/evolution runtime limitation |
 | BT12-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-081-090.md`; trigger-subject normalization documented |
+| BT12-091 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-091-100.md`; direct compiled Save reducer corrected in `3f7b38d48` |
+| BT12-092 | 2/2 | 1/2 | 1/2 | 2/2 | 0/2 | 6/10 provisional | `BT12-091-100.md`; handwritten runtime override; Your Turn and Security source cases absent |
+| BT12-093 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-091-100.md`; direct compiled Save reducer corrected in `3f7b38d48` |
+| BT12-094 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-091-100.md`; direct compiled Save reducer corrected in `3f7b38d48` |
+| BT12-095 | 2/2 | 1/2 | 1/2 | 2/2 | 0/2 | 6/10 provisional | `BT12-091-100.md`; handwritten runtime override; Your Turn digivolution proof absent |
+| BT12-096 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-091-100.md`; direct compiled Save reducer corrected in `3f7b38d48` |
+| BT12-097 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-091-100.md`; handwritten placement and evolution reducer retained |
+| BT12-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-091-100.md`; Q2231/Q2232 partial-category source cases absent |
+| BT12-099 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-091-100.md`; handwritten effect-driven attack retained |
+| BT12-100 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-091-100.md`; target ID and exact-name selection corrected in `3f7b38d48`, `8d3e58f7a` |
 | BT12-101 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-101-110.md`; handwritten timing fallback retained |
 | BT12-102 | 2/2 | 1/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | `BT12-101-110.md`; source-stack shedding corrected in `3e5928ec5` |
 | BT12-103 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | `BT12-101-110.md`; direct threshold repair documented |
@@ -166,11 +176,11 @@ other component and is never rounded up.
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 100
-- Corrected: 8
-- Provisional: 100
+- Integrated card audits: 110
+- Corrected: 13
+- Provisional: 110
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 10
+- Blocked or ambiguous: 15
 - Remaining unassigned: 0
 
 BT12 static re-audit is in progress.
