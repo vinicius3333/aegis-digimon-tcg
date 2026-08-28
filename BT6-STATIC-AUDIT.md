@@ -32,7 +32,7 @@ claim is valid.
 | BT6-061–070 | Static audit delivered | `internal-docs/audits/BT6/BT6-061-070.md` | Yes |
 | BT6-071–080 | Static audit delivered | `internal-docs/audits/BT6/BT6-071-080.md` | Yes |
 | BT6-081–090 | Static audit delivered | `internal-docs/audits/BT6/BT6-081-090.md` | Yes |
-| BT6-091–100 | Luna in progress | `internal-docs/audits/BT6/BT6-091-100.md` | No |
+| BT6-091–100 | Static audit delivered | `internal-docs/audits/BT6/BT6-091-100.md` | Yes |
 | BT6-101–110 | Luna in progress | `internal-docs/audits/BT6/BT6-101-110.md` | No |
 | BT6-111–112 | Luna in progress | `internal-docs/audits/BT6/BT6-111-112.md` | No |
 
@@ -150,14 +150,24 @@ other component and is never rounded up.
 | BT6-088 Matt Ishida | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exact Gabumon Main activation with Bond evolution, security trash, and delayed deletion |
 | BT6-089 T.K. Takaishi & Kari Kamiya | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Strict fewer-security memory gate and optional self-suspend attack DP reduction |
 | BT6-090 Izzy Izumi & Joe Kido | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected decline-aborts-draw behavior plus two-opponent-Digimon memory threshold |
+| BT6-091 Sora Takenouchi & Mimi Tachikawa | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Strict all-opponent-level-5-plus memory gate and optional purple-attack draw/trash branch |
+| BT6-092 Menoa Bellucci | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected exactly-one Tamer/Eosmon reveal add plus memory reset and Tamer unsuspend lock |
+| BT6-093 Judgement of the Blade | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected own-controller Royal Knight scope and Sistermon Security free-play sequence |
+| BT6-094 Red Reamer | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Mutually exclusive 6000/13000-DP delete branches and Security activation |
+| BT6-095 Happy Bullet Showering | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Three Musketeers color waiver, all tied lowest-DP deletion, and Security activation |
+| BT6-096 Forbidden Trident | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bound DP grant and for-the-turn attack return with canonical attached-stack cleanup |
+| BT6-097 Howling Memory Boost! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Bottom-source trash, independent no-source attack/block restriction, and Delay timing |
+| BT6-098 Raddle Star | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exclusive opponent-count return branches with canonical deck-bottom stack cleanup |
+| BT6-099 Acid Injection | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Top-security trash followed by opponent -5000 DP, including empty-security continuation |
+| BT6-100 Reinforcing Memory Boost! | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Two-card security/hand split, battle-area placement, Delay timing, and restriction evidence |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 90
-- Corrected: 15
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 17
+- Provisional: 100
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
