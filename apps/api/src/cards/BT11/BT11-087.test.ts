@@ -159,6 +159,20 @@ describe("BT11-087 Lilithmon [Opponent's Turn] — real engine: breeding move gr
     expect(memoryFor(1)).toBe(-3);
     expect(memoryFor(0)).toBe(3);
     expect(mover.isSuspended).toBe(true);
+
+    // The temporary effect belongs to the Digimon moved from breeding. A different
+    // opposing Digimon attacking later must not cause another three-memory loss.
+    const other = s.perm("other");
+    expect(other.isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: other.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => other.isSuspended, 200);
+    expect(memoryFor(1)).toBe(-3);
     assertNoLoudGap(s);
   });
 
