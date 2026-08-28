@@ -25,12 +25,12 @@ claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT9-001–010 | Luna in progress | `internal-docs/audits/BT9/BT9-001-010.md` | No |
-| BT9-011–020 | Luna in progress | `internal-docs/audits/BT9/BT9-011-020.md` | No |
-| BT9-021–030 | Luna in progress | `internal-docs/audits/BT9/BT9-021-030.md` | No |
-| BT9-031–040 | Queued | `internal-docs/audits/BT9/BT9-031-040.md` | No |
-| BT9-041–050 | Queued | `internal-docs/audits/BT9/BT9-041-050.md` | No |
-| BT9-051–060 | Queued | `internal-docs/audits/BT9/BT9-051-060.md` | No |
+| BT9-001–010 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-001-010.md` | Yes |
+| BT9-011–020 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-011-020.md` | Yes |
+| BT9-021–030 | Coordinator reviewed | `internal-docs/audits/BT9/BT9-021-030.md` | Yes |
+| BT9-031–040 | Luna in progress | `internal-docs/audits/BT9/BT9-031-040.md` | No |
+| BT9-041–050 | Luna in progress | `internal-docs/audits/BT9/BT9-041-050.md` | No |
+| BT9-051–060 | Luna in progress | `internal-docs/audits/BT9/BT9-051-060.md` | No |
 | BT9-061–070 | Queued | `internal-docs/audits/BT9/BT9-061-070.md` | No |
 | BT9-071–080 | Queued | `internal-docs/audits/BT9/BT9-071-080.md` | No |
 | BT9-081–090 | Queued | `internal-docs/audits/BT9/BT9-081-090.md` | No |
@@ -62,16 +62,46 @@ other component and is never rounded up.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT9-001 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-001-010.md` |
+| BT9-002 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-001-010.md` |
+| BT9-003 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-001-010.md` |
+| BT9-004 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-001-010.md` |
+| BT9-005 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-001-010.md` |
+| BT9-006 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-001-010.md` |
+| BT9-007 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-001-010.md` |
+| BT9-008 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-001-010.md` |
+| BT9-009 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-001-010.md` |
+| BT9-010 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-001-010.md` |
+| BT9-011 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-011-020.md` |
+| BT9-012 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-011-020.md` |
+| BT9-013 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-011-020.md` |
+| BT9-014 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-011-020.md` |
+| BT9-015 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-011-020.md` |
+| BT9-016 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-011-020.md` |
+| BT9-017 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-011-020.md` |
+| BT9-018 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-011-020.md` |
+| BT9-019 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-011-020.md` |
+| BT9-020 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-011-020.md` |
+| BT9-021 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-021-030.md` |
+| BT9-022 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-021-030.md` |
+| BT9-023 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-021-030.md` |
+| BT9-024 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-021-030.md` |
+| BT9-025 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-021-030.md` |
+| BT9-026 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-021-030.md` |
+| BT9-027 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-021-030.md` |
+| BT9-028 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-021-030.md` |
+| BT9-029 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional | `BT9-021-030.md` |
+| BT9-030 | 2 | 2 | 2 | 2 | 0 | 8/10 provisional; corrected | `BT9-021-030.md` |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 30
-- Integrated card audits: 0
-- Corrected: 0
-- Provisional: 0
+- Assigned: 60
+- Integrated card audits: 30
+- Corrected: 2
+- Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 82
+- Remaining unassigned: 52
 
 BT9 static re-audit remains open.
