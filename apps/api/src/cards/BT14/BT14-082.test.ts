@@ -35,6 +35,7 @@ describe("BT14-082", () => {
     await settle(() => s.state.players[1]!.security.length === 0 && s.perm("tai").isSuspended);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.perm("tai").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(4);
   });
   it("plays itself from security", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({
