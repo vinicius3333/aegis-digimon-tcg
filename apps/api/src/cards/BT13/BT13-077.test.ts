@@ -28,13 +28,15 @@ describe("BT13-077 Craniamon", () => {
     }
   });
 
-  it("redirects an opponent's end-of-turn attack after choosing a Digimon", () => {
+  it("optionally makes an opponent Digimon attack the player at end of turn", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfOpponentsTurn")).toMatchObject({
+      optional: true,
       actions: [
         {
-          kind: "RedirectAttack",
+          kind: "Attack",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-          optional: true,
+          mandatory: true,
+          attackPlayer: true,
         },
       ],
     });
@@ -57,5 +59,21 @@ describe("BT13-077 Craniamon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("craniamon").permanentId)).toBe(true);
+  });
+
+  it("makes a chosen opponent Digimon attack the player at the opponent's turn end", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-077", as: "craniamon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("craniamon"));
+
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
   });
 });
