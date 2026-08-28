@@ -28,7 +28,7 @@ provisional and capped at 8/10.
 | BT18-041–050 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-041-050.md` | Yes |
 | BT18-051–060 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-051-060.md` | Yes |
 | BT18-061–070 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-061-070.md` | Yes |
-| BT18-071–080 | Luna assigned | `internal-docs/audits/BT18/BT18-071-080.md` | No |
+| BT18-071–080 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-071-080.md` | Yes |
 | BT18-081–090 | Luna assigned | `internal-docs/audits/BT18/BT18-081-090.md` | No |
 | BT18-091–100 | Luna assigned | `internal-docs/audits/BT18/BT18-091-100.md` | No |
 | BT18-101–102 | Luna assigned | `internal-docs/audits/BT18/BT18-101-102.md` | No |
@@ -115,14 +115,24 @@ applicable non-gate component rather than being rounded up.
 | BT18-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added any-deck controller scope; real decisions prove own/opponent reveal-five and chosen top/bottom return while preserving Blocker (`6f5fbec94`). |
 | BT18-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production opponent-turn flow proves forced player attack; live inherited-text matching now recognizes bracketed Knightmon references and grants host-only DP (`a731be3b2`, `a3cd02512`). |
 | BT18-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added exact Beetlemon/MetalKabuterimon material names; public hand activation, same-name negative, Collision, target switch, and natural inherited attack prove the contract (`24ec4bff8`). |
+| BT18-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the exact Sephirothmon route and required Mercurymon stack card; natural evolution, Blast, de-digivolution, Blocker, and attack-target-change paths cover the card (`5b92c47be`). |
+| BT18-072 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the distinct DigiXros pair and bound the leave replacement to its own stack; natural entry, evolution, DigiXros, battle loss, and cross-stack negative prove the result (`c162852cc`, `0d99e6e6d`, `578ab0460`). |
+| BT18-073 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added the Composite self-delete play-cost reducer; natural play, evolution, deletion DNA, and inherited redirect use legal sources and stacks (`9a7949719`). |
+| BT18-074 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the DigiXros pair, optional leave modal, and reveal-play kind filter; natural entry, Option rejection, DigiXros, and both leave branches prove the behavior (`9234685f9`, `bd17e4ba6`). |
+| BT18-075 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural self/Tamer evolution, once-per-turn, breeding exclusion, multicolor boundary, and inherited Retaliation cover the existing implementation (`7ef7564db`). |
+| BT18-076 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected attack-evolution payment and inherited replacement cause/stack scope; natural evolution, attack, battle loss, and cross-stack negative prove the paths (`718b23f6e`, `8e6001077`). |
+| BT18-077 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, evolution, level-boundary deletion, and losing battle prove both printed and inherited behavior (`a6968d8fa`). |
+| BT18-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution, attack evolution, opponent-turn duration, and inherited deletion use legal Hybrid and Tamer stacks (`b8196e381`, `588cd4d2c`). |
+| BT18-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry, three-color scaling, End of Attack cost/deletion, and inherited Retaliation replace structural-only evidence (`91bfbef8b`). |
+| BT18-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution and inherited battle prove both ordered deletions, color/cost boundaries, and Retaliation (`ed435bb52`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 70
-- Corrected: 9
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 14
+- Provisional: 80
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 5 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps; `BT18-041` catalog/KB DNA mismatch)
 - Remaining unassigned: 0
