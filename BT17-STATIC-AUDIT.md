@@ -30,7 +30,7 @@ collection-complete claim is valid.
 | BT17-021–030 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-021-030.md` | Yes |
 | BT17-031–040 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-031-040.md` | Yes |
 | BT17-041–050 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-041-050.md` | Yes |
-| BT17-051–060 | Luna assigned | `internal-docs/audits/BT17/BT17-051-060.md` | No |
+| BT17-051–060 | Coordinator reviewed | `internal-docs/audits/BT17/BT17-051-060.md` | Yes |
 | BT17-061–070 | Luna assigned | `internal-docs/audits/BT17/BT17-061-070.md` | No |
 | BT17-071–080 | Luna assigned | `internal-docs/audits/BT17/BT17-071-080.md` | No |
 | BT17-081–090 | Unassigned | `internal-docs/audits/BT17/BT17-081-090.md` | No |
@@ -115,14 +115,24 @@ feasible natural originating event.
 | BT17-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the inert Tamer reducer and missing Argomon requirement; natural reduced evolution, deletion count, free play, and Rhythm unsuspend cover the shared path (`19f31685f`). |
 | BT17-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate evolution/free Terriermon play and an inherited attack delete-and-replay flow prove Alliance-family stack behavior (`97fb0d676`). |
 | BT17-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public hand activation proves four-memory payment, placement, linked host attack, and inherited +3000 DP on a legal host (`b9485a9a8`). |
+| BT17-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the opposing-Tamer unsuspend restriction into a live standing lock; natural Argomon placement, DP scaling, and level-budget deletion prove the remaining clauses (`4f5f82528`). |
+| BT17-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Two natural Kosuke plays prove the once-per-turn memory/draw watcher and a legal Machine host proves inherited Reboot (`15b6bf2bd`). |
+| BT17-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent level-5 play, level-4 negative, and legal-host battle deletion prove free Infermon evolution and inherited token creation (`7999db3e1`). |
+| BT17-054 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal proves the Machine alternative and trash remainder; a legal Machine attack opens the forced Collision block path (`2ba3c2f68`). |
+| BT17-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution proves De-Digivolve and the live attack restriction through later evolution; a real Diaboromon play drives the inherited watcher (`0fb20f41e`). |
+| BT17-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Diaboromon redirection emits the target-switch event, drives reveal/placement/free evolution, and proves the redirect once-per-turn boundary (`3a9ae0aa6`). |
+| BT17-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry proves stack placement and seven-cost deletion budget; a real opponent effect proves the two-source leave replacement on a legal stack (`f0d927fe0`, `e769bbff9`). |
+| BT17-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal/placement and attack End of Attack prove own-stack Machine play while preserving the GroundLocomon host (`9d964d1e9`). |
+| BT17-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution places Doomsday Clock and creates two tokens; two opponent attacks prove redirect and its once-per-turn boundary (`351041b9f`). |
+| BT17-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural hand play proves trash-based cost reduction/bottom-deck movement, exact 15-cost deletion budget, keywords, and unsuspended-target attack permission (`672038d4d`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 50
-- Corrected: 11
-- Provisional: 50
+- Integrated card audits: 60
+- Corrected: 12
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 22
