@@ -29,8 +29,8 @@ collection-complete claim is valid.
 | BT15-001–010 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-001-010.md` | Yes |
 | BT15-011–020 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-011-020.md` | Yes |
 | BT15-021–030 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-021-030.md` | Yes |
-| BT15-031–040 | Luna assigned | `internal-docs/audits/BT15/BT15-031-040.md` | No |
-| BT15-041–050 | Luna assigned | `internal-docs/audits/BT15/BT15-041-050.md` | No |
+| BT15-031–040 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-031-040.md` | Yes |
+| BT15-041–050 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-041-050.md` | Yes |
 | BT15-051–060 | Luna assigned | `internal-docs/audits/BT15/BT15-051-060.md` | No |
 | BT15-061–070 | Unassigned | `internal-docs/audits/BT15/BT15-061-070.md` | No |
 | BT15-071–080 | Unassigned | `internal-docs/audits/BT15/BT15-071-080.md` | No |
@@ -95,16 +95,40 @@ behavior.
 | BT15-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public behavior origin, target boundary coverage, and legal blue stack proof |
 | BT15-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public behavior origin, legal predecessor stack, and inherited proof |
 | BT15-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public play/deletion origins, all-target source boundaries, Blocker, and legal stacks |
+| BT15-031 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent-end turn progression, return, free Dark Masters play, and Blocker proof |
+| BT15-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Equal/greater stack comparisons, shared Once Per Turn, and legal Plesiomon stack proof |
+| BT15-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle replacement, Security payment, decline, and inherited-stack proof |
+| BT15-034 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2515 live 3-to-2 Security transition, placement branches, and inherited proof |
+| BT15-035 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Effective Numemon alias, exact payment, On Play/deletion, and inherited proof |
+| BT15-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Both Security-end payments, On Play/deletion DP reduction, and natural Blocker proof |
+| BT15-037 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Same-time Security-play removal bus correction and natural BT15-092 origin `fd212e862` |
+| BT15-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Blast Digivolve, selectable Security cost, live threshold, and recovery proof |
+| BT15-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2523 inherited-effect exclusion correction and natural Gammamon stack proof `fab5fa267` |
+| BT15-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2524 single target, live own-Digimon scaling, and legal X Antibody stack proof |
+| BT15-041 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural opponent-end delete/play/reactivation and legal green evolution proof |
+| BT15-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Top-or-bottom recovery choice correction and natural Security/evolution proof `1c5b1c59b` |
+| BT15-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural start-main suspend/DP and inherited battle-deletion memory proof |
+| BT15-044 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public effect origins, printed boundaries, peer comparison, and legal stack proof |
+| BT15-045 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public effect origins, printed boundaries, peer comparison, and legal stack proof |
+| BT15-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public effect origins, printed boundaries, peer comparison, and legal stack proof |
+| BT15-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public effect origins, printed boundaries, peer comparison, and legal stack proof |
+| BT15-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public effect origins, printed boundaries, peer comparison, and legal stack proof |
+| BT15-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Missing Blast Digivolve marker correction, Counter timing, immunity, and stack proof `65b095536` |
+| BT15-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2529–Q2533 reveal and natural Dark Masters breeding-play proof |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 60
-- Integrated card audits: 30
-- Corrected: 1
-- Provisional: 30
+- Integrated card audits: 50
+- Corrected: 5
+- Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 42
 
 BT15 static re-audit is in progress.
+
+Process note: the BT15-039 worker accidentally performed one metadata-only
+pre-push amend (`e34ca8bdb` to `fab5fa267`). The trees and messages are
+identical, no force push occurred, and the range report records the violation.
