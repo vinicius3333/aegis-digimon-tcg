@@ -276,6 +276,25 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect | readonly CardEf
       } as Action,
     ],
   },
+  "[On Deletion] You may play 1 Digimon card with [Numemon] in its name from your trash without paying the cost.": {
+    trigger: "OnDeletion",
+    actions: [
+      {
+        kind: "PlayWithoutCost",
+        target: {
+          filter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Numemon"], match: "name" }],
+          },
+          count: 1,
+        },
+        from: ["trash"],
+        payCost: false,
+        optional: true,
+      } as Action,
+    ],
+  },
   "[When Attacking] Lose 1 memory.": {
     trigger: "WhenAttacking",
     actions: [
