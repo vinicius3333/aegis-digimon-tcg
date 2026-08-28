@@ -125,6 +125,27 @@ describe("BT15-031", () => {
     );
   });
 
+  it("resolves the opponent end step through public turn progression", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-031", as: "metalSeadramon" }],
+          hand: [{ card: "BT15-052", as: "puppetmon" }],
+        },
+        1: { deck: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = -4;
+
+    await advance(s.engine).runTurn(1);
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("metalSeadramon").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT15-052");
+  });
+
   it("grants inherited Blocker to its host and redirects a player attack", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT15-025", as: "attacker" }], security: ["BT1-001"] },
