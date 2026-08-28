@@ -9,17 +9,13 @@ import { compiled } from "./BT10-011.js";
 //   "[Your Turn][Once Per Turn] WHEN ONE OF YOUR TAMERS BECOMES SUSPENDED, this Digimon
 //    gets +2000 DP for the turn. Then, if this Digimon has 12000 DP or more, it gains
 //    <Security Attack +1> for the turn."
-// The documented behavior routes this through EffectTiming.OnTappedAnyone, gated by
-// that fires the moment a controlled Tamer suspends, not a passive/static buff.
+// The IR keeps the printed Your Turn/Once Per Turn gate around a whenSuspended
+// sub-trigger. The interpreter arms that watcher from the continuous Your Turn window,
+// while the event itself fires when a controlled Tamer suspends.
 //
 // Q1938 (2024-03-28): even if multiple Tamers suspend at the same time the +2000 DP only
 // applies once — confirming it is a single suspend-triggered activation.
 //
-// runtime record IR divergence: the effect was emitted with trigger "YourTurn"
-// (frequency OncePerTurn). timingForTrigger() maps "YourTurn" to EffectTiming.None (the
-// continuous/static window), so the engine treats the DP gain as a passive modifier and
-// it is NEVER reachable at the Tamer-suspend event. This file pins the correct home.
-
 describe("BT10-011 Canoweissmon [Your Turn] suspend trigger", () => {
   it("encodes the suspend trigger, both effect-conferral clauses, and alternate evolution", () => {
     expect(compiled.effects).toEqual(
