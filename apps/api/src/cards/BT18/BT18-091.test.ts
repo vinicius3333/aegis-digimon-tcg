@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { advance } from "../../engine/testkit/index.js";
 import { compiled } from "./BT18-091.js";
 import "../index.js";
 
@@ -149,10 +147,21 @@ describe("BT18-091 J.P. Shibayama", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
-  it("plays from Security without cost through the real security timing", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT18-091", as: "jp", faceUp: true }] } });
+  it("plays from Security without cost through a real opponent attack and security check", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT18-091", as: "jp" }] },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+    });
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("jp"));
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("jp").instanceId));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("jp").instanceId)).toBe(
       true,
     );
