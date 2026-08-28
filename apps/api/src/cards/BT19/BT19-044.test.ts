@@ -19,6 +19,13 @@ describe("BT19-044 Terriermon", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("does not treat Henry Wong & Shu-Chong Wong as exact Henry Wong support", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT19-044", as: "terrier" }, { card: "EX4-063" }] } });
+    s.state.memory = 0;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("terrier"));
+    expect(s.state.memory).toBe(0);
+  });
+
   it("inherited When Attacking suspends exactly one opponent Digimon only once per turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT19-049", as: "host", under: ["BT19-044"] }] },
