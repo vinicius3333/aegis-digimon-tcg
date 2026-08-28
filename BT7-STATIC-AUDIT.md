@@ -30,10 +30,10 @@ claim is valid.
 | BT7-041–050 | Static audit delivered | `internal-docs/audits/BT7/BT7-041-050.md` | Yes |
 | BT7-051–060 | Static audit delivered | `internal-docs/audits/BT7/BT7-051-060.md` | Yes |
 | BT7-061–070 | Queued | `internal-docs/audits/BT7/BT7-061-070.md` | No |
-| BT7-071–080 | Luna in progress | `internal-docs/audits/BT7/BT7-071-080.md` | No |
+| BT7-071–080 | Static audit delivered | `internal-docs/audits/BT7/BT7-071-080.md` | Yes |
 | BT7-081–090 | Luna in progress | `internal-docs/audits/BT7/BT7-081-090.md` | No |
 | BT7-091–100 | Queued | `internal-docs/audits/BT7/BT7-091-100.md` | No |
-| BT7-101–110 | Queued | `internal-docs/audits/BT7/BT7-101-110.md` | No |
+| BT7-101–110 | Luna in progress | `internal-docs/audits/BT7/BT7-101-110.md` | No |
 | BT7-111–112 | Queued | `internal-docs/audits/BT7/BT7-111-112.md` | No |
 
 ## Score model
@@ -110,16 +110,26 @@ other component and is never rounded up.
 | BT7-058 SkullKnightmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected self/name inherited Security Attack aura and structured DeadlyAxemon placement evolution cost |
 | BT7-059 DeadlyAxemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Up-to-two Knightmon reveal and self/name-conditioned inherited DP aura |
 | BT7-060 Grumblemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Black-Tamer alternate evolution with derived cost and ordinary stack transition boundaries |
+| BT7-071 Loweemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Purple-Tamer alternate evolution with cost-two stack transition and color boundary |
+| BT7-072 Eyesmon: Scatter Mode | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact-name trash condition, own-effect hand-trash self play, and owner-trash DP scaling |
+| BT7-073 KaiserLeomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Purple-Tamer alternate evolution and Hybrid-or-Koichi Retaliation through opponent next turn |
+| BT7-074 Antylamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional purple play-cost-three-or-lower Tamer free play from trash on evolution |
+| BT7-075 Rhihimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Destination-bound Tamer-source hand reducer and Hybrid-stack On Deletion Tamer play |
+| BT7-076 Orochimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Own-effect hand-trash draw and inherited optional hand-trash memory cost with once-per-turn scope |
+| BT7-077 Nidhoggmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Own-effect hand-trash memory watcher and optional hand-trash cost for level-four deletion |
+| BT7-078 AncientSphinxmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Dynamic last-deleted-level target bound and bounded purple Hybrid On Deletion play |
+| BT7-079 Cherubimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected mandatory Then deletion after optional Tamer play plus per-Tamer On Deletion free plays |
+| BT7-080 Neemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Inherited-effect Tamer On Play boundary and Tamer-stack deletion watcher with once-per-turn play |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 80
-- Integrated card audits: 50
-- Corrected: 14
-- Provisional: 50
+- Assigned: 90
+- Integrated card audits: 60
+- Corrected: 15
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 32
+- Remaining unassigned: 22
 
 BT7 static re-audit remains open.
