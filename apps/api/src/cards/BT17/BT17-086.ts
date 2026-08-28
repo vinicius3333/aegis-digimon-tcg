@@ -138,6 +138,9 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              hostFilter: {
+                isSelfRef: true,
+              },
               nameOrTrait: [
                 {
                   tokens: ["Leon Alexander"],

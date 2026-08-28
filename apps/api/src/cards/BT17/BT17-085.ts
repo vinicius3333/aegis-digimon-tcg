@@ -28,86 +28,89 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Renamon"], match: "name" }],
-            },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            nameOrTrait: [
+          kind: "CostGatedBlock",
+          cost: {
+            kind: "compound",
+            costs: [
               {
-                tokens: ["Sakuyamon"],
-                match: "name",
+                kind: "place",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Tamer"],
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                },
+                raw: "By placing this Tamer and 1 [Kyubimon] and 1 [Taomon] from your trash in any order as the bottom digivolution cards of one of your [Renamon]",
+                underFilter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Renamon"], match: "name" }],
+                },
+                destination: "digivolutionStack",
+                position: "bottom",
+                host: "target",
+                targetIsPermanent: true,
+                bindHostAs: "rikaTarget",
+              },
+              {
+                kind: "place",
+                target: {
+                  filter: {
+                    zone: "trash",
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [{ tokens: ["Kyubimon"], match: "name" }],
+                  },
+                  count: 1,
+                  from: ["trash"],
+                },
+                destination: "digivolutionStack",
+                position: "bottom",
+                host: { filter: { boundRef: "rikaTarget" }, count: 1 },
+              },
+              {
+                kind: "place",
+                target: {
+                  filter: {
+                    zone: "trash",
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [{ tokens: ["Taomon"], match: "name" }],
+                  },
+                  count: 1,
+                  from: ["trash"],
+                },
+                destination: "digivolutionStack",
+                position: "bottom",
+                host: { filter: { boundRef: "rikaTarget" }, count: 1 },
               },
             ],
           },
-          payCost: true,
-          from: ["hand"],
-          costOverride: 4,
-          ignoreRequirements: true,
           optional: true,
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                isSelfRef: true,
-              },
-              count: 1,
-              isSelf: true,
-              from: ["trash"],
-            },
-            raw: "By placing this Tamer and 1 [Kyubimon] and 1 [Taomon] from your trash in any order as the bottom digivolution cards of one of your [Renamon]",
-            underFilter: {
-              controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Renamon"],
-                  match: "name",
-                },
-              ],
-            },
-            destination: "digivolutionStack",
-            position: "bottom",
-            host: "target",
-          },
           abortOnDecline: true,
-          additionalCosts: [
+          actions: [
             {
-              kind: "place",
+              kind: "Digivolve",
               target: {
-                filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Kyubimon"], match: "name" }] },
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Renamon"], match: "name" }],
+                },
                 count: 1,
-                from: ["trash"],
+                fromSelectionRef: "rikaTarget",
               },
-              underFilter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["Renamon"], match: "name" }],
+              into: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Sakuyamon"], match: "name" }],
               },
-              destination: "digivolutionStack",
-              position: "bottom",
-              host: "target",
-            },
-            {
-              kind: "place",
-              target: {
-                filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Taomon"], match: "name" }] },
-                count: 1,
-                from: ["trash"],
-              },
-              underFilter: {
-                controller: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["Renamon"], match: "name" }],
-              },
-              destination: "digivolutionStack",
-              position: "bottom",
-              host: "target",
+              payCost: true,
+              from: ["hand"],
+              costOverride: 4,
+              ignoreRequirements: true,
+              optional: true,
             },
           ],
         },
