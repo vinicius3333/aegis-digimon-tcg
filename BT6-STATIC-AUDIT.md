@@ -24,10 +24,10 @@ claim is valid.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT6-001–010 | Static audit delivered | `internal-docs/audits/BT6/BT6-001-010.md` | Yes |
-| BT6-011–020 | Luna in progress | `internal-docs/audits/BT6/BT6-011-020.md` | No |
+| BT6-011–020 | Static audit delivered | `internal-docs/audits/BT6/BT6-011-020.md` | Yes |
 | BT6-021–030 | Static audit delivered | `internal-docs/audits/BT6/BT6-021-030.md` | Yes |
 | BT6-031–040 | Luna in progress | `internal-docs/audits/BT6/BT6-031-040.md` | No |
-| BT6-041–050 | Queued | `internal-docs/audits/BT6/BT6-041-050.md` | No |
+| BT6-041–050 | Luna in progress | `internal-docs/audits/BT6/BT6-041-050.md` | No |
 | BT6-051–060 | Luna in progress | `internal-docs/audits/BT6/BT6-051-060.md` | No |
 | BT6-061–070 | Queued | `internal-docs/audits/BT6/BT6-061-070.md` | No |
 | BT6-071–080 | Queued | `internal-docs/audits/BT6/BT6-071-080.md` | No |
@@ -70,6 +70,16 @@ other component and is never rounded up.
 | BT6-008 Shoutmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live Blitz-keyword attack gate, ordinary-attack ruling, and corrected legal evolution stack |
 | BT6-009 Huckmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional zero-to-two name-family reveal selection, duplicates, exclusions, and bottom ordering |
 | BT6-010 Flamemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live Hybrid-or-Ten-Warriors trait aura, Piercing behavior, and legal inherited stack |
+| BT6-011 BaoHuckmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Sistermon board gate, one-target 5000-DP deletion ceiling, and legal inherited stack |
+| BT6-012 Deltamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary red evolution evidence |
+| BT6-013 Megadramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Battle-area-only black color grant and inherited self +2000 DP on a legal stack |
+| BT6-014 Asuramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | When Digivolving Blitz with legal evolution and opponent-memory timing boundary |
+| BT6-015 SaviorHuckmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional Sistermon free play and inherited self-unsuspend with once-per-turn proof |
+| BT6-016 Jesmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected persistent self-only per-copy watcher for +3000 DP and Piercing |
+| BT6-017 MagnaKidmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Security Attack +1 and optional cost-7 Option use versus 4000-DP delete fallback |
+| BT6-018 Agumon - Bond of Bravery | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Tamer-gated 13000-DP deletion and once-per-turn opponent-security trash watcher |
+| BT6-019 Gabumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Per-copy Matt watcher and exact Bond-host inherited unsuspend on a complete legal stack |
+| BT6-020 Gizamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Source-less-opponent-board inherited DP aura with empty and sourced board boundaries |
 | BT6-021 ModokiBetamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent memory-gain restriction with Tamer exception, source-kind boundary, and seat scope |
 | BT6-022 Strabimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live Hybrid-or-Ten-Warriors host gate with inherited once-per-turn attack timing |
 | BT6-023 Octomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration and ordinary blue evolution evidence |
@@ -85,9 +95,9 @@ other component and is never rounded up.
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 20
-- Corrected: 3
-- Provisional: 20
+- Integrated card audits: 30
+- Corrected: 4
+- Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
