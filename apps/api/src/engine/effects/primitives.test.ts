@@ -1471,6 +1471,25 @@ describe("primitives: placeUnder / link", () => {
     expect(h.subTriggers.subscriptionsFor("onDeletionOf", sourceId)).toHaveLength(0);
   });
 
+  // Battle-area cards are public and stay face-up when a permanent is placed under another
+  // as digivolution cards (KB Q4250/Q4251). Forcing them face-down withheld their cardId
+  // from the opponent's StateView forever, rendering card backs in the stack viewer.
+  it("relocatePermanent keeps the moved cards face-up", () => {
+    const h = harness({
+      turnSeat: 0,
+      board: { 0: { battleArea: [battleDigimon("dest", 5000), battleDigimon("source", 3000)] } },
+    });
+    const destId = h.s.perm("dest").permanentId;
+    const source = h.s.perm("source");
+    const sourceTopId = source.topCard!.instanceId;
+    source.topCard!.faceUp = true;
+
+    expect(h.fx.relocatePermanent(destId, source.permanentId)).toBe(true);
+
+    const moved = h.s.perm("dest").stack.find((card) => card.instanceId === sourceTopId);
+    expect(moved?.faceUp).toBe(true);
+  });
+
   it("relocatePermanentByEffect awaits the destination's add-digivolution window", async () => {
     const h = harness({
       turnSeat: 0,

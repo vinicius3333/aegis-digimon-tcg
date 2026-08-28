@@ -1785,7 +1785,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const belowTop = opts?.belowTop ?? true;
     const toAttach: CardInstance[] = shed ? [source.topCard] : [source.topCard, ...source.stack, ...source.linked];
     for (const card of toAttach) {
-      card.faceUp = opts?.faceUp ?? false;
+      // Battle-area cards are public and stay face-up as digivolution cards (KB Q4250/Q4251);
+      // forcing them face-down here withheld their cardId from the opponent's StateView for
+      // the rest of the match, which rendered as card backs in the stack viewer.
+      card.faceUp = opts?.faceUp ?? card.faceUp;
       if (belowTop) pushOnStack(dest, card);
       else unshiftOnStack(dest, card);
     }
