@@ -323,6 +323,7 @@ const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
   "BT22-038", // -1 for each face-down digivolution card on the Ver.1 base (KB Q4884/Q5196)
   "BT8-112", // return a white level 7 from trash to the deck bottom -> -4
   "BT3-111", // Paildramon/Dinobeemon would digivolve into this card -> -2 (KB card ruling)
+  "BT7-025", // Beowolfmon: this card's own digivolution cost -2 with a Tamer source
   "BT11-059", // -1 per green/black Tamer when one of your Digimon digivolves into this card (Q2092)
   "EX5-012", // qualifying 3+ source Light Fang/Night Claw/Galaxy stack -> self evo cost -2 (Q3549)
 ]);
