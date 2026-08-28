@@ -48,6 +48,33 @@ describe("BT15-002", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
 
+  it("removes the temporary DP increase at the end of the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "watcher", under: ["BT15-002"] }],
+          hand: [{ card: "BT15-026", as: "drawSource" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+        1: { deck: ["BT1-002"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const before = s.perm("watcher").baseDP;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("drawSource").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("watcher").currentDP === before + 1000);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+
+    expect(s.perm("watcher").currentDP).toBe(before);
+  });
+
   it("does not gain DP when an own Digimon effect draws during the opponent's turn", async () => {
     const s = setupEngine({
       0: {
