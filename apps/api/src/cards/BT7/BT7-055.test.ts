@@ -2,9 +2,24 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT7-055.js";
 
 describe("BT7-055 Ebonwumon", () => {
+  it("publishes the unsuspend cost only during the opponent's turn", () => {
+    expect(runtimeCompiledCard("BT7-055")?.effects[1]).toMatchObject({
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "Restrict",
+          target: { count: "all" },
+          restriction: "unsuspendHandTrashCost",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    });
+  });
+
   it("suspends an opposing Digimon and gains memory for all opposing suspended Digimon when digivolving", async () => {
     const s = setupEngine(
       {
