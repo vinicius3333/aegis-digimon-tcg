@@ -1,5 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { definitionOf } from "../../engine/cards/cardData.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -43,19 +45,45 @@ describe("BT13-080 ProtoGizmon", () => {
   });
 
   it("returns two Gizmon cards before optionally playing Gizmon: AT", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions?.[0]).toMatchObject({
-      kind: "PlayWithoutCost",
-      from: ["trash"],
+    const action = compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions?.[0] as {
+      actions?: Array<{ kind?: string; target?: { filter?: { nameOrTrait?: unknown[] } } }>;
+      cost?: { kind?: string; to?: string; orderReturnedCards?: boolean; target?: unknown };
+      optional?: boolean;
+      abortOnDecline?: boolean;
+    };
+    expect(action).toMatchObject({
+      kind: "CostGatedBlock",
       optional: true,
-      target: { filter: { controller: "mine", nameOrTrait: [{ match: "name", tokens: ["Gizmon: AT"] }] }, count: 1 },
+      abortOnDecline: true,
       cost: {
         kind: "return",
+        to: "deckBottom",
+        orderReturnedCards: true,
         target: {
           filter: { zone: "trash", controller: "mine", nameOrTrait: [{ match: "name", tokens: ["Gizmon"] }] },
           count: 2,
         },
       },
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["trash"],
+          optional: true,
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ match: "nameExact", tokens: ["Gizmon: AT"] }],
+            },
+            count: 1,
+          },
+          payCost: false,
+        },
+      ],
     });
+    const atReference = (action.actions?.[0]?.target?.filter?.nameOrTrait?.[0] ?? {}) as never;
+    expect(matchNameOrTrait(definitionOf("BT13-083"), atReference)).toBe(true);
+    expect(matchNameOrTrait(definitionOf("BT13-086"), atReference)).toBe(false);
   });
 
   it("draws one card and then trashes one card from hand on play", async () => {
@@ -115,6 +143,27 @@ describe("BT13-080 ProtoGizmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083")).toBe(true);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT13-080", "BT13-086"]),
+    );
+  });
+
+  it("pays the two-Gizmon return cost even when no Gizmon: AT target exists", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-080", as: "proto" }],
+          trash: [{ card: "BT13-086", as: "xt" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("proto").permanentId]);
+    await settle(() => s.state.players[0]!.deck.length === 2);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-083")).toBe(false);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT13-080", "BT13-086"]),
     );
