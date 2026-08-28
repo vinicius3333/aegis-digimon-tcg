@@ -23,7 +23,7 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
             filter: {
               zone: "trash",
               controller: "mine",
-              nameOrTrait: [{ match: "name", tokens: ["Belphemon: Rage Mode"] }],
+              nameOrTrait: [{ match: "nameExact", tokens: ["Belphemon: Rage Mode"] }],
             },
             count: 1,
           },
@@ -50,7 +50,7 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
     });
   });
 
-  it("places Rage Mode from trash before granting the play restrictions", async () => {
+  it("uses the exact Rage Mode from trash before granting the play restrictions", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT13-088", as: "sleep" }], trash: [{ card: "BT13-091", as: "rage" }] } },
       { autoAcceptOptional: true },
@@ -58,5 +58,11 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sleep"));
     await settle(() => s.perm("sleep").stack.some((card) => card.cardId === "BT13-091"));
     expect(s.perm("sleep").stack.at(-1)?.cardId).toBe("BT13-091");
+  });
+
+  it("uses an exact alternate digivolution name", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { namesExact: ["Belphemon: Rage Mode"], cost: 1, isAlternate: true },
+    ]);
   });
 });
