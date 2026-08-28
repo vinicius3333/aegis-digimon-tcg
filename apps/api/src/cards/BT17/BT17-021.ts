@@ -21,8 +21,6 @@ const compiled: CompiledCard = {
                 zone: "hand",
                 controller: "mine",
                 kind: ["Digimon"],
-                colors: ["Blue"],
-                levels: [3],
                 nameOrTrait: [
                   {
                     tokens: ["Seasarmon"],
