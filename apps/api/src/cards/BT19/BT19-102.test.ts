@@ -31,7 +31,7 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
         actions: [
           {
             kind: "Delete",
-            sameTarget: true,
+            target: { sameTarget: true },
             optional: true,
             abortOnDecline: true,
             cost: { kind: "playFromDigivolutionCards", payCost: false },
@@ -43,7 +43,7 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
         actions: [
           {
             kind: "Delete",
-            sameTarget: true,
+            target: { sameTarget: true },
             optional: true,
             abortOnDecline: true,
             cost: { kind: "playFromDigivolutionCards", payCost: false },
@@ -91,6 +91,32 @@ describe("BT19-102 Luminamon (Nene Version)", () => {
         alternateRequirementIndex: 1,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("digivolves from the exact Luminamon alternate route using BT19-076", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-076", as: "luminamon" }],
+          hand: [{ card: "BT19-102", as: "evolving" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("luminamon").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("luminamon").topCard.cardId === "BT19-102");
+
+    expect(s.perm("luminamon").topCard.cardId).toBe("BT19-102");
+    expect(s.perm("luminamon").stack.map((card) => card.cardId)).toEqual(["BT19-076"]);
+    expect(s.state.memory).toBe(0);
   });
 
   it("DigiXroses with Nene and either named Digimon, including the Tamer material", async () => {
