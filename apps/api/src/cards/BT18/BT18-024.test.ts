@@ -100,6 +100,34 @@ describe("BT18-024 Calmaramon", () => {
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === sourceId)).toBe(false);
   });
 
+  it("naturally returns an opposing level 4 when evolving onto a stack with a level 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT18-023", as: "lanamon", under: ["BT1-030"] }],
+          hand: [{ card: "BT18-024", as: "calmaramon" }],
+        },
+        1: { battleArea: [{ card: "BT1-032", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const targetId = s.perm("target").topCard!.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lanamon").permanentId,
+        instanceId: s.inst("calmaramon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === targetId));
+
+    expect(s.state.players[1]!.hand.some(({ instanceId }) => instanceId === targetId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.instanceId === targetId)).toBe(false);
+  });
+
   it("digivolves from Lanamon for the named cost of 1", async () => {
     const s = setupEngine({
       0: {
