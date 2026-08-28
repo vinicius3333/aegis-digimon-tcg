@@ -24,7 +24,7 @@ provisional and capped at 8/10.
 | BT18-001–010 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-001-010.md` | Yes |
 | BT18-011–020 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-011-020.md` | Yes |
 | BT18-021–030 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-021-030.md` | Yes |
-| BT18-031–040 | Luna assigned | `internal-docs/audits/BT18/BT18-031-040.md` | No |
+| BT18-031–040 | Coordinator reviewed | `internal-docs/audits/BT18/BT18-031-040.md` | Yes |
 | BT18-041–050 | Luna assigned | `internal-docs/audits/BT18/BT18-041-050.md` | No |
 | BT18-051–060 | Luna assigned | `internal-docs/audits/BT18/BT18-051-060.md` | No |
 | BT18-061–070 | Luna assigned | `internal-docs/audits/BT18/BT18-061-070.md` | No |
@@ -75,14 +75,24 @@ applicable non-gate component rather than being rounded up.
 | BT18-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution proves every bottom-stack trash, the stackless restriction/duration, DigiXros, leave replacement, and trait grant (`eb5819b44`). |
 | BT18-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution and leave flows prove the scaled level return, DigiXros, source return, and stack play branches (`425db2b1c`). |
 | BT18-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/reveal and opponent effect deletion prove dual-category selection and the inherited security replacement boundary (`be5fbd84c`). |
+| BT18-031 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal proves both categories, duplicate caps, controller scope, and once-per-turn inherited-Tamer memory (`be1e4b007`). |
+| BT18-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural matching/nonmatching plays prove self-exclusion, turn scope and frequency; a legal inherited host proves attack DP duration (`f547f1643`). |
+| BT18-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public hand activation proves the exact trash cost, empty-breeding placement, occupied/missing-cost rejection, and optional decline (`a1c1f3fa8`). |
+| BT18-034 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and turn progression prove security choice/recovery, start-main, Chaos Mode end-turn evolution, and BT7-111 exclusion (`b2f08c198`). |
+| BT18-035 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural security battle proves free play; legal yellow evolution and inherited attacks prove target, duration, and frequency (`7d734e023`). |
+| BT18-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added the opponent-effect leave-cause filter; natural evolution and opponent deletion prove the security/draw/memory clause and inherited prevention (`efcde4c6a`). |
+| BT18-037 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Legal public Koji evolutions prove security add/recovery/shuffle and decline; natural attack covers the inherited hand-size draw (`5869b84f8`, `d85d73613`). |
+| BT18-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/deletion and Angel evolution prove optional placement, mandatory security-to-hand, inherited recovery, and exact count boundaries (`eb4b0455e`). |
+| BT18-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution/decline prove original-DP semantics, while public attacks against both players prove security-owner scope and once-per-turn unsuspend (`70f0f1fea`, `4fdd94580`). |
+| BT18-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, evolution, attack and Counter Blast Digivolve prove all three security-costed DP clauses, threshold auras, Overflow, and ACE stack behavior (`e06d19efc`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 30
-- Corrected: 1
-- Provisional: 30
+- Integrated card audits: 40
+- Corrected: 2
+- Provisional: 40
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 4 (`BT18-011`, `BT18-012`, `BT18-014`, `BT18-017` source-proof gaps)
 - Remaining unassigned: 22
