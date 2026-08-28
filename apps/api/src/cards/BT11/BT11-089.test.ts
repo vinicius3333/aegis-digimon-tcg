@@ -86,4 +86,22 @@ describe("BT11-089 [On Play] reveal 4 -> add 1 red Vaccine Digimon to hand", () 
     expect(observe(s.engine).hasKeyword(s.perm("played-bird"), "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("other-beast"), "Rush")).toBe(false);
   });
+
+  it("does not react to a red Sea Animal genuinely played by an effect", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "BT11-089", as: "akiho" }],
+          hand: [{ card: "BT14-008", as: "sea-animal" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.playInstances([s.inst("sea-animal").instanceId], "BT11-089");
+
+    expect(s.perm("akiho").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("sea-animal"), "Rush")).toBe(false);
+  });
 });
