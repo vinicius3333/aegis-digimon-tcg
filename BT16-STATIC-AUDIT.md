@@ -31,7 +31,7 @@ collection-complete claim is valid.
 | BT16-031–040 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-031-040.md` | Yes |
 | BT16-041–050 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-041-050.md` | Yes |
 | BT16-051–060 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-051-060.md` | Yes |
-| BT16-061–070 | Coordinator accepted; awaiting earlier ranges | `internal-docs/audits/BT16/BT16-061-070.md` | No |
+| BT16-061–070 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-061-070.md` | Yes |
 | BT16-071–080 | Coordinator accepted; awaiting earlier ranges | `internal-docs/audits/BT16/BT16-071-080.md` | No |
 | BT16-081–090 | Luna assigned | `internal-docs/audits/BT16/BT16-081-090.md` | No |
 | BT16-091–100 | Luna assigned | `internal-docs/audits/BT16/BT16-091-100.md` | No |
@@ -130,16 +130,26 @@ feasible natural originating event.
 | BT16-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Dorumon/SoC evolution proves hand-trash payment, draw, stack-gated forced-attack grant, Collision, and inherited DP (`b50731a05`). |
 | BT16-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2646 exact-three overlap and a natural Pulsemon-text attack prove both entry branches and inherited security-cost unsuspend (`9c95cd5a3`). |
 | BT16-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected both entry effects to scale a live opponent-permanent play-cost modifier; Q2647–Q2648, reveal restoration, effective-cost deletion, and inherited De-Digivolve are covered (`718aa34b4`). |
+| BT16-061 | 2/2 | 0/2 | 2/2 | 2/2 | 0/2 | 6/10 provisional | Collision and natural target-switch evolution are proved, but the inherited printed trigger includes effect deletion while the available IR/runtime identifies only battle deletion by the host; the seam remains explicit (`9b7fbc6b1`). |
+| BT16-062 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play covers DP-relative De-Digivolve/delete, and a legal Gammamon stack naturally proves copied inherited Retaliation (`94668da67`). |
+| BT16-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2651–Q2653, legal black/yellow DNA, opponent-effect immunity, Partition, and DNA-only security placement/count boundary match the IR (`982fd7da8`). |
+| BT16-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the deletion watcher to either controller; natural opposing battle deletion proves the once-per-turn self-unsuspend with Collision/SoC stack coverage (`2d4ff322c`). |
+| BT16-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2654–Q2655 opposing Boss plus exact six-card D-Brigade reductions, reveal/delete budget, and optional Chaosmon DNA match shared cost/runtime behavior (`1509586ca`). |
+| BT16-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2656 opponent-controlled choice, natural declined alternate evolution/memory branch, and inherited attack draw-trash are covered (`3c3b7d19b`). |
+| BT16-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves hand-trash/+3000 DP sequencing, and a legal effect-play origin proves the inherited once-per-turn draw watcher (`ce5690601`). |
+| BT16-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves Blocker duration and a legal effect-play origin proves inherited once-per-turn draw behavior (`8bab33177`). |
+| BT16-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q4708–Q4709, natural Gesomon evolution, three-source trash, unconditional post-Then restriction, and inherited attack draw-trash are covered (`42f314e31`). |
+| BT16-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2657 selection binding, natural Veemon evolution and attack timings, own selected deletion, DP comparison, and Armor Purge match the direct IR (`2a7ffbd95`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 60
-- Corrected: 13
-- Provisional: 60
+- Integrated card audits: 70
+- Corrected: 14
+- Provisional: 70
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 0
+- Blocked or ambiguous: 1
 - Remaining unassigned: 0
 
 BT16 static re-audit is in progress.
