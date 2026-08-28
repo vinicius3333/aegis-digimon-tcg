@@ -11,6 +11,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
           raw: "When an effect places a Tamer card in one of your Digimon's digivolution cards, by suspending this Tamer, gain 1 memory",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], byEffect: true },
           addedDigivolutionCardFilter: { kind: ["Tamer"] },
           actions: [
             { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
@@ -21,27 +22,22 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "EndOfOpponentsTurn",
+      condition: { kind: "selfIsSuspended", raw: "this Tamer is suspended" },
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenSuspended",
-          actions: [
-            {
-              kind: "Digivolve",
-              target: {
-                filter: { controller: "mine", kind: ["Digimon"], hasTamerInDigivolutionCards: true },
-                count: 1,
-              },
-              into: {
-                controllerDefault: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["Dex", "DeathX"], match: "name" }],
-              },
-              payCost: false,
-              from: ["trash"],
-              optional: true,
-            },
-          ],
+          kind: "Digivolve",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], hasTamerInDigivolutionCards: true },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Dex", "DeathX"], match: "name" }],
+          },
+          payCost: false,
+          from: ["trash"],
+          optional: true,
         },
       ],
       frequency: "OncePerTurn",
