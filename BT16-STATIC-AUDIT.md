@@ -26,7 +26,7 @@ collection-complete claim is valid.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT16-001–010 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-001-010.md` | Yes |
-| BT16-011–020 | Luna assigned | `internal-docs/audits/BT16/BT16-011-020.md` | No |
+| BT16-011–020 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-011-020.md` | Yes |
 | BT16-021–030 | Luna assigned | `internal-docs/audits/BT16/BT16-021-030.md` | No |
 | BT16-031–040 | Luna assigned | `internal-docs/audits/BT16/BT16-031-040.md` | No |
 | BT16-041–050 | Luna assigned | `internal-docs/audits/BT16/BT16-041-050.md` | No |
@@ -36,6 +36,11 @@ collection-complete claim is valid.
 | BT16-081–090 | Unassigned | `internal-docs/audits/BT16/BT16-081-090.md` | No |
 | BT16-091–100 | Unassigned | `internal-docs/audits/BT16/BT16-091-100.md` | No |
 | BT16-101–102 | Unassigned | `internal-docs/audits/BT16/BT16-101-102.md` | No |
+
+Process note: during BT16-011 inspection, the worker accidentally invoked one
+scoped `git diff --check -- <files>` command. It returned no output, was
+disclosed in the range report, and earns no executed-gate credit. No other
+prohibited execution command was reported for BT16-011–020.
 
 ## Score model
 
@@ -75,14 +80,24 @@ feasible natural originating event.
 | BT16-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Alternate Hawkmon evolution, exact deletion boundary, inherited suspension, and Jamming Security survival are naturally sourced (`2d6d16b2c`). |
 | BT16-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Alternate Gatomon evolution and DP duration matched; real battles prove Raid redirection and Armor Purge promotion (`2de96671d`). |
 | BT16-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2605, SoC evolution, natural turn boundary, Retaliation, no-target cost, and optional trash-play refusal are covered (`40ebe7d16`). |
+| BT16-011 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected Garudamon-name/X Antibody-trait matching and mandatory follow-up deletion; natural play/evolution, DP boundary, decline, and Rush proof (`594a36a67`, `937070722`). |
+| BT16-012 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | DNA materials, Partition, DNA-only DP reduction, normal-evolution negative, and natural attack boundary match the compiled IR (`a8e0bfdc4`). |
+| BT16-013 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2606–Q2611 and the once-per-turn security-removal branch are proved through natural play, evolution, removal, and attack flows (`20082a895`). |
+| BT16-014 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2612–Q2613, Raid, no-cost Option use, alternate evolution, and Goldramon source inheritance are traced through legal stacks (`14fce640d`). |
+| BT16-015 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected Phoenixmon-name/X Antibody-trait source conditions; natural Blitz, projection, source-lapse, deletion, and played-card DP proof cover Q2614–Q2615 (`da00a4c2a`). |
+| BT16-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Tokomon evolution, reduced-cost Angel/Free evolution, and inherited top-source trash are naturally sourced and match Q2816 (`cffa500c9`). |
+| BT16-017 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2616 post-evolution subject binding, shared once-per-turn play/evolution frequency, negative matching, and inherited DP have realistic peer/stack proof (`1b1c9080f`). |
+| BT16-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2617 battle-only protection is proved by natural play/evolution selection and a losing Security battle, with inherited DP stack coverage (`ff4b1bb3e`). |
+| BT16-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Blocker, level-bounded unsuspend, and inherited top-source trash are exercised through natural play, evolution, and attack intents (`664023dae`). |
+| BT16-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2775 draw/condition ordering, off-color alternate evolution, both memory branches, matcher negatives, and natural inherited Jamming are covered (`b5be60b9b`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 60
-- Integrated card audits: 10
-- Corrected: 0
-- Provisional: 10
+- Integrated card audits: 20
+- Corrected: 2
+- Provisional: 20
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 42
