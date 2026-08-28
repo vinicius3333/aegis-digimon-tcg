@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-001.js";
 import "../index.js";
 
@@ -59,6 +59,33 @@ describe("BT21-001 Gigimon", () => {
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT21-015", "BT21-001"]));
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nonMatch").instanceId);
+  });
+
+  it("digivolves from a public attack that removes the opponent's security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-015", as: "host", under: ["BT21-001", "BT21-007"] }],
+          hand: [{ card: "BT21-024", as: "cyberdramon" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.perm("host").topCard.cardId).toBe("BT21-024");
+    expect(s.state.memory).toBe(3);
   });
 
   it("does not trigger when the controller's own security is removed", async () => {
