@@ -30,7 +30,7 @@ collection-complete claim is valid.
 | BT16-021–030 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-021-030.md` | Yes |
 | BT16-031–040 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-031-040.md` | Yes |
 | BT16-041–050 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-041-050.md` | Yes |
-| BT16-051–060 | Luna assigned | `internal-docs/audits/BT16/BT16-051-060.md` | No |
+| BT16-051–060 | Coordinator reviewed | `internal-docs/audits/BT16/BT16-051-060.md` | Yes |
 | BT16-061–070 | Coordinator accepted; awaiting earlier ranges | `internal-docs/audits/BT16/BT16-061-070.md` | No |
 | BT16-071–080 | Coordinator accepted; awaiting earlier ranges | `internal-docs/audits/BT16/BT16-071-080.md` | No |
 | BT16-081–090 | Luna assigned | `internal-docs/audits/BT16/BT16-081-090.md` | No |
@@ -120,14 +120,24 @@ feasible natural originating event.
 | BT16-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2640 suspended immunity, natural end-turn DP boundary/bottom-deck, reduced-cost play, and alternate Insectoid route match the direct module (`50ac370d6`). |
 | BT16-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2641 post-evolution identity, shared play/evolution frequency, qualifier negatives, Upamon route, and inherited DP are naturally covered (`283b43cb0`). |
 | BT16-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | D-Brigade/DigiPolice OR matching, source/opponent/nontrait exclusions, and inherited aura have catalog-backed stack proof (`87cb4de6f`). |
+| BT16-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2642–Q2643 leave protection, Kosuke bottom-stack placement, duration, Dorimon route, and inherited DP match the compiled implementation (`5e2c5e02d`). |
+| BT16-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected KoHagurumon Token to 1000 DP with executable Blocker, Decoy Black, and Your Turn attack restriction; natural token play and inherited Blocker are covered (`26a5552cb`). |
+| BT16-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and Armadillomon evolution prove attack-player restriction scope/duration, Barrier, and inherited DP (`f20c10f9e`). |
+| BT16-054 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play pays the exact three-card D-Brigade/DigiPolice cost and proves Rush, unblockable duration, deck-top return, and inherited peer shape (`8a69d7dd1`). |
+| BT16-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2644 exact-three overlap naturally proves both protection and Blocker/Reboot branches, duration, Pulsemon route, and inherited DP (`582f069c6`). |
+| BT16-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2645 completion-time threshold, natural field-top security placement with stack shedding, once-per-turn trash, and no-source fallback match the IR (`7a1e8048e`). |
+| BT16-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected placement to a live other DigiPolice permanent with source shedding; natural On Play relocation/De-Digivolve and no-source attack restriction are covered (`31d4e0622`). |
+| BT16-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Dorumon/SoC evolution proves hand-trash payment, draw, stack-gated forced-attack grant, Collision, and inherited DP (`b50731a05`). |
+| BT16-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2646 exact-three overlap and a natural Pulsemon-text attack prove both entry branches and inherited security-cost unsuspend (`9c95cd5a3`). |
+| BT16-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected both entry effects to scale a live opponent-permanent play-cost modifier; Q2647–Q2648, reveal restoration, effective-cost deletion, and inherited De-Digivolve are covered (`718aa34b4`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 50
-- Corrected: 10
-- Provisional: 50
+- Integrated card audits: 60
+- Corrected: 13
+- Provisional: 60
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
