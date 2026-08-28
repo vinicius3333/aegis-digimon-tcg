@@ -90,12 +90,19 @@ describe("BT13-059 Examon", () => {
     expect(dnaDigivolveCostFor(evolving, [slayer, { ...breaker, nameEn: "Breakdramon: X Antibody" }])).toBeUndefined();
   });
 
-  it("resolves the All Turns optional modal from the natural On Play suspension event", async () => {
+  it("resolves the All Turns modal once across a second same-turn On Play event", async () => {
     const preferredTargets: string[] = [];
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-059", as: "examon" }, { card: "BT1-015", as: "ally", suspended: true }] },
-        1: { battleArea: [{ card: "BT1-015", as: "opponent" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-015", as: "firstTarget" },
+            // The first target is locked by BT13-059, so this separate suspended Digimon
+            // provides a legal real-unsuspend transition for the same-turn repeat boundary.
+            { card: "BT1-015", as: "opponent", suspended: true },
+          ],
+        },
       },
       {
         autoAcceptOptional: true,
@@ -105,13 +112,28 @@ describe("BT13-059 Examon", () => {
         preferOptionIndex: 1,
       },
     );
-    preferredTargets.push(s.perm("ally").topCard!.instanceId);
+    preferredTargets.push(s.perm("ally").permanentId, s.perm("ally").topCard!.instanceId);
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("examon"));
 
-    expect(s.decisions.some((decision) => decision.req.kind === "chooseOption")).toBe(true);
-    expect(s.perm("opponent").isSuspended).toBe(true);
+    const chooseOptionCount = () => s.decisions.filter((decision) => decision.req.kind === "chooseOption").length;
+    expect(chooseOptionCount()).toBe(1);
+    expect(s.perm("firstTarget").isSuspended).toBe(true);
     expect(s.perm("ally").isSuspended).toBe(false);
+
+    await advance(s.engine).verb.unsuspend([s.perm("opponent").permanentId]);
+    expect(s.perm("opponent").isSuspended).toBe(false);
+    preferredTargets.splice(
+      0,
+      preferredTargets.length,
+      s.perm("opponent").permanentId,
+      s.perm("opponent").topCard!.instanceId,
+    );
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("examon"));
+
+    expect(chooseOptionCount()).toBe(1);
+    expect(s.perm("opponent").isSuspended).toBe(true);
   });
 });
