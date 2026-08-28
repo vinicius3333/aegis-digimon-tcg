@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { digiXrosRequirementFor, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT10-111.js";
 
 describe("BT10-111 Shoutmon (King Version)", () => {
+  it("registers one Xros Heart DigiXros material for a two-memory reduction", () => {
+    const requirement = [{ materials: [{ traits: ["Xros Heart"] }], count: 2 }];
+    expect(compiled.digiXrosRequirement).toEqual(requirement);
+    expect(digiXrosRequirementFor("BT10-111")).toEqual(requirement);
+  });
+
   it("does not invent a Security effect absent from the catalog", () => {
     expect(compiled.effects.some((effect) => effect.trigger === "Security")).toBe(false);
   });
