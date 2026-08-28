@@ -24,6 +24,7 @@ describe("BT21-015 Cyclonemon", () => {
     expect(compiled.effects).toEqual([
       expect.objectContaining({
         trigger: "Security",
+        timing: "endOfBattle",
         actions: [
           { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
         ],
