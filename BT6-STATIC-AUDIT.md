@@ -29,10 +29,10 @@ claim is valid.
 | BT6-031–040 | Static audit delivered | `internal-docs/audits/BT6/BT6-031-040.md` | Yes |
 | BT6-041–050 | Static audit delivered | `internal-docs/audits/BT6/BT6-041-050.md` | Yes |
 | BT6-051–060 | Static audit delivered | `internal-docs/audits/BT6/BT6-051-060.md` | Yes |
-| BT6-061–070 | Luna in progress | `internal-docs/audits/BT6/BT6-061-070.md` | No |
+| BT6-061–070 | Static audit delivered | `internal-docs/audits/BT6/BT6-061-070.md` | Yes |
 | BT6-071–080 | Luna in progress | `internal-docs/audits/BT6/BT6-071-080.md` | No |
 | BT6-081–090 | Luna in progress | `internal-docs/audits/BT6/BT6-081-090.md` | No |
-| BT6-091–100 | Queued | `internal-docs/audits/BT6/BT6-091-100.md` | No |
+| BT6-091–100 | Luna in progress | `internal-docs/audits/BT6/BT6-091-100.md` | No |
 | BT6-101–110 | Queued | `internal-docs/audits/BT6/BT6-101-110.md` | No |
 | BT6-111–112 | Queued | `internal-docs/audits/BT6/BT6-111-112.md` | No |
 
@@ -120,14 +120,24 @@ other component and is never rounded up.
 | BT6-058 Nanimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected end-of-Security-battle self play from trash with both outcomes |
 | BT6-059 Machmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Errata-aligned Decoy (Black) marker through canonical replacement semantics |
 | BT6-060 Deputymon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Independent Three Musketeers/Option reveal slots and cost-6 requirement-ignoring digivolution |
+| BT6-061 Gigadramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Owner-turn red color grant, breeding exclusion, and opponent-turn inherited DP aura |
+| BT6-062 Volcanomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Live unsuspended-opponent Security Attack aura transition on a legal inherited stack |
+| BT6-063 BigMamemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Vanilla full/no-residual registration with focused direct-module loading |
+| BT6-064 Mamemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Errata-aligned Decoy (Black) and inclusive play-cost-7 On Deletion target boundary |
+| BT6-065 Gundramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected optional cost-7 Option use with decline-to-delete fallback and legal stack |
+| BT6-066 PileVolcamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Reboot plus other-own-Digimon deletion watcher and once-per-turn De-Digivolve |
+| BT6-067 Gankoomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | All tied lowest-cost deletion and live unsuspended-opponent Security Attack aura |
+| BT6-068 Impmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional hand trash with strict if-you-do trait-qualified trash return |
+| BT6-069 Goblimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Effect-controller hand-trash watcher and once-per-turn inherited DP gain on a legal stack |
+| BT6-070 Elecmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Exact opposing level-3 On Deletion target with level-4 negative |
 
 ## Aggregate
 
 - Catalog cards: 112
 - Assigned: 112
-- Integrated card audits: 60
-- Corrected: 7
-- Provisional: 60
+- Integrated card audits: 70
+- Corrected: 8
+- Provisional: 70
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 0
