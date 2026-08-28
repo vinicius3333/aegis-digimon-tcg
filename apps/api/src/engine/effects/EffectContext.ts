@@ -89,6 +89,7 @@ export type SubTriggerEventName =
   | "onDeletionOf"
   | "whenSecurityRemoved"
   | "whenCardTrashedFromSecurity"
+  | "whenEffectTrashesFromSecurity"
   | "whenEffectRemovesFromSecurity"
   | "whenAddSecurity"
   | "whenFaceUpCardsAddedToOpponentSecurity"

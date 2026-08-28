@@ -74,6 +74,7 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   OnDeletion: "onDeletionOf",
   whenSecurityRemoved: "whenSecurityRemoved",
   whenCardTrashedFromSecurity: "whenCardTrashedFromSecurity",
+  whenEffectTrashesFromSecurity: "whenEffectTrashesFromSecurity",
   whenSecurityBattleEnded: "whenSecurityBattleEnded",
   // Alias used by the ST15 hand-authored module; both spellings share the
   // same security-removal payload and fire sites.
@@ -220,7 +221,8 @@ export async function runSubTrigger(
   const securityRemovalGate =
     event === "whenEffectRemovesFromSecurity" ||
     event === "whenSecurityRemoved" ||
-    event === "whenCardTrashedFromSecurity"
+    event === "whenCardTrashedFromSecurity" ||
+    event === "whenEffectTrashesFromSecurity"
       ? (subCtx: EffectContext): boolean => {
           const removedSeat = subCtx.trigger?.removedFromSecuritySeat;
           if (removedSeat === undefined) return false;
@@ -261,6 +263,7 @@ export async function runSubTrigger(
     event === "whenEffectRemovesFromSecurity" ||
     event === "whenSecurityRemoved" ||
     event === "whenCardTrashedFromSecurity" ||
+    event === "whenEffectTrashesFromSecurity" ||
     event === "onDiscardLibrary" ||
     event === "onDigivolutionCardReturnToDeckBottom" ||
     event === "whenHandTrashed" ||

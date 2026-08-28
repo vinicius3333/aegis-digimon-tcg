@@ -2696,6 +2696,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         removedFromSecuritySeat: seat,
         trashedFromSecurityInstanceIds: moved.map((c) => c.instanceId),
       });
+      // Effect-only counterpart for cards whose wording says "trashed from your security
+      // stack by an effect" (BT17-036). Unlike whenCardTrashedFromSecurity, this event does
+      // not fire for an ordinary security check, which also sends its checked card to trash.
+      await engine.fireSubTrigger?.("whenEffectTrashesFromSecurity", {
+        removedFromSecuritySeat: seat,
+        trashedFromSecurityInstanceIds: moved.map((c) => c.instanceId),
+      });
       // Each trashed security card's own OnDiscardSecurity clause (ST22-10) fires now that it is in trash.
       await engine.fireDiscardedFromSecurity?.(moved.map((c) => c.instanceId));
     }
