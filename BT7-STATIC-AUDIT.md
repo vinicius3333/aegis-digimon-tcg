@@ -27,10 +27,10 @@ claim is valid.
 | BT7-011–020 | Static audit delivered | `internal-docs/audits/BT7/BT7-011-020.md` | Yes |
 | BT7-021–030 | Static audit delivered | `internal-docs/audits/BT7/BT7-021-030.md` | Yes |
 | BT7-031–040 | Luna in progress | `internal-docs/audits/BT7/BT7-031-040.md` | No |
-| BT7-041–050 | Luna in progress | `internal-docs/audits/BT7/BT7-041-050.md` | No |
+| BT7-041–050 | Static audit delivered | `internal-docs/audits/BT7/BT7-041-050.md` | Yes |
 | BT7-051–060 | Static audit delivered | `internal-docs/audits/BT7/BT7-051-060.md` | Yes |
 | BT7-061–070 | Queued | `internal-docs/audits/BT7/BT7-061-070.md` | No |
-| BT7-071–080 | Queued | `internal-docs/audits/BT7/BT7-071-080.md` | No |
+| BT7-071–080 | Luna in progress | `internal-docs/audits/BT7/BT7-071-080.md` | No |
 | BT7-081–090 | Luna in progress | `internal-docs/audits/BT7/BT7-081-090.md` | No |
 | BT7-091–100 | Queued | `internal-docs/audits/BT7/BT7-091-100.md` | No |
 | BT7-101–110 | Queued | `internal-docs/audits/BT7/BT7-101-110.md` | No |
@@ -90,6 +90,16 @@ other component and is never rounded up.
 | BT7-028 KingWhamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Level-three-or-Whamon source-stack free play and opponent level-four return/source teardown watcher |
 | BT7-029 MagnaGarurumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected decline-aborts-dependent-bounce behavior with shared dual-trigger once-per-turn identity |
 | BT7-030 AncientMegatheriummon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Per-Hybrid bottom-source trash scaling, post-action source-less draw, and bounded On Deletion free play |
+| BT7-041 Kazuchimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected optional Recovery +1-until-three branch plus exclusive memory threshold and Security Attack aura |
+| BT7-042 AncientKazemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Opponent-turn Hybrid-stack Security Digimon DP bonus and bounded yellow Hybrid On Deletion play |
+| BT7-043 Gotsumon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional green-Digimon hand reveal and deck-top placement through loose-card targeting |
+| BT7-044 Betamon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Green level-four-Digimon-or-Tamer reveal union with one add and ordered bottom remainder |
+| BT7-045 Tortomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Optional green hand-to-deck-top cost, decline abort, and gated inherited DP gain |
+| BT7-046 Beetlemon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Green-Tamer alternate evolution and independent Hybrid/J.P. reveal slots |
+| BT7-047 MetalKabuterimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Green-Tamer alternate evolution plus Hybrid-or-J.P.-conditioned 6000-DP suspension |
+| BT7-048 Monochromon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Effectless full-coverage registration and ordinary green level-three evolution evidence |
+| BT7-049 MameTyramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected self-only free reveal-digivolution target with optional green level-six selection |
+| BT7-050 Triceramon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Effectless full-coverage registration and ordinary green level-four evolution evidence |
 | BT7-051 RhinoKabuterimon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected verified self-reducer, Tamer-source cost reduction, and optional self-only attack evolution |
 | BT7-052 SaberLeomon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Self +5000 DP When Digivolving duration and On Deletion memory gain |
 | BT7-053 Dinorexmon | 2 | 2 | 2 | 2 | 0 | Provisional 8/10 | Corrected same-target suspension/unsuspend restriction and live suspended-opponent DP scaling |
@@ -104,12 +114,12 @@ other component and is never rounded up.
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 70
-- Integrated card audits: 40
-- Corrected: 12
-- Provisional: 40
+- Assigned: 80
+- Integrated card audits: 50
+- Corrected: 14
+- Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 42
+- Remaining unassigned: 32
 
 BT7 static re-audit remains open.
