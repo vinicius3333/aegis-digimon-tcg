@@ -1,6 +1,5 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-062.js";
@@ -55,38 +54,68 @@ describe("BT20-062 Candlemon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT20-069", under: ["BT20-062"], as: "host" }],
+          battleArea: [{ card: "BT20-069", under: ["BT20-062"], suspended: true, as: "host" }],
           hand: [{ card: "BT20-047", as: "cost" }],
         },
         1: {
           battleArea: [
             { card: "BT20-066", as: "level4" },
             { card: "BT20-071", as: "level5" },
+            { card: "BT20-076", as: "attacker" },
           ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("cost").instanceId, s.perm("level4").permanentId);
+    const hostId = s.perm("host").permanentId;
+    preferred.push(s.inst("cost").instanceId, s.perm("level4").permanentId, hostId);
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-066"),
+    );
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-071"]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["BT20-071", "BT20-076"]),
+    );
   });
 
   it("may decline the inherited hand cost and deletion", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT20-069", under: ["BT20-062"], as: "host" }],
+          battleArea: [{ card: "BT20-069", under: ["BT20-062"], suspended: true, as: "host" }],
           hand: [{ card: "BT20-047", as: "cost" }],
         },
-        1: { battleArea: [{ card: "BT20-066", as: "level4" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-066", as: "level4" },
+            { card: "BT20-076", as: "attacker" },
+          ],
+        },
       },
       { autoAcceptOptional: false, autoSelectCards: true },
     );
+    const hostId = s.perm("host").permanentId;
+    s.state.turnSeat = 1;
     await s.ready();
-    const deletion = advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(
       s.engine.applyIntent(0, {
@@ -95,7 +124,7 @@ describe("BT20-062 Candlemon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await deletion;
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-066"]);
   });
