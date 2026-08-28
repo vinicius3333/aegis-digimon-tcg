@@ -9,6 +9,16 @@ import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } fr
 import { EffectDuration } from "@aegis/shared";
 import type { Action, Target, ZoneRef } from "@aegis/shared";
 
+function rememberPlacedUnder(ctx: EffectContext, instanceIds: string[]): void {
+  ctx.lastPlacedUnderInstanceIds = instanceIds;
+  if (instanceIds.length > 0) {
+    ctx.placedUnderInstanceIdsThisEffect = [
+      ...(ctx.placedUnderInstanceIdsThisEffect ?? []),
+      ...instanceIds,
+    ];
+  }
+}
+
 /**
  * "Place [X] under <permanent>" / "place as the bottom digivolution card". The common
  * executable shape places filtered loose cards (from hand/trash) under the SOURCE
@@ -185,7 +195,7 @@ export async function runPlaceUnder(
       });
     }
     await ctx.fx.placeUnder(hostId, chosen, { belowTop: action.position !== "bottom" });
-    ctx.lastPlacedUnderInstanceIds = chosen;
+    rememberPlacedUnder(ctx, chosen);
     ctx.lastEffectActed = chosen.length > 0;
     if (action.trackCount !== undefined) {
       ctx.namedCounts ??= new Map();
@@ -354,7 +364,7 @@ export async function runPlaceUnder(
       destination: "stackBottom",
     });
   }
-  ctx.lastPlacedUnderInstanceIds = chosen;
+  rememberPlacedUnder(ctx, chosen);
   // `asDigiXrosMaterial: true` marks placed cards as DigiXros materials for the host Digimon.
   // The placeUnder primitive records them as material cards in the host's stack (belowTop as
   // the DigiXros convention; the flag is structural metadata for the DigiXros system to read).

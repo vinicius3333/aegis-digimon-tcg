@@ -1923,6 +1923,11 @@ export interface EffectContext {
   /** Loose card instances moved by the immediately preceding PlaceUnder action. */
   lastPlacedUnderInstanceIds?: string[];
   /**
+   * Loose card instances moved by all PlaceUnder actions in this effect resolution. Reset at the
+   * action-bearing runEffect boundary; nested resolutions restore their caller's accumulator.
+   */
+  placedUnderInstanceIdsThisEffect?: string[];
+  /**
    * The permanent ids resolved by the most recent primary-target action in this effect
    * resolution. Written after each `resolvePermanentTargets` call for a non-sameTarget target;
    * read by a subsequent action whose `target.sameTarget` is true (CAP-A9, BT19-089). Undefined
