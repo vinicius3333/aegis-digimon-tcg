@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-084.js";
 
 describe("BT7-084 Eosmon", () => {
+  it("uses exact-name matching for both Eosmon clauses", () => {
+    expect(runtimeCompiledCard("BT7-084")?.effects[0]?.actions[0]).toMatchObject({
+      target: { filter: { nameOrTrait: [{ tokens: ["Eosmon"], match: "nameExact" }] } },
+    });
+    expect(runtimeCompiledCard("BT7-084")?.effects[1]?.actions[0]).toMatchObject({
+      target: { filter: { nameOrTrait: [{ tokens: ["Eosmon"], match: "nameExact" }] } },
+    });
+  });
+
   it("gives each other Eosmon +1000 DP during its turn", async () => {
     const s = setupEngine({
       0: {
