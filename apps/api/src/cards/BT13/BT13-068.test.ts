@@ -49,4 +49,35 @@ describe("BT13-068 KnightChessmon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-039"), 3000);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-039")).toBe(true);
   });
+
+  it("alternately digivolves from a level-3 Chessmon for 2 memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-035", as: "pawn" }], hand: [{ card: "BT13-068", as: "knight" }] },
+    });
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("pawn").permanentId,
+        instanceId: s.inst("knight").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("pawn").topCard?.cardId === "BT13-068");
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("rejects the alternate evolution from a non-Chessmon level 3", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-036", as: "liollmon" }], hand: [{ card: "BT13-068", as: "knight" }] },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("liollmon").permanentId,
+        instanceId: s.inst("knight").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toMatchObject({ ok: false });
+  });
 });

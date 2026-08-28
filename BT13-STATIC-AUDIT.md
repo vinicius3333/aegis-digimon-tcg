@@ -23,14 +23,14 @@ collection-complete claim is valid.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT13-001–010 | Luna assigned | `internal-docs/audits/BT13/BT13-001-010.md` | No |
-| BT13-011–020 | Luna assigned | `internal-docs/audits/BT13/BT13-011-020.md` | No |
+| BT13-001–010 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-001-010.md` | Yes |
+| BT13-011–020 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-011-020.md` | Yes |
 | BT13-021–030 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-021-030.md` | Yes |
-| BT13-031–040 | Unassigned | `internal-docs/audits/BT13/BT13-031-040.md` | No |
-| BT13-041–050 | Unassigned | `internal-docs/audits/BT13/BT13-041-050.md` | No |
-| BT13-051–060 | Unassigned | `internal-docs/audits/BT13/BT13-051-060.md` | No |
-| BT13-061–070 | Unassigned | `internal-docs/audits/BT13/BT13-061-070.md` | No |
-| BT13-071–080 | Unassigned | `internal-docs/audits/BT13/BT13-071-080.md` | No |
+| BT13-031–040 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-031-040.md` | Yes |
+| BT13-041–050 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-041-050.md` | Yes |
+| BT13-051–060 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-051-060.md` | Yes |
+| BT13-061–070 | Coordinator reviewed | `internal-docs/audits/BT13/BT13-061-070.md` | Yes |
+| BT13-071–080 | Luna assigned | `internal-docs/audits/BT13/BT13-071-080.md` | No |
 | BT13-081–090 | Unassigned | `internal-docs/audits/BT13/BT13-081-090.md` | No |
 | BT13-091–100 | Unassigned | `internal-docs/audits/BT13/BT13-091-100.md` | No |
 | BT13-101–110 | Unassigned | `internal-docs/audits/BT13/BT13-101-110.md` | No |
@@ -61,6 +61,26 @@ other component and is never rounded up.
 
 | Card | Catalog and rules | IR trace | Behavioral proof | Peer and stack proof | Executed gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT13-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; inherited deletion boundary source |
+| BT13-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; battle-area and inherited aura source |
+| BT13-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; owner-security trigger source |
+| BT13-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Battle-area scope correction `b41af7a87` |
+| BT13-005 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; stack-count boundary source |
+| BT13-006 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Q2258 cost-without-target source |
+| BT13-007 | 1/2 | 2/2 | 2/2 | 2/2 | 0/2 | 7/10 provisional | Three stale KB references remain catalog/KB drift |
+| BT13-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Marcus correction `62cd9d1e2` |
+| BT13-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact BaoHuckmon correction `b257f200c` |
+| BT13-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Garudamon/Kristy correction `078d484d4` |
+| BT13-011 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; On Play/evolution/deletion boundaries |
+| BT13-012 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Q2270–Q2271 security source |
+| BT13-013 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Q2272–Q2273 trigger ordering |
+| BT13-014 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Tamer cost and inherited deletion boundaries |
+| BT13-015 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact-name correction; GeoGreymon route lacks runtime near-name proof |
+| BT13-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Sistermon-triggered route and inherited source |
+| BT13-017 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Battle-area scaling correction `d41228ab5` |
+| BT13-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Marcus/same-target correction `86c9c3ad5` |
+| BT13-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Q2277 breeding-stack source |
+| BT13-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Structured Burst correction `895661cb9`; host boundary `e9f306259` |
 | BT13-021 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
 | BT13-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
 | BT13-023 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct IR and source proof |
@@ -71,16 +91,56 @@ other component and is never rounded up.
 | BT13-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Kiyoshiro and ordered-return correction `0587a6001` |
 | BT13-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Manual hand-add event source; behavioral proof remains partial |
 | BT13-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Q2281–Q2283 source trace |
+| BT13-031 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Evade, Tamer return, and effect-hand-add source |
+| BT13-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; own-stack play and Blocker source |
+| BT13-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Burst host correction `90991c9dd`; payable-Thomas boundary `aa5a5f89c` |
+| BT13-034 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; reveal groups and combined-security boundary |
+| BT13-035 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon threshold and Reboot source |
+| BT13-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; owner-security watcher and inherited boundary |
+| BT13-037 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; top-security cost and combined-security source |
+| BT13-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Security Attack modifier and combined-security source |
+| BT13-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon-name route and inherited Reboot source |
+| BT13-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Veemon correction `684739265`; ExVeemon leave-play boundary `5f995a9cd` |
+| BT13-041 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Kudamon correction `101a0ecbf`; no genuine near-name runtime fixture |
+| BT13-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon-name play and inherited Reboot source |
+| BT13-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; printed and inherited Barrier source |
+| BT13-044 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; security cost and owner-security watcher source |
+| BT13-045 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon threshold, deletion cost, and free-play source |
+| BT13-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; combined-security reveal and attack-cost source |
+| BT13-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Battle-area condition correction and breeding boundary `fedcb3f94` |
+| BT13-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; reveal groups, trait exclusions, and inherited aura source |
+| BT13-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Yoshino correction and ST24-14 boundary `026b6cda1` |
+| BT13-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; suspend cost, Fairy evolution, and inherited reduction source |
+| BT13-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Piercing and inherited trait/exception source |
+| BT13-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Battle-area opponent condition and breeding boundary `0b4a35396` |
+| BT13-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; independent lock target and inherited reduction source |
+| BT13-054 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Yoshino correction and ST24-14 boundary `61ed79948` |
+| BT13-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact bracket selectors and inherited source correction `d0b846b79` |
+| BT13-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Green/Royal Knight OR routes and shared Once Per Turn source `1aa50198b` |
+| BT13-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Opponent source gate `7a75bfbd0`; optional processing correction `b71402198` |
+| BT13-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Leopardmon correction `8c71d2a04`; three timing windows `e32990ae4` |
+| BT13-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact DNA matcher `e38fc7521`; duration and natural OPT boundaries |
+| BT13-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Real Burst correction `71fd59eb7`; battle-area scaling boundaries `f90c611fc` |
+| BT13-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; opponent-turn reveal/add/bottom boundaries |
+| BT13-062 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Chuumon correction `83115fa53`; optional instance proof `b9f60027d` |
+| BT13-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; live X Antibody inherited DP boundary |
+| BT13-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q2306 deleted-source threshold source `a508ef088` |
+| BT13-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Q2307 cross-controller replacement and De-Digivolve stack |
+| BT13-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; live X Antibody inherited DP boundary |
+| BT13-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; direct Jamming and inherited Reboot phase source |
+| BT13-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon play and alternate evolution boundaries |
+| BT13-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Sukamon play, replacement, and evolution boundaries |
+| BT13-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Range report; Chessmon play and alternate evolution boundaries |
 
 ## Aggregate
 
 - Catalog cards: 112
-- Assigned: 30
-- Integrated card audits: 10
-- Corrected: 2
-- Provisional: 10
+- Assigned: 80
+- Integrated card audits: 70
+- Corrected: 23
+- Provisional: 70
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 0
-- Remaining unassigned: 82
+- Blocked or ambiguous: 1
+- Remaining unassigned: 32
 
 BT13 static re-audit is in progress.

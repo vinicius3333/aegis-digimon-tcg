@@ -37,6 +37,7 @@ export const compiled: CompiledCard = {
             kind: "opponentHasNone",
             filter: {
               controllerDefault: "opponent",
+              zone: "battleArea",
               unsuspended: true,
               kind: ["Digimon"],
             },
