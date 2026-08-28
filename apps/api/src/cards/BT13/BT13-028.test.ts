@@ -21,7 +21,7 @@ describe("BT13-028 Thetismon", () => {
       isFromHand: true,
       condition: {
         kind: "youHave",
-        filter: { nameOrTrait: [{ tokens: ["Kiyoshiro Higashimitarai"], match: "name" }] },
+        filter: { nameOrTrait: [{ tokens: ["Kiyoshiro Higashimitarai"], match: "nameExact" }] },
       },
       actions: [
         {
@@ -51,7 +51,11 @@ describe("BT13-028 Thetismon", () => {
           kind: "Unsuspend",
           optional: true,
           abortOnDecline: true,
-          cost: expect.objectContaining({ kind: "return", target: expect.objectContaining({ count: 3 }) }),
+          cost: expect.objectContaining({
+            kind: "return",
+            target: expect.objectContaining({ count: 3 }),
+            orderReturnedCards: true,
+          }),
         }),
       ],
     });
@@ -155,18 +159,23 @@ describe("BT13-028 Thetismon", () => {
     expect(s.perm("tesla-host").stack).toHaveLength(0);
   });
 
-  it("returns three Jellymon-text cards from trash to unsuspend after attacking", async () => {
+  it("returns three heterogeneous Jellymon-text cards in the chosen order to unsuspend after attacking", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-028"] }],
           deck: ["BT1-001"],
-          trash: ["BT13-028", "BT13-028", "BT13-028"],
+          trash: [
+            { card: "EX12-023", as: "first" },
+            { card: "EX12-027", as: "second" },
+            { card: "BT13-028", as: "third" },
+          ],
         },
         1: { security: ["BT1-002"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
     );
+    const order = [s.inst("third").instanceId, s.inst("first").instanceId, s.inst("second").instanceId];
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -175,14 +184,24 @@ describe("BT13-028 Thetismon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards", 3000);
+    const ordering = s.decisions.at(-1)!.req;
+    expect(ordering.options?.visibleCards).toEqual([
+      { instanceId: s.inst("first").instanceId, cardId: "EX12-023" },
+      { instanceId: s.inst("second").instanceId, cardId: "EX12-027" },
+      { instanceId: s.inst("third").instanceId, cardId: "BT13-028" },
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("host").isSuspended, 3000);
     expect(s.perm("host").isSuspended).toBe(false);
-    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT13-028")).toHaveLength(0);
-    expect(s.state.players[0]!.deck.slice(-3).map(({ cardId }) => cardId)).toEqual([
-      "BT13-028",
-      "BT13-028",
-      "BT13-028",
-    ]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck.slice(-3).map(({ instanceId }) => instanceId)).toEqual(order);
   });
 
   it("pays the inherited return cost only once per turn", async () => {
