@@ -32,8 +32,8 @@ collection-complete claim is valid.
 | BT15-031–040 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-031-040.md` | Yes |
 | BT15-041–050 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-041-050.md` | Yes |
 | BT15-051–060 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-051-060.md` | Yes |
-| BT15-061–070 | Luna assigned | `internal-docs/audits/BT15/BT15-061-070.md` | No |
-| BT15-071–080 | Luna assigned | `internal-docs/audits/BT15/BT15-071-080.md` | No |
+| BT15-061–070 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-061-070.md` | Yes |
+| BT15-071–080 | Coordinator reviewed | `internal-docs/audits/BT15/BT15-071-080.md` | Yes |
 | BT15-081–090 | Luna assigned | `internal-docs/audits/BT15/BT15-081-090.md` | No |
 | BT15-091–100 | Luna assigned | `internal-docs/audits/BT15/BT15-091-100.md` | No |
 | BT15-101–102 | Unassigned | `internal-docs/audits/BT15/BT15-101-102.md` | No |
@@ -125,14 +125,34 @@ behavior.
 | BT15-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Self/cost inherited watcher correction, DigiPolice stack, suspension, restriction, and Blocker proof `685c7a815` |
 | BT15-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inherited Reboot correction plus natural Marvin placement, De-Digivolve floor, and Active-phase proof `8fe64f85d` |
 | BT15-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Blocker and reveal-scoped Omnimon alias corrections plus natural reveal/evolution/attack proof `74f816e3f` |
+| BT15-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inherited Reboot correction and legal level 3-to-4-to-5 stack proof `744a68a39` |
+| BT15-062 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inherited Reboot correction plus natural reveal and end-turn breeding-play proof `3c2c212ca` |
+| BT15-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Any-controller, non-self Digimon/Tamer suspension-watcher corrections and natural BT14-043 origin `330086372` |
+| BT15-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reveal placement anchored to this Megadramon and competing-host boundary proof `f03ba10cd` |
+| BT15-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Numemon digivolution-card cost scoped to this Digimon plus hand-cost and placement proof `d00ec5866` |
+| BT15-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Supported white-only evolution restriction and inherited Reboot corrections with natural phase proof `5b713084a` |
+| BT15-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Self-anchored suspension watcher correction and natural BT14-043 suspension-cost origin `03456599a` |
+| BT15-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Opponent battle-area effect-play filter correction and natural WaruSeadramon origin `c721d01d6` |
+| BT15-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle deletion at the exact one-memory boundary proves both clauses |
+| BT15-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public reveal plus legal DemiDevimon-to-Vilemon losing-battle source-stack proof |
+| BT15-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | No-target processing-cost and SoC Tamer stack-filter corrections with natural attack proof `4f7db3ef4` |
+| BT15-072 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural leave-play prevention paths, self-exclusion, owner-effect exclusion, and Blocker proof |
+| BT15-073 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Unsupported Main timing removed plus natural battle-loss opponent binding proof `66582497e` |
+| BT15-074 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Opponent chooser correction plus natural entry, fallback, attack-aura, and inherited effect-play proof `44694c667` |
+| BT15-075 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | SoC Tamer stack-filter corrections and natural trash-cost-before-draw behavior `cfcc9d8bf` |
+| BT15-076 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Executable hand Counter digivolution, shared hand discovery/residency seam, and Blocker correction `5e3f4851c` |
+| BT15-077 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal, end-turn breeding play, and inherited battle-loss source-stack proof |
+| BT15-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural effect-play aura, suppressed On Play, result-bound redirect, and inherited Piercing proof |
+| BT15-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Supported white-only evolution restriction correction plus natural opponent-end and battle-stack proof `82758e70f` |
+| BT15-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural On Play, evolution, deletion, target-ceiling, and Blocker behavior proof |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 100
-- Integrated card audits: 60
-- Corrected: 13
-- Provisional: 60
+- Integrated card audits: 80
+- Corrected: 27
+- Provisional: 80
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 2
