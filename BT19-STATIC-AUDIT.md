@@ -22,7 +22,7 @@ provisional and capped at 8/10.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT19-001–010 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-001-010.md` | Yes |
-| BT19-011–020 | Luna prepared; coordinator review pending | `internal-docs/audits/BT19/BT19-011-020.md` | No |
+| BT19-011–020 | Coordinator reviewed | `internal-docs/audits/BT19/BT19-011-020.md` | Yes |
 | BT19-021–030 | Luna assigned | `internal-docs/audits/BT19/BT19-021-030.md` | No |
 | BT19-031–040 | Luna assigned | `internal-docs/audits/BT19/BT19-031-040.md` | No |
 | BT19-041–050 | Luna assigned | `internal-docs/audits/BT19/BT19-041-050.md` | No |
@@ -55,16 +55,26 @@ applicable non-gate component rather than being rounded up.
 | BT19-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play plus production deletion prove legal OmniShoutmon evolution, Q3062 rejection, reveal/Tamer/Save ordering, and inherited Rush (`4d11fd476`). |
 | BT19-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolutions and attacks prove exact Takato play, Tamer-count boundary, numeric DP-ceiling increase, and relative-ceiling exclusion (`a0d1a705d`). |
 | BT19-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public DigiXros and production deletion/return prove four exact materials, reduction, trait-filtered stack placement, decline, and Q3067 departure (`572ff93db`). |
+| BT19-011 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | IR/runtime and legal stacks cover DP-budget scaling and result-bound memory, but all focused triggers remain manually injected despite feasible natural origins (`0105db29a`, `38586033b`). |
+| BT19-012 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural deletion and DigiXros prove placement and the DigiXros-only Shoutmon alias; entry and inherited clauses lack complete natural proof (`bf58e3058`, `4f8497843`). |
+| BT19-013 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Added the exact five-slot DigiXros recipe; natural DigiXros, effect deletion, stack-local Save, and free play prove the sequence (`0203c5fdd`). |
+| BT19-014 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Exact DigiXros and stack peers support the IR, but feasible On Play and When Attacking origins remain replaced by manual timing (`929e48857`). |
+| BT19-015 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural opponent deletions prove memory/frequency, while mandatory deletion and fallback branches still use injected digivolution timing (`30f943367`, `41cf1c81a`). |
+| BT19-016 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural deletion proves Blue Flare placement followed by draw; On Play and decline remain manually timed (`6b48f7aba`, `e60dcf5ab`). |
+| BT19-017 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | IR and peer fixtures prove reveal selectors, nonduplication, Aquatic Rule, and frequency, but both feasible origins remain manually injected (`430f2792c`, `8dacfbfdc`). |
+| BT19-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion exercises Evade and survival; live stack comparisons prove self-scoped Aquatic Rule and inherited Jamming (`6b8dca009`, `123fbd7b1`). |
+| BT19-019 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | IR and stack fixtures cover Yao count, Aquatic Rule, and inherited memory, but evolution and attack origins remain manually injected (`31fd45154`, `f3fbedb05`). |
+| BT19-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletions prove Kiriha play, decline, 0/1/2-Tamer boundaries, and independent mandatory Save; stack proof preserves inherited Reboot (`7b5ac18fb`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 10
-- Corrected: 0
-- Provisional: 10
+- Integrated card audits: 20
+- Corrected: 1
+- Provisional: 20
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 0
+- Blocked or ambiguous: 7 (`BT19-011`, `BT19-012`, `BT19-014`, `BT19-015`, `BT19-016`, `BT19-017`, `BT19-019` source-proof gaps)
 - Remaining unassigned: 22
 
 BT19 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
