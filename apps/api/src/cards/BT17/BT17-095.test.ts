@@ -126,7 +126,7 @@ describe("BT17-095 Miraculous Mega Knight", () => {
       {
         0: {
           security: [{ card: "BT17-095", as: "securityOption" }],
-          hand: [{ card: "BT17-083", as: "securityTamer" }],
+          hand: [{ card: "BT17-081", as: "securityTamer" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
       },
@@ -141,9 +141,9 @@ describe("BT17-095 Miraculous Mega Knight", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-083"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-081"));
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-083")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-081")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("securityOption").instanceId)).toBe(true);
   });
 });
