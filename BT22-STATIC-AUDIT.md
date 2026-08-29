@@ -28,7 +28,7 @@ provisional and capped at 8/10.
 | BT22-051–060 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-051-060.md` | Yes |
 | BT22-061–070 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-061-070.md` | Yes |
 | BT22-071–080 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-071-080.md` | Yes |
-| BT22-081–090 | Luna assigned | `internal-docs/audits/BT22/BT22-081-090.md` | No |
+| BT22-081–090 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-081-090.md` | Yes |
 | BT22-091–100 | Luna assigned | `internal-docs/audits/BT22/BT22-091-100.md` | No |
 | BT22-101–102 | Luna assigned | `internal-docs/audits/BT22/BT22-101-102.md` | No |
 
@@ -124,16 +124,26 @@ applicable non-gate component rather than being rounded up.
 | BT22-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Lowest-level deletion timing is direct and copied Flame Main behavior remains structural. |
 | BT22-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and breeding-resident cost reduction prove the behavior and boundaries. |
 | BT22-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Own-stack placement and self/turn security gates corrected; security origin remains directly fired. |
+| BT22-081 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Leave replacement corrected to prompt at the outer action; natural play proves placement, not leave/evolution. |
+| BT22-082 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Leave replacement corrected to prompt at the outer action; natural play proves deletion/placement, not leave/evolution. |
+| BT22-083 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Start-main timing is direct; target-switch, suspend, immunity, and inherited attack paths remain structural. |
+| BT22-084 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play proves the one-Digimon boundary; turn, Security, aura, and refusal paths remain structural. |
+| BT22-085 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play proves Veedramon DP; attack/return Jamming path remains structural. |
+| BT22-086 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Return/Sangomon timing is direct and no natural effect-driven source-addition watcher is proved. |
+| BT22-087 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Only direct start-main memory is observed; natural link/suspend/App Fusion path remains absent. |
+| BT22-088 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Return/Shoemon timing is direct and no natural Token/Puppet play watcher is proved. |
+| BT22-089 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play proves qualified discard/draw; return and play-cost boundaries remain structural. |
+| BT22-090 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Memory and end-turn evolution both use direct timing; natural turn-end/Security origin remains absent. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 80
-- Corrected: 24
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 26
+- Provisional: 90
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 62
+- Blocked or ambiguous: 72
 - Remaining unassigned: 0
 
 BT22 static auditing is in progress. Accepted ranges will be integrated in
