@@ -1,6 +1,6 @@
 # BT21 Static Card Implementation Re-audit
 
-Status: static card-by-card audit prepared; BT20 integration remains in progress
+Status: static card-by-card audit in progress; BT20 static coverage recorded; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -8,10 +8,10 @@ Authoritative scope: 102 cards, `BT21-001` through `BT21-102`, derived from
 the immutable committed card-catalog blob.
 
 This ledger follows the repository's `verify-card-implementation` protocol
-and the chronological campaign plan. BT21 workers may prepare static range
-evidence once a Luna lane becomes available, but no BT21 range may be
-integrated until BT20 static coverage is recorded. Detailed English reports
-belong under `internal-docs/audits/BT21/`.
+and the chronological campaign plan. BT20 static coverage is now recorded,
+so accepted BT21 ranges may be integrated in strict ascending order while
+Luna lanes continue preparing later ranges. Detailed English reports belong
+under `internal-docs/audits/BT21/`.
 
 ## Current execution state
 
@@ -57,5 +57,5 @@ applicable non-gate component rather than being rounded up.
 - Blocked or ambiguous: 0
 - Remaining unassigned: 62
 
-BT21 static preparation is ready; chronological integration remains blocked
-until BT20 static coverage is recorded.
+BT21 static auditing is in progress; accepted ranges are eligible for strict
+chronological integration.
