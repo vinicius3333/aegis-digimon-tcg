@@ -49,6 +49,8 @@ describe("A3 BT23-083 — whenAddSecurity consumer: suspend Fei to gain 1 memory
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+    const watcher = (compiled.effects.find((entry) => entry.trigger === "AllTurns") as any).actions[0];
+    expect(watcher.actions[0]).toMatchObject({ kind: "Suspend", optional: true, abortOnDecline: true });
   });
 
   it("gains start-main memory only during Fei's controller's turn", async () => {
