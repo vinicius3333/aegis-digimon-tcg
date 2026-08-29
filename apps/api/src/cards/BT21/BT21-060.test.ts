@@ -13,7 +13,7 @@ describe("BT21-060 Destromon", () => {
       target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       duration: "untilOpponentTurnEnd",
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Vemmon"], cost: 6, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Vemmon"], cost: 6, isAlternate: true }]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual ?? []).toEqual([]);
   });
@@ -28,14 +28,39 @@ describe("BT21-060 Destromon", () => {
     expect(prevent).toMatchObject({ kind: "EndAttack", optional: true, abortOnDecline: true });
     expect(prevent?.cost).toMatchObject({
       kind: "return",
+      to: "deckBottom",
       target: {
         filter: {
+          isSelfRef: true,
           controller: "mine",
           zone: "digivolutionCards",
           kind: ["Digimon"],
-          nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
+          nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }],
         },
         count: 2,
+      },
+    });
+  });
+
+  it("scopes the leaving-play revival to this stack's exact Vemmon cards", () => {
+    const replacement = compiled.effects
+      .find((entry) => entry.trigger === "AllTurns")
+      ?.actions[0] as { actions?: unknown[] } | undefined;
+
+    expect(replacement).toMatchObject({
+      kind: "Replacement",
+      event: "wouldLeavePlay",
+      sourceFilter: { isSelfRef: true },
+    });
+    expect(replacement?.actions?.[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["digivolutionCards"],
+      target: {
+        filter: {
+          isSelfRef: true,
+          controller: "mine",
+          nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }],
+        },
       },
     });
   });
@@ -48,7 +73,11 @@ describe("BT21-060 Destromon", () => {
       scaling: {
         per: 2,
         unit: "digivolutionCards",
-        filter: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+        filter: {
+          controllerDefault: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }],
+        },
       },
     });
   });
