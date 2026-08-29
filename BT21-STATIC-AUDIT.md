@@ -1,6 +1,6 @@
 # BT21 Static Card Implementation Re-audit
 
-Status: static card-by-card audit in progress; BT20 static coverage recorded; execution gates deferred
+Status: static card-by-card coverage recorded; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -31,7 +31,7 @@ provisional and capped at 8/10.
 | BT21-071–080 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-071-080.md` | Yes |
 | BT21-081–090 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-081-090.md` | Yes |
 | BT21-091–100 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-091-100.md` | Yes |
-| BT21-101–102 | Luna assigned | `internal-docs/audits/BT21/BT21-101-102.md` | No |
+| BT21-101–102 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-101-102.md` | Yes |
 
 ## Score model
 
@@ -145,17 +145,20 @@ applicable non-gate component rather than being rounded up.
 | BT21-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main/Security paths; Galacticmon attack watcher and conditional Delay remain structural. |
 | BT21-099 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Save placement and Security path; free trash digivolution remains structural. |
 | BT21-100 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural waiver and Main path; effect-deletion watcher, Delay, and Security remain structural. |
+| BT21-101 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link scopes and own-Digimon watcher corrected; Link windows/opponent boundary lack natural proof. |
+| BT21-102 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Dynamic own-Tamer-color play ceiling corrected with natural Main proof; other timings remain direct. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 100
-- Corrected: 35
-- Provisional: 100
+- Integrated card audits: 102
+- Corrected: 37
+- Provisional: 102
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 48
+- Blocked or ambiguous: 50
 - Remaining unassigned: 0
 
-BT21 static auditing is in progress; accepted ranges are eligible for strict
-chronological integration.
+BT21 static coverage is recorded for all 102 catalog cards. Because delivery
+gates remain prohibited and unexecuted, no card is 10/10 and collection
+completion is not claimed.
