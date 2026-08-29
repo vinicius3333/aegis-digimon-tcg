@@ -1,6 +1,6 @@
 # BT26 Static Card Implementation Re-audit
 
-Status: static integration complete through BT26-060; audit assigned through BT26-080
+Status: static integration complete through BT26-080; audit assigned through BT26-100
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -32,10 +32,10 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT26-031–040 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-031-040.md` | Yes |
 | BT26-041–050 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-041-050.md` | Yes |
 | BT26-051–060 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-051-060.md` | Yes |
-| BT26-061–070 | Luna assigned | `internal-docs/audits/BT26/BT26-061-070.md` | No |
-| BT26-071–080 | Luna assigned | `internal-docs/audits/BT26/BT26-071-080.md` | No |
-| BT26-081–090 | Unassigned | `internal-docs/audits/BT26/BT26-081-090.md` | No |
-| BT26-091–100 | Unassigned | `internal-docs/audits/BT26/BT26-091-100.md` | No |
+| BT26-061–070 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-061-070.md` | Yes |
+| BT26-071–080 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-071-080.md` | Yes |
+| BT26-081–090 | Luna assigned | `internal-docs/audits/BT26/BT26-081-090.md` | No |
+| BT26-091–100 | Luna assigned | `internal-docs/audits/BT26/BT26-091-100.md` | No |
 | BT26-101–104 | Unassigned | `internal-docs/audits/BT26/BT26-101-104.md` | No |
 
 ## Score model
@@ -109,20 +109,40 @@ non-gate component rather than being rounded up.
 | BT26-058 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural leave prevention and CS stack rotation are covered, while the shared immunity window uses direct timing helpers. |
 | BT26-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hand-size, Titan, turn, watcher, exclusion, frequency, and tie boundaries exist; the central entry body is timing-driven. |
 | BT26-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Evolution routes, stack returns, ordering, cleanup, Succession, and deck-add scope are covered through direct timing/primitives. |
+| BT26-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and attack paths prove reveal slots, duplicate exclusion, ordering, and inherited behavior on a corrected legal host. |
+| BT26-062 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Cost, refusal, alternate evolution, and legal inherited DP host are covered; Start of Main remains directly fired. |
+| BT26-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the printed link effect to dedicated `WhenLinking`; public linking proves reveal, deletion, Detach, and source/frequency boundaries. |
+| BT26-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and attack paths cover distinct reveal slots and inherited behavior on a corrected legal host. |
+| BT26-065 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q7088 unions and a realistic DATA SQUAD stack are represented, while reveal and inherited attack positives use direct timing helpers. |
+| BT26-066 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Legal Titan stacks and the Q7089 Alliance boundary are represented; phase and hand-trash reactions remain directly injected. |
+| BT26-067 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Legal evolution/Retaliation stacks and effect boundaries exist, but entry and End of Your Turn bodies are timing-fired. |
+| BT26-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and attack paths prove principal hand-add, watcher, cost-decline, and inherited behavior with legal stacks. |
+| BT26-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public play, digivolution, attack, hand-size, deletion, Titan evolution, and Q7090/Q7091 boundaries are represented. |
+| BT26-070 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q7092/Q7093 costs and legal inherited Retaliation are covered; entry and Main Option-use positives remain directly fired. |
+| BT26-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and attack prove delete-own payment, opponent level boundary, refusal/no-target behavior, routes, and inherited Raid. |
+| BT26-072 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural digivolution, face-down Tamer placement, hand-trash alternative, Blocker, and inherited deletion use realistic stacks. |
+| BT26-073 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Assembly, costs, free play, Wizard, and inherited security are covered; the central entry body uses direct timing helpers. |
+| BT26-074 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Titan Option reduction, shared budget, affordability, and inherited deletion are represented; entry/attack positives are timing-fired. |
+| BT26-075 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural DUAL Option, Security, and On Deletion paths prove ordering, limits, keywords, and realistic Glowing Dawn stacks. |
+| BT26-076 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Trait/cost ceilings, watchers, and realistic stacks are covered; central digivolution and watcher proof uses direct origins. |
+| BT26-077 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Routes, shared budgets, deletion, and stack behavior are represented; the central trash-play behavior is directly fired. |
+| BT26-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q7105–Q7108 matching/memory boundaries and natural Rush/Execute paths exist; entry/trash watcher positives use direct origins. |
+| BT26-079 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Routes, Decode, Retaliation, security, and ownership boundaries use realistic stacks; entry/Trash Main/trim positives use helpers. |
+| BT26-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural DUAL Option use plus real succession/attack stacks prove orientation, suspend/unsuspend choice, deletion, and keywords. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Direct modules: 104
-- Assigned: 80
-- Integrated card audits: 60
-- Corrected: 1
-- Provisional: 60
+- Assigned: 100
+- Integrated card audits: 80
+- Corrected: 2
+- Provisional: 80
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 35
-- Remaining unassigned: 24
+- Blocked or ambiguous: 46
+- Remaining unassigned: 4
 
-The integrated provisional score subtotal is 437/600 through BT26-060.
-BT26-061 through BT26-080 remain active across two Luna/xhigh lanes. No
+The integrated provisional score subtotal is 586/800 through BT26-080.
+BT26-081 through BT26-100 remain active across two Luna/xhigh lanes. No
 collection-complete claim is made while the static audit and delivery gates
 remain incomplete.
