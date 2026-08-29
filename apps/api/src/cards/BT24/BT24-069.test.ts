@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled as BT24_069 } from "./BT24-069.js";
 import "../index.js";
 
 describe("BT24-069 Vilemon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-069")).toMatchObject({
+      cardId: "BT24-069",
+      nameEn: "Vilemon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Evil"],
+      evoCosts: [{ color: "Purple", level: 3, memoryCost: 2 }],
+    });
+  });
+
   it("lets the opponent choose their discard and mills only when they decline", () => {
     for (const trigger of ["WhenMoving", "WhenDigivolving"]) {
       const actions = BT24_069.effects?.find((entry) => entry.trigger === trigger)?.actions ?? [];
