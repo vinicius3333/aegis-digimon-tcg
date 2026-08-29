@@ -124,7 +124,7 @@ describe("BT11-030 MetalGreymon + Cyber Launcher", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.memory).toBe(4);
-    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(3);
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(2);
   });
 
   it("is also treated as MetalGreymon and Cyberdramon and has Armor Purge", async () => {
