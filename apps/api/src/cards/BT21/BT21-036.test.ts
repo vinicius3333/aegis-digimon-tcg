@@ -55,7 +55,7 @@ describe("BT21-036 compiled implementation", () => {
 
   it("preserves both alternate Digivolution requirements", () => {
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Veemon"], cost: 3, isAlternate: true },
+      { namesExact: ["Veemon"], cost: 3, isAlternate: true },
       { level: 3, traits: ["Hero"], cost: 3, isAlternate: true },
     ]);
   });
