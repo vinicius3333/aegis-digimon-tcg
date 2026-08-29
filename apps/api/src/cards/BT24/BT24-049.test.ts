@@ -1,10 +1,21 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { effectsOf } from "../../engine/effects/collect.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_049 } from "./BT24-049.js";
 import "../index.js";
+
+function delayEffectKey(s: ReturnType<typeof setupEngine>): string {
+  const optionCard = s.perm("option").topCard;
+  const source = (s.engine as unknown as { cardSourceOf(card: typeof optionCard): CardSource }).cardSourceOf(
+    optionCard,
+  );
+  return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT24-098/"))!
+    .effectKey;
+}
 
 describe("BT24-049 Parrotmon", () => {
   it("gates the lowest-DP bounce on effect entry", () => {
@@ -113,6 +124,46 @@ describe("BT24-049 Parrotmon", () => {
     await s.ready();
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("parrotmon"), { enteredByEffect: 0 });
+
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("lowest").instanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("higher").instanceId,
+    );
+  });
+
+  it("returns the lowest-DP suspended Digimon through a natural Delay play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-098", as: "option" }],
+          hand: [{ card: "BT24-042", as: "titan" }],
+          trash: [{ card: "BT24-049", as: "parrotmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowest", suspended: true, dp: 2000 },
+            { card: "BT1-010", as: "higher", suspended: true, dp: 4000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("titan").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-042"));
+
+    s.state.memory = -5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("option").instanceId,
+        effectKey: delayEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-049"));
 
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("lowest").instanceId);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
