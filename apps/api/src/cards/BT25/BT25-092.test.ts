@@ -1,12 +1,51 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT25-092.js";
 
 const CARD_ID = "BT25-092";
 
 describe("BT25-092 Asuna Shiroki", () => {
+  it("keeps the suspend-and-trash processing condition atomic when Asuna is already suspended", async () => {
+    const main = compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0];
+    expect(main).toMatchObject({
+      kind: "CostGatedBlock",
+      cost: {
+        kind: "compound",
+        costs: [{ kind: "suspend" }, { kind: "trash" }],
+      },
+    });
+
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: CARD_ID, as: "asuna", suspended: true },
+          { card: "BT24-009", as: "host" },
+        ],
+        hand: [{ card: "BT25-100", as: "option" }, { card: "BT24-010", as: "evolution" }],
+      },
+    });
+    await s.ready();
+    const source = (s.engine as any).cardSourceOf(s.inst("asuna"));
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith(`${CARD_ID}/`),
+    )!.effectKey;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("asuna").instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+
+    expect(s.perm("asuna").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.perm("host").topCard.cardId).toBe("BT24-009");
+  });
+
   it("Start Main trashes exactly one TS card before Draw 1 and memory +1", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
