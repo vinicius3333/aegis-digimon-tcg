@@ -2,7 +2,10 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-090.js";
+import "../BT17/BT17-030.js";
+import "../BT17/BT17-086.js";
 import "../index.js";
 
 describe("BT21-090 The Strongest of Brothers", () => {
@@ -10,6 +13,9 @@ describe("BT21-090 The Strongest of Brothers", () => {
     const allTurns = compiled.effects.filter((entry) => entry.trigger === "AllTurns");
     expect(allTurns).toHaveLength(2);
     expect(allTurns[0]?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "onAddDigivolutionCards" });
+    expect(allTurns[0]?.actions[0]).toMatchObject({
+      sourceFilter: { controller: "mine", kind: ["Digimon"], byEffect: true },
+    });
     expect(allTurns[1]?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
     expect(allTurns[1]?.actions[0]).toMatchObject({
       kind: "Digivolve",
@@ -36,6 +42,36 @@ describe("BT21-090 The Strongest of Brothers", () => {
     );
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+  });
+
+  it("naturally gains Delay when an effect places a card under an own Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-090", as: "option" },
+            { card: "BT17-086", as: "leon" },
+            { card: "BT17-030", as: "pulsemon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    const [effect] = observe(s.engine).activatableEffects(s.perm("leon")) as { effectKey: string }[];
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("leon").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("pulsemon").stack.some((card) => card.cardId === "BT17-086"));
+
+    expect(observe(s.engine).hasKeyword(s.perm("option"), "Delay")).toBe(true);
   });
 
   it("reveals three cards, adds a Gammamon-text card, and places itself", async () => {

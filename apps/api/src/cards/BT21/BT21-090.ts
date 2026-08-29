@@ -70,6 +70,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          sourceFilter: { controller: "mine", kind: ["Digimon"], byEffect: true },
           actions: [
             {
               kind: "GainKeyword",
