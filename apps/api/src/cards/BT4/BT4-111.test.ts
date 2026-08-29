@@ -8,6 +8,7 @@ describe("BT4-111 Jack Raid", () => {
   it("gains exactly 1 memory for every complete 10 cards already in trash", async () => {
     const s = setupEngine({
       0: {
+        breeding: { card: "BT4-006" },
         hand: [{ card: "BT4-111", as: "option" }],
         trash: Array.from({ length: 20 }, () => "BT1-051"),
       },
@@ -23,6 +24,7 @@ describe("BT4-111 Jack Raid", () => {
   it("does not count itself as the tenth trash card", async () => {
     const s = setupEngine({
       0: {
+        breeding: { card: "BT4-006" },
         hand: [{ card: "BT4-111", as: "option" }],
         trash: Array.from({ length: 9 }, () => "BT1-051"),
       },

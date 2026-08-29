@@ -41,7 +41,7 @@ describe("BT4-062 Nidhoggmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
-    const orderDecision = s.state.pendingDecision!;
+    const orderDecision = s.decisions.at(-1)!.req;
     expect(new Set(orderDecision.options?.candidateInstanceIds)).toEqual(new Set([lowId, alreadyId]));
     const order = [alreadyId, lowId];
     expect(
