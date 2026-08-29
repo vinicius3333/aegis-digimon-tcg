@@ -23,7 +23,7 @@ provisional and capped at 8/10.
 | --- | --- | --- | --- |
 | BT21-001–010 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-001-010.md` | Yes |
 | BT21-011–020 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-011-020.md` | Yes |
-| BT21-021–030 | Luna ready; pushed | `internal-docs/audits/BT21/BT21-021-030.md` | No |
+| BT21-021–030 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-021-030.md` | Yes |
 | BT21-031–040 | Luna ready; pushed | `internal-docs/audits/BT21/BT21-031-040.md` | No |
 | BT21-041–050 | Luna assigned | `internal-docs/audits/BT21/BT21-041-050.md` | No |
 | BT21-051–060 | Luna assigned | `internal-docs/audits/BT21/BT21-051-060.md` | No |
@@ -65,16 +65,26 @@ applicable non-gate component rather than being rounded up.
 | BT21-018 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Both load-bearing linked attack clauses lack natural positive producer proof. |
 | BT21-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Hiro/Gammamon corrections with natural evolution, Tamer-count, decline, and DP proof. |
 | BT21-020 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Agunimon/BurningGreymon stack correction; Security Attack remains structural-only. |
+| BT21-021 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Shoutmon route plus Digimon/non-token Save boundaries; End of Attack remains manual. |
+| BT21-022 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Optional By-cost acceptance/refusal, 7000-DP deletion, and natural leave-prevention proof. |
+| BT21-023 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Own-stack Link-source correction; linked watcher origin remains manually fired. |
+| BT21-024 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural five/six-security boundaries, ordered security movement, and inherited DP proof. |
+| BT21-025 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Attack-target and security-removal watchers remain manual despite exact source filters. |
+| BT21-026 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural scaled play-cost, keyword, and opponent-deletion unsuspend paths. |
+| BT21-027 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Own-stack/non-token/exact-name and DigiXros -3 corrections with natural leave proof. |
+| BT21-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Optional By-cost correction with natural digivolution acceptance and refusal boundaries. |
+| BT21-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Shared deletion/token IR traced; independent security and End of Attack origins remain manual. |
+| BT21-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Shoutmon source and natural play/evolution stack-processing boundaries. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 90
-- Integrated card audits: 20
-- Corrected: 10
-- Provisional: 20
+- Integrated card audits: 30
+- Corrected: 15
+- Provisional: 30
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 7
+- Blocked or ambiguous: 11
 - Remaining unassigned: 12
 
 BT21 static auditing is in progress; accepted ranges are eligible for strict
