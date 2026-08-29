@@ -212,7 +212,16 @@ describe("BT26-083 compiled fidelity", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-083", as: "hysteric", under: [{ card: "BT26-015", as: "iliad" }] }],
+          battleArea: [
+            {
+              card: "BT26-083",
+              as: "hysteric",
+              under: [
+                { card: "BT26-015", as: "iliad" },
+                { card: "BT26-016", as: "levelSixBridge" },
+              ],
+            },
+          ],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "executeTarget", dp: 10000 }],
