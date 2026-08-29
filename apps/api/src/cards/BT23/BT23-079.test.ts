@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT23-079.js";
 
@@ -105,5 +105,39 @@ describe("BT23-079 Eri Karan", () => {
     expect(actions).toHaveLength(1);
     expect(actions[0].actions.map((action: any) => action.kind)).toEqual(["ModifyDP", "AppFuse"]);
     expect(actions[0].actions[0]).toMatchObject({ optional: true, abortOnDecline: true });
+  });
+
+  it("reacts to a naturally linked own Digimon and ignores an opponent link subject", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-079", as: "eri" },
+            { card: "BT21-009", as: "host" },
+          ],
+          hand: [{ card: "BT21-009", as: "link" }],
+        },
+        1: { battleArea: [{ card: "BT21-009", as: "opponentHost" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+
+    expect(s.perm("eri").isSuspended).toBe(true);
+    expect(s.perm("host").currentDP).toBe(7000);
+
+    await advance(s.engine).fireSubTrigger("whenLinked", {
+      subjectPermanentId: s.perm("opponentHost").permanentId,
+    });
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT23-079")).toBe(true);
   });
 });

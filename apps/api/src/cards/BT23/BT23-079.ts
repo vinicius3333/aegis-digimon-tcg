@@ -30,6 +30,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+          },
           actions: [
             {
               kind: "ModifyDP",
