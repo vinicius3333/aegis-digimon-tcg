@@ -27,7 +27,7 @@ provisional and capped at 8/10.
 | BT22-041–050 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-041-050.md` | Yes |
 | BT22-051–060 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-051-060.md` | Yes |
 | BT22-061–070 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-061-070.md` | Yes |
-| BT22-071–080 | Luna assigned | `internal-docs/audits/BT22/BT22-071-080.md` | No |
+| BT22-071–080 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-071-080.md` | Yes |
 | BT22-081–090 | Luna assigned | `internal-docs/audits/BT22/BT22-081-090.md` | No |
 | BT22-091–100 | Luna assigned | `internal-docs/audits/BT22/BT22-091-100.md` | No |
 | BT22-101–102 | Luna assigned | `internal-docs/audits/BT22/BT22-101-102.md` | No |
@@ -114,16 +114,26 @@ applicable non-gate component rather than being rounded up.
 | BT22-068 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Natural play proves trash recovery; inherited battle path and legal evolution stack remain incomplete. |
 | BT22-069 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Inherited restack corrected to this host; public activation uses a manually assembled stack. |
 | BT22-070 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural alternate evolution proves deletion; attack evolution and inherited battle memory remain structural. |
+| BT22-071 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural CS evolution proves Jimmy KEN play; inherited deletion recovery remains structural. |
+| BT22-072 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural same-level evolution/Tamer play traced; deletion prevention remains primitive-driven. |
+| BT22-073 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution proves draw/trash/restriction; inherited deletion prevention remains primitive-driven. |
+| BT22-074 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Main activation proves exact payment/no-delete grant; deletion and attack branches remain incomplete. |
+| BT22-075 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link material corrected to trash or this stack; leave response and cross-stack negative remain direct/structural. |
+| BT22-076 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Ver.1 reduction corrected to a hand-resident modifier; security placement path remains structural. |
+| BT22-077 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Four-card trash corrected to pooled cross-stack scope; distributed positive path remains structural. |
+| BT22-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Lowest-level deletion timing is direct and copied Flame Main behavior remains structural. |
+| BT22-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and breeding-resident cost reduction prove the behavior and boundaries. |
+| BT22-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Own-stack placement and self/turn security gates corrected; security origin remains directly fired. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 70
-- Corrected: 20
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 24
+- Provisional: 80
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 53
+- Blocked or ambiguous: 62
 - Remaining unassigned: 0
 
 BT22 static auditing is in progress. Accepted ranges will be integrated in
