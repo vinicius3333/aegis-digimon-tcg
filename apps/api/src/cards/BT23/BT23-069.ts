@@ -15,9 +15,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   failureProcess (and the no-eligible-target else) end the attack; modeled as the EndAttack
 //   action gated on the Wave-1 (08-01) `ifThisEffectDidNotDelete` Condition, which reads the
 //   ctx delete-count bound by the preceding opponent Delete. The "by deleting this Digimon" cost
-//   is a separate optional self-Delete with abort-on-decline, followed by the mandatory opponent
-//   Delete; that second action overwrites the result binding with its own actual outcome, including
-//   zero when no eligible target exists, so the gate reflects only the OPPONENT-delete outcome.
+//   is an optional processing condition under CR 15-7-1/manual-0053, with abort-on-decline, followed
+//   by the mandatory opponent Delete once accepted; that second action overwrites the result binding
+//   with its own actual outcome, including zero when no eligible target exists, so the gate reflects
+//   only the OPPONENT-delete outcome.
 export const compiled: CompiledCard = {
   effects: [
     {
