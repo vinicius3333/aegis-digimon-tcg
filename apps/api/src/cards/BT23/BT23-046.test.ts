@@ -37,7 +37,7 @@ describe("BT23-046 Rosemon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rose"));
 
@@ -84,7 +84,6 @@ describe("BT23-046 Rosemon", () => {
         restriction: "unsuspend",
         duration: "untilOpponentTurnEnd",
         cost: { kind: "suspend", target: { filter: { controller: "any", kind: ["Digimon", "Tamer"] }, count: 1 } },
-        optional: true,
         abortOnDecline: true,
       });
     }
