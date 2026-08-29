@@ -24,7 +24,7 @@ provisional and capped at 8/10.
 | BT23-001–010 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-001-010.md` | Yes |
 | BT23-011–020 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-011-020.md` | Yes |
 | BT23-021–030 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-021-030.md` | Yes |
-| BT23-031–040 | Luna assigned | `internal-docs/audits/BT23/BT23-031-040.md` | No |
+| BT23-031–040 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-031-040.md` | Yes |
 | BT23-041–050 | Luna assigned | `internal-docs/audits/BT23/BT23-041-050.md` | No |
 | BT23-051–060 | Luna assigned | `internal-docs/audits/BT23/BT23-051-060.md` | No |
 | BT23-061–070 | Luna assigned | `internal-docs/audits/BT23/BT23-061-070.md` | No |
@@ -75,16 +75,26 @@ applicable non-gate component rather than being rounded up.
 | BT23-028 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security origin, debuff, link DP, and When Digivolving restriction are traced but unexecuted. |
 | BT23-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Qualifying-play restriction and inherited suspension debuff have source proof without delivery execution. |
 | BT23-030 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Main paid play, Alliance, and linked Blocker are traced through source proof only. |
+| BT23-031 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural reduced play covers the zero-security ruling; other boundaries use direct timing helpers. |
+| BT23-032 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | DNA/forced-attack behavior is structural and leave replacements use direct deletion despite feasible origins. |
+| BT23-033 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural linking proves cost, DP, and protection; entry and recovery branches are directly timed. |
+| BT23-034 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural reducer play and CS evolution are covered; deletion/shared timings remain direct. |
+| BT23-035 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play proves player-wide DP on existing and later entrants; removal paths remain direct. |
+| BT23-036 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural reducer threshold and Raid refusal are covered; free evolution remains directly timed. |
+| BT23-037 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural battle/breeding reducer boundary is covered; inherited attack origin remains direct. |
+| BT23-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Face-up Security aura and inherited DP have natural state proof; reveal remains directly timed. |
+| BT23-039 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural linking proves cost, DP, suspend, and refusal; reveal remains directly timed. |
+| BT23-040 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Erika placement/evolution is observable, but primary start-main timing is manually fired. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 90
-- Integrated card audits: 30
+- Integrated card audits: 40
 - Corrected: 4
-- Provisional: 30
+- Provisional: 40
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 18
+- Blocked or ambiguous: 28
 - Remaining unassigned: 12
 
 BT23 static auditing is prepared in parallel. Accepted ranges will be
