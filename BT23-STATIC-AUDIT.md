@@ -28,7 +28,7 @@ provisional and capped at 8/10.
 | BT23-041–050 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-041-050.md` | Yes |
 | BT23-051–060 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-051-060.md` | Yes |
 | BT23-061–070 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-061-070.md` | Yes |
-| BT23-071–080 | Luna assigned | `internal-docs/audits/BT23/BT23-071-080.md` | No |
+| BT23-071–080 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-071-080.md` | Yes |
 | BT23-081–090 | Luna assigned | `internal-docs/audits/BT23/BT23-081-090.md` | No |
 | BT23-091–100 | Luna assigned | `internal-docs/audits/BT23/BT23-091-100.md` | No |
 | BT23-101–102 | Luna assigned | `internal-docs/audits/BT23/BT23-101-102.md` | No |
@@ -115,16 +115,26 @@ applicable non-gate component rather than being rounded up.
 | BT23-068 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Trash-origin gating now uses the supported fireCondition and excludes natural hand evolution; positive origins remain primitive-driven. |
 | BT23-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attacks prove accepted deletion, no-target end, and decline-before-self-delete while preserving the attack. |
 | BT23-070 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Highest-level deletion, suspended attack, Sleep Mode evolution, and exact alternate route are traced from direct When Digivolving timing. |
+| BT23-071 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Highest-level deletion, prevention fallback, deletion play, keywords, and alternate evolution are traced; primary timings remain direct or primitive-driven. |
+| BT23-072 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The hand Main action is natural; the play watcher and breeding start-main paths use direct event firing. |
+| BT23-073 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Deletion, both prevention costs, and breeding reduction are traced; On Play and leave origins are direct or primitive-driven. |
+| BT23-074 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Mother Eater gates, aggregate play ceiling, Alliance, Reboot, and alternate evolution are covered through directly fired entry timings. |
+| BT23-075 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Dynamic ceiling, leave replacement, refusal, and lowest-cost deletion rely on direct entry/end-turn timings or deletion primitives. |
+| BT23-076 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security order and suspension evolution are traced, but On Play and suspension origins are directly fired. |
+| BT23-077 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Blocker, bounded deletion, and self-suspension de-digivolution are traced through direct entry and suspension events. |
+| BT23-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The CS branch now survives Sea Animal exclusion and has a natural play proof; remaining watcher and start-main paths are direct. |
+| BT23-079 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The watcher now requires an own Digimon and has a natural link positive; opponent/start-main paths are direct and App Fusion is structural. |
+| BT23-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | CS replacement scope and exact security subject are traced through deletion primitives; start-main is directly fired. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 70
-- Corrected: 16
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 18
+- Provisional: 80
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 54
+- Blocked or ambiguous: 64
 - Remaining unassigned: 0
 
 BT23 static auditing is prepared in parallel. Accepted ranges are integrated
