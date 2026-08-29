@@ -24,15 +24,6 @@ export const compiled: CompiledCard = {
                   },
                 ],
               },
-              defaultDispositionFilter: {
-                nameOrTrait: [{ tokens: ["Three Musketeers"], match: "text" }],
-              },
-              orFilters: [
-                {
-                  controllerDefault: "mine",
-                  nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }],
-                },
-              ],
               count: 1,
               to: "hand",
               orDispositions: [
@@ -74,15 +65,6 @@ export const compiled: CompiledCard = {
                   },
                 ],
               },
-              defaultDispositionFilter: {
-                nameOrTrait: [{ tokens: ["Three Musketeers"], match: "text" }],
-              },
-              orFilters: [
-                {
-                  controllerDefault: "mine",
-                  nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }],
-                },
-              ],
               count: 1,
               to: "hand",
               orDispositions: [

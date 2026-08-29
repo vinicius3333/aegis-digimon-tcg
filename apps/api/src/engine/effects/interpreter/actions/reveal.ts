@@ -317,15 +317,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       const alternatives = (spec.orDispositions ?? []).filter(
         (choice) => choice.filter === undefined || definitionMatches(choice.filter, revealedDefinition(ctx, c)),
       );
-      const defaultDispositionMatches =
-        spec.defaultDispositionFilter === undefined ||
-        definitionMatches(spec.defaultDispositionFilter, revealedDefinition(ctx, c));
-      if (alternatives.length > 0 || !defaultDispositionMatches) {
+      if (alternatives.length > 0) {
         const definition = revealedDefinition(ctx, c);
-        const choices = [
-          ...(defaultDispositionMatches ? [disposition] : []),
-          ...alternatives,
-        ].filter((choice) => {
+        const choices = [disposition, ...alternatives].filter((choice) => {
           if (choice.to === "play") {
             return definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer);
           }
