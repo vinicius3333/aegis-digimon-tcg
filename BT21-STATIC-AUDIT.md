@@ -26,7 +26,7 @@ provisional and capped at 8/10.
 | BT21-021–030 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-021-030.md` | Yes |
 | BT21-031–040 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-031-040.md` | Yes |
 | BT21-041–050 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-041-050.md` | Yes |
-| BT21-051–060 | Luna ready; pushed | `internal-docs/audits/BT21/BT21-051-060.md` | No |
+| BT21-051–060 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-051-060.md` | Yes |
 | BT21-061–070 | Luna assigned | `internal-docs/audits/BT21/BT21-061-070.md` | No |
 | BT21-071–080 | Luna assigned | `internal-docs/audits/BT21/BT21-071-080.md` | No |
 | BT21-081–090 | Luna assigned | `internal-docs/audits/BT21/BT21-081-090.md` | No |
@@ -95,16 +95,26 @@ applicable non-gate component rather than being rounded up.
 | BT21-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural either-side suspension and inherited Piercing with legal WG peers. |
 | BT21-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry, opponent-play watcher, unsuspended negative, and evolution proof. |
 | BT21-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural redirect/inherited watcher; entry suspension positive remains manually injected. |
+| BT21-051 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Legal evolution and keyword proof; principal De-Digivolve/return sequence remains manual. |
+| BT21-052 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Examon alternate/stack correction; main suspend/delete watcher origins remain manual. |
+| BT21-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, Link, attack restriction, and Appmon alternate-evolution paths. |
+| BT21-054 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Link/evolution proof; On Play stack cost and refusal remain directly fired. |
+| BT21-055 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution/breeding boundary; inherited effect-discard watcher remains injected. |
+| BT21-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution with text matching, Digi-Egg exclusion, decline, and frequency proof. |
+| BT21-057 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Tai Kamiya correction; granted Start Main attack remains manually advanced. |
+| BT21-058 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Exact Vemmon corrections; entry and return watcher behavior remain primitive-driven. |
+| BT21-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Link behavior exists; App Fusion recipe remains structural-only. |
+| BT21-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Vemmon, own-stack, and deck-bottom corrections; digivolution origin remains manual. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 50
-- Corrected: 25
-- Provisional: 50
+- Integrated card audits: 60
+- Corrected: 29
+- Provisional: 60
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 22
+- Blocked or ambiguous: 30
 - Remaining unassigned: 0
 
 BT21 static auditing is in progress; accepted ranges are eligible for strict
