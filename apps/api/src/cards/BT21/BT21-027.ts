@@ -125,7 +125,7 @@ export const compiled: CompiledCard = {
   digiXrosRequirement: [
     {
       materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }],
-      count: 2,
+      count: 3,
     },
   ],
 };

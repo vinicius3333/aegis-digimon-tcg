@@ -21,7 +21,7 @@ describe("BT21-027 compiled implementation", () => {
 
   it("requires OmniShoutmon and ZeigGreymon as the two DigiXros materials", () => {
     expect(compiled.digiXrosRequirement).toEqual([
-      { materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }], count: 2 },
+      { materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }], count: 3 },
     ]);
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({
