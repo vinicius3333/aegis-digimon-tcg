@@ -34,6 +34,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              hasLinkRequirement: true,
               nameOrTrait: [
                 {
                   tokens: ["Appmon"],
@@ -42,6 +43,7 @@ export const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            source: "thisDigimon",
           },
           from: ["hand", "digivolutionCards"],
           recipient: {
@@ -65,6 +67,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              hasLinkRequirement: true,
               nameOrTrait: [
                 {
                   tokens: ["Appmon"],
@@ -73,6 +76,7 @@ export const compiled: CompiledCard = {
               ],
             },
             count: 1,
+            source: "thisDigimon",
           },
           from: ["hand", "digivolutionCards"],
           recipient: {
@@ -93,6 +97,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+          },
           actions: [
             {
               kind: "Trash",
