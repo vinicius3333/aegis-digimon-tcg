@@ -13,7 +13,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              level: 3,
+              levels: [3],
             },
             count: 1,
           },
@@ -37,7 +37,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              level: 4,
+              levels: [4],
             },
             count: 1,
           },
@@ -53,7 +53,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              level: 3,
+              levels: [3],
             },
             count: 1,
           },
@@ -77,7 +77,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              level: 4,
+              levels: [4],
             },
             count: 1,
           },

@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled as BT24_075 } from "./BT24-075.js";
 import "../index.js";
 
 describe("BT24-075 SkullBaluchimon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-075")).toMatchObject({
+      cardId: "BT24-075",
+      nameEn: "SkullBaluchimon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 6,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Undead", "X Antibody", "Titan", "TS"],
+      evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }],
+    });
+  });
+
   it("requires the hand-trash cost before deleting both level targets", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const actions = BT24_075.effects?.find((entry) => entry.trigger === trigger)?.actions ?? [];
@@ -16,8 +32,8 @@ describe("BT24-075 SkullBaluchimon", () => {
         optional: true,
         abortOnDecline: true,
       });
-      expect(actions[0]).toMatchObject({ target: { filter: { level: 3 }, count: 1 } });
-      expect(actions[1]).toMatchObject({ kind: "Delete", target: { filter: { level: 4 }, count: 1 } });
+      expect(actions[0]).toMatchObject({ target: { filter: { levels: [3] }, count: 1 } });
+      expect(actions[1]).toMatchObject({ kind: "Delete", target: { filter: { levels: [4] }, count: 1 } });
     }
     const inherited = BT24_075.effects?.find((entry) => entry.trigger === "YourTurn");
     expect(inherited?.actions?.[0]).toMatchObject({
