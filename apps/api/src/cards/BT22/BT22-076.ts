@@ -11,10 +11,16 @@ export const compiled: CompiledCard = {
       trigger: "Static",
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldDigivolve",
+          // This reduction belongs to ShinMonzaemon while it is the card in hand
+          // being digivolved into. A field-resident Replacement cannot see the
+          // destination card and therefore never reduces the printed cost.
+          kind: "CostModifier",
+          costType: "digivolve",
+          mode: "delta",
+          amount: -2,
+          handResident: true,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           sourceFilter: {
-            isSelfRef: true,
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [
@@ -24,20 +30,8 @@ export const compiled: CompiledCard = {
               },
             ],
           },
-          into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["ShinMonzaemon"], match: "name" }],
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldDigivolve",
-              mode: "reduceCost",
-              amount: 2,
-              raw: "reduce the digivolution cost by 2",
-            },
-          ],
+          into: { cardId: "BT22-076" },
+          duration: "permanent",
         },
       ],
     },
