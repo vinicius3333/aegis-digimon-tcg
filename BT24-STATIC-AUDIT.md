@@ -1,6 +1,6 @@
 # BT24 Static Card Implementation Re-audit
 
-Status: static card-by-card audit in progress; execution gates deferred
+Status: static card-by-card audit integrated; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -31,7 +31,7 @@ provisional and capped at 8/10.
 | BT24-071–080 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-071-080.md` | Yes |
 | BT24-081–090 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-081-090.md` | Yes |
 | BT24-091–100 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-091-100.md` | Yes |
-| BT24-101–102 | Luna assigned | `internal-docs/audits/BT24/BT24-101-102.md` | No |
+| BT24-101–102 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-101-102.md` | Yes |
 
 ## Score model
 
@@ -145,17 +145,21 @@ applicable non-gate component rather than being rounded up.
 | BT24-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main proves draw/trash/placement; Delay and memory boundaries use injected subtrigger/activation state. |
 | BT24-099 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main proves atomic cost and placement; Delay/link and Security rely on direct event origins. |
 | BT24-100 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main and public Delay prove reveal, placement, and memory behavior; Security timing remains manual. |
+| BT24-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, security-removal, and battle-leave origins prove both entry sequences and the two All Turns effects. |
+| BT24-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Production turn windows and a natural security check prove the memory/draw, borrowed-effect, aura, and Security behavior. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 100
+- Integrated card audits: 102
 - Corrected: 9
-- Provisional: 100
+- Provisional: 102
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 84
 - Remaining unassigned: 0
+- Aggregate score: 731/1020 provisional
+- Score distribution: 1 card at 6/10, 83 cards at 7/10, and 18 cards at 8/10
 
-BT24 static auditing is prepared across five parallel Luna/xhigh lanes.
-Accepted ranges will be integrated in strict ascending BT24 order.
+BT24 static card-by-card integration is closed at 102/102. Execution-gate and
+natural-origin follow-up remains, so no collection completion is claimed.
