@@ -11,14 +11,14 @@ describe("BT24-082 Owen Dreadnought", () => {
     const start = BT24_082.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase");
     expect(start?.actions?.[0]).toMatchObject({
       kind: "PlayWithoutCost",
-      target: { filter: { namesExact: ["Owen Dreadnought"] } },
+      target: { filter: { nameOrTrait: [{ tokens: ["Owen Dreadnought"], match: "nameExact" }] } },
       cost: { kind: "return", to: "deckBottom" },
       from: ["hand"],
       abortOnDecline: true,
     });
     expect(start?.actions?.[1]).toMatchObject({
       kind: "PlayWithoutCost",
-      target: { filter: { namesExact: ["Elizamon"] } },
+      target: { filter: { nameOrTrait: [{ tokens: ["Elizamon"], match: "nameExact" }] } },
       from: ["trash"],
       condition: { kind: "youHaveNone", filter: { kind: ["Digimon"] } },
     });
