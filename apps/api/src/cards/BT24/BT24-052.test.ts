@@ -99,13 +99,13 @@ describe("BT24-052 Keramon (X Antibody)", () => {
     ).toHaveLength(1);
   });
 
-  it("protects only its own Diaboromon-text host by deleting another exact Diaboromon", async () => {
+  it("protects its own Diaboromon-text host by deleting a named Diaboromon variant", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT24-065", as: "host", under: ["BT24-052"] },
-            { card: "BT17-059", as: "cost" },
+            { card: "BT24-065", as: "cost" },
           ],
         },
       },
