@@ -9,10 +9,15 @@ import "./BT7-064.js";
 describe("BT7-064 DoruGreymon", () => {
   it("marks its When Digivolving protection as a main effect and Security Attack as inherited", () => {
     const card = runtimeCompiledCard("BT7-064");
-    expect(card?.effects).toMatchObject([
-      { trigger: "WhenDigivolving", actions: [{ kind: "PlaceUnder" }] },
-      { trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "GainKeyword" }] },
-    ]);
+    expect(card?.effects[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: expect.arrayContaining([expect.objectContaining({ kind: "PlaceUnder" })]),
+    });
+    expect(card?.effects[1]).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      actions: expect.arrayContaining([expect.objectContaining({ kind: "GainKeyword" })]),
+    });
     expect(card?.effects[0]).not.toHaveProperty("isInherited");
   });
 

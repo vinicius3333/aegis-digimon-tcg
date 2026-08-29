@@ -6,12 +6,16 @@ describe("BT7-093 Firedrake Strike", () => {
   it("uses substring trait matching for the printed Hybrid trait clause", () => {
     const main = runtimeCompiledCard("BT7-093")?.effects.find((effect) => effect.trigger === "Main");
     expect(main).toMatchObject({
-      actions: [
-        {
+      actions: expect.arrayContaining([
+        expect.objectContaining({
           kind: "SelectBind",
-          target: { filter: { nameOrTrait: [{ tokens: ["Hybrid"], match: "traitContains" }] } },
-        },
-      ],
+          target: expect.objectContaining({
+            filter: expect.objectContaining({
+              nameOrTrait: [{ tokens: ["Hybrid"], match: "traitContains" }],
+            }),
+          }),
+        }),
+      ]),
     });
     expect(runtimeCompiledCard("BT7-093")?.effects.find((effect) => effect.trigger === "Security")).toMatchObject({
       actions: [

@@ -14,7 +14,9 @@ describe("BT7-061 Gigasmon", () => {
       effects: [
         {
           trigger: "Static",
-          actions: [{ kind: "Digivolve", onto: { filter: { kind: ["Tamer"], colors: ["Black"] }, asLevel: 3, from: "hand" } }],
+          actions: [
+            { kind: "Digivolve", onto: { filter: { kind: ["Tamer"], colors: ["Black"] } }, asLevel: 3, from: "hand" },
+          ],
         },
         {
           trigger: "AllTurns",

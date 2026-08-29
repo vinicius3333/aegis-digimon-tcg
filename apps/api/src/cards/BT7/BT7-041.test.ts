@@ -21,7 +21,10 @@ describe("BT7-041 Kazuchimon", () => {
   });
 
   it("recovers to 3 security without also gaining memory, then gains Security Attack +1", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT7-041", as: "kazuchi" }], security: 2, deck: ["BT1-010"] } });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT7-041", as: "kazuchi" }], security: 2, deck: ["BT1-010"] } },
+      { autoAcceptOptional: true },
+    );
     s.state.memory = 0;
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("kazuchi"));
@@ -40,9 +43,12 @@ describe("BT7-041 Kazuchimon", () => {
   });
 
   it("recovers exactly the missing amount when it starts below 2 security", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT7-041", as: "kazuchi" }], security: 1, deck: ["BT1-010", "BT1-010"] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT7-041", as: "kazuchi" }], security: 1, deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true },
+    );
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("kazuchi"));
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.memory).toBe(0);
