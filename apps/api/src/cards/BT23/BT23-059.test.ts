@@ -92,7 +92,13 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
       expect(action).toMatchObject({
         kind: "Delete",
         target: { filter: { controller: "opponent", superlative: "lowestPlayCost" }, count: 1 },
-        cost: { kind: "trash", target: { filter: { zone: "battleArea", kind: ["Option"] }, count: 1 } },
+        cost: {
+          kind: "trash",
+          target: {
+            filter: { zone: "battleArea", kind: ["Option"], placedInBattleAreaByEffect: true },
+            count: 1,
+          },
+        },
         abortOnDecline: true,
       });
       expect(action.optional).toBeUndefined();
