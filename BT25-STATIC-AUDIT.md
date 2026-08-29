@@ -30,7 +30,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT25-021–030 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-021-030.md` | Yes |
 | BT25-031–040 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-031-040.md` | Yes |
 | BT25-041–050 | Luna assigned | `internal-docs/audits/BT25/BT25-041-050.md` | No |
-| BT25-051–060 | Unassigned | `internal-docs/audits/BT25/BT25-051-060.md` | No |
+| BT25-051–060 | Luna assigned | `internal-docs/audits/BT25/BT25-051-060.md` | No |
 | BT25-061–070 | Unassigned | `internal-docs/audits/BT25/BT25-061-070.md` | No |
 | BT25-071–080 | Unassigned | `internal-docs/audits/BT25/BT25-071-080.md` | No |
 | BT25-081–090 | Unassigned | `internal-docs/audits/BT25/BT25-081-090.md` | No |
@@ -93,13 +93,13 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 104
-- Assigned: 50
+- Assigned: 60
 - Integrated card audits: 40
 - Corrected: 2
 - Provisional: 40
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 15
-- Remaining unassigned: 54
+- Remaining unassigned: 44
 
 BT25 static integration is complete through BT25-040. BT25-041 through
-BT25-050 remain active in the current Luna/xhigh lane.
+BT25-060 are active across two Luna/xhigh lanes.
