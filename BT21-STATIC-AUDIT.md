@@ -28,7 +28,7 @@ provisional and capped at 8/10.
 | BT21-041–050 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-041-050.md` | Yes |
 | BT21-051–060 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-051-060.md` | Yes |
 | BT21-061–070 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-061-070.md` | Yes |
-| BT21-071–080 | Luna assigned | `internal-docs/audits/BT21/BT21-071-080.md` | No |
+| BT21-071–080 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-071-080.md` | Yes |
 | BT21-081–090 | Luna assigned | `internal-docs/audits/BT21/BT21-081-090.md` | No |
 | BT21-091–100 | Luna assigned | `internal-docs/audits/BT21/BT21-091-100.md` | No |
 | BT21-101–102 | Luna assigned | `internal-docs/audits/BT21/BT21-101-102.md` | No |
@@ -115,16 +115,26 @@ applicable non-gate component rather than being rounded up.
 | BT21-068 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Mandatory deletion/mill boundaries traced; the principal entry trigger remains directly fired. |
 | BT21-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural placement-cost, deletion, Security free-play, and inherited Retaliation paths. |
 | BT21-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, Linking, evolution, Security, and Appmon-filter boundaries. |
+| BT21-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, selectable-host placement, Link, and alternate-evolution paths. |
+| BT21-072 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Stack scaling and keyword paths are natural; the evolution attack timing remains directly fired. |
+| BT21-073 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Own-stack, self-recipient, and self-link watcher corrections with natural Link boundaries. |
+| BT21-074 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement-host protection binding corrected; shared De-Digivolve timing remains manual. |
+| BT21-075 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural deletion and evolution paths; Raid/Retaliation grant remains manually fired. |
+| BT21-076 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play and inherited deletion paths; attack-evolution timing remains manual. |
+| BT21-077 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Canoweissmon correction and natural deletion paths; gained-effect timing remains manual. |
+| BT21-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion, subject-watcher, optional attack, alternate, and inherited Alliance paths. |
+| BT21-079 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural recurrence and dynamic ceiling proof; End of Attack wipe remains manually fired. |
+| BT21-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Gammamon/Hero filter and payload traced; principal timing origins remain manual. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 70
-- Corrected: 30
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 33
+- Provisional: 80
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 33
+- Blocked or ambiguous: 40
 - Remaining unassigned: 0
 
 BT21 static auditing is in progress; accepted ranges are eligible for strict
