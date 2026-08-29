@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled } from "./BT24-025.js";
 import "../index.js";
 
 describe("BT24-025 Shellmon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-025")).toMatchObject({
+      cardId: "BT24-025",
+      nameEn: "Shellmon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      forms: ["Champion"],
+      attributes: ["Data"],
+      types: ["Mollusk", "Iliad", "TS", "Aquatic"],
+      evoCosts: [{ color: "Blue", level: 3, memoryCost: 2 }],
+    });
+  });
+
   it("digivolves on another blue TS Digimon's unsuspend, ignoring only level", () => {
     const sub = compiled.effects.find((effect) => effect.trigger === "YourTurn")?.actions?.[0] as any;
     expect(sub).toMatchObject({
