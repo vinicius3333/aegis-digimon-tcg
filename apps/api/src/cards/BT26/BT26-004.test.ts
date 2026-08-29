@@ -51,6 +51,38 @@ describe("BT26-004 Pagumon", () => {
     expect(s.engine.makeStateView(1)!.hasTag(s.inst("cost"), CARD_ID_VIEW_TAG)).toBe(true);
   });
 
+  it("accepts an unqualified Tamer card from hand as the face-down placement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-065", as: "attacker", under: [CARD_ID] },
+            { card: "BT25-088", as: "tamer" },
+          ],
+          hand: [{ card: "BT1-089", as: "tamerCard" }],
+          deck: ["BT1-010"],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === s.inst("tamerCard").instanceId));
+
+    expect(s.perm("tamer").stack[0]).toMatchObject({
+      instanceId: s.inst("tamerCard").instanceId,
+      faceUp: false,
+    });
+  });
+
   it("places under a controller-owned Glowing Dawn Tamer and not an opponent or plain Tamer", async () => {
     const s = setupEngine(
       {
@@ -161,5 +193,6 @@ describe("BT26-004 Pagumon", () => {
       effects: [{ trigger: "WhenAttacking", frequency: "OncePerTurn", isInherited: true }],
     });
     expect(action).toMatchObject({ optional: true, cost: { faceDown: true, underFilter: { kind: ["Tamer"] } } });
+    expect(action.cost?.target?.filter?.kind).toBeUndefined();
   });
 });
