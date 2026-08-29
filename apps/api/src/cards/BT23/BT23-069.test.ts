@@ -170,6 +170,17 @@ describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it
     expect(bt23069.residual).toEqual([]);
   });
 
+  it("requires the mandatory self-deletion cost before the opponent deletion", () => {
+    const effect = bt23069.effects.find((entry) => entry.trigger === "AllTurns") as any;
+    const watcher = effect.actions[0];
+    expect(watcher.actions[0]).toMatchObject({
+      kind: "Delete",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      abortOnDecline: true,
+    });
+    expect(watcher.actions[0].optional).toBeUndefined();
+  });
+
   it("exposes Execute through the live keyword seam", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT23-069", as: "necromon" }] } });
     await s.ready();
