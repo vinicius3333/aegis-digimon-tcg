@@ -23,7 +23,7 @@ provisional and capped at 8/10.
 | --- | --- | --- | --- |
 | BT23-001–010 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-001-010.md` | Yes |
 | BT23-011–020 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-011-020.md` | Yes |
-| BT23-021–030 | Luna assigned | `internal-docs/audits/BT23/BT23-021-030.md` | No |
+| BT23-021–030 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-021-030.md` | Yes |
 | BT23-031–040 | Luna assigned | `internal-docs/audits/BT23/BT23-031-040.md` | No |
 | BT23-041–050 | Luna assigned | `internal-docs/audits/BT23/BT23-041-050.md` | No |
 | BT23-051–060 | Luna assigned | `internal-docs/audits/BT23/BT23-051-060.md` | No |
@@ -65,16 +65,26 @@ applicable non-gate component rather than being rounded up.
 | BT23-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main restack/reduced play covers stack edges, refusal, and inherited DP scope. |
 | BT23-019 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Digivolution trash now pools across opposing Digimon; cross-host and evolution paths remain unexecuted. |
 | BT23-020 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Alliance and self-only suspension watcher are traced; suspension origin remains injected. |
+| BT23-021 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link/App Fusion, shared use key, and linked protection are traced; delivery remains unexecuted. |
+| BT23-022 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Raid, linked Security Attack, free linking, and unsuspend watcher have natural source proof only. |
+| BT23-023 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Replacement play now searches only this Digimon's stack; eligible neighboring-stack negative corrected. |
+| BT23-024 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Dynamic highest-play-cost linked restriction and App Fusion peers are traced but unexecuted. |
+| BT23-025 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hand activation, cost gate, Security placement/play, and delayed deletion are present but unexecuted. |
+| BT23-026 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Makiko-gated Antylamon evolution and inherited suspension watcher have natural source proof only. |
+| BT23-027 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Effect-driven DNA now rejects digivolve-restricted materials in preflight and mutation paths. |
+| BT23-028 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security origin, debuff, link DP, and When Digivolving restriction are traced but unexecuted. |
+| BT23-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Qualifying-play restriction and inherited suspension debuff have source proof without delivery execution. |
+| BT23-030 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Main paid play, Alliance, and linked Blocker are traced through source proof only. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 20
-- Corrected: 2
-- Provisional: 20
+- Integrated card audits: 30
+- Corrected: 4
+- Provisional: 30
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 8
+- Blocked or ambiguous: 18
 - Remaining unassigned: 22
 
 BT23 static auditing is prepared in parallel. Accepted ranges will be
