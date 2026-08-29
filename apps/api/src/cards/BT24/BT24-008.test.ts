@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -6,6 +6,17 @@ import { compiled } from "./BT24-008.js";
 import "../index.js";
 
 describe("BT24-008 Elizamon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-008")).toMatchObject({
+      cardId: "BT24-008",
+      nameEn: "Elizamon",
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 3,
+      types: ["Reptile", "LIBERATOR"],
+    });
+  });
+
   it("requires trashing a qualifying hand card before drawing two", () => {
     const action = compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions?.[0] as any;
     expect(action).toMatchObject({
