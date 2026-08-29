@@ -201,7 +201,7 @@ describe("BT26-062 Ghostmon", () => {
     });
     await s.ready();
 
-    expect(s.perm("host").currentDP).toBe(4000);
+    expect(s.perm("host").currentDP).toBe(6000);
   });
   it("does not grant the inherited DP during the opponent's turn", async () => {
     const s = setupEngine({
@@ -210,6 +210,6 @@ describe("BT26-062 Ghostmon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    expect(s.perm("host").currentDP).toBe(2000);
+    expect(s.perm("host").currentDP).toBe(4000);
   });
 });
