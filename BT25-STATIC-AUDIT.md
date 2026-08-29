@@ -1,6 +1,6 @@
 # BT25 Static Card Implementation Re-audit
 
-Status: static card-by-card audit active; coordinator integration complete through BT25-100
+Status: static card-by-card integration complete; delivery gates remain unexecuted
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -38,7 +38,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT25-071–080 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-071-080.md` | Yes |
 | BT25-081–090 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-081-090.md` | Yes |
 | BT25-091–100 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-091-100.md` | Yes |
-| BT25-101–104 | Luna assigned | `internal-docs/audits/BT25/BT25-101-104.md` | No |
+| BT25-101–104 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-101-104.md` | Yes |
 
 ## Score model
 
@@ -152,18 +152,22 @@ applicable non-gate component rather than being rounded up.
 | BT25-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural use and public Delay activation cover reveal handling, placement, reduced Appmon play, turn-entry gating, copy isolation, and Security placement. |
 | BT25-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural paths cover the no-face-up waiver, Alliance/Piercing grants, ordered bottom exchange, reduced hand play, and Security boundaries. |
 | BT25-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the TS Use Req. field/kind boundary; natural Option play covers breeding/Option negatives, De-Digivolve, free Link, linked DP, and keywords. |
+| BT25-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the TS Use Req. to battle-area Digimon/Tamers; natural Option rejection, attack, Security, Link, and Vulcanusmon stack paths cover the boundaries. |
+| BT25-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural security check proves the free-play face, while Option-use sources cover the waiver, face-up grants, bottom exchange, and reduced play. |
+| BT25-103 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural digivolution, attack, and Counter paths cover stack-relative return, source trash across hosts, EndAttack, keywords, and shared once-per-turn identity. |
+| BT25-104 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Burst Digivolve and Option use prove the Option-side Main, DP reduction, Tamer play, alternate routes, Marcus treatment, and printed keywords. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Assigned: 104
-- Integrated card audits: 100
-- Corrected: 11
-- Provisional: 100
+- Integrated card audits: 104
+- Corrected: 12
+- Provisional: 104
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 35
 - Remaining unassigned: 0
 
-The integrated provisional score subtotal is 766/1000 through BT25-100.
-BT25-101 through BT25-104 remain active in the final Luna/xhigh lane. No
-collection-complete claim is made while delivery gates remain unexecuted.
+The integrated provisional score subtotal is 798/1040 across all 104 cards.
+Static card-by-card integration is complete, but no collection-complete claim
+is made while every Executed delivery gates component remains 0/2.
