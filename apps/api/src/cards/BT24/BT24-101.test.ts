@@ -33,6 +33,81 @@ describe("BT24-101 Jupitermon", () => {
     expect(await paidToEvolveFromAegiochusmon(0)).toBe(0);
   });
 
+  it("naturally plays and resolves the full On Play security/DP/recovery sequence", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-101", as: "jupitermon" }],
+          security: [
+            { card: "BT1-001", as: "payment" },
+            { card: "BT1-002", as: "remaining" },
+          ],
+          deck: [
+            { card: "BT1-003", as: "recovery1" },
+            { card: "BT1-004", as: "recovery2" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jupitermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("payment").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("remaining").instanceId,
+        s.inst("recovery1").instanceId,
+        s.inst("recovery2").instanceId,
+      ]),
+    );
+  });
+
+  it("naturally digivolves and resolves the When Digivolving sequence", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-014", as: "base" }],
+          hand: [{ card: "BT24-101", as: "jupitermon" }],
+          security: [
+            { card: "BT1-001", as: "payment" },
+            { card: "BT1-002", as: "remaining" },
+          ],
+          deck: [
+            { card: "BT1-003", as: "recovery1" },
+            { card: "BT1-004", as: "recovery2" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("jupitermon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId));
+
+    expect(s.perm("base").topCard.cardId).toBe("BT24-101");
+    expect(s.state.memory).toBe(8);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("payment").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+  });
+
   it("trashes opponent security once per turn only for removal from its controller's security", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT24-101", as: "jupitermon" }] },
@@ -43,6 +118,40 @@ describe("BT24-101 Jupitermon", () => {
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("naturally trashes the opponent's top security after an own security removal", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-101", as: "jupitermon" }],
+        security: [
+          { card: "BT1-001", as: "ownTop" },
+          { card: "BT1-002", as: "ownRemaining" },
+        ],
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "attacker" }],
+        security: [
+          { card: "BT1-003", as: "opponentTop" },
+          { card: "BT1-004", as: "opponentRemaining" },
+        ],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1 && s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownTop").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponentTop").instanceId);
   });
 
   it("trashes the correct security cards and protects TS Digimon/Tamers", () => {
@@ -170,5 +279,41 @@ describe("BT24-101 Jupitermon", () => {
     );
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("remaining").instanceId]);
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("naturally protects a TS Digimon from battle deletion by paying the top security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-101", as: "jupitermon" },
+            { card: "BT24-009", as: "tsTarget" },
+          ],
+          security: [
+            { card: "BT1-001", as: "payment" },
+            { card: "BT1-002", as: "remaining" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("tsTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("tsTarget").permanentId,
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("payment").instanceId);
   });
 });
