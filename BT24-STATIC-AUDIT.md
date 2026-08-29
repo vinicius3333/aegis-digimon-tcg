@@ -29,7 +29,7 @@ provisional and capped at 8/10.
 | BT24-051–060 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-051-060.md` | Yes |
 | BT24-061–070 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-061-070.md` | Yes |
 | BT24-071–080 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-071-080.md` | Yes |
-| BT24-081–090 | Luna assigned | `internal-docs/audits/BT24/BT24-081-090.md` | No |
+| BT24-081–090 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-081-090.md` | Yes |
 | BT24-091–100 | Luna assigned | `internal-docs/audits/BT24/BT24-091-100.md` | No |
 | BT24-101–102 | Luna assigned | `internal-docs/audits/BT24/BT24-101-102.md` | No |
 
@@ -125,16 +125,26 @@ applicable non-gate component rather than being rounded up.
 | BT24-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Subtrigger and budget behavior are observable through a directly supplied subtrigger origin. |
 | BT24-079 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Timing and reactivation behavior are covered, while the central timing remains manually fired. |
 | BT24-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Trash and deletion behavior is covered through directly supplied timing and deletion origins. |
+| BT24-081 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Costs, tied deletion, revival alternatives, and keywords are observable, while the three positive entry windows are manually fired. |
+| BT24-082 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact names now use executable predicates; return, cost gates, DP, attack, and Security remain driven by manual timing origins. |
+| BT24-083 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Memory, replacement, reveal, and Security behavior are observable, while Start of Turn and On Play are manually fired. |
+| BT24-084 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Seat, suspension-cost, and free-evolution boundaries are covered through a direct security-removal primitive. |
+| BT24-085 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Memory, Option cost cap, suspension, attack, and rejection are covered through direct End of Turn timing. |
+| BT24-086 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The own-stack play now admits only exact Shuu Yulin; Mind Link and end-turn behavior still use injected timing origins. |
+| BT24-087 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | App Fusion, draw/trash ordering, source gates, and suspension failure are covered through an injected link watcher. |
+| BT24-088 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | All three target categories and cost/draw boundaries are covered, while Start of Turn and On Play remain manually fired. |
+| BT24-089 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Option/Delay paths prove evolution behavior, but the Owen-suspension origin uses a direct primitive. |
+| BT24-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main play and face-up-security state changes prove reduced play, Blocker, Alliance, and exact-name/color/trait gates. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 80
-- Corrected: 5
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 7
+- Provisional: 90
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 65
+- Blocked or ambiguous: 74
 - Remaining unassigned: 0
 
 BT24 static auditing is prepared across five parallel Luna/xhigh lanes.
