@@ -55,24 +55,10 @@ describe("BT23-064 Bakemon", () => {
         kind: "Delete",
         target: { filter: { controller: "opponent", levelComparison: { op: "lte", value: 4 } }, count: 1 },
         cost: { kind: "deleteOwn", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } },
-        optional: true,
         abortOnDecline: true,
       });
+      expect(action.optional).toBeUndefined();
     }
-  });
-
-  it("may refuse the deletion cost without deleting either Digimon", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT23-064", as: "bakemon" }] },
-        1: { battleArea: [{ card: "BT23-063", as: "target" }] },
-      },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
-    const targetId = s.perm("target").permanentId;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("bakemon"));
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
   });
 
   it("gains 1 memory from a realistic inherited On Deletion stack", async () => {
