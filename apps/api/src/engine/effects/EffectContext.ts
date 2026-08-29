@@ -11,6 +11,7 @@ import type {
   Seat,
   TargetFate,
   ZoneRef,
+  ActivateForeignEffectOverrides,
 } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { PlayMatch } from "./continuous.js";
@@ -1807,6 +1808,11 @@ export interface EffectContext {
   continuousPass?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
+  /**
+   * Context-specific rules applied while a borrowed CardEffect resolves. This is seeded only by
+   * an ActivateForeignEffect action and never mutates the lender's compiled IR.
+   */
+  borrowedEffectOverrides?: ActivateForeignEffectOverrides;
   /** Stable compiled effect identity used by installed reactive actions; never derived from prose. */
   activeEffectKey?: string;
   /** Stable zero-based action path within the active compiled effect. */
