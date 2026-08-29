@@ -1226,7 +1226,6 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
     {
       materials: [
         {
-          kind: ["Digimon"],
           levelComparison: { op: "lte", value: 5 },
           nameOrTrait: [{ tokens: ["Cyborg", "Composite"], match: "trait" }],
           differentCardNumbers: true,
@@ -1397,7 +1396,6 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
     {
       materials: [
         {
-          kind: ["Digimon"],
           levelComparison: { op: "eq", value: 4 },
           nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
           differentCardNumbers: true,
