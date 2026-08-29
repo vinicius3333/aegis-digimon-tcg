@@ -20,8 +20,13 @@ describe("BT21-101 Gaiamon", () => {
         payCost: false,
         optional: true,
         target: {
-          filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] },
+          filter: {
+            kind: ["Digimon"],
+            hasLinkRequirement: true,
+            nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+          },
           count: 1,
+          source: "thisDigimon",
         },
         from: ["hand", "digivolutionCards"],
         recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
@@ -29,7 +34,11 @@ describe("BT21-101 Gaiamon", () => {
     }
     const yourTurn = compiled.effects.find((entry) => entry.trigger === "YourTurn");
     expect(yourTurn).toMatchObject({ frequency: "OncePerTurn" });
-    expect(yourTurn?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenLinked" });
+    expect(yourTurn?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenLinked",
+      sourceFilter: { controller: "mine", kind: ["Digimon"] },
+    });
     const subTrigger = yourTurn?.actions[0];
     expect(subTrigger?.kind).toBe("SubTrigger");
     if (subTrigger?.kind !== "SubTrigger") throw new Error("expected linked subtrigger");
@@ -47,6 +56,39 @@ describe("BT21-101 Gaiamon", () => {
     expect(compiled.appFusionRequirement).toEqual([{ names: ["Globemon", "Charismon"], cost: 0 }]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+  });
+
+  it("fires from a natural own-Digimon Link and ignores an opponent Digimon Link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-101", as: "gaiamon", suspended: true }],
+          hand: [{ card: "BT21-009", as: "link" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("gaiamon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    expect(s.perm("gaiamon").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+
+    await advance(s.engine).verb.suspend([s.perm("gaiamon").permanentId]);
+    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("opponent").permanentId });
+    expect(s.perm("gaiamon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("exposes Blocker and Link +1 through the live keyword surface", async () => {

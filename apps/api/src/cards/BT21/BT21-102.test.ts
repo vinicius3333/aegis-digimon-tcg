@@ -25,20 +25,23 @@ describe("BT21-102 Tai Kamiya", () => {
     const main = compiled.effects.find((entry) => entry.trigger === "Main");
     expect(main).toMatchObject({ frequency: "OncePerTurn" });
     expect(main?.actions[0]).toMatchObject({
-      kind: "CostModifier",
-      mode: "raiseCeiling",
-      costType: "playcost",
-      amount: 1,
-      scaling: { unit: "colors" },
-    });
-    expect(main?.actions[1]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["hand"],
       payCost: false,
       optional: true,
-      target: { filter: { playCostLte: 2, nameOrTrait: [{ tokens: ["ADVENTURE", "Hero"], match: "trait" }] } },
+      target: {
+        filter: {
+          playCostLte: 2,
+          playCostLteScaling: {
+            per: 1,
+            filter: { controller: "mine", kind: ["Tamer"] },
+            unit: "colors",
+          },
+          nameOrTrait: [{ tokens: ["ADVENTURE", "Hero"], match: "trait" }],
+        },
+      },
     });
-    expect(main?.actions[2]).toMatchObject({
+    expect(main?.actions[1]).toMatchObject({
       kind: "Return",
       to: "deckBottom",
       target: { filter: { isSelfRef: true } },
