@@ -48,7 +48,7 @@ describe("BT23-064 Bakemon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
   });
 
-  it("requires deleting one of your Digimon to delete one opposing level 4 or lower Digimon", () => {
+  it("models deleting one of your Digimon as an optional By processing condition", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const action = (compiled.effects.find((entry) => entry.trigger === trigger) as any).actions[0];
       expect(action).toMatchObject({
@@ -57,7 +57,7 @@ describe("BT23-064 Bakemon", () => {
         cost: { kind: "deleteOwn", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } },
         abortOnDecline: true,
       });
-      expect(action.optional).toBeUndefined();
+      expect(action.optional).toBe(true);
     }
   });
 
