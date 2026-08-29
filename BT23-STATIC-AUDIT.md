@@ -26,9 +26,9 @@ provisional and capped at 8/10.
 | BT23-021–030 | Luna assigned | `internal-docs/audits/BT23/BT23-021-030.md` | No |
 | BT23-031–040 | Luna assigned | `internal-docs/audits/BT23/BT23-031-040.md` | No |
 | BT23-041–050 | Luna assigned | `internal-docs/audits/BT23/BT23-041-050.md` | No |
-| BT23-051–060 | Unassigned | `internal-docs/audits/BT23/BT23-051-060.md` | No |
-| BT23-061–070 | Unassigned | `internal-docs/audits/BT23/BT23-061-070.md` | No |
-| BT23-071–080 | Unassigned | `internal-docs/audits/BT23/BT23-071-080.md` | No |
+| BT23-051–060 | Luna assigned | `internal-docs/audits/BT23/BT23-051-060.md` | No |
+| BT23-061–070 | Luna assigned | `internal-docs/audits/BT23/BT23-061-070.md` | No |
+| BT23-071–080 | Luna assigned | `internal-docs/audits/BT23/BT23-071-080.md` | No |
 | BT23-081–090 | Unassigned | `internal-docs/audits/BT23/BT23-081-090.md` | No |
 | BT23-091–100 | Unassigned | `internal-docs/audits/BT23/BT23-091-100.md` | No |
 | BT23-101–102 | Unassigned | `internal-docs/audits/BT23/BT23-101-102.md` | No |
@@ -49,13 +49,13 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 50
+- Assigned: 80
 - Integrated card audits: 0
 - Corrected: 0
 - Provisional: 0
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 52
+- Remaining unassigned: 22
 
 BT23 static auditing is prepared in parallel. Accepted ranges will be
 integrated only after BT22, then in strict ascending BT23 order.
