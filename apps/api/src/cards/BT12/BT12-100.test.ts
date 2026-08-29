@@ -96,11 +96,32 @@ it("prompts for the Shoutmon X7 target when more than one is present", async () 
       },
       1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
     },
-    { autoAcceptOptional: true, autoSelectCards: true },
+    { autoAcceptOptional: true },
   );
   await s.ready();
   s.state.memory = 9;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+  await settle(() =>
+    s.decisions.some(
+      ({ req }) =>
+        req.sourceCardId === "BT12-100" &&
+        req.kind === "chooseTargets" &&
+        req.options?.candidateInstanceIds.length === 1,
+    ),
+  );
+  const deletionChoice = s.decisions.find(
+    ({ req }) =>
+      req.sourceCardId === "BT12-100" &&
+      req.kind === "chooseTargets" &&
+      req.options?.candidateInstanceIds.length === 1,
+  )!.req;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: deletionChoice.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [s.perm("target").permanentId] },
+    }),
+  ).toEqual({ ok: true });
   await settle(
     () =>
       s.decisions.some(
