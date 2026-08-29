@@ -25,7 +25,7 @@ registration through `registerIrCard(cardId, compiled)`.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT25-001–010 | Luna assigned | `internal-docs/audits/BT25/BT25-001-010.md` | No |
+| BT25-001–010 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-001-010.md` | Yes |
 | BT25-011–020 | Luna assigned | `internal-docs/audits/BT25/BT25-011-020.md` | No |
 | BT25-021–030 | Luna assigned | `internal-docs/audits/BT25/BT25-021-030.md` | No |
 | BT25-031–040 | Unassigned | `internal-docs/audits/BT25/BT25-031-040.md` | No |
@@ -49,17 +49,27 @@ applicable non-gate component rather than being rounded up.
 
 | Card | Catalog/rules | IR trace | Behavioral proof | Peer and stack proof | Executed delivery gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT25-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attacks prove TS-host Draw 1, non-TS rejection, and the inherited once-per-turn limit. |
+| BT25-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural DATA SQUAD Tamer play proves both-player draw, controller/turn scope, and once-per-turn behavior. |
+| BT25-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A public attack proves the top-security cost, reduced Glowing Dawn evolution, stack change, and decline path. |
+| BT25-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A public Link declaration on a legal stack proves recipient scope, eligible trait, cost reduction, and placement. |
+| BT25-005 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Watcher and destination behavior are covered, but the positive stack-placement origin uses a direct primitive. |
+| BT25-006 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | A public opponent attack proves the positive branch; no-target and frequency/decline paths use injected subtriggers. |
+| BT25-007 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Link/evolution proves stack and deletion boundaries, while the central reveal timing is manually fired. |
+| BT25-008 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public play and breeding movement prove paid-count scaling; decline and inherited-turn edges remain manually driven. |
+| BT25-009 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Memory, trait/exclusion, evolution, and inherited DP boundaries are covered through manual Start of Main timing. |
+| BT25-010 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural eligible digivolution proves the cost reduction; exclusion, breeding, and inherited-turn edges remain structural. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Assigned: 30
-- Integrated card audits: 0
+- Integrated card audits: 10
 - Corrected: 0
-- Provisional: 0
+- Provisional: 10
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 0
+- Blocked or ambiguous: 6
 - Remaining unassigned: 74
 
-BT25 preparation uses three Luna/xhigh lanes while BT24 retains strict
-integration priority.
+BT25 static integration is complete through BT25-010. BT25-011 through
+BT25-030 remain active across two Luna/xhigh lanes.
