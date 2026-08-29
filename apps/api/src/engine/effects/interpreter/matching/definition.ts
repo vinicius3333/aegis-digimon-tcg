@@ -192,7 +192,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Keyword-presence ("with ＜Save＞ in its text", "Digimon with ＜Blocker＞"). Matched
   // against the printed effect text (the source "contains ＜KW＞ in text" check).
   if (filter.keywords && filter.keywords.length > 0) {
-    if (!filter.keywords.every((kw) => textHasKeyword(def, kw))) return false;
+    if (!filter.keywords.every((kw) => definitionHasKeyword(def, kw))) return false;
   }
   // Keyword-exclusion ("without ＜Blocker＞"). Static definition path for loose cards;
   // live permanents also account for granted keywords below.
@@ -254,6 +254,29 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // `includeToken` widens an otherwise Digimon/trait filter to admit matching tokens; it is
   // not a request to require a token. Token-only targeting is expressed by `isToken: true`.
   return true;
+}
+
+/**
+ * Digi-Burst searches require the card to declare the keyword, not merely mention another
+ * Digimon's Digi-Burst in reminder/reaction text (BT4-051 must reject BT4-052). The compiled
+ * keyword metadata makes that distinction exactly. Other keyword filters retain their existing
+ * printed-text semantics until their search wording is migrated to structured metadata too.
+ */
+function definitionHasKeyword(def: DefinitionFacts, keyword: string | { keyword?: string }): boolean {
+  const requested = (typeof keyword === "string" ? keyword : (keyword.keyword ?? ""))
+    .replace(/[^a-z0-9]/gi, "")
+    .toLowerCase();
+  if (requested === "digiburst" && def.cardId !== undefined) {
+    const compiled = runtimeCompiledCard(def.cardId);
+    if (compiled !== undefined) {
+      return compiled.effects.some((effect) =>
+        (effect.keywords ?? []).some(
+          (entry) => entry.keyword.replace(/[^a-z0-9]/gi, "").toLowerCase() === requested,
+        ),
+      );
+    }
+  }
+  return textHasKeyword(def, keyword);
 }
 
 /** Does a card's printed text declare a keyword ability (e.g. ＜Save＞, ＜Blocker＞)? */
