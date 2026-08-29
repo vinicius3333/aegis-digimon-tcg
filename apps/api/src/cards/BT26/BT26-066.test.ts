@@ -136,7 +136,7 @@ describe("BT26-066 Salamon", () => {
     const titan = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066"] }],
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066", "BT26-068"] }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },
@@ -151,7 +151,7 @@ describe("BT26-066 Salamon", () => {
     const nonTitan = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-080", as: "host", under: ["BT26-066"] }],
+          battleArea: [{ card: "BT26-067", as: "host", under: ["BT26-066"] }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },
@@ -168,7 +168,7 @@ describe("BT26-066 Salamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066"] }],
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-066", "BT26-068"] }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },
@@ -187,7 +187,7 @@ describe("BT26-066 Salamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT25-069", as: "host", under: ["BT26-066"] }],
+          battleArea: [{ card: "BT26-069", as: "host", under: ["BT26-066"] }],
           trash: [
             { card: "BT26-074", as: "firstEvolution" },
             { card: "P-209", as: "secondEvolution" },
@@ -217,7 +217,7 @@ describe("BT26-066 Salamon", () => {
             {
               card: "BT24-075",
               as: "attacker",
-              under: ["BT26-066", "BT26-064"],
+              under: ["BT26-066", "BT26-068"],
             },
             { card: "BT1-009", as: "alliancePartner" },
           ],
