@@ -31,6 +31,10 @@ export const compiled: CompiledCard = {
                 value: 4,
               },
               hasLinkRequirement: true,
+              or: [
+                { zone: "hand" },
+                { zone: "digivolutionCards", hostFilter: { isSelfRef: true } },
+              ],
             },
             count: 1,
           },
@@ -54,6 +58,10 @@ export const compiled: CompiledCard = {
                 value: 4,
               },
               hasLinkRequirement: true,
+              or: [
+                { zone: "hand" },
+                { zone: "digivolutionCards", hostFilter: { isSelfRef: true } },
+              ],
             },
             count: 1,
           },
