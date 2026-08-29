@@ -1,6 +1,6 @@
 # BT26 Static Card Implementation Re-audit
 
-Status: static integration complete through BT26-010; audit assigned through BT26-030
+Status: static integration complete through BT26-020; audit assigned through BT26-040
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -27,9 +27,9 @@ registration through `registerIrCard(cardId, compiled)`.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT26-001–010 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-001-010.md` | Yes |
-| BT26-011–020 | Luna assigned | `internal-docs/audits/BT26/BT26-011-020.md` | No |
+| BT26-011–020 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-011-020.md` | Yes |
 | BT26-021–030 | Luna assigned | `internal-docs/audits/BT26/BT26-021-030.md` | No |
-| BT26-031–040 | Unassigned | `internal-docs/audits/BT26/BT26-031-040.md` | No |
+| BT26-031–040 | Luna assigned | `internal-docs/audits/BT26/BT26-031-040.md` | No |
 | BT26-041–050 | Unassigned | `internal-docs/audits/BT26/BT26-041-050.md` | No |
 | BT26-051–060 | Unassigned | `internal-docs/audits/BT26/BT26-051-060.md` | No |
 | BT26-061–070 | Unassigned | `internal-docs/audits/BT26/BT26-061-070.md` | No |
@@ -59,20 +59,30 @@ non-gate component rather than being rounded up.
 | BT26-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, breeding movement, alternate evolution, bound grants, expiry, and inherited-turn behavior are represented. |
 | BT26-009 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Alternate evolution is natural, but phase/attack positives are manual and the inherited fixture omits a legal level-4 intermediary. |
 | BT26-010 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link/evolution and Detach combat are natural, while the principal attack Draw 2 positive remains manually fired. |
+| BT26-011 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, payment, Draw 2, matching, refusal, Raid, and a real attack-origin path are represented. |
+| BT26-012 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | TB play/use and reduction boundaries are covered, but the Main and inherited positives use named timing helpers. |
+| BT26-013 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry, payment, deletion, Blocker, and inherited scope are represented; deletion/inherited cases retain direct helper origins. |
+| BT26-014 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Assembly and entry behavior are natural, while the central top/inherited On Deletion branches use direct deletion helpers. |
+| BT26-015 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Deck-add and ordering boundaries are represented, but principal entry/inherited positives remain timing/subtrigger-driven. |
+| BT26-016 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Delete/Recovery, exact mixed-trash payment, keywords, and leave prevention use direct timing/replacement helpers. |
+| BT26-017 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Assembly and entry grants are natural; the Shambala/TS free-play On Deletion positive is directly injected. |
+| BT26-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and breeding movement prove reveal handling, trait boundaries, Rule Aquatic, source trash, and inherited Jamming. |
+| BT26-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attack, Link, When Linking, duration, copy isolation, Detach, and Seven Code stack behavior are represented. |
+| BT26-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, evolution, restriction/expiry, empty-deck sequencing, and a real inherited Evade path are represented. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Direct modules: 104
-- Assigned: 30
-- Integrated card audits: 10
+- Assigned: 40
+- Integrated card audits: 20
 - Corrected: 1
-- Provisional: 10
+- Provisional: 20
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 8
-- Remaining unassigned: 74
+- Blocked or ambiguous: 14
+- Remaining unassigned: 64
 
-The integrated provisional score subtotal is 67/100 through BT26-010.
-BT26-011 through BT26-030 remain active across two Luna/xhigh lanes. No
+The integrated provisional score subtotal is 141/200 through BT26-020.
+BT26-021 through BT26-040 remain active across two Luna/xhigh lanes. No
 collection-complete claim is made while the static audit and delivery gates
 remain incomplete.
