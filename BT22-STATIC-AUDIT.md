@@ -21,12 +21,12 @@ provisional and capped at 8/10.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT22-001–010 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-001-010.md` | Yes |
-| BT22-011–020 | Luna assigned | `internal-docs/audits/BT22/BT22-011-020.md` | No |
+| BT22-011–020 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-011-020.md` | Yes |
 | BT22-021–030 | Luna assigned | `internal-docs/audits/BT22/BT22-021-030.md` | No |
 | BT22-031–040 | Luna assigned | `internal-docs/audits/BT22/BT22-031-040.md` | No |
 | BT22-041–050 | Luna assigned | `internal-docs/audits/BT22/BT22-041-050.md` | No |
 | BT22-051–060 | Luna assigned | `internal-docs/audits/BT22/BT22-051-060.md` | No |
-| BT22-061–070 | Unassigned | `internal-docs/audits/BT22/BT22-061-070.md` | No |
+| BT22-061–070 | Luna assigned | `internal-docs/audits/BT22/BT22-061-070.md` | No |
 | BT22-071–080 | Unassigned | `internal-docs/audits/BT22/BT22-071-080.md` | No |
 | BT22-081–090 | Unassigned | `internal-docs/audits/BT22/BT22-081-090.md` | No |
 | BT22-091–100 | Unassigned | `internal-docs/audits/BT22/BT22-091-100.md` | No |
@@ -54,17 +54,27 @@ applicable non-gate component rather than being rounded up.
 | BT22-008 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural card identities and legal DNA stack; End Turn DNA timing remains manually fired. |
 | BT22-009 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Entry/link/Security IR traced; behavior is manual or structural without a legal proving stack. |
 | BT22-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main activation, exact payment, keywords, attack sequence, and legal inherited stack. |
+| BT22-011 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main play/payment and inherited Alliance; optional follow-up attack remains structural. |
+| BT22-012 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Tamer-count and free-play boundaries traced; When Digivolving timing remains direct. |
+| BT22-013 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural paid Agumon evolution; modal evolution and inherited attack timing remain direct. |
+| BT22-014 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Ordered unsuspend/attack and keywords traced; target-switch reaction remains manually injected. |
+| BT22-015 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Both Decode replacements corrected; leave reaction remains direct and bodies structural. |
+| BT22-016 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural reveal buckets; When Linking source remains directly entered. |
+| BT22-017 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural reveal and legal DNA peers; End Turn DNA timing remains direct. |
+| BT22-018 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Host binding and grants traced on a valid peer; On Play timing remains directly fired. |
+| BT22-019 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural reducer/breeding boundary; inherited leave prevention uses direct primitives. |
+| BT22-020 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement, draw, no-entry timing, and legal stack traced; attack timing remains direct. |
 
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 60
-- Integrated card audits: 10
-- Corrected: 3
-- Provisional: 10
+- Assigned: 70
+- Integrated card audits: 20
+- Corrected: 4
+- Provisional: 20
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 9
-- Remaining unassigned: 42
+- Blocked or ambiguous: 19
+- Remaining unassigned: 32
 
 BT22 static auditing is in progress. Accepted ranges will be integrated in
 strict ascending order while later Luna lanes prepare in parallel.
