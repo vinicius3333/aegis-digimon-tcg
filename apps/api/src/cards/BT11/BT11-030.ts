@@ -14,8 +14,8 @@ const playActions = [
       },
       count: 1,
       from: ["hand", "underTamers"],
-      position: "bottom",
     },
+    position: "bottom",
     optional: true,
   },
   {
