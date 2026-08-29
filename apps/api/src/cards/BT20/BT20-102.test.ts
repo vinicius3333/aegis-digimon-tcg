@@ -47,6 +47,34 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     });
   });
 
+  it("checks exact Omnimon or X Antibody trait in both entry timings and the alternate route", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      const entryEffect = compiled.effects.find((entry) => entry.trigger === trigger);
+
+      expect(entryEffect).toMatchObject({
+        actions: [
+          {
+            condition: {
+              kind: "selfDigivolutionStackHasTrait",
+              filter: {
+                nameOrTrait: [
+                  { tokens: ["Omnimon"], match: "nameExact" },
+                  { tokens: ["X Antibody"], match: "trait" },
+                ],
+              },
+            },
+          },
+        ],
+      });
+    }
+
+    expect(compiled.digivolutionRequirement).toContainEqual({
+      namesExact: ["Omnimon"],
+      cost: 2,
+      isAlternate: true,
+    });
+  });
+
   it("keeps the chosen survivor (itself) while deleting every other Digimon", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
