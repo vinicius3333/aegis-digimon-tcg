@@ -23,7 +23,7 @@ provisional and capped at 8/10.
 | --- | --- | --- | --- |
 | BT24-001–010 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-001-010.md` | Yes |
 | BT24-011–020 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-011-020.md` | Yes |
-| BT24-021–030 | Luna assigned | `internal-docs/audits/BT24/BT24-021-030.md` | No |
+| BT24-021–030 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-021-030.md` | Yes |
 | BT24-031–040 | Luna assigned | `internal-docs/audits/BT24/BT24-031-040.md` | No |
 | BT24-041–050 | Luna assigned | `internal-docs/audits/BT24/BT24-041-050.md` | No |
 | BT24-051–060 | Luna assigned | `internal-docs/audits/BT24/BT24-051-060.md` | No |
@@ -65,16 +65,26 @@ applicable non-gate component rather than being rounded up.
 | BT24-018 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Keywords, security sequence, removal watcher, and simultaneous replacement are covered through manually fired timings. |
 | BT24-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public digivolution intent proves the blue-TS reduction and breeding-area exclusion with legal host/stack peers. |
 | BT24-020 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Independent reveal categories, bottom-deck remainder, and inherited unsuspend draw use direct On Play/unsuspend timing. |
+| BT24-021 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Search categories, zero-cost alternatives, and inherited trash evolution are covered, but the timing origins remain harness-driven. |
+| BT24-022 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry trash/restriction ordering and inherited unsuspend draw use manually fired timing and source-count fixtures. |
+| BT24-023 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry bottom-deck/restriction, Decode, effect-play, and battle-deletion boundaries rely on direct event origins. |
+| BT24-024 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Optional reduced-cost TS Tamer play, refusal, Armor Purge, and both evolution routes are covered through harness timing. |
+| BT24-025 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5603–Q5605 color, trait, cost, and timing limits plus inherited Jamming are asserted without a natural unsuspend origin. |
+| BT24-026 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5606–Q5607, shared frequency, hand-trash cost, targeting, and inherited trash evolution remain partly primitive-driven. |
+| BT24-027 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Mandatory stack placement, protection, Decode boundaries, and inherited draw are covered through direct timing fixtures. |
+| BT24-028 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement, temporary protection/Blocker, Q5608 evolution, and own-stack play are asserted without full natural origins. |
+| BT24-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5609 placement branches, restriction, end-of-attack play, and inherited own-stack play rely on harness timing. |
+| BT24-030 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Cost reduction, tied-source bottom-deck, suspend-to-unsuspend, and Q5610 group protection use direct timing origins. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 70
-- Integrated card audits: 20
+- Integrated card audits: 30
 - Corrected: 1
-- Provisional: 20
+- Provisional: 30
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 19
+- Blocked or ambiguous: 29
 - Remaining unassigned: 32
 
 BT24 static auditing is prepared across five parallel Luna/xhigh lanes.
