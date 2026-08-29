@@ -24,7 +24,7 @@ provisional and capped at 8/10.
 | BT21-001–010 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-001-010.md` | Yes |
 | BT21-011–020 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-011-020.md` | Yes |
 | BT21-021–030 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-021-030.md` | Yes |
-| BT21-031–040 | Luna ready; pushed | `internal-docs/audits/BT21/BT21-031-040.md` | No |
+| BT21-031–040 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-031-040.md` | Yes |
 | BT21-041–050 | Luna assigned | `internal-docs/audits/BT21/BT21-041-050.md` | No |
 | BT21-051–060 | Luna assigned | `internal-docs/audits/BT21/BT21-051-060.md` | No |
 | BT21-061–070 | Luna assigned | `internal-docs/audits/BT21/BT21-061-070.md` | No |
@@ -75,16 +75,26 @@ applicable non-gate component rather than being rounded up.
 | BT21-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Optional By-cost correction with natural digivolution acceptance and refusal boundaries. |
 | BT21-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Shared deletion/token IR traced; independent security and End of Attack origins remain manual. |
 | BT21-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Shoutmon source and natural play/evolution stack-processing boundaries. |
+| BT21-031 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural digivolution reducer proof; End of Attack memory origin remains manual. |
+| BT21-032 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact DemiVeemon correction with natural alternate routes, reducers, and DP proof. |
+| BT21-033 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Avian/Bird `traitContains` correction; On Play and Jamming evidence remain partial. |
+| BT21-034 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Self-suspension scope correction; suspension origin and Jamming remain non-natural/structural. |
+| BT21-035 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Self target-switch and exact Veemon corrections; watcher origin remains manual. |
+| BT21-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Veemon correction with natural alternate evolution and Armor Purge proof. |
+| BT21-037 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Veemon correction; attack-target watcher proof remains manually injected. |
+| BT21-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution/play paths present; keyword and secondary timing evidence remain partial. |
+| BT21-039 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Load-bearing behavior is supported only by manual timing/structural observations. |
+| BT21-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected OR gate and exact ShineGreymon/Koromon boundaries with natural source proof. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 90
-- Integrated card audits: 30
-- Corrected: 15
-- Provisional: 30
+- Integrated card audits: 40
+- Corrected: 22
+- Provisional: 40
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 11
+- Blocked or ambiguous: 18
 - Remaining unassigned: 12
 
 BT21 static auditing is in progress; accepted ranges are eligible for strict
