@@ -24,24 +24,11 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "YourTurn",
-      timingOverride: "OnEnterFieldAnyone",
-      optional: true,
-      condition: {
-        kind: "allOf",
-        conditions: [
-          { kind: "isYourTurn" },
-          { kind: "triggerSubjectMatchesFilter", filter: csDigimon },
-          { kind: "triggerSubjectStackHasSameLevel" },
-        ],
-      },
       actions: [
         {
-          kind: "CostGatedBlock",
-          cost: {
-            kind: "suspend",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            raw: "by suspending this Tamer",
-          },
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: csDigimon,
           actions: [
             {
               kind: "Digivolve",
@@ -50,6 +37,13 @@ export const compiled: CompiledCard = {
               from: ["hand"],
               payCost: false,
               optional: true,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
+              condition: { kind: "triggerSubjectStackHasSameLevel" },
+              abortOnDecline: true,
             },
           ],
         },
