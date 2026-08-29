@@ -56,6 +56,7 @@ describe("BT4-105 Tactical Retreat!", () => {
       {
         0: {
           battleArea: [{ card: "EX2-007", as: "mother" }],
+          breeding: { card: "BT4-003" },
           eggDeck: ["BT1-001"],
           security: ["BT4-033"],
           hand: [{ card: "BT4-105", as: "option" }],
@@ -78,6 +79,7 @@ describe("BT4-105 Tactical Retreat!", () => {
       {
         0: {
           battleArea: [{ card: "TOKEN-Diaboromon", as: "token" }],
+          breeding: { card: "BT4-003" },
           security: ["BT4-033"],
           hand: [{ card: "BT4-105", as: "option" }],
         },

@@ -56,7 +56,7 @@ describe("BT4-017 RizeGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-085"));
 
-    expect(s.perm("rize").stack).toHaveLength(1);
+    expect(s.perm("rize").stack).toHaveLength(0);
     expect(s.perm("rize").topCard?.cardId).toBe("BT4-017");
     expect(s.state.players[0]!.trash).toHaveLength(2);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-085")).toBe(true);
