@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-021.js";
 
@@ -11,6 +11,37 @@ describe("BT22-021 Shellmon", () => {
       expect.objectContaining({
         trigger: "Static",
         keywords: [{ keyword: "Decode", raw: "＜Decode (Lv.3 w/[Aqua]/[Sea Animal] in any trait)＞" }],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "AllTurns",
+        actions: [
+          {
+            kind: "Replacement",
+            event: "wouldLeavePlay",
+            leaveCause: "otherThanBattle",
+            sourceFilter: { isSelfRef: true },
+            actions: [
+              {
+                kind: "PlayWithoutCost",
+                fromOwnDigivolutionStack: true,
+                payCost: false,
+                playedByDecode: true,
+                optional: true,
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    levelComparison: { op: "eq", value: 3 },
+                    nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
+                  },
+                  count: 1,
+                },
+              },
+            ],
+          },
+        ],
       }),
     );
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
@@ -67,5 +98,18 @@ describe("BT22-021 Shellmon", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
+  });
+
+  it("executes Decode from its own stack on a non-battle leave", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-021", under: ["BT22-018"], as: "host" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-018"));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-018"]);
   });
 });
