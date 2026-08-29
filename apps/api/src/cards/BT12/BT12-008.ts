@@ -31,6 +31,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 2, texts: ["Save"], cost: 0, isAlternate: true }],
 };
 
 registerIrCard("BT12-008", compiled);
