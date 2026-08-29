@@ -27,6 +27,7 @@ describe("BT25-070 Logamon", () => {
       dualEffect: "Logamon",
     });
     expect(BT25_070.appFusionRequirement).toEqual([{ names: ["Offmon", "Hackmon"], cost: 0 }]);
+    expect(BT25_070.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 2 }]);
   });
 
   it("maps the once-per-turn Link and self-link deletion clauses exactly", () => {
