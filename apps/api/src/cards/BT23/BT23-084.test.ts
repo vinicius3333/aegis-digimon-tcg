@@ -100,7 +100,11 @@ describe("BT23-084 Erika Mishima", () => {
         kind: "compound",
         costs: [
           { kind: "suspend", target: { isSelf: true, filter: { isSelfRef: true } } },
-          { kind: "return", target: { count: 1, filter: { nameOrTrait: [{ tokens: ["Hudie"], match: "trait" }] } } },
+          {
+            kind: "return",
+            to: "hand",
+            target: { count: 1, filter: { nameOrTrait: [{ tokens: ["Hudie"], match: "trait" }] } },
+          },
         ],
       },
     });
