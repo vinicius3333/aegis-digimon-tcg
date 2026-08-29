@@ -17,6 +17,10 @@ describe("BT22-035 Entermon", () => {
             kind: ["Digimon"],
             levelComparison: { op: "lte", value: 4 },
             hasLinkRequirement: true,
+            or: [
+              { zone: "hand" },
+              { zone: "digivolutionCards", hostFilter: { isSelfRef: true } },
+            ],
           },
           count: 1,
         },
@@ -93,6 +97,29 @@ describe("BT22-035 Entermon", () => {
         candidate === "BT22-030",
       );
     }
+  });
+
+  it("does not link a qualifying card from another Digimon's evolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-035", as: "entermon" },
+            { card: "BT22-032", under: [{ card: "BT21-009", as: "foreignCandidate" }], as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("entermon"));
+    await settle();
+
+    expect(s.perm("entermon").linked).toHaveLength(0);
+    expect(s.perm("other").stack.some((card) => card.instanceId === s.inst("foreignCandidate").instanceId)).toBe(
+      true,
+    );
   });
 
   it("plays one cost-4-or-lower Appmon only when Entermon itself gets linked", async () => {

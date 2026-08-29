@@ -44,6 +44,7 @@ export const compiled: CompiledCard = {
             destination: "digivolutionStack",
             position: "bottom",
             hostFilter: {
+              controller: "mine",
               nameOrTrait: [
                 {
                   tokens: ["Shoemon"],
