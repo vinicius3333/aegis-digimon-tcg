@@ -105,6 +105,7 @@ export const compiled: CompiledCard = {
               into: {
                 controllerDefault: "mine",
                 kind: ["Digimon"],
+                cardId: "BT22-063",
                 nameOrTrait: [{ tokens: ["Alphamon"], match: "name" }],
               },
               from: ["hand"],
