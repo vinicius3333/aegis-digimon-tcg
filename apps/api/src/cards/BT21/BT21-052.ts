@@ -95,7 +95,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Examon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                     {
                       tokens: ["X Antibody"],
@@ -116,7 +116,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Examon"],
+      namesExact: ["Examon"],
       cost: 2,
       isAlternate: true,
     },
