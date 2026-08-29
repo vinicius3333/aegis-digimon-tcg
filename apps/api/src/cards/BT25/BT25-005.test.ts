@@ -1,10 +1,24 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_005 } from "./BT25-005.js";
 import "../index.js";
 
 describe("BT25-005 Pagumon", () => {
+  it("matches the catalog identity and Three Musketeers trigger traits", () => {
+    expect(getCardDefinition("BT25-005")).toMatchObject({
+      cardId: "BT25-005",
+      nameEn: "Pagumon",
+      colors: ["Black"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      playCost: -1,
+      forms: ["In-Training"],
+      types: ["Lesser", "Iliad", "TS"],
+    });
+  });
+
   it("digivolves this Digimon when a Three Musketeers card is added underneath", () => {
     const effect = BT25_005.effects?.find((entry) => entry.isInherited);
     expect(effect).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn" });
