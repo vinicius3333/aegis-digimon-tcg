@@ -44,7 +44,7 @@ describe("BT21-012 Flamemon", () => {
           {
             kind: "PlaceUnder",
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            underFilter: { controllerDefault: "mine", kind: ["Tamer"] },
+            underFilter: { lastPlayed: true, controllerDefault: "mine", kind: ["Tamer"] },
             condition: { kind: "ifThisEffectActed", raw: "you did" },
           },
         ],
@@ -88,6 +88,34 @@ describe("BT21-012 Flamemon", () => {
     expect(tamer.stack.map((card) => card.instanceId)).toContain(s.inst("flamemon").instanceId);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.memory).toBe(3);
+  });
+
+  it("places Flamemon under the Tamer played by this effect, not an existing Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-012", as: "flamemon" },
+            { card: "BT1-085", as: "existing" },
+          ],
+          hand: [{ card: "BT21-082", as: "takuya" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("flamemon").topCard.instanceId,
+        effectKey: `BT21-012/ir-${EffectTiming.OnDeclaration}-0`,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-082"));
+
+    expect(s.perm("takuya").stack.map((card) => card.instanceId)).toContain(s.inst("flamemon").instanceId);
+    expect(s.perm("existing").stack.map((card) => card.instanceId)).not.toContain(s.inst("flamemon").instanceId);
   });
 
   it.each([
