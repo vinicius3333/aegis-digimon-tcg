@@ -197,7 +197,7 @@ describe("BT26-062 Ghostmon", () => {
   });
   it("gives its evolution host the inherited 2000 DP during its controller's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-064", as: "host", under: ["BT26-062"] }] },
+      0: { battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-062"] }] },
     });
     await s.ready();
 
@@ -205,7 +205,7 @@ describe("BT26-062 Ghostmon", () => {
   });
   it("does not grant the inherited DP during the opponent's turn", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-064", as: "host", under: ["BT26-062"] }] },
+      0: { battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-062"] }] },
     });
     s.state.turnSeat = 1;
     await s.ready();
