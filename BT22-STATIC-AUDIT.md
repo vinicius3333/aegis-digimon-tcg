@@ -1,6 +1,6 @@
 # BT22 Static Card Implementation Re-audit
 
-Status: static card-by-card audit in progress; BT21 static coverage recorded; execution gates deferred
+Status: static coverage recorded for all 102 cards; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -30,7 +30,7 @@ provisional and capped at 8/10.
 | BT22-071–080 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-071-080.md` | Yes |
 | BT22-081–090 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-081-090.md` | Yes |
 | BT22-091–100 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-091-100.md` | Yes |
-| BT22-101–102 | Luna assigned | `internal-docs/audits/BT22/BT22-101-102.md` | No |
+| BT22-101–102 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-101-102.md` | Yes |
 
 ## Score model
 
@@ -144,17 +144,20 @@ applicable non-gate component rather than being rounded up.
 | BT22-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Main proves Shoemon play/placement; Arisa suspension, Delay, and digivolution remain structural. |
 | BT22-099 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Main proves reveal/placement; Delay activation and breeding waiver remain structural. |
 | BT22-100 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Main proves security movement/face-up state; Security static/free-play origin remains structural. |
+| BT22-101 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact current legal Alphamon route, Security gate, and natural positive/negative turn flows recorded; the generic level-less resolver gap remains. |
+| BT22-102 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Same-level source filter now has a reusable live matcher; natural positive/negative attack proofs remain unexecuted. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 100
-- Corrected: 29
-- Provisional: 100
+- Integrated card audits: 102
+- Corrected: 31
+- Provisional: 102
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 82
+- Blocked or ambiguous: 84
 - Remaining unassigned: 0
 
-BT22 static auditing is in progress. Accepted ranges will be integrated in
-strict ascending order while later Luna lanes prepare in parallel.
+BT22 static coverage is recorded for all 102 cards. Because execution gates
+remain prohibited, no card is 10/10 and no collection-completion notification
+is claimed.
