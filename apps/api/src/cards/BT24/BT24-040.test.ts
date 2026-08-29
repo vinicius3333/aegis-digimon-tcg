@@ -12,7 +12,7 @@ describe("BT24-040 Venusmon", () => {
       const actions = BT24_040.effects?.find((entry) => entry.trigger === trigger)?.actions ?? [];
       expect(actions[0]).toMatchObject({
         kind: "TrashDigivolution",
-        amount: 99,
+        amount: "all",
         target: { filter: { controller: "opponent", digivolutionCards: "hasAny" } },
       });
       expect(actions[1]).toMatchObject({ kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd" });
