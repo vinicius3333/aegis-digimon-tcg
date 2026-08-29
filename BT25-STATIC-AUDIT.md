@@ -1,6 +1,6 @@
 # BT25 Static Card Implementation Re-audit
 
-Status: static card-by-card audit active; coordinator integration complete through BT25-070
+Status: static card-by-card audit active; coordinator integration complete through BT25-080
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -35,7 +35,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT25-041–050 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-041-050.md` | Yes |
 | BT25-051–060 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-051-060.md` | Yes |
 | BT25-061–070 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-061-070.md` | Yes |
-| BT25-071–080 | Luna assigned | `internal-docs/audits/BT25/BT25-071-080.md` | No |
+| BT25-071–080 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-071-080.md` | Yes |
 | BT25-081–090 | Luna assigned | `internal-docs/audits/BT25/BT25-081-090.md` | No |
 | BT25-091–100 | Unassigned | `internal-docs/audits/BT25/BT25-091-100.md` | No |
 | BT25-101–104 | Unassigned | `internal-docs/audits/BT25/BT25-101-104.md` | No |
@@ -122,18 +122,28 @@ applicable non-gate component rather than being rounded up.
 | BT25-068 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Collision, self-only once-per-turn budgets, De-Digivolve, evolution, and stack DP are covered with primitive-origin suspension. |
 | BT25-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution proves free TS Link, legal-Link-card filtering, recipient and zone movement, Jamming, and inherited DP. |
 | BT25-070 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Restored the compiled Appmon Link cost-2 requirement; natural linked-face behavior is covered, while the Main Link uses a declaration seam. |
+| BT25-071 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural self-suspension proves the reveal/play branch and physical once-per-turn scope; alternate evolution and inherited-stack behavior are represented. |
+| BT25-072 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the host watcher to require Shutmon's own link event; a natural link to another host proves the negative boundary. |
+| BT25-073 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link-card payment, modal targets, and inherited leave prevention are represented, but the principal entry effect uses a named timing seam. |
+| BT25-074 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal/play covers cost reduction, remainder trash, self-inclusive watcher scope, alternate evolution, and inherited conditions. |
+| BT25-075 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Play-cost and static-keyword behavior are natural; public Link-triggered attack and De-Digivolve origins remain incomplete. |
+| BT25-076 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play covers the dynamic sacrifice reduction, exact stack/text gates, lowest-play-cost deletion, and security fallback. |
+| BT25-077 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural manual/effect play and effect evolution prove the shared watcher, decline semantics, mandatory tail, and once-per-turn scope. |
+| BT25-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/movement proves the text-union selection, trait-gated bottom placement, remainder handling, evolution, and inherited Retaliation. |
+| BT25-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Both-player memory restrictions, the Tamer-effect exception, hybrid Tamer/Digimon source, and inherited Retaliation are represented. |
+| BT25-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Cost/refusal, Titan returns, effect-entry deletion, and inherited scope are covered, but principal entry/attack origins use named timing seams. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Assigned: 90
-- Integrated card audits: 70
-- Corrected: 6
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 7
+- Provisional: 80
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 30
+- Blocked or ambiguous: 33
 - Remaining unassigned: 14
 
-BT25 static integration is complete through BT25-070. BT25-071 through
-BT25-090 are active across two Luna/xhigh lanes; BT25-091 through BT25-104
+BT25 static integration is complete through BT25-080. BT25-081 through
+BT25-090 remain active in one Luna/xhigh lane; BT25-091 through BT25-104
 remain in the coordinator-managed queue.
