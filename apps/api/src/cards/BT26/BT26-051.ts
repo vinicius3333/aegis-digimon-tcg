@@ -45,24 +45,6 @@ export const compiled: CompiledCard = {
         },
       ],
     },
-    {
-      trigger: "Static",
-      isLinked: true,
-      actions: [
-        {
-          kind: "SubTrigger",
-          event: "whenLinked",
-          sourceFilter: { isSelfRef: true },
-          actions: [
-            {
-              kind: "DeDigivolve",
-              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-              amount: 2,
-            },
-          ],
-        },
-      ],
-    },
   ],
   coverage: "full",
   residual: [],
