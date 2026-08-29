@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -5,6 +6,17 @@ import { compiled } from "./BT24-006.js";
 import "../index.js";
 
 describe("BT24-006 Tapmon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-006")).toMatchObject({
+      cardId: "BT24-006",
+      nameEn: "Tapmon",
+      colors: ["Purple"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      types: ["Appmon", "System", "Tap"],
+    });
+  });
+
   it("draws one and trashes one hand card when linked", () => {
     const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
     expect(inherited.frequency).toBe("OncePerTurn");
