@@ -14,7 +14,7 @@ describe("BT3-073 CresGarurumon", () => {
         },
         1: { battleArea: ["BT1-010", "BT1-011"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
     const player = s.state.players[0] as PlayerState;
     s.state.memory = 4;
@@ -58,13 +58,14 @@ describe("BT3-073 CresGarurumon", () => {
           battleArea: [{ card: "BT10-013", as: "base" }],
           hand: [{ card: "BT3-073", as: "evolving" }],
           deck: [
+            { card: "BT1-001", as: "digivolutionDraw" },
             { card: "BT3-075", as: "tooHigh" },
             { card: "BT3-068", as: "blackLevel5" },
           ],
         },
         1: { battleArea: ["BT1-010", "BT1-011"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
     s.state.memory = 4;
 
@@ -75,7 +76,11 @@ describe("BT3-073 CresGarurumon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT3-068"));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT3-068") &&
+        s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("tooHigh").instanceId),
+    );
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT3-068")).toBe(true);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("tooHigh").instanceId)).toBe(true);
