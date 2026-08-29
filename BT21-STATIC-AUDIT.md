@@ -27,7 +27,7 @@ provisional and capped at 8/10.
 | BT21-031–040 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-031-040.md` | Yes |
 | BT21-041–050 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-041-050.md` | Yes |
 | BT21-051–060 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-051-060.md` | Yes |
-| BT21-061–070 | Luna assigned | `internal-docs/audits/BT21/BT21-061-070.md` | No |
+| BT21-061–070 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-061-070.md` | Yes |
 | BT21-071–080 | Luna assigned | `internal-docs/audits/BT21/BT21-071-080.md` | No |
 | BT21-081–090 | Luna assigned | `internal-docs/audits/BT21/BT21-081-090.md` | No |
 | BT21-091–100 | Luna assigned | `internal-docs/audits/BT21/BT21-091-100.md` | No |
@@ -105,16 +105,26 @@ applicable non-gate component rather than being rounded up.
 | BT21-058 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Exact Vemmon corrections; entry and return watcher behavior remain primitive-driven. |
 | BT21-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Link behavior exists; App Fusion recipe remains structural-only. |
 | BT21-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Vemmon, own-stack, and deck-bottom corrections; digivolution origin remains manual. |
+| BT21-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural De-Digivolve scaling, optional attack, Alliance, and inherited Alliance paths. |
+| BT21-062 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact-four Vemmon and leave-replacement boundaries; Start Main and evolution timings remain directly fired. |
+| BT21-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate routes, hand cost, deletion Save, and inherited-DP stack proof. |
+| BT21-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate routes, family/Hero hand cost, and inherited deletion-memory proof. |
+| BT21-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public digivolution reducer and legal inherited deletion-memory stack paths. |
+| BT21-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Optional-placement sequencing corrected so decline preserves the following Save, with natural deletion proof. |
+| BT21-067 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | ADVENTURE recovery is natural; Security and inherited attack timings remain directly fired. |
+| BT21-068 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Mandatory deletion/mill boundaries traced; the principal entry trigger remains directly fired. |
+| BT21-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural placement-cost, deletion, Security free-play, and inherited Retaliation paths. |
+| BT21-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, Linking, evolution, Security, and Appmon-filter boundaries. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 60
-- Corrected: 29
-- Provisional: 60
+- Integrated card audits: 70
+- Corrected: 30
+- Provisional: 70
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 30
+- Blocked or ambiguous: 33
 - Remaining unassigned: 0
 
 BT21 static auditing is in progress; accepted ranges are eligible for strict
