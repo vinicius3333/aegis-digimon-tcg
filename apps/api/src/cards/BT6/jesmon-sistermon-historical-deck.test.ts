@@ -67,13 +67,13 @@ describe("BT6 Jesmon/Sistermon historical deck gauntlet", () => {
         !observe(s.engine).isAttacking() &&
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-084") &&
         s.state.memory === 6 &&
-        firstJesmon.currentDP === firstBaseDp + 3000 &&
-        secondJesmon.currentDP === secondBaseDp + 3000,
+        firstJesmon.currentDP === firstBaseDp + 5000 &&
+        secondJesmon.currentDP === secondBaseDp + 5000,
       5000,
     );
 
-    expect(firstJesmon.currentDP).toBe(firstBaseDp + 3000);
-    expect(secondJesmon.currentDP).toBe(secondBaseDp + 3000);
+    expect(firstJesmon.currentDP).toBe(firstBaseDp + 5000);
+    expect(secondJesmon.currentDP).toBe(secondBaseDp + 5000);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
