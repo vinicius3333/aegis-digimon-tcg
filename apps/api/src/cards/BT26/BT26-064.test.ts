@@ -119,7 +119,7 @@ describe("BT26-064 DemiDevimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-066", as: "host", under: ["BT26-064"] }],
+          battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-064"] }],
           deck: [{ card: "AD1-001", as: "drawn" }],
         },
         1: { security: ["AD1-002"] },
@@ -143,7 +143,7 @@ describe("BT26-064 DemiDevimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-066", as: "host", under: ["BT26-064"] }],
+          battleArea: [{ card: "BT10-074", as: "host", under: ["BT26-064"] }],
           deck: [
             { card: "AD1-001", as: "firstDraw" },
             { card: "AD1-002", as: "secondDraw" },
