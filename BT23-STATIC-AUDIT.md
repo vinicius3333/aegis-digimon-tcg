@@ -29,7 +29,7 @@ provisional and capped at 8/10.
 | BT23-051–060 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-051-060.md` | Yes |
 | BT23-061–070 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-061-070.md` | Yes |
 | BT23-071–080 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-071-080.md` | Yes |
-| BT23-081–090 | Luna assigned | `internal-docs/audits/BT23/BT23-081-090.md` | No |
+| BT23-081–090 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-081-090.md` | Yes |
 | BT23-091–100 | Luna assigned | `internal-docs/audits/BT23/BT23-091-100.md` | No |
 | BT23-101–102 | Luna assigned | `internal-docs/audits/BT23/BT23-101-102.md` | No |
 
@@ -125,16 +125,26 @@ applicable non-gate component rather than being rounded up.
 | BT23-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The CS branch now survives Sea Animal exclusion and has a natural play proof; remaining watcher and start-main paths are direct. |
 | BT23-079 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The watcher now requires an own Digimon and has a natural link positive; opponent/start-main paths are direct and App Fusion is structural. |
 | BT23-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | CS replacement scope and exact security subject are traced through deletion primitives; start-main is directly fired. |
+| BT23-081 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Start-main, free Hudie play, optional decline, and suspension watcher boundaries are covered in unexecuted source scenarios. |
+| BT23-082 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Qualifying evolution, target alternatives, and decline are traced; explicit hand return preserves the runtime default. |
+| BT23-083 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security-placement boundaries and decline gating are covered; explicit abort preserves existing `ifThisEffectActed` behavior. |
+| BT23-084 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Compound payment, breeding placement, and Alliance stacks are covered; Security/hand fields make existing defaults explicit. |
+| BT23-085 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | DP protection, Option use, and inherited blocker boundaries are traced through unexecuted source scenarios. |
+| BT23-086 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Face-up Security placement, start-main checks, suspension cost, and attack selection are traced. |
+| BT23-087 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Return cost, Violet/Ghostmon play sequence, Rush grant, and Phantomon alternate evolution are covered. |
+| BT23-088 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hand-trash memory, self-delete trash evolution, and decline boundaries are covered without executed gates. |
+| BT23-089 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Same-host/same-level compound prevention is covered; explicit prevent mode preserves cost-based inference. |
+| BT23-090 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Memory boundary, compound Hudie return, free CS Tamer play, and Hudie DP aura are traced. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 80
+- Integrated card audits: 90
 - Corrected: 18
-- Provisional: 80
+- Provisional: 90
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 64
+- Blocked or ambiguous: 74
 - Remaining unassigned: 0
 
 BT23 static auditing is prepared in parallel. Accepted ranges are integrated
