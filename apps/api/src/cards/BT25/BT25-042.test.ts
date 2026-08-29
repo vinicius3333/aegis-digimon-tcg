@@ -105,7 +105,7 @@ describe("BT25-042 ClavisAngemon", () => {
         },
         1: { security: ["BT1-002"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
 
@@ -144,7 +144,7 @@ describe("BT25-042 ClavisAngemon", () => {
         },
         1: { security: ["BT1-002"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
     s.state.memory = 12;
