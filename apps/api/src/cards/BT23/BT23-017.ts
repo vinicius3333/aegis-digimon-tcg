@@ -21,6 +21,7 @@ export const compiled: CompiledCard = {
           to: "hand",
           cost: {
             kind: "trash",
+            optional: true,
             target: {
               filter: {
                 zone: "hand",
