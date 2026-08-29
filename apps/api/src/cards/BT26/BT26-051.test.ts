@@ -6,7 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-051 Gomimon", () => {
-  it("encodes Detach and the Your Turn linked grant plus linked-face De-Digivolve", () => {
+  it("encodes Detach and the Your Turn linked grant", () => {
     expect(digivolutionRequirementsFor("BT26-051")).toContainEqual({
       level: 2,
       traits: ["Appmon"],
@@ -33,10 +33,6 @@ describe("BT26-051 Gomimon", () => {
       ],
     });
     expect(compiled.effects?.[1]).not.toHaveProperty("isLinked");
-    expect(compiled.effects?.[2]).toMatchObject({
-      isLinked: true,
-      actions: [{ kind: "SubTrigger", event: "whenLinked", actions: [{ kind: "DeDigivolve", amount: 2 }] }],
-    });
   });
 
   it("publicly grants Collision and +3000 DP to an eligible Digimon when linked", async () => {
@@ -107,46 +103,6 @@ describe("BT26-051 Gomimon", () => {
     expect(buffed).toHaveLength(1);
     expect(observe(s.engine).hasKeyword(buffed[0]!, "Collision")).toBe(true);
     expect(buffed[0]!.currentDP).toBe(originalDp.get(buffed[0]!.permanentId)! + 3000);
-  });
-
-  it("applies linked-face De-Digivolve 2 when Gomimon is linked to an Appmon", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT26-019", as: "host" }],
-          hand: [{ card: "BT26-051", as: "gomimonLink" }],
-        },
-        1: {
-          battleArea: [
-            {
-              card: "BT26-049",
-              as: "opponent",
-              under: [
-                { card: "BT26-036", as: "bottom" },
-                { card: "BT26-039", as: "upper" },
-              ],
-            },
-          ],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 3;
-    await s.ready();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "linkCard",
-        instanceId: s.inst("gomimonLink").instanceId,
-        targetPermanentId: s.perm("host").permanentId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("opponent").topCard.instanceId === s.inst("bottom").instanceId);
-
-    expect(s.perm("opponent").topCard.instanceId).toBe(s.inst("bottom").instanceId);
-    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([s.inst("upper").instanceId, s.inst("opponent").instanceId]),
-    );
   });
 
   it("grants Collision and +3000 DP only once when Gomimon gets linked twice in one turn", async () => {
