@@ -30,7 +30,7 @@ provisional and capped at 8/10.
 | BT20-061–070 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-061-070.md` | Yes |
 | BT20-071–080 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-071-080.md` | Yes |
 | BT20-081–090 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-081-090.md` | Yes |
-| BT20-091–100 | Luna assigned | `internal-docs/audits/BT20/BT20-091-100.md` | No |
+| BT20-091–100 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-091-100.md` | Yes |
 | BT20-101–102 | Luna assigned | `internal-docs/audits/BT20/BT20-101-102.md` | No |
 
 ## Score model
@@ -135,16 +135,26 @@ applicable non-gate component rather than being rounded up.
 | BT20-088 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Main-phase memory and Ghost-deletion evolution watcher have only structural proof (`4672ec314`). |
 | BT20-089 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected Mind Link to the regular Tamer and inherited play to its own stack; only the memory gate is natural (`948d9d2cd`). |
 | BT20-090 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural memory/end-turn evidence reaches suspension, but attack results and serialization boundaries remain unproved (`4672ec314`). |
+| BT20-091 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Tightened exact Omekamon matching; play, evolution, and leave origins remain structural or manually fired (`0fc44d09a`). |
+| BT20-092 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Start-turn, On Play, under-Tamer play, and Security paths have structural source proof only (`6497f3fd9`). |
+| BT20-093 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Tightened the exact Examon DNA destination while preserving in-name filters; all behavior remains structural (`97b349785`). |
+| BT20-094 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected Dragon Mode targeting to an exact own Fighter Mode evolution stack; the security-removal origin is unexecuted (`4a3b95020`). |
+| BT20-095 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Reveal, Chronicle deletion, breeding movement, free evolution, and Security clauses have structural proof only (`6497f3fd9`). |
+| BT20-096 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Trash activation, payment/abort, deletion, and Security resolution remain unexecuted (`6497f3fd9`). |
+| BT20-097 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected paid digivolution, natural leave-bound Delay, own-stack cost, and exact named cards; source assertions were not executed (`c4b265556`). |
+| BT20-098 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Exact-total trash return, per-level Ghost multiplicity, grants, and Security play have structural proof only (`6497f3fd9`). |
+| BT20-099 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected the field-resident end-turn Chaosmon clause to inherited despite the catalog-field anomaly; no natural host flow was run (`0b1fe0f64`). |
+| BT20-100 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected source-bound leave prevention and exact standalone names while preserving Omnimon in-name matching; behavior remains structural (`b795529e0`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 90
-- Corrected: 14
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 20
+- Provisional: 100
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 52 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037`, `BT20-041`–`BT20-044`, `BT20-047`, `BT20-050`, `BT20-052`–`BT20-056`, `BT20-058`, `BT20-060`, `BT20-071`–`BT20-074`, `BT20-078`, `BT20-080`, and `BT20-081`–`BT20-090` source/stack-proof gaps)
+- Blocked or ambiguous: 62 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037`, `BT20-041`–`BT20-044`, `BT20-047`, `BT20-050`, `BT20-052`–`BT20-056`, `BT20-058`, `BT20-060`, `BT20-071`–`BT20-074`, `BT20-078`, `BT20-080`, and `BT20-081`–`BT20-100` source/stack-proof gaps)
 - Remaining unassigned: 0
 
 BT20 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
