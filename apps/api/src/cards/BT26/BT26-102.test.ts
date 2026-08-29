@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-102.js";
 import "../index.js";
 
 describe("BT26-102 compiled fidelity", () => {
-  it("keeps the Seven Code waiver and mixed placement seam without an unprinted Security clause", () => {
+  it("keeps the Seven Code waiver and complete Security clause while exposing the mixed placement seam", () => {
     const card = compiled;
     expect(getCardDefinition("BT26-102")).toMatchObject({
       nameEn: "Seven Code PAD",
@@ -16,7 +17,19 @@ describe("BT26-102 compiled fidelity", () => {
     });
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
-    expect(card?.effects?.find((effect) => effect.trigger === "Security")).toBeUndefined();
+    expect(card?.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+          target: { filter: { playCostLte: 5, nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] } },
+        },
+        { kind: "AddToHandSelf" },
+      ],
+    });
     expect(card?.effects?.[0]?.actions).toMatchObject([
       {
         kind: "WaiveColorRequirement",
@@ -27,7 +40,6 @@ describe("BT26-102 compiled fidelity", () => {
       {
         kind: "PlaceUnder",
         mixedSources: { battleAreaPermanents: true, linkedCards: true, trash: true },
-        destination: { filter: { kind: ["Digimon"] } },
         order: "any",
         trackCount: "sevenCodeMaterials",
         optional: true,
@@ -85,6 +97,24 @@ describe("BT26-102 compiled fidelity", () => {
       ok: false,
       reason: "color-requirement-unmet",
     });
+  });
+
+  it("publicly plays an Appmon from hand and adds itself to hand from security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT26-102", as: "option", faceUp: true }],
+          hand: [{ card: "BT21-009", as: "appmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT21-009");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-102");
   });
 
   it("Q7183-Q7186: places exactly six mixed-source materials, then may evolve the chosen host", async () => {
