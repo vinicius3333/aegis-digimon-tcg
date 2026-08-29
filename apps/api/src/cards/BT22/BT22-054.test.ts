@@ -17,7 +17,10 @@ describe("BT22-054 Hagurumon", () => {
           event: "onAddDigivolutionCards",
           sourceFilter: { controllerDefault: "mine" },
           triggerFilter: { isSelfRef: true },
-          addedDigivolutionCardFilter: { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
+          addedDigivolutionCardFilter: {
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+          },
           actions: [
             {
               kind: "ModifyDP",

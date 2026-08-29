@@ -25,7 +25,7 @@ describe("BT22-053 Keramon", () => {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
-          sourceFilter: { isSelfRef: true },
+          sourceFilter: { isSelfRef: true, zone: "battleArea" },
           actions: [
             {
               kind: "Prevent",
