@@ -168,6 +168,7 @@ applicable non-gate component rather than being rounded up.
 - Blocked or ambiguous: 35
 - Remaining unassigned: 0
 
-The integrated provisional score subtotal is 798/1040 across all 104 cards.
+The integrated provisional score subtotal is 797/1040 across all 104 cards
+(69 cards at 8/10 and 35 cards at 7/10).
 Static card-by-card integration is complete, but no collection-complete claim
 is made while every Executed delivery gates component remains 0/2.
