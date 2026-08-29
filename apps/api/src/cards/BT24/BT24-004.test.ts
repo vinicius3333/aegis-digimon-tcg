@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -5,6 +6,17 @@ import { compiled } from "./BT24-004.js";
 import "../index.js";
 
 describe("BT24-004 Wanyamon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-004")).toMatchObject({
+      cardId: "BT24-004",
+      nameEn: "Wanyamon",
+      colors: ["Green"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      types: ["Lesser", "Iliad", "TS"],
+    });
+  });
+
   it("draws once when one of your Iliad Digimon is played during your turn", () => {
     const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
     expect(inherited.frequency).toBe("OncePerTurn");
