@@ -19,7 +19,6 @@ export const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 zone: "hand",
-                kind: ["Digimon", "Tamer", "Option"],
               },
               count: 1,
             },
