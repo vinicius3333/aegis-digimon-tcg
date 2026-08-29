@@ -112,6 +112,7 @@ export const compiled: CompiledCard = {
                 count: 1,
                 isSelf: true,
               },
+              optional: true,
               abortOnDecline: true,
               raw: "by deleting this Digimon",
             },
