@@ -57,6 +57,7 @@ describe("BT22-101 Kyoko Kuremi", () => {
       into: {
         controllerDefault: "mine",
         kind: ["Digimon"],
+        cardId: "BT22-063",
         nameOrTrait: [{ tokens: ["Alphamon"], match: "name" }],
       },
       from: ["hand"],
@@ -145,5 +146,25 @@ describe("BT22-101 Kyoko Kuremi", () => {
 
     expect(s.perm("kyoko").topCard?.cardId).toBe("BT22-101");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-063")).toBe(true);
+  });
+
+  it("does not offer an Alphamon with no Kyoko Kuremi digivolution route", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-101", as: "kyoko", suspended: true }],
+          hand: [{ card: "BT6-111", as: "otherAlphamon" }],
+          security: 3,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+
+    expect(s.perm("kyoko").topCard?.cardId).toBe("BT22-101");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT6-111")).toBe(true);
   });
 });
