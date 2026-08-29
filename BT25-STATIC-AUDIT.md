@@ -1,6 +1,6 @@
 # BT25 Static Card Implementation Re-audit
 
-Status: static card-by-card audit active; coordinator integration complete through BT25-030
+Status: static card-by-card audit active; coordinator integration complete through BT25-040
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -28,7 +28,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT25-001–010 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-001-010.md` | Yes |
 | BT25-011–020 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-011-020.md` | Yes |
 | BT25-021–030 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-021-030.md` | Yes |
-| BT25-031–040 | Luna assigned | `internal-docs/audits/BT25/BT25-031-040.md` | No |
+| BT25-031–040 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-031-040.md` | Yes |
 | BT25-041–050 | Luna assigned | `internal-docs/audits/BT25/BT25-041-050.md` | No |
 | BT25-051–060 | Unassigned | `internal-docs/audits/BT25/BT25-051-060.md` | No |
 | BT25-061–070 | Unassigned | `internal-docs/audits/BT25/BT25-061-070.md` | No |
@@ -79,17 +79,27 @@ applicable non-gate component rather than being rounded up.
 | BT25-028 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, entry/release, effect-play, digivolution, DNA, and inherited restriction behavior are covered. |
 | BT25-029 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural digivolution plus sequenced decisions prove the first return and optional paid follow-up boundaries. |
 | BT25-030 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural turn progression and attack origins prove the security cost, memory gain, and zero-security Recovery. |
+| BT25-031 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact reveal pools, distinct-card consumption, remainder handling, evolution, and Barrier are structurally covered; no natural reveal execution was added. |
+| BT25-032 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Glowing Dawn and yellow BEATBREAK reveal filters plus evolution and Barrier are structural-only in the focused source. |
+| BT25-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry/evolution, accepted and declined security payment, target boundaries, and duration are represented. |
+| BT25-034 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q6298 direct security-trash timing, filters, Ascension, Barrier, and evolution remain source-structural without a natural origin. |
+| BT25-035 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Both entry sequences and the exact multi-Tamer bottom-card cost are structural; natural processing remains unproved in this pass. |
+| BT25-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected omitted Appmon Link cost/effect; natural Link assertions cover payment, refusal, host, cost-card, and Draw 2 boundaries. |
+| BT25-037 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution covers security movement, top/bottom placement, refusal, zero-security behavior, Armor Purge, and both routes. |
+| BT25-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement and DNA behavior are represented, but the positive security watchers rely on named timing/subtrigger injection. |
+| BT25-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security play, departure replacement, deletion placement, redirect scope, decline, and once-per-turn paths are represented. |
+| BT25-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural accepted/declined security costs, direct effect-trash play, duration, stack behavior, and inherited scope are represented. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Assigned: 50
-- Integrated card audits: 30
-- Corrected: 1
-- Provisional: 30
+- Integrated card audits: 40
+- Corrected: 2
+- Provisional: 40
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 10
+- Blocked or ambiguous: 15
 - Remaining unassigned: 54
 
-BT25 static integration is complete through BT25-030. BT25-031 through
-BT25-050 are active across two Luna/xhigh lanes.
+BT25 static integration is complete through BT25-040. BT25-041 through
+BT25-050 remain active in the current Luna/xhigh lane.
