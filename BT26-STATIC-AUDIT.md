@@ -1,6 +1,6 @@
 # BT26 Static Card Implementation Re-audit
 
-Status: static integration complete through BT26-080; audit assigned through BT26-100
+Status: static integration complete through BT26-080; audit assigned through BT26-104
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -36,7 +36,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT26-071–080 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-071-080.md` | Yes |
 | BT26-081–090 | Luna assigned | `internal-docs/audits/BT26/BT26-081-090.md` | No |
 | BT26-091–100 | Luna assigned | `internal-docs/audits/BT26/BT26-091-100.md` | No |
-| BT26-101–104 | Unassigned | `internal-docs/audits/BT26/BT26-101-104.md` | No |
+| BT26-101–104 | Luna assigned | `internal-docs/audits/BT26/BT26-101-104.md` | No |
 
 ## Score model
 
@@ -134,15 +134,16 @@ non-gate component rather than being rounded up.
 
 - Catalog cards: 104
 - Direct modules: 104
-- Assigned: 100
+- Assigned: 104
 - Integrated card audits: 80
 - Corrected: 2
 - Provisional: 80
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 46
-- Remaining unassigned: 4
+- Remaining unassigned: 0
 
 The integrated provisional score subtotal is 586/800 through BT26-080.
-BT26-081 through BT26-100 remain active across two Luna/xhigh lanes. No
+BT26-081–090 and BT26-101–104 remain active across two Luna/xhigh lanes;
+BT26-091–100 awaits coordinator integration. No
 collection-complete claim is made while the static audit and delivery gates
 remain incomplete.
