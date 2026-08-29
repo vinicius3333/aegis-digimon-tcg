@@ -29,7 +29,7 @@ provisional and capped at 8/10.
 | BT21-051–060 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-051-060.md` | Yes |
 | BT21-061–070 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-061-070.md` | Yes |
 | BT21-071–080 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-071-080.md` | Yes |
-| BT21-081–090 | Luna assigned | `internal-docs/audits/BT21/BT21-081-090.md` | No |
+| BT21-081–090 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-081-090.md` | Yes |
 | BT21-091–100 | Luna assigned | `internal-docs/audits/BT21/BT21-091-100.md` | No |
 | BT21-101–102 | Luna assigned | `internal-docs/audits/BT21/BT21-101-102.md` | No |
 
@@ -125,14 +125,24 @@ applicable non-gate component rather than being rounded up.
 | BT21-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion, subject-watcher, optional attack, alternate, and inherited Alliance paths. |
 | BT21-079 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural recurrence and dynamic ceiling proof; End of Attack wipe remains manually fired. |
 | BT21-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Gammamon/Hero filter and payload traced; principal timing origins remain manual. |
+| BT21-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural End Turn selection-bound Piercing/attack and Security self-play paths. |
+| BT21-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural scaled Hybrid/Hero evolution, security-removal watcher, and Security paths. |
+| BT21-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Start Main placement and play/evolution attack-watcher paths with trigger binding. |
+| BT21-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Link-triggered draw/App Fusion, decline, memory-setter, and Security paths. |
+| BT21-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural two-cost Main activation, top Armor Form source boundary, and Security path. |
+| BT21-086 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Marcus suspension, same-target grants, opponent DP loss, frequency, and Security paths. |
+| BT21-087 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Vemmon reveal disposition, memory-setter, and Security play/reveal paths. |
+| BT21-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Save/Hero placement and replacement-cost evolution with true-bottom ordering. |
+| BT21-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural own-Digimon play watcher plus shared-target Blocker/DP duration boundaries. |
+| BT21-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Effect/own-Digimon placement-event scope corrected, with natural Mind Link origin proof. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 80
-- Corrected: 33
-- Provisional: 80
+- Integrated card audits: 90
+- Corrected: 34
+- Provisional: 90
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 40
 - Remaining unassigned: 0
