@@ -13,6 +13,37 @@ describe("BT22-027 Ryugumon", () => {
         keywords: [{ keyword: "Decode", raw: "＜Decode (Lv.5 w/[Aqua]/[Sea Animal] in any trait)＞" }],
       }),
     );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "AllTurns",
+        actions: [
+          {
+            kind: "Replacement",
+            event: "wouldLeavePlay",
+            leaveCause: "otherThanBattle",
+            sourceFilter: { isSelfRef: true },
+            actions: [
+              {
+                kind: "PlayWithoutCost",
+                fromOwnDigivolutionStack: true,
+                payCost: false,
+                playedByDecode: true,
+                optional: true,
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    levelComparison: { op: "eq", value: 5 },
+                    nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
+                  },
+                  count: 1,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    );
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
       expect(effect?.actions[0]).toMatchObject({
@@ -128,5 +159,18 @@ describe("BT22-027 Ryugumon", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.deck).toHaveLength(1);
+  });
+
+  it("executes Decode from its own stack on a non-battle leave", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-027", under: ["BT22-024"], as: "host" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-024"));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT22-024"]);
   });
 });
