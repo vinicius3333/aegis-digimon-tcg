@@ -10,8 +10,10 @@ export const compiled: CompiledCard = {
           kind: "PlaceUnder",
           target: {
             filter: {
+              controller: "mine",
               zone: "digivolutionCards",
               source: "digivolutionCards",
+              hostFilter: { isSelfRef: true },
               nameOrTrait: [{ tokens: ["Eater (Species Form)"], match: "name" }],
             },
             count: 1,
@@ -29,6 +31,8 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "OnSecurityCheck",
+      turnCondition: "yourTurn",
+      condition: { kind: "triggerAttackerIsSelf" },
       actions: [
         {
           kind: "PlayWithoutCost",
