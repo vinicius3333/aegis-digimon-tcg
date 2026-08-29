@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled as BT25_022 } from "./BT25-022.js";
 import "../index.js";
 
@@ -18,6 +19,43 @@ describe("BT25-022 Lunamon", () => {
         to: "hand",
         filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
       }),
+    ]);
+  });
+
+  it("resolves both trait search pools through a natural On Play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-022", as: "lunamon" }],
+          deck: [
+            { card: "BT24-002", as: "iliad" },
+            { card: "BT25-086", as: "ts" },
+            { card: "BT1-001", as: "rest" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lunamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("iliad").instanceId) &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ts").instanceId),
+    );
+
+    expect(s.state.players[0]!.hand).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ instanceId: s.inst("iliad").instanceId }),
+        expect.objectContaining({ instanceId: s.inst("ts").instanceId }),
+      ]),
+    );
+    expect(s.state.players[0]!.deck).toEqual([
+      expect.objectContaining({ instanceId: s.inst("rest").instanceId }),
     ]);
   });
 
