@@ -8,7 +8,7 @@ import "../index.js";
 
 describe("BT21-052 Examon (X Antibody)", () => {
   it("preserves the Examon alternate Digivolution requirement", () => {
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Examon"], cost: 2, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Examon"], cost: 2, isAlternate: true }]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual ?? []).toEqual([]);
   });
