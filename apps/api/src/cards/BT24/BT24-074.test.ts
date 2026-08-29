@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
@@ -7,6 +7,25 @@ import { compiled as BT24_074 } from "./BT24-074.js";
 import "../index.js";
 
 describe("BT24-074 SkullSeadramon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-074")).toMatchObject({
+      cardId: "BT24-074",
+      nameEn: "SkullSeadramon",
+      colors: ["Purple", "Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Undead", "Titan", "TS", "Aquatic"],
+      evoCosts: [
+        { color: "Purple", level: 4, memoryCost: 4 },
+        { color: "Blue", level: 4, memoryCost: 4 },
+      ],
+    });
+  });
+
   it("trashes digivolution cards before the effect-play deletion branch", () => {
     const onPlay = BT24_074.effects?.find((entry) => entry.trigger === "OnPlay");
     expect(onPlay?.actions?.[0]).toMatchObject({ kind: "TrashDigivolution", amount: 3 });
