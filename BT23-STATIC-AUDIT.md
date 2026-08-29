@@ -22,7 +22,7 @@ provisional and capped at 8/10.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT23-001–010 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-001-010.md` | Yes |
-| BT23-011–020 | Luna assigned | `internal-docs/audits/BT23/BT23-011-020.md` | No |
+| BT23-011–020 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-011-020.md` | Yes |
 | BT23-021–030 | Luna assigned | `internal-docs/audits/BT23/BT23-021-030.md` | No |
 | BT23-031–040 | Luna assigned | `internal-docs/audits/BT23/BT23-031-040.md` | No |
 | BT23-041–050 | Luna assigned | `internal-docs/audits/BT23/BT23-041-050.md` | No |
@@ -55,16 +55,26 @@ applicable non-gate component rather than being rounded up.
 | BT23-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Ruled restack/reduced play, refusal, exposed-stack edges, alternates, Raid, and inherited DP are covered. |
 | BT23-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural turn end now proves the optional linked player attack and decline, with link boundaries. |
 | BT23-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Security-battle self-play, alternate evolution, Raid, and both Blocker scopes are covered. |
+| BT23-011 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/evolution cover deletion boundaries; inherited deletion play remains primitive-driven. |
+| BT23-012 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Raid and evolution routes are natural; both deletion faces remain explicitly timed. |
+| BT23-013 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Alliance/play watcher and evolution routes are traced; modal branches retain explicit timing seams. |
+| BT23-014 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Dynamic deletion scaling now excludes breeding; timing and restriction behavior remain seam-driven. |
+| BT23-015 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play-cost reduction is proved; deletion, return, and Security origins remain explicit. |
+| BT23-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural linking proves cost, DP, draw, Eri boundary, refusal, and invalid-host negative. |
+| BT23-017 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hand cost and Hudie/delayed restrictions are traced; attack and delayed origins remain explicit. |
+| BT23-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main restack/reduced play covers stack edges, refusal, and inherited DP scope. |
+| BT23-019 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Digivolution trash now pools across opposing Digimon; cross-host and evolution paths remain unexecuted. |
+| BT23-020 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Alliance and self-only suspension watcher are traced; suspension origin remains injected. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 10
-- Corrected: 0
-- Provisional: 10
+- Integrated card audits: 20
+- Corrected: 2
+- Provisional: 20
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 0
+- Blocked or ambiguous: 8
 - Remaining unassigned: 22
 
 BT23 static auditing is prepared in parallel. Accepted ranges will be
