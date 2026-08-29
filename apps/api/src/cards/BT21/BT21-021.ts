@@ -70,6 +70,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              kind: ["Digimon"],
               nameOrTrait: [
                 {
                   tokens: ["Xros Heart", "Blue Flare"],
@@ -83,6 +84,7 @@ export const compiled: CompiledCard = {
           underFilter: {
             controller: "mine",
             kind: ["Tamer"],
+            excludeToken: true,
           },
           optional: true,
         },
@@ -96,6 +98,7 @@ export const compiled: CompiledCard = {
           underFilter: {
             controller: "mine",
             kind: ["Tamer"],
+            excludeToken: true,
           },
           optional: true,
         },
@@ -131,7 +134,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Shoutmon"],
+      namesExact: ["Shoutmon"],
       cost: 4,
       isAlternate: true,
     },
