@@ -34,7 +34,7 @@ describe("BT3-058 BanchoStingmon", () => {
   it("does not gain the attack bonus below the 12000 DP threshold", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT3-058", as: "banchoStingmon", under: ["BT2-044", "BT3-053"] }] },
-      1: { battleArea: [{ card: "BT2-083", dp: 11999, suspended: true, as: "target" }] },
+      1: { battleArea: [{ card: "BT2-083", dp: 8000, suspended: true, as: "target" }] },
     });
     const baseDP = s.perm("banchoStingmon").baseDP;
     await s.ready();

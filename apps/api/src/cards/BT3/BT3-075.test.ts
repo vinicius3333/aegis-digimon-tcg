@@ -40,6 +40,7 @@ describe("BT3-075 Craniamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
+          { card: "BT3-075", as: "craniamon" },
           { card: "BT2-083", as: "inheritedBlocker", under: ["BT3-072"] },
           { card: "BT3-071", as: "nonBlocker" },
         ],
