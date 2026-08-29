@@ -20,7 +20,14 @@ describe("BT11-061 Vemmon", () => {
     expect(compiled.effects).toMatchObject([
       {
         trigger: "Main",
-        actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [{ upTo: true }] }],
+        actions: [
+          {
+            kind: "RevealAdd",
+            revealCount: 3,
+            rest: "deckBottom",
+            add: [{ upTo: true, to: "hand" }, { to: "placeUnder" }],
+          },
+        ],
       },
       { trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn" },
     ]);
@@ -54,7 +61,7 @@ describe("BT11-061 Vemmon", () => {
       {
         0: {
           battleArea: [{ card: "BT11-061", as: "vemmon" }],
-          deck: ["BT11-105", "BT11-061", "BT1-009"],
+          deck: ["BT11-105", { card: "BT11-061", as: "revealedVemmon" }, "BT1-009"],
         },
       },
       { autoOrderCards: true },
@@ -78,7 +85,7 @@ describe("BT11-061 Vemmon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: placeSelection!.req.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("vemmon").instanceId] },
+        response: { kind: "selectCards", instanceIds: [s.inst("revealedVemmon").instanceId] },
       }),
     ).toEqual({ ok: true });
     await resolving;
