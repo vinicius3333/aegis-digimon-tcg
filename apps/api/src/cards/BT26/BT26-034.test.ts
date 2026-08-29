@@ -110,7 +110,7 @@ describe("BT26-034 Palmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-035", as: "host", under: [{ card: "BT26-034" }, { card: "EX4-019" }] }],
+          battleArea: [{ card: "BT11-051", as: "host", under: [{ card: "BT26-034" }] }],
         },
         1: {
           battleArea: [
@@ -150,7 +150,7 @@ describe("BT26-034 Palmon", () => {
   it("may decline the inherited suspension", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-035", as: "host", under: ["BT26-034"] }] },
+        0: { battleArea: [{ card: "BT11-051", as: "host", under: ["BT26-034"] }] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoDeclineOptional: true },
