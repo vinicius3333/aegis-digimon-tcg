@@ -17,6 +17,10 @@ describe("BT23-084 Erika Mishima", () => {
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", payCost: false }],
+    });
   });
 
   it("atomically pays both costs and plays a level 3 CS Digimon into the empty breeding area", async () => {
