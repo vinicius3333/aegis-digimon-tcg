@@ -1,6 +1,6 @@
 # BT26 Static Card Implementation Re-audit
 
-Status: static integration complete through BT26-050; audit assigned through BT26-070
+Status: static integration complete through BT26-060; audit assigned through BT26-080
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -31,9 +31,9 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT26-021–030 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-021-030.md` | Yes |
 | BT26-031–040 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-031-040.md` | Yes |
 | BT26-041–050 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-041-050.md` | Yes |
-| BT26-051–060 | Luna assigned | `internal-docs/audits/BT26/BT26-051-060.md` | No |
+| BT26-051–060 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-051-060.md` | Yes |
 | BT26-061–070 | Luna assigned | `internal-docs/audits/BT26/BT26-061-070.md` | No |
-| BT26-071–080 | Unassigned | `internal-docs/audits/BT26/BT26-071-080.md` | No |
+| BT26-071–080 | Luna assigned | `internal-docs/audits/BT26/BT26-071-080.md` | No |
 | BT26-081–090 | Unassigned | `internal-docs/audits/BT26/BT26-081-090.md` | No |
 | BT26-091–100 | Unassigned | `internal-docs/audits/BT26/BT26-091-100.md` | No |
 | BT26-101–104 | Unassigned | `internal-docs/audits/BT26/BT26-101-104.md` | No |
@@ -99,20 +99,30 @@ non-gate component rather than being rounded up.
 | BT26-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public attack proves face-down payment, reduced Ver.4 play, Alliance participation, batch-trash scaling, and realistic stacks. |
 | BT26-049 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Cost ceilings, shared budgets, Tamer-stack reaction, traits, and peers are covered through direct suspension/stack-trash helpers. |
 | BT26-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Burst/Option/target/order boundaries and realistic Rosemon stacks are covered; return/security-trash positives use direct timing. |
+| BT26-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Link intents prove both the host grant and printed linked-face De-Digivolve; an erroneous interim removal was restored exactly. |
+| BT26-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public play, reveal slots, overlap, bottoming, Appmon evolution, and inherited Reboot use realistic Glowing Dawn/BEATBREAK stacks. |
+| BT26-053 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Cost, Option, frequency, and Blocker boundaries are covered, but target-switch positives use direct subtrigger injection. |
+| BT26-054 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Tamer/name, stack-add, redirect, and CS stack boundaries exist; entry and stack-add positives use timing/primitive helpers. |
+| BT26-055 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Counter/deletion and realistic DM stacks supplement the principal shared entry body, which remains mostly timing-driven. |
+| BT26-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural deletion, Option use, both routes, empty-hand De-Digivolve, keywords, Rule trait, and Titan/TS boundaries are represented. |
+| BT26-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public evolution and Option use prove paid protection, source-kind immunity, shared watchers, gained trigger, and Glowing Dawn stacks. |
+| BT26-058 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural leave prevention and CS stack rotation are covered, while the shared immunity window uses direct timing helpers. |
+| BT26-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hand-size, Titan, turn, watcher, exclusion, frequency, and tie boundaries exist; the central entry body is timing-driven. |
+| BT26-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Evolution routes, stack returns, ordering, cleanup, Succession, and deck-add scope are covered through direct timing/primitives. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Direct modules: 104
-- Assigned: 70
-- Integrated card audits: 50
+- Assigned: 80
+- Integrated card audits: 60
 - Corrected: 1
-- Provisional: 50
+- Provisional: 60
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 29
-- Remaining unassigned: 34
+- Blocked or ambiguous: 35
+- Remaining unassigned: 24
 
-The integrated provisional score subtotal is 363/500 through BT26-050.
-BT26-051 through BT26-070 remain active across two Luna/xhigh lanes. No
+The integrated provisional score subtotal is 437/600 through BT26-060.
+BT26-061 through BT26-080 remain active across two Luna/xhigh lanes. No
 collection-complete claim is made while the static audit and delivery gates
 remain incomplete.
