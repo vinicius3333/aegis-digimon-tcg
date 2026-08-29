@@ -73,7 +73,6 @@ export async function runReplacement(
     return;
   }
   if (action.condition !== undefined && !evaluateCondition(ctx, action.condition)) return;
-  if (action.sourceFilter?.zone === "battleArea" && !ctx.source.isOnBattleArea()) return;
   const self = ctx.source.permanent();
   const activationIdentity =
     ctx.activeEffectKey === undefined
