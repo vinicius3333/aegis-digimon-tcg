@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,25 @@ import { compiled } from "./BT24-024.js";
 import "../index.js";
 
 describe("BT24-024 Submarimon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-024")).toMatchObject({
+      cardId: "BT24-024",
+      nameEn: "Submarimon",
+      colors: ["Blue", "Yellow"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 5,
+      dp: 5000,
+      forms: ["Armor Form"],
+      attributes: ["Free"],
+      types: ["Aquatic", "Iliad", "TS"],
+      evoCosts: [
+        { color: "Blue", level: 3, memoryCost: 3 },
+        { color: "Yellow", level: 3, memoryCost: 3 },
+      ],
+    });
+  });
+
   it("plays a TS Tamer from hand with a once-per-turn cost reduction", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "WhenAttacking") as any;
     expect(effect.frequency).toBe("OncePerTurn");
