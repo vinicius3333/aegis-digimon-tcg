@@ -1,9 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT22-001.js";
+import { compiled } from "./BT22-001.js";
+
+async function placeByEffect(s: ReturnType<typeof setupEngine>, permanentId: string, instanceIds: string[]) {
+  advance(s.engine).verb.enterEffectResolution(0, ["Digimon"]);
+  try {
+    await advance(s.engine).verb.placeUnder(permanentId, instanceIds);
+  } finally {
+    advance(s.engine).verb.leaveEffectResolution();
+  }
+}
 
 describe("BT22-001 Puyoyomon", () => {
+  it("requires effect provenance for its inherited stack-add watcher", () => {
+    const watcher = compiled.effects[0]?.actions[0] as any;
+    expect(watcher).toMatchObject({
+      kind: "SubTrigger",
+      event: "onAddDigivolutionCards",
+      sourceFilter: { controllerDefault: "mine", byEffect: true },
+      triggerFilter: { isSelfRef: true },
+      addedDigivolutionCardFilter: { nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }] },
+    });
+  });
+
   it("draws once when an effect adds a Sea Animal Digimon to its inherited host", async () => {
     const s = setupEngine({
       0: {
@@ -17,11 +37,11 @@ describe("BT22-001 Puyoyomon", () => {
     });
     await s.ready();
 
-    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("firstSeaAnimal").instanceId]);
+    await placeByEffect(s, s.perm("host").permanentId, [s.inst("firstSeaAnimal").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(2);
 
-    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("secondSeaAnimal").instanceId]);
+    await placeByEffect(s, s.perm("host").permanentId, [s.inst("secondSeaAnimal").instanceId]);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
