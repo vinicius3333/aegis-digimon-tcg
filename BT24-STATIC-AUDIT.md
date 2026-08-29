@@ -27,7 +27,7 @@ provisional and capped at 8/10.
 | BT24-031–040 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-031-040.md` | Yes |
 | BT24-041–050 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-041-050.md` | Yes |
 | BT24-051–060 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-051-060.md` | Yes |
-| BT24-061–070 | Luna assigned | `internal-docs/audits/BT24/BT24-061-070.md` | No |
+| BT24-061–070 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-061-070.md` | Yes |
 | BT24-071–080 | Luna assigned | `internal-docs/audits/BT24/BT24-071-080.md` | No |
 | BT24-081–090 | Luna assigned | `internal-docs/audits/BT24/BT24-081-090.md` | No |
 | BT24-091–100 | Luna assigned | `internal-docs/audits/BT24/BT24-091-100.md` | No |
@@ -105,16 +105,26 @@ applicable non-gate component rather than being rounded up.
 | BT24-058 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/evolution covers the main reveal path, while the under-host destination is manually timed. |
 | BT24-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/evolution/attack paths cover stack behavior; the On Deletion reveal uses a direct deletion verb. |
 | BT24-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural attack proves reveal evolution; Tamer placement and Q5782 simultaneous protection use direct primitives. |
+| BT24-061 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, return, inherited attack, and alternate-stack paths cover all printed clauses. |
+| BT24-062 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public End of Attack is covered; the shared End of Opponent's Turn branch remains manually fired. |
+| BT24-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/digivolution proves reveal, free play, restack, Collision, and inherited stack behavior. |
+| BT24-064 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution covers reveal and keywords; the any-side suspension watcher uses a direct suspend primitive. |
+| BT24-065 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Diaboromon/source-stack semantics and Q5644–Q5646 are traced, while replacement leave uses direct deletion. |
+| BT24-066 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, evolution, reveal slots, hand trash, and inherited attack prove the card-specific behavior. |
+| BT24-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public link operation proves the Rei gate, exact name, Tamer count, link cost, DP, and host scope. |
+| BT24-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution/attack proves dual reveal categories, hand trash, remainder, and both-deck mill. |
+| BT24-069 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural digivolution/attack covers discard branches and aura threshold; When Moving remains manually fired. |
+| BT24-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, hand gate, trash Tamer play, and inherited attack cover the printed clauses. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 60
+- Integrated card audits: 70
 - Corrected: 4
-- Provisional: 60
+- Provisional: 70
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 51
+- Blocked or ambiguous: 55
 - Remaining unassigned: 0
 
 BT24 static auditing is prepared across five parallel Luna/xhigh lanes.
