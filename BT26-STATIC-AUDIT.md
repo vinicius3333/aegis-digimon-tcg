@@ -1,6 +1,6 @@
 # BT26 Static Card Implementation Re-audit
 
-Status: static integration complete through BT26-080; audit assigned through BT26-104
+Status: static integration complete through BT26-100; audit assigned through BT26-104
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -34,8 +34,8 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT26-051–060 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-051-060.md` | Yes |
 | BT26-061–070 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-061-070.md` | Yes |
 | BT26-071–080 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-071-080.md` | Yes |
-| BT26-081–090 | Luna assigned | `internal-docs/audits/BT26/BT26-081-090.md` | No |
-| BT26-091–100 | Luna assigned | `internal-docs/audits/BT26/BT26-091-100.md` | No |
+| BT26-081–090 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-081-090.md` | Yes |
+| BT26-091–100 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-091-100.md` | Yes |
 | BT26-101–104 | Luna assigned | `internal-docs/audits/BT26/BT26-101-104.md` | No |
 
 ## Score model
@@ -129,21 +129,41 @@ non-gate component rather than being rounded up.
 | BT26-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q7105–Q7108 matching/memory boundaries and natural Rush/Execute paths exist; entry/trash watcher positives use direct origins. |
 | BT26-079 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Routes, Decode, Retaliation, security, and ownership boundaries use realistic stacks; entry/Trash Main/trim positives use helpers. |
 | BT26-080 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural DUAL Option use plus real succession/attack stacks prove orientation, suspend/unsuspend choice, deletion, and keywords. |
+| BT26-081 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Legal breeding/Assembly contexts and Iliad budget/aura boundaries are covered; the central entry body uses direct timing helpers. |
+| BT26-082 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Face-up security and indivisible Tamer-stack costs are represented; the central alternate-cost deletion body is directly fired. |
+| BT26-083 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | A corrected legal Execute/Decode stack supports the proof, while the security-wipe/deletion/recovery body remains timing-fired. |
+| BT26-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Link proves requirements, reveal resolution, post-link movement, and linked-source lifecycle with realistic Appmon stacks. |
+| BT26-085 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Opponent-only DP/stack restrictions and replacement boundaries are traced; principal proof uses direct effect/replacement seams. |
+| BT26-086 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The seven-distinct-card Assembly/Link stack is complete; link-then-attack and linked reactions remain primarily direct-origin. |
+| BT26-087 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | TS cost, ordering, Giant Slayer return, draw, refusal, and Security are covered through direct timing helpers. |
+| BT26-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play-cost replacement proves Boss/TS filters, suspension, one-versus-two reduction, refusal, and Security behavior. |
+| BT26-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security-removal origins prove bottom face-down placement, effect-only debuff, ordering, scope, and suspension limits. |
+| BT26-090 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Inclusive memory, TS Option, color, reduction-floor, refusal, and Security boundaries exist; End of Turn is directly driven. |
+| BT26-091 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | DATA SQUAD placement/evolution and Q7144–Q7148 boundaries are represented; suspension/stack reactions use direct origins. |
+| BT26-092 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural opponent attack proves TS Tamer payment, redirect target, turn ownership, refusal, and no-target behavior. |
+| BT26-093 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attack proves required suspension, deck-top face-down placement, shared keyword target, and realistic BEATBREAK contexts. |
+| BT26-094 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Face-down Tamer ordering/visibility and source gates are covered; hand-trash and under-Tamer reactions use direct primitives. |
+| BT26-095 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Required-payment and BEATBREAK deletion boundaries are represented; the central deletion reaction uses a direct deletion verb. |
+| BT26-096 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Play-cost reduction, source zones, targets, and peers are covered; the principal Main play path uses declaration timing injection. |
+| BT26-097 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public Option use proves color, Main/Security flow, play limits, keyword grants, and realistic TS/Titan contexts. |
+| BT26-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public Option use proves the indivisible named two-card cost, reductions, ordering, refusal, and legal DM contexts. |
+| BT26-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public Option play proves reveal/add/bottom behavior; later Delay evolution covers face-down, timing, level, and kind boundaries. |
+| BT26-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public Main/security paths prove face-up security lifecycle, Titan grants, zero-security behavior, name/trait split, and free play. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Direct modules: 104
 - Assigned: 104
-- Integrated card audits: 80
+- Integrated card audits: 100
 - Corrected: 2
-- Provisional: 80
+- Provisional: 100
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 46
+- Blocked or ambiguous: 57
 - Remaining unassigned: 0
 
-The integrated provisional score subtotal is 586/800 through BT26-080.
-BT26-081–090 and BT26-101–104 remain active across two Luna/xhigh lanes;
-BT26-091–100 awaits coordinator integration. No
+The integrated provisional score subtotal is 735/1000 through BT26-100.
+BT26-101–104 remains active in the final Luna/xhigh audit lane while an
+independent BT26 static reconciliation runs in parallel. No
 collection-complete claim is made while the static audit and delivery gates
 remain incomplete.
