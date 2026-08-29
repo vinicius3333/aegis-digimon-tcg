@@ -26,7 +26,7 @@ provisional and capped at 8/10.
 | BT24-021–030 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-021-030.md` | Yes |
 | BT24-031–040 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-031-040.md` | Yes |
 | BT24-041–050 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-041-050.md` | Yes |
-| BT24-051–060 | Luna assigned | `internal-docs/audits/BT24/BT24-051-060.md` | No |
+| BT24-051–060 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-051-060.md` | Yes |
 | BT24-061–070 | Luna assigned | `internal-docs/audits/BT24/BT24-061-070.md` | No |
 | BT24-071–080 | Luna assigned | `internal-docs/audits/BT24/BT24-071-080.md` | No |
 | BT24-081–090 | Luna assigned | `internal-docs/audits/BT24/BT24-081-090.md` | No |
@@ -95,16 +95,26 @@ applicable non-gate component rather than being rounded up.
 | BT24-048 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hatch, breeding evolution, Blocker, and inherited battle behavior are covered without a natural When Digivolving origin. |
 | BT24-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A real BT24-098 Delay activation naturally effect-plays Parrotmon and proves the lowest-DP suspended return. |
 | BT24-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, attack, Evade, exact trait union/exclusion, and alternate stacks cover the printed behavior. |
+| BT24-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play now proves Q5641 reduced cost, suspension, buff, and mandatory attack through observable state. |
+| BT24-052 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5642 applies to the host text condition; the payment remains exact Diaboromon, while leave replacement uses a direct deletion verb. |
+| BT24-053 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution and Appmon linking prove cost, DP, host rejection, and both printed Blocker faces. |
+| BT24-054 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Shuu play/evolution routes are covered; inherited suspension remains driven by a direct suspend primitive. |
+| BT24-055 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry proves Shuu placement/protection; inherited suspension and decline evidence remain primitive-driven. |
+| BT24-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, evolution, and link intents prove protection, revival, link DP, and the deletion boundary. |
+| BT24-057 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security, play, evolution, link, and Q5643 ordering are covered; standalone On Deletion uses a direct deletion verb. |
+| BT24-058 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/evolution covers the main reveal path, while the under-host destination is manually timed. |
+| BT24-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/evolution/attack paths cover stack behavior; the On Deletion reveal uses a direct deletion verb. |
+| BT24-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural attack proves reveal evolution; Tamer placement and Q5782 simultaneous protection use direct primitives. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 100
-- Integrated card audits: 50
+- Integrated card audits: 60
 - Corrected: 4
-- Provisional: 50
+- Provisional: 60
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 44
+- Blocked or ambiguous: 51
 - Remaining unassigned: 2
 
 BT24 static auditing is prepared across five parallel Luna/xhigh lanes.
