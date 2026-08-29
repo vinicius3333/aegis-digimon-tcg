@@ -26,7 +26,7 @@ describe("BT9-066 Alphamon", () => {
           hand: [{ card: "BT9-066", as: "evolving" }, { card: "BT9-068", as: "handDecoy" }],
           trash: [{ card: "BT9-068", as: "source" }],
         },
-        1: { battleArea: [{ card: "BT2-047", as: "target", under: ["BT1-001"] }] },
+        1: { battleArea: [{ card: "BT2-047", as: "target", under: ["BT1-010"] }] },
       },
       { autoSelectCards: true },
     );
