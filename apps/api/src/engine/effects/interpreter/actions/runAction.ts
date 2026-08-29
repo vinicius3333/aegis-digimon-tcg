@@ -28,6 +28,45 @@ import { runSecurityAction } from "./security.js";
 import { runStaticAction } from "./statics.js";
 import type { Action, Cost, ZoneRef } from "@aegis/shared";
 
+function isCostBearingAction(action: Action): boolean {
+  return (
+    action.cost !== undefined ||
+    action.additionalCost !== undefined ||
+    (action.additionalCosts?.length ?? 0) > 0 ||
+    (action.costOptions?.length ?? 0) > 0
+  );
+}
+
+/**
+ * Q5331's borrowed BT23-045 On Play has a context-specific source priority: an eligible Royal
+ * Base/Zaxon card in trash must be placed before a hand fallback. Keep this transformation on
+ * the borrowed resolution context so the ordinary BT23-045 effect and every other borrower keep
+ * their declared source pool and selection behavior.
+ */
+function borrowedProcessingCost(ctx: EffectContext, cost: Cost): Cost {
+  if (ctx.borrowedEffectOverrides?.preferTrashCostSource !== true || cost.kind !== "place" || cost.target === undefined) {
+    return cost;
+  }
+  const sourceZones = cost.target.from;
+  if (sourceZones === undefined || sourceZones.length !== 2 || !sourceZones.includes("hand") || !sourceZones.includes("trash")) {
+    return cost;
+  }
+  const trashCandidates = candidateLooseInstances(ctx, cost.target, ["trash"]);
+  const handCandidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+  const preferredZones: ZoneRef[] =
+    trashCandidates.length > 0 ? ["trash"] : handCandidates.length > 0 ? ["hand"] : sourceZones;
+  if (preferredZones.length === sourceZones.length && preferredZones.every((zone, index) => zone === sourceZones[index])) {
+    return cost;
+  }
+  return {
+    ...cost,
+    target: {
+      ...cost.target,
+      from: preferredZones,
+    },
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Action dispatch
 // ---------------------------------------------------------------------------
@@ -128,6 +167,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       action.scaling !== undefined ||
       action.target.filter?.playCostLteScaling !== undefined);
   const actionCost = action.kind === "DigivolveViaPlacement" ? undefined : action.cost;
+  const payableActionCost =
+    actionCost !== undefined && typeof actionCost !== "number" ? borrowedProcessingCost(ctx, actionCost) : actionCost;
+  const forceOptionalCostProcessing =
+    ctx.borrowedEffectOverrides?.forceCostProcessing === true &&
+    action.optional === true &&
+    isCostBearingAction(action);
   const additionalCost = action.kind === "RawUnparsed" ? undefined : action.additionalCost;
   const additionalCosts = action.kind === "RawUnparsed" ? [] : (action.additionalCosts ?? []);
   const placementCosts = [
@@ -295,11 +340,15 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.cost?.kind === "trash";
   let costModifierPaidCount: number | undefined;
   if (action.kind === "CostModifier" && action.cost !== undefined && !interactiveDigivolveReduction) {
-    if (action.optional && !(await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`))) {
+    if (
+      action.optional &&
+      !forceOptionalCostProcessing &&
+      !(await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`))
+    ) {
       return action.abortOnDecline === true;
     }
     const payment = { paidCount: 0 };
-    const paid = await payCost(ctx, action.cost, payment);
+    const paid = await payCost(ctx, payableActionCost as Cost, payment);
     if (!paid) return action.abortOnDecline === true;
     costModifierPaidCount = payment.paidCount;
   }
@@ -322,6 +371,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // primitive so the defending player, rather than the source controller, decides
     // whether to switch targets (BT4-075 / Q1224-Q1227).
     (action.kind !== "RedirectAttack" || action.chooser !== "opponent") &&
+    !forceOptionalCostProcessing &&
     actionCost?.optional !== true
   ) {
     if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
@@ -467,7 +517,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         : canAttemptDigivolve(ctx, action);
       if (!canAttempt) return false;
     }
-    const costUnpayable = action.cost !== undefined && !canPayCost(ctx, action.cost as Cost);
+    const costUnpayable = payableActionCost !== undefined && !canPayCost(ctx, payableActionCost as Cost);
     if (!costUnpayable) {
       const yes = await ctx.ask.optional(ctx, describeAction(action));
       if (!yes) {
@@ -513,12 +563,14 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // `DigivolveViaPlacement.cost` is a memory amount paid by the digivolve itself, not an
     // activation Cost, so it must not enter the generic cost-payment path.
     action.kind !== "DigivolveViaPlacement" &&
-    action.cost
+    payableActionCost
   ) {
-    if (action.cost.optional) {
-      const willPay = await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`);
+    if (payableActionCost.optional) {
+      const willPay =
+        forceOptionalCostProcessing ||
+        (await ctx.ask.optional(ctx, `Pay cost: ${payableActionCost.raw ?? payableActionCost.kind}?`));
       if (willPay) {
-        const paid = await payCost(ctx, action.cost, costPayment);
+        const paid = await payCost(ctx, payableActionCost, costPayment);
         if (!paid) return action.abortOnDecline === true;
       } else if (action.abortOnDecline === true) {
         // A clause may make only its processing condition optional; refusal skips
@@ -526,8 +578,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         return true;
       }
     } else {
-      const deferSuspendTriggers = action.kind === "Attack" && action.cost.kind === "suspend";
-      const paid = await payCost(ctx, action.cost, costPayment, { deferSuspendTriggers });
+      const deferSuspendTriggers = action.kind === "Attack" && payableActionCost.kind === "suspend";
+      const paid = await payCost(ctx, payableActionCost, costPayment, { deferSuspendTriggers });
       if (paid && deferSuspendTriggers) deferredCostSuspensions = [...(ctx.lastSuspendedPermanentIds ?? [])];
       if (!paid) {
         // An unpayable ACTIVATION cost ("By [paying X], [effect]. Then …") means the entire
@@ -538,10 +590,11 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         // remaining clause as well. Two legacy activation-cost shapes also gate their whole
         // clause even when the IR omitted `abortOnDecline`: <Digi-Burst N> (trash from THIS
         const isDigiBurstCost =
-          action.cost.kind === "trash" &&
-          action.cost.target?.filter.zone === "digivolutionCards" &&
-          action.cost.target.filter.isSelfRef === true;
-        const isSecurityTrashCost = action.cost.kind === "trash" && action.cost.target?.filter.zone === "security";
+          payableActionCost.kind === "trash" &&
+          payableActionCost.target?.filter.zone === "digivolutionCards" &&
+          payableActionCost.target.filter.isSelfRef === true;
+        const isSecurityTrashCost =
+          payableActionCost.kind === "trash" && payableActionCost.target?.filter.zone === "security";
         return action.abortOnDecline === true || isDigiBurstCost || isSecurityTrashCost;
       }
     }
