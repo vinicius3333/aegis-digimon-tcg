@@ -34,7 +34,7 @@ describe("BT22-052 Leopardmon", () => {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
-          sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
+          sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"], zone: "battleArea" },
           actions: [{ kind: "GainMemory", amount: 2 }],
         },
       ],
