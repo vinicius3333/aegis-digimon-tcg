@@ -22,12 +22,12 @@ provisional and capped at 8/10.
 | --- | --- | --- | --- |
 | BT22-001–010 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-001-010.md` | Yes |
 | BT22-011–020 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-011-020.md` | Yes |
-| BT22-021–030 | Luna assigned | `internal-docs/audits/BT22/BT22-021-030.md` | No |
+| BT22-021–030 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-021-030.md` | Yes |
 | BT22-031–040 | Luna assigned | `internal-docs/audits/BT22/BT22-031-040.md` | No |
 | BT22-041–050 | Luna assigned | `internal-docs/audits/BT22/BT22-041-050.md` | No |
 | BT22-051–060 | Luna assigned | `internal-docs/audits/BT22/BT22-051-060.md` | No |
 | BT22-061–070 | Luna assigned | `internal-docs/audits/BT22/BT22-061-070.md` | No |
-| BT22-071–080 | Unassigned | `internal-docs/audits/BT22/BT22-071-080.md` | No |
+| BT22-071–080 | Luna assigned | `internal-docs/audits/BT22/BT22-071-080.md` | No |
 | BT22-081–090 | Unassigned | `internal-docs/audits/BT22/BT22-081-090.md` | No |
 | BT22-091–100 | Unassigned | `internal-docs/audits/BT22/BT22-091-100.md` | No |
 | BT22-101–102 | Unassigned | `internal-docs/audits/BT22/BT22-101-102.md` | No |
@@ -64,17 +64,27 @@ applicable non-gate component rather than being rounded up.
 | BT22-018 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Host binding and grants traced on a valid peer; On Play timing remains directly fired. |
 | BT22-019 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural reducer/breeding boundary; inherited leave prevention uses direct primitives. |
 | BT22-020 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement, draw, no-entry timing, and legal stack traced; attack timing remains direct. |
+| BT22-021 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Executable own-stack Decode corrected; leave behavior remains direct and unexecuted. |
+| BT22-022 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Text-wide Veedramon match and legal CS stack traced; protection uses direct effect deletion. |
+| BT22-023 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry, end-turn, and inherited host clauses traced; several timings remain manually fired. |
+| BT22-024 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Sangomon host binding, own-stack inherited play, and Decode corrected; leave proof remains direct. |
+| BT22-025 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Both modal branches and peers traced; entry timings remain directly supplied. |
+| BT22-026 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Agumon/WarGreymon Digimon-kind constraints corrected; same-name non-Digimon negative remains structural. |
+| BT22-027 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Executable Decode corrected and source-add watcher stays self-scoped; producer path uses a placement helper. |
+| BT22-028 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Decode and all three own-stack play buckets corrected; timing and leave paths use direct helpers. |
+| BT22-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Both entry/deletion timings and inherited debuff traced; timing remains directly supplied. |
+| BT22-030 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural link and legal linked host traced; linked attack timing remains directly supplied. |
 
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 70
-- Integrated card audits: 20
-- Corrected: 4
-- Provisional: 20
+- Assigned: 80
+- Integrated card audits: 30
+- Corrected: 9
+- Provisional: 30
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 19
-- Remaining unassigned: 32
+- Blocked or ambiguous: 29
+- Remaining unassigned: 22
 
 BT22 static auditing is in progress. Accepted ranges will be integrated in
 strict ascending order while later Luna lanes prepare in parallel.
