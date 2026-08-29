@@ -25,7 +25,7 @@ provisional and capped at 8/10.
 | BT24-011–020 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-011-020.md` | Yes |
 | BT24-021–030 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-021-030.md` | Yes |
 | BT24-031–040 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-031-040.md` | Yes |
-| BT24-041–050 | Luna assigned | `internal-docs/audits/BT24/BT24-041-050.md` | No |
+| BT24-041–050 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-041-050.md` | Yes |
 | BT24-051–060 | Luna assigned | `internal-docs/audits/BT24/BT24-051-060.md` | No |
 | BT24-061–070 | Luna assigned | `internal-docs/audits/BT24/BT24-061-070.md` | No |
 | BT24-071–080 | Luna assigned | `internal-docs/audits/BT24/BT24-071-080.md` | No |
@@ -85,16 +85,26 @@ applicable non-gate component rather than being rounded up.
 | BT24-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link, Fortitude, own-stack, and App Fusion behavior are covered; free-link entry is still manually originated. |
 | BT24-039 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security level boundary, inherited Recovery, keywords, and evolution are covered; Security timing is manually fired. |
 | BT24-040 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Both trash-all clauses now use the runtime-supported `amount: "all"`; the entry stack-clearing origin remains manual. |
+| BT24-041 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Cost reduction and Q5627–Q5629 outcomes are covered, while the central entry sequence is manually fired. |
+| BT24-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | The inherited evolution now requires its own Demon/Titan host, with natural positive and nonmatching-host negative paths. |
+| BT24-043 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Search union/exclusion, remainder, evolution, and inherited suspension are covered with manual play/attack timings. |
+| BT24-044 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5632/Q5633 any-side suspension and battle-deletion boundary are covered, but On Play remains manually fired. |
+| BT24-045 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hand-size timing and inherited Titan evolution are natural; the central suspend/restrict timing remains manual. |
+| BT24-046 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry, Jamming, and evolution routes are natural, while inherited once-per-turn attack timing is injected. |
+| BT24-047 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Any-side suspension and Q5637 battle boundary are covered; the full entry sequence still uses manual timing. |
+| BT24-048 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hatch, breeding evolution, Blocker, and inherited battle behavior are covered without a natural When Digivolving origin. |
+| BT24-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A real BT24-098 Delay activation naturally effect-plays Parrotmon and proves the lowest-DP suspended return. |
+| BT24-050 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, attack, Evade, exact trait union/exclusion, and alternate stacks cover the printed behavior. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 90
-- Integrated card audits: 40
-- Corrected: 3
-- Provisional: 40
+- Integrated card audits: 50
+- Corrected: 4
+- Provisional: 50
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 37
+- Blocked or ambiguous: 44
 - Remaining unassigned: 12
 
 BT24 static auditing is prepared across five parallel Luna/xhigh lanes.
