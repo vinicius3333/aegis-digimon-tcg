@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -5,6 +6,22 @@ import { compiled as BT24_067 } from "./BT24-067.js";
 import "../index.js";
 
 describe("BT24-067 Hackmon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-067")).toMatchObject({
+      cardId: "BT24-067",
+      nameEn: "Hackmon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Stnd.", "Appmon"],
+      attributes: ["System"],
+      types: ["Hacking"],
+      evoCosts: [{ color: "Purple", level: 2, memoryCost: 0 }],
+    });
+  });
+
   it("limits the linked Rei Katsura play to one or fewer Tamers", () => {
     const watcher = BT24_067.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0] as any;
     expect(watcher).toMatchObject({ event: "whenLinked", sourceFilter: { isSelfRef: true } });
