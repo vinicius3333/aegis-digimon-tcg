@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled } from "./BT24-022.js";
 import "../index.js";
 
 describe("BT24-022 Ikkakumon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-022")).toMatchObject({
+      cardId: "BT24-022",
+      nameEn: "Ikkakumon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 6,
+      dp: 6000,
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Sea Beast", "Iliad", "TS"],
+      evoCosts: [{ color: "Blue", level: 3, memoryCost: 2 }],
+    });
+  });
+
   it("trashes two stack cards, then restricts an opponent Digimon by source stack count", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions as any[];

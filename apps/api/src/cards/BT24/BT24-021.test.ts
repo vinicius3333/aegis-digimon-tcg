@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +6,25 @@ import { compiled } from "./BT24-021.js";
 import "../index.js";
 
 describe("BT24-021 SnowGoblimon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-021")).toMatchObject({
+      cardId: "BT24-021",
+      nameEn: "SnowGoblimon",
+      colors: ["Blue", "Purple"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Virus"],
+      types: ["Demon", "Titan", "TS"],
+      evoCosts: [
+        { color: "Blue", level: 2, memoryCost: 1 },
+        { color: "Purple", level: 2, memoryCost: 1 },
+      ],
+    });
+  });
+
   it("reveals three cards for one Demon/Shaman Digimon and one Titan card", () => {
     const reveal = compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions?.[0] as any;
     expect(reveal).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" });
