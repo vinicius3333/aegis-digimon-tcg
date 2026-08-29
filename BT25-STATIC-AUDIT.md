@@ -1,6 +1,6 @@
 # BT25 Static Card Implementation Re-audit
 
-Status: static card-by-card audit active; coordinator integration complete through BT25-050
+Status: static card-by-card audit active; coordinator integration complete through BT25-060
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -30,7 +30,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT25-021–030 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-021-030.md` | Yes |
 | BT25-031–040 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-031-040.md` | Yes |
 | BT25-041–050 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-041-050.md` | Yes |
-| BT25-051–060 | Luna assigned | `internal-docs/audits/BT25/BT25-051-060.md` | No |
+| BT25-051–060 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-051-060.md` | Yes |
 | BT25-061–070 | Luna assigned | `internal-docs/audits/BT25/BT25-061-070.md` | No |
 | BT25-071–080 | Unassigned | `internal-docs/audits/BT25/BT25-071-080.md` | No |
 | BT25-081–090 | Unassigned | `internal-docs/audits/BT25/BT25-081-090.md` | No |
@@ -99,17 +99,27 @@ applicable non-gate component rather than being rounded up.
 | BT25-048 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural digivolution and battle-win draw are represented, but the complete negative timing/frequency boundary remains incomplete. |
 | BT25-049 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry suspension is covered; the Glowing Dawn Option payment/reduction lacks a natural Option-use origin. |
 | BT25-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural On Play covers threshold and decline; When Digivolving and turn-expiry boundaries remain incomplete. |
+| BT25-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves the exact eligible/near-match DP filter, and a realistic inherited stack proves battle-win Draw 1. |
+| BT25-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Link and linked-reaction paths cover cost, source, target, and Kazuki & Itsuki Tamer-count boundaries. |
+| BT25-053 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry/evolution covers binding and threshold grants; the inherited security-removal watcher uses named event injection. |
+| BT25-054 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural battle proves free evolution, while forced-main timing and inherited battle-deletion behavior rely on timing/subtrigger seams. |
+| BT25-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural suspension proves the self-only once-per-turn free play; entry, redirect, trait, threshold, and stack boundaries are represented. |
+| BT25-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution/Link scenarios cover legal sources, payment, linked timing, target scope, and physical-card identity. |
+| BT25-057 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution and Option play prove the mandatory accepted cost, refusal, De-Digivolve, battle, same-target grants, and duration. |
+| BT25-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected mandatory Then restriction after declined suspension; natural entry/attack and effect-play/digivolve paths cover the remaining sequence. |
+| BT25-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Removed stale keywords; natural behavior covers reducer threshold, either-side suspension, protection, and per-suspended-Digimon scaling. |
+| BT25-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Link/evolution covers accepted and declined processing, legal candidates, no-op unsuspend, grants, immunity, and cross-card isolation. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Assigned: 70
-- Integrated card audits: 50
-- Corrected: 2
-- Provisional: 50
+- Integrated card audits: 60
+- Corrected: 4
+- Provisional: 60
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 23
+- Blocked or ambiguous: 25
 - Remaining unassigned: 34
 
-BT25 static integration is complete through BT25-050. BT25-051 through
-BT25-070 are active across two Luna/xhigh lanes.
+BT25 static integration is complete through BT25-060. BT25-061 through
+BT25-070 remain active in the current Luna/xhigh lane.
