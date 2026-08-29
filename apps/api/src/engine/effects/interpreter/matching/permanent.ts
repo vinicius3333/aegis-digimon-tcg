@@ -85,11 +85,15 @@ export function compareNumber(actual: number, op: Condition["op"] | undefined, e
   }
 }
 
-export function sourceStackHasSameLevelCards(ctx: EffectContext, minCount: number): boolean {
-  const self = ctx.source.permanent();
-  if (self === undefined) return false;
+export function permanentStackHasSameLevelCards(
+  ctx: EffectContext,
+  permanent: Permanent,
+  minCount: number,
+): boolean {
   const levelCounts = new Map<number, number>();
-  const cards = [self.topCard, ...self.stack].filter((card): card is NonNullable<typeof card> => card !== undefined);
+  const cards = [permanent.topCard, ...permanent.stack].filter(
+    (card): card is NonNullable<typeof card> => card !== undefined,
+  );
   for (const card of cards) {
     const level = ctx.game.definitionOf(card).level;
     if (typeof level !== "number") continue;
@@ -98,6 +102,11 @@ export function sourceStackHasSameLevelCards(ctx: EffectContext, minCount: numbe
     levelCounts.set(level, next);
   }
   return false;
+}
+
+export function sourceStackHasSameLevelCards(ctx: EffectContext, minCount: number): boolean {
+  const self = ctx.source.permanent();
+  return self !== undefined && permanentStackHasSameLevelCards(ctx, self, minCount);
 }
 
 // ---------------------------------------------------------------------------
@@ -232,6 +241,11 @@ export function permanentMatchesFilter(
       ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId ?? ctx.trigger.deletedPermanentId;
     if (triggerId === undefined || permanent.permanentId !== triggerId) return false;
     const { isTriggerSource: _omit, ...rest } = filter;
+    filter = rest;
+  }
+  if (filter.stackHasSameLevelCards !== undefined) {
+    if (!permanentStackHasSameLevelCards(ctx, permanent, filter.stackHasSameLevelCards)) return false;
+    const { stackHasSameLevelCards: _sameLevel, ...rest } = filter;
     filter = rest;
   }
   // Disjunctive sub-filter ("black or has [Legend-Arms] in its traits"): the permanent matches
