@@ -17,12 +17,15 @@ describe("BT24-052 Keramon (X Antibody)", () => {
       });
     }
   });
-  it("makes the other-Diaboromon replacement an optional paid activation", () => {
+  it("matches the Diaboromon name family for its optional paid replacement", () => {
     const inherited = BT24_052.effects?.find((entry) => entry.isInherited);
     const replacement = inherited?.actions?.[0] as any;
     const prevent = replacement.actions?.[0];
     expect(prevent.cost).toMatchObject({ kind: "deleteOwn", raw: "by deleting 1 of your other [Diaboromon]" });
     expect(prevent).toMatchObject({ optional: true, abortOnDecline: true });
+    expect(prevent.cost.target.filter).toMatchObject({
+      nameOrTrait: [{ tokens: ["Diaboromon"], match: "name" }],
+    });
   });
 
   it("digivolves from Keramon for cost 0 and plays a Diaboromon Token", async () => {
