@@ -121,7 +121,7 @@ export function hasSummoningSickness(
   turnCount: number,
   reader: ContinuousLegalityReader | undefined,
 ): boolean {
-  return turnCount > 0 && permanent.enterFieldTurnCount === turnCount && !hasRush(permanent, reader);
+  return permanent.enterFieldTurnCount === turnCount && !hasRush(permanent, reader);
 }
 
 /**
