@@ -1,6 +1,6 @@
 # BT25 Static Card Implementation Re-audit
 
-Status: static card-by-card audit active; coordinator integration complete through BT25-040
+Status: static card-by-card audit active; coordinator integration complete through BT25-050
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -29,7 +29,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT25-011–020 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-011-020.md` | Yes |
 | BT25-021–030 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-021-030.md` | Yes |
 | BT25-031–040 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-031-040.md` | Yes |
-| BT25-041–050 | Luna assigned | `internal-docs/audits/BT25/BT25-041-050.md` | No |
+| BT25-041–050 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-041-050.md` | Yes |
 | BT25-051–060 | Luna assigned | `internal-docs/audits/BT25/BT25-051-060.md` | No |
 | BT25-061–070 | Unassigned | `internal-docs/audits/BT25/BT25-061-070.md` | No |
 | BT25-071–080 | Unassigned | `internal-docs/audits/BT25/BT25-071-080.md` | No |
@@ -89,17 +89,27 @@ applicable non-gate component rather than being rounded up.
 | BT25-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement and DNA behavior are represented, but the positive security watchers rely on named timing/subtrigger injection. |
 | BT25-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security play, departure replacement, deletion placement, redirect scope, decline, and once-per-turn paths are represented. |
 | BT25-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural accepted/declined security costs, direct effect-trash play, duration, stack behavior, and inherited scope are represented. |
+| BT25-041 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | A natural attack covers one play branch; nested cost modes and inherited End of Attack remain source-level or manually driven. |
+| BT25-042 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural On Play payment drives the security watcher, while shared immunity variants and same-target keyword behavior retain direct timing coverage. |
+| BT25-043 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Recovery/most-security and leave-replacement behavior rely on direct trigger invocation rather than complete natural origins. |
+| BT25-044 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement and bilateral trash sequencing are represented; reducer and watcher boundaries remain structural or primitive-origin. |
+| BT25-045 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Live Link paths cover placement and suspension, but the exact cost delta and decline comparison use an isolated runtime harness. |
+| BT25-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural On Play proves both distinct reveal pools and bottom-deck remainder; evolution and inherited Piercing have peer/stack evidence. |
+| BT25-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | A natural On Play proves Vegetation/Shaman and TS selection plus remainder handling; evolution and inherited aura have peer/stack evidence. |
+| BT25-048 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural digivolution and battle-win draw are represented, but the complete negative timing/frequency boundary remains incomplete. |
+| BT25-049 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry suspension is covered; the Glowing Dawn Option payment/reduction lacks a natural Option-use origin. |
+| BT25-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural On Play covers threshold and decline; When Digivolving and turn-expiry boundaries remain incomplete. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Assigned: 60
-- Integrated card audits: 40
+- Integrated card audits: 50
 - Corrected: 2
-- Provisional: 40
+- Provisional: 50
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 15
+- Blocked or ambiguous: 23
 - Remaining unassigned: 44
 
-BT25 static integration is complete through BT25-040. BT25-041 through
-BT25-060 are active across two Luna/xhigh lanes.
+BT25 static integration is complete through BT25-050. BT25-051 through
+BT25-060 remain active in the current Luna/xhigh lane.
