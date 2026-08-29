@@ -38,6 +38,8 @@ export const compiled: CompiledCard = {
             kind: "youHave",
             filter: {
               controllerDefault: "mine",
+              zone: "battleArea",
+              kind: ["Digimon"],
               nameOrTrait: [{ tokens: ["Merukimon", "Minervamon"], match: "nameExact" }],
             },
           },

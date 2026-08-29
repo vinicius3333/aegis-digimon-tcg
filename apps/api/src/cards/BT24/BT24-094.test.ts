@@ -28,7 +28,13 @@ describe("BT24-094 Central Town: Throne Room", () => {
         {
           kind: "Aura",
           effect: { kind: "keyword", keyword: { keyword: "Alliance" } },
-          while: { filter: { nameOrTrait: [{ tokens: ["Merukimon", "Minervamon"], match: "nameExact" }] } },
+          while: {
+            filter: {
+              zone: "battleArea",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Merukimon", "Minervamon"], match: "nameExact" }],
+            },
+          },
         },
       ],
     });
