@@ -24,12 +24,12 @@ provisional and capped at 8/10.
 | BT22-011–020 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-011-020.md` | Yes |
 | BT22-021–030 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-021-030.md` | Yes |
 | BT22-031–040 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-031-040.md` | Yes |
-| BT22-041–050 | Luna assigned | `internal-docs/audits/BT22/BT22-041-050.md` | No |
+| BT22-041–050 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-041-050.md` | Yes |
 | BT22-051–060 | Luna assigned | `internal-docs/audits/BT22/BT22-051-060.md` | No |
 | BT22-061–070 | Luna assigned | `internal-docs/audits/BT22/BT22-061-070.md` | No |
 | BT22-071–080 | Luna assigned | `internal-docs/audits/BT22/BT22-071-080.md` | No |
 | BT22-081–090 | Luna assigned | `internal-docs/audits/BT22/BT22-081-090.md` | No |
-| BT22-091–100 | Unassigned | `internal-docs/audits/BT22/BT22-091-100.md` | No |
+| BT22-091–100 | Luna assigned | `internal-docs/audits/BT22/BT22-091-100.md` | No |
 | BT22-101–102 | Unassigned | `internal-docs/audits/BT22/BT22-101-102.md` | No |
 
 ## Score model
@@ -84,17 +84,27 @@ applicable non-gate component rather than being rounded up.
 | BT22-038 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate evolution proves face-down scaling, ordered effects, and the shared budget. |
 | BT22-039 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Link source corrected to this stack; natural attack/play origins cover the scoped link behavior. |
 | BT22-040 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Token and reactivation shapes traced; positive deletion origin and token paths remain primitive/structural. |
+| BT22-041 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate evolution, security placement, reduced play, and suspension boundary cover the full behavior. |
+| BT22-042 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Chaperomon/controlled Arisa requirement corrected; reactivation deletion still uses a primitive. |
+| BT22-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inherited restack corrected to this stack; natural Main activation proves rotation, event, play, and draw. |
+| BT22-044 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inherited restack corrected to this stack; natural Main activation proves rotation, memory, and draw. |
+| BT22-045 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play with positive and unavailable placement paths proves the gated grants. |
+| BT22-046 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural CS evolution proves the Tamer boundary and free play on a legal stack. |
+| BT22-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution and surviving/simultaneous battle paths prove both clauses and the negative. |
+| BT22-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate evolution and normal play prove same-level positive/negative branches and inherited DP. |
+| BT22-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural end-turn path proves exact-three face-down cost, evolution, and two-card refusal. |
+| BT22-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural link and normal play prove public effects; Security battle path remains structural. |
 
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 90
-- Integrated card audits: 40
-- Corrected: 12
-- Provisional: 40
+- Assigned: 100
+- Integrated card audits: 50
+- Corrected: 15
+- Provisional: 50
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 35
-- Remaining unassigned: 12
+- Blocked or ambiguous: 37
+- Remaining unassigned: 2
 
 BT22 static auditing is in progress. Accepted ranges will be integrated in
 strict ascending order while later Luna lanes prepare in parallel.
