@@ -195,6 +195,8 @@ export interface TriggerInfo {
   deletedPermanentId?: string;
   /** Every permanent in the same simultaneous deletion action, captured before movement. */
   deletedPermanentIds?: string[];
+  /** Controller and top-card facts for every permanent in the simultaneous deletion action. */
+  deletedPermanentSnapshots?: Array<{ permanentId: string; controllerSeat: Seat; topCardId: string }>;
   /** Physical cards that became link cards in the current linking operation. */
   linkedInstanceIds?: string[];
   deletedInstanceIds?: string[];

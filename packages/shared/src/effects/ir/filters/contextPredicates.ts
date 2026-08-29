@@ -92,6 +92,12 @@ export interface ContextPredicates {
    */
   deletedByThisEffect?: boolean;
   /**
+   * Count/match permanents from the simultaneous deletion snapshot carried by the current
+   * `onDeletionOf` trigger. Unlike a live-board count, this remains available after the
+   * deleted permanents have moved and can still be narrowed by controller/card predicates.
+   */
+  deletedByTrigger?: boolean;
+  /**
    * Level equals the current attacker's, resolved at activation time; false when no attack is
    * in progress (EX12-069).
    */
