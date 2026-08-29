@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled as BT24_073 } from "./BT24-073.js";
 import "../index.js";
 
 describe("BT24-073 SkullSatamon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-073")).toMatchObject({
+      cardId: "BT24-073",
+      nameEn: "SkullSatamon",
+      colors: ["Purple"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 8,
+      dp: 8000,
+      forms: ["Ultimate"],
+      attributes: ["Virus"],
+      types: ["Undead", "Fallen Angel"],
+      evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }],
+    });
+  });
+
   it("makes the inherited Security Attack bonus an alternative to milling", () => {
     const inherited = BT24_073.effects?.find((entry) => entry.trigger === "WhenAttacking");
     expect(inherited?.actions?.[0]).toMatchObject({
