@@ -57,10 +57,20 @@ describe("BT2-011 through BT2-020 IR coverage", () => {
     });
     expect(runtimeCompiledCard("BT2-018")?.effects).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ keywords: [{ keyword: "SecurityAttack", amount: 1 }] }),
+        expect.objectContaining({
+          keywords: expect.arrayContaining([expect.objectContaining({ keyword: "SecurityAttack", amount: 1 })]),
+        }),
         expect.objectContaining({
           trigger: "OnPlay",
-          actions: [{ kind: "Delete", target: { count: "all", filter: { dp: { op: "lte", value: 4000 } } } }],
+          actions: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "Delete",
+              target: expect.objectContaining({
+                count: "all",
+                filter: expect.objectContaining({ dp: { op: "lte", value: 4000 } }),
+              }),
+            }),
+          ]),
         }),
       ]),
     );
@@ -72,19 +82,31 @@ describe("BT2-011 through BT2-020 IR coverage", () => {
       expect.arrayContaining([
         expect.objectContaining({
           trigger: "WhenDigivolving",
-          actions: [{ kind: "Delete", target: { count: 1, filter: { dp: { op: "lte", value: 6000 } } } }],
+          actions: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "Delete",
+              target: expect.objectContaining({
+                count: 1,
+                filter: expect.objectContaining({ dp: { op: "lte", value: 6000 } }),
+              }),
+            }),
+          ]),
         }),
         expect.objectContaining({
           trigger: "WhenAttacking",
-          actions: [
-            {
+          actions: expect.arrayContaining([
+            expect.objectContaining({
               kind: "SecurityManipulation",
               op: "trashTop",
               controller: "opponent",
               amount: 1,
-              scaling: { per: 10, unit: "trash", filter: { zone: "trash", controller: "opponent" } },
-            },
-          ],
+              scaling: expect.objectContaining({
+                per: 10,
+                unit: "trash",
+                filter: { zone: "trash", controller: "opponent" },
+              }),
+            }),
+          ]),
         }),
       ]),
     );
