@@ -1,6 +1,7 @@
 # BT26 Static Card Implementation Re-audit
 
-Status: static integration complete through BT26-100; audit assigned through BT26-104
+Status: static audit coverage and integration complete for all 104 cards;
+delivery gates remain unexecuted
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -36,7 +37,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT26-071–080 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-071-080.md` | Yes |
 | BT26-081–090 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-081-090.md` | Yes |
 | BT26-091–100 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-091-100.md` | Yes |
-| BT26-101–104 | Luna assigned | `internal-docs/audits/BT26/BT26-101-104.md` | No |
+| BT26-101–104 | Coordinator reviewed | `internal-docs/audits/BT26/BT26-101-104.md` | Yes |
 
 ## Score model
 
@@ -149,21 +150,25 @@ non-gate component rather than being rounded up.
 | BT26-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public Option use proves the indivisible named two-card cost, reductions, ordering, refusal, and legal DM contexts. |
 | BT26-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public Option play proves reveal/add/bottom behavior; later Delay evolution covers face-down, timing, level, and kind boundaries. |
 | BT26-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public Main/security paths prove face-up security lifecycle, Titan grants, zero-security behavior, name/trait split, and free play. |
+| BT26-101 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public Main and Security paths prove the TS waiver, conditional grants, live-DP modal deletion, unsuspend choice, and play limits. |
+| BT26-102 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public Security and mixed-source Main paths prove the exact six-card placement, ordering, optional Dantemon evolution, and return. |
+| BT26-103 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | A public Counter path and realistic Olympos stack exist; the security-removal reaction still uses a direct primitive origin. |
+| BT26-104 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Memory, Shambala cost/use, Tentei gate, refusal, and Security are traced; principal timing proofs call direct helpers. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Direct modules: 104
 - Assigned: 104
-- Integrated card audits: 100
+- Integrated card audits: 104
 - Corrected: 2
-- Provisional: 100
+- Provisional: 104
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 57
+- Blocked or ambiguous: 59
 - Remaining unassigned: 0
 
-The integrated provisional score subtotal is 735/1000 through BT26-100.
-BT26-101–104 remains active in the final Luna/xhigh audit lane while an
-independent BT26 static reconciliation runs in parallel. No
-collection-complete claim is made while the static audit and delivery gates
-remain incomplete.
+The final provisional static score subtotal is 765/1040 across all 104 catalog
+cards. The 11 expected range reports are integrated. The rejected temporary
+BT26-101/102/104 Security removals were restored byte-identically and count as
+zero net corrections. No collection-complete claim is made: executed delivery
+gates remain 0/2 for every card.
