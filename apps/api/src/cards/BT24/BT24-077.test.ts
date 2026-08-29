@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,25 @@ import { compiled as BT24_077 } from "./BT24-077.js";
 import "../index.js";
 
 describe("BT24-077 Revivemon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-077")).toMatchObject({
+      cardId: "BT24-077",
+      nameEn: "Revivemon",
+      colors: ["Purple", "Red"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 9,
+      dp: 9000,
+      forms: ["Ult.", "Appmon"],
+      attributes: ["System"],
+      types: ["Restoration"],
+      evoCosts: [
+        { color: "Purple", level: 4, memoryCost: 4 },
+        { color: "Red", level: 4, memoryCost: 4 },
+      ],
+    });
+  });
+
   it("links level 4 or lower cards from trash/stack and revives an Appmon on deletion", () => {
     for (const trigger of ["WhenDigivolving", "OnDeletion"]) {
       const action = BT24_077.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0] as any;
