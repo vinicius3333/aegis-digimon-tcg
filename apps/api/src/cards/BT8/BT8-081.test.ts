@@ -15,6 +15,7 @@ describe("BT8-081 Rasenmon Fury Mode", () => {
       ignoreReqs: true,
       payCost: false,
       optional: true,
+      into: { filter: { nameOrTrait: [{ tokens: ["Rasenmon"], match: "nameExact" }] } },
     });
   });
 

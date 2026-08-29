@@ -33,12 +33,15 @@ const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: {
-            fromSelectionRef: "samadhiSuspended",
+            sameTarget: true,
             filter: {
               controller: "opponent",
               suspended: true,
             },
             count: 1,
+          },
+          condition: {
+            kind: "ifThisEffectActed",
           },
           restriction: "unsuspend",
           duration: "untilOpponentTurnEnd",
