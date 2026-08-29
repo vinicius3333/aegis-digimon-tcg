@@ -11,7 +11,8 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: { controllerDefault: "mine" },
+          // "When effects place" excludes normal/manual stack additions.
+          sourceFilter: { controllerDefault: "mine", byEffect: true },
           triggerFilter: { isSelfRef: true },
           addedDigivolutionCardFilter: { nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
           actions: [
