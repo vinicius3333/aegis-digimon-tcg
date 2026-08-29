@@ -23,6 +23,7 @@ describe("BT8-102 Samadhi Shanti", () => {
 
     expect(s.perm("mine").isSuspended).toBe(true);
     expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
   });
 
   it("suspends an opposing Tamer from Security", async () => {
