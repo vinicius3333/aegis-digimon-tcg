@@ -29,7 +29,7 @@ provisional and capped at 8/10.
 | BT22-061–070 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-061-070.md` | Yes |
 | BT22-071–080 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-071-080.md` | Yes |
 | BT22-081–090 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-081-090.md` | Yes |
-| BT22-091–100 | Luna assigned | `internal-docs/audits/BT22/BT22-091-100.md` | No |
+| BT22-091–100 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-091-100.md` | Yes |
 | BT22-101–102 | Luna assigned | `internal-docs/audits/BT22/BT22-101-102.md` | No |
 
 ## Score model
@@ -134,16 +134,26 @@ applicable non-gate component rather than being rounded up.
 | BT22-088 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Return/Shoemon timing is direct and no natural Token/Puppet play watcher is proved. |
 | BT22-089 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play proves qualified discard/draw; return and play-cost boundaries remain structural. |
 | BT22-090 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Memory and end-turn evolution both use direct timing; natural turn-end/Security origin remains absent. |
+| BT22-091 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security timing is direct and natural attack/inherited redirect paths remain absent. |
+| BT22-092 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Watcher corrected to exact play/digivolve events; reactivation uses a direct event and synthetic Main stub. |
+| BT22-093 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Watcher corrected to native digivolution; event and same-level stack fixture remain manual/synthetic. |
+| BT22-094 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public play proves reveal and exact reduction; Security path remains structural. |
+| BT22-095 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security timing is direct; natural Eater watcher/Main placement/Mother Eater inheritance remain absent. |
+| BT22-096 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Main proves named play/placement; Yao suspension, Delay, and digivolution remain structural. |
+| BT22-097 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Field waiver corrected to battleArea/breeding; Appmon-play Delay/link and breeding waiver remain structural. |
+| BT22-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Main proves Shoemon play/placement; Arisa suspension, Delay, and digivolution remain structural. |
+| BT22-099 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Main proves reveal/placement; Delay activation and breeding waiver remain structural. |
+| BT22-100 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public Main proves security movement/face-up state; Security static/free-play origin remains structural. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 90
-- Corrected: 26
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 29
+- Provisional: 100
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 72
+- Blocked or ambiguous: 82
 - Remaining unassigned: 0
 
 BT22 static auditing is in progress. Accepted ranges will be integrated in
