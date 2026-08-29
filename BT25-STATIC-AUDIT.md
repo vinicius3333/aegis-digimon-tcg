@@ -1,6 +1,6 @@
 # BT25 Static Card Implementation Re-audit
 
-Status: static card-by-card audit active; coordinator integration complete through BT25-060
+Status: static card-by-card audit active; coordinator integration complete through BT25-070
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -15,8 +15,11 @@ order by the coordinator.
 
 ## Current execution state
 
-Tests, typecheck, lint, formatting, browser/UI checks, delivery gates, and
-`git diff --check` remain intentionally unexecuted. Every score is therefore
+Tests, typecheck, lint, formatting, browser/UI checks, and the focused,
+mechanism, and collection gates remain unexecuted. One accidental read-only
+`git diff --check` invocation occurred in the BT25-061–070 child before its
+semantic commit and returned no output; it is disclosed in that range report
+and does not constitute the full delivery-gate component. Every score remains
 provisional and capped at 8/10.
 
 All 104 direct BT25 modules currently contain `registerIrCard`; none contains
@@ -31,7 +34,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT25-031–040 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-031-040.md` | Yes |
 | BT25-041–050 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-041-050.md` | Yes |
 | BT25-051–060 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-051-060.md` | Yes |
-| BT25-061–070 | Luna assigned | `internal-docs/audits/BT25/BT25-061-070.md` | No |
+| BT25-061–070 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-061-070.md` | Yes |
 | BT25-071–080 | Unassigned | `internal-docs/audits/BT25/BT25-071-080.md` | No |
 | BT25-081–090 | Unassigned | `internal-docs/audits/BT25/BT25-081-090.md` | No |
 | BT25-091–100 | Unassigned | `internal-docs/audits/BT25/BT25-091-100.md` | No |
@@ -109,17 +112,27 @@ applicable non-gate component rather than being rounded up.
 | BT25-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected mandatory Then restriction after declined suspension; natural entry/attack and effect-play/digivolve paths cover the remaining sequence. |
 | BT25-059 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Removed stale keywords; natural behavior covers reducer threshold, either-side suspension, protection, and per-suspended-Digimon scaling. |
 | BT25-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Link/evolution covers accepted and declined processing, legal candidates, no-op unsuspend, grants, immunity, and cross-card isolation. |
+| BT25-061 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Restored the compiled Appmon Link cost-1 requirement; natural Link is covered, while the principal start-main effect uses the named timing seam. |
+| BT25-062 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q6364 memory, refusal, trait, evolution, and stack boundaries are represented, but free evolution starts from direct start-main timing. |
+| BT25-063 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and breeding movement prove both reveal origins, name/trait filters, remainder choice, evolution, and inherited DP. |
+| BT25-064 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play proves distinct Option/TS reveal selection and remainder handling; evolution and inherited Reboot have stack proof. |
+| BT25-065 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural suspend and player-attack paths cover Draw 1, memory loss, turn/target gates, evolution, and inherited DP. |
+| BT25-066 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link-card replacement costs, refusal, wrong-host rejection, evolution, and stack DP are represented through a production deletion primitive. |
+| BT25-067 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural self-play and matching peer plays prove Q6365, reduction/payment, refusal, turn/trait gates, evolution, and inherited DP. |
+| BT25-068 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Collision, self-only once-per-turn budgets, De-Digivolve, evolution, and stack DP are covered with primitive-origin suspension. |
+| BT25-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution proves free TS Link, legal-Link-card filtering, recipient and zone movement, Jamming, and inherited DP. |
+| BT25-070 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Restored the compiled Appmon Link cost-2 requirement; natural linked-face behavior is covered, while the Main Link uses a declaration seam. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Assigned: 70
-- Integrated card audits: 60
-- Corrected: 4
-- Provisional: 60
+- Integrated card audits: 70
+- Corrected: 6
+- Provisional: 70
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 25
+- Blocked or ambiguous: 30
 - Remaining unassigned: 34
 
-BT25 static integration is complete through BT25-060. BT25-061 through
-BT25-070 remain active in the current Luna/xhigh lane.
+BT25 static integration is complete through BT25-070. BT25-071 through
+BT25-104 remain in the coordinator-managed queue.
