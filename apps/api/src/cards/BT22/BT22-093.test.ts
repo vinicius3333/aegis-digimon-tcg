@@ -23,15 +23,20 @@ const OPPONENT_DIGIMON = "BT1-009"; // Monodramon — any Digimon works
 
 it("registers exclusive compiled IR for the same-level CS chain", () => {
   expect(compiled.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
-    timingOverride: "OnEnterFieldAnyone",
-    condition: {
-      kind: "allOf",
-      conditions: expect.arrayContaining([
-        expect.objectContaining({ kind: "triggerSubjectMatchesFilter" }),
-        { kind: "triggerSubjectStackHasSameLevel" },
-      ]),
-    },
-    actions: [{ kind: "CostGatedBlock", actions: [{ kind: "Digivolve", payCost: false }] }],
+    actions: [
+      {
+        kind: "SubTrigger",
+        event: "whenOneOfYoursDigivolves",
+        sourceFilter: expect.any(Object),
+        actions: [
+          {
+            kind: "Digivolve",
+            payCost: false,
+            condition: { kind: "triggerSubjectStackHasSameLevel" },
+          },
+        ],
+      },
+    ],
   });
 });
 
@@ -92,7 +97,11 @@ describe("BT22-093 [Your Turn] CS digivolution chain", () => {
     );
 
     const subject = s.perm("subject");
-    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: subject.permanentId });
+    await (
+      s.engine as unknown as {
+        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
+      }
+    ).fireSubTrigger("whenOneOfYoursDigivolves", { subjectPermanentId: subject.permanentId });
     await settle(() => s.perm("subject").topCard?.cardId === "BT22-013", 400);
 
     expect(s.perm("ami").isSuspended).toBe(true);
@@ -114,7 +123,11 @@ describe("BT22-093 [Your Turn] CS digivolution chain", () => {
       { autoDeclineOptional: true, autoSelectCards: true },
     );
 
-    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: s.perm("subject").permanentId });
+    await (
+      s.engine as unknown as {
+        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
+      }
+    ).fireSubTrigger("whenOneOfYoursDigivolves", { subjectPermanentId: s.perm("subject").permanentId });
     await settle(() => false, 80);
 
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
@@ -137,7 +150,11 @@ describe("BT22-093 [Your Turn] CS digivolution chain", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: s.perm("subject").permanentId });
+    await (
+      s.engine as unknown as {
+        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
+      }
+    ).fireSubTrigger("whenOneOfYoursDigivolves", { subjectPermanentId: s.perm("subject").permanentId });
     await settle(() => false, 80);
 
     expect(s.perm("ami").isSuspended).toBe(false);

@@ -25,7 +25,10 @@ const FLAME_DIGIMON = "BT15-009"; // Meramon — [Flame] trait
 
 it("registers exclusive compiled IR for play and digivolve reactivation", () => {
   const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn");
-  expect(effect).toMatchObject({ timingOverride: "OnEnterFieldAnyone" });
+  expect(effect?.actions).toEqual(expect.arrayContaining([
+    expect.objectContaining({ kind: "SubTrigger", event: "whenPlayed", sourceFilter: expect.any(Object) }),
+    expect.objectContaining({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves", sourceFilter: expect.any(Object) }),
+  ]));
   expect((effect?.actions[0] as any).actions[0]).toMatchObject({
     kind: "ReactivateEffect",
     fromTrigger: "Main",
@@ -119,9 +122,9 @@ describe("BT22-092 [Your Turn] Flame/CS Digimon enters -> suspend Jimmy, reactiv
 
     await (
       s.engine as unknown as {
-        fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
       }
-    ).fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: flameDigi.permanentId });
+    ).fireSubTrigger("whenPlayed", { subjectPermanentId: flameDigi.permanentId });
 
     await settle(() => fired > 0, 400);
 
@@ -144,9 +147,9 @@ describe("BT22-092 [Your Turn] Flame/CS Digimon enters -> suspend Jimmy, reactiv
 
     await (
       s.engine as unknown as {
-        fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
       }
-    ).fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: flameDigi.permanentId });
+    ).fireSubTrigger("whenPlayed", { subjectPermanentId: flameDigi.permanentId });
     await settle(() => false, 60);
 
     expect(s.decisions.some((d) => d.req.kind === "optional")).toBe(true);
@@ -166,9 +169,9 @@ describe("BT22-092 [Your Turn] Flame/CS Digimon enters -> suspend Jimmy, reactiv
 
     await (
       s.engine as unknown as {
-        fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+        fireSubTrigger(event: string, trigger?: Record<string, unknown>): Promise<void>;
       }
-    ).fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: other.permanentId });
+    ).fireSubTrigger("whenPlayed", { subjectPermanentId: other.permanentId });
     await settle(() => false, 60);
 
     expect(s.state.memory).toBe(5);

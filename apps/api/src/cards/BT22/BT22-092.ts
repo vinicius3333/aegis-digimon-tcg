@@ -15,21 +15,40 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "YourTurn",
-      timingOverride: "OnEnterFieldAnyone",
-      optional: true,
-      condition: {
-        kind: "allOf",
-        conditions: [{ kind: "isYourTurn" }, { kind: "triggerSubjectMatchesFilter", filter: flameOrCs }],
-      },
       actions: [
         {
-          kind: "CostGatedBlock",
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: flameOrCs,
           cost: {
             kind: "suspend",
             optional: true,
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
             raw: "by suspending this Tamer",
           },
+          optional: true,
+          abortOnDecline: true,
+          actions: [
+            { kind: "ReactivateEffect", fromTrigger: "Main", count: 1, targetSource: "triggerSubject" },
+            {
+              kind: "GainMemory",
+              amount: 1,
+              condition: { kind: "ifThisEffectActed", raw: "if this activated any effect" },
+            },
+          ],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: flameOrCs,
+          cost: {
+            kind: "suspend",
+            optional: true,
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "by suspending this Tamer",
+          },
+          optional: true,
+          abortOnDecline: true,
           actions: [
             { kind: "ReactivateEffect", fromTrigger: "Main", count: 1, targetSource: "triggerSubject" },
             {
