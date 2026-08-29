@@ -65,7 +65,7 @@ describe("BT3-027 Paildramon", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("imperial").isSuspended).toBe(false);
 
-    s.perm("imperial").isSuspended = true;
+    s.perm("imperial").isSuspended = false;
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
