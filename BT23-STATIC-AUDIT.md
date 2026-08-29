@@ -27,7 +27,7 @@ provisional and capped at 8/10.
 | BT23-031–040 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-031-040.md` | Yes |
 | BT23-041–050 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-041-050.md` | Yes |
 | BT23-051–060 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-051-060.md` | Yes |
-| BT23-061–070 | Luna assigned | `internal-docs/audits/BT23/BT23-061-070.md` | No |
+| BT23-061–070 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-061-070.md` | Yes |
 | BT23-071–080 | Luna assigned | `internal-docs/audits/BT23/BT23-071-080.md` | No |
 | BT23-081–090 | Luna assigned | `internal-docs/audits/BT23/BT23-081-090.md` | No |
 | BT23-091–100 | Luna assigned | `internal-docs/audits/BT23/BT23-091-100.md` | No |
@@ -105,16 +105,26 @@ applicable non-gate component rather than being rounded up.
 | BT23-058 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Leave replacement, suspension cost, tied lowest-cost deletion, Reboot, and Blocker are traced; suspension is injected. |
 | BT23-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | All three By clauses are optional and require an effect-placed battle-area Option; positive and decline timings are direct. |
 | BT23-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q5331 is scoped per borrowed BT23-045 On Play item, forcing its cost and trash-first/hand fallback without changing ordinary lenders. |
+| BT23-061 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Ghost-only Blocker grants and inherited memory are traced through direct timing and deletion primitives. |
+| BT23-062 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural inherited attack evolution is covered; start-main payment and negative use direct timing. |
+| BT23-063 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Undead/CS attack evolution and stack peers are traced, but the attack origin is directly fired. |
+| BT23-064 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Both By deletions retain optional decline and abort behavior; entry timing remains direct. |
+| BT23-065 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural hand Main setup is covered; deletion and inherited play depend on direct timing or primitives. |
+| BT23-066 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Trash-origin entry/play and Scapegoat are traced through direct timing and deletion primitives. |
+| BT23-067 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural reducer play, Blocker, Scapegoat, deletion boundaries, and CS evolution are covered; deletion timing is direct. |
+| BT23-068 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Trash-origin gating now uses the supported fireCondition and excludes natural hand evolution; positive origins remain primitive-driven. |
+| BT23-069 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural attacks prove accepted deletion, no-target end, and decline-before-self-delete while preserving the attack. |
+| BT23-070 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Highest-level deletion, suspended attack, Sleep Mode evolution, and exact alternate route are traced from direct When Digivolving timing. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 60
-- Corrected: 15
-- Provisional: 60
+- Integrated card audits: 70
+- Corrected: 16
+- Provisional: 70
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 45
+- Blocked or ambiguous: 54
 - Remaining unassigned: 0
 
 BT23 static auditing is prepared in parallel. Accepted ranges are integrated
