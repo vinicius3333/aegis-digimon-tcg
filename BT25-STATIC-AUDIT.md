@@ -1,6 +1,6 @@
 # BT25 Static Card Implementation Re-audit
 
-Status: static card-by-card audit prepared in parallel; BT24 retains integration priority
+Status: static card-by-card audit active; coordinator integration complete through BT25-020
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -9,9 +9,9 @@ the immutable committed card-catalog blob and reconciled with the 104 direct
 card modules in `apps/api/src/cards/BT25/`.
 
 This ledger follows the repository's `verify-card-implementation` protocol.
-Detailed English reports belong under `internal-docs/audits/BT25/`. BT25 work
-may be prepared while the already assigned BT24 tail is audited, but no BT25
-range will be integrated before BT24 static integration closes.
+Detailed English reports belong under `internal-docs/audits/BT25/`. BT24 static
+integration is closed; BT25 ranges are now reviewed and integrated in ascending
+order by the coordinator.
 
 ## Current execution state
 
@@ -26,7 +26,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT25-001–010 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-001-010.md` | Yes |
-| BT25-011–020 | Luna assigned | `internal-docs/audits/BT25/BT25-011-020.md` | No |
+| BT25-011–020 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-011-020.md` | Yes |
 | BT25-021–030 | Luna assigned | `internal-docs/audits/BT25/BT25-021-030.md` | No |
 | BT25-031–040 | Unassigned | `internal-docs/audits/BT25/BT25-031-040.md` | No |
 | BT25-041–050 | Unassigned | `internal-docs/audits/BT25/BT25-041-050.md` | No |
@@ -59,17 +59,27 @@ applicable non-gate component rather than being rounded up.
 | BT25-008 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Public play and breeding movement prove paid-count scaling; decline and inherited-turn edges remain manually driven. |
 | BT25-009 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Memory, trait/exclusion, evolution, and inherited DP boundaries are covered through manual Start of Main timing. |
 | BT25-010 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural eligible digivolution proves the cost reduction; exclusion, breeding, and inherited-turn edges remain structural. |
+| BT25-011 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play proves suspension and DNA digivolution; generic Raid runtime remains unresolved. |
+| BT25-012 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and digivolution origins cover the exact target union, Raid, DP gain, target reuse, and stack binding. |
+| BT25-013 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Cost/decline, recovery, blue-gated evolution, and inherited DP behavior align with Q6255–Q6257. |
+| BT25-014 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural behavior covers the optional hand cost, deletion boundary, no-deletion draw branch, and inherited attack deletion. |
+| BT25-015 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and battle prove deletion and inherited security trash; Q6261 source-survival gating was corrected. |
+| BT25-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural threshold, DP modification, attack origin, optional decisions, and evolution-stack behavior are represented. |
+| BT25-017 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural positive, negative, and boundary behavior covers the attack, trash cost, deletion, and gated evolution. |
+| BT25-018 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, DNA acceptance/decline, post-DNA attack, and inherited deletion behavior are represented. |
+| BT25-019 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/deletion and evolution are covered, but immunity assertions manually fire end-of-turn timing. |
+| BT25-020 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural cost thresholds, direct battles, trigger windows, decline, stack evolution, and security trash are represented. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Assigned: 30
-- Integrated card audits: 10
-- Corrected: 0
-- Provisional: 10
+- Integrated card audits: 20
+- Corrected: 1
+- Provisional: 20
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 6
+- Blocked or ambiguous: 8
 - Remaining unassigned: 74
 
-BT25 static integration is complete through BT25-010. BT25-011 through
-BT25-030 remain active across two Luna/xhigh lanes.
+BT25 static integration is complete through BT25-020. BT25-021 through
+BT25-030 remains active in its Luna/xhigh lane.
