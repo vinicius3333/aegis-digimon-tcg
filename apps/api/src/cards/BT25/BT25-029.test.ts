@@ -91,7 +91,7 @@ describe("BT25-029 MirageGaogamon", () => {
           ],
         },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     s.state.memory = 3;
     await s.ready();
@@ -103,13 +103,42 @@ describe("BT25-029 MirageGaogamon", () => {
         instanceId: s.inst("mirage").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const firstDecision = s.state.pendingDecision!;
+    expect(firstDecision.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(
-      () => s.perm("base").topCard.cardId === "BT25-029" && s.state.pendingDecision === undefined,
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision.decisionId !== firstDecision.decisionId,
+    );
+    const secondDecision = s.state.pendingDecision!;
+    expect(secondDecision.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === "BT25-029" &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("firstTarget").instanceId),
     );
 
+    expect(s.state.players[1]!.hand).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("firstTarget").instanceId }),
+    );
     expect(s.state.players[1]!.battleArea).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ topCard: expect.objectContaining({ instanceId: s.inst("firstTarget").instanceId }) }),
         expect.objectContaining({ topCard: expect.objectContaining({ instanceId: s.inst("secondTarget").instanceId }) }),
       ]),
     );
