@@ -21,7 +21,7 @@ describe("BT22-036 Chaperomon", () => {
         kind: "placeFromTrash",
         position: "bottom",
         destination: "digivolutionStack",
-        hostFilter: { nameOrTrait: [{ tokens: ["Shoemon"], match: "name" }] },
+        hostFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Shoemon"], match: "name" }] },
       },
       into: { isSelfRef: true },
       cost: 3,
@@ -102,6 +102,39 @@ describe("BT22-036 Chaperomon", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("shoemon").stack.map((card) => card.cardId)).toEqual(["BT22-032", "EX7-024"]);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("invalid").instanceId]);
+  });
+
+  it("does not use an opponent's Shoemon as the placement host", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-063", as: "arisa" }],
+          hand: [{ card: "BT22-036", as: "chaperomon" }],
+          trash: [{ card: "BT22-032", as: "shoeShoemon" }],
+        },
+        1: { battleArea: [{ card: "EX7-024", as: "opponentShoemon" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const source = (s.engine as any).cardSourceOf(s.inst("chaperomon"));
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-036/"),
+    )?.effectKey;
+    expect(effectKey).toBeDefined();
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("chaperomon").instanceId,
+        effectKey: effectKey!,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("opponentShoemon").topCard?.cardId).toBe("EX7-024");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("shoeShoemon").instanceId)).toBe(true);
   });
 
   it("uses Overclock by deleting another Puppet and attacks without suspending", async () => {
