@@ -1,13 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-101.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-101 compiled fidelity", () => {
-  it("preserves the TS waiver, conditional grant, modal, and Security play with the DP seam explicit", () => {
+  it("preserves the TS waiver, conditional grant, and modal DP seam without an unprinted Security effect", () => {
     const card = compiled;
     expect(getCardDefinition("BT26-101")).toMatchObject({
       nameEn: "Cross Arts",
@@ -21,18 +20,7 @@ describe("BT26-101 compiled fidelity", () => {
     expect(card.effects.find((effect) => effect.trigger === "Static")).toMatchObject({
       actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave" } }],
     });
-    expect(card?.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({
-      isSecurity: true,
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          from: ["hand", "trash"],
-          payCost: false,
-          optional: true,
-          target: { filter: { playCostLte: 4, nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } },
-        },
-      ],
-    });
+    expect(card?.effects?.find((effect) => effect.trigger === "Security")).toBeUndefined();
     expect(card.effects.find((effect) => effect.trigger === "Main")?.actions).toMatchObject([
       { kind: "GainKeyword", keyword: { keyword: "Blocker" } },
       { kind: "ModifyDP", amount: 3000 },
@@ -64,66 +52,6 @@ describe("BT26-101 compiled fidelity", () => {
     });
     await settle(() => withTs.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-101"));
     expect(withTs.state.memory).toBe(0);
-  });
-
-  it("publicly plays an eligible TS card from hand during the Security effect", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          security: [{ card: "BT26-101", as: "option", faceUp: true }],
-          hand: [{ card: "BT26-009", as: "tsCard" }],
-          battleArea: [{ card: "BT26-030", as: "tsSource" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-009");
-  });
-
-  it("plays an eligible TS Tamer from trash during the Security effect", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          security: [{ card: "BT26-101", as: "option", faceUp: true }],
-          trash: [{ card: "BT26-087", as: "tsTamer" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-
-    expect(
-      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("tsTamer").instanceId),
-    ).toBe(true);
-  });
-
-  it("does not play non-TS or over-cost cards from the Security effect", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          security: [{ card: "BT26-101", as: "option", faceUp: true }],
-          hand: [
-            { card: "BT26-009", as: "eligibleTs" },
-            { card: "BT1-009", as: "nonTs" },
-          ],
-          trash: [{ card: "BT26-011", as: "overCostTs" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-009")).toBe(true);
-    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-009")).toBe(true);
-    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT26-011")).toBe(true);
   });
 
   it("applies the named-Tamer bonus before using the chosen TS Digimon's DP to delete", async () => {
