@@ -75,7 +75,7 @@ describe("BT25-027 MachGaogamon", () => {
         },
         1: { battleArea: [{ card: "BT1-010", as: "target" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     s.state.memory = 3;
     await s.ready();
@@ -87,15 +87,38 @@ describe("BT25-027 MachGaogamon", () => {
         instanceId: s.inst("mach").instanceId,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const firstDecision = s.state.pendingDecision!;
+    expect(firstDecision.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(
-      () => s.perm("base").topCard.cardId === "BT25-027" && s.state.pendingDecision === undefined,
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision.decisionId !== firstDecision.decisionId,
+    );
+    const secondDecision = s.state.pendingDecision!;
+    expect(secondDecision.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === "BT25-027" &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId),
     );
 
-    expect(s.state.players[1]!.battleArea).toContainEqual(
-      expect.objectContaining({
-        topCard: expect.objectContaining({ instanceId: s.inst("target").instanceId }),
-      }),
-    );
+    expect(s.state.players[1]!.hand).toContainEqual(expect.objectContaining({ instanceId: s.inst("target").instanceId }));
     expect(s.perm("base").isSuspended).toBe(true);
     expect(s.perm("tamer").stack).toHaveLength(1);
     expect(s.state.players[0]!.trash).not.toContainEqual(
