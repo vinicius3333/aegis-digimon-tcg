@@ -31,7 +31,7 @@ provisional and capped at 8/10.
 | BT23-071–080 | Luna assigned | `internal-docs/audits/BT23/BT23-071-080.md` | No |
 | BT23-081–090 | Luna assigned | `internal-docs/audits/BT23/BT23-081-090.md` | No |
 | BT23-091–100 | Luna assigned | `internal-docs/audits/BT23/BT23-091-100.md` | No |
-| BT23-101–102 | Unassigned | `internal-docs/audits/BT23/BT23-101-102.md` | No |
+| BT23-101–102 | Luna assigned | `internal-docs/audits/BT23/BT23-101-102.md` | No |
 
 ## Score model
 
@@ -99,13 +99,13 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 100
+- Assigned: 102
 - Integrated card audits: 50
 - Corrected: 5
 - Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 37
-- Remaining unassigned: 2
+- Remaining unassigned: 0
 
 BT23 static auditing is prepared in parallel. Accepted ranges are integrated
 in strict ascending BT23 order.
