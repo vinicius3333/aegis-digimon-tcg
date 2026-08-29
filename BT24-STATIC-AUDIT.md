@@ -28,7 +28,7 @@ provisional and capped at 8/10.
 | BT24-041–050 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-041-050.md` | Yes |
 | BT24-051–060 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-051-060.md` | Yes |
 | BT24-061–070 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-061-070.md` | Yes |
-| BT24-071–080 | Luna assigned | `internal-docs/audits/BT24/BT24-071-080.md` | No |
+| BT24-071–080 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-071-080.md` | Yes |
 | BT24-081–090 | Luna assigned | `internal-docs/audits/BT24/BT24-081-090.md` | No |
 | BT24-091–100 | Luna assigned | `internal-docs/audits/BT24/BT24-091-100.md` | No |
 | BT24-101–102 | Luna assigned | `internal-docs/audits/BT24/BT24-101-102.md` | No |
@@ -115,16 +115,26 @@ applicable non-gate component rather than being rounded up.
 | BT24-068 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/evolution/attack proves dual reveal categories, hand trash, remainder, and both-deck mill. |
 | BT24-069 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural digivolution/attack covers discard branches and aura threshold; When Moving remains manually fired. |
 | BT24-070 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, digivolution, hand gate, trash Tamer play, and inherited attack cover the printed clauses. |
+| BT24-071 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link boundaries and deletion behavior are covered, while the relevant timing and deletion origin remain manually driven. |
+| BT24-072 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Trigger scope and deletion behavior are covered through direct trigger and deletion origins. |
+| BT24-073 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Deletion and digivolution branches are observable, but their timing origins remain manually fired. |
+| BT24-074 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Deletion revival and its boundaries are covered through a direct deletion origin. |
+| BT24-075 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | All four filters now use runtime-supported `levels`; natural play/evolution is covered, while direct triggers and inherited-stack setup remain. |
+| BT24-076 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry and deletion clauses are covered, but both are exercised through direct timing origins. |
+| BT24-077 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Deletion branches and their boundaries are covered through direct timing and deletion origins. |
+| BT24-078 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Subtrigger and budget behavior are observable through a directly supplied subtrigger origin. |
+| BT24-079 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Timing and reactivation behavior are covered, while the central timing remains manually fired. |
+| BT24-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Trash and deletion behavior is covered through directly supplied timing and deletion origins. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 70
-- Corrected: 4
-- Provisional: 70
+- Integrated card audits: 80
+- Corrected: 5
+- Provisional: 80
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 55
+- Blocked or ambiguous: 65
 - Remaining unassigned: 0
 
 BT24 static auditing is prepared across five parallel Luna/xhigh lanes.
