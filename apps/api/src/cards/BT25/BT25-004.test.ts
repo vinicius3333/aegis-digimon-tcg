@@ -5,6 +5,7 @@ import {
   Permanent,
   CardInstance,
   EffectTiming,
+  getCardDefinition,
   type Seat,
   type ServerEvent,
   type CompiledCard,
@@ -239,6 +240,20 @@ function withoutGrant(compiled: CompiledCard): CompiledCard {
 }
 
 describe("BT25-004 Tapmon — cross-actor WhenWouldLink link-cost reduction (documented behavior documented rule)", () => {
+  it("matches the catalog identity and Appmon Tool traits", () => {
+    expect(getCardDefinition("BT25-004")).toMatchObject({
+      cardId: "BT25-004",
+      nameEn: "Tapmon",
+      colors: ["Green"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      playCost: -1,
+      forms: ["Appmon"],
+      attributes: ["Tool"],
+      types: ["Tap"],
+    });
+  });
+
   it("authors a GrantLinkCostReduction action (amount 1, Social/Tool/Game) on its [Your Turn] clause", () => {
     const grants = (BT25_004.effects ?? [])
       .flatMap((e) => e.actions ?? [])
