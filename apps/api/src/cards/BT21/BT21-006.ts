@@ -24,7 +24,7 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "selfDigivolutionStackCountAtLeast",
             count: 4,
-          filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
+            filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "nameExact" }] },
           },
         },
       ],
