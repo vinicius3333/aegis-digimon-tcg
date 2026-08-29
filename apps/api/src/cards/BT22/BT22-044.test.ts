@@ -26,7 +26,19 @@ describe("BT22-044 Palmon", () => {
   it("retains the once-per-turn inherited draw placement cost", () => {
     const inherited = compiled.effects.find((entry) => entry.isInherited);
     expect(inherited).toMatchObject({ frequency: "OncePerTurn" });
-    expect(inherited?.actions[0]).toMatchObject({ kind: "Draw", amount: 1, optional: true });
+    expect(inherited?.actions[0]).toMatchObject({
+      kind: "Draw",
+      amount: 1,
+      optional: true,
+      cost: {
+        kind: "place",
+        target: {
+          filter: { isSelfRef: true, controllerDefault: "mine", kind: ["Digimon"] },
+          count: 1,
+          isSelf: true,
+        },
+      },
+    });
   });
 
   it("implements Q4896 by exposing Palmon, gaining memory, and drawing", async () => {
