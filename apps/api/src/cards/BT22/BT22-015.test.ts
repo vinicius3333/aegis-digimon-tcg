@@ -11,6 +11,39 @@ describe("BT22-015 Omnimon", () => {
       expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] }),
     );
     expect(compiled.effects.filter((entry) => entry.trigger === "Static")).toHaveLength(3);
+    const decodeReplacements = compiled.effects
+      .filter((entry) => entry.trigger === "AllTurns")
+      .flatMap((entry) => entry.actions)
+      .filter((action) => action.kind === "Replacement");
+    expect(decodeReplacements).toHaveLength(2);
+    expect(decodeReplacements[0]).toMatchObject({
+      event: "wouldLeavePlay",
+      sourceFilter: { isSelfRef: true },
+      leaveCause: "otherThanBattle",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["digivolutionCards"],
+          payCost: false,
+          playedByDecode: true,
+          target: { filter: { kind: ["Digimon"], levels: [3], colors: ["Red", "Black"] }, count: 1 },
+        },
+      ],
+    });
+    expect(decodeReplacements[1]).toMatchObject({
+      event: "wouldLeavePlay",
+      sourceFilter: { isSelfRef: true },
+      leaveCause: "otherThanBattle",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["digivolutionCards"],
+          payCost: false,
+          playedByDecode: true,
+          target: { filter: { kind: ["Digimon"], levels: [3], colors: ["Blue", "Yellow"] }, count: 1 },
+        },
+      ],
+    });
     const onPlay = compiled.effects.find((entry) => entry.trigger === "OnPlay");
     const whenAttacking = compiled.effects.find((entry) => entry.trigger === "WhenAttacking");
     expect(onPlay?.actions[0]).toMatchObject({
