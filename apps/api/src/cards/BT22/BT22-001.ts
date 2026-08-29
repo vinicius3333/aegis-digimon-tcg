@@ -11,7 +11,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
-          sourceFilter: { controllerDefault: "mine" },
+          // The printed trigger is explicitly effect-driven; ordinary evolution/manual
+          // placement also emits onAddDigivolutionCards but must not activate this watcher.
+          sourceFilter: { controllerDefault: "mine", byEffect: true },
           triggerFilter: { isSelfRef: true },
           addedDigivolutionCardFilter: {
             nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }],
