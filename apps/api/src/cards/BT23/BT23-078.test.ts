@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT23-078.js";
 
 describe("BT23-078 Gorou Matayoshi", () => {
@@ -92,5 +92,24 @@ describe("BT23-078 Gorou Matayoshi", () => {
     });
     await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("subject").permanentId });
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT23-078")).toBe(false);
+  });
+
+  it("reacts to a CS Digimon even when it also has the Sea Animal trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-078", as: "gorou" }],
+          hand: [{ card: "BT23-023", as: "whamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT23-078"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT23-078")).toBe(true);
+    expect(s.perm("whamon").currentDP).toBe(12000);
   });
 });
