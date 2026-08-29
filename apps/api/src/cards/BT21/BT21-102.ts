@@ -52,25 +52,19 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "CostModifier",
-          mode: "raiseCeiling",
-          costType: "playcost",
-          amount: 1,
-          scaling: {
-            per: 1,
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-            },
-            unit: "colors",
-          },
-        },
-        {
           kind: "PlayWithoutCost",
           target: {
             filter: {
               controller: "mine",
               playCostLte: 2,
+              playCostLteScaling: {
+                per: 1,
+                filter: {
+                  controller: "mine",
+                  kind: ["Tamer"],
+                },
+                unit: "colors",
+              },
               nameOrTrait: [
                 {
                   tokens: ["ADVENTURE", "Hero"],
