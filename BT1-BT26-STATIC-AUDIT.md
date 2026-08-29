@@ -145,3 +145,19 @@ collection tests, typecheck, lint/formatting, browser/UI validation where
 applicable, and clean delivery-gate execution remain deliberately outside this
 campaign. Until those gates are authorized and pass, no collection-complete
 notification or Orca completed status is justified.
+
+## Delivery record
+
+The aggregate reconciliation and BT25 arithmetic correction were committed in
+`2f0c31e2180256723b2abc3d67892b79f3cb5f80` and pushed normally to
+`origin/audit-bt-card-by-card`. After removing an unrelated zero-byte,
+untracked `direct` artifact that appeared during coordination, ordinary status
+was clean; local HEAD and upstream were exact at that commit and divergence
+was `0 0`.
+
+Two Luna/xhigh reconciliation lanes independently confirmed the catalog,
+report, module/registration, score, below-8, and correction totals using only
+read-only inspection. They created no files or commits. No prohibited test,
+typecheck, lint, formatter, browser/UI, focused/mechanism/collection gate, or
+`git diff --check` was executed during reconciliation. This additive closeout
+records delivery facts only and does not make a collection-complete claim.
