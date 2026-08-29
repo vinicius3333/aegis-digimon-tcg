@@ -129,6 +129,7 @@ export const compiled: CompiledCard = {
               optional: true,
             },
           ],
+          optional: true,
         },
       ],
     },
