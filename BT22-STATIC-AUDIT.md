@@ -30,7 +30,7 @@ provisional and capped at 8/10.
 | BT22-071–080 | Luna assigned | `internal-docs/audits/BT22/BT22-071-080.md` | No |
 | BT22-081–090 | Luna assigned | `internal-docs/audits/BT22/BT22-081-090.md` | No |
 | BT22-091–100 | Luna assigned | `internal-docs/audits/BT22/BT22-091-100.md` | No |
-| BT22-101–102 | Unassigned | `internal-docs/audits/BT22/BT22-101-102.md` | No |
+| BT22-101–102 | Luna assigned | `internal-docs/audits/BT22/BT22-101-102.md` | No |
 
 ## Score model
 
@@ -98,13 +98,13 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 100
+- Assigned: 102
 - Integrated card audits: 50
 - Corrected: 15
 - Provisional: 50
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 37
-- Remaining unassigned: 2
+- Remaining unassigned: 0
 
 BT22 static auditing is in progress. Accepted ranges will be integrated in
 strict ascending order while later Luna lanes prepare in parallel.
