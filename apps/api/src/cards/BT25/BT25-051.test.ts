@@ -1,9 +1,31 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_051 } from "./BT25-051.js";
 import "../index.js";
 
-describe("BT25-051 Kyubimon", () => {
-  it("boosts an eligible allied Digimon and draws after its own battle win", () => {
+describe("BT25-051 Grizzlymon", () => {
+  it("matches the catalog identity and every printed clause", () => {
+    expect(getCardDefinition("BT25-051")).toMatchObject({
+      cardId: "BT25-051",
+      nameEn: "Grizzlymon",
+      colors: ["Green", "Black"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 4000,
+      evoCosts: [
+        { color: "Green", level: 3, memoryCost: 3 },
+        { color: "Black", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Vaccine"],
+      types: ["Beast", "Iliad", "TS"],
+      rarity: "C",
+      maxCountInDeck: 4,
+      dualEffect: "Grizzlymon",
+    });
     expect(BT25_051.effects?.find((entry) => entry.trigger === "Static")?.keywords).toEqual([
       { keyword: "Blocker", raw: "＜Blocker＞" },
     ]);
@@ -32,5 +54,63 @@ describe("BT25-051 Kyubimon", () => {
       event: "whenBattleWon",
       sourceFilter: { isSelfRef: true },
     });
+  });
+
+  it("naturally gives one eligible allied Digimon +3000 DP and excludes a near-match", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-051", as: "grizzly" }],
+          battleArea: [
+            { card: "BT25-047", as: "eligible" },
+            { card: "BT25-046", as: "nearMatch" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("eligible").permanentId);
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grizzly").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("eligible").currentDP === 5000);
+
+    expect(s.perm("eligible").currentDP).toBe(5000);
+    expect(s.perm("nearMatch").currentDP).toBe(2000);
+  });
+
+  it("naturally draws when the Digimon carrying Grizzlymon wins a battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT25-055",
+              as: "attacker",
+              under: [{ card: "BT25-051", as: "inherited" }],
+            },
+          ],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+
+    expect(s.state.players[0]!.hand).toContainEqual(s.inst("drawn"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
