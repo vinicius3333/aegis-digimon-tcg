@@ -48,8 +48,6 @@ describe("BT21-022 Canoweissmon", () => {
                 host: "self",
                 raw: "By placing 1 Digimon card with [Gammamon] in its text from your hand as this Digimon's bottom digivolution card",
               },
-              optional: true,
-              abortOnDecline: true,
             },
           ],
         }),
@@ -118,30 +116,25 @@ describe("BT21-022 Canoweissmon", () => {
     expect(s.state.memory).toBe(3);
   });
 
-  it("does not pay with a nonmatching card and permits declining the placement cost", async () => {
-    for (const [material, options] of [
-      ["BT1-009", { autoAcceptOptional: true, autoSelectCards: true }],
-      ["BT21-019", { autoDeclineOptional: true }],
-    ] as const) {
-      const s = setupEngine(
-        {
-          0: {
-            hand: [
-              { card: "BT21-022", as: "canoweissmon" },
-              { card: material, as: "material" },
-            ],
-          },
-          1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }] },
+  it("does not delete when no qualifying Gammamon-text card can pay the mandatory placement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-022", as: "canoweissmon" },
+            { card: "BT1-009", as: "material" },
+          ],
         },
-        options,
-      );
-      s.state.memory = 10;
-      await s.ready();
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("canoweissmon").instanceId });
-      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-022"));
-      expect(s.state.players[1]!.battleArea).toHaveLength(1);
-      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("material").instanceId);
-    }
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("canoweissmon").instanceId });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-022"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("material").instanceId);
   });
 
   it("prevents one opponent-effect deletion only after trashing exactly 3 Digimon sources", async () => {
