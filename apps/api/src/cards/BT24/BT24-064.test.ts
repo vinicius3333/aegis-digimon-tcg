@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -6,6 +7,25 @@ import { compiled as BT24_064 } from "./BT24-064.js";
 import "../index.js";
 
 describe("BT24-064 Ouryumon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-064")).toMatchObject({
+      cardId: "BT24-064",
+      nameEn: "Ouryumon",
+      colors: ["Black", "Green"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 12,
+      dp: 12000,
+      forms: ["Mega"],
+      attributes: ["Vaccine"],
+      types: ["Beast Dragon", "X Antibody", "DigiPolice", "SEEKERS"],
+      evoCosts: [
+        { color: "Black", level: 5, memoryCost: 4 },
+        { color: "Green", level: 5, memoryCost: 4 },
+      ],
+    });
+  });
+
   it("triggers De-Digivolve when any Digimon or Tamer suspends", () => {
     const allTurns = BT24_064.effects?.find((entry) => entry.trigger === "AllTurns");
     const subTrigger = allTurns?.actions?.[0] as any;
