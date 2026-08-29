@@ -39,7 +39,7 @@ describe("BT23-089 Takumi Aiba", () => {
       .find((entry) => entry.trigger === "AllTurns")
       ?.actions?.find((action) => action.kind === "Replacement") as any;
 
-    expect(replacement).toMatchObject({ kind: "Replacement", event: "wouldLeavePlay", optional: true });
+    expect(replacement).toMatchObject({ kind: "Replacement", event: "wouldLeavePlay", mode: "prevent", optional: true });
     expect(replacement.cost).toMatchObject({
       kind: "compound",
       costs: [
