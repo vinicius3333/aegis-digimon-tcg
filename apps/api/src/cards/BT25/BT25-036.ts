@@ -8,6 +8,31 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "hand",
+                nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 [Appmon] trait card from your hand",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
+    {
       trigger: "Security",
       timing: "endOfBattle",
       isSecurity: true,
@@ -74,6 +99,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
   appFusionRequirement: [
     {
       names: ["Kabemon", "Gomimon", "Ecomon", "Puzzlemon"],
