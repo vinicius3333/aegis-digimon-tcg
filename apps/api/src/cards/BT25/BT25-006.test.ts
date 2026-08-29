@@ -1,10 +1,24 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_006 } from "./BT25-006.js";
 import "../index.js";
 
 describe("BT25-006 Dorimon", () => {
+  it("matches the catalog identity and Titan TS traits", () => {
+    expect(getCardDefinition("BT25-006")).toMatchObject({
+      cardId: "BT25-006",
+      nameEn: "Dorimon",
+      colors: ["Purple"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      playCost: -1,
+      forms: ["In-Training"],
+      types: ["Lesser", "X Antibody", "Titan", "TS"],
+    });
+  });
+
   it("trashes one hand card when the opponent attacks, then unsuspends one Titan Digimon", () => {
     const effect = BT25_006.effects?.find((entry) => entry.isInherited);
     expect(effect).toMatchObject({ trigger: "OpponentsTurn", frequency: "OncePerTurn" });
