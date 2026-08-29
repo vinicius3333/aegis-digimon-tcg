@@ -81,12 +81,14 @@ export const compiled: CompiledCard = {
               kind: "PlaceUnder",
               target: {
                 filter: {
+                  kind: ["Digimon"],
                   nameOrTrait: [
                     {
                       tokens: ["Xros Heart", "Blue Flare"],
                       match: "trait",
                     },
                   ],
+                  hostFilter: { isSelfRef: true },
                 },
                 count: 4,
                 upTo: true,
@@ -95,6 +97,7 @@ export const compiled: CompiledCard = {
               underFilter: {
                 controller: "mine",
                 kind: ["Tamer"],
+                excludeToken: true,
               },
             },
           ],
@@ -108,7 +111,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["ZeigGreymon"],
+      namesExact: ["ZeigGreymon"],
       cost: 2,
       isAlternate: true,
     },
@@ -122,7 +125,7 @@ export const compiled: CompiledCard = {
   digiXrosRequirement: [
     {
       materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }],
-      count: 2,
+      count: 3,
     },
   ],
 };

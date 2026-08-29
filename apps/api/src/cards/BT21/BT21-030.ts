@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
               kind: "SelectBind",
               target: {
                 filter: {
-                  nameOrTrait: [{ tokens: ["Shoutmon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Shoutmon"], match: "nameExact" }],
                   controller: "mine",
                   zone: "battleArea",
                 },
