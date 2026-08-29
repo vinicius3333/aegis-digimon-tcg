@@ -87,6 +87,7 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
     watcherHost.stack.push(instance("BT20-080", 0, false)); // the inherited-effect-bearing copy
     p0.battleArea.push(watcherHost);
     const attacker = digimon(0, 9000, "BT1-009"); // vanilla attacker — defender really dies
+    attacker.enterFieldTurnCount = -1;
     p0.battleArea.push(attacker);
 
     const defender = digimon(1, 5000, "BT1-013"); // dies to the 9000 attacker -> onDeletionOf fires
@@ -149,6 +150,7 @@ describe("Lane R6 — SubTriggerEvent dead-clause fixes", () => {
     const watcherHost = digimon(0, 3000);
     p0.battleArea.push(watcherHost);
     const opponentAttacker = digimon(1, 5000);
+    opponentAttacker.enterFieldTurnCount = -1;
     p1.battleArea.push(opponentAttacker);
 
     let correctFired = 0;
