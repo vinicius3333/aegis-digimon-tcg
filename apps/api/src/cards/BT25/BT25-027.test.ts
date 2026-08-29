@@ -19,10 +19,10 @@ describe("BT25-027 MachGaogamon", () => {
       });
       expect(effect?.actions?.[1]).toMatchObject({
         kind: "Unsuspend",
+        optional: true,
         abortOnDecline: true,
         cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
       });
-      expect(effect?.actions?.[1]).not.toHaveProperty("optional");
     }
   });
 
@@ -61,6 +61,46 @@ describe("BT25-027 MachGaogamon", () => {
     expect(s.perm("tamer").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash).toContainEqual(expect.objectContaining({ instanceId: s.inst("cost").instanceId }));
     expect(s.state.memory).toBe(0);
+  });
+
+  it("does not pay the processing cost when the follow-up is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-023", as: "base", suspended: true },
+            { card: "BT25-087", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+          ],
+          hand: [{ card: "BT25-027", as: "mach" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mach").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("base").topCard.cardId === "BT25-027" && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.battleArea).toContainEqual(
+      expect.objectContaining({
+        topCard: expect.objectContaining({ instanceId: s.inst("target").instanceId }),
+      }),
+    );
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.perm("tamer").stack).toHaveLength(1);
+    expect(s.state.players[0]!.trash).not.toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
+    );
   });
 
   it("protects the source and the inherited Gaogamon/DATA SQUAD target", () => {
