@@ -29,6 +29,7 @@ describe("BT24-014 Aegiochusmon", () => {
       expect(replacement.actions[0]).toMatchObject({
         kind: "PlayWithoutCost",
         from: ["digivolutionCards"],
+        fromOwnDigivolutionStack: true,
         optional: true,
         playedByDecode: true,
       });
