@@ -26,7 +26,7 @@ provisional and capped at 8/10.
 | BT22-031–040 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-031-040.md` | Yes |
 | BT22-041–050 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-041-050.md` | Yes |
 | BT22-051–060 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-051-060.md` | Yes |
-| BT22-061–070 | Luna assigned | `internal-docs/audits/BT22/BT22-061-070.md` | No |
+| BT22-061–070 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-061-070.md` | Yes |
 | BT22-071–080 | Luna assigned | `internal-docs/audits/BT22/BT22-071-080.md` | No |
 | BT22-081–090 | Luna assigned | `internal-docs/audits/BT22/BT22-081-090.md` | No |
 | BT22-091–100 | Luna assigned | `internal-docs/audits/BT22/BT22-091-100.md` | No |
@@ -104,16 +104,26 @@ applicable non-gate component rather than being rounded up.
 | BT22-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Appmon linking proves When Linking and the linked-source return restriction. |
 | BT22-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play proves cost-ceiling deletion; inherited token reaction remains primitive-driven. |
 | BT22-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution proves face-down scaling and immunity; opponent-chosen attack remains structural. |
+| BT22-061 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural face-down evolution and ordered effects traced; inherited redirect and attack timing remain incomplete. |
+| BT22-062 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural alternate evolution proves DP/restriction; end-opponent-turn chosen attack remains structural. |
+| BT22-063 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural attack proves unconditional unsuspend; reduction and conditional boost branches remain incomplete. |
+| BT22-064 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution/token play proves lowest-cost watcher; When Attacking token path remains uncovered. |
+| BT22-065 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play/deletion proves free CS evolution; simultaneous-deletion negative remains primitive-driven. |
+| BT22-066 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Natural play proves suspension watcher; Blast/unsuspend and a legal evolution stack remain incomplete. |
+| BT22-067 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Natural play/attack/reveal path traced; buff branches and a legal evolution stack remain incomplete. |
+| BT22-068 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Natural play proves trash recovery; inherited battle path and legal evolution stack remain incomplete. |
+| BT22-069 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Inherited restack corrected to this host; public activation uses a manually assembled stack. |
+| BT22-070 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural alternate evolution proves deletion; attack evolution and inherited battle memory remain structural. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 60
-- Corrected: 19
-- Provisional: 60
+- Integrated card audits: 70
+- Corrected: 20
+- Provisional: 70
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 43
+- Blocked or ambiguous: 53
 - Remaining unassigned: 0
 
 BT22 static auditing is in progress. Accepted ranges will be integrated in
