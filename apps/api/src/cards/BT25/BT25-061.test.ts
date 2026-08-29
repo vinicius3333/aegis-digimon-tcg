@@ -39,6 +39,7 @@ describe("BT25-061 Offmon", () => {
       },
     });
     expect(start?.actions[1]).toEqual({ kind: "GainMemory", amount: 1 });
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 1 }]);
     const linked = compiled.effects.find((effect) => effect.trigger === "Static");
     expect(linked).toMatchObject({ isLinked: true });
     expect(linked?.actions[0]).toMatchObject({
