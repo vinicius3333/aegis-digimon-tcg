@@ -42,6 +42,8 @@ describe("BT5-062 Mekanorimon", () => {
 
   it("can unsuspend after each qualifying battle deletion", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-062", as: "mekanori", suspended: true }] } });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
     const payload = { attackerPermanentId: s.perm("mekanori").permanentId };
 
     await advance(s.engine).fireSubTrigger("whenDeletesInBattle", payload);

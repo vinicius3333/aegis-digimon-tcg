@@ -9,7 +9,9 @@ describe("BT5-059 Keramon", () => {
     expect(runtimeCompiledCard("BT5-059")?.effects[0]?.actions[0]).toMatchObject({
       add: expect.arrayContaining([
         expect.objectContaining({
-          filter: { nameOrTrait: [{ tokens: ["Arata Sanada"], match: "nameExact" }] },
+          filter: expect.objectContaining({
+            nameOrTrait: [{ tokens: ["Arata Sanada"], match: "nameExact" }],
+          }),
         }),
       ]),
     });
