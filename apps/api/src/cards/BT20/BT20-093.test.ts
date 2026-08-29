@@ -26,5 +26,14 @@ describe("BT20-093 Unleash the Dragon Gene", () => {
       "mode",
       "prevent",
     );
+    const delay = compiled.effects.find(
+      (entry) => entry.trigger === "Main" && entry.keywords?.some((k) => k.keyword === "Delay"),
+    );
+    expect(delay).toMatchObject({
+      actions: [{ kind: "DnaDigivolve", into: { nameOrTrait: [{ tokens: ["Examon"], match: "nameExact" }] } }],
+    });
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({
+      actions: [{ target: { filter: { nameOrTrait: [{ tokens: ["Dracomon"], match: "name" }] } } }],
+    });
   });
 });
