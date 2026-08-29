@@ -40,6 +40,18 @@ describe("BT21-073 Charismon", () => {
         ],
       }),
     );
+    expect(compiled.effects.filter((e) => e.trigger === "OnPlay" || e.trigger === "WhenDigivolving")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          actions: [
+            expect.objectContaining({
+              kind: "Link",
+              recipient: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            }),
+          ],
+        }),
+      ]),
+    );
     expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 3 }]);
     expect(compiled.appFusionRequirement).toEqual([{ names: ["Sociamon", "Gossipmon"], cost: 0 }]);
     expect(compiled.coverage).toBe("full");
@@ -51,7 +63,6 @@ describe("BT21-073 Charismon", () => {
       {
         0: {
           hand: [{ card: "BT21-073", as: "charismon" }],
-          battleArea: [{ card: "BT21-009", as: "host" }],
           trash: [{ card: "BT21-070", as: "gossipmon" }],
         },
       },
@@ -62,15 +73,9 @@ describe("BT21-073 Charismon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("charismon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.cardId === "BT21-070")),
-    );
+    await settle(() => s.perm("charismon").linked.some((card) => card.cardId === "BT21-070"));
 
-    expect(
-      Array.from(s.state.players[0]!.battleArea).some((permanent) =>
-        permanent.linked.some((card) => card.cardId === "BT21-070"),
-      ),
-    ).toBe(true);
+    expect(s.perm("charismon").linked.some((card) => card.cardId === "BT21-070")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT21-070")).toBe(false);
   });
 
@@ -96,6 +101,33 @@ describe("BT21-073 Charismon", () => {
 
     expect(s.perm("charismon").linked[0]?.instanceId).toBe(s.inst("gossipmon").instanceId);
     expect(s.perm("charismon").stack).toHaveLength(0);
+  });
+
+  it("does not link a card from another Digimon's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT21-073",
+              as: "charismon",
+            },
+            {
+              card: "BT21-041",
+              as: "otherHost",
+              under: [{ card: "BT21-070", as: "otherCard" }],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("charismon"));
+
+    expect(s.perm("charismon").linked).toHaveLength(0);
+    expect(s.perm("otherHost").stack).toHaveLength(1);
   });
 
   it.each([
@@ -143,6 +175,35 @@ describe("BT21-073 Charismon", () => {
     ).toEqual({ ok: true });
     await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
     expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+  });
+
+  it("does not react when another Digimon gets linked", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-073", as: "charismon" },
+            { card: "BT21-041", as: "otherHost" },
+          ],
+          hand: [{ card: "BT21-070", as: "gossipmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("gossipmon").instanceId,
+        targetPermanentId: s.perm("otherHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("otherHost").linked.length === 1);
+
+    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(0);
   });
 
   it("Q5000 trashes itself as a link card to prevent leaving only once per turn", async () => {
