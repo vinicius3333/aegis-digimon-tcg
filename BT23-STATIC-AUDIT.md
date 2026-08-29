@@ -30,7 +30,7 @@ provisional and capped at 8/10.
 | BT23-061–070 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-061-070.md` | Yes |
 | BT23-071–080 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-071-080.md` | Yes |
 | BT23-081–090 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-081-090.md` | Yes |
-| BT23-091–100 | Luna assigned | `internal-docs/audits/BT23/BT23-091-100.md` | No |
+| BT23-091–100 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-091-100.md` | Yes |
 | BT23-101–102 | Luna assigned | `internal-docs/audits/BT23/BT23-101-102.md` | No |
 
 ## Score model
@@ -135,16 +135,26 @@ applicable non-gate component rather than being rounded up.
 | BT23-088 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hand-trash memory, self-delete trash evolution, and decline boundaries are covered without executed gates. |
 | BT23-089 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Same-host/same-level compound prevention is covered; explicit prevent mode preserves cost-based inference. |
 | BT23-090 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Memory boundary, compound Hudie return, free CS Tamer play, and Hudie DP aura are traced. |
+| BT23-091 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Lowest-DP deletion, Option placement, Delay structure, and Security ordering are traced; attack timing is directly fired. |
+| BT23-092 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Digimon/Tamer suspension restrictions and duration are observable through a directly fired attack watcher. |
+| BT23-093 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | DP grant, Link play, Delay, and Option lifecycle are traced through source assertions with direct origins. |
+| BT23-094 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | De-Digivolve, unsuspend restriction, target boundaries, Delay, and Security order are traced without natural full-flow execution. |
+| BT23-095 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Suspension, DP reduction, tied targets, Option placement, and Delay are covered through direct event paths. |
+| BT23-096 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | DP deletion, prevention fallback, placement, and Delay are traced; feasible natural origins remain uncovered. |
+| BT23-097 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Trash activation, deck-bottom payment, Main activation, and decline-before-payment are covered through direct subtrigger firing. |
+| BT23-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Delay evolution now requires both Ghost and LIBERATOR; negative proof uses a directly fired suspension watcher. |
+| BT23-099 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Huckmon waiver, Option placement, and Sistermon play are traced; evolution watcher remains manually fired. |
+| BT23-100 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Separate Main/Delay bodies and Security level-3 CS play are covered through direct structural and timing helpers. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 90
-- Corrected: 18
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 19
+- Provisional: 100
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 74
+- Blocked or ambiguous: 84
 - Remaining unassigned: 0
 
 BT23 static auditing is prepared in parallel. Accepted ranges are integrated
