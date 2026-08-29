@@ -30,7 +30,7 @@ provisional and capped at 8/10.
 | BT24-061–070 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-061-070.md` | Yes |
 | BT24-071–080 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-071-080.md` | Yes |
 | BT24-081–090 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-081-090.md` | Yes |
-| BT24-091–100 | Luna assigned | `internal-docs/audits/BT24/BT24-091-100.md` | No |
+| BT24-091–100 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-091-100.md` | Yes |
 | BT24-101–102 | Luna assigned | `internal-docs/audits/BT24/BT24-101-102.md` | No |
 
 ## Score model
@@ -135,16 +135,26 @@ applicable non-gate component rather than being rounded up.
 | BT24-088 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | All three target categories and cost/draw boundaries are covered, while Start of Turn and On Play remain manually fired. |
 | BT24-089 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Option/Delay paths prove evolution behavior, but the Owen-suspension origin uses a direct primitive. |
 | BT24-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Main play and face-up-security state changes prove reduced play, Blocker, Alliance, and exact-name/color/trait gates. |
+| BT24-091 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main play covers return, unsuspend, and link; linked attack and Security still use direct timing helpers. |
+| BT24-092 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main and breeding-waiver/link paths are covered; linked attack and Security remain manually fired. |
+| BT24-093 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main covers normal and zero-security outcomes; Delay removal and Security use primitive/direct origins. |
+| BT24-094 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The Alliance prerequisite now requires an own battle-area Digimon; Main is natural, while Security activation remains direct. |
+| BT24-095 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main proves suspension, same-target restriction, and link; linked attack and Security remain manual. |
+| BT24-096 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | The trash watcher now requires a Digimon source; natural Main/digivolution paths are covered, while Security remains direct. |
+| BT24-097 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main proves the deletion boundary and link; linked attack and Security still use direct timing. |
+| BT24-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main proves draw/trash/placement; Delay and memory boundaries use injected subtrigger/activation state. |
+| BT24-099 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main proves atomic cost and placement; Delay/link and Security rely on direct event origins. |
+| BT24-100 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Main and public Delay prove reveal, placement, and memory behavior; Security timing remains manual. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 90
-- Corrected: 7
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 9
+- Provisional: 100
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 74
+- Blocked or ambiguous: 84
 - Remaining unassigned: 0
 
 BT24 static auditing is prepared across five parallel Luna/xhigh lanes.
