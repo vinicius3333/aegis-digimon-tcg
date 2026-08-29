@@ -17,6 +17,7 @@ describe("BT22-006 Moonmon", () => {
         {
           kind: "SubTrigger",
           event: "onAddDigivolutionCards",
+          sourceFilter: { byEffect: true },
           triggerFilter: { isSelfRef: true },
           addedDigivolutionCardsPosition: "bottom",
           requirePlacedOwnTopAtStackBottom: true,
