@@ -3,13 +3,6 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const ts = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
-const tsCard = {
-  controller: "mine",
-  kind: ["Digimon", "Tamer"],
-  playCostLte: 4,
-  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
-};
-const _tsDigimon = { ...ts, levelLte: 99 };
 const namedTamer = {
   controller: "mine",
   kind: ["Tamer"],
@@ -68,19 +61,6 @@ export const compiled: CompiledCard = {
             ],
             [{ kind: "Unsuspend", target: { filter: ts, count: 1 }, optional: true }],
           ],
-        },
-      ],
-    },
-    {
-      trigger: "Security",
-      isSecurity: true,
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: { filter: tsCard, count: 1 },
-          from: ["hand", "trash"],
-          payCost: false,
-          optional: true,
         },
       ],
     },
