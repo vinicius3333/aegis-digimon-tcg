@@ -136,7 +136,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenBattleWon",
+          event: "whenDeletesInBattle",
           sourceFilter: {
             isSelfRef: true,
           },
