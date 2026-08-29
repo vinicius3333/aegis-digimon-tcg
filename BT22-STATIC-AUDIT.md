@@ -25,7 +25,7 @@ provisional and capped at 8/10.
 | BT22-021–030 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-021-030.md` | Yes |
 | BT22-031–040 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-031-040.md` | Yes |
 | BT22-041–050 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-041-050.md` | Yes |
-| BT22-051–060 | Luna assigned | `internal-docs/audits/BT22/BT22-051-060.md` | No |
+| BT22-051–060 | Coordinator reviewed | `internal-docs/audits/BT22/BT22-051-060.md` | Yes |
 | BT22-061–070 | Luna assigned | `internal-docs/audits/BT22/BT22-061-070.md` | No |
 | BT22-071–080 | Luna assigned | `internal-docs/audits/BT22/BT22-071-080.md` | No |
 | BT22-081–090 | Luna assigned | `internal-docs/audits/BT22/BT22-081-090.md` | No |
@@ -94,16 +94,26 @@ applicable non-gate component rather than being rounded up.
 | BT22-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural alternate evolution and normal play prove same-level positive/negative branches and inherited DP. |
 | BT22-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural end-turn path proves exact-three face-down cost, evolution, and two-card refusal. |
 | BT22-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural link and normal play prove public effects; Security battle path remains structural. |
+| BT22-051 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural evolution, same-level branch, battle security trash, and simultaneous-deletion negative cover the behavior. |
+| BT22-052 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Other-Digimon leave watcher corrected to the battle area; departure proof remains primitive-driven. |
+| BT22-053 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Self leave prevention corrected to the battle area; protection proof remains primitive-driven. |
+| BT22-054 | 2/2 | 2/2 | 2/2 | 1/2 | 0/2 | 7/10 provisional | Added-source watcher corrected to CS Digimon; natural rotation proves the event, debuff, and draw on an incomplete stack. |
+| BT22-055 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play and link paths prove the hand cost, draw, and linked Blocker on legal peers. |
+| BT22-056 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural CS evolution proves ordered DP loss, same-level De-Digivolve, negative branch, and inherited DP. |
+| BT22-057 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Self leave prevention corrected to the battle area; protection proof remains primitive-driven. |
+| BT22-058 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Appmon linking proves When Linking and the linked-source return restriction. |
+| BT22-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural play proves cost-ceiling deletion; inherited token reaction remains primitive-driven. |
+| BT22-060 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution proves face-down scaling and immunity; opponent-chosen attack remains structural. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 50
-- Corrected: 15
-- Provisional: 50
+- Integrated card audits: 60
+- Corrected: 19
+- Provisional: 60
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 37
+- Blocked or ambiguous: 43
 - Remaining unassigned: 0
 
 BT22 static auditing is in progress. Accepted ranges will be integrated in
