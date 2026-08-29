@@ -26,7 +26,7 @@ provisional and capped at 8/10.
 | BT23-021–030 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-021-030.md` | Yes |
 | BT23-031–040 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-031-040.md` | Yes |
 | BT23-041–050 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-041-050.md` | Yes |
-| BT23-051–060 | Luna assigned | `internal-docs/audits/BT23/BT23-051-060.md` | No |
+| BT23-051–060 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-051-060.md` | Yes |
 | BT23-061–070 | Luna assigned | `internal-docs/audits/BT23/BT23-061-070.md` | No |
 | BT23-071–080 | Luna assigned | `internal-docs/audits/BT23/BT23-071-080.md` | No |
 | BT23-081–090 | Luna assigned | `internal-docs/audits/BT23/BT23-081-090.md` | No |
@@ -95,16 +95,26 @@ applicable non-gate component rather than being rounded up.
 | BT23-048 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Reveal and bound inherited play/lock/delete are traced; natural attack and simultaneous Alliance ordering remain absent. |
 | BT23-049 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact trash payment, payload order, inherited DP, and evolution are covered; the phase origin is directly fired. |
 | BT23-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry sequencing, deferred 0-DP deletion, DNA stack, Blocker, and evolution are covered; the derived Hudiemon/Erika origin remains absent. |
+| BT23-051 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Alliance, Blocker, suspension deletion, attack restriction, evolution, and stack peers are traced; suspension remains primitive-driven. |
+| BT23-052 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Security self-play and Appmon linking prove the restriction, Link DP, Reboot, and Blocker paths. |
+| BT23-053 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Option-placement evolution and inherited DP are covered, but the trigger origin remains primitive-driven. |
+| BT23-054 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Ordered draw/protection, Armor Purge, Blocker, cause scope, duration, and evolution are traced through direct timing. |
+| BT23-055 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Entry deletion and effect-placed Option replacements are traced; replacement removal remains primitive-driven. |
+| BT23-056 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Delayed attack and inherited target-switch De-Digivolve are traced, with natural timing origins still absent. |
+| BT23-057 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural exact-three reducer proof is present; token and scaled deletion use direct On Play timing. |
+| BT23-058 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Leave replacement, suspension cost, tied lowest-cost deletion, Reboot, and Blocker are traced; suspension is injected. |
+| BT23-059 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | All three By clauses are optional and require an effect-placed battle-area Option; positive and decline timings are direct. |
+| BT23-060 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Q5331 is scoped per borrowed BT23-045 On Play item, forcing its cost and trash-first/hand fallback without changing ordinary lenders. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 50
-- Corrected: 12
-- Provisional: 50
+- Integrated card audits: 60
+- Corrected: 15
+- Provisional: 60
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 37
+- Blocked or ambiguous: 45
 - Remaining unassigned: 0
 
 BT23 static auditing is prepared in parallel. Accepted ranges are integrated
