@@ -129,7 +129,7 @@ describe("BT3-111 Imperialdramon: Dragon Mode", () => {
     await settle(() => s.perm("stingmon").topCard.cardId === "BT3-111", 5000);
 
     expect(memoryBeforeDragonMode - s.state.memory).toBe(3);
-    expect(s.perm("stingmon").stack.map((card) => card.cardId)).toEqual(["BT3-055", "BT3-050"]);
+    expect(s.perm("stingmon").stack.map((card) => card.cardId)).toEqual(["BT3-050", "BT3-055"]);
     expect(observe(s.engine).hasPierce(s.perm("stingmon"))).toBe(true);
   });
 
