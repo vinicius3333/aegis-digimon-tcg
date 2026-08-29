@@ -60,7 +60,7 @@ export const compiled: CompiledCard = {
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Omekamon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Omekamon"], match: "nameExact" }],
                 },
                 count: 1,
               },
