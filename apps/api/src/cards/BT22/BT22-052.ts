@@ -110,6 +110,7 @@ export const compiled: CompiledCard = {
             controller: "mine",
             excludeSelf: true,
             kind: ["Digimon"],
+            zone: "battleArea",
           },
           actions: [
             {
