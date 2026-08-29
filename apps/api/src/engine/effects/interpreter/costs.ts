@@ -1250,7 +1250,7 @@ export async function payCost(
       // battle-area permanent top cards. Resolve them through the loose-card path so
       // returnToDeck can remove the selected stack cards from their hosts.
       if (cost.target.filter.zone === "digivolutionCards") {
-        const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
+        let candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
         if (cost.target.filter.sameHost === true) {
