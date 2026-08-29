@@ -1,6 +1,6 @@
 # BT20 Static Card Implementation Re-audit
 
-Status: static card-by-card audit in progress; BT19 static coverage recorded; execution gates deferred
+Status: static card-by-card audit coverage recorded; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -31,7 +31,7 @@ provisional and capped at 8/10.
 | BT20-071–080 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-071-080.md` | Yes |
 | BT20-081–090 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-081-090.md` | Yes |
 | BT20-091–100 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-091-100.md` | Yes |
-| BT20-101–102 | Luna assigned | `internal-docs/audits/BT20/BT20-101-102.md` | No |
+| BT20-101–102 | Coordinator reviewed | `internal-docs/audits/BT20/BT20-101-102.md` | Yes |
 
 ## Score model
 
@@ -145,16 +145,19 @@ applicable non-gate component rather than being rounded up.
 | BT20-098 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Exact-total trash return, per-level Ghost multiplicity, grants, and Security play have structural proof only (`6497f3fd9`). |
 | BT20-099 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected the field-resident end-turn Chaosmon clause to inherited despite the catalog-field anomaly; no natural host flow was run (`0b1fe0f64`). |
 | BT20-100 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Corrected source-bound leave prevention and exact standalone names while preserving Omnimon in-name matching; behavior remains structural (`b795529e0`). |
+| BT20-101 | 2/2 | 2/2 | 0/2 | 1/2 | 0/2 | 5/10 provisional | Vortex runtime and legal route peers exist, but this card's distinctive entry/watcher behavior and a complete legal stack remain unproved (`f64df082d`). |
+| BT20-102 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Corrected the name-or-trait condition and exact Omnimon gates; natural proof remains partial and does not cover the X-only or end-turn branches (`b88b2acf0`). |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 100
-- Corrected: 20
-- Provisional: 100
+- Integrated card audits: 102
+- Corrected: 21
+- Provisional: 102
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 62 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037`, `BT20-041`–`BT20-044`, `BT20-047`, `BT20-050`, `BT20-052`–`BT20-056`, `BT20-058`, `BT20-060`, `BT20-071`–`BT20-074`, `BT20-078`, `BT20-080`, and `BT20-081`–`BT20-100` source/stack-proof gaps)
+- Blocked or ambiguous: 64 (`BT20-001`–`BT20-003`, `BT20-005`–`BT20-008`, `BT20-014`, `BT20-018`, `BT20-020`–`BT20-022`, `BT20-024`–`BT20-027`, `BT20-029`, `BT20-031`, `BT20-033`–`BT20-037`, `BT20-041`–`BT20-044`, `BT20-047`, `BT20-050`, `BT20-052`–`BT20-056`, `BT20-058`, `BT20-060`, `BT20-071`–`BT20-074`, `BT20-078`, `BT20-080`, and `BT20-081`–`BT20-102` source/stack-proof gaps)
 - Remaining unassigned: 0
 
-BT20 static auditing is in progress; accepted ranges are eligible for strict chronological integration.
+BT20 static coverage is recorded for all 102 cards. Scores remain provisional and
+collection completion is withheld because the required execution gates were not run.
