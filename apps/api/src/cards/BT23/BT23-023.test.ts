@@ -31,6 +31,7 @@ describe("BT23-023 Whamon", () => {
         {
           kind: "PlayWithoutCost",
           target: {
+            source: "thisDigimon",
             filter: {
               controller: "mine",
               kind: ["Digimon"],
@@ -77,6 +78,28 @@ describe("BT23-023 Whamon", () => {
     expect(
       s.state.players[0]!.battleArea.some((card) => card.topCard?.instanceId === s.inst("eligible").instanceId),
     ).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((card) => card.permanentId === whamonId)).toBe(false);
+  });
+
+  it("only searches Whamon's own digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-023", as: "whamon", under: [{ card: "BT1-009", as: "ineligible" }] },
+            { card: "BT23-035", as: "neighbor", under: [{ card: "BT23-019", as: "wrongStack" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const whamonId = s.perm("whamon").permanentId;
+    expect(await advance(s.engine).verb.deletePermanent([whamonId], "byEffect")).toBe(1);
+    expect(
+      s.state.players[0]!.battleArea.some((card) => card.topCard?.instanceId === s.inst("wrongStack").instanceId),
+    ).toBe(false);
+    expect(s.perm("neighbor").stack.some((card) => card.instanceId === s.inst("wrongStack").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((card) => card.permanentId === whamonId)).toBe(false);
   });
 

@@ -1271,6 +1271,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (materials.length < 1 || materials.length + extraMaterials.length < 2) return undefined;
     if (extraMaterials.length !== extraMaterialIds.length) return undefined;
     if (extraMaterials.some((c) => !requireCardDefinition(c.cardId).kinds.includes(CardKind.Digimon))) return undefined;
+    // Q5256: a Digimon that can't digivolve also can't be consumed by an effect-driven DNA digivolution.
+    if (materials.some((material) => continuous.hasRestriction(material.permanentId, "digivolve"))) return undefined;
     const peek = peekLooseInstance(state, resultInstanceId);
     if (peek === undefined) return undefined;
     const definition = requireCardDefinition(peek.cardId);
@@ -4666,6 +4668,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       materials.length + extraMaterials.length < 2
     )
       return false;
+    // Q5256: effect-driven DNA digivolution must honor the same digivolution lock as the player path.
+    if (materials.some((material) => continuous.hasRestriction(material.permanentId, "digivolve"))) return false;
     if (
       into.level === 7 &&
       materials.some((material) => continuous.hasRestriction(material.permanentId, "digivolveToLevel7"))
