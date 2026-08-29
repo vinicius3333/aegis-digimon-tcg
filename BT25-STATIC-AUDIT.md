@@ -1,6 +1,6 @@
 # BT25 Static Card Implementation Re-audit
 
-Status: static card-by-card audit active; coordinator integration complete through BT25-080
+Status: static card-by-card audit active; coordinator integration complete through BT25-090
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -36,9 +36,9 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT25-051–060 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-051-060.md` | Yes |
 | BT25-061–070 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-061-070.md` | Yes |
 | BT25-071–080 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-071-080.md` | Yes |
-| BT25-081–090 | Luna assigned | `internal-docs/audits/BT25/BT25-081-090.md` | No |
-| BT25-091–100 | Unassigned | `internal-docs/audits/BT25/BT25-091-100.md` | No |
-| BT25-101–104 | Unassigned | `internal-docs/audits/BT25/BT25-101-104.md` | No |
+| BT25-081–090 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-081-090.md` | Yes |
+| BT25-091–100 | Luna assigned | `internal-docs/audits/BT25/BT25-091-100.md` | No |
+| BT25-101–104 | Luna assigned | `internal-docs/audits/BT25/BT25-101-104.md` | No |
 
 ## Score model
 
@@ -132,18 +132,27 @@ applicable non-gate component rather than being rounded up.
 | BT25-078 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play/movement proves the text-union selection, trait-gated bottom placement, remainder handling, evolution, and inherited Retaliation. |
 | BT25-079 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Both-player memory restrictions, the Tamer-effect exception, hybrid Tamer/Digimon source, and inherited Retaliation are represented. |
 | BT25-080 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Cost/refusal, Titan returns, effect-entry deletion, and inherited scope are covered, but principal entry/attack origins use named timing seams. |
+| BT25-081 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry windows, non-Purple Tamer targeting, opposing suspension, once-per-turn scope, and inherited Retaliation are represented. |
+| BT25-082 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public digivolve paths prove the continuous base grant, breeding exclusion, effect-driven payment, Tamer boundary, and inherited cost. |
+| BT25-083 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Placement from hand/trash, mandatory accepted costs, shared Option timing, inherited play, and Three Musketeers stacks are represented. |
+| BT25-084 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Effect entry/evolution/attack, highest-DP ties, leave prevention, hand-trash watcher, and shared frequency are represented. |
+| BT25-085 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | DUAL registration, hand/stack Option use, accepted Link-card cost, Counter timing, and bottom placement are represented. |
+| BT25-086 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Memory boundary, scaled DP, suspension/refusal, same-target optional attack, TS exclusions, and security play are represented. |
+| BT25-087 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected the DATA SQUAD reducer from Static to YourTurn; positive natural behavior exists, but the opponent-turn boundary is structural-only. |
+| BT25-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Security-removal ownership, face-down ordering/privacy, Glowing Dawn play reduction, payment, copies, and security play are represented. |
+| BT25-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Opponent-Digimon memory, legal Appmon Link sources, cost reduction, recipient scope, App Fusion, and security play are represented. |
+| BT25-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Any-Digimon suspension, face-down order/privacy, Glowing Dawn Option-use reduction, turn/ownership gates, and security play are represented. |
 
 ## Aggregate
 
 - Catalog cards: 104
-- Assigned: 90
-- Integrated card audits: 80
-- Corrected: 7
-- Provisional: 80
+- Assigned: 104
+- Integrated card audits: 90
+- Corrected: 8
+- Provisional: 90
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 33
-- Remaining unassigned: 14
+- Blocked or ambiguous: 34
+- Remaining unassigned: 0
 
-BT25 static integration is complete through BT25-080. BT25-081 through
-BT25-090 remain active in one Luna/xhigh lane; BT25-091 through BT25-104
-remain in the coordinator-managed queue.
+BT25 static integration is complete through BT25-090. BT25-091 through
+BT25-104 are active across two Luna/xhigh lanes.
