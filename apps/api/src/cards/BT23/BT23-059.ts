@@ -38,6 +38,7 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "battleArea",
                 kind: ["Option"],
+                placedInBattleAreaByEffect: true,
               },
               count: 1,
             },
@@ -68,6 +69,7 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "battleArea",
                 kind: ["Option"],
+                placedInBattleAreaByEffect: true,
               },
               count: 1,
             },
@@ -98,6 +100,7 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "battleArea",
                 kind: ["Option"],
+                placedInBattleAreaByEffect: true,
               },
               count: 1,
             },
