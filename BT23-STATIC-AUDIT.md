@@ -31,7 +31,7 @@ provisional and capped at 8/10.
 | BT23-071–080 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-071-080.md` | Yes |
 | BT23-081–090 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-081-090.md` | Yes |
 | BT23-091–100 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-091-100.md` | Yes |
-| BT23-101–102 | Luna assigned | `internal-docs/audits/BT23/BT23-101-102.md` | No |
+| BT23-101–102 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-101-102.md` | Yes |
 
 ## Score model
 
@@ -145,17 +145,21 @@ applicable non-gate component rather than being rounded up.
 | BT23-098 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Delay evolution now requires both Ghost and LIBERATOR; negative proof uses a directly fired suspension watcher. |
 | BT23-099 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Huckmon waiver, Option placement, and Sistermon play are traced; evolution watcher remains manually fired. |
 | BT23-100 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Separate Main/Delay bodies and Security level-3 CS play are covered through direct structural and timing helpers. |
+| BT23-101 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Mandatory scaled DP tail, exact Erika route, On Play reactivation, Alliance, and representative Hudie stacks are traced through direct timing. |
+| BT23-102 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Free play now excludes non-Digimon level cards; stack-pair security trim and either-side security placement use direct timing/subtriggers. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 100
-- Corrected: 19
-- Provisional: 100
+- Integrated card audits: 102
+- Corrected: 20
+- Provisional: 102
+- Provisional points: 727/1020 (16 cards at 8/10, 83 at 7/10, and 3 at 6/10)
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 84
+- Blocked or ambiguous: 86
 - Remaining unassigned: 0
 
-BT23 static auditing is prepared in parallel. Accepted ranges are integrated
-in strict ascending BT23 order.
+BT23 static coverage is 102/102 and every accepted range is integrated in
+strict ascending order. Execution/delivery evidence remains incomplete by
+instruction, so this is not a collection-completion or 10/10 claim.
