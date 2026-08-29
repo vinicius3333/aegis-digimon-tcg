@@ -42,7 +42,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     const zaxonId = s.inst("zaxon").instanceId;
     const targetId = s.perm("target").permanentId;
@@ -62,7 +62,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
           security: [{ card: "BT23-015", as: "topSecurity", faceUp: true }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
 
     await advance(s.engine).fireSubTrigger("whenSuspended", {
@@ -87,7 +87,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     const higherId = s.perm("higher").permanentId;
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("tiger"));
@@ -131,7 +131,6 @@ describe("BT23-045 TigerVespamon ACE", () => {
           position: "bottom",
           faceDown: false,
         },
-        optional: true,
         abortOnDecline: true,
       });
     }
@@ -156,7 +155,6 @@ describe("BT23-045 TigerVespamon ACE", () => {
         },
         raw: "by flipping your top face-up security card face down",
       },
-      optional: true,
       abortOnDecline: true,
     });
   });
