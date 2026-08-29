@@ -1,6 +1,6 @@
 # BT25 Static Card Implementation Re-audit
 
-Status: static card-by-card audit active; coordinator integration complete through BT25-090
+Status: static card-by-card audit active; coordinator integration complete through BT25-100
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -37,7 +37,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | BT25-061–070 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-061-070.md` | Yes |
 | BT25-071–080 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-071-080.md` | Yes |
 | BT25-081–090 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-081-090.md` | Yes |
-| BT25-091–100 | Luna assigned | `internal-docs/audits/BT25/BT25-091-100.md` | No |
+| BT25-091–100 | Coordinator reviewed | `internal-docs/audits/BT25/BT25-091-100.md` | Yes |
 | BT25-101–104 | Luna assigned | `internal-docs/audits/BT25/BT25-101-104.md` | No |
 
 ## Score model
@@ -142,17 +142,28 @@ applicable non-gate component rather than being rounded up.
 | BT25-088 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Security-removal ownership, face-down ordering/privacy, Glowing Dawn play reduction, payment, copies, and security play are represented. |
 | BT25-089 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Opponent-Digimon memory, legal Appmon Link sources, cost reduction, recipient scope, App Fusion, and security play are represented. |
 | BT25-090 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Any-Digimon suspension, face-down order/privacy, Glowing Dawn Option-use reduction, turn/ownership gates, and security play are represented. |
+| BT25-091 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Option-use and turn-start paths cover the optional trash return, Draw fallback, TS watcher, attack restriction, and Security play. |
+| BT25-092 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Corrected the suspend-plus-trash processing condition to be atomic; the negative is public-origin, while the positive Main path still uses a manual declaration timing seam. |
+| BT25-093 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the TS Use Req. to battle-area Digimon/Tamers; natural use rejects breeding TS Digimon and battle-area TS Options and covers deletion/Link behavior. |
+| BT25-094 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Option use and Security paths cover the no-face-up waiver, keyword grants, ordered bottom exchange, reduced play, and decline boundaries. |
+| BT25-095 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural paths cover the no-face-up waiver, All Turns DP/Rush grants, bottom-security exchange, reduced hand play, and Security free play. |
+| BT25-096 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Option use proves the single-host Gaogamon/MachGaogamon payment, bottom ordering, bound free evolution, and Security recovery. |
+| BT25-097 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Option and Security behavior covers the waiver, Alliance/Scapegoat conditions, bottom exchange, reduced play, and duration boundary. |
+| BT25-098 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural use and public Delay activation cover reveal handling, placement, reduced Appmon play, turn-entry gating, copy isolation, and Security placement. |
+| BT25-099 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural paths cover the no-face-up waiver, Alliance/Piercing grants, ordered bottom exchange, reduced hand play, and Security boundaries. |
+| BT25-100 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected the TS Use Req. field/kind boundary; natural Option play covers breeding/Option negatives, De-Digivolve, free Link, linked DP, and keywords. |
 
 ## Aggregate
 
 - Catalog cards: 104
 - Assigned: 104
-- Integrated card audits: 90
-- Corrected: 8
-- Provisional: 90
+- Integrated card audits: 100
+- Corrected: 11
+- Provisional: 100
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 34
+- Blocked or ambiguous: 35
 - Remaining unassigned: 0
 
-BT25 static integration is complete through BT25-090. BT25-091 through
-BT25-104 are active across two Luna/xhigh lanes.
+The integrated provisional score subtotal is 766/1000 through BT25-100.
+BT25-101 through BT25-104 remain active in the final Luna/xhigh lane. No
+collection-complete claim is made while delivery gates remain unexecuted.
