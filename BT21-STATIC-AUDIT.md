@@ -25,7 +25,7 @@ provisional and capped at 8/10.
 | BT21-011–020 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-011-020.md` | Yes |
 | BT21-021–030 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-021-030.md` | Yes |
 | BT21-031–040 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-031-040.md` | Yes |
-| BT21-041–050 | Luna ready; pushed | `internal-docs/audits/BT21/BT21-041-050.md` | No |
+| BT21-041–050 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-041-050.md` | Yes |
 | BT21-051–060 | Luna ready; pushed | `internal-docs/audits/BT21/BT21-051-060.md` | No |
 | BT21-061–070 | Luna assigned | `internal-docs/audits/BT21/BT21-061-070.md` | No |
 | BT21-071–080 | Luna assigned | `internal-docs/audits/BT21/BT21-071-080.md` | No |
@@ -85,16 +85,26 @@ applicable non-gate component rather than being rounded up.
 | BT21-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural evolution/play paths present; keyword and secondary timing evidence remain partial. |
 | BT21-039 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Load-bearing behavior is supported only by manual timing/structural observations. |
 | BT21-040 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Corrected OR gate and exact ShineGreymon/Koromon boundaries with natural source proof. |
+| BT21-041 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural security, Link, host-DP, and opposing Security Digimon modifier paths. |
+| BT21-042 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Marcus correction with natural alternate and free RizeGreymon evolution proof. |
+| BT21-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural play, security, Appmon Link, and normal digivolution DP-modifier paths. |
+| BT21-044 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Marcus/GeoGreymon and single-selection binding corrections; full bundle remains manual. |
+| BT21-045 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural Raid proof, but deletion and Tamer-cost bonus origins remain manually fired. |
+| BT21-046 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Coredramon/Dracomon corrections; Start Main and End Turn origins remain manual. |
+| BT21-047 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural RevealAdd, alternate evolution, Link DP, and Piercing combat paths. |
+| BT21-048 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural either-side suspension and inherited Piercing with legal WG peers. |
+| BT21-049 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural entry, opponent-play watcher, unsuspended negative, and evolution proof. |
+| BT21-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural redirect/inherited watcher; entry suspension positive remains manually injected. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 102
-- Integrated card audits: 40
-- Corrected: 22
-- Provisional: 40
+- Integrated card audits: 50
+- Corrected: 25
+- Provisional: 50
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 18
+- Blocked or ambiguous: 22
 - Remaining unassigned: 0
 
 BT21 static auditing is in progress; accepted ranges are eligible for strict
