@@ -47,6 +47,8 @@ describe("BT25-078 Gazimon", () => {
         count: 1,
         to: "hand",
         filter: { nameOrTrait: [{ tokens: ["Three Musketeers"], match: "text" }] },
+        defaultDispositionFilter: { nameOrTrait: [{ tokens: ["Three Musketeers"], match: "text" }] },
+        orFilters: [{ nameOrTrait: [{ tokens: ["Three Musketeers"], match: "trait" }] }],
         orDispositions: [
           {
             to: "placeUnder",
@@ -114,6 +116,34 @@ describe("BT25-078 Gazimon", () => {
     expect(gazimon.stack.map((card) => card.cardId)).toEqual(["BT25-085"]);
     expect(otherHost.stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("traitCard").instanceId)).toBe(false);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT25-081", "BT25-079"]);
+  });
+
+  it("On Play can place a trait-only Three Musketeers card under this Gazimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "gazimon" }],
+          deck: [
+            { card: "BT6-017", as: "traitOnly" }, // Three Musketeers trait, without that phrase in its text.
+            { card: "BT25-081", as: "fillerOne" },
+            { card: "BT25-079", as: "fillerTwo" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1, preferInstanceIds: preferred },
+    );
+    s.state.memory = 3;
+    preferred.push(s.inst("traitOnly").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gazimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => battlePermanent(s).stack.some((card) => card.instanceId === s.inst("traitOnly").instanceId));
+
+    expect(battlePermanent(s).stack.map((card) => card.cardId)).toEqual(["BT6-017"]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("traitOnly").instanceId)).toBe(false);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT25-081", "BT25-079"]);
   });
 
