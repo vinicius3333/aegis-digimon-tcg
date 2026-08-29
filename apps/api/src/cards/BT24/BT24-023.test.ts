@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled } from "./BT24-023.js";
 import "../index.js";
 
 describe("BT24-023 Calmaramon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-023")).toMatchObject({
+      cardId: "BT24-023",
+      nameEn: "Calmaramon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 6,
+      dp: 7000,
+      forms: ["Hybrid"],
+      attributes: ["Variable"],
+      types: ["Aquatic", "Titan", "TS"],
+      evoCosts: [{ color: "Blue", level: 3, memoryCost: 3 }],
+    });
+  });
+
   it("gates the follow-up suspend restriction on effect-played entry", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const actions = compiled.effects.find((effect) => effect.trigger === trigger)?.actions as any[];
