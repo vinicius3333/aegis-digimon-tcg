@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT23-068.js";
 
@@ -89,11 +89,41 @@ describe("BT23-068 GranDracmon", () => {
     expect(effect.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenOneOfYoursDigivolves",
-      fromZone: "trash",
+      fireCondition: {
+        kind: "digivolvedFromZone",
+        zone: "trash",
+      },
       actions: [
         { kind: "Delete", target: { filter: { controller: "opponent", superlative: "lowestLevel" }, count: "all" } },
       ],
     });
+    expect(effect.actions[0].fromZone).toBeUndefined();
+  });
+
+  it("does not delete opposing Digimon when the watched evolution comes from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-068", as: "watcher" },
+            { card: "BT23-064", as: "base" },
+          ],
+          hand: [{ card: "BT23-067", as: "manual" }],
+        },
+        1: { battleArea: [{ card: "BT23-061", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("manual").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === s.inst("manual").instanceId);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT23-061")).toBe(true);
   });
 
   it("on deletion evolves another Digimon into GranDracmon from trash for free, then the new GranDracmon deletes all lowest-level opponents", async () => {
