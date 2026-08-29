@@ -51,8 +51,14 @@ describe("BT21-021 OmniShoutmon", () => {
       expect.objectContaining({
         trigger: "OnDeletion",
         actions: [
-          expect.objectContaining({ kind: "PlaceUnder" }),
-          expect.objectContaining({ kind: "PlaceUnder", underFilter: { controller: "mine", kind: ["Tamer"] } }),
+          expect.objectContaining({
+            kind: "PlaceUnder",
+            target: { filter: { controller: "mine", kind: ["Digimon"] } },
+          }),
+          expect.objectContaining({
+            kind: "PlaceUnder",
+            underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
+          }),
         ],
       }),
     );
@@ -69,7 +75,7 @@ describe("BT21-021 OmniShoutmon", () => {
     });
     expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ names: ["Shoutmon"] }], count: 2 }]);
     expect(compiled.digivolutionRequirement).toEqual([
-      { names: ["Shoutmon"], cost: 4, isAlternate: true },
+      { namesExact: ["Shoutmon"], cost: 4, isAlternate: true },
       { level: 4, traits: ["Xros Heart", "Hero"], cost: 3, isAlternate: true },
     ]);
   });
