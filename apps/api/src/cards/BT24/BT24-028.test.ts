@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,22 @@ import { compiled } from "./BT24-028.js";
 import "../index.js";
 
 describe("BT24-028 Divermon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-028")).toMatchObject({
+      cardId: "BT24-028",
+      nameEn: "Divermon",
+      colors: ["Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 6,
+      dp: 6000,
+      forms: ["Ultimate"],
+      attributes: ["Data"],
+      types: ["Aquabeast", "Titan", "TS"],
+      evoCosts: [{ color: "Blue", level: 4, memoryCost: 3 }],
+    });
+  });
+
   it("requires the qualifying hand placement on entry", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const action = compiled.effects.find((effect) => effect.trigger === trigger)?.actions?.[0] as any;
