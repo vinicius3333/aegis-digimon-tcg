@@ -1197,7 +1197,7 @@ export async function runGainTriggeredEffect(
     const grantedPerm = ctx.game.permanentById(targetPermanentId);
     if (grantedPerm === undefined) continue;
     let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;
-    if (action.duration === "forTheTurn") expiresOnTurnEndOf = ctx.source.ownerSeat;
+    if (action.duration === "forTheTurn") expiresOnTurnEndOf = ctx.game.state.turnSeat;
     if (action.duration === "untilYourTurnEnd") expiresOnTurnEndOf = ctx.source.ownerSeat;
     if (action.duration === "untilOpponentTurnEnd") {
       expiresOnTurnEndOf = ctx.game.opponentOf(ctx.source.ownerSeat);
@@ -1226,6 +1226,10 @@ export async function runGainTriggeredEffect(
       event === "whenDeletesInBattle"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
         : undefined;
+    const grantedPermanentAttackGate =
+      event === "whenAttacking"
+        ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
+        : undefined;
     const whenDeletesInBattleSelfGate =
       event === "whenDeletesInBattle" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId
@@ -1250,6 +1254,7 @@ export async function runGainTriggeredEffect(
       ownerTurnEndGate,
       grantedPermanentDeletionGate,
       grantedPermanentBattleDeleteGate,
+      grantedPermanentAttackGate,
       whenDeletesInBattleSelfGate,
       whenSuspendedSelfGate,
       immunityAtTriggerGate,

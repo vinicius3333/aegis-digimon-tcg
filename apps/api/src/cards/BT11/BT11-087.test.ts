@@ -113,6 +113,7 @@ describe("BT11-087 Lilithmon [Opponent's Turn] — real engine: breeding move gr
       {
         0: {
           battleArea: [{ card: "BT11-087", dp: 12000, as: "lilithmon", under: ["AD1-001"] }],
+          security: ["BT1-001", "BT1-002"],
         },
         1: {
           breeding: { card: "BT1-009", dp: 3000, as: "mover" },
@@ -127,6 +128,7 @@ describe("BT11-087 Lilithmon [Opponent's Turn] — real engine: breeding move gr
 
     s.state.phase = Phase.Breeding;
     s.state.turnSeat = 1; // "[Opponent's Turn]" relative to Lilithmon's owner (seat 0)
+    s.state.memory = 3;
 
     expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
@@ -142,7 +144,7 @@ describe("BT11-087 Lilithmon [Opponent's Turn] — real engine: breeding move gr
     expect(mover.isSuspended).toBe(false);
 
     const memoryFor = (seat: 0 | 1): number => (seat === s.state.turnSeat ? s.state.memory : -s.state.memory) || 0; // normalize -0 -> 0
-    expect(memoryFor(1)).toBe(0);
+    expect(memoryFor(1)).toBe(3);
 
     expect(
       s.engine.applyIntent(1, {
@@ -156,8 +158,8 @@ describe("BT11-087 Lilithmon [Opponent's Turn] — real engine: breeding move gr
 
     // "that Digimon gains [When Attacking] Lose 3 memory" — the memory loss lands on
     // the moved Digimon's controller (seat 1), never on Lilithmon's owner (seat 0).
-    expect(memoryFor(1)).toBe(-3);
-    expect(memoryFor(0)).toBe(3);
+    expect(memoryFor(1)).toBe(0);
+    expect(memoryFor(0)).toBe(0);
     expect(mover.isSuspended).toBe(true);
 
     // The temporary effect belongs to the Digimon moved from breeding. A different
@@ -172,7 +174,7 @@ describe("BT11-087 Lilithmon [Opponent's Turn] — real engine: breeding move gr
       }),
     ).toEqual({ ok: true });
     await settle(() => other.isSuspended, 200);
-    expect(memoryFor(1)).toBe(-3);
+    expect(memoryFor(1)).toBe(0);
     assertNoLoudGap(s);
   });
 
