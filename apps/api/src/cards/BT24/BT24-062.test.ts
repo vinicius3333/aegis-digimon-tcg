@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,25 @@ import { compiled as BT24_062 } from "./BT24-062.js";
 import "../index.js";
 
 describe("BT24-062 MasterBlimpmon", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-062")).toMatchObject({
+      cardId: "BT24-062",
+      nameEn: "MasterBlimpmon",
+      colors: ["Black", "Blue"],
+      kinds: ["Digimon"],
+      level: 5,
+      playCost: 7,
+      dp: 7000,
+      forms: ["Ultimate"],
+      attributes: ["Data"],
+      types: ["Machine", "Iliad", "TS"],
+      evoCosts: [
+        { color: "Black", level: 4, memoryCost: 4 },
+        { color: "Blue", level: 4, memoryCost: 4 },
+      ],
+    });
+  });
+
   it("plays the qualifying card from this Digimon's stack at either shared timing", () => {
     const effects = BT24_062.effects?.filter((entry) => ["EndOfAttack", "EndOfOpponentsTurn"].includes(entry.trigger));
     expect(effects).toHaveLength(2);

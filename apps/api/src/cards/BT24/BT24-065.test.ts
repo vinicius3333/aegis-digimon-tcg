@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -6,6 +7,22 @@ import { compiled as BT24_065 } from "./BT24-065.js";
 import "../index.js";
 
 describe("BT24-065 Diaboromon (X Antibody)", () => {
+  it("matches the immutable catalog identity", () => {
+    expect(getCardDefinition("BT24-065")).toMatchObject({
+      cardId: "BT24-065",
+      nameEn: "Diaboromon (X Antibody)",
+      colors: ["Black"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      forms: ["Mega"],
+      attributes: ["Unknown"],
+      types: ["Unidentified", "X Antibody"],
+      evoCosts: [{ color: "Black", level: 5, memoryCost: 5 }],
+    });
+  });
+
   it("limits the replacement play to this Digimon's digivolution cards", () => {
     const replacement = BT24_065.effects?.find((entry) => entry.trigger === "AllTurns");
     const play = (replacement?.actions?.[0] as any)?.actions?.[0];
