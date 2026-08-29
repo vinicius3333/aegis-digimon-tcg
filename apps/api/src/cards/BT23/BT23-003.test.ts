@@ -1,8 +1,10 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT23-003.js";
+import "./BT23-100.js";
 
 describe("BT23-003 Motimon", () => {
   it("matches the catalog and carries the printed inherited contract", () => {
@@ -56,6 +58,7 @@ describe("BT23-003 Motimon", () => {
             { card: "BT23-100", as: "firstOption" },
             { card: "BT23-100", as: "secondOption" },
           ],
+          deck: ["BT1-009"],
         },
         1: {
           security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
@@ -68,10 +71,33 @@ describe("BT23-003 Motimon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("firstOption").instanceId);
-    expect(s.perm("motimonHost").isSuspended).toBe(true);
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("firstOption").instanceId,
+        useAs: "option",
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("motimonHost").isSuspended && !observe(s.engine).isAttacking(),
+    );
     await advance(s.engine).verb.unsuspend([s.perm("motimonHost").permanentId]);
-    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("secondOption").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("secondOption").instanceId,
+        useAs: "option",
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("secondOption").instanceId,
+        ) &&
+        !observe(s.engine).isAttacking(),
+    );
 
     expect(s.perm("motimonHost").isSuspended).toBe(false);
   });
