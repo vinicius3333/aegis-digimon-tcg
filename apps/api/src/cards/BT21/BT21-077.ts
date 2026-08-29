@@ -9,6 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // [On Deletion]: You may play 1 [Canoweissmon] or 1 level 4-or-lower Digimon card with [Gammamon]
 // in its text from trash without paying cost. ("with [Gammamon]" = text match per KB Q4586).
+// The bracket-only [Canoweissmon] branch is an exact named-card reference per comprehensive §2-3-1.
 // isInherited version has same rule.
 export const compiled: CompiledCard = {
   effects: [
@@ -113,7 +114,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
               orFilters: [
                 {
-                  nameOrTrait: [{ tokens: ["Canoweissmon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Canoweissmon"], match: "nameExact" }],
                 },
                 {
                   levelComparison: { op: "lte", value: 4 },
