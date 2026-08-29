@@ -53,7 +53,15 @@ describe("BT21-052 Examon (X Antibody)", () => {
       kind: "trashSecurityTop",
       controller: "opponent",
       count: 1,
-      condition: { kind: "selfDigivolutionStackHasTrait" },
+      condition: {
+        kind: "selfDigivolutionStackHasTrait",
+        filter: {
+          nameOrTrait: [
+            { tokens: ["Examon"], match: "nameExact" },
+            { tokens: ["X Antibody"], match: "trait" },
+          ],
+        },
+      },
     });
     expect(watcherActions?.[0]).toEqual({
       kind: "Unsuspend",
