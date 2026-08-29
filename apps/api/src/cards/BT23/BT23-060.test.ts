@@ -91,6 +91,129 @@ describe("BT23-060 Machinedramon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
   });
 
+  it("forces the borrowed BT23-045 processing condition even when ordinary resolution may be declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-060", as: "machinedramon" }],
+          security: [{ card: "BT23-045", faceUp: true }],
+          trash: [{ card: "BT23-043", as: "royalBase" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const victimId = s.perm("victim").permanentId;
+    const royalBaseId = s.inst("royalBase").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machinedramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: royalBaseId, faceUp: true });
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === royalBaseId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
+  });
+
+  it("uses an eligible trash card before a hand card for the borrowed processing condition", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-060", as: "machinedramon" }],
+          security: [{ card: "BT23-045", faceUp: true }],
+          hand: [{ card: "BT23-015", as: "handZaxon" }],
+          trash: [{ card: "BT23-043", as: "trashRoyalBase" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machinedramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({
+      instanceId: s.inst("trashRoyalBase").instanceId,
+      faceUp: true,
+    });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handZaxon").instanceId)).toBe(true);
+  });
+
+  it("falls back to an eligible hand card when the borrowed trash source is empty", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-060", as: "machinedramon" }],
+          security: [{ card: "BT23-045", faceUp: true }],
+          hand: [{ card: "BT23-015", as: "handZaxon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machinedramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({
+      instanceId: s.inst("handZaxon").instanceId,
+      faceUp: true,
+    });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handZaxon").instanceId)).toBe(false);
+  });
+
+  it("does not force another eligible Zaxon borrower's costless optional On Play follow-up", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-060", as: "machinedramon" }],
+          security: [{ card: "BT23-015", faceUp: true }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const victimInstanceId = s.inst("victim").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machinedramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === victimInstanceId)).toBe(true);
+  });
+
+  it("declares the Q5331 override only for BT23-045 On Play", () => {
+    const action = (compiled.effects.find((entry) => entry.trigger === "WhenAttacking") as any).actions[0];
+    expect(action.borrowedEffectOverrides).toEqual({
+      sourceCardId: "BT23-045",
+      trigger: "OnPlay",
+      forceCostProcessing: true,
+      preferTrashCostSource: true,
+    });
+  });
+
   it("consumes its once-per-turn use even when no face-up Zaxon security card exists", async () => {
     const s = setupEngine(
       {
@@ -148,6 +271,12 @@ describe("BT23-060 Machinedramon", () => {
           fromTriggers: ["OnPlay"],
           count: 1,
           optional: false,
+          borrowedEffectOverrides: {
+            sourceCardId: "BT23-045",
+            trigger: "OnPlay",
+            forceCostProcessing: true,
+            preferTrashCostSource: true,
+          },
           filter: {
             controller: "mine",
             kind: ["Digimon"],
