@@ -58,7 +58,12 @@ export const compiled: CompiledCard = {
                   filter: {
                     controller: "mine",
                     excludeSelf: true,
-                    namesExact: ["Diaboromon"],
+                    nameOrTrait: [
+                      {
+                        tokens: ["Diaboromon"],
+                        match: "name",
+                      },
+                    ],
                   },
                   count: 1,
                 },
