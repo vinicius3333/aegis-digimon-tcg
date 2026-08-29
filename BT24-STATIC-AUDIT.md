@@ -22,7 +22,7 @@ provisional and capped at 8/10.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT24-001–010 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-001-010.md` | Yes |
-| BT24-011–020 | Luna assigned | `internal-docs/audits/BT24/BT24-011-020.md` | No |
+| BT24-011–020 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-011-020.md` | Yes |
 | BT24-021–030 | Luna assigned | `internal-docs/audits/BT24/BT24-021-030.md` | No |
 | BT24-031–040 | Luna assigned | `internal-docs/audits/BT24/BT24-031-040.md` | No |
 | BT24-041–050 | Luna assigned | `internal-docs/audits/BT24/BT24-041-050.md` | No |
@@ -55,16 +55,26 @@ applicable non-gate component rather than being rounded up.
 | BT24-008 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Optional On Play trash/Draw 2 and opponent-security memory are covered through direct timing events. |
 | BT24-009 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Optional On Play payment and inherited reduced Titan evolution use direct play and hand-trash origins. |
 | BT24-010 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Blocker, one-target De-Digivolve, Raid, and alternate TS evolution are covered; deletion uses a primitive. |
+| BT24-011 | 2/2 | 2/2 | 2/2 | 1/2 | 0/2 | 7/10 provisional | Natural TS digivolution and Rush/Raid behavior are covered; representative mixed-stack/peer evidence remains partial. |
+| BT24-012 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Blocker, simultaneous protection, cause rejection, and inherited security trigger use harness primitives. |
+| BT24-013 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Hand-size draw, shared delete frequency, and inherited trash evolution rely partly on primitive event helpers. |
+| BT24-014 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Both Decode actions now bind to the leaving Digimon's own stack; DP/delete and security boundaries remain harness-driven. |
+| BT24-015 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security play, Blocker, target-switch lowest-DP deletion, and inherited Blocker deletion use manual event origins. |
+| BT24-016 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Owen/Elizamon stack construction, security ordering, and inherited hand play are covered through harness timing. |
+| BT24-017 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Token branch, exact two-card payment, DP scaling, and token deletion are direct; natural origins and peer proof remain partial. |
+| BT24-018 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Keywords, security sequence, removal watcher, and simultaneous replacement are covered through manually fired timings. |
+| BT24-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Public digivolution intent proves the blue-TS reduction and breeding-area exclusion with legal host/stack peers. |
+| BT24-020 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Independent reveal categories, bottom-deck remainder, and inherited unsuspend draw use direct On Play/unsuspend timing. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 60
-- Integrated card audits: 10
-- Corrected: 0
-- Provisional: 10
+- Integrated card audits: 20
+- Corrected: 1
+- Provisional: 20
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 10
+- Blocked or ambiguous: 19
 - Remaining unassigned: 42
 
 BT24 static auditing is prepared across five parallel Luna/xhigh lanes.
