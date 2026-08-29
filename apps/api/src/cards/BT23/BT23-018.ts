@@ -39,6 +39,7 @@ export const compiled: CompiledCard = {
           reduceCostBy: 2,
           cost: {
             kind: "place",
+            optional: true,
             target: {
               filter: {
                 isSelfRef: true,
