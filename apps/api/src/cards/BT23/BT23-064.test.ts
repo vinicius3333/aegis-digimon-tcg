@@ -61,6 +61,20 @@ describe("BT23-064 Bakemon", () => {
     }
   });
 
+  it("may refuse the deletion cost without deleting either Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-064", as: "bakemon" }] },
+        1: { battleArea: [{ card: "BT23-063", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const targetId = s.perm("target").permanentId;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("bakemon"));
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+  });
+
   it("gains 1 memory from a realistic inherited On Deletion stack", async () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "OnDeletion") as any;
     expect(effect).toMatchObject({ isInherited: true, actions: [{ kind: "GainMemory", amount: 1 }] });

@@ -244,6 +244,37 @@ describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
+  it("may decline self-deletion, leaving both Digimon in play while the attack proceeds", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-069", as: "necromon" },
+            { card: "BT23-061", as: "attacker" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT23-068", as: "target" }],
+          security: ["BT1-028", "BT1-028"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const selfId = s.perm("necromon").permanentId;
+    const targetId = s.perm("target").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === selfId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
   it("the effect deletes the opponent's Lv.<=6 Digimon (count 1) => the attack CONTINUES (no endAttack)", async () => {
     const self = makePermanent("BT23-069", 0 as Seat);
     const oppLow = makePermanent("OPP-L6", 1 as Seat);
