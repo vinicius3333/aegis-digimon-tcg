@@ -28,7 +28,7 @@ provisional and capped at 8/10.
 | BT24-041–050 | Luna assigned | `internal-docs/audits/BT24/BT24-041-050.md` | No |
 | BT24-051–060 | Luna assigned | `internal-docs/audits/BT24/BT24-051-060.md` | No |
 | BT24-061–070 | Luna assigned | `internal-docs/audits/BT24/BT24-061-070.md` | No |
-| BT24-071–080 | Unassigned | `internal-docs/audits/BT24/BT24-071-080.md` | No |
+| BT24-071–080 | Luna assigned | `internal-docs/audits/BT24/BT24-071-080.md` | No |
 | BT24-081–090 | Unassigned | `internal-docs/audits/BT24/BT24-081-090.md` | No |
 | BT24-091–100 | Unassigned | `internal-docs/audits/BT24/BT24-091-100.md` | No |
 | BT24-101–102 | Unassigned | `internal-docs/audits/BT24/BT24-101-102.md` | No |
@@ -79,13 +79,13 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 70
+- Assigned: 80
 - Integrated card audits: 30
 - Corrected: 1
 - Provisional: 30
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 29
-- Remaining unassigned: 32
+- Remaining unassigned: 22
 
 BT24 static auditing is prepared across five parallel Luna/xhigh lanes.
 Accepted ranges will be integrated in strict ascending BT24 order.
