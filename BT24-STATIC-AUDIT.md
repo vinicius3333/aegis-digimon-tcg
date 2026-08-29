@@ -24,7 +24,7 @@ provisional and capped at 8/10.
 | BT24-001–010 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-001-010.md` | Yes |
 | BT24-011–020 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-011-020.md` | Yes |
 | BT24-021–030 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-021-030.md` | Yes |
-| BT24-031–040 | Luna assigned | `internal-docs/audits/BT24/BT24-031-040.md` | No |
+| BT24-031–040 | Coordinator reviewed | `internal-docs/audits/BT24/BT24-031-040.md` | Yes |
 | BT24-041–050 | Luna assigned | `internal-docs/audits/BT24/BT24-041-050.md` | No |
 | BT24-051–060 | Luna assigned | `internal-docs/audits/BT24/BT24-051-060.md` | No |
 | BT24-061–070 | Luna assigned | `internal-docs/audits/BT24/BT24-061-070.md` | No |
@@ -75,16 +75,26 @@ applicable non-gate component rather than being rounded up.
 | BT24-028 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Placement, temporary protection/Blocker, Q5608 evolution, and own-stack play are asserted without full natural origins. |
 | BT24-029 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5609 placement branches, restriction, end-of-attack play, and inherited own-stack play rely on harness timing. |
 | BT24-030 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Cost reduction, tied-source bottom-deck, suspend-to-unsuspend, and Q5610 group protection use direct timing origins. |
+| BT24-031 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Distinct reveal pools and the Q5611 zero-security decline case are observable, but On Play and attack timings are manually fired. |
+| BT24-032 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural link/evolution paths and reveal categories are covered; the central On Play reveal remains manually originated. |
+| BT24-033 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle-area and breeding-area digivolutions prove the Iliad cost reduction scope and inherited Barrier. |
+| BT24-034 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5613/Q6713 payment and exact-name behavior are covered, while the three entry timings remain manually fired. |
+| BT24-035 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Q5614 DNA/0-DP ordering, turn boundary, and inherited Barrier are observable, but entry timing is injected. |
+| BT24-036 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Security now defers through `whenSecurityBattleEnded` and plays self from trash; a natural security attack proves the path. |
+| BT24-037 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural DNA and leave-replacement paths cover stacks and causes, but the positive entry timing remains manually fired. |
+| BT24-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Link, Fortitude, own-stack, and App Fusion behavior are covered; free-link entry is still manually originated. |
+| BT24-039 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security level boundary, inherited Recovery, keywords, and evolution are covered; Security timing is manually fired. |
+| BT24-040 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Both trash-all clauses now use the runtime-supported `amount: "all"`; the entry stack-clearing origin remains manual. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 30
-- Corrected: 1
-- Provisional: 30
+- Integrated card audits: 40
+- Corrected: 3
+- Provisional: 40
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 29
+- Blocked or ambiguous: 37
 - Remaining unassigned: 22
 
 BT24 static auditing is prepared across five parallel Luna/xhigh lanes.
