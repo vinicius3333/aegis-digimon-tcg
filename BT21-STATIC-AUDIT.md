@@ -22,14 +22,14 @@ provisional and capped at 8/10.
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
 | BT21-001–010 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-001-010.md` | Yes |
-| BT21-011–020 | Luna assigned | `internal-docs/audits/BT21/BT21-011-020.md` | No |
+| BT21-011–020 | Coordinator reviewed | `internal-docs/audits/BT21/BT21-011-020.md` | Yes |
 | BT21-021–030 | Luna ready; pushed | `internal-docs/audits/BT21/BT21-021-030.md` | No |
 | BT21-031–040 | Luna ready; pushed | `internal-docs/audits/BT21/BT21-031-040.md` | No |
 | BT21-041–050 | Luna assigned | `internal-docs/audits/BT21/BT21-041-050.md` | No |
 | BT21-051–060 | Luna assigned | `internal-docs/audits/BT21/BT21-051-060.md` | No |
 | BT21-061–070 | Luna assigned | `internal-docs/audits/BT21/BT21-061-070.md` | No |
 | BT21-071–080 | Luna assigned | `internal-docs/audits/BT21/BT21-071-080.md` | No |
-| BT21-081–090 | Unassigned | `internal-docs/audits/BT21/BT21-081-090.md` | No |
+| BT21-081–090 | Luna assigned | `internal-docs/audits/BT21/BT21-081-090.md` | No |
 | BT21-091–100 | Unassigned | `internal-docs/audits/BT21/BT21-091-100.md` | No |
 | BT21-101–102 | Unassigned | `internal-docs/audits/BT21/BT21-101-102.md` | No |
 
@@ -55,17 +55,27 @@ applicable non-gate component rather than being rounded up.
 | BT21-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reveal/play and opponent-security attack origins with separate add buckets. |
 | BT21-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Haru Shinkai correction and natural Appmon link/Raid proof. |
 | BT21-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Siriusmon/Gurimon corrections and natural selectable-Main evolution branches. |
+| BT21-011 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural reducer, deletion/Save, and inherited Rush paths with legal Xros Heart/Hero peers. |
+| BT21-012 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Same-effect `lastPlayed` Tamer binding correction with natural Main activation proof. |
+| BT21-013 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact BurningGreymon correction; qualifying-Tamer destination remains primitive-driven. |
+| BT21-014 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Agunimon correction; opponent-security evolution branch remains manually fired. |
+| BT21-015 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | End-of-battle Security timing correction; natural security-check origin remains absent. |
+| BT21-016 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural DigiXros, attack/Piercing, deletion placement/Save, decline, and inherited-DP paths. |
+| BT21-017 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Owen correction; inherited opponent-security trigger remains manually injected. |
+| BT21-018 | 2/2 | 2/2 | 0/2 | 2/2 | 0/2 | 6/10 provisional | Both load-bearing linked attack clauses lack natural positive producer proof. |
+| BT21-019 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Exact Hiro/Gammamon corrections with natural evolution, Tamer-count, decline, and DP proof. |
+| BT21-020 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact Agunimon/BurningGreymon stack correction; Security Attack remains structural-only. |
 
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 80
-- Integrated card audits: 10
-- Corrected: 3
-- Provisional: 10
+- Assigned: 90
+- Integrated card audits: 20
+- Corrected: 10
+- Provisional: 20
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 1
-- Remaining unassigned: 22
+- Blocked or ambiguous: 7
+- Remaining unassigned: 12
 
 BT21 static auditing is in progress; accepted ranges are eligible for strict
 chronological integration.
