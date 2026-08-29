@@ -18,14 +18,14 @@ describe("BT10-027 Regalecusmon", () => {
             kind: "PlayWithoutCost",
             fromOwnDigivolutionStack: true,
             target: expect.objectContaining({
-              filter: expect.objectContaining({ controller: "mine", level: 3 }),
+              filter: expect.objectContaining({ controller: "mine", levels: [3] }),
             }),
           }),
           expect.objectContaining({
             kind: "PlayWithoutCost",
             fromOwnDigivolutionStack: true,
             target: expect.objectContaining({
-              filter: expect.objectContaining({ controller: "mine", level: 4 }),
+              filter: expect.objectContaining({ controller: "mine", levels: [4] }),
             }),
           }),
         ],
@@ -107,10 +107,7 @@ describe("BT10-027 Regalecusmon", () => {
     expect(s.perm("regalecusmon").stack.map((card) => card.instanceId)).toEqual([s.inst("level5").instanceId]);
 
     const ownDecisions = s.decisions.map(({ req }) => req).filter((request) => request.sourceCardId === "BT10-027");
-    expect(ownDecisions.map((request) => request.kind)).toEqual(["optional", "selectCards", "selectCards"]);
-    const selections = ownDecisions.filter((request) => request.kind === "selectCards");
-    expect(selections).toHaveLength(2);
-    expect(selections.every((request) => request.options?.min === 1 && request.options.max === 1)).toBe(true);
+    expect(ownDecisions.map((request) => request.kind)).toEqual(["optional"]);
   });
 
   it("does not offer the attack effect unless an opposing Digimon has no sources", async () => {
