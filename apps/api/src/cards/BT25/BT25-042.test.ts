@@ -135,6 +135,28 @@ describe("BT25-042 ClavisAngemon", () => {
     expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "BT25-034")).toHaveLength(1);
   });
 
+  it("fires the security-removal watcher from the On Play security cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-042", as: "clavis" }, { card: "BT25-034", as: "angel" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { security: ["BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 12;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clavis").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-034"));
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-034")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("angel").instanceId)).toBe(false);
+  });
+
   it("digivolves from a level-5 Angel/Archangel/TS Digimon through the alternate cost-3 route", async () => {
     expect(BT25_042.digivolutionRequirement).toEqual([
       { level: 5, traits: ["Angel", "Archangel", "TS"], cost: 3, isAlternate: true },
