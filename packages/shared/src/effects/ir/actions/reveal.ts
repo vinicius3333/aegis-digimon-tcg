@@ -44,8 +44,6 @@ export interface RevealAddAction extends ActionBase {
     /** Added to numeric `count` when a condition/scaling clause applies. */
     countModifier?: Target["countModifier"];
     to?: "hand" | "trash" | "play" | "useOption" | "digivolve" | "placeUnder" | "underTamer" | "security";
-    /** For conditional unions: the default `to` disposition is offered only when this filter matches. */
-    defaultDispositionFilter?: Filter;
     /** For `to:"useOption"`: whether the Option's memory cost is paid. */
     payCost?: boolean;
     /** For `to:"play"`: the selected card enters the battle area suspended. */
