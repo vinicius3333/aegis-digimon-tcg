@@ -25,7 +25,7 @@ provisional and capped at 8/10.
 | BT21-011–020 | Luna assigned | `internal-docs/audits/BT21/BT21-011-020.md` | No |
 | BT21-021–030 | Luna assigned | `internal-docs/audits/BT21/BT21-021-030.md` | No |
 | BT21-031–040 | Luna assigned | `internal-docs/audits/BT21/BT21-031-040.md` | No |
-| BT21-041–050 | Unassigned | `internal-docs/audits/BT21/BT21-041-050.md` | No |
+| BT21-041–050 | Luna assigned | `internal-docs/audits/BT21/BT21-041-050.md` | No |
 | BT21-051–060 | Unassigned | `internal-docs/audits/BT21/BT21-051-060.md` | No |
 | BT21-061–070 | Unassigned | `internal-docs/audits/BT21/BT21-061-070.md` | No |
 | BT21-071–080 | Unassigned | `internal-docs/audits/BT21/BT21-071-080.md` | No |
@@ -49,13 +49,13 @@ applicable non-gate component rather than being rounded up.
 ## Aggregate
 
 - Catalog cards: 102
-- Assigned: 40
+- Assigned: 50
 - Integrated card audits: 0
 - Corrected: 0
 - Provisional: 0
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 62
+- Remaining unassigned: 52
 
 BT21 static auditing is in progress; accepted ranges are eligible for strict
 chronological integration.
