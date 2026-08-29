@@ -86,6 +86,14 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
+          fireCondition: {
+            kind: "zoneCount",
+            seat: "mine",
+            zone: "security",
+            op: "lte",
+            value: 3,
+            raw: "the [Alphamon] digivolution requirement is available",
+          },
           actions: [
             {
               kind: "Digivolve",
@@ -96,6 +104,7 @@ export const compiled: CompiledCard = {
               },
               into: {
                 controllerDefault: "mine",
+                kind: ["Digimon"],
                 nameOrTrait: [{ tokens: ["Alphamon"], match: "name" }],
               },
               from: ["hand"],
