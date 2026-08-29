@@ -16,6 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     all non-optional per KB Q5213 ("must play 1 each ... whenever possible").
 //   - orFilters on trait: "Aqua" OR "Sea Animal" — text says "with [Aqua] or [Sea Animal]
 //     in any of their traits" (each card need only have ONE of the two traits).
+//   - Decode is executable as an own-stack non-battle-leave replacement, not only a keyword label.
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -25,6 +26,35 @@ export const compiled: CompiledCard = {
         {
           keyword: "Decode",
           raw: "＜Decode (Lv.6 or lower w/[Aqua]/[Sea Animal] in any trait)＞",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 6 },
+                  nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
+                },
+                count: 1,
+              },
+              fromOwnDigivolutionStack: true,
+              payCost: false,
+              playedByDecode: true,
+              optional: true,
+            },
+          ],
         },
       ],
     },
@@ -61,7 +91,7 @@ export const compiled: CompiledCard = {
             ],
             count: 1,
           },
-          from: ["digivolutionCards"],
+          fromOwnDigivolutionStack: true,
           payCost: false,
           optional: false,
         },
@@ -94,7 +124,7 @@ export const compiled: CompiledCard = {
             ],
             count: 1,
           },
-          from: ["digivolutionCards"],
+          fromOwnDigivolutionStack: true,
           payCost: false,
           optional: false,
         },
@@ -127,7 +157,7 @@ export const compiled: CompiledCard = {
             ],
             count: 1,
           },
-          from: ["digivolutionCards"],
+          fromOwnDigivolutionStack: true,
           payCost: false,
           optional: false,
         },
