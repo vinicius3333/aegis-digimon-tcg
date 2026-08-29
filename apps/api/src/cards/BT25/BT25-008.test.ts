@@ -6,6 +6,21 @@ import { compiled as BT25_008 } from "./BT25-008.js";
 import "../index.js";
 
 describe("BT25-008 Coronamon", () => {
+  it("matches the catalog identity and Iliad TS traits", () => {
+    expect(getCardDefinition("BT25-008")).toMatchObject({
+      cardId: "BT25-008",
+      nameEn: "Coronamon",
+      colors: ["Red"],
+      kinds: ["Digimon"],
+      level: 3,
+      playCost: 3,
+      dp: 1000,
+      forms: ["Rookie"],
+      attributes: ["Vaccine"],
+      types: ["Beast", "Iliad", "TS"],
+    });
+  });
+
   it("draws one for each actually trashed Iliad/TS hand card", () => {
     for (const trigger of ["WhenMoving", "OnPlay"] as const) {
       const effect = BT25_008.effects?.find((entry) => entry.trigger === trigger);
