@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled as BT25_027 } from "./BT25-027.js";
 import "../index.js";
 
@@ -23,6 +24,106 @@ describe("BT25-027 MachGaogamon", () => {
         cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
       });
     }
+  });
+
+  it("naturally pays the mandatory follow-up cost after a digivolution return", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-023", as: "base", suspended: true },
+            { card: "BT25-087", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+          ],
+          hand: [{ card: "BT25-027", as: "mach" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mach").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === "BT25-027" &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId),
+    );
+
+    expect(s.state.players[1]!.hand).toContainEqual(expect.objectContaining({ instanceId: s.inst("target").instanceId }));
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toContainEqual(expect.objectContaining({ instanceId: s.inst("cost").instanceId }));
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not pay the processing cost when the follow-up is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-023", as: "base", suspended: true },
+            { card: "BT25-087", as: "tamer", under: [{ card: "BT1-001", as: "cost", faceUp: false }] },
+          ],
+          hand: [{ card: "BT25-027", as: "mach" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mach").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const firstDecision = s.state.pendingDecision!;
+    expect(firstDecision.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision.decisionId !== firstDecision.decisionId,
+    );
+    const secondDecision = s.state.pendingDecision!;
+    expect(secondDecision.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === "BT25-027" &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId),
+    );
+
+    expect(s.state.players[1]!.hand).toContainEqual(expect.objectContaining({ instanceId: s.inst("target").instanceId }));
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.perm("tamer").stack).toHaveLength(1);
+    expect(s.state.players[0]!.trash).not.toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
+    );
   });
 
   it("protects the source and the inherited Gaogamon/DATA SQUAD target", () => {
