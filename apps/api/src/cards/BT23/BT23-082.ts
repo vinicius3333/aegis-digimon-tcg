@@ -55,6 +55,7 @@ const compiled: CompiledCard = {
               cost: {
                 kind: "return",
                 target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                to: "hand",
                 raw: "by returning this Tamer to the hand",
               },
             } as any,
