@@ -267,11 +267,24 @@ export async function runActivateForeignEffect(
       },
     };
   }
+  // A Q5331 override belongs only to the matching borrowed lender/effect. Clear any inherited
+  // marker at the loop boundary, then seed it per item so another eligible Zaxon On Play lender
+  // selected by this same activation retains its ordinary optional/source behavior.
+  runCtx = {
+    ...runCtx,
+    borrowedEffectOverrides: undefined,
+  };
   for (const borrowed of toRun.slice(0, action.count)) {
     const eff = borrowed.effect;
+    const borrowedEffectOverrides =
+      action.borrowedEffectOverrides?.sourceCardId === borrowed.sourceCardId &&
+      action.borrowedEffectOverrides.trigger === eff.trigger
+        ? action.borrowedEffectOverrides
+        : undefined;
     await runEffect(
       {
         ...runCtx,
+        borrowedEffectOverrides,
         activeTiming: eff.trigger,
         activeEffectText: eff.description ?? describeEffect(eff),
       },
