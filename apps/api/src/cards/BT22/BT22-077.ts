@@ -36,9 +36,10 @@ export const compiled: CompiledCard = {
               digivolutionCards: "hasAny",
             },
             // "Any 4" can be distributed across multiple opponent Digimon.
-            count: "any",
+            count: "all",
           },
           amount: 4,
+          scope: "acrossDigimon",
           condition: {
             kind: "stackHasSameLevelCards",
             minCount: 2,
