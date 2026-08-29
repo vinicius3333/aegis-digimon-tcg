@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -5,6 +6,17 @@ import { compiled } from "./BT24-005.js";
 import "../index.js";
 
 describe("BT24-005 Kyokyomon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-005")).toMatchObject({
+      cardId: "BT24-005",
+      nameEn: "Kyokyomon",
+      colors: ["Black"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      types: ["Lesser", "X Antibody", "DigiPolice", "SEEKERS"],
+    });
+  });
+
   it("reveals exactly three cards and lets the player return them to the top or bottom", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects[0]).toMatchObject({

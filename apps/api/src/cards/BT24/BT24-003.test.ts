@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -5,6 +6,17 @@ import { compiled } from "./BT24-003.js";
 import "../index.js";
 
 describe("BT24-003 Tsunomon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-003")).toMatchObject({
+      cardId: "BT24-003",
+      nameEn: "Tsunomon",
+      colors: ["Yellow"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      types: ["Lesser", "Iliad", "TS"],
+    });
+  });
+
   it("digivolves this Digimon into a Shaman from hand when your security is removed", () => {
     const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
     expect(inherited.frequency).toBe("OncePerTurn");

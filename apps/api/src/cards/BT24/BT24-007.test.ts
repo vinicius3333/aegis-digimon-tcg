@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -5,6 +6,17 @@ import { compiled } from "./BT24-007.js";
 import "../index.js";
 
 describe("BT24-007 Tsunomon", () => {
+  it("matches the catalog identity", () => {
+    expect(getCardDefinition("BT24-007")).toMatchObject({
+      cardId: "BT24-007",
+      nameEn: "Tsunomon",
+      colors: ["Purple"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      types: ["Lesser", "Titan", "TS"],
+    });
+  });
+
   it("plays one level 4+ Demon/Titan Digimon from trash with a 2-cost reduction", () => {
     const effect = compiled.effects[0]!;
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
