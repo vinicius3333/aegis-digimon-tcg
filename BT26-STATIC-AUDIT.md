@@ -1,6 +1,6 @@
 # BT26 Static Card Implementation Re-audit
 
-Status: static card-by-card audit active; BT26-001 through BT26-020 assigned
+Status: static card-by-card audit active; BT26-001 through BT26-030 assigned
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -28,7 +28,7 @@ registration through `registerIrCard(cardId, compiled)`.
 | --- | --- | --- | --- |
 | BT26-001–010 | Luna assigned | `internal-docs/audits/BT26/BT26-001-010.md` | No |
 | BT26-011–020 | Luna assigned | `internal-docs/audits/BT26/BT26-011-020.md` | No |
-| BT26-021–030 | Unassigned | `internal-docs/audits/BT26/BT26-021-030.md` | No |
+| BT26-021–030 | Luna assigned | `internal-docs/audits/BT26/BT26-021-030.md` | No |
 | BT26-031–040 | Unassigned | `internal-docs/audits/BT26/BT26-031-040.md` | No |
 | BT26-041–050 | Unassigned | `internal-docs/audits/BT26/BT26-041-050.md` | No |
 | BT26-051–060 | Unassigned | `internal-docs/audits/BT26/BT26-051-060.md` | No |
@@ -54,14 +54,14 @@ non-gate component rather than being rounded up.
 
 - Catalog cards: 104
 - Direct modules: 104
-- Assigned: 20
+- Assigned: 30
 - Integrated card audits: 0
 - Corrected: 0
 - Provisional: 0
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
-- Remaining unassigned: 84
+- Remaining unassigned: 74
 
-BT26-001 through BT26-020 are active across two Luna/xhigh lanes. No
+BT26-001 through BT26-030 are active across two Luna/xhigh lanes. No
 collection-complete claim is made while the static audit and delivery gates
 remain incomplete.
