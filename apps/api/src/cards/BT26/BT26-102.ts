@@ -7,6 +7,13 @@ const sevenCode = {
   kind: ["Digimon", "Tamer"],
   nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }],
 };
+const appmon = {
+  controller: "mine",
+  kind: ["Digimon", "Tamer"],
+  playCostLte: 5,
+  nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+};
+
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -66,6 +73,20 @@ export const compiled: CompiledCard = {
           optional: true,
           condition: { kind: "namedCountAtLeast", countSource: "sevenCodeMaterials", count: 6 },
         },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: appmon, count: 1 },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        { kind: "AddToHandSelf" },
       ],
     },
   ],
