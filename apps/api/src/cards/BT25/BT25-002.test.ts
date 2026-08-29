@@ -1,8 +1,22 @@
 import { describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT25-002 Wanyamon", () => {
+  it("matches the catalog identity and DATA SQUAD traits", () => {
+    expect(getCardDefinition("BT25-002")).toMatchObject({
+      cardId: "BT25-002",
+      nameEn: "Wanyamon",
+      colors: ["Blue"],
+      kinds: ["DigiEgg"],
+      level: 2,
+      playCost: -1,
+      forms: ["In-Training"],
+      types: ["Lesser", "DATA SQUAD"],
+    });
+  });
+
   it("makes both players draw only once when its controller plays DATA SQUAD Tamers", async () => {
     const s = setupEngine({
       0: {
