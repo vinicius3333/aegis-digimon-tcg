@@ -49,10 +49,12 @@ export const compiled: CompiledCard = {
           position: "bottom",
           optional: true,
           abortOnDecline: true,
+          bindHostAs: "marineBullmonHost",
         },
         {
           kind: "Digivolve",
           target: {
+            fromSelectionRef: "marineBullmonHost",
             filter: {
               controller: "mine",
               kind: ["Digimon"],
@@ -62,7 +64,6 @@ export const compiled: CompiledCard = {
                   match: "name",
                 },
               ],
-              sameAsPlaceUnderTarget: true,
             },
             count: 1,
           },
@@ -82,6 +83,35 @@ export const compiled: CompiledCard = {
         {
           keyword: "Decode",
           raw: "＜Decode (Lv.4 w/[Aqua]/[Sea Animal] in any trait)＞",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "eq", value: 4 },
+                  nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
+                },
+                count: 1,
+              },
+              fromOwnDigivolutionStack: true,
+              payCost: false,
+              playedByDecode: true,
+              optional: true,
+            },
+          ],
         },
       ],
     },
@@ -106,7 +136,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          from: ["digivolutionCards"],
+          fromOwnDigivolutionStack: true,
           payCost: false,
           optional: true,
         },
