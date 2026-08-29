@@ -17,7 +17,14 @@ describe("BT8-096 Top Gun", () => {
             { kind: "Delete", condition: { kind: "not", condition: { kind: "anyOf" } }, target: { filter: { dp: { op: "lte", value: 4000 } } } },
           ],
         },
-        { trigger: "Security", isSecurity: true, actions: [{ kind: "Delete", target: { filter: { dp: { op: "lte", value: 7000 } } } }] },
+        {
+          trigger: "Security",
+          isSecurity: true,
+          actions: [
+            { kind: "Delete", condition: { kind: "anyOf" }, target: { filter: { dp: { op: "lte", value: 7000 } } } },
+            { kind: "Delete", condition: { kind: "not", condition: { kind: "anyOf" } }, target: { filter: { dp: { op: "lte", value: 4000 } } } },
+          ],
+        },
       ],
     });
   });
@@ -54,7 +61,7 @@ describe("BT8-096 Top Gun", () => {
   it("does not combine differently colored monocolor digivolution cards for the 7000 DP cap", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-084", under: ["BT1-001", "BT17-019", "BT1-032"] }, "BT8-013"],
+        battleArea: [{ card: "BT8-060", under: ["BT1-001", "BT17-019", "BT1-032"] }, "BT8-013"],
         hand: [{ card: "BT8-096", as: "option" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5_000 }] },

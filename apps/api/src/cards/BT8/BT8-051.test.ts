@@ -29,7 +29,7 @@ describe("BT8-051 Digmon", () => {
     expect(s.perm("target").currentDP).toBe(before - 3000);
   });
 
-  it("digivolves from a green level-3 Digimon for 3 and Armor Purges after losing a battle", async () => {
+  it("uses its cost-2 Armor path from Armadillomon and Armor Purges after losing a battle", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT8-033", as: "armadillomon" }], hand: [{ card: "BT8-051", as: "digmon" }] },
@@ -48,7 +48,7 @@ describe("BT8-051 Digmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle();
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(3);
 
     expect(
       s.engine.applyIntent(0, {

@@ -51,7 +51,7 @@ describe("BT8-105 Dark Gaia Force", () => {
   it("requires at least one deletion after activating Main, even when later picks are optional", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT8-105", as: "option" }] },
+        0: { battleArea: ["BT8-011"], hand: [{ card: "BT8-105", as: "option" }] },
         1: { battleArea: [{ card: "BT8-011", as: "target" }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
