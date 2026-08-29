@@ -34,7 +34,7 @@ describe("BT21-042 compiled implementation", () => {
         event: "whenPlayed",
         sourceFilter: {
           controller: "mine",
-          nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }],
+          nameOrTrait: [{ tokens: ["Marcus Damon"], match: "nameExact" }],
         },
         actions: [
           {
@@ -136,6 +136,31 @@ describe("BT21-042 compiled implementation", () => {
 
     expect(s.state.memory).toBe(6);
     expect(s.perm("geogreymon").stack.map((card) => card.cardId)).toEqual(["BT21-042"]);
+  });
+
+  it("does not trigger from a combined Marcus Damon card name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-042", as: "geogreymon" }],
+          hand: [
+            { card: "AD1-021", as: "nearMarcus" },
+            { card: "BT21-044", as: "rizegreymon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nearMarcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-021"));
+
+    expect(s.perm("geogreymon").topCard.cardId).toBe("BT21-042");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("rizegreymon").instanceId)).toBe(true);
   });
 
   it("ignores an opponent's Marcus Damon and an unrelated own Tamer", async () => {
