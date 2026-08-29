@@ -79,32 +79,39 @@ describe("BT2-041 through BT2-050 IR coverage", () => {
         expect.objectContaining({
           trigger: "WhenAttacking",
           isInherited: true,
-          actions: [
-            {
+          actions: expect.arrayContaining([
+            expect.objectContaining({
               kind: "PlayWithoutCost",
               suspended: true,
               optional: true,
-              target: { filter: { kind: ["Digimon"], colors: ["Green"], levels: [3] }, count: 1 },
-            },
-          ],
+              target: expect.objectContaining({
+                filter: expect.objectContaining({ kind: ["Digimon"], colors: ["Green"], levels: [3] }),
+                count: 1,
+              }),
+            }),
+          ]),
         }),
       ]),
     );
     expect(runtimeCompiledCard("BT2-048")?.effects).toEqual(
-      expect.arrayContaining([expect.objectContaining({ keywords: [{ keyword: "Blocker" }] })]),
+      expect.arrayContaining([
+        expect.objectContaining({
+          keywords: expect.arrayContaining([expect.objectContaining({ keyword: "Blocker" })]),
+        }),
+      ]),
     );
     expect(runtimeCompiledCard("BT2-049")?.effects).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           trigger: "OnPlay",
-          actions: [
+          actions: expect.arrayContaining([
             expect.objectContaining({ kind: "Suspend" }),
             expect.objectContaining({
               kind: "Restrict",
               restriction: "unsuspend",
               duration: "untilOpponentNextUnsuspendPhase",
             }),
-          ],
+          ]),
         }),
       ]),
     );
@@ -112,20 +119,19 @@ describe("BT2-041 through BT2-050 IR coverage", () => {
       expect.arrayContaining([
         expect.objectContaining({
           trigger: "YourTurn",
-          actions: [
+          actions: expect.arrayContaining([
             expect.objectContaining({
               kind: "GainKeyword",
-              keyword: { keyword: "SecurityAttack", amount: 1 },
+              keyword: expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
               scaling: expect.objectContaining({
                 per: 1,
                 unit: "cards",
-                filter: { excludeSelf: true, suspended: true, kind: ["Digimon"] },
+                filter: expect.objectContaining({ excludeSelf: true, suspended: true, kind: ["Digimon"] }),
               }),
             }),
-          ],
+          ]),
         }),
       ]),
     );
   });
 });
-

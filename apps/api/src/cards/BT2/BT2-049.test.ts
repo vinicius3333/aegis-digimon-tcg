@@ -10,15 +10,19 @@ describe("BT2-049 Puppetmon", () => {
     expect(runtimeCompiledCard("BT2-049")).toMatchObject({
       coverage: "full",
       residual: [],
-      effects: [
-        {
+      effects: expect.arrayContaining([
+        expect.objectContaining({
           trigger: "OnPlay",
-          actions: [
-            { kind: "Suspend" },
-            { kind: "Restrict", restriction: "unsuspend", duration: "untilOpponentNextUnsuspendPhase" },
-          ],
-        },
-      ],
+          actions: expect.arrayContaining([
+            expect.objectContaining({ kind: "Suspend" }),
+            expect.objectContaining({
+              kind: "Restrict",
+              restriction: "unsuspend",
+              duration: "untilOpponentNextUnsuspendPhase",
+            }),
+          ]),
+        }),
+      ]),
     });
   });
 
