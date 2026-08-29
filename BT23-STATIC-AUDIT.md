@@ -1,6 +1,6 @@
 # BT23 Static Card Implementation Re-audit
 
-Status: static card-by-card audit in progress; BT22 integration remains ahead in chronological order; execution gates deferred
+Status: static card-by-card audit in progress; execution gates deferred
 
 Catalog snapshot: `efbecc002fb9000789123e2f91f201466e1e5b0a`
 
@@ -10,8 +10,8 @@ card modules in `apps/api/src/cards/BT23/`.
 
 This ledger follows the repository's `verify-card-implementation` protocol
 and the chronological campaign plan. Detailed English reports belong under
-`internal-docs/audits/BT23/`. BT23 work may be prepared in parallel, but it
-will not be integrated before the BT22 ledger is complete.
+`internal-docs/audits/BT23/`. BT23 work may be prepared in parallel, while
+accepted ranges are integrated in strict ascending order.
 
 ## Current execution state
 
@@ -25,7 +25,7 @@ provisional and capped at 8/10.
 | BT23-011–020 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-011-020.md` | Yes |
 | BT23-021–030 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-021-030.md` | Yes |
 | BT23-031–040 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-031-040.md` | Yes |
-| BT23-041–050 | Luna assigned | `internal-docs/audits/BT23/BT23-041-050.md` | No |
+| BT23-041–050 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-041-050.md` | Yes |
 | BT23-051–060 | Luna assigned | `internal-docs/audits/BT23/BT23-051-060.md` | No |
 | BT23-061–070 | Luna assigned | `internal-docs/audits/BT23/BT23-061-070.md` | No |
 | BT23-071–080 | Luna assigned | `internal-docs/audits/BT23/BT23-071-080.md` | No |
@@ -85,17 +85,27 @@ applicable non-gate component rather than being rounded up.
 | BT23-038 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Face-up Security aura and inherited DP have natural state proof; reveal remains directly timed. |
 | BT23-039 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural linking proves cost, DP, suspend, and refusal; reveal remains directly timed. |
 | BT23-040 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Erika placement/evolution is observable, but primary start-main timing is manually fired. |
+| BT23-041 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Alliance, suspension watcher, trait boundaries, and legal evolution are covered; the natural suspension origin remains unexecuted. |
+| BT23-042 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Security Royal Base aura, optional Tamer play, inherited DP, and evolution are traced without full natural settlement. |
+| BT23-043 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural leave replacement, Security Blocker, ownership boundaries, and legal evolution are covered. |
+| BT23-044 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Inherited trigger now requires an actual opposing Digimon deletion in battle and excludes Security Digimon wins. |
+| BT23-045 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Ordinary By conditions retain optional decline semantics; natural suspension and Counter timing remain unexecuted. |
+| BT23-046 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | By-suspension acceptance/decline, Fortitude, redirect, and evolution are traced; full natural restriction cleanup remains unexecuted. |
+| BT23-047 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Core Examon actions are traced, but natural Security removal and complete attack/stack proof remain absent. |
+| BT23-048 | 2/2 | 2/2 | 1/2 | 1/2 | 0/2 | 6/10 provisional | Reveal and bound inherited play/lock/delete are traced; natural attack and simultaneous Alliance ordering remain absent. |
+| BT23-049 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Exact trash payment, payload order, inherited DP, and evolution are covered; the phase origin is directly fired. |
+| BT23-050 | 2/2 | 2/2 | 1/2 | 2/2 | 0/2 | 7/10 provisional | Natural entry sequencing, deferred 0-DP deletion, DNA stack, Blocker, and evolution are covered; the derived Hudiemon/Erika origin remains absent. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 100
-- Integrated card audits: 40
-- Corrected: 4
-- Provisional: 40
+- Integrated card audits: 50
+- Corrected: 5
+- Provisional: 50
 - Verified 10/10 in this pass: 0
-- Blocked or ambiguous: 28
+- Blocked or ambiguous: 37
 - Remaining unassigned: 2
 
-BT23 static auditing is prepared in parallel. Accepted ranges will be
-integrated only after BT22, then in strict ascending BT23 order.
+BT23 static auditing is prepared in parallel. Accepted ranges are integrated
+in strict ascending BT23 order.
