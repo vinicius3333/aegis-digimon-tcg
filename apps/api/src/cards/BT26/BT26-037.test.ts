@@ -70,7 +70,7 @@ describe("BT26-037 Weatherdramon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-037", as: "weatherdramon", under: ["BT26-084"] },
+            { card: "BT26-037", as: "weatherdramon", under: ["BT21-047"] },
             { card: "BT26-084", as: "recipient", linked: [{ card: "BT26-037" }] },
           ],
         },
@@ -81,7 +81,7 @@ describe("BT26-037 Weatherdramon", () => {
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("weatherdramon"));
 
-    expect(s.perm("weatherdramon").linked.map((card) => card.cardId)).toEqual(["BT26-084"]);
+    expect(s.perm("weatherdramon").linked.map((card) => card.cardId)).toEqual(["BT21-047"]);
 
     await advance(s.engine).fireSubTrigger("whenLinked", {
       subjectPermanentId: s.perm("recipient").permanentId,
@@ -92,7 +92,7 @@ describe("BT26-037 Weatherdramon", () => {
   it("does not link a level-3 source that has no Link requirement (Q7014)", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT26-037", as: "weatherdramon", under: [{ card: "BT1-009", as: "noLink" }] }] },
+        0: { battleArea: [{ card: "BT26-037", as: "weatherdramon", under: [{ card: "BT1-066", as: "noLink" }] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -105,14 +105,14 @@ describe("BT26-037 Weatherdramon", () => {
 
   it("may decline the On Play link without moving the eligible source", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT26-037", as: "weatherdramon", under: ["BT26-084"] }] } },
+      { 0: { battleArea: [{ card: "BT26-037", as: "weatherdramon", under: ["BT21-047"] }] } },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("weatherdramon"));
 
     expect(s.perm("weatherdramon").linked).toHaveLength(0);
-    expect(s.perm("weatherdramon").stack.map(({ cardId }) => cardId)).toEqual(["BT26-084"]);
+    expect(s.perm("weatherdramon").stack.map(({ cardId }) => cardId)).toEqual(["BT21-047"]);
   });
 
   it("only links from this Digimon's stack, not another own Digimon's stack", async () => {
@@ -120,8 +120,8 @@ describe("BT26-037 Weatherdramon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT26-037", as: "weatherdramon", under: ["BT1-009"] },
-            { card: "AD1-001", as: "otherHost", under: ["BT21-047"] },
+            { card: "BT26-037", as: "weatherdramon", under: ["BT1-066"] },
+            { card: "BT11-051", as: "otherHost", under: ["BT21-047"] },
           ],
         },
       },
