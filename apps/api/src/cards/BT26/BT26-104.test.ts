@@ -6,7 +6,7 @@ import { compiled } from "./BT26-104.js";
 import "../index.js";
 
 describe("BT26-104 compiled fidelity", () => {
-  it("registers memory, Shambala trash-to-draw, conditional Option use, and Security play", () => {
+  it("registers memory, Shambala trash-to-draw, and conditional Option use without an unprinted Security effect", () => {
     const card = compiled;
     expect(getCardDefinition("BT26-104")).toMatchObject({
       nameEn: "Kunlun",
@@ -17,10 +17,7 @@ describe("BT26-104 compiled fidelity", () => {
     });
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
-    expect(card?.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({
-      isSecurity: true,
-      actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
-    });
+    expect(card?.effects?.find((effect) => effect.trigger === "Security")).toBeUndefined();
     expect(card?.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
       { kind: "GainMemory", amount: 1 },
     ]);
@@ -200,17 +197,4 @@ describe("BT26-104 compiled fidelity", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
   });
 
-  it("plays itself without cost from security", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "BT26-104", as: "security", faceUp: true }] },
-    });
-    s.state.memory = 0;
-    await s.ready();
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-104"));
-
-    expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.security).toHaveLength(0);
-  });
 });
