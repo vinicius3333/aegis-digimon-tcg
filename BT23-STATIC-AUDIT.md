@@ -21,7 +21,7 @@ provisional and capped at 8/10.
 
 | Range | Worker state | Range report | Integrated |
 | --- | --- | --- | --- |
-| BT23-001–010 | Luna assigned | `internal-docs/audits/BT23/BT23-001-010.md` | No |
+| BT23-001–010 | Coordinator reviewed | `internal-docs/audits/BT23/BT23-001-010.md` | Yes |
 | BT23-011–020 | Luna assigned | `internal-docs/audits/BT23/BT23-011-020.md` | No |
 | BT23-021–030 | Luna assigned | `internal-docs/audits/BT23/BT23-021-030.md` | No |
 | BT23-031–040 | Luna assigned | `internal-docs/audits/BT23/BT23-031-040.md` | No |
@@ -45,14 +45,24 @@ applicable non-gate component rather than being rounded up.
 
 | Card | Catalog/rules | IR trace | Behavioral proof | Peer and stack proof | Executed delivery gates | Result | Direct evidence |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| BT23-001 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inherited Appmon attack draw, trait negative, independent source keys, and legal hosts are covered. |
+| BT23-002 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Inherited CS attack draw, trait negative, once-per-turn identity, and legal hosts are covered. |
+| BT23-003 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural CS Option play now proves the inherited optional attack and once-per-turn boundary. |
+| BT23-004 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural battle deletion proves same-bound Ghost grants and opponent-turn-end expiry. |
+| BT23-005 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Trait evolution reduction, breeding exclusion, ruled override, and inherited DP scope are covered. |
+| BT23-006 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Reveal buckets, CS Digi-Egg evolution, white-play memory, negatives, and source identity are covered. |
+| BT23-007 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Security-battle self-play, Appmon link boundary, linked DP, and Piercing are covered. |
+| BT23-008 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Ruled restack/reduced play, refusal, exposed-stack edges, alternates, Raid, and inherited DP are covered. |
+| BT23-009 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural turn end now proves the optional linked player attack and decline, with link boundaries. |
+| BT23-010 | 2/2 | 2/2 | 2/2 | 2/2 | 0/2 | 8/10 provisional | Natural Security-battle self-play, alternate evolution, Raid, and both Blocker scopes are covered. |
 
 ## Aggregate
 
 - Catalog cards: 102
 - Assigned: 80
-- Integrated card audits: 0
+- Integrated card audits: 10
 - Corrected: 0
-- Provisional: 0
+- Provisional: 10
 - Verified 10/10 in this pass: 0
 - Blocked or ambiguous: 0
 - Remaining unassigned: 22
