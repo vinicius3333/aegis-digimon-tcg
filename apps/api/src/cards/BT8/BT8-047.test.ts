@@ -18,7 +18,7 @@ describe("BT8-047 Pulsemon", () => {
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 2000);
   });
 
-  it("digivolves from a green level-2 Digimon and exposes the inherited scaling", async () => {
+  it("digivolves from a green level-2 Digimon without applying its inherited effect as the top card", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -41,7 +41,7 @@ describe("BT8-047 Pulsemon", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT8-047");
 
     expect(s.perm("base").topCard.cardId).toBe("BT8-047");
-    expect(s.perm("base").currentDP).toBe(s.perm("base").baseDP + 2000);
+    expect(s.perm("base").currentDP).toBe(s.perm("base").baseDP);
     expect(s.state.memory).toBe(1);
   });
 });

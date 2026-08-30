@@ -36,11 +36,13 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
+              sameNameAsSelection: "returnedDigimon",
             },
             count: "all",
           },
           cost: {
             kind: "return",
+            bindResultAs: "returnedDigimon",
             target: {
               filter: {
                 zone: "trash",

@@ -32,10 +32,16 @@ export const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
-              hostFilter: {
-                controller: "mine",
-                kind: ["Tamer"],
-              },
+              or: [
+                { zone: "hand" },
+                {
+                  zone: "digivolutionCards",
+                  hostFilter: {
+                    controller: "mine",
+                    kind: ["Tamer"],
+                  },
+                },
+              ],
             },
             count: 1,
             from: ["hand", "digivolutionCards"],
@@ -89,10 +95,16 @@ export const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
-              hostFilter: {
-                controller: "mine",
-                kind: ["Tamer"],
-              },
+              or: [
+                { zone: "hand" },
+                {
+                  zone: "digivolutionCards",
+                  hostFilter: {
+                    controller: "mine",
+                    kind: ["Tamer"],
+                  },
+                },
+              ],
             },
             count: 1,
             from: ["hand", "digivolutionCards"],

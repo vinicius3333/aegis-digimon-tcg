@@ -32,7 +32,7 @@ describe("BT9-036 Gatomon (X Antibody)", () => {
     expect(s.perm("target").currentDP).toBe(1000);
   });
 
-  it("uses the zero-cost Gatomon alternate evolution and retains the inherited effect", async () => {
+  it("uses the zero-cost Gatomon alternate evolution without applying its inherited effect as the top card", async () => {
     const s = setupEngine(
       {
         0: {
@@ -56,7 +56,7 @@ describe("BT9-036 Gatomon (X Antibody)", () => {
     await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT2-036"]);
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("base"));
-    expect(s.perm("target").currentDP).toBe(1000);
+    expect(s.perm("target").currentDP).toBe(3000);
   });
 
   it("does not apply the inherited effect below the three-security threshold", async () => {

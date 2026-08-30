@@ -30,8 +30,8 @@ describe("BT1-103 Testament", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-010", as: "chosen" },
-            { card: "BT1-011", as: "other" },
+            { card: "BT1-053", as: "chosen" },
+            { card: "BT1-054", as: "other" },
           ],
           hand: [{ card: "BT1-103", as: "option" }],
           deck: ["BT1-001", "BT1-002"],

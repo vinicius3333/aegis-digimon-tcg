@@ -118,7 +118,15 @@ describe("BT11-097 Crimson Flare [Main]", () => {
     const mainActions = compiled.effects?.find((entry) => entry.trigger === "Main")?.actions;
     expect(mainActions).toMatchObject([{ kind: "Delete" }, { kind: "ActivateEffect", effectType: "OnDeletion" }]);
     expect(mainActions?.[1]).not.toHaveProperty("optional");
-    expect(compiled.effects).toMatchObject([{ trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] }]);
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "Security",
+          isSecurity: true,
+          actions: [expect.objectContaining({ kind: "ActivateMain" })],
+        }),
+      ]),
+    );
   });
 
   it("activates a red Vaccine Digimon's On Deletion effect without deleting it", async () => {

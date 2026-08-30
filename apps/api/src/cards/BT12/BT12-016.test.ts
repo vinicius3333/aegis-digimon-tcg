@@ -74,8 +74,8 @@ describe("BT12-016 WarGrowlmon", () => {
 
   it("does not trigger the inherited effect when its attacker is deleted in a battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT12-018", as: "host", dp: 5000, under: ["BT12-016"] }] },
-      1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 5000 }] },
+      0: { battleArea: [{ card: "BT2-013", as: "host", under: ["BT12-016"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "defender", dp: 4000, suspended: true }] },
     });
     await s.ready();
 

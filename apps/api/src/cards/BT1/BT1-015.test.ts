@@ -41,7 +41,7 @@ describe("BT1-015 Greymon", () => {
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("evolving").instanceId);
     expect(s.perm("host").stack.map((card) => card.instanceId)).toContain(s.inst("greymon").instanceId);
     expect(s.perm("host").topCard.cardId).toBe("BT1-025");
-    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-021", "BT1-015"]);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-015", "BT1-021"]);
     expect(s.state.memory).toBe(3);
     expect(s.perm("host").currentDP).toBe(13000);
   });

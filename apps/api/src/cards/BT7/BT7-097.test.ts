@@ -84,19 +84,6 @@ describe("BT7-097 Tidal Wave", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-
-    const hostDecision = s.decisions.at(-1)!.req;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: hostDecision.decisionId,
-        response: {
-          kind: "chooseTargets",
-          instanceIds: [s.perm("host").permanentId],
-        },
-      }),
-    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const decision = s.decisions.at(-1)!.req;

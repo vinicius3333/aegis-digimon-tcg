@@ -4,10 +4,10 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT9-006.js";
 
-function attackTarget(s: ReturnType<typeof setupEngine>) {
+function attackTarget(s: ReturnType<typeof setupEngine>, attackerAlias = "host") {
   return s.engine.applyIntent(0, {
     type: "attack" as const,
-    attackerPermanentId: s.perm("host").permanentId,
+    attackerPermanentId: s.perm(attackerAlias).permanentId,
     target: { kind: "permanent" as const, permanentId: s.perm("target").permanentId },
   });
 }
@@ -139,8 +139,9 @@ describe("BT9-006 Pagumon", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.breeding === undefined);
+    s.state.phase = Phase.Main;
 
-    expect(attackTarget(s)).toEqual({ ok: true });
+    expect(attackTarget(s, "pagumon")).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("pagumon").stack.map((card) => card.cardId)).toContain("BT9-006");
     expect(s.perm("pagumon").currentDP).toBe(4000);

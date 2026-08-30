@@ -70,6 +70,7 @@ describe("BT8-066 Hisyaryumon", () => {
 
     expect(s.perm("yuji").isSuspended).toBe(true);
     expect(s.perm("hisyaryumon").stack.some((card) => card.instanceId === s.inst("placed").instanceId)).toBe(true);
+    expect(s.perm("hisyaryumon").topCard.instanceId).toBe(s.inst("ouryumon").instanceId);
     expect(s.state.memory).toBe(2);
   });
 });

@@ -67,7 +67,7 @@ describe("BT11-105 Fusionize", () => {
         0: {
           battleArea: [{ card: "BT11-065", as: "host" }],
           hand: [{ card: "BT11-105", as: "option" }],
-          trash: ["BT11-070"],
+          trash: ["BT1-001"],
         },
       },
       { autoSelectCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
@@ -80,7 +80,7 @@ describe("BT11-105 Fusionize", () => {
     await settle();
 
     expect(s.perm("host").topCard?.cardId).toBe("BT11-065");
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT11-070");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
   });
 
   it("Security reveals three cards, plays Vemmon, and trashes the rest", async () => {

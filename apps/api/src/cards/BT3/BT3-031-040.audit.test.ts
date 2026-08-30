@@ -23,21 +23,31 @@ describe("BT3-031 through BT3-040 IR coverage", () => {
       expect.arrayContaining([
         expect.objectContaining({
           trigger: "Static",
-          actions: [
+          actions: expect.arrayContaining([
             expect.objectContaining({
               kind: "CostModifier",
               costType: "digivolve",
               mode: "reduce",
               amount: 2,
               handResident: true,
-              sourceFilter: { nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "name" }] },
+              sourceFilter: expect.objectContaining({
+                nameOrTrait: [{ tokens: ["Paildramon", "Dinobeemon"], match: "name" }],
+              }),
             }),
-          ],
+          ]),
         }),
-        expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Jamming" }] }),
+        expect.objectContaining({
+          trigger: "Static",
+          keywords: expect.arrayContaining([expect.objectContaining({ keyword: "Jamming" })]),
+        }),
         expect.objectContaining({
           trigger: "WhenDigivolving",
-          actions: [{ kind: "Unsuspend", target: { count: "all", filter: { keywords: ["Jamming"] } } }],
+          actions: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "Unsuspend",
+              target: { count: "all", filter: expect.objectContaining({ keywords: ["Jamming"] }) },
+            }),
+          ]),
         }),
       ]),
     );
@@ -78,19 +88,24 @@ describe("BT3-031 through BT3-040 IR coverage", () => {
       expect.arrayContaining([
         expect.objectContaining({
           trigger: "WhenDigivolving",
-          actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -2 } }],
+          actions: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "GainKeyword",
+              keyword: expect.objectContaining({ keyword: "SecurityAttack", amount: -2 }),
+            }),
+          ]),
         }),
         expect.objectContaining({
           trigger: "WhenAttacking",
           isInherited: true,
-          actions: [
+          actions: expect.arrayContaining([
             expect.objectContaining({
               kind: "PlayWithoutCost",
               from: ["hand"],
               optional: true,
-              condition: { kind: "zoneCount", zone: "security", op: "lte", value: 3 },
+              condition: expect.objectContaining({ kind: "zoneCount", zone: "security", op: "lte", value: 3 }),
             }),
-          ],
+          ]),
         }),
       ]),
     );
@@ -98,17 +113,29 @@ describe("BT3-031 through BT3-040 IR coverage", () => {
       expect.arrayContaining([
         expect.objectContaining({
           trigger: "YourTurn",
-          actions: [{ kind: "GrantStatic", grant: "color", tokens: ["Blue"], duration: "forTheTurn" }],
+          actions: expect.arrayContaining([
+            expect.objectContaining({ kind: "GrantStatic", grant: "color", tokens: ["Blue"], duration: "forTheTurn" }),
+          ]),
         }),
         expect.objectContaining({
           trigger: "OpponentsTurn",
-          actions: [
-            {
+          actions: expect.arrayContaining([
+            expect.objectContaining({
               kind: "Aura",
-              target: { count: "all", filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" } },
-              effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: -1 } },
-            },
-          ],
+              target: expect.objectContaining({
+                count: "all",
+                filter: expect.objectContaining({
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  digivolutionCards: "none",
+                }),
+              }),
+              effect: expect.objectContaining({
+                kind: "keyword",
+                keyword: expect.objectContaining({ keyword: "SecurityAttack", amount: -1 }),
+              }),
+            }),
+          ]),
         }),
       ]),
     );

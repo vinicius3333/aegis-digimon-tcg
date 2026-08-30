@@ -3037,12 +3037,25 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // can resolve and gate on the deleted card's live traits/controller before it leaves the
     // field. The body (e.g. draw) runs immediately; OnDestroyedAnyone (System A) follows below.
     if (engine.fireSubTrigger) {
+      const deletedPermanentSnapshots = toDelete.flatMap((permanentId) => {
+        const permanent = access.permanentById(permanentId);
+        return permanent?.topCard === undefined
+          ? []
+          : [
+              {
+                permanentId,
+                controllerSeat: permanent.controllerSeat,
+                topCardId: permanent.topCard.cardId,
+              },
+            ];
+      });
       for (const permanentId of toDelete) {
         const deleted = access.permanentById(permanentId);
         if (deleted?.topCard === undefined) continue;
         await engine.fireSubTrigger("onDeletionOf", {
           deletedPermanentId: permanentId,
           deletedPermanentIds: toDelete,
+          deletedPermanentSnapshots,
           deletedControllerSeat: deleted.controllerSeat,
           deletedTopCardId: deleted.topCard?.cardId,
           removalCause: cause,

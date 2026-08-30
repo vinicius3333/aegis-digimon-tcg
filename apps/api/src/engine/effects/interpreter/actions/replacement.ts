@@ -8,6 +8,7 @@ import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
+import { candidatePermanents } from "../targeting/permanents.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Condition, Cost, Filter, Permanent } from "@aegis/shared";
 
@@ -51,7 +52,9 @@ export async function runReplacement(
           kind?: string;
           event?: string;
           mode?: string;
-          amount?: number;
+          costType?: string;
+          amount?: number | null;
+          dynamicFrom?: string;
           condition?: Condition;
           cost?: Cost;
           additionalCost?: Cost;
@@ -64,16 +67,24 @@ export async function runReplacement(
       | undefined
   )?.filter(
     (a) =>
-      a.kind === "Replacement" && a.event === action.event && (a.mode === "reduceCost" || a.mode === "increaseCost"),
+      (a.kind === "Replacement" &&
+        a.event === action.event &&
+        (a.mode === "reduceCost" || a.mode === "increaseCost")) ||
+      (a.kind === "CostModifier" && a.costType === "play" && a.mode === "reduce"),
   );
   const nestedCostModifier = nestedCostModifiers?.[0];
+  const nestedCostMode =
+    nestedCostModifier?.kind === "CostModifier"
+      ? nestedCostModifier.mode === "reduce"
+        ? "reduceCost"
+        : undefined
+      : nestedCostModifier?.mode;
   const event = REPLACEMENT_EVENT_MAP[action.event];
   if (event === undefined) {
     unsupported(ctx, action, `Replacement event "${action.event}" is not a known game event`);
     return;
   }
   if (action.condition !== undefined && !evaluateCondition(ctx, action.condition)) return;
-  if (action.sourceFilter?.zone === "battleArea" && !ctx.source.isOnBattleArea()) return;
   const self = ctx.source.permanent();
   const activationIdentity =
     ctx.activeEffectKey === undefined
@@ -144,14 +155,17 @@ export async function runReplacement(
     (nestedPrevent !== undefined
       ? "prevent"
       : nestedCostModifier !== undefined
-        ? nestedCostModifier.mode
+        ? nestedCostMode
         : action.cost
           ? "prevent"
           : "instead");
-  let amount =
-    action.amount ??
+  let amount: number | undefined =
+    (typeof action.amount === "number" ? action.amount : undefined) ??
     nestedCostModifiers?.reduce(
-      (total, modifier) => total + (modifier.amount ?? 0) * (modifier.scaling ? scaleFactor(ctx, modifier.scaling) : 1),
+      (total, modifier) =>
+        total +
+        (typeof modifier.amount === "number" ? modifier.amount : 0) *
+          (modifier.scaling ? scaleFactor(ctx, modifier.scaling) : 1),
       0,
     );
   const costScaling = action.scaling ?? action.reduceCostScaling;
@@ -428,6 +442,30 @@ export async function runReplacement(
                   action.raw ?? nestedCostModifier?.raw ?? "Pay the cost to reduce the cost?",
                 );
                 if (!accepted) return false;
+              }
+              if (nestedCostModifier?.dynamicFrom === "deletedDigimonPlayCost") {
+                if (interactiveCost?.kind !== "deleteOwn" || interactiveCost.target === undefined) return false;
+                const reductionBinding = `dynamic-play-cost/${ctx.source.instanceId}/${activationIdentity ?? "effect"}`;
+                const playCostByPermanentId = new Map(
+                  candidatePermanents(runtimeCtx, interactiveCost.target).map((permanent) => [
+                    permanent.permanentId,
+                    permanent.topCard === undefined
+                      ? 0
+                      : Math.max(0, runtimeCtx.game.definitionOf(permanent.topCard).playCost),
+                  ]),
+                );
+                const succeeded = await payCost(runtimeCtx, {
+                  ...interactiveCost,
+                  bindResultAs: reductionBinding,
+                });
+                if (!succeeded) return false;
+                for (const additionalCost of interactiveAdditionalCosts) {
+                  if (!(await payCost(runtimeCtx, additionalCost))) return false;
+                }
+                return [...(runtimeCtx.boundPlayed?.get(reductionBinding) ?? [])].reduce(
+                  (total, permanentId) => total + (playCostByPermanentId.get(permanentId) ?? 0),
+                  0,
+                );
               }
               if (action.amountFromPaidCost === true) {
                 if (interactiveCost === undefined) return false;

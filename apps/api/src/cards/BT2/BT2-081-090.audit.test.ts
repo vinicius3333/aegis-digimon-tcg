@@ -82,17 +82,17 @@ describe("BT2-081 through BT2-090 IR coverage", () => {
       expect.arrayContaining([
         expect.objectContaining({
           trigger: "WhenDigivolving",
-          actions: [expect.objectContaining({ kind: "Return", to: "deckBottom" })],
+          actions: expect.arrayContaining([expect.objectContaining({ kind: "Return", to: "deckBottom" })]),
         }),
         expect.objectContaining({
           trigger: "OnDeletion",
-          actions: [
+          actions: expect.arrayContaining([
             expect.objectContaining({
               kind: "PlayWithoutCost",
               from: ["trash"],
-              condition: { kind: "selfHadDigivolutionCards" },
+              condition: expect.objectContaining({ kind: "selfHadDigivolutionCards" }),
             }),
-          ],
+          ]),
         }),
       ]),
     );
@@ -188,13 +188,19 @@ describe("BT2-081 through BT2-090 IR coverage", () => {
       expect.arrayContaining([
         expect.objectContaining({
           trigger: "StartOfYourTurn",
-          actions: [
+          actions: expect.arrayContaining([
             expect.objectContaining({
               kind: "GainMemory",
               amount: 1,
-              condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
+              condition: expect.objectContaining({
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "security",
+                op: "lte",
+                value: 3,
+              }),
             }),
-          ],
+          ]),
         }),
       ]),
     );

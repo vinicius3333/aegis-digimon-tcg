@@ -14,6 +14,7 @@ describe("BT6-109 Fly Bullet", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 9;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,

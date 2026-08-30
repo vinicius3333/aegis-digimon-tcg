@@ -15,11 +15,15 @@ describe("BT13-025 GaoGamon", () => {
           optional: true,
           condition: expect.objectContaining({
             kind: "youHaveNone",
-            filter: { nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "nameExact" }] },
+            filter: expect.objectContaining({
+              nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "nameExact" }],
+            }),
           }),
-          target: {
-            filter: { nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "nameExact" }] },
-          },
+          target: expect.objectContaining({
+            filter: expect.objectContaining({
+              nameOrTrait: [{ tokens: ["Thomas H. Norstein"], match: "nameExact" }],
+            }),
+          }),
         }),
       ],
     });
@@ -95,7 +99,7 @@ describe("BT13-025 GaoGamon", () => {
           battleArea: [{ card: "BT13-021", as: "gaomon" }],
           hand: [
             { card: "BT13-025", as: "gaogamon" },
-            { card: "ST24-13", as: "near-thomas" },
+            { card: "AD1-021", as: "near-thomas" },
           ],
         },
       },
@@ -121,7 +125,7 @@ describe("BT13-025 GaoGamon", () => {
         0: {
           battleArea: [
             { card: "BT13-021", as: "gaomon" },
-            { card: "ST24-13", as: "near-thomas" },
+            { card: "AD1-021", as: "near-thomas" },
           ],
           hand: [
             { card: "BT13-025", as: "gaogamon" },

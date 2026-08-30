@@ -54,15 +54,17 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              levelComparison: {
+              relativeTo: {
+                attr: "level",
                 op: "lte",
-                relativeTo: "lastDeleted",
+                selectionRef: "trashedHandDigimon",
               },
             },
             count: 1,
           },
           cost: {
             kind: "trash",
+            bindResultAs: "trashedHandDigimon",
             target: {
               filter: {
                 zone: "hand",

@@ -28,7 +28,7 @@ describe("BT4-012 GeoGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId));
 
-    expect(geo.stack).toHaveLength(1);
+    expect(geo.stack).toHaveLength(0);
     expect(geo.topCard?.cardId).toBe("BT4-012");
     expect(s.state.players[0]!.battleArea).toContain(geo);
     expect(s.state.players[0]!.trash).toHaveLength(2);
@@ -55,10 +55,10 @@ describe("BT4-012 GeoGreymon", () => {
         effectKey: effectKey!,
       }),
     ).toEqual({ ok: true });
-    await settle(() => geo.stack.length === 3, 5000);
+    await settle(() => geo.stack.length === 2, 5000);
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
-    expect(geo.stack).toHaveLength(3);
+    expect(geo.stack).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });

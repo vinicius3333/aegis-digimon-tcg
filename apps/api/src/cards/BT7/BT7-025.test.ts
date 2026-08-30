@@ -34,7 +34,7 @@ describe("BT7-025 Beowolfmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("beowolfInHand").instanceId);
 
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(3);
   });
 
   it("returns a Hybrid source as its attack cost, trashes the target's sources, and returns it to hand", async () => {

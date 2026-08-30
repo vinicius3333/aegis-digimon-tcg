@@ -15,7 +15,7 @@ describe("BT13-080 ProtoGizmon", () => {
     expect(replacement).toMatchObject({
       kind: "Replacement",
       event: "wouldBePlayed",
-      sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ match: "name", tokens: ["ProtoGizmon"] }] },
+      sourceFilter: { isSelfRef: true },
     });
     expect(replacement.actions?.[0]).toMatchObject({
       kind: "Replacement",
@@ -131,7 +131,10 @@ describe("BT13-080 ProtoGizmon", () => {
       {
         0: {
           battleArea: [{ card: "BT13-080", as: "proto" }],
-          trash: [{ card: "BT13-083", as: "at" }, { card: "BT13-086", as: "xt" }],
+          trash: [
+            { card: "BT13-083", as: "at" },
+            { card: "BT13-086", as: "xt" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
@@ -191,15 +194,20 @@ describe("BT13-080 ProtoGizmon", () => {
   });
 
   it("can accept the return cost and decline the nested Gizmon: AT play", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT13-080", as: "proto" }],
-          trash: [{ card: "BT13-083", as: "at" }, { card: "BT13-086", as: "xt" }],
+          trash: [
+            { card: "BT13-083", as: "at" },
+            { card: "BT13-086", as: "xt" },
+          ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.perm("proto").topCard!.instanceId, s.inst("xt").instanceId);
     await s.ready();
 
     const deletion = advance(s.engine).verb.deletePermanent([s.perm("proto").permanentId]);

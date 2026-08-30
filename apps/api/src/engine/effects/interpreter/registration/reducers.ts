@@ -64,6 +64,8 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "AD1-017", // 4+ Lucemon/Witchelny-text cards in trash -> self play cost -5
   "AD1-018", // 4+ Knightmon/Lucemon-text cards in trash -> self play cost -5
   "BT13-045", // 8+ Chessmon-name Digimon cards in trash -> self play cost -8
+  "BT13-080", // delete one own level-2 Digimon in breeding -> self play cost -2
+  "BT13-083", // delete one own level-3 Digimon -> self play cost -4
   "BT13-111", // no battle-area Digimon; -2 per 5 combined trash cards (KB Q2364; §15-1-7)
   "BT2-099", // self Option use cost -1 per yellow Tamer
   "BT2-112", // opponent has a 10000+ DP Digimon -> -6
@@ -542,11 +544,7 @@ export async function applyWouldBePlayedSelfReducer(
       const candidates: { instanceId: string; cardId: string; permanentId?: string }[] = [];
       if (sourceZones.has("trash")) {
         candidates.push(
-          ...candidateLooseInstances(
-            ctx,
-            { ...target, filter: { ...candidateFilter, zone: "trash" } },
-            ["trash"],
-          ),
+          ...candidateLooseInstances(ctx, { ...target, filter: { ...candidateFilter, zone: "trash" } }, ["trash"]),
         );
       }
       if (sourceZones.has("battleArea")) {
@@ -604,16 +602,10 @@ export async function applyWouldBePlayedSelfReducer(
         }
       }
       if (chosenPlacements.length > 0) {
-        ctx.pendingSelfReducerPlacements = [
-          ...(ctx.pendingSelfReducerPlacements ?? []),
-          ...chosenPlacements,
-        ];
+        ctx.pendingSelfReducerPlacements = [...(ctx.pendingSelfReducerPlacements ?? []), ...chosenPlacements];
       }
       if (chosenRelocations.length > 0) {
-        ctx.pendingSelfReducerRelocations = [
-          ...(ctx.pendingSelfReducerRelocations ?? []),
-          ...chosenRelocations,
-        ];
+        ctx.pendingSelfReducerRelocations = [...(ctx.pendingSelfReducerRelocations ?? []), ...chosenRelocations];
       }
       const placedCount = chosenPlacements.length + chosenRelocations.length;
       ctx.playCostDelta = (ctx.playCostDelta ?? 0) + placedCount * reducer.amountPerPaid;

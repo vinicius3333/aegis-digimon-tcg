@@ -77,11 +77,15 @@ describe("BT1-012 Biyomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-001", as: "base" }],
-        hand: [{ card: "BT1-012", as: "biyomon" }],
+        hand: [
+          { card: "BT1-012", as: "biyomon" },
+          { card: "BT1-016", as: "evolving" },
+        ],
         deck: [{ card: "BT1-010", as: "drawn" }],
       },
       1: { battleArea: [{ card: "BT1-072", as: "blocker", dp: 1000 }], security: ["BT1-010"] },
     });
+    s.state.memory = 3;
 
     expect(
       s.engine.applyIntent(0, {
@@ -94,6 +98,15 @@ describe("BT1-012 Biyomon", () => {
 
     expect(
       s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolving").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("base").permanentId,
         target: { kind: "player" },
@@ -103,9 +116,9 @@ describe("BT1-012 Biyomon", () => {
     expect(
       s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").currentDP === 4000);
+    await settle(() => s.perm("base").currentDP === 6000);
 
     expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(s.inst("base").instanceId);
-    expect(s.perm("base").currentDP).toBe(4000);
+    expect(s.perm("base").currentDP).toBe(6000);
   });
 });

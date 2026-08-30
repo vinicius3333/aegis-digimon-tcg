@@ -24,7 +24,7 @@ describe("BT4-084 NeoDevimon", () => {
 
   it("its inherited effect gains 1 memory when an opposing Tamer becomes suspended", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT4-085", as: "host", under: ["BT4-081"] }] },
+      0: { battleArea: [{ card: "BT4-087", as: "host", under: ["BT4-084"] }] },
       1: { battleArea: [{ card: "BT1-085", as: "tamer" }] },
     });
     s.state.turnSeat = 1;
@@ -37,7 +37,7 @@ describe("BT4-084 NeoDevimon", () => {
 
   it("gains only 1 memory when multiple opposing Tamers suspend together", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT4-085", as: "host", under: ["BT4-081"] }] },
+      0: { battleArea: [{ card: "BT4-087", as: "host", under: ["BT4-084"] }] },
       1: {
         battleArea: [
           { card: "BT1-085", as: "first" },

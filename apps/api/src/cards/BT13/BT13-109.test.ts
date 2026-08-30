@@ -1,6 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-109.js";
 
@@ -31,13 +32,14 @@ describe("BT13-109 BT13-109", () => {
       kind: "Delete",
       cost: {
         kind: "trash",
+        bindResultAs: "trashedHandDigimon",
         target: { filter: { zone: "hand", kind: ["Digimon"] } },
       },
       target: {
         filter: {
           controller: "opponent",
           kind: ["Digimon"],
-          levelComparison: { op: "lte", relativeTo: "lastDeleted" },
+          relativeTo: { attr: "level", op: "lte", selectionRef: "trashedHandDigimon" },
         },
       },
     });
@@ -47,6 +49,44 @@ describe("BT13-109 BT13-109", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT13-109", as: "card" }] } });
     await s.ready();
     expect(s.perm("card").topCard?.cardId).toBe("BT13-109");
+  });
+
+  it("deletes an opponent Digimon at or below the trashed hand Digimon's level", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-109", as: "gift" }],
+          hand: [{ card: "BT13-077", as: "payment" }],
+        },
+        1: { battleArea: [{ card: "BT13-077", as: "level-six" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.Security, s.perm("gift"));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("does not trash the payment when no opponent Digimon is within its level bound", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-109", as: "gift" }],
+          hand: [{ card: "BT13-077", as: "payment" }],
+        },
+        1: { battleArea: [{ card: "BT13-092", as: "level-seven" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.Security, s.perm("gift"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("digivolves a legal level 5 purple Digimon into Sleep Mode from trash for free", async () => {

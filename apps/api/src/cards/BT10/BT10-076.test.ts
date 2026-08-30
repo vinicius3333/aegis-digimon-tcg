@@ -27,7 +27,7 @@ describe("BT10-076 Troopmon", () => {
     expect(s.state.players[1]!.battleArea[0]!.stack.some((card) => card.instanceId === s.inst("opponentSource").instanceId)).toBe(
       true,
     );
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(-3);
   });
 
   it("trashes one of its digivolution cards to gain memory when the opponent plays a card", async () => {

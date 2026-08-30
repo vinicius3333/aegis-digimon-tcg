@@ -77,11 +77,17 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
   it("Burst Digivolves from Rosemon by returning Yoshino and trashes the former top at turn end", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT13-057", as: "base" }, { card: "BT13-100", as: "yoshino" }],
+        battleArea: [
+          { card: "BT13-057", as: "base" },
+          { card: "BT13-100", as: "yoshino" },
+        ],
         hand: [{ card: "BT13-060", as: "burst" }],
       },
       1: {
-        battleArea: [{ card: "BT13-111", as: "digimon" }, { card: "BT13-095", as: "tamer" }],
+        battleArea: [
+          { card: "BT13-111", as: "digimon" },
+          { card: "BT13-095", as: "tamer" },
+        ],
       },
     });
     const priorTopId = s.perm("base").topCard.instanceId;
@@ -109,7 +115,10 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
   it("requires an exact Yoshino Fujieda Tamer for Burst Digivolve", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT13-057", as: "base" }, { card: "ST24-14", as: "nearName" }],
+        battleArea: [
+          { card: "BT13-057", as: "base" },
+          { card: "ST24-14", as: "nearName" },
+        ],
         hand: [{ card: "BT13-060", as: "burst" }],
       },
     });
@@ -127,7 +136,10 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
   it("rejects Rosemon (X Antibody) as the exact Rosemon Burst Digivolve host", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT15-054", as: "roseX" }, { card: "BT13-100", as: "yoshino" }],
+        battleArea: [
+          { card: "BT15-054", as: "roseX" },
+          { card: "BT13-100", as: "yoshino" },
+        ],
         hand: [{ card: "BT13-060", as: "burst" }],
       },
     });
@@ -152,7 +164,7 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
     });
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("attacker"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
 
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
@@ -170,7 +182,7 @@ describe("BT13-060 Rosemon: Burst Mode", () => {
     });
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("attacker"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
 
     expect(s.state.players[1]!.security).toHaveLength(1);
   });

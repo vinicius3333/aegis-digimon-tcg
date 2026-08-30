@@ -35,7 +35,7 @@ describe("BT4-063 Commandramon", () => {
         0: { battleArea: [{ card: "BT4-063", dp: 1000, as: "command" }], deck: ["BT4-063", "BT1-009", "BT1-010"] },
         1: { battleArea: [{ card: "BT2-083", dp: 12000, suspended: true, as: "defender" }] },
       },
-      { autoSelectCards: true, autoAcceptOptional: false },
+      { autoSelectCards: false },
     );
     const originalId = s.perm("command").permanentId;
     expect(
@@ -46,13 +46,13 @@ describe("BT4-063 Commandramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === originalId));
-    await settle(() => s.state.pendingDecision?.kind === "confirm");
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: decision.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 3);

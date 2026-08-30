@@ -100,7 +100,7 @@ describe("BT6-111 Alphamon", () => {
           security: [{ card: "BT6-111", as: "security" }],
         },
         1: {
-          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 13000 }],
         },
       },
       { autoSelectCards: true },

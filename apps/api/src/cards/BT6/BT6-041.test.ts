@@ -36,6 +36,7 @@ describe("BT6-041 Manticoremon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const targetId = s.perm("target").permanentId;
+    const attackerId = s.perm("manticoremon").topCard.instanceId;
     const combat = (s.engine as unknown as { combat: { isAttacking: boolean } }).combat;
 
     expect(
@@ -48,6 +49,7 @@ describe("BT6-041 Manticoremon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 0 && !combat.isAttacking);
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("target").currentDP).toBe(10000);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([attackerId]);
   });
 });

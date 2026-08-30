@@ -64,6 +64,7 @@ function makeCtx(
     ? [
         {
           permanentId: rasenmonPermanentId,
+          controllerSeat: 0 as Seat,
           topCard: card("rasenmon-top", RASENMON_ID, 0),
           isSuspended: false,
           stack: [] as CardInstance[],
@@ -77,6 +78,7 @@ function makeCtx(
     ? [
         {
           permanentId: opponentDigimonPermanentId,
+          controllerSeat: 1 as Seat,
           topCard: card("opp-top", OTHER_DIGIMON_ID, 1),
           isSuspended: false,
           stack: [] as CardInstance[],
