@@ -48,13 +48,13 @@ describe("BT19-035 ShootingStarmon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("other"), "SecurityAttack")).toBe(0);
 
     await advance(s.engine).recompute();
-    // The shared use key is already consumed by the self-play path, so the
-    // continuous pass must not install a fresh watcher during the same turn.
-    expect(
-      advance(s.engine)
-        .ledgers.subTriggers.subscriptionsFor("whenPlayed")
-        .some((subscription) => subscription.sourcePermanentId === s.perm("shooting").permanentId),
-    ).toBe(false);
+    // The resident watcher remains installed after recompute, but its shared
+    // once-per-turn key is consumed by the self-play event.
+    const watcher = advance(s.engine)
+      .ledgers.subTriggers.subscriptionsFor("whenPlayed")
+      .find((subscription) => subscription.sourcePermanentId === s.perm("shooting").permanentId);
+    expect(watcher?.oncePerTurnKey).toBeDefined();
+    expect(advance(s.engine).ledgers.tracker.count(watcher!.oncePerTurnKey!, "subtrigger")).toBe(1);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("second").instanceId })).toEqual({
       ok: true,
     });
